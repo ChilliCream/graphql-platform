@@ -199,7 +199,6 @@ public sealed class CreateOpenApiCollectionCommandTests
         // assert
         result.AssertSuccess(
             """
-
             {
               "id": "oa-1",
               "name": "my-openapi"

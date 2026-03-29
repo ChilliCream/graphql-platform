@@ -350,7 +350,7 @@ public sealed class FusionSettingsSetCommandTests : IDisposable
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        Assert.Empty(result.StdOut);
+        Assert.Equal("{}", result.StdOut);
         Assert.Empty(result.StdErr);
     }
 

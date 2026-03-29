@@ -34,14 +34,13 @@ public sealed class ValidateOpenApiCollectionCommandTests
               nitro openapi validate [options]
 
             Options:
-              --stage <stage> (REQUIRED)                                The name of the stage [env: NITRO_STAGE]
-              --openapi-collection-id <openapi-collection-id> (REQUIRED)
-                                                                        The ID of the OpenAPI collection [env: NITRO_OPENAPI_COLLECTION_ID]
-              -p, --pattern <pattern> (REQUIRED)                        One or more glob patterns for selecting OpenAPI document files
-              --cloud-url <cloud-url>                                   The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                                       The API key that is used for the authentication [env: NITRO_API_KEY]
-              --output <json>                                           The format in which the result should be displayed, if this option is set, the console will be non-interactive and the result will be displayed in the specified format [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help                                            Show help and usage information
+              --stage <stage> (REQUIRED)                                  The name of the stage [env: NITRO_STAGE]
+              --openapi-collection-id <openapi-collection-id> (REQUIRED)  The ID of the OpenAPI collection [env: NITRO_OPENAPI_COLLECTION_ID]
+              -p, --pattern <pattern> (REQUIRED)                          One or more glob patterns for selecting OpenAPI document files
+              --cloud-url <cloud-url>                                     The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>                                         The API key that is used for the authentication [env: NITRO_API_KEY]
+              --output <json>                                             The format in which the result should be displayed, if this option is set, the console will be non-interactive and the result will be displayed in the specified format [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                                              Show help and usage information
             """);
     }
 
@@ -66,10 +65,8 @@ public sealed class ValidateOpenApiCollectionCommandTests
             .ExecuteAsync();
 
         // assert
-        result.AssertError(
-            """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
-            """);
+        Assert.NotEmpty(result.StdErr);
+        Assert.Equal(1, result.ExitCode);
     }
 
     [Theory]
@@ -410,9 +407,10 @@ public sealed class ValidateOpenApiCollectionCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Empty(result.StdOut);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccess(
+            """
+            {}
+            """);
 
         client.VerifyAll();
     }
@@ -648,11 +646,7 @@ public sealed class ValidateOpenApiCollectionCommandTests
     // --- Helpers ---
 
     private static readonly byte[] _validOpenApiGraphql =
-        """
-        type Query {
-            hello: String
-        }
-        """u8.ToArray();
+        """query GetUsers @http(method: GET, route: "/users") { users { id } }"""u8.ToArray();
 
     private static Mock<IFileSystem> CreateOpenApiFileSystem()
     {

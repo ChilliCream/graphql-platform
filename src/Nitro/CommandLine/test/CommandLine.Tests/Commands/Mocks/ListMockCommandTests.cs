@@ -161,10 +161,8 @@ public sealed class ListMockCommandTests
         mocksClient.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task WithApiId_ReturnsSuccess(InteractionMode mode)
+    [Fact]
+    public async Task WithApiId_ReturnsSuccess_NonInteractive()
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -189,7 +187,7 @@ public sealed class ListMockCommandTests
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "mock",
                 "list",
@@ -240,10 +238,84 @@ public sealed class ListMockCommandTests
         mocksClient.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task WithApiId_WithCursor_ReturnsSuccess(InteractionMode mode)
+    [Fact]
+    public async Task WithApiId_ReturnsSuccess_JsonOutput()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var mocksClient = new Mock<IMocksClient>(MockBehavior.Strict);
+        mocksClient.Setup(x => x.ListMockSchemasAsync(
+                "api-1",
+                null,
+                10,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateListMockSchemasPage(
+                endCursor: null,
+                hasNextPage: false,
+                ("mock-1", "Mock One", "https://mock.example.com/1", new Uri("https://downstream.example.com/1"),
+                    "user1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero),
+                    "user2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero)),
+                ("mock-2", "Mock Two", "https://mock.example.com/2", new Uri("https://downstream.example.com/2"),
+                    "user3", new DateTimeOffset(2025, 2, 10, 10, 0, 0, TimeSpan.Zero),
+                    "user4", new DateTimeOffset(2025, 2, 11, 10, 0, 0, TimeSpan.Zero))));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(mocksClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "mock",
+                "list",
+                "--api-id",
+                "api-1")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "values": [
+                {
+                  "id": "mock-1",
+                  "name": "Mock One",
+                  "url": "https://mock.example.com/1",
+                  "downstreamUrl": "https://downstream.example.com/1",
+                  "createdBy": {
+                    "username": "user1",
+                    "createdAt": "2025-01-15T10:00:00+00:00"
+                  },
+                  "modifiedBy": {
+                    "username": "user2",
+                    "modifiedAt": "2025-01-16T10:00:00+00:00"
+                  }
+                },
+                {
+                  "id": "mock-2",
+                  "name": "Mock Two",
+                  "url": "https://mock.example.com/2",
+                  "downstreamUrl": "https://downstream.example.com/2",
+                  "createdBy": {
+                    "username": "user3",
+                    "createdAt": "2025-02-10T10:00:00+00:00"
+                  },
+                  "modifiedBy": {
+                    "username": "user4",
+                    "modifiedAt": "2025-02-11T10:00:00+00:00"
+                  }
+                }
+              ],
+              "cursor": null
+            }
+            """);
+
+        apisClient.VerifyAll();
+        mocksClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task WithApiId_WithCursor_ReturnsSuccess_NonInteractive()
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -265,7 +337,7 @@ public sealed class ListMockCommandTests
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "mock",
                 "list",
@@ -279,6 +351,67 @@ public sealed class ListMockCommandTests
         result.AssertSuccess(
             """
 
+            {
+              "values": [
+                {
+                  "id": "mock-1",
+                  "name": "Mock One",
+                  "url": "https://mock.example.com/1",
+                  "downstreamUrl": "https://downstream.example.com/1",
+                  "createdBy": {
+                    "username": "user1",
+                    "createdAt": "2025-01-15T10:00:00+00:00"
+                  },
+                  "modifiedBy": {
+                    "username": "user2",
+                    "modifiedAt": "2025-01-16T10:00:00+00:00"
+                  }
+                }
+              ],
+              "cursor": "cursor-2"
+            }
+            """);
+
+        apisClient.VerifyAll();
+        mocksClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task WithApiId_WithCursor_ReturnsSuccess_JsonOutput()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var mocksClient = new Mock<IMocksClient>(MockBehavior.Strict);
+        mocksClient.Setup(x => x.ListMockSchemasAsync(
+                "api-1",
+                "cursor-1",
+                10,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateListMockSchemasPage(
+                endCursor: "cursor-2",
+                hasNextPage: true,
+                ("mock-1", "Mock One", "https://mock.example.com/1", new Uri("https://downstream.example.com/1"),
+                    "user1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero),
+                    "user2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero))));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(mocksClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "mock",
+                "list",
+                "--api-id",
+                "api-1",
+                "--cursor",
+                "cursor-1")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
             {
               "values": [
                 {
@@ -341,10 +474,8 @@ public sealed class ListMockCommandTests
         mocksClient.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task WithApiId_NoData_ReturnsSuccess(InteractionMode mode)
+    [Fact]
+    public async Task WithApiId_NoData_ReturnsSuccess_NonInteractive()
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -361,7 +492,7 @@ public sealed class ListMockCommandTests
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "mock",
                 "list",
@@ -373,6 +504,45 @@ public sealed class ListMockCommandTests
         result.AssertSuccess(
             """
 
+            {
+              "values": [],
+              "cursor": null
+            }
+            """);
+
+        apisClient.VerifyAll();
+        mocksClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task WithApiId_NoData_ReturnsSuccess_JsonOutput()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var mocksClient = new Mock<IMocksClient>(MockBehavior.Strict);
+        mocksClient.Setup(x => x.ListMockSchemasAsync(
+                "api-1",
+                null,
+                10,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateListMockSchemasPage());
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(mocksClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "mock",
+                "list",
+                "--api-id",
+                "api-1")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
             {
               "values": [],
               "cursor": null

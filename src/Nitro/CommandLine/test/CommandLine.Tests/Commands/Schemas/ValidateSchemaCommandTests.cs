@@ -412,7 +412,7 @@ public sealed class ValidateSchemaCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Empty(result.StdOut);
+        Assert.Equal("{}", result.StdOut);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
 

@@ -199,7 +199,6 @@ public sealed class CreateMcpFeatureCollectionCommandTests
         // assert
         result.AssertSuccess(
             """
-
             {
               "id": "mcp-1",
               "name": "my-mcp"

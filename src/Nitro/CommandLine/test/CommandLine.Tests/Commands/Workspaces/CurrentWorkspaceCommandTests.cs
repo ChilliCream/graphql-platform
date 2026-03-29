@@ -146,8 +146,9 @@ public sealed class CurrentWorkspaceCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Empty(result.StdOut);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccess(
+            """
+            {}
+            """);
     }
 }

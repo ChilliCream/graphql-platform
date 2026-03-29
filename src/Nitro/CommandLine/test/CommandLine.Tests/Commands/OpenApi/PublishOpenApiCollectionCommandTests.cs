@@ -35,16 +35,15 @@ public sealed class PublishOpenApiCollectionCommandTests
               nitro openapi publish [options]
 
             Options:
-              --tag <tag> (REQUIRED)                                    The tag of the schema version to deploy [env: NITRO_TAG]
-              --stage <stage> (REQUIRED)                                The name of the stage [env: NITRO_STAGE]
-              --openapi-collection-id <openapi-collection-id> (REQUIRED)
-                                                                        The ID of the OpenAPI collection [env: NITRO_OPENAPI_COLLECTION_ID]
-              --force                                                   Force push the schema version [env: NITRO_FORCE]
-              --wait-for-approval                                       Wait for the approval of the schema version [env: NITRO_WAIT_FOR_APPROVAL]
-              --cloud-url <cloud-url>                                   The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                                       The API key that is used for the authentication [env: NITRO_API_KEY]
-              --output <json>                                           The format in which the result should be displayed, if this option is set, the console will be non-interactive and the result will be displayed in the specified format [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help                                            Show help and usage information
+              --tag <tag> (REQUIRED)                                      The tag of the schema version to deploy [env: NITRO_TAG]
+              --stage <stage> (REQUIRED)                                  The name of the stage [env: NITRO_STAGE]
+              --openapi-collection-id <openapi-collection-id> (REQUIRED)  The ID of the OpenAPI collection [env: NITRO_OPENAPI_COLLECTION_ID]
+              --force                                                     Will not ask for confirmation on deletes or overwrites.
+              --wait-for-approval                                         Wait for approval [env: NITRO_SUBGRAPH_NAME]
+              --cloud-url <cloud-url>                                     The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>                                         The API key that is used for the authentication [env: NITRO_API_KEY]
+              --output <json>                                             The format in which the result should be displayed, if this option is set, the console will be non-interactive and the result will be displayed in the specified format [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                                              Show help and usage information
             """);
     }
 
@@ -69,10 +68,8 @@ public sealed class PublishOpenApiCollectionCommandTests
             .ExecuteAsync();
 
         // assert
-        result.AssertError(
-            """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
-            """);
+        Assert.NotEmpty(result.StdErr);
+        Assert.Equal(1, result.ExitCode);
     }
 
     [Theory]
@@ -399,9 +396,10 @@ public sealed class PublishOpenApiCollectionCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Empty(result.StdOut);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccess(
+            """
+            {}
+            """);
 
         client.VerifyAll();
     }

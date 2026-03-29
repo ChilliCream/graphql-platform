@@ -581,9 +581,7 @@ public sealed class DownloadClientCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Empty(result.StdOut);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccess("{}");
 
         var written = Encoding.UTF8.GetString(fileStream.ToArray());
         Assert.Contains("doc-1", written);
@@ -801,9 +799,7 @@ public sealed class DownloadClientCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Empty(result.StdOut);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccess("{}");
 
         var written = Encoding.UTF8.GetString(docFileStream.ToArray());
         Assert.Equal("query { hello }", written);

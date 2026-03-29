@@ -8,6 +8,7 @@ using ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Exceptions;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.SourceSchema.Packaging;
@@ -63,8 +64,8 @@ internal sealed class FusionPublishCommand : Command
         {
             var exclusiveOptionsCount = new[]
             {
-                result.GetValue(Opt<OptionalSourceSchemaFileListOption>.Instance) is not null,
-                result.GetValue(Opt<OptionalSourceSchemaIdentifierListOption>.Instance) is not null,
+                result.GetValue(Opt<OptionalSourceSchemaFileListOption>.Instance) is { Count: > 0 },
+                result.GetValue(Opt<OptionalSourceSchemaIdentifierListOption>.Instance) is { Count: > 0 },
                 result.GetValue(Opt<OptionalFusionArchiveFileOption>.Instance) is not null
             }.Count(x => x);
 
@@ -283,9 +284,13 @@ internal sealed class FusionPublishCommand : Command
                     cancellationToken);
             }
         }
+        catch (NitroClientException)
+        {
+            throw;
+        }
         catch (Exception exception)
         {
-            console.WriteLine(exception.Message);
+            await console.Error.WriteLineAsync(exception.Message);
 
             if (!string.IsNullOrEmpty(requestId))
             {
@@ -374,9 +379,13 @@ internal sealed class FusionPublishCommand : Command
                 await UploadConfigurationAsync(archiveStream, commitActivity);
             }
         }
+        catch (NitroClientException)
+        {
+            throw;
+        }
         catch (Exception exception)
         {
-            console.WriteLine(exception.Message);
+            await console.Error.WriteLineAsync(exception.Message);
 
             if (!string.IsNullOrEmpty(requestId))
             {

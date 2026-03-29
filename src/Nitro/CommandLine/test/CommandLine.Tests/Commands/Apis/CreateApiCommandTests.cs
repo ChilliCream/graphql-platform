@@ -205,7 +205,6 @@ public sealed class CreateApiCommandTests
         // assert
         result.AssertSuccess(
             """
-
             {
               "id": "api-1",
               "name": "my-api",

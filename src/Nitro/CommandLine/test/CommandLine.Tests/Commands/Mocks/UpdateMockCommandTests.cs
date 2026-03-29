@@ -213,7 +213,6 @@ public sealed class UpdateMockCommandTests
         // assert
         result.AssertSuccess(
             """
-
             {
               "id": "mock-1",
               "name": "updated-mock",

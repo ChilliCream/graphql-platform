@@ -193,7 +193,6 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
         // assert
         result.AssertSuccess(
             """
-
             {
               "id": "mcp-1",
               "name": "my-mcp"

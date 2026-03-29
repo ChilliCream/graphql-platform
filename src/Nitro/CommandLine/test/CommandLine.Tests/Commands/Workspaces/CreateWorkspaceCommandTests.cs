@@ -144,7 +144,6 @@ public sealed class CreateWorkspaceCommandTests
         // assert
         result.AssertSuccess(
             """
-
             {
               "id": "ws-1",
               "name": "my-workspace",

@@ -96,7 +96,6 @@ public sealed class ShowWorkspaceCommandTests
     [Theory]
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
     public async Task WithWorkspaceId_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
@@ -121,6 +120,40 @@ public sealed class ShowWorkspaceCommandTests
         result.AssertSuccess(
             """
 
+            {
+              "id": "ws-1",
+              "name": "my-workspace",
+              "personal": false
+            }
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task WithWorkspaceId_ReturnsSuccess_JsonOutput()
+    {
+        // arrange
+        var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
+        client.Setup(x => x.ShowWorkspaceAsync(
+                "ws-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ShowWorkspaceCommandQuery_Node_Workspace("ws-1", "my-workspace", false));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "workspace",
+                "show",
+                "ws-1")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
             {
               "id": "ws-1",
               "name": "my-workspace",

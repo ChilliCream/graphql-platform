@@ -152,7 +152,6 @@ public sealed class CreatePersonalAccessTokenCommandTests
         // assert
         result.AssertSuccess(
             """
-
             {
               "secret": "secret-123",
               "details": {

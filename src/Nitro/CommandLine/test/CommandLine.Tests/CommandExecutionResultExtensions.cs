@@ -1,6 +1,8 @@
+using System.Text.RegularExpressions;
+
 namespace ChilliCream.Nitro.CommandLine.Tests;
 
-internal static class CommandExecutionResultExtensions
+internal static partial class CommandExecutionResultExtensions
 {
     public static void AssertError(this CommandResult result, string stderr)
     {
@@ -19,7 +21,12 @@ internal static class CommandExecutionResultExtensions
     public static void AssertHelpOutput(this CommandResult result, string stdout)
     {
         Assert.Empty(result.StdErr);
-        result.StdOut.Replace(result.ExecutableName, "nitro").MatchInlineSnapshot(stdout);
+        var output = result.StdOut.Replace(result.ExecutableName, "nitro");
+        output = TfmPathRegex().Replace(output, "bin/Debug/netX.0");
+        output.MatchInlineSnapshot(stdout);
         Assert.Equal(0, result.ExitCode);
     }
+
+    [GeneratedRegex(@"bin/Debug/net\d+\.\d+")]
+    private static partial Regex TfmPathRegex();
 }

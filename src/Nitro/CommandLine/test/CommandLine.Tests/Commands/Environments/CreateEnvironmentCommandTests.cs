@@ -215,7 +215,6 @@ public sealed class CreateEnvironmentCommandTests
         // assert
         result.AssertSuccess(
             """
-
             {
               "id": "env-1",
               "name": "production",

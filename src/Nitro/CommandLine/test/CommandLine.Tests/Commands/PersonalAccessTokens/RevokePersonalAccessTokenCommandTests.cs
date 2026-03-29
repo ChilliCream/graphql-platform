@@ -190,7 +190,6 @@ public sealed class RevokePersonalAccessTokenCommandTests
         // assert
         result.AssertSuccess(
             """
-
             {
               "id": "pat-1",
               "description": "my-token",

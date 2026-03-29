@@ -104,10 +104,8 @@ public sealed class ListWorkspaceCommandTests
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task WithApiKey_ReturnsSuccess(InteractionMode mode)
+    [Fact]
+    public async Task WithApiKey_ReturnsSuccess_NonInteractive()
     {
         // arrange
         var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
@@ -125,7 +123,7 @@ public sealed class ListWorkspaceCommandTests
         var result = await new CommandBuilder()
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "workspace",
                 "list")
@@ -135,6 +133,54 @@ public sealed class ListWorkspaceCommandTests
         result.AssertSuccess(
             """
 
+            {
+              "values": [
+                {
+                  "id": "ws-1",
+                  "name": "my-workspace",
+                  "personal": false
+                },
+                {
+                  "id": "ws-2",
+                  "name": "personal-workspace",
+                  "personal": true
+                }
+              ],
+              "cursor": "cursor-2"
+            }
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task WithApiKey_ReturnsSuccess_JsonOutput()
+    {
+        // arrange
+        var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
+        client.Setup(x => x.ListWorkspacesAsync(
+                null,
+                10,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateListWorkspacesPage(
+                "cursor-2",
+                true,
+                ("ws-1", "my-workspace", false),
+                ("ws-2", "personal-workspace", true)));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "workspace",
+                "list")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
             {
               "values": [
                 {
@@ -196,10 +242,8 @@ public sealed class ListWorkspaceCommandTests
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task WithApiKey_NoData_ReturnsSuccess(InteractionMode mode)
+    [Fact]
+    public async Task WithApiKey_NoData_ReturnsSuccess_NonInteractive()
     {
         // arrange
         var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
@@ -213,7 +257,7 @@ public sealed class ListWorkspaceCommandTests
         var result = await new CommandBuilder()
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "workspace",
                 "list")
@@ -223,6 +267,39 @@ public sealed class ListWorkspaceCommandTests
         result.AssertSuccess(
             """
 
+            {
+              "values": [],
+              "cursor": null
+            }
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task WithApiKey_NoData_ReturnsSuccess_JsonOutput()
+    {
+        // arrange
+        var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
+        client.Setup(x => x.ListWorkspacesAsync(
+                null,
+                10,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateListWorkspacesPage());
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "workspace",
+                "list")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
             {
               "values": [],
               "cursor": null
@@ -298,10 +375,8 @@ public sealed class ListWorkspaceCommandTests
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task WithCursor_ReturnsSuccess(InteractionMode mode)
+    [Fact]
+    public async Task WithCursor_ReturnsSuccess_NonInteractive()
     {
         // arrange
         var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
@@ -318,7 +393,7 @@ public sealed class ListWorkspaceCommandTests
         var result = await new CommandBuilder()
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "workspace",
                 "list",
@@ -330,6 +405,50 @@ public sealed class ListWorkspaceCommandTests
         result.AssertSuccess(
             """
 
+            {
+              "values": [
+                {
+                  "id": "ws-1",
+                  "name": "my-workspace",
+                  "personal": false
+                }
+              ],
+              "cursor": null
+            }
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task WithCursor_ReturnsSuccess_JsonOutput()
+    {
+        // arrange
+        var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
+        client.Setup(x => x.ListWorkspacesAsync(
+                "cursor-1",
+                10,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateListWorkspacesPage(
+                null,
+                false,
+                ("ws-1", "my-workspace", false)));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "workspace",
+                "list",
+                "--cursor",
+                "cursor-1")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
             {
               "values": [
                 {

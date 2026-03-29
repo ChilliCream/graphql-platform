@@ -439,7 +439,7 @@ public sealed class FusionValidateCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Empty(result.StdOut);
+        Assert.Equal("{}", result.StdOut);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
 
@@ -601,25 +601,25 @@ public sealed class FusionValidateCommandTests
         var memoryStream = new MemoryStream();
         using (var zip = new ZipArchive(memoryStream, ZipArchiveMode.Create, leaveOpen: true))
         {
-            // archive-metadata.json is required for IsFarFormat detection
+            // archive-metadata.json is required for IsFarFormat detection and metadata parsing
             var metadataEntry = zip.CreateEntry("archive-metadata.json");
             using (var writer = new StreamWriter(metadataEntry.Open()))
             {
-                writer.Write("""{"formatVersion":"1.0"}""");
+                writer.Write("""{"formatVersion":"1.0.0","supportedGatewayFormats":["1.0"],"sourceSchemas":[]}""");
             }
 
-            // gateway/v1/fusion.graphql is the schema file
-            var schemaEntry = zip.CreateEntry("gateway/v1/fusion.graphql");
+            // gateway/1.0/gateway.graphqls is the schema file
+            var schemaEntry = zip.CreateEntry("gateway/1.0/gateway.graphqls");
             using (var writer = new StreamWriter(schemaEntry.Open()))
             {
                 writer.Write("type Query { hello: String }");
             }
 
-            // gateway-metadata.json with version info
-            var gatewayMetadata = zip.CreateEntry("gateway-metadata.json");
-            using (var writer = new StreamWriter(gatewayMetadata.Open()))
+            // gateway/1.0/gateway-settings.json is the settings file
+            var settingsEntry = zip.CreateEntry("gateway/1.0/gateway-settings.json");
+            using (var writer = new StreamWriter(settingsEntry.Open()))
             {
-                writer.Write("""{"latestSupportedFormatVersion":"v1","formatVersions":["v1"]}""");
+                writer.Write("{}");
             }
         }
 

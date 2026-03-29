@@ -35,7 +35,7 @@ internal sealed class FusionValidateCommand : Command
         {
             var exclusiveOptionsCount = new[]
             {
-                result.GetValue(Opt<OptionalSourceSchemaFileListOption>.Instance) is not null,
+                result.GetValue(Opt<OptionalSourceSchemaFileListOption>.Instance) is { Count: > 0 },
                 result.GetValue(Opt<OptionalFusionArchiveFileOption>.Instance) is not null
             }.Count(x => x);
 

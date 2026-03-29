@@ -159,10 +159,8 @@ public sealed class ListEnvironmentCommandTests
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task WithWorkspaceId_ReturnSuccess(InteractionMode mode)
+    [Fact]
+    public async Task WithWorkspaceId_ReturnSuccess_NonInteractive()
     {
         // arrange
         var client = new Mock<IEnvironmentsClient>(MockBehavior.Strict);
@@ -180,7 +178,7 @@ public sealed class ListEnvironmentCommandTests
         var result = await new CommandBuilder()
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "environment",
                 "list",
@@ -192,6 +190,53 @@ public sealed class ListEnvironmentCommandTests
         result.AssertSuccess(
             """
 
+            {
+              "values": [
+                {
+                  "id": "env-1",
+                  "name": "production",
+                  "workspace": {
+                    "name": "workspace-a"
+                  }
+                }
+              ],
+              "cursor": null
+            }
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task WithWorkspaceId_ReturnSuccess_JsonOutput()
+    {
+        // arrange
+        var client = new Mock<IEnvironmentsClient>(MockBehavior.Strict);
+        client.Setup(x => x.ListEnvironmentsAsync(
+                "ws-1",
+                null,
+                10,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateListEnvironmentsPage(
+                endCursor: null,
+                hasNextPage: false,
+                ("env-1", "production", "workspace-a")));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "environment",
+                "list",
+                "--workspace-id",
+                "ws-1")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
             {
               "values": [
                 {
@@ -280,10 +325,8 @@ public sealed class ListEnvironmentCommandTests
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task WithCursor_ReturnSuccess(InteractionMode mode)
+    [Fact]
+    public async Task WithCursor_ReturnSuccess_NonInteractive()
     {
         // arrange
         var client = new Mock<IEnvironmentsClient>(MockBehavior.Strict);
@@ -301,7 +344,7 @@ public sealed class ListEnvironmentCommandTests
         var result = await new CommandBuilder()
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "environment",
                 "list",
@@ -315,6 +358,55 @@ public sealed class ListEnvironmentCommandTests
         result.AssertSuccess(
             """
 
+            {
+              "values": [
+                {
+                  "id": "env-2",
+                  "name": "staging",
+                  "workspace": {
+                    "name": "workspace-a"
+                  }
+                }
+              ],
+              "cursor": null
+            }
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task WithCursor_ReturnSuccess_JsonOutput()
+    {
+        // arrange
+        var client = new Mock<IEnvironmentsClient>(MockBehavior.Strict);
+        client.Setup(x => x.ListEnvironmentsAsync(
+                "ws-1",
+                "cursor-1",
+                10,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateListEnvironmentsPage(
+                endCursor: null,
+                hasNextPage: false,
+                ("env-2", "staging", "workspace-a")));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "environment",
+                "list",
+                "--workspace-id",
+                "ws-1",
+                "--cursor",
+                "cursor-1")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
             {
               "values": [
                 {

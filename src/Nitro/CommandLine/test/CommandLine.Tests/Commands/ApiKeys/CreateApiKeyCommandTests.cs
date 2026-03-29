@@ -307,7 +307,6 @@ public sealed class CreateApiKeyCommandTests
         // assert
         result.AssertSuccess(
             """
-
             {
               "secret": "secret-123",
               "details": {
@@ -406,7 +405,6 @@ public sealed class CreateApiKeyCommandTests
         // assert
         result.AssertSuccess(
             """
-
             {
               "secret": "secret-xyz",
               "details": {
@@ -456,7 +454,6 @@ public sealed class CreateApiKeyCommandTests
         // assert
         result.AssertSuccess(
             """
-
             {
               "secret": "secret-xyz",
               "details": {

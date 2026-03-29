@@ -190,7 +190,6 @@ public sealed class CreateMockCommandTests
         // assert
         result.AssertSuccess(
             """
-
             {
               "id": "mock-1",
               "name": "my-mock",

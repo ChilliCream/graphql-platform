@@ -96,7 +96,6 @@ public sealed class ShowClientCommandTests
     [Theory]
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
     public async Task WithClientId_ReturnSuccess(InteractionMode mode)
     {
         // arrange
@@ -121,6 +120,42 @@ public sealed class ShowClientCommandTests
         result.AssertSuccess(
             """
 
+            {
+              "id": "client-1",
+              "name": "web-client",
+              "api": {
+                "name": "products"
+              }
+            }
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task WithClientId_ReturnSuccess_JsonOutput()
+    {
+        // arrange
+        var client = new Mock<IClientsClient>(MockBehavior.Strict);
+        client.Setup(x => x.ShowClientAsync(
+                "client-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateShowClientNode("client-1", "web-client", "products"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "client",
+                "show",
+                "client-1")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
             {
               "id": "client-1",
               "name": "web-client",

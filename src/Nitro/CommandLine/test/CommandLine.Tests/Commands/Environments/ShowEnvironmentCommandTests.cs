@@ -96,7 +96,6 @@ public sealed class ShowEnvironmentCommandTests
     [Theory]
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
     public async Task WithEnvironmentId_ReturnSuccess(InteractionMode mode)
     {
         // arrange
@@ -121,6 +120,42 @@ public sealed class ShowEnvironmentCommandTests
         result.AssertSuccess(
             """
 
+            {
+              "id": "environment-1",
+              "name": "production",
+              "workspace": {
+                "name": "workspace-a"
+              }
+            }
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task WithEnvironmentId_ReturnSuccess_JsonOutput()
+    {
+        // arrange
+        var client = new Mock<IEnvironmentsClient>(MockBehavior.Strict);
+        client.Setup(x => x.ShowEnvironmentAsync(
+                "environment-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateShowEnvironmentNode("environment-1", "production", "workspace-a"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "environment",
+                "show",
+                "environment-1")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
             {
               "id": "environment-1",
               "name": "production",

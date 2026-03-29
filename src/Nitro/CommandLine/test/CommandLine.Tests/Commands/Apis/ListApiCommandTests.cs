@@ -238,10 +238,8 @@ public sealed class ListApiCommandTests
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task WithWorkspaceIdFromSession_ReturnsSuccess(InteractionMode mode)
+    [Fact]
+    public async Task WithWorkspaceIdFromSession_ReturnsSuccess_NonInteractive()
     {
         // arrange
         var client = new Mock<IApisClient>(MockBehavior.Strict);
@@ -260,7 +258,75 @@ public sealed class ListApiCommandTests
         var result = await new CommandBuilder()
             .AddService(client.Object)
             .AddSessionWithWorkspace()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "api",
+                "list")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
+
+            {
+              "values": [
+                {
+                  "id": "api-1",
+                  "name": "products",
+                  "path": "products",
+                  "workspace": {
+                    "name": "Workspace"
+                  },
+                  "apiDetailPromptSettings": {
+                    "apiDetailPromptSchemaRegistry": {
+                      "treatDangerousAsBreaking": true,
+                      "allowBreakingSchemaChanges": false
+                    }
+                  }
+                },
+                {
+                  "id": "api-2",
+                  "name": "catalog",
+                  "path": "catalog",
+                  "workspace": {
+                    "name": "Workspace"
+                  },
+                  "apiDetailPromptSettings": {
+                    "apiDetailPromptSchemaRegistry": {
+                      "treatDangerousAsBreaking": true,
+                      "allowBreakingSchemaChanges": false
+                    }
+                  }
+                }
+              ],
+              "cursor": "cursor-2"
+            }
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task WithWorkspaceIdFromSession_ReturnsSuccess_JsonOutput()
+    {
+        // arrange
+        var client = new Mock<IApisClient>(MockBehavior.Strict);
+        client.Setup(x => x.ListApisAsync(
+                "workspace-from-session",
+                null,
+                10,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ApiCommandTestHelper.CreateListApisPage(
+                "cursor-2",
+                true,
+                ("api-1", "products", new[] { "products" }, "Workspace"),
+                ("api-2", "catalog", new[] { "catalog" }, "Workspace")));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddSessionWithWorkspace()
+            .AddInteractionMode(InteractionMode.JsonOutput)
             .AddArguments(
                 "api",
                 "list")
@@ -351,10 +417,8 @@ public sealed class ListApiCommandTests
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task WithWorkspaceId_NoData_ReturnsSuccess(InteractionMode mode)
+    [Fact]
+    public async Task WithWorkspaceId_NoData_ReturnsSuccess_NonInteractive()
     {
         // arrange
         var client = new Mock<IApisClient>(MockBehavior.Strict);
@@ -369,7 +433,44 @@ public sealed class ListApiCommandTests
         var result = await new CommandBuilder()
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "api",
+                "list",
+                "--workspace-id",
+                "ws-1")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
+
+            {
+              "values": [],
+              "cursor": null
+            }
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task WithWorkspaceId_NoData_ReturnsSuccess_JsonOutput()
+    {
+        // arrange
+        var client = new Mock<IApisClient>(MockBehavior.Strict);
+        client.Setup(x => x.ListApisAsync(
+                "ws-1",
+                null,
+                10,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ApiCommandTestHelper.CreateListApisPage());
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
             .AddArguments(
                 "api",
                 "list",
@@ -466,10 +567,8 @@ public sealed class ListApiCommandTests
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task WithCursor_ReturnsSuccess(InteractionMode mode)
+    [Fact]
+    public async Task WithCursor_ReturnsSuccess_NonInteractive()
     {
         // arrange
         var client = new Mock<IApisClient>(MockBehavior.Strict);
@@ -488,7 +587,63 @@ public sealed class ListApiCommandTests
             .AddService(client.Object)
             .AddApiKey()
             .AddSessionWithWorkspace()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "api",
+                "list",
+                "--cursor",
+                "cursor-1")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
+
+            {
+              "values": [
+                {
+                  "id": "api-1",
+                  "name": "products",
+                  "path": "products",
+                  "workspace": {
+                    "name": "Workspace"
+                  },
+                  "apiDetailPromptSettings": {
+                    "apiDetailPromptSchemaRegistry": {
+                      "treatDangerousAsBreaking": true,
+                      "allowBreakingSchemaChanges": false
+                    }
+                  }
+                }
+              ],
+              "cursor": null
+            }
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task WithCursor_ReturnsSuccess_JsonOutput()
+    {
+        // arrange
+        var client = new Mock<IApisClient>(MockBehavior.Strict);
+        client.Setup(x => x.ListApisAsync(
+                "workspace-from-session",
+                "cursor-1",
+                10,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ApiCommandTestHelper.CreateListApisPage(
+                null,
+                false,
+                ("api-1", "products", new[] { "products" }, "Workspace")));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddSessionWithWorkspace()
+            .AddInteractionMode(InteractionMode.JsonOutput)
             .AddArguments(
                 "api",
                 "list",

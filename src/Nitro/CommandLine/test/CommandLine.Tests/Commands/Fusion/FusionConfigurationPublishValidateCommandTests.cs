@@ -45,12 +45,12 @@ public sealed class FusionConfigurationPublishValidateCommandTests
               nitro fusion publish validate [options]
 
             Options:
-              --request-id <request-id>    The request id of an existing deployment slot request [env: NITRO_REQUEST_ID]
-              --archive <archive> (REQUIRED)  The path to a Fusion archive file. (the --configuration alias will be removed in an upcoming version) [env: FUSION_CONFIG_FILE]
-              --cloud-url <cloud-url>      The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>          The API key that is used for the authentication [env: NITRO_API_KEY]
-              --output <json>              The format in which the result should be displayed, if this option is set, the console will be non-interactive and the result will be displayed in the specified format [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help               Show help and usage information
+              --request-id <request-id>                            The ID of a request [env: NITRO_REQUEST_ID]
+              -a, --archive, --configuration <archive> (REQUIRED)  The path to a Fusion archive file. (the --configuration alias will be removed in an upcoming version) [env: NITRO_FUSION_CONFIG_FILE]
+              --cloud-url <cloud-url>                              The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>                                  The API key that is used for the authentication [env: NITRO_API_KEY]
+              --output <json>                                      The format in which the result should be displayed, if this option is set, the console will be non-interactive and the result will be displayed in the specified format [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                                       Show help and usage information
             """);
     }
 
@@ -231,9 +231,8 @@ public sealed class FusionConfigurationPublishValidateCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            The validation was successful
 
-            [    ] Validating...
+            [    ] The validation was successful
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);

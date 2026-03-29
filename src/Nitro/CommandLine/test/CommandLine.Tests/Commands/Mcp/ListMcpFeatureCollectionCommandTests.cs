@@ -157,10 +157,8 @@ public sealed class ListMcpFeatureCollectionCommandTests
         mcpClient.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task WithApiId_ReturnsSuccess(InteractionMode mode)
+    [Fact]
+    public async Task WithApiId_ReturnsSuccess_NonInteractive()
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -181,7 +179,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "mcp",
                 "list",
@@ -193,6 +191,58 @@ public sealed class ListMcpFeatureCollectionCommandTests
         result.AssertSuccess(
             """
 
+            {
+              "values": [
+                {
+                  "id": "mcp-1",
+                  "name": "auth-tools"
+                },
+                {
+                  "id": "mcp-2",
+                  "name": "data-tools"
+                }
+              ],
+              "cursor": null
+            }
+            """);
+
+        apisClient.VerifyAll();
+        mcpClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task WithApiId_ReturnsSuccess_JsonOutput()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
+        mcpClient.Setup(x => x.ListMcpFeatureCollectionsAsync(
+                "api-1",
+                null,
+                10,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(McpCommandTestHelper.CreateListPage(
+                endCursor: null,
+                hasNextPage: false,
+                ("mcp-1", "auth-tools"),
+                ("mcp-2", "data-tools")));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(mcpClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "mcp",
+                "list",
+                "--api-id",
+                "api-1")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
             {
               "values": [
                 {
@@ -249,10 +299,8 @@ public sealed class ListMcpFeatureCollectionCommandTests
         mcpClient.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task WithApiId_NoData_ReturnsSuccess(InteractionMode mode)
+    [Fact]
+    public async Task WithApiId_NoData_ReturnsSuccess_NonInteractive()
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -269,7 +317,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "mcp",
                 "list",
@@ -281,6 +329,45 @@ public sealed class ListMcpFeatureCollectionCommandTests
         result.AssertSuccess(
             """
 
+            {
+              "values": [],
+              "cursor": null
+            }
+            """);
+
+        apisClient.VerifyAll();
+        mcpClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task WithApiId_NoData_ReturnsSuccess_JsonOutput()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
+        mcpClient.Setup(x => x.ListMcpFeatureCollectionsAsync(
+                "api-1",
+                null,
+                10,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(McpCommandTestHelper.CreateListPage());
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(mcpClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "mcp",
+                "list",
+                "--api-id",
+                "api-1")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
             {
               "values": [],
               "cursor": null
@@ -333,10 +420,8 @@ public sealed class ListMcpFeatureCollectionCommandTests
         mcpClient.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task WithCursor_ReturnsSuccess(InteractionMode mode)
+    [Fact]
+    public async Task WithCursor_ReturnsSuccess_NonInteractive()
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -356,7 +441,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "mcp",
                 "list",
@@ -385,10 +470,57 @@ public sealed class ListMcpFeatureCollectionCommandTests
         mcpClient.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task WithCursorPagination_ReturnsSuccess(InteractionMode mode)
+    [Fact]
+    public async Task WithCursor_ReturnsSuccess_JsonOutput()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
+        mcpClient.Setup(x => x.ListMcpFeatureCollectionsAsync(
+                "api-1",
+                "cursor-1",
+                10,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(McpCommandTestHelper.CreateListPage(
+                endCursor: null,
+                hasNextPage: false,
+                ("mcp-1", "auth-tools")));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(mcpClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "mcp",
+                "list",
+                "--api-id",
+                "api-1",
+                "--cursor",
+                "cursor-1")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "values": [
+                {
+                  "id": "mcp-1",
+                  "name": "auth-tools"
+                }
+              ],
+              "cursor": null
+            }
+            """);
+
+        apisClient.VerifyAll();
+        mcpClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task WithCursorPagination_ReturnsSuccess_NonInteractive()
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -409,7 +541,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "mcp",
                 "list",
@@ -421,6 +553,58 @@ public sealed class ListMcpFeatureCollectionCommandTests
         result.AssertSuccess(
             """
 
+            {
+              "values": [
+                {
+                  "id": "mcp-1",
+                  "name": "auth-tools"
+                },
+                {
+                  "id": "mcp-2",
+                  "name": "data-tools"
+                }
+              ],
+              "cursor": "cursor-2"
+            }
+            """);
+
+        apisClient.VerifyAll();
+        mcpClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task WithCursorPagination_ReturnsSuccess_JsonOutput()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
+        mcpClient.Setup(x => x.ListMcpFeatureCollectionsAsync(
+                "api-1",
+                null,
+                10,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(McpCommandTestHelper.CreateListPage(
+                endCursor: "cursor-2",
+                hasNextPage: true,
+                ("mcp-1", "auth-tools"),
+                ("mcp-2", "data-tools")));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(mcpClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "mcp",
+                "list",
+                "--api-id",
+                "api-1")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
             {
               "values": [
                 {

@@ -32,32 +32,31 @@ public sealed class FusionPublishCommandTests
             Description:
               Publishes a Fusion archive to Nitro.
               To take control over the deployment orchestration use sub-commands like 'begin'.
-              If you don't specify --archive and instead use --source-schema-identifiers or --schema-files, a Fusion v2 composition will be performed internally.
+              If you don't specify --archive and instead use --source-schema or --source-schema-file, a Fusion v2 composition will be performed internally.
               The orchestration sub-commands can be used for both Fusion v1 and v2.
 
             Usage:
               nitro fusion publish [command] [options]
 
             Options:
-              --api-id <api-id> (REQUIRED)                                              The ID of the API [env: NITRO_API_ID]
-              --stage <stage> (REQUIRED)                                                The name of the stage [env: NITRO_STAGE]
-              --tag <tag> (REQUIRED)                                                    The tag of the schema version to deploy [env: NITRO_TAG]
-              --source-schema-identifiers <source-schema-identifiers>                   The list of source schema identifiers like subgraph1@v1 subgraph2@v2 [env: NITRO_SOURCE_SCHEMA_IDENTIFIERS]
-              --schema-files <schema-files>                                             The list of source schema files [env: NITRO_SCHEMA_FILES]
-              --archive <archive>                                                       The path to a Fusion archive file. (the --configuration alias will be removed in an upcoming version) [env: FUSION_CONFIG_FILE]
-              -w, --working-directory <working-directory>                                Sets the working directory for the command. [default: /Users/tobiastengler/src/ai/platform-2/src/Nitro/CommandLine/test/CommandLine.Tests/bin/Debug/net9.0]
-              --source-metadata <source-metadata>                                       Optional JSON-formatted metadata about the source [env: NITRO_SOURCE_METADATA]
-              --cloud-url <cloud-url>                                                   The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                                                       The API key that is used for the authentication [env: NITRO_API_KEY]
-              --output <json>                                                           The format in which the result should be displayed, if this option is set, the console will be non-interactive and the result will be displayed in the specified format [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help                                                            Show help and usage information
+              --api-id <api-id> (REQUIRED)                   The ID of the API [env: NITRO_API_ID]
+              --stage <stage> (REQUIRED)                     The name of the stage [env: NITRO_STAGE]
+              --tag <tag> (REQUIRED)                         The tag of the schema version to deploy [env: NITRO_TAG]
+              -s, --source-schema <source-schema>            One or more source schemas that should be included in the composition. Source schemas can either be just a name ('example') or a name and a version ('example@1.0.0'). If no version is specified the value of the '--tag' option is taken as the source schema version.
+              -f, --source-schema-file <source-schema-file>  One or more paths to a source schema file (.graphqls) or directory containing a source schema file.
+              -a, --archive, --configuration <archive>       The path to a Fusion archive file. (the --configuration alias will be removed in an upcoming version) [env: NITRO_FUSION_CONFIG_FILE]
+              -w, --working-directory <working-directory>    Sets the working directory for the command. [default: /Users/tobiastengler/src/ai/platform-2/src/Nitro/CommandLine/test/CommandLine.Tests/bin/Debug/netX.0]
+              --cloud-url <cloud-url>                        The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>                            The API key that is used for the authentication [env: NITRO_API_KEY]
+              --output <json>                                The format in which the result should be displayed, if this option is set, the console will be non-interactive and the result will be displayed in the specified format [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                                 Show help and usage information
 
             Commands:
-              begin       Begin a configuration publish. This command will request a deployment slot
-              start       Start a Fusion configuration publish
-              validate    Validates a Fusion configuration against the schema and clients.
-              cancel      Cancel a Fusion configuration publish
-              commit      Commit a Fusion configuration publish
+              begin     Begin a configuration publish. This command will request a deployment slot
+              start     Start a Fusion configuration publish.
+              validate  Validates a Fusion configuration against the schema and clients.
+              cancel    Cancels a Fusion configuration publish.
+              commit    Commit a Fusion configuration publish.
             """);
     }
 
@@ -108,7 +107,7 @@ public sealed class FusionPublishCommandTests
                 DefaultTag,
                 "--archive",
                 DefaultArchiveFile,
-                "--schema-files",
+                "--source-schema-file",
                 "schema.graphql")
             .ExecuteAsync();
 

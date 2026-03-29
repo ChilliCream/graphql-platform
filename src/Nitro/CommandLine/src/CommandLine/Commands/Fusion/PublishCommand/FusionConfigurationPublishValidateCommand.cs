@@ -112,7 +112,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
                         return ExitCodes.Error;
 
                     case IFusionConfigurationValidationSuccess:
-                        console.Success("The validation was successful");
+                        activity.Success("The validation was successful");
                         return ExitCodes.Success;
 
                     case IOperationInProgress:

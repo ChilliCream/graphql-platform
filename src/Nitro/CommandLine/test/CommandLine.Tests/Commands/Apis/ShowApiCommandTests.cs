@@ -96,7 +96,6 @@ public sealed class ShowApiCommandTests
     [Theory]
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
     public async Task WithApiId_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
@@ -111,6 +110,50 @@ public sealed class ShowApiCommandTests
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(mode)
+            .AddArguments(
+                "api",
+                "show",
+                "api-1")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
+
+            {
+              "id": "api-1",
+              "name": "my-api",
+              "path": "products",
+              "workspace": {
+                "name": "Workspace"
+              },
+              "apiDetailPromptSettings": {
+                "apiDetailPromptSchemaRegistry": {
+                  "treatDangerousAsBreaking": true,
+                  "allowBreakingSchemaChanges": false
+                }
+              }
+            }
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task WithApiId_ReturnsSuccess_JsonOutput()
+    {
+        // arrange
+        var client = new Mock<IApisClient>(MockBehavior.Strict);
+        client.Setup(x => x.ShowApiAsync(
+                "api-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ApiCommandTestHelper.CreateShowApiNode("api-1", "my-api", ["products"]));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
             .AddArguments(
                 "api",
                 "show",
