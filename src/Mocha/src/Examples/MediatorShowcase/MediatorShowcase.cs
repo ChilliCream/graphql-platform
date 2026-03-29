@@ -19,7 +19,7 @@ var app = builder.Build();
 // Commands
 // ──────────────────────────────────────────────────
 
-// Void command — no return value
+// Void command - no return value
 app.MapPost("/api/products", async (CreateProductRequest req, ISender sender) =>
 {
     await sender.SendAsync(new CreateProductCommand(req.Name, req.Price));

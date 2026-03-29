@@ -64,10 +64,10 @@ SendAsync(PlaceOrderCommand)
 The pipeline is built from two delegate types:
 
 ```csharp
-// The terminal pipeline delegate — each step in the chain has this shape
+// The terminal pipeline delegate - each step in the chain has this shape
 public delegate ValueTask MediatorDelegate(IMediatorContext context);
 
-// The factory that creates a middleware — runs once per message type at startup
+// The factory that creates a middleware - runs once per message type at startup
 public delegate MediatorDelegate MediatorMiddleware(
     MediatorMiddlewareFactoryContext context,
     MediatorDelegate next);

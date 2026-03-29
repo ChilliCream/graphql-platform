@@ -152,6 +152,11 @@ public sealed class DispatchContext : IDispatchContext
     public DateTimeOffset? DeliverBy { get; set; }
 
     /// <summary>
+    /// Gets or sets the optional time at which the message should be made available for consumption.
+    /// </summary>
+    public DateTimeOffset? ScheduledTime { get; set; }
+
+    /// <summary>
     /// Gets or sets the serialized message envelope, available after serialization middleware runs.
     /// </summary>
     public MessageEnvelope? Envelope { get; set; }
@@ -190,6 +195,7 @@ public sealed class DispatchContext : IDispatchContext
         FaultAddress = null!;
         SentAt = DateTimeOffset.UtcNow;
         DeliverBy = null;
+        ScheduledTime = null;
         Host = null!;
         Envelope = null!;
         _headers.Clear();

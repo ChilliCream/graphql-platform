@@ -65,6 +65,7 @@ public sealed class DefaultMessageBus(
             context.Message = message;
             context.AddHeaders(options.Headers);
             context.Headers.SetMessageKind(MessageKind.Publish);
+            context.ScheduledTime = options.ScheduledTime;
             context.DeliverBy = options.ExpirationTime;
 
             await endpoint.ExecuteAsync(context);
@@ -118,8 +119,7 @@ public sealed class DefaultMessageBus(
             context.Headers.SetMessageKind(MessageKind.Send);
             context.ResponseAddress = replyEndpoint;
             context.FaultAddress = faultEndpoint;
-            // TODO scheduling is currenlty not supported
-            //context.ScheduledTime = options.ScheduledTime;
+            context.ScheduledTime = options.ScheduledTime;
             context.DeliverBy = options.ExpirationTime;
 
             await endpoint.ExecuteAsync(context);
@@ -259,8 +259,6 @@ public sealed class DefaultMessageBus(
         // var operationName = $"send {endpoint}";
         var correlationId = Guid.NewGuid().ToString();
 
-        // var scheduledTime = options.ScheduledTime;
-
         var headers = options.Headers;
 
         var waitHandle = _deferredResponseManager.AddPromise(correlationId);
@@ -277,6 +275,7 @@ public sealed class DefaultMessageBus(
             context.Headers.SetMessageKind(MessageKind.Request);
             context.ResponseAddress = replyEndpoint ?? endpoint.Transport.ReplyReceiveEndpoint?.Source.Address;
             context.FaultAddress = faultEndpoint;
+            context.ScheduledTime = options.ScheduledTime;
             context.DeliverBy = options.ExpirationTime;
 
             await endpoint.ExecuteAsync(context);
