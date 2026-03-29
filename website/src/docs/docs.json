@@ -213,6 +213,10 @@
             "title": "Authentication and Authorization"
           },
           {
+            "path": "performance-tuning",
+            "title": "Performance Tuning"
+          },
+          {
             "path": "deployment-and-ci-cd",
             "title": "Deployment and CI/CD"
           },
