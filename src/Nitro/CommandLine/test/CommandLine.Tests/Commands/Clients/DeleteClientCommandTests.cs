@@ -192,11 +192,10 @@ public sealed class DeleteClientCommandTests
             .ExecuteAsync();
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             Client not found.
             """);
-        Assert.Equal(1, result.ExitCode);
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -230,11 +229,10 @@ public sealed class DeleteClientCommandTests
             .ExecuteAsync();
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             Could not delete the client.
             """);
-        Assert.Equal(1, result.ExitCode);
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -264,11 +262,10 @@ public sealed class DeleteClientCommandTests
             .ExecuteAsync();
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             There was an unexpected error executing your request: delete failed
             """);
-        Assert.Equal(1, result.ExitCode);
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -298,11 +295,10 @@ public sealed class DeleteClientCommandTests
             .ExecuteAsync();
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
-        Assert.Equal(1, result.ExitCode);
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();

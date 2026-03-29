@@ -293,11 +293,10 @@ public sealed class CreateClientCommandTests
             .ExecuteAsync();
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             The API was not found.
             """);
-        Assert.Equal(1, result.ExitCode);
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -338,11 +337,10 @@ public sealed class CreateClientCommandTests
             .ExecuteAsync();
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             Unauthorized operation.
             """);
-        Assert.Equal(1, result.ExitCode);
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -383,11 +381,10 @@ public sealed class CreateClientCommandTests
             .ExecuteAsync();
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             Unexpected mutation error: something bad happened
             """);
-        Assert.Equal(1, result.ExitCode);
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -424,11 +421,10 @@ public sealed class CreateClientCommandTests
             .ExecuteAsync();
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             Could not create client.
             """);
-        Assert.Equal(1, result.ExitCode);
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -460,11 +456,10 @@ public sealed class CreateClientCommandTests
             .ExecuteAsync();
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             There was an unexpected error executing your request: create failed
             """);
-        Assert.Equal(1, result.ExitCode);
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -496,11 +491,10 @@ public sealed class CreateClientCommandTests
             .ExecuteAsync();
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
-        Assert.Equal(1, result.ExitCode);
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();

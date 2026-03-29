@@ -601,12 +601,10 @@ public sealed class CreateApiCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Empty(result.StdOut);
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             Unexpected mutation error: Mutation payload denied
             """);
-        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -725,12 +723,10 @@ public sealed class CreateApiCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Empty(result.StdOut);
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             There was an unexpected error executing your request: create failed
             """);
-        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -847,12 +843,10 @@ public sealed class CreateApiCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Empty(result.StdOut);
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
-        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }

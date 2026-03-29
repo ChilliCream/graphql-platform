@@ -209,9 +209,7 @@ public sealed class DeleteApiKeyCommandTests
         var result = await builder.ExecuteAsync();
 
         // assert
-        Assert.Empty(result.StdOut);
-        result.StdErr.MatchInlineSnapshot(expectedStdErr);
-        Assert.Equal(1, result.ExitCode);
+        result.AssertError(expectedStdErr);
 
         client.VerifyAll();
     }

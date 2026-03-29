@@ -49,9 +49,9 @@ This document tracks migration of Nitro command tests to the guideline in `COMMA
 | environment list               | src/Nitro/CommandLine/src/CommandLine/Commands/Environments/ListEnvironmentCommand.cs                             | done        | Wave 3         |
 | environment show               | src/Nitro/CommandLine/src/CommandLine/Commands/Environments/ShowEnvironmentCommand.cs                             | done        | Wave 3         |
 | fusion (group)                 | src/Nitro/CommandLine/src/CommandLine/Commands/Fusion/FusionCommand.cs                                            | n/a         | Group command  |
-| fusion compose                 | src/Nitro/CommandLine/src/CommandLine/Commands/Fusion/FusionComposeCommand.cs                                     | not-started |                |
+| fusion compose                 | src/Nitro/CommandLine/src/CommandLine/Commands/Fusion/FusionComposeCommand.cs                                     | done        |                |
 | fusion download                | src/Nitro/CommandLine/src/CommandLine/Commands/Fusion/FusionDownloadCommand.cs                                    | not-started |                |
-| fusion migrate                 | src/Nitro/CommandLine/src/CommandLine/Commands/Fusion/FusionMigrateCommand.cs                                     | not-started |                |
+| fusion migrate                 | src/Nitro/CommandLine/src/CommandLine/Commands/Fusion/FusionMigrateCommand.cs                                     | done        |                |
 | fusion publish                 | src/Nitro/CommandLine/src/CommandLine/Commands/Fusion/FusionPublishCommand.cs                                     | not-started |                |
 | fusion run                     | src/Nitro/CommandLine/src/CommandLine/Commands/Fusion/FusionRunCommand.cs                                         | not-started |                |
 | fusion settings (group)        | src/Nitro/CommandLine/src/CommandLine/Commands/Fusion/FusionSettingsCommand.cs                                    | n/a         | Group command  |

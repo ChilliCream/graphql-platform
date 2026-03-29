@@ -2,7 +2,7 @@ namespace ChilliCream.Nitro.CommandLine;
 
 internal static class ArgumentExtensions
 {
-    public static void LegalFilePathsOnly<T>(this Argument<T> argument)
+    public static void LegalFilePathsOnly(this Argument<string> argument)
     {
         argument.Validators.Add(result =>
         {

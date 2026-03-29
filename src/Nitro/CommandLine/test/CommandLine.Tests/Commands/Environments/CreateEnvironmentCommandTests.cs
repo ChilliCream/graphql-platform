@@ -301,11 +301,10 @@ public sealed class CreateEnvironmentCommandTests
             .ExecuteAsync();
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             Create denied
             """);
-        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -343,11 +342,10 @@ public sealed class CreateEnvironmentCommandTests
             .ExecuteAsync();
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             Change structure invalid.
             """);
-        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -421,11 +419,10 @@ public sealed class CreateEnvironmentCommandTests
             .ExecuteAsync();
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             There was an unexpected error executing your request: create failed
             """);
-        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -454,11 +451,10 @@ public sealed class CreateEnvironmentCommandTests
             .ExecuteAsync();
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
-        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }

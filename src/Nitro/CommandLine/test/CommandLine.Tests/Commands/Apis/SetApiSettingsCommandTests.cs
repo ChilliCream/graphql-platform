@@ -215,9 +215,7 @@ public sealed class SetApiSettingsCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Empty(result.StdOut);
-        result.StdErr.MatchInlineSnapshot(expectedStdErr);
-        Assert.Equal(1, result.ExitCode);
+        result.AssertError(expectedStdErr);
 
         client.VerifyAll();
     }
@@ -316,12 +314,10 @@ public sealed class SetApiSettingsCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Empty(result.StdOut);
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             There was an unexpected error executing your request: update failed
             """);
-        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -420,12 +416,10 @@ public sealed class SetApiSettingsCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Empty(result.StdOut);
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
-        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }

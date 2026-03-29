@@ -223,7 +223,7 @@ internal sealed class FusionComposeCommand : Command
             }
             else
             {
-                console.WriteLine($"❌ The path `{sourceSchemaPath}` does not exist.");
+                await console.Error.WriteLineAsync($"❌ The path `{sourceSchemaPath}` does not exist.");
                 return 1;
             }
         }
@@ -377,7 +377,7 @@ internal sealed class FusionComposeCommand : Command
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                console.WriteLine($"❌ Error during recomposition: {ex.Message}");
+                await console.Error.WriteLineAsync($"❌ Error during recomposition: {ex.Message}");
             }
             finally
             {
@@ -429,7 +429,6 @@ internal sealed class FusionComposeCommand : Command
                 compositionSettings,
                 cancellationToken);
 
-            // TODO: How to deal with this...
             var writer = console.Out;
 
             WriteCompositionLog(
@@ -439,14 +438,14 @@ internal sealed class FusionComposeCommand : Command
 
             if (!compositionLog.IsEmpty)
             {
-                writer.WriteLine();
+                await writer.WriteLineAsync();
             }
 
             if (result.IsFailure)
             {
                 foreach (var error in result.Errors)
                 {
-                    console.WriteLine(error.Message);
+                    await console.Error.WriteLineAsync(error.Message);
                 }
 
                 return 1;
@@ -459,7 +458,7 @@ internal sealed class FusionComposeCommand : Command
         }
         catch (Exception e)
         {
-            console.WriteLine(e.Message);
+            await console.Error.WriteLineAsync(e.Message);
             return 1;
         }
     }
@@ -538,9 +537,9 @@ internal sealed class FusionComposeCommand : Command
         if (fileSystem.DirectoryExists(sourceSchemaPath))
         {
             schemaFilePath =
-                fileSystem.GetFiles(sourceSchemaPath, "*.graphql*", SearchOption.AllDirectories)
-                    .Where(f => IsSchemaFile(Path.GetFileName(f)))
-                    .FirstOrDefault();
+                fileSystem
+                    .GetFiles(sourceSchemaPath, "*.graphql*", SearchOption.AllDirectories)
+                    .FirstOrDefault(f => IsSchemaFile(Path.GetFileName(f)));
         }
         else if (fileSystem.FileExists(sourceSchemaPath))
         {
