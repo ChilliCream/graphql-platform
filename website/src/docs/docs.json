@@ -2908,6 +2908,10 @@
                 "title": "Pipeline & Middleware"
               }
             ]
+          },
+          {
+            "path": "diagnostics",
+            "title": "Diagnostics"
           }
         ]
       }
