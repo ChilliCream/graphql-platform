@@ -28,6 +28,13 @@ internal sealed class RabbitMQReceiveEndpointDescriptor
         return this;
     }
 
+    public new IRabbitMQReceiveEndpointDescriptor Consumer(Type consumerType)
+    {
+        base.Consumer(consumerType);
+
+        return this;
+    }
+
     public new IRabbitMQReceiveEndpointDescriptor Consumer<TConsumer>() where TConsumer : class, IConsumer
     {
         base.Consumer<TConsumer>();

@@ -103,21 +103,23 @@ public sealed class RabbitMQMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
-    public new IHandlerConfigurator<IRabbitMQReceiveEndpointDescriptor> Handler<THandler>()
+    public new ITransportHandlerConfigurator<IRabbitMQReceiveEndpointDescriptor> Handler<THandler>()
         where THandler : class, IHandler
     {
-        var claim = new HandlerClaim { HandlerType = typeof(THandler) };
-        HandlerClaims.Add(claim);
-        return new HandlerConfigurator<IRabbitMQReceiveEndpointDescriptor>(claim);
+        var name = Context.Naming.GetReceiveEndpointName(typeof(THandler), ReceiveEndpointKind.Default);
+        var endpoint = Endpoint(name);
+        endpoint.Handler(typeof(THandler));
+        return new TransportHandlerConfigurator<IRabbitMQReceiveEndpointDescriptor>(endpoint);
     }
 
     /// <inheritdoc />
-    public new IConsumerConfigurator<IRabbitMQReceiveEndpointDescriptor> Consumer<TConsumer>()
+    public new ITransportConsumerConfigurator<IRabbitMQReceiveEndpointDescriptor> Consumer<TConsumer>()
         where TConsumer : class, IConsumer
     {
-        var claim = new HandlerClaim { HandlerType = typeof(TConsumer) };
-        HandlerClaims.Add(claim);
-        return new ConsumerConfigurator<IRabbitMQReceiveEndpointDescriptor>(claim);
+        var name = Context.Naming.GetReceiveEndpointName(typeof(TConsumer), ReceiveEndpointKind.Default);
+        var endpoint = Endpoint(name);
+        endpoint.Consumer(typeof(TConsumer));
+        return new TransportConsumerConfigurator<IRabbitMQReceiveEndpointDescriptor>(endpoint);
     }
 
     /// <inheritdoc />
@@ -220,15 +222,6 @@ public sealed class RabbitMQMessagingTransportDescriptor
     /// <returns>A fully populated <see cref="RabbitMQTransportConfiguration"/> ready for transport initialization.</returns>
     public RabbitMQTransportConfiguration CreateConfiguration()
     {
-        foreach (var claim in HandlerClaims)
-        {
-            var name = Context.Naming.GetReceiveEndpointName(
-                claim.HandlerType, ReceiveEndpointKind.Default);
-            var endpoint = Endpoint(name);
-            endpoint.Handler(claim.HandlerType);
-            claim.ConfigureEndpoint?.Invoke(endpoint);
-        }
-
         Configuration.ReceiveEndpoints = _receiveEndpoints
             .Select(ReceiveEndpointConfiguration (e) => e.CreateConfiguration())
             .ToList();

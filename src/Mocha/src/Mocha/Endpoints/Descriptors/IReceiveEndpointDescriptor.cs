@@ -23,6 +23,13 @@ public interface IReceiveEndpointDescriptor<out TConfiguration>
     IReceiveEndpointDescriptor<TConfiguration> Handler(Type handlerType);
 
     /// <summary>
+    /// Binds a consumer to this receive endpoint by its runtime type.
+    /// </summary>
+    /// <param name="consumerType">The consumer type to bind.</param>
+    /// <returns>The descriptor instance for method chaining.</returns>
+    IReceiveEndpointDescriptor<TConfiguration> Consumer(Type consumerType);
+
+    /// <summary>
     /// Binds a consumer to this receive endpoint, ensuring its messages are consumed on this
     /// endpoint.
     /// </summary>

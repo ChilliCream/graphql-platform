@@ -103,10 +103,10 @@ public interface IRabbitMQMessagingTransportDescriptor
         string? after = null);
 
     /// <inheritdoc cref="IMessagingTransportDescriptor.Handler{THandler}" />
-    new IHandlerConfigurator<IRabbitMQReceiveEndpointDescriptor> Handler<THandler>()
+    new ITransportHandlerConfigurator<IRabbitMQReceiveEndpointDescriptor> Handler<THandler>()
         where THandler : class, IHandler;
 
     /// <inheritdoc cref="IMessagingTransportDescriptor.Consumer{TConsumer}" />
-    new IConsumerConfigurator<IRabbitMQReceiveEndpointDescriptor> Consumer<TConsumer>()
+    new ITransportConsumerConfigurator<IRabbitMQReceiveEndpointDescriptor> Consumer<TConsumer>()
         where TConsumer : class, IConsumer;
 }

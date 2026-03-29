@@ -33,6 +33,17 @@ public abstract class ReceiveEndpointDescriptor<T>(IMessagingConfigurationContex
         return this;
     }
 
+    /// <summary>
+    /// Binds a consumer to this receive endpoint by its runtime type.
+    /// </summary>
+    /// <param name="consumerType">The consumer type to bind.</param>
+    /// <returns>The descriptor instance for method chaining.</returns>
+    public IReceiveEndpointDescriptor<T> Consumer(Type consumerType)
+    {
+        Configuration.ConsumerIdentities.Add(consumerType);
+        return this;
+    }
+
     public IReceiveEndpointDescriptor<T> Kind(ReceiveEndpointKind kind)
     {
         Configuration.Kind = kind;

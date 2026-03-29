@@ -97,7 +97,7 @@ public interface IMessagingTransportDescriptor
     /// </summary>
     /// <typeparam name="THandler">The handler type implementing <see cref="IHandler"/>.</typeparam>
     /// <returns>A configurator that allows configuring the handler's receive endpoint.</returns>
-    IHandlerConfigurator<IReceiveEndpointDescriptor<ReceiveEndpointConfiguration>> Handler<THandler>()
+    ITransportHandlerConfigurator<IReceiveEndpointDescriptor<ReceiveEndpointConfiguration>> Handler<THandler>()
         where THandler : class, IHandler;
 
     /// <summary>
@@ -106,7 +106,7 @@ public interface IMessagingTransportDescriptor
     /// </summary>
     /// <typeparam name="TConsumer">The consumer type implementing <see cref="IConsumer"/>.</typeparam>
     /// <returns>A configurator that allows configuring the consumer's receive endpoint.</returns>
-    IConsumerConfigurator<IReceiveEndpointDescriptor<ReceiveEndpointConfiguration>> Consumer<TConsumer>()
+    ITransportConsumerConfigurator<IReceiveEndpointDescriptor<ReceiveEndpointConfiguration>> Consumer<TConsumer>()
         where TConsumer : class, IConsumer;
 }
 
@@ -120,14 +120,6 @@ public abstract class MessagingTransportDescriptor<T>(IMessagingSetupContext con
     : MessagingDescriptorBase<T>(context)
     , IMessagingTransportDescriptor where T : MessagingTransportConfiguration
 {
-    private readonly List<HandlerClaim> _handlerClaims = [];
-
-    /// <summary>
-    /// Gets the handler claims registered on this transport descriptor, for use by
-    /// transport-specific subclasses during configuration materialization.
-    /// </summary>
-    private protected List<HandlerClaim> HandlerClaims => _handlerClaims;
-
     /// <inheritdoc />
     public IMessagingTransportDescriptor ModifyOptions(Action<TransportOptions> configure)
     {
@@ -236,24 +228,14 @@ public abstract class MessagingTransportDescriptor<T>(IMessagingSetupContext con
     }
 
     /// <inheritdoc />
-    public IHandlerConfigurator<IReceiveEndpointDescriptor<ReceiveEndpointConfiguration>>
+    public virtual ITransportHandlerConfigurator<IReceiveEndpointDescriptor<ReceiveEndpointConfiguration>>
         Handler<THandler>() where THandler : class, IHandler
-    {
-        var claim = new HandlerClaim { HandlerType = typeof(THandler) };
-        _handlerClaims.Add(claim);
-        return new HandlerConfigurator<
-            IReceiveEndpointDescriptor<ReceiveEndpointConfiguration>>(claim);
-    }
+        => throw new NotSupportedException("Use the transport-specific Handler<T>() method.");
 
     /// <inheritdoc />
-    public IConsumerConfigurator<IReceiveEndpointDescriptor<ReceiveEndpointConfiguration>>
+    public virtual ITransportConsumerConfigurator<IReceiveEndpointDescriptor<ReceiveEndpointConfiguration>>
         Consumer<TConsumer>() where TConsumer : class, IConsumer
-    {
-        var claim = new HandlerClaim { HandlerType = typeof(TConsumer) };
-        _handlerClaims.Add(claim);
-        return new ConsumerConfigurator<
-            IReceiveEndpointDescriptor<ReceiveEndpointConfiguration>>(claim);
-    }
+        => throw new NotSupportedException("Use the transport-specific Consumer<T>() method.");
 
     /// <summary>
     /// Returns this descriptor as an extension point for the transport configuration, allowing additional

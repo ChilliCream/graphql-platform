@@ -24,6 +24,13 @@ internal sealed class InMemoryReceiveEndpointDescriptor
         return this;
     }
 
+    public new IInMemoryReceiveEndpointDescriptor Consumer(Type consumerType)
+    {
+        base.Consumer(consumerType);
+
+        return this;
+    }
+
     public new IInMemoryReceiveEndpointDescriptor Consumer<TConsumer>() where TConsumer : class, IConsumer
     {
         base.Consumer<TConsumer>();

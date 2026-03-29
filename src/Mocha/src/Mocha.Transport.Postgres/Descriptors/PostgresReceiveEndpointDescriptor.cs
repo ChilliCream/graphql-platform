@@ -27,6 +27,14 @@ internal sealed class PostgresReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
+    public new IPostgresReceiveEndpointDescriptor Consumer(Type consumerType)
+    {
+        base.Consumer(consumerType);
+
+        return this;
+    }
+
+    /// <inheritdoc />
     public new IPostgresReceiveEndpointDescriptor Consumer<TConsumer>() where TConsumer : class, IConsumer
     {
         base.Consumer<TConsumer>();
