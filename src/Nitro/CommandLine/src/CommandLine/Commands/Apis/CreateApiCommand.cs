@@ -40,9 +40,9 @@ internal sealed class CreateApiCommand : Command
         IResultHolder resultHolder,
         CancellationToken ct)
     {
-        var workspaceId = parseResult.GetWorkspaceId(sessionService);
+        parseResult.AssertHasAuthentication(sessionService);
 
-        console.WriteLine("Creating an API");
+        var workspaceId = parseResult.GetWorkspaceId(sessionService);
 
         var name = await console.PromptAsync("Name", defaultValue: null, parseResult, Opt<ApiNameOption>.Instance, ct);
         var pathResult = await console
@@ -57,34 +57,60 @@ internal sealed class CreateApiCommand : Command
 
         var kind = GetApiKind(parseResult);
 
-        var payload = await client.CreateApiAsync(workspaceId, path, name, kind, ct);
-        // console.PrintMutationErrorsAndExit(payload.Errors);
-
-        var changeResult = payload.Changes?.SingleOrDefault();
-        if (changeResult is null)
+        await using (var activity = console.StartActivity("Creating API..."))
         {
-            throw Exit("Could not create API.");
+            var payload = await client.CreateApiAsync(workspaceId, path, name, kind, ct);
+
+            if (payload.Errors?.Count > 0)
+            {
+                activity.Fail();
+
+                foreach (var mutationError in payload.Errors)
+                {
+                    var errorMessage = mutationError switch
+                    {
+                        IError mutationErrorDetail => "Unexpected mutation error: " + mutationErrorDetail.Message,
+                        _ => "Unexpected mutation error."
+                    };
+
+                    await console.Error.WriteLineAsync(errorMessage);
+                    return ExitCodes.Error;
+                }
+            }
+
+            var changeResult = payload.Changes?.SingleOrDefault();
+            if (changeResult is null)
+            {
+                activity.Fail();
+                await console.Error.WriteLineAsync("Could not create API.");
+                return ExitCodes.Error;
+            }
+
+            if (changeResult.Error is IError error)
+            {
+                activity.Fail();
+                await console.Error.WriteLineAsync(error.Message);
+                return ExitCodes.Error;
+            }
+
+            if (changeResult.Result is not ICreateApiCommandMutation_Api result)
+            {
+                activity.Fail();
+                await console.Error.WriteLineAsync("Could not create API.");
+                return ExitCodes.Error;
+            }
+
+            activity.Success("Successfully created API!");
+
+            if (result is IApiDetailPrompt_Api detail)
+            {
+                console.WriteLine();
+
+                resultHolder.SetResult(new ObjectResult(ApiDetailPrompt.From(detail).ToObject()));
+            }
+
+            return ExitCodes.Success;
         }
-
-        if (changeResult.Error is IError error)
-        {
-            throw Exit(error.Message);
-        }
-
-        if (changeResult.Result is not ICreateApiCommandMutation_Api api)
-        {
-            throw Exit("Could not create API.");
-        }
-
-        // console.OkLine(
-        //     $"API [dim]{string.Join('/', api.Path)}[/]/{api.Name.AsHighlight()} created");
-
-        if (changeResult.Result is IApiDetailPrompt_Api detail)
-        {
-            resultHolder.SetResult(new ObjectResult(ApiDetailPrompt.From(detail).ToObject()));
-        }
-
-        return ExitCodes.Success;
     }
 
     private static ApiKind? GetApiKind(ParseResult parseResult)

@@ -5,6 +5,7 @@ namespace ChilliCream.Nitro.CommandLine.Helpers;
 
 internal static class ConsoleHelpers
 {
+    // TODO: Remove these
     public static void PrintMutationErrorsAndExit<T>(this INitroConsole console, IReadOnlyList<T>? errors)
         where T : class
     {

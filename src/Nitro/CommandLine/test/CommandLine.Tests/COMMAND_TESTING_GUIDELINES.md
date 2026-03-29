@@ -51,6 +51,13 @@ Every command test suite must include all categories below.
   - NitroClientException
   - NitroClientAuthorizationException
 - Validate each exception in all three interaction types.
+- Write these as six distinct tests (not a shared mode theory):
+  - `ClientThrowsException_ReturnsError_Interactive`
+  - `ClientThrowsException_ReturnsError_NonInteractive`
+  - `ClientThrowsException_ReturnsError_JsonOutput`
+  - `ClientThrowsAuthorizationException_ReturnsError_Interactive`
+  - `ClientThrowsAuthorizationException_ReturnsError_NonInteractive`
+  - `ClientThrowsAuthorizationException_ReturnsError_JsonOutput`
 
 7. GraphQL mutation typed errors
 
@@ -95,8 +102,57 @@ Note: If a behavior is unreachable in a mode by design, document that explicitly
 5. Add snapshots/assertions for stdout, stderr, and exit code.
 6. Verify no uncovered end-state remains.
 
+## Test naming conventions
+
+Use PascalCase method names with underscore-delimited semantic blocks.
+
+Preferred base pattern:
+
+- `<ConditionOrInput>_Returns<Outcome>[_<Mode>]`
+
+Examples:
+
+- `Help_ReturnsResult`
+- `NoSession_Or_ApiKey_ReturnsError`
+- `MissingRequiredOptions_ReturnsError`
+- `WithWorkspaceId_ReturnsResult_NonInteractive`
+- `WithWorkspaceId_ReturnsResult_JsonOutput`
+
+Mode suffix rules:
+
+- When a behavior is validated per mode in separate tests, always suffix with one of:
+  - `_Interactive`
+  - `_NonInteractive`
+  - `_JsonOutput`
+- Do not mix mode naming variants in the same suite (for example, avoid `_OutputJson` when `_JsonOutput` is used elsewhere).
+
+Mutation and exception naming:
+
+- Mutation branch errors:
+  - `MutationReturns<BranchName>Error_ReturnsError_<Mode>`
+  - Example: `MutationReturnsChangeError_ReturnsError_NonInteractive`
+- Top-level mutation payload errors:
+  - `MutationReturnsError_ReturnsError_<Mode>`
+- Client exceptions:
+  - `ClientThrowsException_ReturnsError_<Mode>`
+  - `ClientThrowsAuthorizationException_ReturnsError_<Mode>`
+
+Interactive prompt-path naming:
+
+- Use explicit prompt-path wording when testing prompt branches:
+  - `MissingRequiredOptions_PromptsUser_<Branch>_ReturnsResult`
+  - Example: `MissingRequiredOptions_PromptsUser_SelectsApi_ReturnsResult`
+
+General naming rules:
+
+- Keep suffixes stable: use `ReturnsResult` for success and `ReturnsError` for failure.
+- Prefer describing the trigger first (`NoSession`, `WithWorkspaceId`, `MutationReturns...`) and the outcome second.
+- If a behavior is intentionally mode-specific, encode that in the method name.
+
 ## Assertions and style
 
+- Use explicit `// arrange`, `// act`, and `// assert` comments in each test method.
+- If a test combines steps (for example help tests), `// arrange & act` is allowed.
 - Use strict mocks for GraphQL clients where practical.
 - Verify expected calls and verify no unexpected calls for negative paths.
 - Fully assert stdout and stderr for every test. Do not use partial assertions like `Assert.Contains` for command output when the full output can be asserted.
@@ -136,6 +192,8 @@ Use a stable order to keep suites readable.
 - [ ] Cursor option covered in all interaction modes for list commands that expose `--cursor`
 - [ ] NitroClientException tested in all three modes
 - [ ] NitroClientAuthorizationException tested in all three modes
+- [ ] Six explicit ClientThrows tests exist (2 per exception type, one per mode)
+- [ ] Test method names follow the naming conventions in this document
 - [ ] All mutation typed error branches tested in all three modes (three distinct theories + shared MemberData factory)
 - [ ] Every command branch/end-state mapped to at least one test
 
