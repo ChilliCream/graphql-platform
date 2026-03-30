@@ -35,4 +35,9 @@ public class SagaStateBase(Guid id, string state)
     /// </summary>
     [JsonConverter(typeof(HeadersJsonConverter))]
     public IHeaders Metadata { get; set; } = new Headers();
+
+    /// <summary>
+    /// Gets or sets the list of scheduling cancellation tokens associated with this saga instance.
+    /// </summary>
+    public List<string>? ScheduleTokens { get; set; }
 }

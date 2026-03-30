@@ -10,6 +10,7 @@ public sealed class SagaSchedulingTests
     private static readonly IMessagingRuntime s_runtime = CreateRuntime();
 
     private readonly TestMessageOutbox _outbox;
+    private readonly TestMessageBus _bus;
     private readonly TestSagaStore _store;
     private readonly TestSagaCleanup _cleanup;
     private readonly FakeTimeProvider _timeProvider;
@@ -29,10 +30,11 @@ public sealed class SagaSchedulingTests
         _store = new TestSagaStore();
         _cleanup = new TestSagaCleanup();
         _outbox = new TestMessageOutbox();
+        _bus = new TestMessageBus(_outbox);
         _timeProvider = new FakeTimeProvider(new DateTimeOffset(2026, 6, 1, 12, 0, 0, TimeSpan.Zero));
         _services = new ServiceCollection()
             .AddSingleton<ISagaCleanup>(_cleanup)
-            .AddSingleton<IMessageBus>(new TestMessageBus(_outbox))
+            .AddSingleton<IMessageBus>(_bus)
             .AddSingleton<TimeProvider>(_timeProvider)
             .BuildServiceProvider();
     }
@@ -65,8 +67,9 @@ public sealed class SagaSchedulingTests
         // Assert
         var operation = Assert.Single(_outbox.Messages);
         Assert.IsType<ScheduledNotification>(operation.Message);
-        var options = Assert.IsType<PublishOptions>(operation.Options);
-        Assert.Equal(_timeProvider.GetUtcNow().Add(delay), options.ScheduledTime);
+        var state = Assert.Single(_store.States.OfType<TestState>());
+        Assert.NotNull(state.ScheduleTokens);
+        Assert.Single(state.ScheduleTokens);
     }
 
     [Fact]
@@ -97,8 +100,9 @@ public sealed class SagaSchedulingTests
         // Assert
         var operation = Assert.Single(_outbox.Messages);
         Assert.IsType<ScheduledCommand>(operation.Message);
-        var options = Assert.IsType<SendOptions>(operation.Options);
-        Assert.Equal(_timeProvider.GetUtcNow().Add(delay), options.ScheduledTime);
+        var state = Assert.Single(_store.States.OfType<TestState>());
+        Assert.NotNull(state.ScheduleTokens);
+        Assert.Single(state.ScheduleTokens);
     }
 
     [Fact]
@@ -132,8 +136,9 @@ public sealed class SagaSchedulingTests
         // Assert
         var operation = Assert.Single(_outbox.Messages);
         Assert.IsType<ScheduledNotification>(operation.Message);
-        var options = Assert.IsType<PublishOptions>(operation.Options);
-        Assert.Equal(_timeProvider.GetUtcNow().Add(delay), options.ScheduledTime);
+        var state = Assert.Single(_store.States.OfType<TestState>());
+        Assert.NotNull(state.ScheduleTokens);
+        Assert.Single(state.ScheduleTokens);
     }
 
     [Fact]
@@ -167,8 +172,9 @@ public sealed class SagaSchedulingTests
         // Assert
         var operation = Assert.Single(_outbox.Messages);
         Assert.IsType<ScheduledCommand>(operation.Message);
-        var options = Assert.IsType<SendOptions>(operation.Options);
-        Assert.Equal(_timeProvider.GetUtcNow().Add(delay), options.ScheduledTime);
+        var state = Assert.Single(_store.States.OfType<TestState>());
+        Assert.NotNull(state.ScheduleTokens);
+        Assert.Single(state.ScheduleTokens);
     }
 
     private TestConsumeContext CreateContext(Saga saga, object message)

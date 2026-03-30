@@ -397,6 +397,22 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
 
         if (nextState.IsFinal)
         {
+            if (state.ScheduleTokens is { Count: > 0 })
+            {
+                var bus = context.GetBus();
+                foreach (var token in state.ScheduleTokens)
+                {
+                    try
+                    {
+                        await bus.CancelScheduledMessageAsync(token, ct);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger!.FailedToCancelScheduledMessage(ex, token, Name!, state.Id);
+                    }
+                }
+            }
+
             if (nextState.Response is not null
                 && state.Metadata.TryGet(SagaContextData.ReplyAddress, out var replyTo)
                 && state.Metadata.TryGet(SagaContextData.CorrelationId, out var correlationId)
@@ -499,7 +515,20 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
 
             _logger!.PublishingEvent(Name, message.GetType().Name);
 
-            await context.GetBus().PublishAsync(message, options, ct);
+            if (options.ScheduledTime is { } scheduledTime)
+            {
+                var publishOptions = options with { ScheduledTime = null };
+                var result = await context.GetBus().SchedulePublishAsync(message, scheduledTime, publishOptions, ct);
+                if (result.Token is not null)
+                {
+                    state.ScheduleTokens ??= [];
+                    state.ScheduleTokens.Add(result.Token);
+                }
+            }
+            else
+            {
+                await context.GetBus().PublishAsync(message, options, ct);
+            }
         }
     }
 
@@ -543,7 +572,20 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
 
             _logger!.SendingEvent(Name, message.GetType().Name);
 
-            await context.GetBus().SendAsync(message, options, ct);
+            if (options.ScheduledTime is { } scheduledTime)
+            {
+                var sendOptions = options with { ScheduledTime = null };
+                var result = await context.GetBus().ScheduleSendAsync(message, scheduledTime, sendOptions, ct);
+                if (result.Token is not null)
+                {
+                    state.ScheduleTokens ??= [];
+                    state.ScheduleTokens.Add(result.Token);
+                }
+            }
+            else
+            {
+                await context.GetBus().SendAsync(message, options, ct);
+            }
         }
     }
 }
@@ -602,4 +644,7 @@ internal static partial class Logs
 
     [LoggerMessage(LogLevel.Information, "Saga completed {SagaName} {SagaId}")]
     public static partial void SagaCompleted(this ILogger logger, string sagaName, Guid sagaId);
+
+    [LoggerMessage(LogLevel.Warning, "Failed to cancel scheduled message {Token} for saga {SagaName} ({SagaId})")]
+    public static partial void FailedToCancelScheduledMessage(this ILogger logger, Exception ex, string token, string sagaName, Guid sagaId);
 }
