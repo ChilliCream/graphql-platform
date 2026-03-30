@@ -408,8 +408,8 @@ public sealed class DefaultMessageBus(
     }
 
     /// <summary>
-    /// Cancels a previously scheduled message by extracting the value portion of the token
-    /// and forwarding it to the registered scheduling store.
+    /// Cancels a previously scheduled message by forwarding the opaque token
+    /// to the registered scheduling store.
     /// </summary>
     public async ValueTask<bool> CancelScheduledMessageAsync(string token, CancellationToken cancellationToken)
     {
@@ -418,21 +418,13 @@ public sealed class DefaultMessageBus(
             return false;
         }
 
-        var separatorIndex = token.IndexOf(':');
-        if (separatorIndex < 0)
-        {
-            return false;
-        }
-
-        var value = token[(separatorIndex + 1)..];
-
         var store = services.GetService<IScheduledMessageStore>();
         if (store is null)
         {
             return false;
         }
 
-        return await store.CancelAsync(value, cancellationToken);
+        return await store.CancelAsync(token, cancellationToken);
     }
 
     private void PropagateCorrelationIds(DispatchContext context)

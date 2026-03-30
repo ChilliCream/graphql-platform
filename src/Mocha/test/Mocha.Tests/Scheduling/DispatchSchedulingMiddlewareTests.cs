@@ -291,7 +291,7 @@ public class DispatchSchedulingMiddlewareTests
             return ValueTask.FromResult(token);
         }
 
-        public ValueTask<bool> CancelAsync(string value, CancellationToken cancellationToken)
+        public ValueTask<bool> CancelAsync(string token, CancellationToken cancellationToken)
         {
             return ValueTask.FromResult(false);
         }

@@ -417,8 +417,11 @@ public class SchedulingMiddlewareIntegrationTests
             return ValueTask.FromResult(token);
         }
 
-        public ValueTask<bool> CancelAsync(string value, CancellationToken cancellationToken)
+        public ValueTask<bool> CancelAsync(string token, CancellationToken cancellationToken)
         {
+            var value = token.StartsWith("in-memory:", StringComparison.Ordinal)
+                ? token["in-memory:".Length..]
+                : token;
             var removed = _entriesById.TryRemove(value, out _);
             return ValueTask.FromResult(removed);
         }

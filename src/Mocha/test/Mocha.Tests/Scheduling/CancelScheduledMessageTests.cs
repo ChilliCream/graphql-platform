@@ -38,21 +38,6 @@ public class CancelScheduledMessageTests
     }
 
     [Fact]
-    public async Task CancelScheduledMessageAsync_Should_ReturnFalse_When_TokenHasNoColonSeparator()
-    {
-        // arrange
-        await using var provider = await CreateBusAsync();
-        using var scope = provider.CreateScope();
-        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-
-        // act
-        var result = await bus.CancelScheduledMessageAsync("no-separator-here", CancellationToken.None);
-
-        // assert
-        Assert.False(result);
-    }
-
-    [Fact]
     public async Task CancelScheduledMessageAsync_Should_ReturnFalse_When_NoStoreRegistered()
     {
         // arrange
@@ -85,7 +70,7 @@ public class CancelScheduledMessageTests
 
         // assert
         Assert.True(result);
-        Assert.Equal("my-cancel-value", spy.LastCancelledValue);
+        Assert.Equal("test-provider:my-cancel-value", spy.LastCancelledValue);
     }
 
     private static async Task<ServiceProvider> CreateBusAsync(
@@ -118,9 +103,9 @@ public class CancelScheduledMessageTests
             CancellationToken cancellationToken) =>
             ValueTask.FromResult("test-provider:test-id");
 
-        public ValueTask<bool> CancelAsync(string value, CancellationToken cancellationToken)
+        public ValueTask<bool> CancelAsync(string token, CancellationToken cancellationToken)
         {
-            LastCancelledValue = value;
+            LastCancelledValue = token;
             return ValueTask.FromResult(true);
         }
     }

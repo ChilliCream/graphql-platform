@@ -15,30 +15,23 @@ namespace Mocha.Scheduling;
 /// Implements <see cref="IScheduledMessageStore"/> for Postgres by inserting serialized message envelopes
 /// into the scheduled messages table using raw SQL through the DbContext Npgsql connection.
 /// </summary>
-internal sealed class EfCoreScheduledMessageStore : IScheduledMessageStore, IDisposable
+/// <remarks>
+/// Creates a new <see cref="EfCoreScheduledMessageStore"/> using the provided DbContext connection,
+/// scheduler signal, and pre-built SQL statements.
+/// </remarks>
+/// <param name="originalDbContext">The DbContext whose underlying Npgsql connection is used for operations.</param>
+/// <param name="signal">The signal used to wake the scheduler after a message is persisted.</param>
+/// <param name="insertSql">The parameterized SQL insert statement for the scheduled messages table.</param>
+/// <param name="cancelSql">The parameterized SQL delete statement for cancelling a scheduled message.</param>
+internal sealed class EfCoreScheduledMessageStore(
+    DbContext originalDbContext,
+    ISchedulerSignal signal,
+    string insertSql,
+    string cancelSql) : IScheduledMessageStore, IDisposable
 {
-    private readonly DbContext _originalDbContext;
-    private readonly ISchedulerSignal _signal;
+    private const string ProviderPrefix = "postgres-scheduler:";
     private readonly SemaphoreSlim _semaphore = new(1, 1);
-    private readonly string? _insertSql;
-    private readonly string _cancelSql;
     private PooledArrayWriter? _arrayWriter;
-
-    /// <summary>
-    /// Creates a new <see cref="EfCoreScheduledMessageStore"/> using the provided DbContext connection,
-    /// scheduler signal, and pre-built SQL statements.
-    /// </summary>
-    /// <param name="originalDbContext">The DbContext whose underlying Npgsql connection is used for operations.</param>
-    /// <param name="signal">The signal used to wake the scheduler after a message is persisted.</param>
-    /// <param name="insertSql">The parameterized SQL insert statement for the scheduled messages table.</param>
-    /// <param name="cancelSql">The parameterized SQL delete statement for cancelling a scheduled message.</param>
-    public EfCoreScheduledMessageStore(DbContext originalDbContext, ISchedulerSignal signal, string insertSql, string cancelSql)
-    {
-        _originalDbContext = originalDbContext;
-        _signal = signal;
-        _insertSql = insertSql;
-        _cancelSql = cancelSql;
-    }
 
     /// <summary>
     /// Serializes the message envelope and inserts it into the Postgres scheduled messages table.
@@ -58,14 +51,14 @@ internal sealed class EfCoreScheduledMessageStore : IScheduledMessageStore, IDis
         {
             _arrayWriter ??= new PooledArrayWriter();
 
-            var connection = (NpgsqlConnection)_originalDbContext.Database.GetDbConnection();
+            var connection = (NpgsqlConnection)originalDbContext.Database.GetDbConnection();
 
             if (connection.State != ConnectionState.Open)
             {
                 await connection.OpenAsync(cancellationToken);
             }
 
-            var transaction = _originalDbContext.Database.CurrentTransaction?.GetDbTransaction() as NpgsqlTransaction;
+            var transaction = originalDbContext.Database.CurrentTransaction?.GetDbTransaction() as NpgsqlTransaction;
 
             await using var writer = new Utf8JsonWriter(_arrayWriter);
             writer.WriteEnvelope(envelope);
@@ -74,7 +67,7 @@ internal sealed class EfCoreScheduledMessageStore : IScheduledMessageStore, IDis
             // Execute the INSERT command
             var id = NewVersion();
             await using var command = connection.CreateCommand();
-            command.CommandText = _insertSql;
+            command.CommandText = insertSql;
             if (transaction is not null)
             {
                 command.Transaction = transaction;
@@ -89,10 +82,10 @@ internal sealed class EfCoreScheduledMessageStore : IScheduledMessageStore, IDis
 
             if (transaction is null)
             {
-                _signal.Notify(scheduledTime);
+                signal.Notify(scheduledTime);
             }
 
-            return $"postgres-scheduler:{id}";
+            return $"{ProviderPrefix}{id}";
         }
         finally
         {
@@ -104,11 +97,15 @@ internal sealed class EfCoreScheduledMessageStore : IScheduledMessageStore, IDis
     /// <summary>
     /// Cancels a scheduled message by deleting it from the store.
     /// </summary>
-    /// <param name="value">The store-specific identifier (GUID) extracted from the scheduling token.</param>
+    /// <param name="token">The opaque scheduling token returned by <see cref="PersistAsync"/>.</param>
     /// <param name="cancellationToken">A token to observe for cancellation.</param>
     /// <returns><c>true</c> if the message was cancelled; <c>false</c> if not found or already dispatched.</returns>
-    public async ValueTask<bool> CancelAsync(string value, CancellationToken cancellationToken)
+    public async ValueTask<bool> CancelAsync(string token, CancellationToken cancellationToken)
     {
+        var value = token.StartsWith(ProviderPrefix, StringComparison.Ordinal)
+            ? token[ProviderPrefix.Length..]
+            : token;
+
         if (!Guid.TryParse(value, out var id))
         {
             return false;
@@ -118,17 +115,17 @@ internal sealed class EfCoreScheduledMessageStore : IScheduledMessageStore, IDis
 
         try
         {
-            var connection = (NpgsqlConnection)_originalDbContext.Database.GetDbConnection();
+            var connection = (NpgsqlConnection)originalDbContext.Database.GetDbConnection();
 
             if (connection.State != ConnectionState.Open)
             {
                 await connection.OpenAsync(cancellationToken);
             }
 
-            var transaction = _originalDbContext.Database.CurrentTransaction?.GetDbTransaction() as NpgsqlTransaction;
+            var transaction = originalDbContext.Database.CurrentTransaction?.GetDbTransaction() as NpgsqlTransaction;
 
             await using var command = connection.CreateCommand();
-            command.CommandText = _cancelSql;
+            command.CommandText = cancelSql;
             if (transaction is not null)
             {
                 command.Transaction = transaction;

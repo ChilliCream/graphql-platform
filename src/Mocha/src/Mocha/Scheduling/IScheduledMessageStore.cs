@@ -27,12 +27,10 @@ public interface IScheduledMessageStore
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Cancels a scheduled message by its store-specific value (the part after the provider prefix).
+    /// Cancels a scheduled message using the opaque token returned by <see cref="PersistAsync"/>.
     /// </summary>
-    /// <param name="value">The store-specific identifier extracted from the scheduling token.</param>
+    /// <param name="token">The opaque scheduling token returned by a prior <see cref="PersistAsync"/> call.</param>
     /// <param name="cancellationToken">A token to cancel the operation.</param>
     /// <returns><c>true</c> if the message was cancelled; <c>false</c> if not found or already dispatched.</returns>
-    ValueTask<bool> CancelAsync(
-        string value,
-        CancellationToken cancellationToken);
+    ValueTask<bool> CancelAsync(string token, CancellationToken cancellationToken);
 }

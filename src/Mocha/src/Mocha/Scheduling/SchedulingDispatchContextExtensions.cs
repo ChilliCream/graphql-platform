@@ -15,8 +15,6 @@ public static class SchedulingDispatchContextExtensions
     /// <param name="context">The dispatch context to modify.</param>
     public static void SkipScheduler(this IDispatchContext context)
     {
-        var feature = context.Features.GetOrSet<SchedulingMiddlewareFeature>();
-
-        feature.SkipScheduler = true;
+        context.Features.Configure<SchedulingMiddlewareFeature>(feature => feature.SkipScheduler = true);
     }
 }
