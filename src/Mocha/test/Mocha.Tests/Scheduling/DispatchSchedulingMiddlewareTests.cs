@@ -281,13 +281,19 @@ public class DispatchSchedulingMiddlewareTests
     {
         public ConcurrentBag<(MessageEnvelope Envelope, DateTimeOffset ScheduledTime)> Entries { get; } = [];
 
-        public ValueTask PersistAsync(
+        public ValueTask<string> PersistAsync(
             MessageEnvelope envelope,
             DateTimeOffset scheduledTime,
             CancellationToken cancellationToken)
         {
             Entries.Add((envelope, scheduledTime));
-            return ValueTask.CompletedTask;
+            var token = $"in-memory:{Guid.NewGuid()}";
+            return ValueTask.FromResult(token);
+        }
+
+        public ValueTask<bool> CancelAsync(string value, CancellationToken cancellationToken)
+        {
+            return ValueTask.FromResult(false);
         }
     }
 }

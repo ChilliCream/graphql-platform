@@ -35,6 +35,12 @@ internal sealed class ScheduledMessageQueries
     public string UpdateLastError { get; set; } = null!;
 
     /// <summary>
+    /// Gets or sets the SQL statement to cancel a scheduled message by deleting it if it has not
+    /// exceeded its maximum delivery attempts.
+    /// </summary>
+    public string CancelMessage { get; set; } = null!;
+
+    /// <summary>
     /// Creates a new <see cref="ScheduledMessageQueries"/> instance with SQL queries built from the provided table metadata.
     /// </summary>
     /// <param name="t">The scheduled message table info containing column and table names.</param>
@@ -82,6 +88,13 @@ internal sealed class ScheduledMessageQueries
                 UPDATE {t.QualifiedTableName}
                 SET "{t.LastError}" = @last_error::jsonb
                 WHERE "{t.Id}" = @id;
+                """,
+
+            CancelMessage = $"""
+                DELETE FROM {t.QualifiedTableName}
+                WHERE "{t.Id}" = @id
+                  AND "{t.TimesSent}" < "{t.MaxAttempts}"
+                RETURNING "{t.Id}";
                 """
         };
     }

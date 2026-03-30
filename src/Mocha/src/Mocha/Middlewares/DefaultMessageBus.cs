@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.ObjectPool;
 using Mocha.Middlewares;
+using Mocha.Scheduling;
 
 namespace Mocha;
 
@@ -292,6 +293,145 @@ public sealed class DefaultMessageBus(
         }
 
         throw ThrowHelper.UnexpectedResponseType();
+    }
+
+    /// <summary>
+    /// Publishes a message scheduled for delivery at the specified time using default options.
+    /// </summary>
+    public async ValueTask<SchedulingResult> SchedulePublishAsync<T>(
+        T message,
+        DateTimeOffset scheduledTime,
+        CancellationToken cancellationToken) where T : notnull
+    {
+        return await SchedulePublishAsync(message, scheduledTime, PublishOptions.Default, cancellationToken);
+    }
+
+    /// <summary>
+    /// Publishes a message scheduled for delivery at the specified time with additional options.
+    /// </summary>
+    public async ValueTask<SchedulingResult> SchedulePublishAsync<T>(
+        T message,
+        DateTimeOffset scheduledTime,
+        PublishOptions options,
+        CancellationToken cancellationToken) where T : notnull
+    {
+        var messageType = runtime.GetMessageType(message!.GetType());
+        var endpoint = runtime.GetPublishEndpoint(messageType);
+
+        var context = _contextPool.Get();
+        try
+        {
+            PropagateCorrelationIds(context);
+            context.Initialize(services, endpoint, runtime, messageType, cancellationToken);
+            context.Message = message;
+            context.AddHeaders(options.Headers);
+            context.Headers.SetMessageKind(MessageKind.Publish);
+            context.ScheduledTime = scheduledTime;
+            context.DeliverBy = options.ExpirationTime;
+
+            await endpoint.ExecuteAsync(context);
+
+            var feature = context.Features.Get<ScheduledMessageFeature>();
+
+            return new SchedulingResult
+            {
+                Token = feature?.Token,
+                ScheduledTime = scheduledTime,
+                IsCancellable = feature?.Token is not null
+            };
+        }
+        finally
+        {
+            _contextPool.Return(context);
+        }
+    }
+
+    /// <summary>
+    /// Sends a message scheduled for delivery at the specified time using default options.
+    /// </summary>
+    public async ValueTask<SchedulingResult> ScheduleSendAsync(
+        object message,
+        DateTimeOffset scheduledTime,
+        CancellationToken cancellationToken)
+    {
+        return await ScheduleSendAsync(message, scheduledTime, SendOptions.Default, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sends a message scheduled for delivery at the specified time with additional options.
+    /// </summary>
+    public async ValueTask<SchedulingResult> ScheduleSendAsync(
+        object message,
+        DateTimeOffset scheduledTime,
+        SendOptions options,
+        CancellationToken cancellationToken)
+    {
+        var messageType = runtime.GetMessageType(message.GetType());
+        var endpoint = options.Endpoint is { } address
+            ? runtime.GetDispatchEndpoint(address)
+            : runtime.GetSendEndpoint(messageType);
+
+        var replyEndpoint = options.ReplyEndpoint;
+        var faultEndpoint = options.FaultEndpoint;
+        var headers = options.Headers;
+
+        var context = _contextPool.Get();
+        try
+        {
+            PropagateCorrelationIds(context);
+            context.Initialize(services, endpoint, runtime, messageType, cancellationToken);
+
+            context.Message = message;
+            context.AddHeaders(headers);
+            context.Headers.SetMessageKind(MessageKind.Send);
+            context.ResponseAddress = replyEndpoint;
+            context.FaultAddress = faultEndpoint;
+            context.ScheduledTime = scheduledTime;
+            context.DeliverBy = options.ExpirationTime;
+
+            await endpoint.ExecuteAsync(context);
+
+            var feature = context.Features.Get<ScheduledMessageFeature>();
+
+            return new SchedulingResult
+            {
+                Token = feature?.Token,
+                ScheduledTime = scheduledTime,
+                IsCancellable = feature?.Token is not null
+            };
+        }
+        finally
+        {
+            _contextPool.Return(context);
+        }
+    }
+
+    /// <summary>
+    /// Cancels a previously scheduled message by parsing the provider prefix from the token
+    /// and routing to the correct scheduling store.
+    /// </summary>
+    public async ValueTask<bool> CancelScheduledMessageAsync(string token, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrEmpty(token))
+        {
+            return false;
+        }
+
+        var separatorIndex = token.IndexOf(':');
+        if (separatorIndex < 0)
+        {
+            return false;
+        }
+
+        var value = token[(separatorIndex + 1)..];
+
+        var store = services.GetService<IScheduledMessageStore>();
+        if (store is null)
+        {
+            return false;
+        }
+
+        return await store.CancelAsync(value, cancellationToken);
     }
 
     private void PropagateCorrelationIds(DispatchContext context)
