@@ -88,7 +88,7 @@ internal sealed class PublishSchemaCommand : Command
                         _ => "Unexpected mutation error."
                     };
 
-                    await console.Error.WriteLineAsync(errorMessage);
+                    console.Error.WriteErrorLine(errorMessage);
                 }
 
                 return ExitCodes.Error;
@@ -97,7 +97,7 @@ internal sealed class PublishSchemaCommand : Command
             if (publishRequest.Id is not { } requestId)
             {
                 activity.Fail("Failed to publish a new schema version.");
-                await console.Error.WriteLineAsync("Could not create publish request.");
+                console.Error.WriteErrorLine("Could not create publish request.");
                 return ExitCodes.Error;
             }
 
@@ -138,27 +138,27 @@ internal sealed class PublishSchemaCommand : Command
                                     console.PrintMcpFeatureCollectionValidationErrors(e);
                                     break;
                                 case IConcurrentOperationError e:
-                                    await console.Error.WriteLineAsync(e.Message);
+                                    console.Error.WriteErrorLine(e.Message);
                                     break;
                                 case IOperationsAreNotAllowedError e:
-                                    await console.Error.WriteLineAsync(e.Message);
+                                    console.Error.WriteErrorLine(e.Message);
                                     break;
                                 case ISchemaVersionSyntaxError e:
-                                    await console.Error.WriteLineAsync(e.Message);
+                                    console.Error.WriteErrorLine(e.Message);
                                     break;
                                 case IProcessingTimeoutError e:
-                                    await console.Error.WriteLineAsync(e.Message);
+                                    console.Error.WriteErrorLine(e.Message);
                                     break;
                                 case IUnexpectedProcessingError e:
-                                    await console.Error.WriteLineAsync(e.Message);
+                                    console.Error.WriteErrorLine(e.Message);
                                     break;
                                 case IError e:
-                                    await console.Error.WriteLineAsync("Unexpected error: " + e.Message);
+                                    console.Error.WriteErrorLine("Unexpected error: " + e.Message);
                                     break;
                             }
                         }
 
-                        await console.Error.WriteLineAsync("Schema publish failed.");
+                        console.Error.WriteErrorLine("Schema publish failed.");
                         return ExitCodes.Error;
 
                     case ISchemaVersionPublishSuccess:
@@ -207,13 +207,13 @@ internal sealed class PublishSchemaCommand : Command
                                         console.PrintMcpFeatureCollectionValidationErrors(e);
                                         break;
                                     case IOperationsAreNotAllowedError e:
-                                        await console.Error.WriteLineAsync(e.Message);
+                                        console.Error.WriteErrorLine(e.Message);
                                         break;
                                     case ISchemaVersionSyntaxError e:
-                                        await console.Error.WriteLineAsync(e.Message);
+                                        console.Error.WriteErrorLine(e.Message);
                                         break;
                                     case IError e:
-                                        await console.Error.WriteLineAsync("Unexpected error: " + e.Message);
+                                        console.Error.WriteErrorLine("Unexpected error: " + e.Message);
                                         break;
                                 }
                             }

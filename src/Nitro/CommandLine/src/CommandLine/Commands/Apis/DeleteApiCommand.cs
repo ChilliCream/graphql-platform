@@ -75,7 +75,7 @@ internal sealed class DeleteApiCommand : Command
                     _ => "Unexpected mutation error."
                 };
 
-                await console.Error.WriteLineAsync(errorMessage);
+                console.Error.WriteErrorLine(errorMessage);
                 return ExitCodes.Error;
             }
         }
@@ -83,7 +83,7 @@ internal sealed class DeleteApiCommand : Command
         if (data.Api is not IApiDetailPrompt_Api api)
         {
             activity.Fail("Failed to delete the API.");
-            await console.Error.WriteLineAsync("Could not delete API.");
+            console.Error.WriteErrorLine("Could not delete API.");
             return ExitCodes.Error;
         }
 

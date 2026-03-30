@@ -110,7 +110,7 @@ internal sealed class DeleteClientCommand : Command
                         _ => "Unexpected mutation error."
                     };
 
-                    await console.Error.WriteLineAsync(errorMessage);
+                    console.Error.WriteErrorLine(errorMessage);
                     return ExitCodes.Error;
                 }
             }
@@ -118,7 +118,7 @@ internal sealed class DeleteClientCommand : Command
             if (deletedClient.Client is not IClientDetailPrompt_Client clientModel)
             {
                 activity.Fail("Failed to delete the client.");
-                await console.Error.WriteLineAsync("Could not delete the client.");
+                console.Error.WriteErrorLine("Could not delete the client.");
                 return ExitCodes.Error;
             }
 

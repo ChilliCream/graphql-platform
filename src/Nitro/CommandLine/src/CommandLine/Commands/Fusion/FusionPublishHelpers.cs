@@ -53,7 +53,7 @@ internal static class FusionPublishHelpers
                     _ => "Unexpected mutation error."
                 };
 
-                await console.Error.WriteLineAsync(errorMessage);
+                console.Error.WriteErrorLine(errorMessage);
             }
 
             throw Exit("Failed to request deployment slot.");
@@ -95,12 +95,12 @@ internal static class FusionPublishHelpers
                                 break;
 
                             default:
-                                await console.Error.WriteLineAsync(error.Message);
+                                console.Error.WriteErrorLine(error.Message);
                                 break;
                         }
                     }
 
-                    await console.Error.WriteLineAsync("Your request has failed.");
+                    console.Error.WriteErrorLine("Your request has failed.");
                     throw Exit("Your request has failed.");
 
                 case IFusionConfigurationPublishingSuccess:
@@ -157,7 +157,7 @@ internal static class FusionPublishHelpers
                     _ => "Unexpected mutation error."
                 };
 
-                await console.Error.WriteLineAsync(errorMessage);
+                console.Error.WriteErrorLine(errorMessage);
             }
 
             throw Exit("Failed to commit Fusion archive.");
@@ -186,12 +186,12 @@ internal static class FusionPublishHelpers
                                 break;
 
                             default:
-                                await console.Error.WriteLineAsync(error.Message);
+                                console.Error.WriteErrorLine(error.Message);
                                 break;
                         }
                     }
 
-                    await console.Error.WriteLineAsync("The commit has failed.");
+                    console.Error.WriteErrorLine("The commit has failed.");
                     throw Exit("The commit has failed.");
 
                 case IFusionConfigurationPublishingSuccess:
@@ -296,7 +296,7 @@ internal static class FusionPublishHelpers
 
         FusionComposeCommand.WriteCompositionLog(
             compositionLog,
-            Console.Out,
+            console.Out,
             false);
 
         if (result.IsFailure)

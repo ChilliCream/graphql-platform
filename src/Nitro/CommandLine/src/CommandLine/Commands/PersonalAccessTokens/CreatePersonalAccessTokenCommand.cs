@@ -67,7 +67,7 @@ internal sealed class CreatePersonalAccessTokenCommand : Command
                         _ => "Unexpected mutation error."
                     };
 
-                    await console.Error.WriteLineAsync(errorMessage);
+                    console.Error.WriteErrorLine(errorMessage);
                 }
 
                 return ExitCodes.Error;
@@ -77,7 +77,7 @@ internal sealed class CreatePersonalAccessTokenCommand : Command
             if (result is null)
             {
                 activity.Fail("Failed to create the personal access token.");
-                await console.Error.WriteLineAsync("Could not create personal access token.");
+                console.Error.WriteErrorLine("Could not create personal access token.");
                 return ExitCodes.Error;
             }
 

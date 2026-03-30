@@ -65,7 +65,7 @@ internal sealed class CreateEnvironmentCommand : Command
                         _ => "Unexpected mutation error."
                     };
 
-                    await console.Error.WriteLineAsync(errorMessage);
+                    console.Error.WriteErrorLine(errorMessage);
                     return ExitCodes.Error;
                 }
             }
@@ -74,21 +74,21 @@ internal sealed class CreateEnvironmentCommand : Command
             if (changeResult is null)
             {
                 activity.Fail("Failed to create the environment.");
-                await console.Error.WriteLineAsync("Could not create environment.");
+                console.Error.WriteErrorLine("Could not create environment.");
                 return ExitCodes.Error;
             }
 
             if (changeResult.Error is IError changeError)
             {
                 activity.Fail("Failed to create the environment.");
-                await console.Error.WriteLineAsync(changeError.Message);
+                console.Error.WriteErrorLine(changeError.Message);
                 return ExitCodes.Error;
             }
 
             if (changeResult.Result is not IEnvironmentDetailPrompt_Environment detail)
             {
                 activity.Fail("Failed to create the environment.");
-                await console.Error.WriteLineAsync("Could not create environment.");
+                console.Error.WriteErrorLine("Could not create environment.");
                 return ExitCodes.Error;
             }
 

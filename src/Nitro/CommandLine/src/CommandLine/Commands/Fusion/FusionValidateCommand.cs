@@ -206,7 +206,7 @@ internal sealed class FusionValidateCommand : Command
 
                         foreach (var error in v.Errors)
                         {
-                            await console.Error.WriteLineAsync(error switch
+                            console.Error.WriteErrorLine(error switch
                             {
                                 IUnexpectedProcessingError e => e.Message,
                                 IError e => "Unexpected error: " + e.Message,
@@ -214,7 +214,7 @@ internal sealed class FusionValidateCommand : Command
                             });
                         }
 
-                        await console.Error.WriteLineAsync("Schema validation failed.");
+                        console.Error.WriteErrorLine("Schema validation failed.");
                         isValid = false;
                         return;
 
@@ -277,7 +277,7 @@ internal sealed class FusionValidateCommand : Command
                     _ => "Unexpected mutation error."
                 };
 
-                await console.Error.WriteLineAsync(errorMessage);
+                console.Error.WriteErrorLine(errorMessage);
             }
 
             throw new ExitException();

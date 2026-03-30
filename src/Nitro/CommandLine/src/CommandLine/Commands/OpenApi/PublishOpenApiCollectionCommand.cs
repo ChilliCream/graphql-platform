@@ -81,7 +81,7 @@ internal sealed class PublishOpenApiCollectionCommand : Command
                         _ => "Unexpected mutation error."
                     };
 
-                    await console.Error.WriteLineAsync(errorMessage);
+                    console.Error.WriteErrorLine(errorMessage);
                 }
 
                 return ExitCodes.Error;
@@ -90,7 +90,7 @@ internal sealed class PublishOpenApiCollectionCommand : Command
             if (publishRequest.Id is not { } requestId)
             {
                 activity.Fail("Failed to publish a new OpenAPI collection version.");
-                await console.Error.WriteLineAsync("Could not create publish request.");
+                console.Error.WriteErrorLine("Could not create publish request.");
                 return ExitCodes.Error;
             }
 
@@ -110,24 +110,24 @@ internal sealed class PublishOpenApiCollectionCommand : Command
                             switch (error)
                             {
                                 case IUnexpectedProcessingError e:
-                                    await console.Error.WriteLineAsync(e.Message);
+                                    console.Error.WriteErrorLine(e.Message);
                                     break;
                                 case IProcessingTimeoutError e:
-                                    await console.Error.WriteLineAsync(e.Message);
+                                    console.Error.WriteErrorLine(e.Message);
                                     break;
                                 case IConcurrentOperationError e:
-                                    await console.Error.WriteLineAsync(e.Message);
+                                    console.Error.WriteErrorLine(e.Message);
                                     break;
                                 case IOpenApiCollectionValidationError e:
                                     console.PrintOpenApiCollectionValidationErrors(e);
                                     break;
                                 case IError e:
-                                    await console.Error.WriteLineAsync("Unexpected error: " + e.Message);
+                                    console.Error.WriteErrorLine("Unexpected error: " + e.Message);
                                     break;
                             }
                         }
 
-                        await console.Error.WriteLineAsync("OpenAPI collection publish failed.");
+                        console.Error.WriteErrorLine("OpenAPI collection publish failed.");
                         return ExitCodes.Error;
 
                     case IOpenApiCollectionVersionPublishSuccess:
@@ -153,7 +153,7 @@ internal sealed class PublishOpenApiCollectionCommand : Command
                                         console.PrintOpenApiCollectionValidationErrors(e);
                                         break;
                                     case IError e:
-                                        await console.Error.WriteLineAsync("Unexpected error: " + e.Message);
+                                        console.Error.WriteErrorLine("Unexpected error: " + e.Message);
                                         break;
                                 }
                             }

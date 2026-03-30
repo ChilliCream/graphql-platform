@@ -8,11 +8,9 @@ internal interface INitroConsole : IAnsiConsole
 
     bool IsHumanReadable { get; }
 
-    TextWriter Out { get; }
+    IAnsiConsole Out { get; }
 
-    TextWriter Error { get; }
+    IAnsiConsole Error { get; }
 
     void SetOutputFormat(OutputFormat format);
-
-    void WriteDirectly(string message);
 }

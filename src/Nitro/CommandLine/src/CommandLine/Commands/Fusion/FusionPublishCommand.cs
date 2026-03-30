@@ -291,7 +291,7 @@ internal sealed class FusionPublishCommand : Command
         }
         catch (Exception exception)
         {
-            await console.Error.WriteLineAsync(exception.Message);
+            console.Error.WriteErrorLine(exception.Message);
 
             if (!string.IsNullOrEmpty(requestId))
             {
@@ -386,7 +386,7 @@ internal sealed class FusionPublishCommand : Command
         }
         catch (Exception exception)
         {
-            await console.Error.WriteLineAsync(exception.Message);
+            console.Error.WriteErrorLine(exception.Message);
 
             if (!string.IsNullOrEmpty(requestId))
             {

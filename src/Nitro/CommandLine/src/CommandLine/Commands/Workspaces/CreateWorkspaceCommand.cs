@@ -72,7 +72,7 @@ internal sealed class CreateWorkspaceCommand : Command
                         _ => "Unexpected mutation error."
                     };
 
-                    await console.Error.WriteLineAsync(errorMessage);
+                    console.Error.WriteErrorLine(errorMessage);
                 }
 
                 return ExitCodes.Error;
@@ -81,7 +81,7 @@ internal sealed class CreateWorkspaceCommand : Command
             if (createdWorkspace.Workspace is not IWorkspaceDetailPrompt_Workspace workspaceDetail)
             {
                 activity.Fail("Failed to create the workspace.");
-                await console.Error.WriteLineAsync("Could not create workspace.");
+                console.Error.WriteErrorLine("Could not create workspace.");
                 return ExitCodes.Error;
             }
 

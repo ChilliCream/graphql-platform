@@ -58,8 +58,9 @@ public class NitroClientRegistrationTests
         services.AddNitroClients();
 
         var testConsole = new TestConsole();
+        var errorConsole = new TestConsole();
         services.AddSingleton<INitroConsole>(
-            new NitroConsole(testConsole, TextWriter.Null, TextWriter.Null));
+            new NitroConsole(testConsole, errorConsole));
 
         var provider = services.BuildServiceProvider();
         var rootCommand = provider.GetRequiredService<NitroRootCommand>();

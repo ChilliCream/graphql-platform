@@ -68,7 +68,7 @@ internal sealed class CreateOpenApiCollectionCommand : Command
                         _ => "Unexpected mutation error."
                     };
 
-                    await console.Error.WriteLineAsync(errorMessage);
+                    console.Error.WriteErrorLine(errorMessage);
                     return ExitCodes.Error;
                 }
             }
@@ -76,7 +76,7 @@ internal sealed class CreateOpenApiCollectionCommand : Command
             if (data.OpenApiCollection is not IOpenApiCollectionDetailPrompt_OpenApiCollection detail)
             {
                 activity.Fail("Failed to create the OpenAPI collection.");
-                await console.Error.WriteLineAsync("Could not create OpenAPI collection.");
+                console.Error.WriteErrorLine("Could not create OpenAPI collection.");
                 return ExitCodes.Error;
             }
 

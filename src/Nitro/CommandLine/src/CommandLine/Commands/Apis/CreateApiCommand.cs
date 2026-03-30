@@ -73,7 +73,7 @@ internal sealed class CreateApiCommand : Command
                         _ => "Unexpected mutation error."
                     };
 
-                    await console.Error.WriteLineAsync(errorMessage);
+                    console.Error.WriteErrorLine(errorMessage);
                     return ExitCodes.Error;
                 }
             }
@@ -82,21 +82,21 @@ internal sealed class CreateApiCommand : Command
             if (changeResult is null)
             {
                 activity.Fail("Failed to create the API.");
-                await console.Error.WriteLineAsync("Could not create API.");
+                console.Error.WriteErrorLine("Could not create API.");
                 return ExitCodes.Error;
             }
 
             if (changeResult.Error is IError error)
             {
                 activity.Fail("Failed to create the API.");
-                await console.Error.WriteLineAsync(error.Message);
+                console.Error.WriteErrorLine(error.Message);
                 return ExitCodes.Error;
             }
 
             if (changeResult.Result is not ICreateApiCommandMutation_Api result)
             {
                 activity.Fail("Failed to create the API.");
-                await console.Error.WriteLineAsync("Could not create API.");
+                console.Error.WriteErrorLine("Could not create API.");
                 return ExitCodes.Error;
             }
 

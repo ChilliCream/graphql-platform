@@ -89,7 +89,7 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
                         _ => "Unexpected mutation error."
                     };
 
-                    await console.Error.WriteLineAsync(errorMessage);
+                    console.Error.WriteErrorLine(errorMessage);
                 }
 
                 return ExitCodes.Error;
@@ -98,7 +98,7 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
             if (data.McpFeatureCollectionVersion is null)
             {
                 activity.Fail("Failed to upload a new MCP feature collection version.");
-                await console.Error.WriteLineAsync("Could not upload MCP Feature Collection version.");
+                console.Error.WriteErrorLine("Could not upload MCP Feature Collection version.");
                 return ExitCodes.Error;
             }
 

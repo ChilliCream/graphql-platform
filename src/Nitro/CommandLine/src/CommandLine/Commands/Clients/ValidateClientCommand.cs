@@ -82,7 +82,7 @@ internal sealed class ValidateClientCommand : Command
                         _ => "Unexpected mutation error."
                     };
 
-                    await console.Error.WriteLineAsync(errorMessage);
+                    console.Error.WriteErrorLine(errorMessage);
                 }
 
                 return ExitCodes.Error;
@@ -110,18 +110,18 @@ internal sealed class ValidateClientCommand : Command
                                     console.PrintPersistedQueryValidationErrors(e);
                                     break;
                                 case IProcessingTimeoutError e:
-                                    await console.Error.WriteLineAsync(e.Message);
+                                    console.Error.WriteErrorLine(e.Message);
                                     break;
                                 case IUnexpectedProcessingError e:
-                                    await console.Error.WriteLineAsync(e.Message);
+                                    console.Error.WriteErrorLine(e.Message);
                                     break;
                                 case IError e:
-                                    await console.Error.WriteLineAsync("Unexpected error: " + e.Message);
+                                    console.Error.WriteErrorLine("Unexpected error: " + e.Message);
                                     break;
                             }
                         }
 
-                        await console.Error.WriteLineAsync("Client validation failed.");
+                        console.Error.WriteErrorLine("Client validation failed.");
                         return ExitCodes.Error;
 
                     case IClientVersionValidationSuccess:

@@ -113,7 +113,7 @@ internal sealed class UpdateMockCommand : Command
                         _ => "Unexpected mutation error."
                     };
 
-                    await console.Error.WriteLineAsync(errorMessage);
+                    console.Error.WriteErrorLine(errorMessage);
                 }
 
                 return ExitCodes.Error;
@@ -122,7 +122,7 @@ internal sealed class UpdateMockCommand : Command
             if (updatedMock.MockSchema is not IMockSchemaDetailPrompt mockSchema)
             {
                 activity.Fail("Failed to update the mock schema.");
-                await console.Error.WriteLineAsync("Could not update mock schema.");
+                console.Error.WriteErrorLine("Could not update mock schema.");
                 return ExitCodes.Error;
             }
 

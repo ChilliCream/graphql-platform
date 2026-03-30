@@ -77,7 +77,7 @@ internal sealed class RevokePersonalAccessTokenCommand : Command
                         _ => "Unexpected mutation error."
                     };
 
-                    await console.Error.WriteLineAsync(errorMessage);
+                    console.Error.WriteErrorLine(errorMessage);
                 }
 
                 return ExitCodes.Error;
@@ -86,7 +86,7 @@ internal sealed class RevokePersonalAccessTokenCommand : Command
             if (data.PersonalAccessToken is not IPersonalAccessTokenDetailPrompt_PersonalAccessToken token)
             {
                 activity.Fail("Failed to revoke the personal access token.");
-                await console.Error.WriteLineAsync("Could not revoke personal access token.");
+                console.Error.WriteErrorLine("Could not revoke personal access token.");
                 return ExitCodes.Error;
             }
 

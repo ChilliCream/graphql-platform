@@ -62,7 +62,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
             if (promptFiles.Length < 1 && toolFiles.Length < 1)
             {
                 activity.Fail("Failed to validate the MCP feature collection.");
-                await console.Error.WriteLineAsync(
+                console.Error.WriteErrorLine(
                     "Could not find any MCP prompt or tool definition files with the provided patterns.");
                 return ExitCodes.Error;
             }
@@ -96,7 +96,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
                         _ => "Unexpected mutation error."
                     };
 
-                    await console.Error.WriteLineAsync(errorMessage);
+                    console.Error.WriteErrorLine(errorMessage);
                 }
 
                 return ExitCodes.Error;
@@ -121,24 +121,24 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
                             switch (error)
                             {
                                 case IUnexpectedProcessingError e:
-                                    await console.Error.WriteLineAsync(e.Message);
+                                    console.Error.WriteErrorLine(e.Message);
                                     break;
                                 case IProcessingTimeoutError e:
-                                    await console.Error.WriteLineAsync(e.Message);
+                                    console.Error.WriteErrorLine(e.Message);
                                     break;
                                 case IMcpFeatureCollectionValidationError e:
                                     console.PrintMcpFeatureCollectionValidationErrors(e);
                                     break;
                                 case IMcpFeatureCollectionValidationArchiveError e:
-                                    await console.Error.WriteLineAsync(e.Message);
+                                    console.Error.WriteErrorLine(e.Message);
                                     break;
                                 case IError e:
-                                    await console.Error.WriteLineAsync("Unexpected error: " + e.Message);
+                                    console.Error.WriteErrorLine("Unexpected error: " + e.Message);
                                     break;
                             }
                         }
 
-                        await console.Error.WriteLineAsync("MCP Feature Collection validation failed.");
+                        console.Error.WriteErrorLine("MCP Feature Collection validation failed.");
                         return ExitCodes.Error;
 
                     case IMcpFeatureCollectionVersionValidationSuccess:

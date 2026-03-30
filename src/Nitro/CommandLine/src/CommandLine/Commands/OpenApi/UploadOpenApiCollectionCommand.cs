@@ -84,7 +84,7 @@ internal sealed class UploadOpenApiCollectionCommand : Command
                         _ => "Unexpected mutation error."
                     };
 
-                    await console.Error.WriteLineAsync(errorMessage);
+                    console.Error.WriteErrorLine(errorMessage);
                 }
 
                 return ExitCodes.Error;
@@ -93,7 +93,7 @@ internal sealed class UploadOpenApiCollectionCommand : Command
             if (data.OpenApiCollectionVersion is null)
             {
                 activity.Fail("Failed to upload a new OpenAPI collection version.");
-                await console.Error.WriteLineAsync("Could not upload OpenAPI collection version.");
+                console.Error.WriteErrorLine("Could not upload OpenAPI collection version.");
                 return ExitCodes.Error;
             }
 

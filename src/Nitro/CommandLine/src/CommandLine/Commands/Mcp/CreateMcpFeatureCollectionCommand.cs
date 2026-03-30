@@ -69,7 +69,7 @@ internal sealed class CreateMcpFeatureCollectionCommand : Command
                         _ => "Unexpected mutation error."
                     };
 
-                    await console.Error.WriteLineAsync(errorMessage);
+                    console.Error.WriteErrorLine(errorMessage);
                     return ExitCodes.Error;
                 }
             }
@@ -77,7 +77,7 @@ internal sealed class CreateMcpFeatureCollectionCommand : Command
             if (data.McpFeatureCollection is not IMcpFeatureCollectionDetailPrompt_McpFeatureCollection detail)
             {
                 activity.Fail("Failed to create the MCP feature collection.");
-                await console.Error.WriteLineAsync("Could not create MCP Feature Collection.");
+                console.Error.WriteErrorLine("Could not create MCP Feature Collection.");
                 return ExitCodes.Error;
             }
 

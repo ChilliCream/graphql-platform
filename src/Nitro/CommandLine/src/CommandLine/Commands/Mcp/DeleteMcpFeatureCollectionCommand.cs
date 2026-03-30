@@ -106,7 +106,7 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
                         _ => "Unexpected mutation error."
                     };
 
-                    await console.Error.WriteLineAsync(errorMessage);
+                    console.Error.WriteErrorLine(errorMessage);
                     return ExitCodes.Error;
                 }
             }
@@ -114,7 +114,7 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
             if (data.McpFeatureCollection is not IMcpFeatureCollectionDetailPrompt_McpFeatureCollection detail)
             {
                 activity.Fail("Failed to delete the MCP feature collection.");
-                await console.Error.WriteLineAsync("Could not delete the MCP Feature Collection.");
+                console.Error.WriteErrorLine("Could not delete the MCP Feature Collection.");
                 return ExitCodes.Error;
             }
 

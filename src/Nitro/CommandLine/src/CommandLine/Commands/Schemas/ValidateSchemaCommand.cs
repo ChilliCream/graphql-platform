@@ -82,7 +82,7 @@ internal sealed class ValidateSchemaCommand : Command
                         _ => "Unexpected mutation error."
                     };
 
-                    await console.Error.WriteLineAsync(errorMessage);
+                    console.Error.WriteErrorLine(errorMessage);
                 }
 
                 return ExitCodes.Error;
@@ -125,24 +125,24 @@ internal sealed class ValidateSchemaCommand : Command
                                     console.PrintMcpFeatureCollectionValidationErrors(e);
                                     break;
                                 case IOperationsAreNotAllowedError e:
-                                    await console.Error.WriteLineAsync(e.Message);
+                                    console.Error.WriteErrorLine(e.Message);
                                     break;
                                 case ISchemaVersionSyntaxError e:
-                                    await console.Error.WriteLineAsync(e.Message);
+                                    console.Error.WriteErrorLine(e.Message);
                                     break;
                                 case IProcessingTimeoutError e:
-                                    await console.Error.WriteLineAsync(e.Message);
+                                    console.Error.WriteErrorLine(e.Message);
                                     break;
                                 case IUnexpectedProcessingError e:
-                                    await console.Error.WriteLineAsync(e.Message);
+                                    console.Error.WriteErrorLine(e.Message);
                                     break;
                                 case IError e:
-                                    await console.Error.WriteLineAsync("Unexpected error: " + e.Message);
+                                    console.Error.WriteErrorLine("Unexpected error: " + e.Message);
                                     break;
                             }
                         }
 
-                        await console.Error.WriteLineAsync("Schema validation failed.");
+                        console.Error.WriteErrorLine("Schema validation failed.");
                         return ExitCodes.Error;
 
                     case ISchemaVersionValidationSuccess:

@@ -20,20 +20,20 @@ internal static class CommandExtensions
             }
             catch (ExitException exception)
             {
-                await console.Error.WriteLineAsync(exception.Message);
+                console.Error.WriteErrorLine(exception.Message);
 
                 return ExitCodes.Error;
             }
             catch (NitroClientAuthorizationException)
             {
-                await console.Error.WriteLineAsync(
+                console.Error.WriteErrorLine(
                     "The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.");
 
                 return ExitCodes.Error;
             }
             catch (NitroClientException exception)
             {
-                await console.Error.WriteLineAsync(
+                console.Error.WriteErrorLine(
                     $"There was an unexpected error executing your request: {exception.Message}");
 
                 return ExitCodes.Error;
@@ -44,7 +44,7 @@ internal static class CommandExtensions
             }
             catch (Exception exception)
             {
-                await console.Error.WriteLineAsync(exception.Message);
+                console.Error.WriteErrorLine(exception.Message);
 
                 return ExitCodes.Error;
             }

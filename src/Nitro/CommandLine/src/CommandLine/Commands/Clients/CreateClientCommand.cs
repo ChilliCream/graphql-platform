@@ -69,7 +69,7 @@ internal sealed class CreateClientCommand : Command
                         _ => "Unexpected mutation error."
                     };
 
-                    await console.Error.WriteLineAsync(errorMessage);
+                    console.Error.WriteErrorLine(errorMessage);
                 }
 
                 return ExitCodes.Error;
@@ -78,7 +78,7 @@ internal sealed class CreateClientCommand : Command
             if (data.Client is not IClientDetailPrompt_Client createdClient)
             {
                 activity.Fail("Failed to create the client.");
-                await console.Error.WriteLineAsync("Could not create client.");
+                console.Error.WriteErrorLine("Could not create client.");
                 return ExitCodes.Error;
             }
 

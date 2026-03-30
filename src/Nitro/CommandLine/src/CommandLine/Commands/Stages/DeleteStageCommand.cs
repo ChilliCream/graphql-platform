@@ -88,7 +88,7 @@ internal sealed class DeleteStageCommand : Command
                         _ => "Unexpected mutation error."
                     };
 
-                    await console.Error.WriteLineAsync(errorMessage);
+                    console.Error.WriteErrorLine(errorMessage);
                 }
 
                 return ExitCodes.Error;
@@ -97,7 +97,7 @@ internal sealed class DeleteStageCommand : Command
             if (data.Api is null)
             {
                 activity.Fail("Failed to delete the stage.");
-                await console.Error.WriteLineAsync("Could not delete the stage.");
+                console.Error.WriteErrorLine("Could not delete the stage.");
                 return ExitCodes.Error;
             }
 

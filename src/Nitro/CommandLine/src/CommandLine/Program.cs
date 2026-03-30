@@ -31,8 +31,13 @@ public static class Program
         services.AddSingleton<INitroClientContextProvider>(sp => sp.GetRequiredService<NitroClientContext>());
         services.AddNitroClients();
 
+        var errorConsole = AnsiConsole.Create(new AnsiConsoleSettings
+        {
+            Out = new AnsiConsoleOutput(Console.Error)
+        });
+
         services
-            .AddSingleton<INitroConsole>(new NitroConsole(AnsiConsole.Console, Console.Out, Console.Error))
+            .AddSingleton<INitroConsole>(new NitroConsole(AnsiConsole.Console, errorConsole))
             .AddNitroCommands();
 
         await using var provider = services.BuildServiceProvider();

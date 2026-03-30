@@ -91,7 +91,7 @@ internal sealed class CreateMockCommand : Command
                         _ => "Unexpected mutation error."
                     };
 
-                    await console.Error.WriteLineAsync(errorMessage);
+                    console.Error.WriteErrorLine(errorMessage);
                 }
 
                 return ExitCodes.Error;
@@ -100,7 +100,7 @@ internal sealed class CreateMockCommand : Command
             if (createdMock.MockSchema is not IMockSchemaDetailPrompt mockSchema)
             {
                 activity.Fail("Failed to create the mock schema.");
-                await console.Error.WriteLineAsync("Could not create mock schema.");
+                console.Error.WriteErrorLine("Could not create mock schema.");
                 return ExitCodes.Error;
             }
 

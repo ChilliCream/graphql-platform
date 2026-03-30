@@ -78,7 +78,7 @@ internal sealed class SetApiSettingsApiCommand : Command
                     _ => "Unexpected mutation error."
                 };
 
-                await console.Error.WriteLineAsync(errorMessage);
+                console.Error.WriteErrorLine(errorMessage);
                 return ExitCodes.Error;
             }
         }
@@ -86,7 +86,7 @@ internal sealed class SetApiSettingsApiCommand : Command
         if (data.Api is not IApiDetailPrompt_Api api)
         {
             activity.Fail("Failed to update the API settings.");
-            await console.Error.WriteLineAsync("Could not update settings.");
+            console.Error.WriteErrorLine("Could not update settings.");
             return ExitCodes.Error;
         }
 

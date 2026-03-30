@@ -76,7 +76,7 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
                         _ => "Unexpected mutation error."
                     };
 
-                    await console.Error.WriteLineAsync(errorMessage);
+                    console.Error.WriteErrorLine(errorMessage);
                 }
 
                 return ExitCodes.Error;
@@ -85,7 +85,7 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
             if (publishRequest.Id is not { } requestId)
             {
                 activity.Fail("Failed to publish a new MCP feature collection version.");
-                await console.Error.WriteLineAsync("Could not create publish request.");
+                console.Error.WriteErrorLine("Could not create publish request.");
                 return ExitCodes.Error;
             }
 
@@ -105,24 +105,24 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
                             switch (error)
                             {
                                 case IUnexpectedProcessingError e:
-                                    await console.Error.WriteLineAsync(e.Message);
+                                    console.Error.WriteErrorLine(e.Message);
                                     break;
                                 case IProcessingTimeoutError e:
-                                    await console.Error.WriteLineAsync(e.Message);
+                                    console.Error.WriteErrorLine(e.Message);
                                     break;
                                 case IConcurrentOperationError e:
-                                    await console.Error.WriteLineAsync(e.Message);
+                                    console.Error.WriteErrorLine(e.Message);
                                     break;
                                 case IMcpFeatureCollectionValidationError e:
                                     console.PrintMcpFeatureCollectionValidationErrors(e);
                                     break;
                                 case IError e:
-                                    await console.Error.WriteLineAsync("Unexpected error: " + e.Message);
+                                    console.Error.WriteErrorLine("Unexpected error: " + e.Message);
                                     break;
                             }
                         }
 
-                        await console.Error.WriteLineAsync("MCP Feature Collection publish failed.");
+                        console.Error.WriteErrorLine("MCP Feature Collection publish failed.");
                         return ExitCodes.Error;
 
                     case IMcpFeatureCollectionVersionPublishSuccess:
@@ -148,7 +148,7 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
                                         console.PrintMcpFeatureCollectionValidationErrors(e);
                                         break;
                                     case IError e:
-                                        await console.Error.WriteLineAsync("Unexpected error: " + e.Message);
+                                        console.Error.WriteErrorLine("Unexpected error: " + e.Message);
                                         break;
                                 }
                             }

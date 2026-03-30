@@ -70,7 +70,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
                         _ => "Unexpected mutation error."
                     };
 
-                    await console.Error.WriteLineAsync(errorMessage);
+                    console.Error.WriteErrorLine(errorMessage);
                 }
 
                 return ExitCodes.Error;
@@ -100,7 +100,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
 
                         foreach (var error in failed.Errors)
                         {
-                            await console.Error.WriteLineAsync(error switch
+                            console.Error.WriteErrorLine(error switch
                             {
                                 IUnexpectedProcessingError e => e.Message,
                                 IError e => "Unexpected error: " + e.Message,
@@ -108,7 +108,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
                             });
                         }
 
-                        await console.Error.WriteLineAsync("The validation failed.");
+                        console.Error.WriteErrorLine("The validation failed.");
                         return ExitCodes.Error;
 
                     case IFusionConfigurationValidationSuccess:

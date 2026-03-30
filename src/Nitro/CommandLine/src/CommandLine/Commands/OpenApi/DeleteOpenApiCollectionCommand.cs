@@ -106,7 +106,7 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
                         _ => "Unexpected mutation error."
                     };
 
-                    await console.Error.WriteLineAsync(errorMessage);
+                    console.Error.WriteErrorLine(errorMessage);
                     return ExitCodes.Error;
                 }
             }
@@ -114,7 +114,7 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
             if (data.OpenApiCollection is not IOpenApiCollectionDetailPrompt_OpenApiCollection detail)
             {
                 activity.Fail("Failed to delete the OpenAPI collection.");
-                await console.Error.WriteLineAsync("Could not delete the OpenAPI collection.");
+                console.Error.WriteErrorLine("Could not delete the OpenAPI collection.");
                 return ExitCodes.Error;
             }
 

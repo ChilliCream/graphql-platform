@@ -224,7 +224,7 @@ internal sealed class FusionComposeCommand : Command
             }
             else
             {
-                await console.Error.WriteLineAsync($"❌ The path `{sourceSchemaPath}` does not exist.");
+                console.Error.WriteErrorLine($"❌ The path `{sourceSchemaPath}` does not exist.");
                 return 1;
             }
         }
@@ -378,7 +378,7 @@ internal sealed class FusionComposeCommand : Command
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                await console.Error.WriteLineAsync($"❌ Error during recomposition: {ex.Message}");
+                console.Error.WriteErrorLine($"❌ Error during recomposition: {ex.Message}");
             }
             finally
             {
@@ -430,23 +430,21 @@ internal sealed class FusionComposeCommand : Command
                 compositionSettings,
                 cancellationToken);
 
-            var writer = console.Out;
-
             WriteCompositionLog(
                 compositionLog,
-                writer,
+                console.Out,
                 writeAsGraphQLComments: false);
 
             if (!compositionLog.IsEmpty)
             {
-                await writer.WriteLineAsync();
+                console.Out.WriteLine();
             }
 
             if (result.IsFailure)
             {
                 foreach (var error in result.Errors)
                 {
-                    await console.Error.WriteLineAsync(error.Message);
+                    console.Error.WriteErrorLine(error.Message);
                 }
 
                 return 1;
@@ -459,14 +457,14 @@ internal sealed class FusionComposeCommand : Command
         }
         catch (Exception e)
         {
-            await console.Error.WriteLineAsync(e.Message);
+            console.Error.WriteErrorLine(e.Message);
             return 1;
         }
     }
 
     public static void WriteCompositionLog(
         CompositionLog compositionLog,
-        TextWriter writer,
+        IAnsiConsole output,
         bool writeAsGraphQLComments)
     {
         Console.OutputEncoding = Encoding.UTF8;
@@ -504,7 +502,7 @@ internal sealed class FusionComposeCommand : Command
                 message = $"# {message.Replace(Environment.NewLine, Environment.NewLine + "# ")}";
             }
 
-            writer.WriteLine(message);
+            output.WriteLine(message);
         }
     }
 

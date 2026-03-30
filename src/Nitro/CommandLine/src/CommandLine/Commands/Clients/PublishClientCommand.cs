@@ -88,7 +88,7 @@ internal sealed class PublishClientCommand : Command
                         _ => "Unexpected mutation error."
                     };
 
-                    await console.Error.WriteLineAsync(errorMessage);
+                    console.Error.WriteErrorLine(errorMessage);
                 }
 
                 return ExitCodes.Error;
@@ -97,7 +97,7 @@ internal sealed class PublishClientCommand : Command
             if (publishRequest.Id is not { } requestId)
             {
                 activity.Fail("Failed to publish a new client version.");
-                await console.Error.WriteLineAsync("Could not create publish request.");
+                console.Error.WriteErrorLine("Could not create publish request.");
                 return ExitCodes.Error;
             }
 
@@ -118,24 +118,24 @@ internal sealed class PublishClientCommand : Command
                             switch (error)
                             {
                                 case IConcurrentOperationError e:
-                                    await console.Error.WriteLineAsync(e.Message);
+                                    console.Error.WriteErrorLine(e.Message);
                                     break;
                                 case IPersistedQueryValidationError e:
                                     console.PrintPersistedQueryValidationErrors(e);
                                     break;
                                 case IProcessingTimeoutError e:
-                                    await console.Error.WriteLineAsync(e.Message);
+                                    console.Error.WriteErrorLine(e.Message);
                                     break;
                                 case IUnexpectedProcessingError e:
-                                    await console.Error.WriteLineAsync(e.Message);
+                                    console.Error.WriteErrorLine(e.Message);
                                     break;
                                 case IError e:
-                                    await console.Error.WriteLineAsync("Unexpected error: " + e.Message);
+                                    console.Error.WriteErrorLine("Unexpected error: " + e.Message);
                                     break;
                             }
                         }
 
-                        await console.Error.WriteLineAsync("Client publish failed.");
+                        console.Error.WriteErrorLine("Client publish failed.");
                         return ExitCodes.Error;
 
                     case IClientVersionPublishSuccess:
@@ -169,7 +169,7 @@ internal sealed class PublishClientCommand : Command
                                         console.PrintPersistedQueryValidationErrors(e);
                                         break;
                                     case IError e:
-                                        await console.Error.WriteLineAsync("Unexpected error: " + e.Message);
+                                        console.Error.WriteErrorLine("Unexpected error: " + e.Message);
                                         break;
                                 }
                             }

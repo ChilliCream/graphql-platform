@@ -53,7 +53,7 @@ internal static class RootCommandExtensions
         }
         else if (format is OutputFormat.Json && exitCode == 0)
         {
-            console.WriteDirectly("{}");
+            console.Out.WriteLine("{}");
         }
 
         return exitCode;

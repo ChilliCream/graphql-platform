@@ -5,8 +5,7 @@ namespace ChilliCream.Nitro.CommandLine;
 
 internal sealed class NitroConsole(
     IAnsiConsole console,
-    TextWriter outWriter,
-    TextWriter errorWriter)
+    IAnsiConsole errorConsole)
     : INitroConsole
 {
     private OutputFormat? _outputFormat;
@@ -17,18 +16,13 @@ internal sealed class NitroConsole(
 
     public bool IsHumanReadable => _outputFormat is null;
 
-    public TextWriter Out => outWriter;
+    public IAnsiConsole Out => console;
 
-    public TextWriter Error => errorWriter;
+    public IAnsiConsole Error => errorConsole;
 
     public void SetOutputFormat(OutputFormat format)
     {
        _outputFormat = format;
-    }
-
-    public void WriteDirectly(string message)
-    {
-        console.WriteLine(message);
     }
 
     public void Clear(bool home)
