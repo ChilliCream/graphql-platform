@@ -3,50 +3,36 @@ using Mocha.Middlewares;
 
 namespace Mocha;
 
-/// <summary>
-/// Diagnostic observer that emits OpenTelemetry traces and metrics for dispatch, receive, and consume operations.
-/// </summary>
-/// <remarks>
-/// Creates <see cref="Activity"/> spans for each pipeline stage and records exceptions as span events
-/// with an error status. Trace context propagation is handled via message headers on the receive path,
-/// enabling distributed tracing across transport boundaries.
-/// </remarks>
-public sealed class OpenTelemetryDiagnosticObserver : IBusDiagnosticObserver
+internal sealed class ActivityMessagingDiagnosticListener : MessagingDiagnosticEventListener
 {
-    /// <inheritdoc />
-    public IDisposable Dispatch(IDispatchContext context)
+    public override IDisposable Dispatch(IDispatchContext context)
     {
         return DispatchActivity.Create(context);
     }
 
-    /// <inheritdoc />
-    public IDisposable Receive(IReceiveContext context)
+    public override void DispatchError(IDispatchContext context, Exception exception)
+    {
+        Activity.Current?.AddException(exception);
+        Activity.Current?.SetStatus(ActivityStatusCode.Error);
+    }
+
+    public override IDisposable Receive(IReceiveContext context)
     {
         return ReceiveActivity.Create(context);
     }
 
-    /// <inheritdoc />
-    public IDisposable Consume(IConsumeContext context)
+    public override void ReceiveError(IReceiveContext context, Exception exception)
+    {
+        Activity.Current?.AddException(exception);
+        Activity.Current?.SetStatus(ActivityStatusCode.Error);
+    }
+
+    public override IDisposable Consume(IConsumeContext context)
     {
         return ConsumerActivity.Create(context);
     }
 
-    /// <inheritdoc />
-    public void OnReceiveError(IReceiveContext context, Exception exception)
-    {
-        Activity.Current?.AddException(exception);
-        Activity.Current?.SetStatus(ActivityStatusCode.Error);
-    }
-
-    /// <inheritdoc />
-    public void OnDispatchError(IDispatchContext context, Exception exception)
-    {
-        Activity.Current?.AddException(exception);
-        Activity.Current?.SetStatus(ActivityStatusCode.Error);
-    }
-
-    /// <inheritdoc />
-    public void OnConsumeError(IConsumeContext context, Exception exception)
+    public override void ConsumeError(IConsumeContext context, Exception exception)
     {
         Activity.Current?.AddException(exception);
         Activity.Current?.SetStatus(ActivityStatusCode.Error);
