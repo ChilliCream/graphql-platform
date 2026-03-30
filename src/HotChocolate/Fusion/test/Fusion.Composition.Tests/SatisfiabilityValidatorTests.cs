@@ -2950,5 +2950,12 @@ public sealed class SatisfiabilityValidatorTests
 
         // assert
         Assert.True(result.IsSuccess);
+        var logEntry = Assert.Single(log);
+        Assert.Equal(LogSeverity.Warning, logEntry.Severity);
+        Assert.Equal(LogEntryCodes.Unsatisfiable, logEntry.Code);
+        Assert.Equal(
+            "Satisfiability validation reached the maximum recursion depth (500) "
+            + "while visiting type 'T500'. Validation of deeply nested fields may be incomplete.",
+            logEntry.Message);
     }
 }

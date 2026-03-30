@@ -62,6 +62,22 @@ internal sealed class SatisfiabilityValidator
     {
         if (context.Depth >= MaxRecursionDepth)
         {
+            if (!context.DepthLimitReached)
+            {
+                context.DepthLimitReached = true;
+
+                _log.Write(
+                    LogEntryBuilder.New()
+                        .SetMessage(
+                            string.Format(
+                                SatisfiabilityValidator_MaxRecursionDepthReached,
+                                MaxRecursionDepth,
+                                objectType.Name))
+                        .SetCode(LogEntryCodes.Unsatisfiable)
+                        .SetSeverity(LogSeverity.Warning)
+                        .Build());
+            }
+
             return;
         }
 
@@ -438,4 +454,6 @@ internal sealed class SatisfiabilityValidatorContext
     public HashSet<FieldAccessCacheKey> FieldAccessCache { get; } = [];
 
     public int Depth { get; set; }
+
+    public bool DepthLimitReached { get; set; }
 }
