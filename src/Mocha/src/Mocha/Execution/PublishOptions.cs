@@ -6,7 +6,7 @@ namespace Mocha;
 public readonly struct PublishOptions
 {
     /// <summary>
-    /// TODO this is currently not wired up
+    /// Gets the scheduled delivery time, or <c>null</c> for immediate delivery.
     /// </summary>
     public DateTimeOffset? ScheduledTime { get; init; }
 

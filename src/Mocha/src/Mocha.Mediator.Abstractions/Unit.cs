@@ -1,7 +1,7 @@
 namespace Mocha.Mediator;
 
 /// <summary>
-/// Represents a void type since <see cref="System.Void"/> is not a valid generic type argument.
+/// Represents a void type since <see cref="Void"/> is not a valid generic type argument.
 /// </summary>
 /// <remarks>
 /// Use <see cref="Unit"/> as the response type for commands that do not return a meaningful value.

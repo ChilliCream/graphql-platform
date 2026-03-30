@@ -9,7 +9,7 @@ internal sealed class InMemoryDispatchEndpointDescriptor
         Configuration = new InMemoryDispatchEndpointConfiguration { Name = name, TopicName = name };
     }
 
-    protected override InMemoryDispatchEndpointConfiguration Configuration { get; set; }
+    protected internal override InMemoryDispatchEndpointConfiguration Configuration { get; protected set; }
 
     public IInMemoryDispatchEndpointDescriptor ToQueue(string name)
     {

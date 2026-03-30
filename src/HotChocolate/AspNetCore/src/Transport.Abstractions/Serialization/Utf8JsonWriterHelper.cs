@@ -728,7 +728,6 @@ internal static class Utf8JsonWriterHelper
         {
             ErrorHandlingMode.Propagate => "PROPAGATE",
             ErrorHandlingMode.Null => "NULL",
-            ErrorHandlingMode.Halt => "HALT",
             _ => throw new ArgumentOutOfRangeException(nameof(mode))
         };
     }
