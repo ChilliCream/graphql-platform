@@ -555,6 +555,11 @@ public sealed class PublishClientCommandTests
             Publishing client...
             ├── The committing of your request is in progress.
             └── ✓ Successfully published client!
+
+            {
+              "stage": "production",
+              "status": "success"
+            }
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -595,6 +600,11 @@ public sealed class PublishClientCommandTests
             """
 
             [    ] Successfully published client!
+
+            {
+              "stage": "production",
+              "status": "success"
+            }
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -631,9 +641,13 @@ public sealed class PublishClientCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Equal("{}", result.StdOut);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccess(
+            """
+            {
+              "stage": "production",
+              "status": "success"
+            }
+            """);
 
         client.VerifyAll();
     }
@@ -858,6 +872,11 @@ public sealed class PublishClientCommandTests
             ├── Your request is queued. The current position in the queue is 3.
             ├── The committing of your request is in progress.
             └── ✓ Successfully published client!
+
+            {
+              "stage": "production",
+              "status": "success"
+            }
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -901,6 +920,11 @@ public sealed class PublishClientCommandTests
             Your request is ready for the committing.
             ├── The committing of your request is in progress.
             └── ✓ Successfully published client!
+
+            {
+              "stage": "production",
+              "status": "success"
+            }
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -944,6 +968,11 @@ public sealed class PublishClientCommandTests
             ├── The committing of your request is approved.
             ├── The committing of your request is in progress.
             └── ✓ Successfully published client!
+
+            {
+              "stage": "production",
+              "status": "success"
+            }
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -995,6 +1024,11 @@ public sealed class PublishClientCommandTests
             ├── The committing of your request is approved.
             ├── The committing of your request is in progress.
             └── ✓ Successfully published client!
+
+            {
+              "stage": "production",
+              "status": "success"
+            }
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -1075,6 +1109,11 @@ public sealed class PublishClientCommandTests
             Publishing client...
             LOG: Force push is enabled
             └── ✓ Successfully published client!
+
+            {
+              "stage": "production",
+              "status": "success"
+            }
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);

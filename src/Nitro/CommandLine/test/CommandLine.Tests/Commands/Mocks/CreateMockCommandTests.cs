@@ -73,6 +73,56 @@ public sealed class CreateMockCommandTests
             """);
     }
 
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task MissingRequiredOptions_ReturnsError(InteractionMode mode)
+    {
+        // arrange & act
+        var result = await new CommandBuilder()
+            .AddApiKey()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "mock",
+                "create",
+                "--api-id",
+                "api-1",
+                "--extension",
+                "ext.graphql",
+                "--schema",
+                "schema.graphql",
+                "--url",
+                "https://downstream.example.com")
+            .ExecuteAsync();
+
+        // assert
+        var output = result.StdOut.Replace(result.ExecutableName, "nitro");
+        output.MatchInlineSnapshot(
+            """
+            Description:
+              Create a new mock schema.
+
+            Usage:
+              nitro mock create [options]
+
+            Options:
+              --api-id <api-id>                   The ID of the API [env: NITRO_API_ID]
+              --extension <extension> (REQUIRED)  The path to the graphql file with the schema extension [env: NITRO_SCHEMA_EXTENSION_FILE]
+              --schema <schema> (REQUIRED)        The path to the graphql file with the schema [env: NITRO_SCHEMA_FILE]
+              --url <url> (REQUIRED)              The URL of the downstream service [env: NITRO_DOWNSTREAM_URL]
+              --name <name> (REQUIRED)            The name of the mock schema [env: NITRO_MOCK_SCHEMA_NAME]
+              --cloud-url <cloud-url>             The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>                 The API key that is used for the authentication [env: NITRO_API_KEY]
+              --output <json>                     The format in which the result should be displayed, if this option is set, the console will be non-interactive and the result will be displayed in the specified format [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                      Show help and usage information
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Option '--name' is required.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
     [Fact]
     public async Task WithOptions_ReturnsSuccess_NonInteractive()
     {
@@ -444,52 +494,13 @@ public sealed class CreateMockCommandTests
         fileSystem.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_Interactive()
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mocksClient = new Mock<IMocksClient>(MockBehavior.Strict);
-        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
-
-        var extensionStream = new MemoryStream();
-        var schemaStream = new MemoryStream();
-        fileSystem.Setup(x => x.OpenReadStream("ext.graphql")).Returns(extensionStream);
-        fileSystem.Setup(x => x.OpenReadStream("schema.graphql")).Returns(schemaStream);
-
-        mocksClient.Setup(x => x.CreateMockSchemaAsync(
-                "api-1",
-                schemaStream,
-                "https://downstream.example.com",
-                extensionStream,
-                "my-mock",
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientException("create failed"));
-
-        // act
-        var result = await new CommandBuilder()
-            .AddService(apisClient.Object)
-            .AddService(mocksClient.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mock",
-                "create",
-                "--api-id",
-                "api-1",
-                "--extension",
-                "ext.graphql",
-                "--schema",
-                "schema.graphql",
-                "--url",
-                "https://downstream.example.com",
-                "--name",
-                "my-mock")
-            .ExecuteAsync();
+        var result = await RunCreateMockWithException(
+            new NitroClientException("create failed"),
+            InteractionMode.Interactive);
 
         // assert
         result.StdErr.MatchInlineSnapshot(
@@ -497,18 +508,90 @@ public sealed class CreateMockCommandTests
             There was an unexpected error executing your request: create failed
             """);
         Assert.Equal(1, result.ExitCode);
-
-        mocksClient.VerifyAll();
-        fileSystem.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
+        var result = await RunCreateMockWithException(
+            new NitroClientException("create failed"),
+            InteractionMode.NonInteractive);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: create failed
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var result = await RunCreateMockWithException(
+            new NitroClientException("create failed"),
+            InteractionMode.JsonOutput);
+
+        // assert
+        result.AssertError(
+            """
+            There was an unexpected error executing your request: create failed
+            """);
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    {
+        // arrange
+        var result = await RunCreateMockWithException(
+            new NitroClientAuthorizationException("forbidden"),
+            InteractionMode.Interactive);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var result = await RunCreateMockWithException(
+            new NitroClientAuthorizationException("forbidden"),
+            InteractionMode.NonInteractive);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var result = await RunCreateMockWithException(
+            new NitroClientAuthorizationException("forbidden"),
+            InteractionMode.JsonOutput);
+
+        // assert
+        result.AssertError(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+    }
+
+    private static async Task<CommandResult> RunCreateMockWithException(
+        Exception ex,
+        InteractionMode mode)
+    {
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
         var mocksClient = new Mock<IMocksClient>(MockBehavior.Strict);
         var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
@@ -525,9 +608,8 @@ public sealed class CreateMockCommandTests
                 extensionStream,
                 "my-mock",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException("forbidden"));
+            .ThrowsAsync(ex);
 
-        // act
         var result = await new CommandBuilder()
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
@@ -549,15 +631,10 @@ public sealed class CreateMockCommandTests
                 "my-mock")
             .ExecuteAsync();
 
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
         mocksClient.VerifyAll();
         fileSystem.VerifyAll();
+
+        return result;
     }
 
     public static TheoryData<ICreateMockSchema_CreateMockSchema_Errors, string> CreateMockMutationErrorCases =>

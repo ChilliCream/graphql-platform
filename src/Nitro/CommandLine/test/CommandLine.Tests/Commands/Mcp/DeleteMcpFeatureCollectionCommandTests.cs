@@ -391,11 +391,8 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
         mcpClient.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -410,7 +407,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "mcp",
                 "delete",
@@ -419,6 +416,11 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
             .ExecuteAsync();
 
         // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Deleting MCP Feature Collection...
+            └── ✕ Failed!
+            """);
         result.StdErr.MatchInlineSnapshot(
             """
             There was an unexpected error executing your request: delete failed
@@ -429,11 +431,82 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
         mcpClient.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_Interactive()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
+        mcpClient.Setup(x => x.DeleteMcpFeatureCollectionAsync(
+                "mcp-1",
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NitroClientException("delete failed"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(mcpClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "mcp",
+                "delete",
+                "mcp-1",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Deleting MCP Feature Collection...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: delete failed
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        apisClient.VerifyAll();
+        mcpClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
+        mcpClient.Setup(x => x.DeleteMcpFeatureCollectionAsync(
+                "mcp-1",
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NitroClientException("delete failed"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(mcpClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "mcp",
+                "delete",
+                "mcp-1",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            There was an unexpected error executing your request: delete failed
+            """);
+
+        apisClient.VerifyAll();
+        mcpClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -448,7 +521,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "mcp",
                 "delete",
@@ -457,11 +530,90 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
             .ExecuteAsync();
 
         // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Deleting MCP Feature Collection...
+            └── ✕ Failed!
+            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
+
+        apisClient.VerifyAll();
+        mcpClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
+        mcpClient.Setup(x => x.DeleteMcpFeatureCollectionAsync(
+                "mcp-1",
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(mcpClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "mcp",
+                "delete",
+                "mcp-1",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Deleting MCP Feature Collection...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        apisClient.VerifyAll();
+        mcpClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
+        mcpClient.Setup(x => x.DeleteMcpFeatureCollectionAsync(
+                "mcp-1",
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(mcpClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "mcp",
+                "delete",
+                "mcp-1",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
 
         apisClient.VerifyAll();
         mcpClient.VerifyAll();

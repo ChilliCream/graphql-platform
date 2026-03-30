@@ -616,7 +616,13 @@ public sealed class UploadSchemaCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Equal("{}", result.StdOut);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            {
+              "schemaVersionId": "sv-1",
+              "tag": "v1"
+            }
+            """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
 

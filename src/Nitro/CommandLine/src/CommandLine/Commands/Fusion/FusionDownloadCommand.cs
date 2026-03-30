@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.Client.FusionConfiguration;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
@@ -19,7 +20,8 @@ internal sealed class FusionDownloadCommand : Command
         INitroConsole console,
         IFusionConfigurationClient fusionConfigurationClient,
         IFileSystem fileSystem,
-        ISessionService sessionService) : base("download")
+        ISessionService sessionService,
+        IResultHolder resultHolder) : base("download")
     {
         Description = "Downloads the most recent gateway configuration";
 
@@ -29,7 +31,7 @@ internal sealed class FusionDownloadCommand : Command
         this.AddGlobalNitroOptions();
 
         this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, console, fusionConfigurationClient, fileSystem, sessionService, cancellationToken));
+            => await ExecuteAsync(parseResult, console, fusionConfigurationClient, fileSystem, sessionService, resultHolder, cancellationToken));
     }
 
     private static async Task<int> ExecuteAsync(
@@ -38,6 +40,7 @@ internal sealed class FusionDownloadCommand : Command
         IFusionConfigurationClient fusionConfigurationClient,
         IFileSystem fileSystem,
         ISessionService sessionService,
+        IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
         parseResult.AssertHasAuthentication(sessionService);
@@ -76,6 +79,19 @@ internal sealed class FusionDownloadCommand : Command
 
         console.MarkupLine($"Downloaded Fusion configuration to: {outputFile}");
 
+        if (!console.IsHumanReadable)
+        {
+            resultHolder.SetResult(new ObjectResult(new FusionDownloadResult
+            {
+                File = outputFile
+            }));
+        }
+
         return ExitCodes.Success;
+    }
+
+    public class FusionDownloadResult
+    {
+        public required string File { get; init; }
     }
 }

@@ -157,7 +157,12 @@ public sealed class FusionDownloadCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Equal("{}", result.StdOut);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            {
+              "file": "/tmp/gateway.far"
+            }
+            """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
 
@@ -259,7 +264,12 @@ public sealed class FusionDownloadCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Equal("{}", result.StdOut);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            {
+              "file": "/tmp/gateway.fgp"
+            }
+            """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
 

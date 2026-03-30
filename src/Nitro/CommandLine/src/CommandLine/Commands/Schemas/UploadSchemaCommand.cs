@@ -3,6 +3,7 @@ using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using Command = System.CommandLine.Command;
 
@@ -14,7 +15,8 @@ internal sealed class UploadSchemaCommand : Command
         INitroConsole console,
         ISchemasClient client,
         IFileSystem fileSystem,
-        ISessionService sessionService)
+        ISessionService sessionService,
+        IResultHolder resultHolder)
         : base("upload")
     {
         Description = "Upload a new schema version";
@@ -33,6 +35,7 @@ internal sealed class UploadSchemaCommand : Command
                 client,
                 fileSystem,
                 sessionService,
+                resultHolder,
                 cancellationToken));
     }
 
@@ -42,6 +45,7 @@ internal sealed class UploadSchemaCommand : Command
         ISchemasClient client,
         IFileSystem fileSystem,
         ISessionService sessionService,
+        IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
         parseResult.AssertHasAuthentication(sessionService);
@@ -93,7 +97,23 @@ internal sealed class UploadSchemaCommand : Command
 
             activity.Success("Successfully uploaded schema!");
 
+            if (!console.IsHumanReadable)
+            {
+                resultHolder.SetResult(new ObjectResult(new UploadSchemaResult
+                {
+                    SchemaVersionId = data.SchemaVersion.Id,
+                    Tag = tag
+                }));
+            }
+
             return ExitCodes.Success;
         }
+    }
+
+    public class UploadSchemaResult
+    {
+        public required string SchemaVersionId { get; init; }
+
+        public required string Tag { get; init; }
     }
 }

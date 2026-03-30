@@ -2,6 +2,7 @@ using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using Command = System.CommandLine.Command;
 
@@ -12,7 +13,8 @@ internal sealed class PublishSchemaCommand : Command
     public PublishSchemaCommand(
         INitroConsole console,
         ISchemasClient client,
-        ISessionService sessionService) : base("publish")
+        ISessionService sessionService,
+        IResultHolder resultHolder) : base("publish")
     {
         Description = "Publish a schema version to a stage";
 
@@ -31,6 +33,7 @@ internal sealed class PublishSchemaCommand : Command
                 console,
                 client,
                 sessionService,
+                resultHolder,
                 cancellationToken));
     }
 
@@ -39,6 +42,7 @@ internal sealed class PublishSchemaCommand : Command
         INitroConsole console,
         ISchemasClient client,
         ISessionService sessionService,
+        IResultHolder resultHolder,
         CancellationToken ct)
     {
         parseResult.AssertHasAuthentication(sessionService);
@@ -159,6 +163,16 @@ internal sealed class PublishSchemaCommand : Command
 
                     case ISchemaVersionPublishSuccess:
                         activity.Success("Successfully published schema!");
+
+                        if (!console.IsHumanReadable)
+                        {
+                            resultHolder.SetResult(new ObjectResult(new PublishSchemaResult
+                            {
+                                Stage = stage,
+                                Status = "success"
+                            }));
+                        }
+
                         return ExitCodes.Success;
 
                     case IProcessingTaskIsReady:
@@ -224,5 +238,12 @@ internal sealed class PublishSchemaCommand : Command
         }
 
         return ExitCodes.Error;
+    }
+
+    public class PublishSchemaResult
+    {
+        public required string Stage { get; init; }
+
+        public required string Status { get; init; }
     }
 }

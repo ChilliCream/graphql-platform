@@ -579,10 +579,8 @@ public sealed class ListOpenApiCollectionCommandTests
         openApiClient.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -593,7 +591,7 @@ public sealed class ListOpenApiCollectionCommandTests
             .AddService(apisClient.Object)
             .AddService(openApiClient.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "openapi",
                 "list",
@@ -642,10 +640,38 @@ public sealed class ListOpenApiCollectionCommandTests
         openApiClient.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var openApiClient = CreateListExceptionClient(new NitroClientException("list failed"), "api-1", null);
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(openApiClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "openapi",
+                "list",
+                "--api-id",
+                "api-1")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            There was an unexpected error executing your request: list failed
+            """);
+
+        apisClient.VerifyAll();
+        openApiClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -656,7 +682,7 @@ public sealed class ListOpenApiCollectionCommandTests
             .AddService(apisClient.Object)
             .AddService(openApiClient.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "openapi",
                 "list",
@@ -700,6 +726,36 @@ public sealed class ListOpenApiCollectionCommandTests
             The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
+
+        apisClient.VerifyAll();
+        openApiClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var openApiClient = CreateListExceptionClient(new NitroClientAuthorizationException("forbidden"), "api-1", null);
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(openApiClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "openapi",
+                "list",
+                "--api-id",
+                "api-1")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
 
         apisClient.VerifyAll();
         openApiClient.VerifyAll();

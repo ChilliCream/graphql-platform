@@ -467,38 +467,13 @@ public sealed class UpdateMockCommandTests
         fileSystem.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_Interactive()
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mocksClient = new Mock<IMocksClient>(MockBehavior.Strict);
-        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
-
-        mocksClient.Setup(x => x.UpdateMockSchemaAsync(
-                "mock-1",
-                null,
-                null,
-                null,
-                null,
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientException("update failed"));
-
-        // act
-        var result = await new CommandBuilder()
-            .AddService(apisClient.Object)
-            .AddService(mocksClient.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mock",
-                "update",
-                "mock-1")
-            .ExecuteAsync();
+        var result = await RunUpdateMockWithException(
+            new NitroClientException("update failed"),
+            InteractionMode.Interactive);
 
         // assert
         result.StdErr.MatchInlineSnapshot(
@@ -506,18 +481,90 @@ public sealed class UpdateMockCommandTests
             There was an unexpected error executing your request: update failed
             """);
         Assert.Equal(1, result.ExitCode);
-
-        mocksClient.VerifyAll();
-        fileSystem.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
+        var result = await RunUpdateMockWithException(
+            new NitroClientException("update failed"),
+            InteractionMode.NonInteractive);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: update failed
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var result = await RunUpdateMockWithException(
+            new NitroClientException("update failed"),
+            InteractionMode.JsonOutput);
+
+        // assert
+        result.AssertError(
+            """
+            There was an unexpected error executing your request: update failed
+            """);
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    {
+        // arrange
+        var result = await RunUpdateMockWithException(
+            new NitroClientAuthorizationException("forbidden"),
+            InteractionMode.Interactive);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var result = await RunUpdateMockWithException(
+            new NitroClientAuthorizationException("forbidden"),
+            InteractionMode.NonInteractive);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var result = await RunUpdateMockWithException(
+            new NitroClientAuthorizationException("forbidden"),
+            InteractionMode.JsonOutput);
+
+        // assert
+        result.AssertError(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+    }
+
+    private static async Task<CommandResult> RunUpdateMockWithException(
+        Exception ex,
+        InteractionMode mode)
+    {
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
         var mocksClient = new Mock<IMocksClient>(MockBehavior.Strict);
         var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
@@ -529,9 +576,8 @@ public sealed class UpdateMockCommandTests
                 null,
                 null,
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException("forbidden"));
+            .ThrowsAsync(ex);
 
-        // act
         var result = await new CommandBuilder()
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
@@ -544,15 +590,10 @@ public sealed class UpdateMockCommandTests
                 "mock-1")
             .ExecuteAsync();
 
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
         mocksClient.VerifyAll();
         fileSystem.VerifyAll();
+
+        return result;
     }
 
     public static TheoryData<IUpdateMockSchema_UpdateMockSchema_Errors, string> UpdateMockMutationErrorCases =>

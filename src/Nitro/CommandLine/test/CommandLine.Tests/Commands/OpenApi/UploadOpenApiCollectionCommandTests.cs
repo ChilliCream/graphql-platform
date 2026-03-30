@@ -66,6 +66,30 @@ public sealed class UploadOpenApiCollectionCommandTests
             """);
     }
 
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task MissingRequiredOptions_ReturnsError(InteractionMode mode)
+    {
+        // arrange & act
+        var result = await new CommandBuilder()
+            .AddApiKey()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "openapi",
+                "upload")
+            .ExecuteAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Option '--tag' is required.
+            Option '--openapi-collection-id' is required.
+            Option '--pattern' is required.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
     [Fact]
     public async Task NoFilesFound_ReturnsError_NonInteractive()
     {
@@ -99,11 +123,8 @@ public sealed class UploadOpenApiCollectionCommandTests
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
         var (client, fileSystem) = CreateUploadSetup(new NitroClientException("upload failed"));
@@ -113,7 +134,7 @@ public sealed class UploadOpenApiCollectionCommandTests
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "openapi",
                 "upload",
@@ -126,6 +147,11 @@ public sealed class UploadOpenApiCollectionCommandTests
             .ExecuteAsync();
 
         // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Uploading new OpenAPI collection version...
+            └── ✕ Failed!
+            """);
         result.StdErr.MatchInlineSnapshot(
             """
             There was an unexpected error executing your request: upload failed
@@ -135,21 +161,18 @@ public sealed class UploadOpenApiCollectionCommandTests
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_Interactive()
     {
         // arrange
-        var (client, fileSystem) = CreateUploadSetup(new NitroClientAuthorizationException("forbidden"));
+        var (client, fileSystem) = CreateUploadSetup(new NitroClientException("upload failed"));
 
         // act
         var result = await new CommandBuilder()
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.Interactive)
             .AddArguments(
                 "openapi",
                 "upload",
@@ -162,11 +185,156 @@ public sealed class UploadOpenApiCollectionCommandTests
             .ExecuteAsync();
 
         // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Uploading new OpenAPI collection version...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: upload failed
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var (client, fileSystem) = CreateUploadSetup(new NitroClientException("upload failed"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "openapi",
+                "upload",
+                "--tag",
+                "v1",
+                "--openapi-collection-id",
+                "oa-1",
+                "--pattern",
+                "*.openapi.json")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            There was an unexpected error executing your request: upload failed
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var (client, fileSystem) = CreateUploadSetup(new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "openapi",
+                "upload",
+                "--tag",
+                "v1",
+                "--openapi-collection-id",
+                "oa-1",
+                "--pattern",
+                "*.openapi.json")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Uploading new OpenAPI collection version...
+            └── ✕ Failed!
+            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    {
+        // arrange
+        var (client, fileSystem) = CreateUploadSetup(new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "openapi",
+                "upload",
+                "--tag",
+                "v1",
+                "--openapi-collection-id",
+                "oa-1",
+                "--pattern",
+                "*.openapi.json")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Uploading new OpenAPI collection version...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var (client, fileSystem) = CreateUploadSetup(new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "openapi",
+                "upload",
+                "--tag",
+                "v1",
+                "--openapi-collection-id",
+                "oa-1",
+                "--pattern",
+                "*.openapi.json")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
 
         client.VerifyAll();
     }

@@ -375,11 +375,8 @@ public sealed class CreateOpenApiCollectionCommandTests
         openApiClient.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -395,7 +392,7 @@ public sealed class CreateOpenApiCollectionCommandTests
             .AddService(apisClient.Object)
             .AddService(openApiClient.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "openapi",
                 "create",
@@ -406,6 +403,11 @@ public sealed class CreateOpenApiCollectionCommandTests
             .ExecuteAsync();
 
         // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Creating OpenAPI collection...
+            └── ✕ Failed!
+            """);
         result.StdErr.MatchInlineSnapshot(
             """
             There was an unexpected error executing your request: create failed
@@ -416,11 +418,88 @@ public sealed class CreateOpenApiCollectionCommandTests
         openApiClient.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_Interactive()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var openApiClient = new Mock<IOpenApiClient>(MockBehavior.Strict);
+        openApiClient.Setup(x => x.CreateOpenApiCollectionAsync(
+                "api-1",
+                "my-openapi",
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NitroClientException("create failed"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(openApiClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "openapi",
+                "create",
+                "--api-id",
+                "api-1",
+                "--name",
+                "my-openapi")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Creating OpenAPI collection...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: create failed
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        apisClient.VerifyAll();
+        openApiClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var openApiClient = new Mock<IOpenApiClient>(MockBehavior.Strict);
+        openApiClient.Setup(x => x.CreateOpenApiCollectionAsync(
+                "api-1",
+                "my-openapi",
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NitroClientException("create failed"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(openApiClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "openapi",
+                "create",
+                "--api-id",
+                "api-1",
+                "--name",
+                "my-openapi")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            There was an unexpected error executing your request: create failed
+            """);
+
+        apisClient.VerifyAll();
+        openApiClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -436,7 +515,7 @@ public sealed class CreateOpenApiCollectionCommandTests
             .AddService(apisClient.Object)
             .AddService(openApiClient.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "openapi",
                 "create",
@@ -447,11 +526,96 @@ public sealed class CreateOpenApiCollectionCommandTests
             .ExecuteAsync();
 
         // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Creating OpenAPI collection...
+            └── ✕ Failed!
+            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
+
+        apisClient.VerifyAll();
+        openApiClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var openApiClient = new Mock<IOpenApiClient>(MockBehavior.Strict);
+        openApiClient.Setup(x => x.CreateOpenApiCollectionAsync(
+                "api-1",
+                "my-openapi",
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(openApiClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "openapi",
+                "create",
+                "--api-id",
+                "api-1",
+                "--name",
+                "my-openapi")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Creating OpenAPI collection...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        apisClient.VerifyAll();
+        openApiClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var openApiClient = new Mock<IOpenApiClient>(MockBehavior.Strict);
+        openApiClient.Setup(x => x.CreateOpenApiCollectionAsync(
+                "api-1",
+                "my-openapi",
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(apisClient.Object)
+            .AddService(openApiClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "openapi",
+                "create",
+                "--api-id",
+                "api-1",
+                "--name",
+                "my-openapi")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
 
         apisClient.VerifyAll();
         openApiClient.VerifyAll();

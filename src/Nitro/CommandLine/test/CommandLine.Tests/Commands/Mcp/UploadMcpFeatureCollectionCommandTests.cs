@@ -65,6 +65,29 @@ public sealed class UploadMcpFeatureCollectionCommandTests
             """);
     }
 
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task MissingRequiredOptions_ReturnsError(InteractionMode mode)
+    {
+        // arrange & act
+        var result = await new CommandBuilder()
+            .AddApiKey()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "mcp",
+                "upload")
+            .ExecuteAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Option '--tag' is required.
+            Option '--mcp-feature-collection-id' is required.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
     [Fact]
     public async Task NoFilesFound_ReturnsError_NonInteractive()
     {
@@ -96,11 +119,8 @@ public sealed class UploadMcpFeatureCollectionCommandTests
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
         var (client, fileSystem) = CreateUploadSetup(new NitroClientException("upload failed"));
@@ -110,7 +130,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "mcp",
                 "upload",
@@ -121,6 +141,11 @@ public sealed class UploadMcpFeatureCollectionCommandTests
             .ExecuteAsync();
 
         // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Uploading new MCP Feature Collection version...
+            └── ✕ Failed!
+            """);
         result.StdErr.MatchInlineSnapshot(
             """
             There was an unexpected error executing your request: upload failed
@@ -130,21 +155,18 @@ public sealed class UploadMcpFeatureCollectionCommandTests
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_Interactive()
     {
         // arrange
-        var (client, fileSystem) = CreateUploadSetup(new NitroClientAuthorizationException("forbidden"));
+        var (client, fileSystem) = CreateUploadSetup(new NitroClientException("upload failed"));
 
         // act
         var result = await new CommandBuilder()
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.Interactive)
             .AddArguments(
                 "mcp",
                 "upload",
@@ -155,11 +177,148 @@ public sealed class UploadMcpFeatureCollectionCommandTests
             .ExecuteAsync();
 
         // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Uploading new MCP Feature Collection version...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: upload failed
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var (client, fileSystem) = CreateUploadSetup(new NitroClientException("upload failed"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "mcp",
+                "upload",
+                "--tag",
+                "v1",
+                "--mcp-feature-collection-id",
+                "mcp-1")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            There was an unexpected error executing your request: upload failed
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var (client, fileSystem) = CreateUploadSetup(new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "mcp",
+                "upload",
+                "--tag",
+                "v1",
+                "--mcp-feature-collection-id",
+                "mcp-1")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Uploading new MCP Feature Collection version...
+            └── ✕ Failed!
+            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    {
+        // arrange
+        var (client, fileSystem) = CreateUploadSetup(new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "mcp",
+                "upload",
+                "--tag",
+                "v1",
+                "--mcp-feature-collection-id",
+                "mcp-1")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Uploading new MCP Feature Collection version...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var (client, fileSystem) = CreateUploadSetup(new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "mcp",
+                "upload",
+                "--tag",
+                "v1",
+                "--mcp-feature-collection-id",
+                "mcp-1")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
 
         client.VerifyAll();
     }

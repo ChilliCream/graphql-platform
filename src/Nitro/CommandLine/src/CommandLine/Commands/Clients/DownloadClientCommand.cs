@@ -2,6 +2,7 @@ using System.Text.Json;
 using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Configuration;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
@@ -14,7 +15,8 @@ internal sealed class DownloadClientCommand : Command
         INitroConsole console,
         IClientsClient client,
         IFileSystem fileSystem,
-        ISessionService sessionService) : base("download")
+        ISessionService sessionService,
+        IResultHolder resultHolder) : base("download")
     {
         Description = "Download the queries from a stage";
 
@@ -32,6 +34,7 @@ internal sealed class DownloadClientCommand : Command
                 client,
                 fileSystem,
                 sessionService,
+                resultHolder,
                 cancellationToken));
     }
 
@@ -41,6 +44,7 @@ internal sealed class DownloadClientCommand : Command
         IClientsClient client,
         IFileSystem fileSystem,
         ISessionService sessionService,
+        IResultHolder resultHolder,
         CancellationToken ct)
     {
         parseResult.AssertHasAuthentication(sessionService);
@@ -83,8 +87,21 @@ internal sealed class DownloadClientCommand : Command
 
             activity.Success($"Downloaded client to '{output}'.");
 
+            resultHolder.SetResult(new ObjectResult(new DownloadClientResult
+            {
+                File = output,
+                Format = format.ToLowerInvariant()
+            }));
+
             return ExitCodes.Success;
         }
+    }
+
+    public class DownloadClientResult
+    {
+        public required string File { get; init; }
+
+        public required string Format { get; init; }
     }
 
     private static async Task WriteToRelayJson(

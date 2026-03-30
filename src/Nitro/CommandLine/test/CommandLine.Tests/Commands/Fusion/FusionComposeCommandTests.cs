@@ -17,6 +17,42 @@ public sealed class FusionComposeCommandTests : IDisposable
         File.ReadAllText("__resources__/valid-exclude-by-tag-result/composite-schema.graphqls");
 
     [Fact]
+    public async Task Help_ReturnsSuccess()
+    {
+        // arrange & act
+        var result = await new CommandBuilder()
+            .AddArguments(
+                "fusion",
+                "compose",
+                "--help")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertHelpOutput(
+            """
+            Description:
+              Composes multiple source schemas into a single composite schema.
+
+            Usage:
+              nitro fusion compose [options]
+
+            Options:
+              -f, --source-schema-file <source-schema-file>  One or more paths to a source schema file (.graphqls) or directory containing a source schema file.
+              -a, --archive, --configuration <archive>       The path to a Fusion archive file. (the --configuration alias will be removed in an upcoming version) [env: NITRO_FUSION_CONFIG_FILE]
+              -e, --env, --environment <environment>         The name of the environment used for value substitution in the schema-settings.json files.
+              --enable-global-object-identification          Determines whether the 'Query.node' field shall be added.
+              --include-satisfiability-paths                 Determines whether to include paths in satisfiability error messages.
+              --watch
+              -w, --working-directory <working-directory>    Sets the working directory for the command.
+              --exclude-by-tag <exclude-by-tag>              One or more tags to exclude from the composition.
+              --cloud-url <cloud-url>                        The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>                            The API key that is used for the authentication [env: NITRO_API_KEY]
+              --output <json>                                The format in which the result should be displayed, if this option is set, the console will be non-interactive and the result will be displayed in the specified format [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                                 Show help and usage information
+            """);
+    }
+
+    [Fact]
     public async Task Compose_ValidExample1_FromSpecified_ToStdOut()
     {
         // arrange

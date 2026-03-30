@@ -2,6 +2,7 @@ using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
@@ -11,7 +12,8 @@ internal sealed class PublishClientCommand : Command
     public PublishClientCommand(
         INitroConsole console,
         IClientsClient client,
-        ISessionService sessionService) : base("publish")
+        ISessionService sessionService,
+        IResultHolder resultHolder) : base("publish")
     {
         Description = "Publish a client version to a stage";
 
@@ -30,6 +32,7 @@ internal sealed class PublishClientCommand : Command
                 console,
                 client,
                 sessionService,
+                resultHolder,
                 cancellationToken));
     }
 
@@ -38,6 +41,7 @@ internal sealed class PublishClientCommand : Command
         INitroConsole console,
         IClientsClient client,
         ISessionService sessionService,
+        IResultHolder resultHolder,
         CancellationToken ct)
     {
         parseResult.AssertHasAuthentication(sessionService);
@@ -136,6 +140,13 @@ internal sealed class PublishClientCommand : Command
 
                     case IClientVersionPublishSuccess:
                         activity.Success("Successfully published client!");
+
+                        resultHolder.SetResult(new ObjectResult(new PublishClientResult
+                        {
+                            Stage = stage,
+                            Status = "success"
+                        }));
+
                         return ExitCodes.Success;
 
                     case IProcessingTaskIsReady:
@@ -183,5 +194,12 @@ internal sealed class PublishClientCommand : Command
         }
 
         return ExitCodes.Error;
+    }
+
+    public class PublishClientResult
+    {
+        public required string Stage { get; init; }
+
+        public required string Status { get; init; }
     }
 }

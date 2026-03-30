@@ -726,7 +726,13 @@ public sealed class FusionValidateCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Equal("{}", result.StdOut);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            {
+              "requestId": "request-1",
+              "status": "success"
+            }
+            """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
 

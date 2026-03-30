@@ -8,6 +8,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
+using ChilliCream.Nitro.CommandLine.Results;
 using HotChocolate.Fusion.Packaging;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
@@ -21,7 +22,8 @@ internal sealed class FusionValidateCommand : Command
     public FusionValidateCommand(
         INitroConsole console,
         IFusionConfigurationClient fusionConfigurationClient,
-        IFileSystem fileSystem) : base("validate")
+        IFileSystem fileSystem,
+        IResultHolder resultHolder) : base("validate")
     {
         Description = "Validates the composed GraphQL schema of a Fusion configuration against a stage.";
 
@@ -67,6 +69,7 @@ internal sealed class FusionValidateCommand : Command
                 console,
                 fusionConfigurationClient,
                 fileSystem,
+                resultHolder,
                 cancellationToken);
         });
     }
@@ -79,6 +82,7 @@ internal sealed class FusionValidateCommand : Command
         INitroConsole console,
         IFusionConfigurationClient fusionConfigurationClient,
         IFileSystem fileSystem,
+        IResultHolder resultHolder,
         CancellationToken ct)
     {
         var isValid = false;
@@ -217,6 +221,16 @@ internal sealed class FusionValidateCommand : Command
                     case ISchemaVersionValidationSuccess:
                         isValid = true;
                         activity.Success("Schema validation succeeded.");
+
+                        if (!console.IsHumanReadable)
+                        {
+                            resultHolder.SetResult(new ObjectResult(new FusionValidateResult
+                            {
+                                RequestId = requestId,
+                                Status = "success"
+                            }));
+                        }
+
                         return;
 
                     case IOperationInProgress:
@@ -318,5 +332,12 @@ internal sealed class FusionValidateCommand : Command
         {
             return false;
         }
+    }
+
+    public class FusionValidateResult
+    {
+        public required string RequestId { get; init; }
+
+        public required string Status { get; init; }
     }
 }

@@ -2,6 +2,7 @@ using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
@@ -13,7 +14,8 @@ internal sealed class DownloadSchemaCommand : Command
         INitroConsole console,
         ISchemasClient client,
         IFileSystem fileSystem,
-        ISessionService sessionService)
+        ISessionService sessionService,
+        IResultHolder resultHolder)
         : base("download")
     {
         Description = "Download a schema from a stage";
@@ -31,6 +33,7 @@ internal sealed class DownloadSchemaCommand : Command
                 client,
                 fileSystem,
                 sessionService,
+                resultHolder,
                 cancellationToken));
     }
 
@@ -40,6 +43,7 @@ internal sealed class DownloadSchemaCommand : Command
         ISchemasClient client,
         IFileSystem fileSystem,
         ISessionService sessionService,
+        IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
         parseResult.AssertHasAuthentication(sessionService);
@@ -70,7 +74,20 @@ internal sealed class DownloadSchemaCommand : Command
 
             activity.Success($"Downloaded schema to '{schemaFilePath}'.");
 
+            if (!console.IsHumanReadable)
+            {
+                resultHolder.SetResult(new ObjectResult(new DownloadSchemaResult
+                {
+                    File = schemaFilePath
+                }));
+            }
+
             return ExitCodes.Success;
         }
+    }
+
+    public class DownloadSchemaResult
+    {
+        public required string File { get; init; }
     }
 }

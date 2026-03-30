@@ -2,6 +2,7 @@ using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Configuration;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
@@ -13,7 +14,8 @@ internal sealed class ValidateClientCommand : Command
         INitroConsole console,
         IClientsClient client,
         IFileSystem fileSystem,
-        ISessionService sessionService) : base("validate")
+        ISessionService sessionService,
+        IResultHolder resultHolder) : base("validate")
     {
         Description = "Validate a client version";
 
@@ -31,6 +33,7 @@ internal sealed class ValidateClientCommand : Command
                 client,
                 fileSystem,
                 sessionService,
+                resultHolder,
                 cancellationToken));
     }
 
@@ -40,6 +43,7 @@ internal sealed class ValidateClientCommand : Command
         IClientsClient client,
         IFileSystem fileSystem,
         ISessionService sessionService,
+        IResultHolder resultHolder,
         CancellationToken ct)
     {
         parseResult.AssertHasAuthentication(sessionService);
@@ -122,6 +126,13 @@ internal sealed class ValidateClientCommand : Command
 
                     case IClientVersionValidationSuccess:
                         activity.Success("Client validation succeeded.");
+
+                        resultHolder.SetResult(new ObjectResult(new ValidateClientResult
+                        {
+                            RequestId = requestId,
+                            Status = "success"
+                        }));
+
                         return ExitCodes.Success;
 
                     case IOperationInProgress:
@@ -140,5 +151,12 @@ internal sealed class ValidateClientCommand : Command
         }
 
         return ExitCodes.Error;
+    }
+
+    public class ValidateClientResult
+    {
+        public required string RequestId { get; init; }
+
+        public required string Status { get; init; }
     }
 }

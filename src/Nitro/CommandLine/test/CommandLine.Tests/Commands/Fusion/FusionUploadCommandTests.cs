@@ -615,7 +615,12 @@ public sealed class FusionUploadCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Equal("{}", result.StdOut);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            {
+              "tag": "v1"
+            }
+            """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
 

@@ -556,6 +556,12 @@ public sealed class UploadClientCommandTests
             """
             Uploading new version for client 'client-1'...
             └── ✓ Successfully uploaded operations!
+
+            {
+              "clientVersionId": "cv-1",
+              "clientId": "client-1",
+              "tag": "v1"
+            }
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -591,6 +597,12 @@ public sealed class UploadClientCommandTests
             """
 
             [    ] Successfully uploaded operations!
+
+            {
+              "clientVersionId": "cv-1",
+              "clientId": "client-1",
+              "tag": "v1"
+            }
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -622,7 +634,14 @@ public sealed class UploadClientCommandTests
             .ExecuteAsync();
 
         // assert
-        result.AssertSuccess("{}");
+        result.AssertSuccess(
+            """
+            {
+              "clientVersionId": "cv-1",
+              "clientId": "client-1",
+              "tag": "v1"
+            }
+            """);
 
         client.VerifyAll();
     }

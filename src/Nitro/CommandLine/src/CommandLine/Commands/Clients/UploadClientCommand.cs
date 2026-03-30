@@ -2,6 +2,7 @@ using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Configuration;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
@@ -14,7 +15,8 @@ internal sealed class UploadClientCommand : Command
         INitroConsole console,
         IClientsClient client,
         IFileSystem fileSystem,
-        ISessionService sessionService) : base("upload")
+        ISessionService sessionService,
+        IResultHolder resultHolder) : base("upload")
     {
         Description = "Upload a new client version";
 
@@ -32,6 +34,7 @@ internal sealed class UploadClientCommand : Command
                 client,
                 fileSystem,
                 sessionService,
+                resultHolder,
                 cancellationToken));
     }
 
@@ -41,6 +44,7 @@ internal sealed class UploadClientCommand : Command
         IClientsClient client,
         IFileSystem fileSystem,
         ISessionService sessionService,
+        IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
         parseResult.AssertHasAuthentication(sessionService);
@@ -94,7 +98,23 @@ internal sealed class UploadClientCommand : Command
 
             activity.Success("Successfully uploaded operations!");
 
+            resultHolder.SetResult(new ObjectResult(new UploadClientResult
+            {
+                ClientVersionId = data.ClientVersion.Id,
+                ClientId = clientId,
+                Tag = tag
+            }));
+
             return ExitCodes.Success;
         }
+    }
+
+    public class UploadClientResult
+    {
+        public required string ClientVersionId { get; init; }
+
+        public required string ClientId { get; init; }
+
+        public required string Tag { get; init; }
     }
 }

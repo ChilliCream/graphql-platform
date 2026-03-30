@@ -576,7 +576,12 @@ public sealed class DownloadSchemaCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Equal("{}", result.StdOut);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            {
+              "file": "schema.graphql"
+            }
+            """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
         Assert.Equal(schemaContent, fileStream.ToArray());

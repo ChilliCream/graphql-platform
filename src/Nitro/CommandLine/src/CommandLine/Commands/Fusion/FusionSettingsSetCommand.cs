@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using ChilliCream.Nitro.CommandLine.Arguments;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine.Results;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Packaging;
@@ -16,7 +17,8 @@ internal sealed class FusionSettingsSetCommand : Command
 {
     public FusionSettingsSetCommand(
         INitroConsole console,
-        IFileSystem fileSystem) : base("set")
+        IFileSystem fileSystem,
+        IResultHolder resultHolder) : base("set")
     {
         Description = "Sets a Fusion composition setting in a Fusion archive.";
 
@@ -43,6 +45,7 @@ internal sealed class FusionSettingsSetCommand : Command
                 environment,
                 console,
                 fileSystem,
+                resultHolder,
                 cancellationToken);
         });
     }
@@ -54,6 +57,7 @@ internal sealed class FusionSettingsSetCommand : Command
         string? environment,
         INitroConsole console,
         IFileSystem fileSystem,
+        IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
         if (!fileSystem.FileExists(archiveFile))
@@ -123,6 +127,15 @@ internal sealed class FusionSettingsSetCommand : Command
             console,
             cancellationToken);
 
+        if (success && !console.IsHumanReadable)
+        {
+            resultHolder.SetResult(new ObjectResult(new FusionSettingsSetResult
+            {
+                Setting = settingName,
+                Value = settingValue
+            }));
+        }
+
         return success ? ExitCodes.Success : ExitCodes.Error;
     }
 
@@ -153,5 +166,12 @@ internal sealed class FusionSettingsSetCommand : Command
             Include,
             IncludePrivate
         ];
+    }
+
+    public class FusionSettingsSetResult
+    {
+        public required string Setting { get; init; }
+
+        public required string Value { get; init; }
     }
 }

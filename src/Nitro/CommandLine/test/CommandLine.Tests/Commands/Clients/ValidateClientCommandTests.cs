@@ -575,6 +575,11 @@ public sealed class ValidateClientCommandTests
             ├── The client validation is in progress.
             ├── The client validation is in progress.
             └── ✓ Client validation succeeded.
+
+            {
+              "requestId": "request-1",
+              "status": "success"
+            }
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -617,6 +622,11 @@ public sealed class ValidateClientCommandTests
             """
 
             [    ] Client validation succeeded.
+
+            {
+              "requestId": "request-1",
+              "status": "success"
+            }
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -655,9 +665,13 @@ public sealed class ValidateClientCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Equal("{}", result.StdOut);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccess(
+            """
+            {
+              "requestId": "request-1",
+              "status": "success"
+            }
+            """);
 
         client.VerifyAll();
     }

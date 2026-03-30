@@ -168,11 +168,8 @@ public sealed class ShowClientCommandTests
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_Interactive()
     {
         // arrange
         var client = CreateShowExceptionClient(new NitroClientException("show failed"));
@@ -181,7 +178,61 @@ public sealed class ShowClientCommandTests
         var result = await new CommandBuilder()
             .AddService(client.Object)
             .AddSessionWithWorkspace()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "client",
+                "show",
+                "client-1")
+            .ExecuteAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: show failed
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var client = CreateShowExceptionClient(new NitroClientException("show failed"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddSessionWithWorkspace()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "client",
+                "show",
+                "client-1")
+            .ExecuteAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: show failed
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var client = CreateShowExceptionClient(new NitroClientException("show failed"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddSessionWithWorkspace()
+            .AddInteractionMode(InteractionMode.JsonOutput)
             .AddArguments(
                 "client",
                 "show",
@@ -197,11 +248,8 @@ public sealed class ShowClientCommandTests
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
     {
         // arrange
         var client = CreateShowExceptionClient(new NitroClientAuthorizationException("forbidden"));
@@ -210,7 +258,61 @@ public sealed class ShowClientCommandTests
         var result = await new CommandBuilder()
             .AddService(client.Object)
             .AddSessionWithWorkspace()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "client",
+                "show",
+                "client-1")
+            .ExecuteAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var client = CreateShowExceptionClient(new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddSessionWithWorkspace()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "client",
+                "show",
+                "client-1")
+            .ExecuteAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var client = CreateShowExceptionClient(new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddSessionWithWorkspace()
+            .AddInteractionMode(InteractionMode.JsonOutput)
             .AddArguments(
                 "client",
                 "show",

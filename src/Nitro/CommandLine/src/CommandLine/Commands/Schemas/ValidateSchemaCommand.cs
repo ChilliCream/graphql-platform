@@ -3,6 +3,7 @@ using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Schemas;
@@ -13,7 +14,8 @@ internal sealed class ValidateSchemaCommand : Command
         INitroConsole console,
         ISchemasClient client,
         IFileSystem fileSystem,
-        ISessionService sessionService) : base("validate")
+        ISessionService sessionService,
+        IResultHolder resultHolder) : base("validate")
     {
         Description = "Validates a schema against a stage";
 
@@ -31,6 +33,7 @@ internal sealed class ValidateSchemaCommand : Command
                 client,
                 fileSystem,
                 sessionService,
+                resultHolder,
                 cancellationToken));
     }
 
@@ -40,6 +43,7 @@ internal sealed class ValidateSchemaCommand : Command
         ISchemasClient client,
         IFileSystem fileSystem,
         ISessionService sessionService,
+        IResultHolder resultHolder,
         CancellationToken ct)
     {
         parseResult.AssertHasAuthentication(sessionService);
@@ -143,6 +147,16 @@ internal sealed class ValidateSchemaCommand : Command
 
                     case ISchemaVersionValidationSuccess:
                         activity.Success("Schema validation succeeded.");
+
+                        if (!console.IsHumanReadable)
+                        {
+                            resultHolder.SetResult(new ObjectResult(new ValidateSchemaResult
+                            {
+                                RequestId = requestId,
+                                Status = "success"
+                            }));
+                        }
+
                         return ExitCodes.Success;
 
                     case IOperationInProgress:
@@ -161,5 +175,12 @@ internal sealed class ValidateSchemaCommand : Command
         }
 
         return ExitCodes.Error;
+    }
+
+    public class ValidateSchemaResult
+    {
+        public required string RequestId { get; init; }
+
+        public required string Status { get; init; }
     }
 }

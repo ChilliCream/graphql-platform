@@ -6,6 +6,7 @@ using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.Client.FusionConfiguration;
+using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using HotChocolate.Fusion.SourceSchema.Packaging;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
@@ -23,7 +24,8 @@ internal sealed class FusionUploadCommand : Command
         INitroConsole console,
         IFusionConfigurationClient fusionConfigurationClient,
         IFileSystem fileSystem,
-        ISessionService sessionService) : base("upload")
+        ISessionService sessionService,
+        IResultHolder resultHolder) : base("upload")
     {
         Description = "Upload a source schema for a later composition.";
 
@@ -41,6 +43,7 @@ internal sealed class FusionUploadCommand : Command
                 fusionConfigurationClient,
                 fileSystem,
                 sessionService,
+                resultHolder,
                 cancellationToken));
     }
 
@@ -50,6 +53,7 @@ internal sealed class FusionUploadCommand : Command
         IFusionConfigurationClient fusionConfigurationClient,
         IFileSystem fileSystem,
         ISessionService sessionService,
+        IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
         parseResult.AssertHasAuthentication(sessionService);
@@ -124,7 +128,20 @@ internal sealed class FusionUploadCommand : Command
 
             activity.Success("Successfully uploaded source schema!");
 
+            if (!console.IsHumanReadable)
+            {
+                resultHolder.SetResult(new ObjectResult(new FusionUploadResult
+                {
+                    Tag = tag
+                }));
+            }
+
             return ExitCodes.Success;
         }
+    }
+
+    public class FusionUploadResult
+    {
+        public required string Tag { get; init; }
     }
 }

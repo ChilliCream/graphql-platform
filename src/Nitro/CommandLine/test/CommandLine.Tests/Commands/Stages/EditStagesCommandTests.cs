@@ -370,36 +370,13 @@ public sealed class EditStagesCommandTests
         apisClient.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_Interactive()
     {
         // arrange
-        var stagesClient = new Mock<IStagesClient>(MockBehavior.Strict);
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-
-        stagesClient.Setup(x => x.UpdateStagesAsync(
-                "api-1",
-                It.IsAny<IReadOnlyList<StageUpdateModel>>(),
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientException("update failed"));
-
-        // act
-        var result = await new CommandBuilder()
-            .AddService(stagesClient.Object)
-            .AddService(apisClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "stage",
-                "edit",
-                "--api-id",
-                "api-1",
-                "--configuration",
-                """[{"name":"dev","displayName":"Dev","conditions":[]}]""")
-            .ExecuteAsync();
+        var result = await RunEditStagesWithException(
+            new NitroClientException("update failed"),
+            InteractionMode.Interactive);
 
         // assert
         result.StdErr.MatchInlineSnapshot(
@@ -407,18 +384,90 @@ public sealed class EditStagesCommandTests
             There was an unexpected error executing your request: update failed
             """);
         Assert.Equal(1, result.ExitCode);
-
-        stagesClient.VerifyAll();
-        apisClient.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
+        var result = await RunEditStagesWithException(
+            new NitroClientException("update failed"),
+            InteractionMode.NonInteractive);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: update failed
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var result = await RunEditStagesWithException(
+            new NitroClientException("update failed"),
+            InteractionMode.JsonOutput);
+
+        // assert
+        result.AssertError(
+            """
+            There was an unexpected error executing your request: update failed
+            """);
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    {
+        // arrange
+        var result = await RunEditStagesWithException(
+            new NitroClientAuthorizationException("forbidden"),
+            InteractionMode.Interactive);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var result = await RunEditStagesWithException(
+            new NitroClientAuthorizationException("forbidden"),
+            InteractionMode.NonInteractive);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var result = await RunEditStagesWithException(
+            new NitroClientAuthorizationException("forbidden"),
+            InteractionMode.JsonOutput);
+
+        // assert
+        result.AssertError(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+    }
+
+    private static async Task<CommandResult> RunEditStagesWithException(
+        Exception ex,
+        InteractionMode mode)
+    {
         var stagesClient = new Mock<IStagesClient>(MockBehavior.Strict);
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
 
@@ -426,9 +475,8 @@ public sealed class EditStagesCommandTests
                 "api-1",
                 It.IsAny<IReadOnlyList<StageUpdateModel>>(),
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException("forbidden"));
+            .ThrowsAsync(ex);
 
-        // act
         var result = await new CommandBuilder()
             .AddService(stagesClient.Object)
             .AddService(apisClient.Object)
@@ -443,15 +491,10 @@ public sealed class EditStagesCommandTests
                 """[{"name":"dev","displayName":"Dev","conditions":[]}]""")
             .ExecuteAsync();
 
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
         stagesClient.VerifyAll();
         apisClient.VerifyAll();
+
+        return result;
     }
 
     [Fact]

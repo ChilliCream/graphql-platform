@@ -487,6 +487,11 @@ public sealed class DownloadClientCommandTests
             """
 
             [    ] Downloaded client to 'queries.json'.
+
+            {
+              "file": "queries.json",
+              "format": "relay"
+            }
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -545,6 +550,11 @@ public sealed class DownloadClientCommandTests
             """
             Fetching queries...
             └── ✓ Downloaded client to 'queries.json'.
+
+            {
+              "file": "queries.json",
+              "format": "relay"
+            }
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -599,7 +609,13 @@ public sealed class DownloadClientCommandTests
             .ExecuteAsync();
 
         // assert
-        result.AssertSuccess("{}");
+        result.AssertSuccess(
+            """
+            {
+              "file": "queries.json",
+              "format": "relay"
+            }
+            """);
 
         var written = Encoding.UTF8.GetString(fileStream.ToArray());
         Assert.Contains("doc-1", written);
@@ -655,6 +671,11 @@ public sealed class DownloadClientCommandTests
             """
             Fetching queries...
             └── ✓ Downloaded client to 'queries.json'.
+
+            {
+              "file": "queries.json",
+              "format": "relay"
+            }
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -709,6 +730,11 @@ public sealed class DownloadClientCommandTests
             """
 
             [    ] Downloaded client to 'output-dir'.
+
+            {
+              "file": "output-dir",
+              "format": "folder"
+            }
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -765,6 +791,11 @@ public sealed class DownloadClientCommandTests
             """
             Fetching queries...
             └── ✓ Downloaded client to 'output-dir'.
+
+            {
+              "file": "output-dir",
+              "format": "folder"
+            }
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -817,7 +848,13 @@ public sealed class DownloadClientCommandTests
             .ExecuteAsync();
 
         // assert
-        result.AssertSuccess("{}");
+        result.AssertSuccess(
+            """
+            {
+              "file": "output-dir",
+              "format": "folder"
+            }
+            """);
 
         var written = Encoding.UTF8.GetString(docFileStream.ToArray());
         Assert.Equal("query { hello }", written);
@@ -871,6 +908,11 @@ public sealed class DownloadClientCommandTests
             """
             Fetching queries...
             └── ✓ Downloaded client to 'output-dir'.
+
+            {
+              "file": "output-dir",
+              "format": "folder"
+            }
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -927,6 +969,11 @@ public sealed class DownloadClientCommandTests
             """
             Fetching queries...
             └── ✓ Downloaded client to 'output-dir'.
+
+            {
+              "file": "output-dir",
+              "format": "folder"
+            }
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);

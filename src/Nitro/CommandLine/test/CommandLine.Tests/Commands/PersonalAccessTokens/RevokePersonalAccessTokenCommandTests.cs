@@ -354,11 +354,8 @@ public sealed class RevokePersonalAccessTokenCommandTests
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_Interactive()
     {
         // arrange
         var client = new Mock<IPersonalAccessTokensClient>(MockBehavior.Strict);
@@ -371,7 +368,7 @@ public sealed class RevokePersonalAccessTokenCommandTests
         var result = await new CommandBuilder()
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.Interactive)
             .AddArguments(
                 "pat",
                 "revoke",
@@ -380,6 +377,11 @@ public sealed class RevokePersonalAccessTokenCommandTests
             .ExecuteAsync();
 
         // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Revoking personal access token...
+            """);
         result.StdErr.MatchInlineSnapshot(
             """
             There was an unexpected error executing your request: revoke failed
@@ -389,11 +391,76 @@ public sealed class RevokePersonalAccessTokenCommandTests
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var client = new Mock<IPersonalAccessTokensClient>(MockBehavior.Strict);
+        client.Setup(x => x.RevokePersonalAccessTokenAsync(
+                "pat-1",
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NitroClientException("revoke failed"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "pat",
+                "revoke",
+                "pat-1",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Revoking personal access token...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: revoke failed
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var client = new Mock<IPersonalAccessTokensClient>(MockBehavior.Strict);
+        client.Setup(x => x.RevokePersonalAccessTokenAsync(
+                "pat-1",
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NitroClientException("revoke failed"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "pat",
+                "revoke",
+                "pat-1",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            There was an unexpected error executing your request: revoke failed
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
     {
         // arrange
         var client = new Mock<IPersonalAccessTokensClient>(MockBehavior.Strict);
@@ -406,7 +473,7 @@ public sealed class RevokePersonalAccessTokenCommandTests
         var result = await new CommandBuilder()
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.Interactive)
             .AddArguments(
                 "pat",
                 "revoke",
@@ -415,11 +482,84 @@ public sealed class RevokePersonalAccessTokenCommandTests
             .ExecuteAsync();
 
         // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Revoking personal access token...
+            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var client = new Mock<IPersonalAccessTokensClient>(MockBehavior.Strict);
+        client.Setup(x => x.RevokePersonalAccessTokenAsync(
+                "pat-1",
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "pat",
+                "revoke",
+                "pat-1",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Revoking personal access token...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var client = new Mock<IPersonalAccessTokensClient>(MockBehavior.Strict);
+        client.Setup(x => x.RevokePersonalAccessTokenAsync(
+                "pat-1",
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "pat",
+                "revoke",
+                "pat-1",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
 
         client.VerifyAll();
     }
