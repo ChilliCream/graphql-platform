@@ -398,11 +398,8 @@ public sealed class PublishSchemaCommandTests
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task MutationReturnsNullRequestId_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task MutationReturnsNullRequestId_ReturnsError_NonInteractive()
     {
         // arrange
         var payload = new Mock<IPublishSchemaVersion_PublishSchema>(MockBehavior.Strict);
@@ -417,7 +414,7 @@ public sealed class PublishSchemaCommandTests
         var result = await new CommandBuilder()
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "schema",
                 "publish",
@@ -430,8 +427,96 @@ public sealed class PublishSchemaCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("Could not create publish request.", result.StdErr);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Could not create publish request.
+            """);
         Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task MutationReturnsNullRequestId_ReturnsError_Interactive()
+    {
+        // arrange
+        var payload = new Mock<IPublishSchemaVersion_PublishSchema>(MockBehavior.Strict);
+        payload.SetupGet(x => x.Errors)
+            .Returns((IReadOnlyList<IPublishSchemaVersion_PublishSchema_Errors>?)null);
+        payload.SetupGet(x => x.Id)
+            .Returns((string?)null);
+
+        var client = CreatePublishSetup(payload.Object);
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "schema",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--api-id",
+                DefaultApiId)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Publishing...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Could not create publish request.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task MutationReturnsNullRequestId_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var payload = new Mock<IPublishSchemaVersion_PublishSchema>(MockBehavior.Strict);
+        payload.SetupGet(x => x.Errors)
+            .Returns((IReadOnlyList<IPublishSchemaVersion_PublishSchema_Errors>?)null);
+        payload.SetupGet(x => x.Id)
+            .Returns((string?)null);
+
+        var client = CreatePublishSetup(payload.Object);
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "schema",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--api-id",
+                DefaultApiId)
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            Could not create publish request.
+            """);
 
         client.VerifyAll();
     }
@@ -810,7 +895,13 @@ public sealed class PublishSchemaCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("Your request is ready for the committing.", result.StdOut);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing...
+            Your request is ready for the committing.
+            ├── The committing of your request is in progress.
+            └── ✓ Successfully published schema!
+            """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
 
@@ -896,7 +987,15 @@ public sealed class PublishSchemaCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("waiting for approval", result.StdOut);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing...
+            ├── The committing of your request is waiting for approval. Check Nitro to
+            approve the request.
+            ├── The committing of your request is approved.
+            ├── The committing of your request is in progress.
+            └── ✓ Successfully published schema!
+            """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
 
@@ -971,7 +1070,12 @@ public sealed class PublishSchemaCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("Force push is enabled", result.StdOut);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing...
+            LOG: Force push is enabled
+            └── ✓ Successfully published schema!
+            """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
 

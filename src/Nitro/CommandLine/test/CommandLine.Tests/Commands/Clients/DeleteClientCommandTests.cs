@@ -118,11 +118,22 @@ public sealed class DeleteClientCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Equal(0, result.ExitCode);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            ? Which client do you want to delete?: client-1
+            Deleting client...
+            └── ✓ Successfully deleted client!
+
+            {
+              "id": "client-1",
+              "name": "web-client",
+              "api": {
+                "name": "products"
+              }
+            }
+            """);
         Assert.Empty(result.StdErr);
-        Assert.Contains("Deleting client...", result.StdOut);
-        Assert.Contains("Successfully deleted client", result.StdOut);
-        Assert.Contains("\"id\": \"client-1\"", result.StdOut);
+        Assert.Equal(0, result.ExitCode);
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -151,9 +162,14 @@ public sealed class DeleteClientCommandTests
         var result = await command.RunToCompletionAsync();
 
         // assert
-        Assert.Equal(0, result.ExitCode);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            ? Which client do you want to delete?: client-1
+            ? Do you want to delete the client with ID client-1? [y/n] (y): n
+            ✓ Aborted.
+            """);
         Assert.Empty(result.StdErr);
-        Assert.Contains("Aborted.", result.StdOut);
+        Assert.Equal(0, result.ExitCode);
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();

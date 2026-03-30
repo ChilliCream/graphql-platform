@@ -74,11 +74,8 @@ public sealed class PublishClientCommandTests
             """);
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
         var client = CreatePublishExceptionClient(
@@ -88,7 +85,7 @@ public sealed class PublishClientCommandTests
         var result = await new CommandBuilder()
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "client",
                 "publish",
@@ -101,17 +98,92 @@ public sealed class PublishClientCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("publish failed", result.StdErr);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing client...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: publish failed
+            """);
         Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_Interactive()
+    {
+        // arrange
+        var client = CreatePublishExceptionClient(
+            new NitroClientException("publish failed"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "client",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Publishing client...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: publish failed
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var client = CreatePublishExceptionClient(
+            new NitroClientException("publish failed"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "client",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId)
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            There was an unexpected error executing your request: publish failed
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
     {
         // arrange
         var client = CreatePublishExceptionClient(
@@ -121,7 +193,7 @@ public sealed class PublishClientCommandTests
         var result = await new CommandBuilder()
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "client",
                 "publish",
@@ -134,10 +206,86 @@ public sealed class PublishClientCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains(
-            "The server rejected your request as unauthorized.",
-            result.StdErr);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing client...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
         Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    {
+        // arrange
+        var client = CreatePublishExceptionClient(
+            new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "client",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Publishing client...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var client = CreatePublishExceptionClient(
+            new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "client",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId)
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
 
         client.VerifyAll();
     }
@@ -250,11 +398,8 @@ public sealed class PublishClientCommandTests
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task MutationReturnsNullRequestId_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task MutationReturnsNullRequestId_ReturnsError_NonInteractive()
     {
         // arrange
         var payload = new Mock<IPublishClientVersion_PublishClient>(MockBehavior.Strict);
@@ -269,7 +414,7 @@ public sealed class PublishClientCommandTests
         var result = await new CommandBuilder()
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "client",
                 "publish",
@@ -282,8 +427,96 @@ public sealed class PublishClientCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("Could not create publish request.", result.StdErr);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing client...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Could not create publish request.
+            """);
         Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task MutationReturnsNullRequestId_ReturnsError_Interactive()
+    {
+        // arrange
+        var payload = new Mock<IPublishClientVersion_PublishClient>(MockBehavior.Strict);
+        payload.SetupGet(x => x.Errors)
+            .Returns((IReadOnlyList<IPublishClientVersion_PublishClient_Errors>?)null);
+        payload.SetupGet(x => x.Id)
+            .Returns((string?)null);
+
+        var client = CreatePublishSetup(payload.Object);
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "client",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Publishing client...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Could not create publish request.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task MutationReturnsNullRequestId_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var payload = new Mock<IPublishClientVersion_PublishClient>(MockBehavior.Strict);
+        payload.SetupGet(x => x.Errors)
+            .Returns((IReadOnlyList<IPublishClientVersion_PublishClient_Errors>?)null);
+        payload.SetupGet(x => x.Id)
+            .Returns((string?)null);
+
+        var client = CreatePublishSetup(payload.Object);
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "client",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId)
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            Could not create publish request.
+            """);
 
         client.VerifyAll();
     }
@@ -662,7 +895,13 @@ public sealed class PublishClientCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("Your request is ready for the committing.", result.StdOut);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing client...
+            Your request is ready for the committing.
+            ├── The committing of your request is in progress.
+            └── ✓ Successfully published client!
+            """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
 
@@ -748,7 +987,15 @@ public sealed class PublishClientCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("waiting for approval", result.StdOut);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing client...
+            ├── The committing of your request is waiting for approval. Check Nitro to
+            approve the request.
+            ├── The committing of your request is approved.
+            ├── The committing of your request is in progress.
+            └── ✓ Successfully published client!
+            """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
 
@@ -823,7 +1070,12 @@ public sealed class PublishClientCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("Force push is enabled", result.StdOut);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing client...
+            LOG: Force push is enabled
+            └── ✓ Successfully published client!
+            """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
 

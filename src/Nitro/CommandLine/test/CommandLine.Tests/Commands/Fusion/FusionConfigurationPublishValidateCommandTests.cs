@@ -54,11 +54,8 @@ public sealed class FusionConfigurationPublishValidateCommandTests
             """);
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
         var (client, fileSystem) = CreateExceptionSetup(
@@ -69,22 +66,83 @@ public sealed class FusionConfigurationPublishValidateCommandTests
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(_baseArgs)
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("validation request failed", result.StdErr);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: validation request failed
+            """);
         Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_Interactive()
+    {
+        // arrange
+        var (client, fileSystem) = CreateExceptionSetup(
+            new NitroClientException("validation request failed"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(_baseArgs)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Validating...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: validation request failed
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var (client, fileSystem) = CreateExceptionSetup(
+            new NitroClientException("validation request failed"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(_baseArgs)
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            There was an unexpected error executing your request: validation request failed
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
     {
         // arrange
         var (client, fileSystem) = CreateExceptionSetup(
@@ -95,15 +153,77 @@ public sealed class FusionConfigurationPublishValidateCommandTests
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(_baseArgs)
             .ExecuteAsync();
 
         // assert
-        Assert.Contains(
-            "The server rejected your request as unauthorized.",
-            result.StdErr);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
         Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    {
+        // arrange
+        var (client, fileSystem) = CreateExceptionSetup(
+            new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(_baseArgs)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Validating...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var (client, fileSystem) = CreateExceptionSetup(
+            new NitroClientAuthorizationException("forbidden"));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(_baseArgs)
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
 
         client.VerifyAll();
     }
@@ -308,7 +428,15 @@ public sealed class FusionConfigurationPublishValidateCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("queued", result.StdErr);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Your request is in the queued state. Try to run `fusion-configuration publish start` once the request is ready
+            """);
         Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
@@ -341,7 +469,15 @@ public sealed class FusionConfigurationPublishValidateCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("already failed", result.StdErr);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Your request has already failed
+            """);
         Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
@@ -373,7 +509,15 @@ public sealed class FusionConfigurationPublishValidateCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("already published", result.StdErr);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            You request is already published
+            """);
         Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
@@ -405,7 +549,15 @@ public sealed class FusionConfigurationPublishValidateCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("ready for the composition", result.StdErr);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Your request is ready for the composition. Run `fusion-configuration publish start`
+            """);
         Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
@@ -476,7 +628,15 @@ public sealed class FusionConfigurationPublishValidateCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("Unknown response", result.StdErr);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Unknown response
+            """);
         Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();

@@ -166,12 +166,24 @@ public sealed class CreateClientCommandTests
         var result = await command.RunToCompletionAsync();
 
         // assert
-        Assert.Equal(0, result.ExitCode);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            For which API do you want to create a client?
+
+            > products                                   ? Name web-client
+
+            [    ] Successfully created client!
+
+            {
+              "id": "client-1",
+              "name": "web-client",
+              "api": {
+                "name": "products"
+              }
+            }
+            """);
         Assert.Empty(result.StdErr);
-        Assert.Contains("For which API do you want to create a client?", result.StdOut);
-        Assert.Contains("? Name web-client", result.StdOut);
-        Assert.Contains("Successfully created client!", result.StdOut);
-        Assert.Contains("\"id\": \"client-1\"", result.StdOut);
+        Assert.Equal(0, result.ExitCode);
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -205,11 +217,21 @@ public sealed class CreateClientCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Equal(0, result.ExitCode);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Creating client...
+            └── ✓ Successfully created client!
+
+            {
+              "id": "client-1",
+              "name": "web-client",
+              "api": {
+                "name": "products"
+              }
+            }
+            """);
         Assert.Empty(result.StdErr);
-        Assert.Contains("Creating client...", result.StdOut);
-        Assert.Contains("Successfully created client", result.StdOut);
-        Assert.Contains("\"id\": \"client-1\"", result.StdOut);
+        Assert.Equal(0, result.ExitCode);
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();

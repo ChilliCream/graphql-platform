@@ -115,12 +115,20 @@ public sealed class RevokePersonalAccessTokenCommandTests
         var result = await command.RunToCompletionAsync();
 
         // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            ? Do you really want to delete PAT with ID pat-1 [y/n] (y): y
+
+            [    ] Successfully revoked personal access token!
+
+            {
+              "id": "pat-1",
+              "description": "my-token",
+              "createdAt": "2025-01-01T00:00:00+00:00",
+              "expiresAt": "2025-06-01T00:00:00+00:00"
+            }
+            """);
         Assert.Empty(result.StdErr);
-        Assert.Contains("Successfully revoked personal access token!", result.StdOut);
-        Assert.Contains("\"id\": \"pat-1\"", result.StdOut);
-        Assert.Contains("\"description\": \"my-token\"", result.StdOut);
-        Assert.Contains("\"createdAt\": \"2025-01-01T00:00:00+00:00\"", result.StdOut);
-        Assert.Contains("\"expiresAt\": \"2025-06-01T00:00:00+00:00\"", result.StdOut);
         Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();

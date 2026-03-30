@@ -72,11 +72,8 @@ public sealed class ValidateClientCommandTests
             """);
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
         var client = CreateValidationExceptionClient(
@@ -88,7 +85,7 @@ public sealed class ValidateClientCommandTests
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "client",
                 "validate",
@@ -101,17 +98,96 @@ public sealed class ValidateClientCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("validation request failed", result.StdErr);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: validation request failed
+            """);
         Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_Interactive()
+    {
+        // arrange
+        var client = CreateValidationExceptionClient(
+            new NitroClientException("validation request failed"));
+        var fileSystem = CreateOperationsFileSystem();
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "client",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId,
+                "--operations-file",
+                DefaultOperationsFile)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Validating...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: validation request failed
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var client = CreateValidationExceptionClient(
+            new NitroClientException("validation request failed"));
+        var fileSystem = CreateOperationsFileSystem();
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "client",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId,
+                "--operations-file",
+                DefaultOperationsFile)
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            There was an unexpected error executing your request: validation request failed
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
     {
         // arrange
         var client = CreateValidationExceptionClient(
@@ -123,7 +199,7 @@ public sealed class ValidateClientCommandTests
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "client",
                 "validate",
@@ -136,10 +212,90 @@ public sealed class ValidateClientCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains(
-            "The server rejected your request as unauthorized.",
-            result.StdErr);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
         Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    {
+        // arrange
+        var client = CreateValidationExceptionClient(
+            new NitroClientAuthorizationException("forbidden"));
+        var fileSystem = CreateOperationsFileSystem();
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "client",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId,
+                "--operations-file",
+                DefaultOperationsFile)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Validating...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var client = CreateValidationExceptionClient(
+            new NitroClientAuthorizationException("forbidden"));
+        var fileSystem = CreateOperationsFileSystem();
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "client",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId,
+                "--operations-file",
+                DefaultOperationsFile)
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
 
         client.VerifyAll();
     }
@@ -255,11 +411,8 @@ public sealed class ValidateClientCommandTests
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task MutationReturnsNullRequestId_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task MutationReturnsNullRequestId_ReturnsError_NonInteractive()
     {
         // arrange
         var payload = new Mock<IValidateClientVersion_ValidateClient>(MockBehavior.Strict);
@@ -275,7 +428,7 @@ public sealed class ValidateClientCommandTests
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "client",
                 "validate",
@@ -288,8 +441,98 @@ public sealed class ValidateClientCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("Could not create client validation request.", result.StdErr);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Could not create client validation request.
+            """);
         Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task MutationReturnsNullRequestId_ReturnsError_Interactive()
+    {
+        // arrange
+        var payload = new Mock<IValidateClientVersion_ValidateClient>(MockBehavior.Strict);
+        payload.SetupGet(x => x.Errors)
+            .Returns((IReadOnlyList<IValidateClientVersion_ValidateClient_Errors>?)null);
+        payload.SetupGet(x => x.Id)
+            .Returns((string?)null);
+
+        var (client, fileSystem) = CreateValidationSetup(payload.Object);
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "client",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId,
+                "--operations-file",
+                DefaultOperationsFile)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Validating...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Could not create client validation request.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task MutationReturnsNullRequestId_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var payload = new Mock<IValidateClientVersion_ValidateClient>(MockBehavior.Strict);
+        payload.SetupGet(x => x.Errors)
+            .Returns((IReadOnlyList<IValidateClientVersion_ValidateClient_Errors>?)null);
+        payload.SetupGet(x => x.Id)
+            .Returns((string?)null);
+
+        var (client, fileSystem) = CreateValidationSetup(payload.Object);
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "client",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId,
+                "--operations-file",
+                DefaultOperationsFile)
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            Could not create client validation request.
+            """);
 
         client.VerifyAll();
     }

@@ -135,11 +135,22 @@ public sealed class CreateEnvironmentCommandTests
         var result = await command.RunToCompletionAsync();
 
         // assert
-        Assert.Equal(0, result.ExitCode);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            ? Name production
+
+            [    ] Successfully created environment!
+
+            {
+              "id": "env-1",
+              "name": "production",
+              "workspace": {
+                "name": "workspace-a"
+              }
+            }
+            """);
         Assert.Empty(result.StdErr);
-        Assert.Contains("? Name production", result.StdOut);
-        Assert.Contains("Successfully created environment!", result.StdOut);
-        Assert.Contains("\"name\": \"production\"", result.StdOut);
+        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }

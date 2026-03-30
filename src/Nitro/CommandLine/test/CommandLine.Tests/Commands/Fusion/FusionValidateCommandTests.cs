@@ -72,7 +72,29 @@ public sealed class FusionValidateCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("You can only specify one of", result.StdErr);
+        var output = result.StdOut.Replace(result.ExecutableName, "nitro");
+        output.MatchInlineSnapshot(
+            """
+            Description:
+              Validates the composed GraphQL schema of a Fusion configuration against a stage.
+
+            Usage:
+              nitro fusion validate [options]
+
+            Options:
+              --api-id <api-id> (REQUIRED)                   The ID of the API [env: NITRO_API_ID]
+              --stage <stage> (REQUIRED)                     The name of the stage [env: NITRO_STAGE]
+              -a, --archive, --configuration <archive>       The path to a Fusion archive file. (the --configuration alias will be removed in an upcoming version) [env: NITRO_FUSION_CONFIG_FILE]
+              -f, --source-schema-file <source-schema-file>  One or more paths to a source schema file (.graphqls) or directory containing a source schema file.
+              --cloud-url <cloud-url>                        The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>                            The API key that is used for the authentication [env: NITRO_API_KEY]
+              --output <json>                                The format in which the result should be displayed, if this option is set, the console will be non-interactive and the result will be displayed in the specified format [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                                 Show help and usage information
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            You can only specify one of: '--source-schema-file' or '--archive'.
+            """);
         Assert.Equal(1, result.ExitCode);
     }
 
@@ -96,15 +118,34 @@ public sealed class FusionValidateCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("You need to specify one of", result.StdErr);
+        var output = result.StdOut.Replace(result.ExecutableName, "nitro");
+        output.MatchInlineSnapshot(
+            """
+            Description:
+              Validates the composed GraphQL schema of a Fusion configuration against a stage.
+
+            Usage:
+              nitro fusion validate [options]
+
+            Options:
+              --api-id <api-id> (REQUIRED)                   The ID of the API [env: NITRO_API_ID]
+              --stage <stage> (REQUIRED)                     The name of the stage [env: NITRO_STAGE]
+              -a, --archive, --configuration <archive>       The path to a Fusion archive file. (the --configuration alias will be removed in an upcoming version) [env: NITRO_FUSION_CONFIG_FILE]
+              -f, --source-schema-file <source-schema-file>  One or more paths to a source schema file (.graphqls) or directory containing a source schema file.
+              --cloud-url <cloud-url>                        The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>                            The API key that is used for the authentication [env: NITRO_API_KEY]
+              --output <json>                                The format in which the result should be displayed, if this option is set, the console will be non-interactive and the result will be displayed in the specified format [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                                 Show help and usage information
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            You need to specify one of: '--source-schema-file' or '--archive'.
+            """);
         Assert.Equal(1, result.ExitCode);
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
         var client = CreateValidationExceptionClient(
@@ -116,7 +157,7 @@ public sealed class FusionValidateCommandTests
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "fusion",
                 "validate",
@@ -129,17 +170,96 @@ public sealed class FusionValidateCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("validation request failed", result.StdErr);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: validation request failed
+            """);
         Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_Interactive()
+    {
+        // arrange
+        var client = CreateValidationExceptionClient(
+            new NitroClientException("validation request failed"));
+        var fileSystem = CreateArchiveFileSystem();
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "fusion",
+                "validate",
+                "--api-id",
+                DefaultApiId,
+                "--stage",
+                DefaultStage,
+                "--archive",
+                DefaultArchiveFile)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Validating...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error executing your request: validation request failed
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var client = CreateValidationExceptionClient(
+            new NitroClientException("validation request failed"));
+        var fileSystem = CreateArchiveFileSystem();
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "fusion",
+                "validate",
+                "--api-id",
+                DefaultApiId,
+                "--stage",
+                DefaultStage,
+                "--archive",
+                DefaultArchiveFile)
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            There was an unexpected error executing your request: validation request failed
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
     {
         // arrange
         var client = CreateValidationExceptionClient(
@@ -151,7 +271,7 @@ public sealed class FusionValidateCommandTests
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "fusion",
                 "validate",
@@ -164,10 +284,90 @@ public sealed class FusionValidateCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains(
-            "The server rejected your request as unauthorized.",
-            result.StdErr);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
         Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    {
+        // arrange
+        var client = CreateValidationExceptionClient(
+            new NitroClientAuthorizationException("forbidden"));
+        var fileSystem = CreateArchiveFileSystem();
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "fusion",
+                "validate",
+                "--api-id",
+                DefaultApiId,
+                "--stage",
+                DefaultStage,
+                "--archive",
+                DefaultArchiveFile)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Validating...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var client = CreateValidationExceptionClient(
+            new NitroClientAuthorizationException("forbidden"));
+        var fileSystem = CreateArchiveFileSystem();
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "fusion",
+                "validate",
+                "--api-id",
+                DefaultApiId,
+                "--stage",
+                DefaultStage,
+                "--archive",
+                DefaultArchiveFile)
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            """);
 
         client.VerifyAll();
     }
@@ -283,11 +483,8 @@ public sealed class FusionValidateCommandTests
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task MutationReturnsNullRequestId_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task MutationReturnsNullRequestId_ReturnsError_NonInteractive()
     {
         // arrange
         var payload = new Mock<IValidateSchemaVersion_ValidateSchema>(MockBehavior.Strict);
@@ -303,7 +500,7 @@ public sealed class FusionValidateCommandTests
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "fusion",
                 "validate",
@@ -316,8 +513,98 @@ public sealed class FusionValidateCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("Could not create validation request!", result.StdErr);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Could not create validation request!
+            """);
         Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task MutationReturnsNullRequestId_ReturnsError_Interactive()
+    {
+        // arrange
+        var payload = new Mock<IValidateSchemaVersion_ValidateSchema>(MockBehavior.Strict);
+        payload.SetupGet(x => x.Errors)
+            .Returns((IReadOnlyList<IValidateSchemaVersion_ValidateSchema_Errors>?)null);
+        payload.SetupGet(x => x.Id)
+            .Returns((string?)null);
+
+        var (client, fileSystem) = CreateValidationSetup(payload.Object);
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "fusion",
+                "validate",
+                "--api-id",
+                DefaultApiId,
+                "--stage",
+                DefaultStage,
+                "--archive",
+                DefaultArchiveFile)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Validating...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Could not create validation request!
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task MutationReturnsNullRequestId_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var payload = new Mock<IValidateSchemaVersion_ValidateSchema>(MockBehavior.Strict);
+        payload.SetupGet(x => x.Errors)
+            .Returns((IReadOnlyList<IValidateSchemaVersion_ValidateSchema_Errors>?)null);
+        payload.SetupGet(x => x.Id)
+            .Returns((string?)null);
+
+        var (client, fileSystem) = CreateValidationSetup(payload.Object);
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "fusion",
+                "validate",
+                "--api-id",
+                DefaultApiId,
+                "--stage",
+                DefaultStage,
+                "--archive",
+                DefaultArchiveFile)
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            Could not create validation request!
+            """);
 
         client.VerifyAll();
     }

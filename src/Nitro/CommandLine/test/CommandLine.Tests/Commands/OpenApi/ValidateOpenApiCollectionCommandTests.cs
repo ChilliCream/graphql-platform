@@ -461,11 +461,8 @@ public sealed class ValidateOpenApiCollectionCommandTests
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task MutationReturnsNullRequestId_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task MutationReturnsNullRequestId_ReturnsError_NonInteractive()
     {
         // arrange
         var payload = new Mock<IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection>(MockBehavior.Strict);
@@ -481,7 +478,7 @@ public sealed class ValidateOpenApiCollectionCommandTests
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "openapi",
                 "validate",
@@ -494,8 +491,98 @@ public sealed class ValidateOpenApiCollectionCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("Could not create validation request!", result.StdErr);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating OpenAPI collection...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Could not create validation request!
+            """);
         Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task MutationReturnsNullRequestId_ReturnsError_Interactive()
+    {
+        // arrange
+        var payload = new Mock<IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection>(MockBehavior.Strict);
+        payload.SetupGet(x => x.Errors)
+            .Returns((IReadOnlyList<IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors>?)null);
+        payload.SetupGet(x => x.Id)
+            .Returns((string?)null);
+
+        var (client, fileSystem) = CreateValidationSetup(payload.Object);
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "openapi",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--openapi-collection-id",
+                DefaultOpenApiCollectionId,
+                "--pattern",
+                "**/*.graphql")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Validating OpenAPI collection...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Could not create validation request!
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task MutationReturnsNullRequestId_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var payload = new Mock<IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection>(MockBehavior.Strict);
+        payload.SetupGet(x => x.Errors)
+            .Returns((IReadOnlyList<IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors>?)null);
+        payload.SetupGet(x => x.Id)
+            .Returns((string?)null);
+
+        var (client, fileSystem) = CreateValidationSetup(payload.Object);
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "openapi",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--openapi-collection-id",
+                DefaultOpenApiCollectionId,
+                "--pattern",
+                "**/*.graphql")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            Could not create validation request!
+            """);
 
         client.VerifyAll();
     }

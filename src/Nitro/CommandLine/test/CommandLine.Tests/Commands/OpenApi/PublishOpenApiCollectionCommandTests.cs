@@ -455,11 +455,8 @@ public sealed class PublishOpenApiCollectionCommandTests
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task MutationReturnsNullRequestId_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task MutationReturnsNullRequestId_ReturnsError_NonInteractive()
     {
         // arrange
         var payload = new Mock<IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection>(MockBehavior.Strict);
@@ -474,7 +471,7 @@ public sealed class PublishOpenApiCollectionCommandTests
         var result = await new CommandBuilder()
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "openapi",
                 "publish",
@@ -487,8 +484,96 @@ public sealed class PublishOpenApiCollectionCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("Could not create publish request.", result.StdErr);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing...
+            └── ✕ Failed!
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Could not create publish request.
+            """);
         Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task MutationReturnsNullRequestId_ReturnsError_Interactive()
+    {
+        // arrange
+        var payload = new Mock<IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection>(MockBehavior.Strict);
+        payload.SetupGet(x => x.Errors)
+            .Returns((IReadOnlyList<IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors>?)null);
+        payload.SetupGet(x => x.Id)
+            .Returns((string?)null);
+
+        var client = CreatePublishSetup(payload.Object);
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "openapi",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--openapi-collection-id",
+                DefaultOpenApiCollectionId)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Publishing...
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Could not create publish request.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task MutationReturnsNullRequestId_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var payload = new Mock<IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection>(MockBehavior.Strict);
+        payload.SetupGet(x => x.Errors)
+            .Returns((IReadOnlyList<IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors>?)null);
+        payload.SetupGet(x => x.Id)
+            .Returns((string?)null);
+
+        var client = CreatePublishSetup(payload.Object);
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "openapi",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--openapi-collection-id",
+                DefaultOpenApiCollectionId)
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            Could not create publish request.
+            """);
 
         client.VerifyAll();
     }
@@ -868,7 +953,13 @@ public sealed class PublishOpenApiCollectionCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("Your request is ready for processing.", result.StdOut);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing...
+            Your request is ready for processing.
+            ├── Your request is in progress.
+            └── ✓ Successfully published OpenAPI collection!
+            """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
 
@@ -954,7 +1045,15 @@ public sealed class PublishOpenApiCollectionCommandTests
             .ExecuteAsync();
 
         // assert
-        Assert.Contains("waiting for approval", result.StdOut);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing...
+            ├── The processing of your request is waiting for approval. Check Nitro to
+            approve the request.
+            ├── The processing of your request is approved.
+            ├── Your request is in progress.
+            └── ✓ Successfully published OpenAPI collection!
+            """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
 
