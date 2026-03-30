@@ -95,6 +95,28 @@ public sealed class DispatchInstrumentationMiddlewareTests
     }
 
     [Fact]
+    public async Task InvokeAsync_Should_CallDispatchError_When_ExceptionOccurs()
+    {
+        // arrange
+        var events = new MockMessagingDiagnosticEvents();
+        var middleware = new DispatchInstrumentationMiddleware(events);
+        var context = new DispatchContext();
+        var expectedException = new InvalidOperationException("Test exception");
+
+        DispatchDelegate next = _ => throw expectedException;
+
+        // act & assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            middleware.InvokeAsync(context, next).AsTask()
+        );
+
+        Assert.Same(expectedException, ex);
+        Assert.True(events.DispatchErrorCalled, "DispatchError should be called on exception");
+        Assert.Same(expectedException, events.RecordedException);
+        Assert.Same(context, events.RecordedErrorContext);
+    }
+
+    [Fact]
     public async Task InvokeAsync_Should_PassContextToObserver_When_Invoked()
     {
         // arrange
@@ -178,7 +200,10 @@ public sealed class DispatchInstrumentationMiddlewareTests
     private sealed class MockMessagingDiagnosticEvents : IMessagingDiagnosticEvents
     {
         public bool DispatchCalled { get; private set; }
+        public bool DispatchErrorCalled { get; private set; }
         public IDispatchContext? RecordedDispatchContext { get; private set; }
+        public IDispatchContext? RecordedErrorContext { get; private set; }
+        public Exception? RecordedException { get; private set; }
         public IDisposable? ActivityToReturn { get; set; }
 
         public IDisposable Dispatch(IDispatchContext context)
@@ -188,7 +213,12 @@ public sealed class DispatchInstrumentationMiddlewareTests
             return ActivityToReturn ?? new MockDisposable();
         }
 
-        public void DispatchError(IDispatchContext context, Exception exception) { }
+        public void DispatchError(IDispatchContext context, Exception exception)
+        {
+            DispatchErrorCalled = true;
+            RecordedErrorContext = context;
+            RecordedException = exception;
+        }
 
         public IDisposable Receive(IReceiveContext context) => new MockDisposable();
 

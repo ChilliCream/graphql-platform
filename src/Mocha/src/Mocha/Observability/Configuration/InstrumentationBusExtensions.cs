@@ -30,7 +30,8 @@ public static class InstrumentationBusExtensions
         ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services.TryAddSingleton<T>();
-        builder.Services.AddSingleton<IMessagingDiagnosticEventListener>(sp => sp.GetRequiredService<T>());
+        builder.Services.TryAddEnumerable(
+            ServiceDescriptor.Singleton<IMessagingDiagnosticEventListener, T>());
 
         return builder;
     }

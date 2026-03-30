@@ -96,6 +96,28 @@ public sealed class ConsumerInstrumentationMiddlewareTests
     }
 
     [Fact]
+    public async Task InvokeAsync_Should_CallConsumeError_When_ExceptionOccurs()
+    {
+        // arrange
+        var events = new MockMessagingDiagnosticEvents();
+        var middleware = new ConsumerInstrumentationMiddleware(events);
+        var context = new StubConsumeContext();
+        var expectedException = new InvalidOperationException("Test exception");
+
+        ConsumerDelegate next = _ => throw expectedException;
+
+        // act & assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            middleware.InvokeAsync(context, next).AsTask()
+        );
+
+        Assert.Same(expectedException, ex);
+        Assert.True(events.ConsumeErrorCalled, "ConsumeError should be called on exception");
+        Assert.Same(expectedException, events.RecordedException);
+        Assert.Same(context, events.RecordedErrorContext);
+    }
+
+    [Fact]
     public async Task InvokeAsync_Should_PassContextToObserver_When_Invoked()
     {
         // arrange
@@ -183,7 +205,10 @@ public sealed class ConsumerInstrumentationMiddlewareTests
     private sealed class MockMessagingDiagnosticEvents : IMessagingDiagnosticEvents
     {
         public bool ConsumeCalled { get; private set; }
+        public bool ConsumeErrorCalled { get; private set; }
         public IConsumeContext? RecordedConsumeContext { get; private set; }
+        public IConsumeContext? RecordedErrorContext { get; private set; }
+        public Exception? RecordedException { get; private set; }
         public IDisposable? ScopeToReturn { get; set; }
 
         public IDisposable Dispatch(IDispatchContext context) => new MockDisposable();
@@ -201,7 +226,12 @@ public sealed class ConsumerInstrumentationMiddlewareTests
             return ScopeToReturn ?? new MockDisposable();
         }
 
-        public void ConsumeError(IConsumeContext context, Exception exception) { }
+        public void ConsumeError(IConsumeContext context, Exception exception)
+        {
+            ConsumeErrorCalled = true;
+            RecordedErrorContext = context;
+            RecordedException = exception;
+        }
     }
 
     private sealed class MockDisposable : IDisposable
