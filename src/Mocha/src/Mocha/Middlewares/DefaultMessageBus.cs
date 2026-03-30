@@ -22,8 +22,7 @@ public sealed class DefaultMessageBus(
     IMessagingRuntime runtime,
     IServiceProvider services,
     IMessagingPools pools,
-    ConsumeContextAccessor consumeContextAccessor)
-    : IMessageBus
+    ConsumeContextAccessor consumeContextAccessor) : IMessageBus
 {
     private readonly ObjectPool<DispatchContext> _contextPool = pools.DispatchContext;
 
@@ -301,7 +300,8 @@ public sealed class DefaultMessageBus(
     public async ValueTask<SchedulingResult> SchedulePublishAsync<T>(
         T message,
         DateTimeOffset scheduledTime,
-        CancellationToken cancellationToken) where T : notnull
+        CancellationToken cancellationToken)
+        where T : notnull
     {
         return await SchedulePublishAsync(message, scheduledTime, PublishOptions.Default, cancellationToken);
     }
@@ -313,7 +313,8 @@ public sealed class DefaultMessageBus(
         T message,
         DateTimeOffset scheduledTime,
         PublishOptions options,
-        CancellationToken cancellationToken) where T : notnull
+        CancellationToken cancellationToken)
+        where T : notnull
     {
         var messageType = runtime.GetMessageType(message!.GetType());
         var endpoint = runtime.GetPublishEndpoint(messageType);

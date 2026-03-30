@@ -129,7 +129,7 @@ public class DispatchSchedulingMiddlewareTests
         };
 
         // Set SkipScheduler flag
-        context.Features.GetOrSet<SchedulingMiddlewareFeature>().SkipScheduler = true;
+        context.Features.Configure<SchedulingMiddlewareFeature>(f => f.SkipScheduler = true);
 
         var nextCalled = false;
         DispatchDelegate next = _ =>
