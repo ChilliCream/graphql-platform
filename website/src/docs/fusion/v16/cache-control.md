@@ -63,18 +63,12 @@ GET /graphql/persisted/GetProducts/123456789
 Variables can then be sent as query parameters.
 
 ```http
-GET /graphql/persisted/GetProducts/123456789?first=5
+GET /graphql/persisted/GetProducts/123456789?variables={"first":5}
 ```
 
 In order to use persisted-operation routes you need to add the middleware `MapGraphQLPersistedOperations`.
 
 ```csharp
-var builder = WebApplication.CreateBuilder(args);
-
-builder
-    .AddGraphQLGateway()
-    .AddFileSystemConfiguration("./gateway.far");
-
 var app = builder.Build();
 
 app.MapGraphQLPersistedOperations();
@@ -126,7 +120,7 @@ type Query {
 }
 ```
 
-If your subgraph runs on Hot Chocolate, you can express the same policy with `[CacheControl]` attributes.
+If your subgraph runs on Hot Chocolate, you can express the `@cacheControl` directive with the `[CacheControl]` attribute.
 
 ```csharp
 using HotChocolate.Caching;
@@ -161,12 +155,37 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder
     .AddGraphQLGateway()
-    .AddFileSystemConfiguration("./gateway.far")
     .AddCacheControl()
     .UseQueryCache();
 ```
 
 `AddCacheControl()` enables cache-constraint planning. `UseQueryCache()` writes the final `Cache-Control` and `Vary` headers to HTTP responses.
+
+# Skip Cache Control for a Specific Request
+
+Use `SkipQueryCaching()` on `OperationRequestBuilder` to bypass cache-control for a specific request.
+
+```csharp
+using HotChocolate.AspNetCore;
+using HotChocolate.Execution;
+
+public sealed class NoCacheHeaderInterceptor : DefaultHttpRequestInterceptor
+{
+    public override ValueTask OnCreateAsync(
+        HttpContext context,
+        IRequestExecutor requestExecutor,
+        OperationRequestBuilder requestBuilder,
+        CancellationToken cancellationToken)
+    {
+        if (context.Request.Headers.ContainsKey("X-Skip-Cache-Control"))
+        {
+            requestBuilder.SkipQueryCaching();
+        }
+
+        return base.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);
+    }
+}
+```
 
 # Putting It Together
 

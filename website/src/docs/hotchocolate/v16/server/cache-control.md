@@ -1,33 +1,97 @@
 ---
-title: Cache Control
-description: Learn how to configure Cache-Control and Vary response headers for CDN and HTTP caching in Hot Chocolate GraphQL servers using @cacheControl directives, UseQueryCache, and cache-control options.
+title: "Cache Control"
+description: "Understand HTTP Cache-Control and Vary headers, then learn how Hot Chocolate uses GraphQL @cacheControl directives to generate safe CDN and browser caching policies."
 ---
 
-Cache control defines how HTTP clients, browsers, reverse proxies, and CDNs should cache GraphQL responses.
+Cache-Control is the HTTP header field that tells browsers, reverse proxies, and CDNs how they are allowed to store and reuse a response instead of sending the same request back to the server every time. Together with related headers such as `Vary`, it makes cached responses safe and predictable by defining whether a response may be reused, how long it may be reused, and which parts of the request affect that decision.
 
-This chapter explains HTTP cache semantics first, then shows how GraphQL `@cacheControl` metadata is translated into `Cache-Control` and `Vary` response headers by Hot Chocolate.
+# Why Cache Control Matters
 
-# What Cache Control Means in HTTP
+Good cache rules help you:
 
-`Cache-Control` is an HTTP response header that tells caches whether a response can be stored and how long it remains fresh.
+- Reduce latency for users.
+- Reduce load on your backend services.
+- Keep cache behavior predictable.
+- Protect user-specific data from shared caches.
 
-Common directives:
+To make caching work safely and predictably, you need two things:
 
-| Directive            | Meaning                                       |
-| -------------------- | --------------------------------------------- |
-| `max-age=<seconds>`  | Response freshness lifetime.                  |
-| `s-maxage=<seconds>` | Shared-cache freshness lifetime (for CDNs).   |
-| `public`             | Shared caches may store this response.        |
-| `private`            | Shared caches should not store this response. |
-| `Vary: <header>`     | Cache key depends on request headers.         |
+1. A deterministic GET route so caches get a stable cache key.
+2. Correct Cache-Control (and Vary) headers so caches know where and how long a response may be reused.
 
-For GraphQL APIs, these headers matter because one endpoint serves many operations and cache behavior should still be explicit and predictable.
+# Why GraphQL Needs Extra Care
 
-# How GraphQL `@cacheControl` Works
+GraphQL usually exposes one endpoint, but each request can ask for different fields. Two requests to the same URL can therefore return very different response shapes and different data sensitivity.
 
-GraphQL uses `@cacheControl` to declare cache intent on fields and types.
+A single GraphQL response can also mix public data and user-specific data. Since HTTP cache headers apply to the full response, the gateway has to compute one safe final policy that represents everything selected in that operation.
 
-## GraphQL SDL Example
+That means one response can include:
+
+- Public data (safe for shared caches), and
+- User-specific data (not safe for shared caches).
+
+The GraphQL operation type matters. Query operations are side-effect free reads, so they are the primary target for HTTP and CDN caching. Mutations change data and should not be cached as shared HTTP responses. Subscriptions are long-running streams and are not HTTP-cacheable.
+
+# Why GraphQL Needs Extra Care
+
+GraphQL usually exposes one endpoint, but each request can ask for different fields. Two requests to the same URL can therefore return very different response shapes and different data sensitivity.
+
+A single GraphQL response can also mix public data and user-specific data. Since HTTP cache headers apply to the full response, the server has to compute one safe final policy that represents everything selected in that operation.
+
+That means one response can include:
+
+- Public data, which is safe for shared caches.
+- User-specific data, which is not safe for shared caches.
+
+The GraphQL operation type matters as well. Query operations are the primary target for HTTP and CDN caching. Mutations change data and should not be cached as shared HTTP responses. Subscriptions are long-running streams and are not HTTP-cacheable in the same way.
+
+# Deterministic GET Routes
+
+The GraphQL over HTTP specification allows query operations to be sent over HTTP GET.
+
+```http
+GET /graphql?query=query GetProducts{products{nodes{name}}}
+```
+
+The same applies when variables are included.
+
+```http
+GET /graphql?query=query GetProducts($first:Int!){products(first:$first){nodes{name}}}&variables={"first":5}
+```
+
+In real requests, these values are URL-encoded, and for larger operations the query string quickly becomes difficult to work with. This is where persisted operations help.
+
+## Persisted Operation Routes
+
+In large first-party GraphQL APIs, a common approach used by companies such as Netflix, Meta, and X is to rely on trusted documents. Client operations are stored in an operation store, and clients send a stable operation identifier instead of the full query text.
+
+> You can read more in the [First-Party API guide](/docs/fusion/v16/guides/first-party-api).
+
+With trusted documents in place, persisted-operation routes become short and stable.
+
+```http
+GET /graphql/persisted/GetProducts/123456789
+```
+
+Variables can then be sent as query parameters.
+
+```http
+GET /graphql/persisted/GetProducts/123456789?variables={"first":5}
+```
+
+In order to use persisted-operation routes you need to add the middleware `MapGraphQLPersistedOperations`.
+
+```csharp
+var app = builder.Build();
+
+app.MapGraphQLPersistedOperations();
+```
+
+# `@cacheControl` in GraphQL
+
+A deterministic route alone is not enough. The gateway also needs policy metadata to decide whether a response is public or private, and how long it may be reused.
+
+GraphQL provides the `@cacheControl` directive for this purpose. You can place it on fields and types to describe cache intent.
 
 ```graphql
 type Query {
@@ -38,40 +102,48 @@ type Query {
 }
 ```
 
-## Hot Chocolate Resolver Example
+In Hot Chocolate you can express `@cacheControl` directive with the `[CacheControl]` attribute.
 
 ```csharp
 using HotChocolate.Caching;
 
-public sealed class Query
+[QueryType]
+public static class Query
 {
     [CacheControl(300, SharedMaxAge = 900)]
-    public Product? ProductById(int id)
-        => ProductStore.GetById(id);
+    public static Product? GetProductById(int id)
+        => ProductRepository.GetById(id);
 
     [CacheControl(60, Scope = CacheControlScope.Private, Vary = ["Authorization"])]
-    public UserProfile Me()
-        => UserStore.GetCurrent();
+    public static UserProfile GetMe()
+        => UserProfileRepository.GetCurrent();
 }
 ```
 
-At execution time, Hot Chocolate computes one effective cache policy for the full response.
+# How Hot Chocolate Assembles the Final Headers
+
+Hot Chocolate computes one effective response policy by traversing the selected query fields. It reads `@cacheControl` metadata on each field, falls back to the field return type when values are missing, and continues recursively through child selections.
+
+All collected constraints are merged into one final policy. The merge is conservative: `max-age` and `s-maxage` take the lowest value, scope resolves to the strictest value (`private` over `public`), and `vary` values are merged, normalized, and deduplicated.
+
+Hot Chocolate computes cache constraints only for query operations. Introspection requests and operations for which no selected field contributes `maxAge` or `sharedMaxAge` do not produce a cache policy. `UseQueryCache()` writes the final headers only when the executed result has no GraphQL errors and the request has not opted out of cache-control header generation.
 
 # Enable Cache Control in Hot Chocolate
 
-Install the package:
+Install the package first:
 
 ```bash
 dotnet add package HotChocolate.Caching
 ```
 
-Register schema support and response-header middleware:
+Then configure the server to register the directive and write the final headers:
 
 ```csharp
 using HotChocolate.Caching;
 
-builder
-    .AddGraphQL()
+builder.Services
+    .AddGraphQLServer()`
+    .AddQueryType<Query>()
     .UseQueryCache()
     .AddCacheControl()
     .ModifyCacheControlOptions(o =>
@@ -80,16 +152,18 @@ builder
     });
 ```
 
-- `AddCacheControl()` registers the `@cacheControl` directive and cache-constraint computation.
-- `UseQueryCache()` writes `Cache-Control` and `Vary` values to HTTP responses.
+`AddCacheControl()` registers the `@cacheControl` directive and the schema and execution components needed to compute cache constraints. `UseQueryCache()` writes the final `Cache-Control` and `Vary` values so the HTTP response formatter can emit them as HTTP headers.
 
 # Cache-Control Options
 
 `ModifyCacheControlOptions` configures default behavior:
 
 ```csharp
-builder
-    .AddGraphQL()
+using HotChocolate.Caching;
+
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
     .UseQueryCache()
     .AddCacheControl()
     .ModifyCacheControlOptions(o =>
@@ -103,28 +177,24 @@ builder
 
 | Option          | Type                | Default  | Description                                                           |
 | --------------- | ------------------- | -------- | --------------------------------------------------------------------- |
-| `Enable`        | `bool`              | `true`   | Enables cache-control response handling.                              |
+| `Enable`        | `bool`              | `true`   | Enables or disables cache-control header generation.                  |
 | `DefaultMaxAge` | `int`               | `0`      | Default `max-age` when `ApplyDefaults` is enabled.                    |
 | `DefaultScope`  | `CacheControlScope` | `Public` | Default cache scope when `ApplyDefaults` is enabled.                  |
 | `ApplyDefaults` | `bool`              | `true`   | Applies defaults to eligible fields without explicit `@cacheControl`. |
 
-# How Effective Response Policy Is Computed
+With the default settings, eligible query fields that do not declare explicit cache metadata still contribute `max-age=0`. If you want headers only when fields opt in explicitly, set `ApplyDefaults = false`.
 
-- Only **query operations** participate.
-- `max-age` resolves to the most restrictive selected value.
-- `s-maxage` resolves to the most restrictive selected shared value.
-- Scope resolves to the most restrictive value (`private` over `public`).
-- `Vary` values are merged across selected fields.
+# How HotChocolate Assembles the Final Headers
 
-No cache-control header is emitted when:
+Hot Chocolate computes one effective response policy by traversing the planned operation tree. It starts at the selected root fields, reads `@cacheControl` metadata on each field, falls back to the field return type when values are missing, and continues recursively through child selections, including interfaces and unions.
 
-- The operation is a mutation.
-- The operation result contains errors.
-- No selected field contributes cache constraints.
+All collected constraints are merged into one final policy. The merge is conservative: `max-age` and `s-maxage` take the lowest value, scope resolves to the strictest value (`private` over `public`), and `vary` values are merged, normalized, and deduplicated.
+
+Hot Chocolate computes these cache constraints for query operations. Mutation requests, Subscription request, introspection requests, and operations with no cache constraints do not get cache-control headers.
 
 # Skip Cache Control for a Specific Request
 
-Use `SkipQueryCaching()` on `OperationRequestBuilder` to bypass cache-control header generation for a specific request.
+Use `SkipQueryCaching()` on `OperationRequestBuilder` to bypass cache-control for a specific request.
 
 ```csharp
 using HotChocolate.AspNetCore;
@@ -151,49 +221,26 @@ public sealed class NoCacheHeaderInterceptor : DefaultHttpRequestInterceptor
 Register the interceptor:
 
 ```csharp
-builder
-    .AddGraphQL()
+builder.Services
+    .AddGraphQLServer()
     .AddHttpRequestInterceptor<NoCacheHeaderInterceptor>();
 ```
 
-# Troubleshooting
+:::note
+You can only register a single HttpRequestInterceptor per schema.
+:::
 
-## `Cache-Control` header is missing
+# Putting It Together
 
-Cause:
+In day-to-day terms, the flow is simple:
 
-- `.UseQueryCache()` or `.AddCacheControl()` is not configured.
-- Selected fields do not contribute cache constraints.
-- The response contains GraphQL errors.
-
-Solution:
-
-- Register both middleware and schema support.
-- Verify selected fields use `@cacheControl` or enable defaults.
-- Check operation errors before validating cache headers.
-
-## Mutations do not include cache headers
-
-Cause:
-
-- Cache-control headers are computed for query operations.
-
-Solution:
-
-- Treat mutation responses as non-cacheable.
-
-## CDN caches private user data
-
-Cause:
-
-- Scope is `public` for user-specific response data.
-
-Solution:
-
-- Use `Scope = CacheControlScope.Private` and relevant `Vary` headers.
+- Subgraphs declare cache intent.
+- Fusion composes that metadata.
+- The gateway calculates one safe policy for each query result.
+- HTTP caches enforce the resulting headers.
 
 # Next Steps
 
-- [Transports](/docs/hotchocolate/v16/server/http-transport) for HTTP transport behavior.
+- [HTTP Transport](/docs/hotchocolate/v16/server/http-transport) for request and response behavior.
 - [Interceptors](/docs/hotchocolate/v16/server/interceptors) for request-level control.
-- [Configuration Options](/docs/hotchocolate/v16/api-reference/options) for full option reference.
+- [Configuration Options](/docs/hotchocolate/v16/api-reference/options) for the full options reference.
