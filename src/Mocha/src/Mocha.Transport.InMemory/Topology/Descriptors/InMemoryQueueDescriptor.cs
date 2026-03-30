@@ -18,7 +18,7 @@ internal sealed class InMemoryQueueDescriptor
     }
 
     /// <inheritdoc />
-    protected override InMemoryQueueConfiguration Configuration { get; set; }
+    protected internal override InMemoryQueueConfiguration Configuration { get; protected set; }
 
     /// <inheritdoc />
     public IInMemoryQueueDescriptor Name(string name)
