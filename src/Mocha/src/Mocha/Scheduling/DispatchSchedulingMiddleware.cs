@@ -46,7 +46,9 @@ public sealed class DispatchSchedulingMiddleware
         }
 
         var store = context.Services.GetRequiredService<IScheduledMessageStore>();
-        await store.PersistAsync(context.Envelope, scheduledTime, context.CancellationToken);
+        var token = await store.PersistAsync(context.Envelope, scheduledTime, context.CancellationToken);
+
+        context.Features.Configure<ScheduledMessageFeature>(f => f.Token = token);
     }
 
     /// <summary>

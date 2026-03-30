@@ -64,4 +64,51 @@ public sealed class TestMessageBus(TestMessageOutbox outbox) : IMessageBus
         outbox.Messages.Add(new TestMessageOutbox.Operation(TestMessageOutbox.OperationKind.Reply, response, options));
         return ValueTask.CompletedTask;
     }
+
+    public ValueTask<SchedulingResult> SchedulePublishAsync<T>(
+        T message,
+        DateTimeOffset scheduledTime,
+        CancellationToken cancellationToken) where T : notnull
+    {
+        outbox.Messages.Add(
+            new TestMessageOutbox.Operation(TestMessageOutbox.OperationKind.Publish, message, null));
+        return ValueTask.FromResult(new SchedulingResult { ScheduledTime = scheduledTime });
+    }
+
+    public ValueTask<SchedulingResult> SchedulePublishAsync<T>(
+        T message,
+        DateTimeOffset scheduledTime,
+        PublishOptions options,
+        CancellationToken cancellationToken) where T : notnull
+    {
+        outbox.Messages.Add(
+            new TestMessageOutbox.Operation(TestMessageOutbox.OperationKind.Publish, message, options));
+        return ValueTask.FromResult(new SchedulingResult { ScheduledTime = scheduledTime });
+    }
+
+    public ValueTask<SchedulingResult> ScheduleSendAsync(
+        object message,
+        DateTimeOffset scheduledTime,
+        CancellationToken cancellationToken)
+    {
+        outbox.Messages.Add(
+            new TestMessageOutbox.Operation(TestMessageOutbox.OperationKind.Send, message, null));
+        return ValueTask.FromResult(new SchedulingResult { ScheduledTime = scheduledTime });
+    }
+
+    public ValueTask<SchedulingResult> ScheduleSendAsync(
+        object message,
+        DateTimeOffset scheduledTime,
+        SendOptions options,
+        CancellationToken cancellationToken)
+    {
+        outbox.Messages.Add(
+            new TestMessageOutbox.Operation(TestMessageOutbox.OperationKind.Send, message, options));
+        return ValueTask.FromResult(new SchedulingResult { ScheduledTime = scheduledTime });
+    }
+
+    public ValueTask<bool> CancelScheduledMessageAsync(string token, CancellationToken cancellationToken)
+    {
+        return ValueTask.FromResult(false);
+    }
 }

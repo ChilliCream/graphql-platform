@@ -135,6 +135,134 @@ public class SchedulingMiddlewareIntegrationTests
     }
 
     [Fact]
+    public async Task SchedulePublishAsync_Should_ReturnCancellableResult_When_StoreRegistered()
+    {
+        // arrange
+        var timeProvider = new FakeTimeProvider();
+        var store = new InMemoryScheduledMessageStore();
+        await using var provider = await CreateBusWithSchedulingAsync(
+            store,
+            _ => { },
+            timeProvider);
+
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        var scheduledTime = timeProvider.GetUtcNow().AddMinutes(10);
+
+        // act
+        var result = await bus.SchedulePublishAsync(
+            new SchedulingTestEvent { Payload = "schedule-me" },
+            scheduledTime,
+            CancellationToken.None);
+
+        // assert
+        Assert.True(result.IsCancellable);
+        Assert.NotNull(result.Token);
+        Assert.Equal(scheduledTime, result.ScheduledTime);
+        await WaitUntilAsync(() => !store.Entries.IsEmpty, s_timeout);
+        Assert.Single(store.Entries);
+    }
+
+    [Fact]
+    public async Task CancelScheduledMessageAsync_Should_RemoveFromStore_When_ValidToken()
+    {
+        // arrange
+        var timeProvider = new FakeTimeProvider();
+        var store = new InMemoryScheduledMessageStore();
+        await using var provider = await CreateBusWithSchedulingAndProviderAsync(
+            store,
+            _ => { },
+            timeProvider);
+
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        var scheduledTime = timeProvider.GetUtcNow().AddMinutes(10);
+        var result = await bus.SchedulePublishAsync(
+            new SchedulingTestEvent { Payload = "cancel-me" },
+            scheduledTime,
+            CancellationToken.None);
+
+        await WaitUntilAsync(() => store.TrackedCount > 0, s_timeout);
+        Assert.Equal(1, store.TrackedCount);
+
+        // act
+        var cancelled = await bus.CancelScheduledMessageAsync(result.Token!, CancellationToken.None);
+
+        // assert
+        Assert.True(cancelled);
+        Assert.Equal(0, store.TrackedCount);
+    }
+
+    [Fact]
+    public async Task CancelScheduledMessageAsync_Should_ReturnFalse_When_AlreadyCancelled()
+    {
+        // arrange
+        var timeProvider = new FakeTimeProvider();
+        var store = new InMemoryScheduledMessageStore();
+        await using var provider = await CreateBusWithSchedulingAndProviderAsync(
+            store,
+            _ => { },
+            timeProvider);
+
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        var scheduledTime = timeProvider.GetUtcNow().AddMinutes(10);
+        var result = await bus.SchedulePublishAsync(
+            new SchedulingTestEvent { Payload = "cancel-twice" },
+            scheduledTime,
+            CancellationToken.None);
+
+        await WaitUntilAsync(() => store.TrackedCount > 0, s_timeout);
+
+        // act
+        var firstCancel = await bus.CancelScheduledMessageAsync(result.Token!, CancellationToken.None);
+        var secondCancel = await bus.CancelScheduledMessageAsync(result.Token!, CancellationToken.None);
+
+        // assert
+        Assert.True(firstCancel);
+        Assert.False(secondCancel);
+    }
+
+    [Fact]
+    public async Task SchedulePublishAsync_Should_ReturnNonCancellable_When_NoStoreRegistered()
+    {
+        // arrange
+        var timeProvider = new FakeTimeProvider();
+
+        var services = new ServiceCollection();
+        services.AddSingleton<TimeProvider>(timeProvider);
+
+        var builder = services.AddMessageBus();
+        builder.UseSchedulerCore();
+        builder.AddInMemory();
+
+        var provider = services.BuildServiceProvider();
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+        await runtime.StartAsync(CancellationToken.None);
+
+        await using (provider)
+        {
+            using var scope = provider.CreateScope();
+            var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+            var scheduledTime = timeProvider.GetUtcNow().AddMinutes(10);
+
+            // act
+            var result = await bus.SchedulePublishAsync(
+                new SchedulingTestEvent { Payload = "no-store" },
+                scheduledTime,
+                CancellationToken.None);
+
+            // assert
+            Assert.False(result.IsCancellable);
+            Assert.Null(result.Token);
+        }
+    }
+
+    [Fact]
     public async Task Scheduling_Should_PassThrough_When_NoStoreRegistered()
     {
         // arrange
@@ -221,6 +349,34 @@ public class SchedulingMiddlewareIntegrationTests
         return provider;
     }
 
+    private static async Task<ServiceProvider> CreateBusWithSchedulingAndProviderAsync(
+        InMemoryScheduledMessageStore store,
+        Action<IMessageBusHostBuilder> configure,
+        TimeProvider? timeProvider = null)
+    {
+        var services = new ServiceCollection();
+        services.AddScoped<IScheduledMessageStore>(_ => store);
+        services.AddSingleton<ISchedulerSignal, TestSchedulerSignal>();
+
+        if (timeProvider is not null)
+        {
+            services.AddSingleton(timeProvider);
+        }
+
+        var builder = services.AddMessageBus();
+
+        // Register middleware directly (bypassing factory-time DI check)
+        builder.ConfigureMessageBus(x => x.UseDispatch(CreateSchedulingMiddleware()));
+
+        configure(builder);
+        builder.AddInMemory();
+
+        var provider = services.BuildServiceProvider();
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+        await runtime.StartAsync(CancellationToken.None);
+        return provider;
+    }
+
     public sealed class SchedulingTestEvent
     {
         public required string Payload { get; init; }
@@ -242,6 +398,7 @@ public class SchedulingMiddlewareIntegrationTests
     public sealed class InMemoryScheduledMessageStore : IScheduledMessageStore
     {
         private readonly ISchedulerSignal? _signal;
+        private readonly ConcurrentDictionary<string, (MessageEnvelope Envelope, DateTimeOffset ScheduledTime)> _entriesById = new();
 
         public InMemoryScheduledMessageStore(ISchedulerSignal? signal = null)
         {
@@ -250,12 +407,28 @@ public class SchedulingMiddlewareIntegrationTests
 
         public ConcurrentBag<(MessageEnvelope Envelope, DateTimeOffset ScheduledTime)> Entries { get; } = [];
 
-        public ValueTask PersistAsync(MessageEnvelope envelope, DateTimeOffset scheduledTime, CancellationToken cancellationToken)
+        public ValueTask<string> PersistAsync(MessageEnvelope envelope, DateTimeOffset scheduledTime, CancellationToken cancellationToken)
         {
+            var id = Guid.NewGuid().ToString();
             Entries.Add((envelope, scheduledTime));
+            _entriesById[id] = (envelope, scheduledTime);
             _signal?.Notify(scheduledTime);
-            return ValueTask.CompletedTask;
+            var token = $"in-memory:{id}";
+            return ValueTask.FromResult(token);
         }
+
+        public ValueTask<bool> CancelAsync(string token, CancellationToken cancellationToken)
+        {
+            var value = token.StartsWith("in-memory:", StringComparison.Ordinal)
+                ? token["in-memory:".Length..]
+                : token;
+            var removed = _entriesById.TryRemove(value, out _);
+            return ValueTask.FromResult(removed);
+        }
+
+        public bool HasEntry(string id) => _entriesById.ContainsKey(id);
+
+        public int TrackedCount => _entriesById.Count;
     }
 
     /// <summary>

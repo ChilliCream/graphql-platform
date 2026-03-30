@@ -263,6 +263,158 @@ public sealed class PostgresSchedulingIntegrationTests(PostgresFixture fixture) 
         Assert.Fail("Timed out waiting for times_sent to reach 2");
     }
 
+    [Fact]
+    public async Task SchedulePublishAsync_Should_ReturnCancellableResult_When_PostgresSchedulingConfigured()
+    {
+        // Arrange
+        var recorder = new MessageRecorder();
+        await using var env = await CreateBusWithSchedulingAsync(recorder);
+
+        using var scope = env.Provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var scheduledTime = DateTimeOffset.UtcNow.AddMinutes(10);
+
+        // Act
+        var result = await bus.SchedulePublishAsync(
+            new TestEvent { Payload = "cancellable" },
+            scheduledTime,
+            default);
+
+        // Assert
+        Assert.True(result.IsCancellable);
+        Assert.NotNull(result.Token);
+        Assert.StartsWith("postgres-scheduler:", result.Token);
+        Assert.Equal(scheduledTime, result.ScheduledTime);
+
+        // Verify row exists in the database
+        using var verifyScope = env.Provider.CreateScope();
+        var db = verifyScope.ServiceProvider.GetRequiredService<TestDbContext>();
+        var count = await db.Database
+            .SqlQueryRaw<int>(
+                "SELECT CAST(COUNT(*) AS INTEGER) AS \"Value\" FROM \"scheduled_messages\"")
+            .SingleAsync();
+        Assert.Equal(1, count);
+    }
+
+    [Fact]
+    public async Task CancelScheduledMessageAsync_Should_DeleteRow_When_ValidToken()
+    {
+        // Arrange
+        var recorder = new MessageRecorder();
+        await using var env = await CreateBusWithSchedulingAsync(recorder);
+
+        using var scope = env.Provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var scheduledTime = DateTimeOffset.UtcNow.AddMinutes(10);
+
+        var result = await bus.SchedulePublishAsync(
+            new TestEvent { Payload = "to-cancel" },
+            scheduledTime,
+            default);
+
+        // Act
+        var cancelled = await bus.CancelScheduledMessageAsync(result.Token!, default);
+
+        // Assert
+        Assert.True(cancelled);
+
+        using var verifyScope = env.Provider.CreateScope();
+        var db = verifyScope.ServiceProvider.GetRequiredService<TestDbContext>();
+        var remaining = await db.Database
+            .SqlQueryRaw<int>(
+                "SELECT CAST(COUNT(*) AS INTEGER) AS \"Value\" FROM \"scheduled_messages\"")
+            .SingleAsync();
+        Assert.Equal(0, remaining);
+    }
+
+    [Fact]
+    public async Task CancelScheduledMessageAsync_Should_ReturnFalse_When_AlreadyDispatched()
+    {
+        // Arrange
+        var recorder = new MessageRecorder();
+        await using var env = await CreateBusWithSchedulingAsync(recorder);
+
+        using var scope = env.Provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        var result = await bus.SchedulePublishAsync(
+            new TestEvent { Payload = "dispatch-then-cancel" },
+            DateTimeOffset.UtcNow,
+            default);
+
+        // Wait for handler to receive the message
+        Assert.True(await recorder.WaitAsync(s_timeout), "Handler should have received the scheduled message");
+
+        // Wait for row to be deleted after dispatch
+        using var waitCts = new CancellationTokenSource(s_timeout);
+
+        while (!waitCts.Token.IsCancellationRequested)
+        {
+            await Task.Delay(250, waitCts.Token);
+
+            using var verifyScope = env.Provider.CreateScope();
+            var db = verifyScope.ServiceProvider.GetRequiredService<TestDbContext>();
+            var count = await db.Database
+                .SqlQueryRaw<int>(
+                    "SELECT CAST(COUNT(*) AS INTEGER) AS \"Value\" FROM \"scheduled_messages\"")
+                .SingleAsync(waitCts.Token);
+
+            if (count == 0)
+            {
+                break;
+            }
+        }
+
+        // Act
+        var cancelled = await bus.CancelScheduledMessageAsync(result.Token!, default);
+
+        // Assert
+        Assert.False(cancelled);
+    }
+
+    [Fact]
+    public async Task CancelScheduledMessageAsync_Should_ReturnFalse_When_AlreadyCancelled()
+    {
+        // Arrange
+        var recorder = new MessageRecorder();
+        await using var env = await CreateBusWithSchedulingAsync(recorder);
+
+        using var scope = env.Provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var scheduledTime = DateTimeOffset.UtcNow.AddMinutes(10);
+
+        var result = await bus.SchedulePublishAsync(
+            new TestEvent { Payload = "double-cancel" },
+            scheduledTime,
+            default);
+
+        // Act
+        var firstCancel = await bus.CancelScheduledMessageAsync(result.Token!, default);
+        var secondCancel = await bus.CancelScheduledMessageAsync(result.Token!, default);
+
+        // Assert
+        Assert.True(firstCancel);
+        Assert.False(secondCancel);
+    }
+
+    [Fact]
+    public async Task CancelScheduledMessageAsync_Should_ReturnFalse_When_InvalidToken()
+    {
+        // Arrange
+        var recorder = new MessageRecorder();
+        await using var env = await CreateBusWithSchedulingAsync(recorder);
+
+        using var scope = env.Provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var invalidToken = $"postgres-scheduler:{Guid.NewGuid()}";
+
+        // Act
+        var cancelled = await bus.CancelScheduledMessageAsync(invalidToken, default);
+
+        // Assert
+        Assert.False(cancelled);
+    }
+
     private static void AddFailingDispatchMiddleware(IMessageBusHostBuilder builder)
     {
         builder.ConfigureMessageBus(h =>
