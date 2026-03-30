@@ -1,3 +1,4 @@
+using System.Text;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Options;
 using static HotChocolate.Fusion.CompositionTestHelper;
@@ -2898,5 +2899,56 @@ public sealed class SatisfiabilityValidatorTests
                 null
             }
         };
+    }
+
+    [Fact]
+    public void LargeTypeCycle_DoesNotCauseStackOverflow()
+    {
+        // arrange
+        // Creates a long type cycle (T1 → T2 → … → T500 → T1) across 5 identical schemas.
+        // Each schema provides every type and field. Without the recursion depth limit
+        // in VisitObjectType, the recursion depth is O(types × schemas) = 2500+ frames,
+        // which overflows the default 1 MB stack.
+        const int typeCount = 500;
+        const int schemaCount = 5;
+        var schemas = new string[schemaCount];
+
+        var sb = new StringBuilder();
+        sb.AppendLine("type Query {");
+
+        for (var t = 1; t <= typeCount; t++)
+        {
+            sb.AppendLine($"    t{t}ById(id: ID!): T{t} @lookup");
+        }
+
+        sb.AppendLine("}");
+
+        for (var t = 1; t <= typeCount; t++)
+        {
+            var next = (t % typeCount) + 1;
+            sb.AppendLine(
+                $"type T{t} @key(fields: \"id\") {{ id: ID! @shareable next: T{next} @shareable }}");
+        }
+
+        var sdl = sb.ToString();
+
+        for (var i = 0; i < schemaCount; i++)
+        {
+            schemas[i] = sdl;
+        }
+
+        var merger = new SourceSchemaMerger(
+            CreateSchemaDefinitions(schemas),
+            new SourceSchemaMergerOptions { AddFusionDefinitions = false });
+
+        var schema = merger.Merge().Value;
+        var log = new CompositionLog();
+        var satisfiabilityValidator = new SatisfiabilityValidator(schema, log);
+
+        // act
+        var result = satisfiabilityValidator.Validate();
+
+        // assert
+        Assert.True(result.IsSuccess);
     }
 }

@@ -18,6 +18,8 @@ namespace HotChocolate.Fusion;
 
 internal sealed class SatisfiabilityValidator
 {
+    private const int MaxRecursionDepth = 500;
+
     private readonly SatisfiabilityOptions _options;
     private readonly RequirementsValidator _requirementsValidator;
     private readonly MutableSchemaDefinition _schema;
@@ -58,6 +60,12 @@ internal sealed class SatisfiabilityValidator
         MutableObjectTypeDefinition objectType,
         SatisfiabilityValidatorContext context)
     {
+        if (context.Depth >= MaxRecursionDepth)
+        {
+            return;
+        }
+
+        context.Depth++;
         context.TypeContext.Push(objectType);
 
         foreach (var field in objectType.Fields)
@@ -90,6 +98,7 @@ internal sealed class SatisfiabilityValidator
         }
 
         context.TypeContext.Pop();
+        context.Depth--;
     }
 
     private void VisitOutputField(
@@ -427,4 +436,6 @@ internal sealed class SatisfiabilityValidatorContext
     public SatisfiabilityPath CycleDetectionPath { get; } = [];
 
     public HashSet<FieldAccessCacheKey> FieldAccessCache { get; } = [];
+
+    public int Depth { get; set; }
 }
