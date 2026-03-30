@@ -407,8 +407,8 @@ public sealed class DefaultMessageBus(
     }
 
     /// <summary>
-    /// Cancels a previously scheduled message by parsing the provider prefix from the token
-    /// and routing to the correct scheduling store.
+    /// Cancels a previously scheduled message by extracting the value portion of the token
+    /// and forwarding it to the registered scheduling store.
     /// </summary>
     public async ValueTask<bool> CancelScheduledMessageAsync(string token, CancellationToken cancellationToken)
     {

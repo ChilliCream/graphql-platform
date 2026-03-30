@@ -114,26 +114,35 @@ internal sealed class EfCoreScheduledMessageStore : IScheduledMessageStore, IDis
             return false;
         }
 
-        var connection = (NpgsqlConnection)_originalDbContext.Database.GetDbConnection();
+        await _semaphore.WaitAsync(cancellationToken);
 
-        if (connection.State != ConnectionState.Open)
+        try
         {
-            await connection.OpenAsync(cancellationToken);
+            var connection = (NpgsqlConnection)_originalDbContext.Database.GetDbConnection();
+
+            if (connection.State != ConnectionState.Open)
+            {
+                await connection.OpenAsync(cancellationToken);
+            }
+
+            var transaction = _originalDbContext.Database.CurrentTransaction?.GetDbTransaction() as NpgsqlTransaction;
+
+            await using var command = connection.CreateCommand();
+            command.CommandText = _cancelSql;
+            if (transaction is not null)
+            {
+                command.Transaction = transaction;
+            }
+            command.Parameters.AddWithValue("@id", id);
+            await command.PrepareAsync(cancellationToken);
+
+            var result = await command.ExecuteScalarAsync(cancellationToken);
+            return result is not null and not DBNull;
         }
-
-        var transaction = _originalDbContext.Database.CurrentTransaction?.GetDbTransaction() as NpgsqlTransaction;
-
-        await using var command = connection.CreateCommand();
-        command.CommandText = _cancelSql;
-        if (transaction is not null)
+        finally
         {
-            command.Transaction = transaction;
+            _semaphore.Release();
         }
-        command.Parameters.AddWithValue("@id", id);
-        await command.PrepareAsync(cancellationToken);
-
-        var result = await command.ExecuteScalarAsync(cancellationToken);
-        return result is not null and not DBNull;
     }
 
     private static Guid NewVersion()
