@@ -23,19 +23,6 @@ To make caching work safely and predictably, you need two things:
 
 GraphQL usually exposes one endpoint, but each request can ask for different fields. Two requests to the same URL can therefore return very different response shapes and different data sensitivity.
 
-A single GraphQL response can also mix public data and user-specific data. Since HTTP cache headers apply to the full response, the gateway has to compute one safe final policy that represents everything selected in that operation.
-
-That means one response can include:
-
-- Public data (safe for shared caches), and
-- User-specific data (not safe for shared caches).
-
-The GraphQL operation type matters. Query operations are side-effect free reads, so they are the primary target for HTTP and CDN caching. Mutations change data and should not be cached as shared HTTP responses. Subscriptions are long-running streams and are not HTTP-cacheable.
-
-# Why GraphQL Needs Extra Care
-
-GraphQL usually exposes one endpoint, but each request can ask for different fields. Two requests to the same URL can therefore return very different response shapes and different data sensitivity.
-
 A single GraphQL response can also mix public data and user-specific data. Since HTTP cache headers apply to the full response, the server has to compute one safe final policy that represents everything selected in that operation.
 
 That means one response can include:
