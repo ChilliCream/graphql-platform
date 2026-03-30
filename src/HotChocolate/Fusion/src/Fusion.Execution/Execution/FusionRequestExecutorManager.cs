@@ -228,7 +228,10 @@ internal sealed class FusionRequestExecutorManager
 
         var documentProvider = documentProviderFactory.Invoke(_applicationServices);
         var documentPromise = new TaskCompletionSource<FusionConfiguration>();
-        using var subscription = documentProvider.Subscribe(s => documentPromise.TrySetResult(s));
+        using var subscription = documentProvider.Subscribe(
+            onNext: s => documentPromise.TrySetResult(s),
+            onError: ex => documentPromise.TrySetException(ex),
+            onCompleted: () => documentPromise.TrySetCanceled());
         await using var cancellation = cancellationToken.Register(() => documentPromise.TrySetCanceled());
         return (await documentPromise.Task.ConfigureAwait(false), documentProvider);
     }
@@ -721,8 +724,9 @@ internal sealed class FusionRequestExecutorManager
             _settingsHash = XxHash64.HashToUInt64(GetRawUtf8Value(configuration.Settings.Document.RootElement));
 
             _documentProviderSubscription = documentProvider.Subscribe(
-                OnDocumentChanged,
-                () => _channel.Writer.TryComplete());
+                onNext: OnDocumentChanged,
+                onError: ex => _channel.Writer.TryComplete(ex),
+                onCompleted: () => _channel.Writer.TryComplete());
 
             DocumentProvider = documentProvider;
             Executor = executor;

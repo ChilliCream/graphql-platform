@@ -213,6 +213,10 @@
             "title": "Authentication and Authorization"
           },
           {
+            "path": "performance-tuning",
+            "title": "Performance Tuning"
+          },
+          {
             "path": "deployment-and-ci-cd",
             "title": "Deployment and CI/CD"
           },
@@ -2861,6 +2865,10 @@
             "title": "Handlers and Consumers"
           },
           {
+            "path": "handler-registration",
+            "title": "Handler Registration"
+          },
+          {
             "path": "routing-and-endpoints",
             "title": "Routing and Endpoints"
           },
@@ -2904,6 +2912,10 @@
                 "title": "Pipeline & Middleware"
               }
             ]
+          },
+          {
+            "path": "diagnostics",
+            "title": "Diagnostics"
           }
         ]
       }

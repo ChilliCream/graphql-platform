@@ -1,6 +1,5 @@
 #if FUSION
 using HotChocolate.Fusion.Execution;
-using HotChocolate.Transport;
 #endif
 
 #if FUSION

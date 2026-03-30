@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -25,6 +26,25 @@ public static class MessageBusHostBuilderExtensions
         builder.Services.TryAddScoped<THandler>();
         builder.ConfigureMessageBus(static h => h.AddHandler<THandler>());
 
+        return builder;
+    }
+
+    /// <summary>
+    /// Registers a handler using pre-built configuration from the source generator.
+    /// </summary>
+    /// <typeparam name="THandler">The handler type.</typeparam>
+    /// <param name="builder">The host builder.</param>
+    /// <param name="configuration">The pre-built handler configuration.</param>
+    /// <returns>The builder for method chaining.</returns>
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public static IMessageBusHostBuilder AddHandlerConfiguration<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] THandler>(
+        this IMessageBusHostBuilder builder,
+        MessagingHandlerConfiguration configuration)
+        where THandler : class, IHandler
+    {
+        builder.Services.TryAddScoped<THandler>();
+        builder.ConfigureMessageBus(h => h.AddHandlerConfiguration(configuration));
         return builder;
     }
 

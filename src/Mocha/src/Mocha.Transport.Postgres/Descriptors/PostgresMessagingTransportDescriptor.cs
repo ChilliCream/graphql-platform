@@ -109,6 +109,26 @@ public sealed class PostgresMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
+    public IMessagingTransportHandlerDescriptor<IPostgresReceiveEndpointDescriptor> Handler<THandler>()
+        where THandler : class, IHandler
+    {
+        var name = Context.Naming.GetReceiveEndpointName(typeof(THandler), ReceiveEndpointKind.Default);
+        var endpoint = Endpoint(name);
+        endpoint.Handler(typeof(THandler));
+        return new MessagingTransportHandlerDescriptor<IPostgresReceiveEndpointDescriptor>(endpoint);
+    }
+
+    /// <inheritdoc />
+    public IMessagingTransportConsumerDescriptor<IPostgresReceiveEndpointDescriptor> Consumer<TConsumer>()
+        where TConsumer : class, IConsumer
+    {
+        var name = Context.Naming.GetReceiveEndpointName(typeof(TConsumer), ReceiveEndpointKind.Default);
+        var endpoint = Endpoint(name);
+        endpoint.Consumer(typeof(TConsumer));
+        return new MessagingTransportConsumerDescriptor<IPostgresReceiveEndpointDescriptor>(endpoint);
+    }
+
+    /// <inheritdoc />
     public IPostgresMessagingTransportDescriptor AutoProvision(bool autoProvision = true)
     {
         Configuration.AutoProvision = autoProvision;

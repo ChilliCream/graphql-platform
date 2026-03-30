@@ -332,41 +332,51 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             : _configuration.DefaultAcceptHeaderValue;
         var operationSourceText = originalRequest.OperationSourceText;
 
+        GraphQLHttpRequest httpRequest;
+
         switch (originalRequest.Variables.Length)
         {
             case 0:
-                return new GraphQLHttpRequest(CreateSingleRequest(context, originalRequest, ref buffer))
+                httpRequest = new GraphQLHttpRequest(CreateSingleRequest(context, originalRequest, ref buffer))
                 {
                     Uri = _configuration.BaseAddress,
                     AcceptHeaderValue = defaultAcceptHeader
                 };
+                break;
 
             case 1:
-                return new GraphQLHttpRequest(CreateSingleRequest(context, originalRequest, ref buffer))
+                httpRequest = new GraphQLHttpRequest(CreateSingleRequest(context, originalRequest, ref buffer))
                 {
                     Uri = _configuration.BaseAddress,
                     AcceptHeaderValue = defaultAcceptHeader,
                     EnableFileUploads = originalRequest.RequiresFileUpload
                 };
+                break;
 
             default:
                 if (originalRequest.RequiresFileUpload
                     || _configuration.BatchingMode == SourceSchemaHttpClientBatchingMode.ApolloRequestBatching)
                 {
-                    return new GraphQLHttpRequest(CreateOperationBatchRequest(context, originalRequest, ref buffer))
+                    httpRequest = new GraphQLHttpRequest(CreateOperationBatchRequest(context, originalRequest, ref buffer))
                     {
                         Uri = _configuration.BaseAddress,
                         AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue,
                         EnableFileUploads = originalRequest.RequiresFileUpload
                     };
                 }
-
-                return new GraphQLHttpRequest(CreateVariableBatchRequest(operationSourceText, originalRequest))
+                else
                 {
-                    Uri = _configuration.BaseAddress,
-                    AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue
-                };
+                    httpRequest = new GraphQLHttpRequest(CreateVariableBatchRequest(operationSourceText, originalRequest))
+                    {
+                        Uri = _configuration.BaseAddress,
+                        AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue
+                    };
+                }
+                break;
         }
+
+        httpRequest.OperationKind = originalRequest.OperationType;
+        return httpRequest;
     }
 
     private GraphQLHttpRequest CreateHttpBatchRequest(
@@ -432,7 +442,8 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             {
                 Uri = _configuration.BaseAddress,
                 AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue,
-                EnableFileUploads = true
+                EnableFileUploads = true,
+                OperationKind = originalRequests[0].OperationType
             };
         }
         else
@@ -456,7 +467,8 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             return new GraphQLHttpRequest(new OperationBatchRequest(batchRequests.MoveToImmutable()))
             {
                 Uri = _configuration.BaseAddress,
-                AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue
+                AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue,
+                OperationKind = originalRequests[0].OperationType
             };
         }
     }

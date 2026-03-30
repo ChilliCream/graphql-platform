@@ -36,6 +36,7 @@ public sealed class MessageEnvelope
         MessageType = envelope.MessageType;
         SentAt = envelope.SentAt;
         DeliverBy = envelope.DeliverBy;
+        ScheduledTime = envelope.ScheduledTime;
         DeliveryCount = envelope.DeliveryCount;
         Headers = envelope.Headers is not null ? new Headers(envelope.Headers) : null;
         Body = envelope.Body;
@@ -106,6 +107,11 @@ public sealed class MessageEnvelope
     public DateTimeOffset? DeliverBy { get; init; }
 
     /// <summary>
+    /// The earliest time at which the message should be made available for consumption.
+    /// </summary>
+    public DateTimeOffset? ScheduledTime { get; init; }
+
+    /// <summary>
     /// Delivery attempt counter.
     /// </summary>
     public int? DeliveryCount { get; init; }
@@ -171,6 +177,9 @@ public sealed class MessageEnvelope
 
         /// <summary>Property name for <see cref="MessageEnvelope.DeliverBy"/>.</summary>
         public const string DeliverBy = "deliverBy";
+
+        /// <summary>Property name for <see cref="MessageEnvelope.ScheduledTime"/>.</summary>
+        public const string ScheduledTime = "scheduledTime";
 
         /// <summary>Property name for <see cref="MessageEnvelope.DeliveryCount"/>.</summary>
         public const string DeliveryCount = "deliveryCount";

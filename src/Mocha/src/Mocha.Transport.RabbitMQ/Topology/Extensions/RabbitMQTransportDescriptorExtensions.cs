@@ -19,6 +19,9 @@ public static class RabbitMQTransportDescriptorExtensions
         descriptor
             .UseReceive(RabbitMQReceiveMiddlewares.Parsing, after: RabbitMQReceiveMiddlewares.Acknowledgement.Key);
 
+        descriptor
+            .UseDispatch(RabbitMQDispatchMiddlewares.RoutingKey, before: DispatchMiddlewares.Serialization.Key);
+
         return descriptor;
     }
 }
