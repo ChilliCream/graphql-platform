@@ -38,7 +38,7 @@ internal static class FusionPublishHelpers
 
         if (deploymentSlotRequest.Errors?.Count > 0)
         {
-            activity.Fail();
+            activity.Fail("Failed to request a deployment slot.");
 
             foreach (var error in deploymentSlotRequest.Errors)
             {
@@ -66,7 +66,7 @@ internal static class FusionPublishHelpers
             throw Exit("Failed to request deployment slot.");
         }
 
-        console.MarkupLine($"Your request ID is [blue]{requestId}[/]");
+        activity.Update($"Request ID: {requestId.EscapeMarkup()}");
 
         using var subscriptionCancellation =
             CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -79,8 +79,7 @@ internal static class FusionPublishHelpers
             switch (@event)
             {
                 case IProcessingTaskIsQueued v:
-                    activity.Update(
-                        $"Your request is queued and is in position [blue]{v.QueuePosition}[/].");
+                    activity.Update($"Queued at position {v.QueuePosition}.");
                     break;
 
                 case IFusionConfigurationPublishingFailed v:
@@ -106,12 +105,12 @@ internal static class FusionPublishHelpers
 
                 case IFusionConfigurationPublishingSuccess:
                     await subscriptionCancellation.CancelAsync();
-                    console.WarningLine("Your request is already published.");
+                    activity.Warning("Already published.");
                     break;
 
                 case IProcessingTaskIsReady:
                     await subscriptionCancellation.CancelAsync();
-                    console.Success("Your deployment slot is ready.");
+                    activity.Update("Deployment slot ready.");
                     break;
 
                 case IFusionConfigurationValidationFailed:
@@ -121,11 +120,12 @@ internal static class FusionPublishHelpers
                 case IWaitForApproval:
                 case IProcessingTaskApproved:
                     await subscriptionCancellation.CancelAsync();
-                    console.Success("Your request is already processing.");
+                    activity.Update("Already processing.");
                     break;
 
                 default:
-                    throw Exit("Unknown response");
+                    activity.Warning("Unknown server response. Consider updating the CLI.");
+                    break;
             }
         }
 
@@ -144,7 +144,7 @@ internal static class FusionPublishHelpers
 
         if (commitResult.Errors?.Count > 0)
         {
-            activity.Fail();
+            activity.Fail("Failed to publish a new Fusion configuration version.");
 
             foreach (var error in commitResult.Errors)
             {
@@ -171,8 +171,7 @@ internal static class FusionPublishHelpers
             switch (@event)
             {
                 case IProcessingTaskIsQueued v:
-                    activity.Update(
-                        $"Your request is queued. The current position in the queue is {v.QueuePosition}.");
+                    activity.Update($"Queued at position {v.QueuePosition}.");
                     break;
 
                 case IFusionConfigurationPublishingFailed v:
@@ -200,38 +199,35 @@ internal static class FusionPublishHelpers
                     return committed;
 
                 case IProcessingTaskIsReady:
-                    console.Success("Your request is ready for the committing.");
+                    activity.Update("Ready.");
                     break;
 
                 case IFusionConfigurationValidationFailed:
-                    activity.Update(
-                        "The validation of your request has failed. Check the errors in Nitro.");
+                    activity.Update("Validation failed. Check errors in Nitro.");
                     break;
 
                 case IFusionConfigurationValidationSuccess:
-                    activity.Update("The validation of your request was successful.");
+                    activity.Update("Validation passed.");
                     break;
 
                 case IValidationInProgress:
-                    activity.Update("The validation of your request is in progress.");
+                    activity.Update("Validating...");
                     break;
 
                 case IOperationInProgress:
-                    activity.Update("The committing of your request is in progress.");
+                    activity.Update("Processing...");
                     break;
 
                 case IWaitForApproval:
-                    activity.Update(
-                        "The committing of your request is waiting for approval. Check Nitro to approve the request.");
+                    activity.Update("Waiting for approval. Approve in Nitro to continue.");
                     break;
 
                 case IProcessingTaskApproved:
-                    activity.Update("The committing of your request is approved.");
+                    activity.Update("Approved. Processing...");
                     break;
 
                 default:
-                    activity.Update(
-                        "Received an unknown response. Make sure the CLI is on the latest version.");
+                    activity.Warning("Unknown server response. Consider updating the CLI.");
                     break;
             }
         }

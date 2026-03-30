@@ -66,18 +66,14 @@ internal static class RootCommandExtensions
     {
         var cloudUrlResult = parseResult.GetResult(Opt<OptionalCloudUrlOption>.Instance);
         var cloudUrl = parseResult.GetValue(Opt<OptionalCloudUrlOption>.Instance);
-        Uri url;
+        string? apiUrl;
         if (cloudUrlResult is { Implicit: false } && !string.IsNullOrWhiteSpace(cloudUrl))
         {
-            url = new Uri($"https://{cloudUrl}/graphql");
-        }
-        else if (session?.ApiUrl is { } apiUrl)
-        {
-            url = new Uri($"https://{apiUrl}/graphql");
+            apiUrl = cloudUrl;
         }
         else
         {
-            url = new Uri(Constants.ApiUrl + "/graphql");
+            apiUrl = session?.ApiUrl;
         }
 
         var apiKey = parseResult.GetValue(Opt<OptionalApiKeyOption>.Instance);
@@ -95,6 +91,6 @@ internal static class RootCommandExtensions
             auth = null;
         }
 
-        context.Configure(url, auth);
+        context.Configure(apiUrl, auth);
     }
 }

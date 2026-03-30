@@ -1,3 +1,5 @@
+using ChilliCream.Nitro.CommandLine.Helpers;
+
 namespace ChilliCream.Nitro.CommandLine;
 
 internal sealed class InteractiveNitroConsoleActivity : INitroConsoleActivity
@@ -11,6 +13,11 @@ internal sealed class InteractiveNitroConsoleActivity : INitroConsoleActivity
     public void Update(string message)
     {
         _context?.Status(message);
+    }
+
+    public void Warning(string message)
+    {
+        _context?.Status(Glyphs.ExclamationMark.Space() + message);
     }
 
     public void Success(string? message = null)

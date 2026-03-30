@@ -42,7 +42,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
 
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        await using (var activity = console.StartActivity("Validating..."))
+        await using (var activity = console.StartActivity($"Validating MCP feature collection against stage '{stage.EscapeMarkup()}'"))
         {
             // console.Log("Searching for MCP prompt definition files with the following patterns:");
             // foreach (var promptPattern in promptPatterns)
@@ -61,7 +61,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
 
             if (promptFiles.Length < 1 && toolFiles.Length < 1)
             {
-                activity.Fail();
+                activity.Fail("Failed to validate the MCP feature collection.");
                 await console.Error.WriteLineAsync(
                     "Could not find any MCP prompt or tool definition files with the provided patterns.");
                 return ExitCodes.Error;
@@ -83,7 +83,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
 
             if (validationRequest.Errors?.Count > 0)
             {
-                activity.Fail();
+                activity.Fail("Failed to validate the MCP feature collection.");
 
                 foreach (var error in validationRequest.Errors)
                 {
@@ -114,7 +114,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
                 switch (update)
                 {
                     case IMcpFeatureCollectionVersionValidationFailed { Errors: var errors }:
-                        activity.Fail();
+                        activity.Fail("Failed to validate the MCP feature collection.");
 
                         foreach (var error in errors)
                         {
@@ -142,22 +142,21 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
                         return ExitCodes.Error;
 
                     case IMcpFeatureCollectionVersionValidationSuccess:
-                        activity.Success("MCP Feature Collection validation succeeded.");
+                        activity.Success("Validated the MCP feature collection.");
                         return ExitCodes.Success;
 
                     case IOperationInProgress:
                     case IValidationInProgress:
-                        activity.Update("The validation is in progress.");
+                        activity.Update("Validating...");
                         break;
 
                     default:
-                        activity.Update(
-                            "Warning: Received an unknown server response. Ensure your CLI is on the latest version.");
+                        activity.Warning("Unknown server response. Consider updating the CLI.");
                         break;
                 }
             }
 
-            activity.Fail();
+            activity.Fail("Failed to validate the MCP feature collection.");
         }
 
         return ExitCodes.Error;

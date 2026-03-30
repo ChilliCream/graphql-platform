@@ -51,13 +51,13 @@ internal sealed class CreateClientCommand : Command
         var name = await console
             .PromptAsync("Name", defaultValue: null, parseResult, Opt<ClientNameOption>.Instance, cancellationToken);
 
-        await using (var activity = console.StartActivity("Creating client..."))
+        await using (var activity = console.StartActivity($"Creating client '{name.EscapeMarkup()}' for API '{apiId.EscapeMarkup()}'"))
         {
             var data = await client.CreateClientAsync(apiId, name, cancellationToken);
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail();
+                activity.Fail("Failed to create the client.");
 
                 foreach (var error in data.Errors)
                 {
@@ -77,12 +77,12 @@ internal sealed class CreateClientCommand : Command
 
             if (data.Client is not IClientDetailPrompt_Client createdClient)
             {
-                activity.Fail();
+                activity.Fail("Failed to create the client.");
                 await console.Error.WriteLineAsync("Could not create client.");
                 return ExitCodes.Error;
             }
 
-            activity.Success("Successfully created client!");
+            activity.Success($"Created client '{name.EscapeMarkup()}'.");
 
             resultHolder.SetResult(new ObjectResult(ClientDetailPrompt.From(createdClient).ToObject()));
 

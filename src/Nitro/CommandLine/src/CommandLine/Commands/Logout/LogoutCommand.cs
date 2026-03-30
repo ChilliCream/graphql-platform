@@ -22,12 +22,12 @@ internal sealed class LogoutCommand : Command
         ISessionService sessionService,
         CancellationToken cancellationToken)
     {
-        await using (var _ = console.StartActivity("Logging you out"))
+        await using (var activity = console.StartActivity("Logging out"))
         {
             await sessionService.LogoutAsync(cancellationToken);
-        }
 
-        console.OkLine("Logged you out of Nitro CLI. See you soon :waving_hand:");
+            activity.Success("Logged out. See you soon \ud83d\udc4b");
+        }
 
         return ExitCodes.Success;
     }

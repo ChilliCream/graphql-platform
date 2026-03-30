@@ -90,7 +90,7 @@ internal sealed class CreateApiKeyCommand : Command
 
         workspaceId ??= parseResult.GetWorkspaceId(sessionService);
 
-        await using (var activity = console.StartActivity("Creating API key..."))
+        await using (var activity = console.StartActivity($"Creating API key '{name.EscapeMarkup()}'"))
         {
             var data = await client.CreateApiKeyAsync(
                 name,
@@ -101,7 +101,7 @@ internal sealed class CreateApiKeyCommand : Command
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail();
+                activity.Fail("Failed to create the API key.");
 
                 foreach (var error in data.Errors)
                 {
@@ -128,7 +128,7 @@ internal sealed class CreateApiKeyCommand : Command
                 throw Exit("Could not create API key.");
             }
 
-            activity.Success("Successfully created API key!");
+            activity.Success($"Created API key '{name.EscapeMarkup()}'.");
 
             resultHolder.SetResult(new ObjectResult(new CreateApiKeyResult
             {

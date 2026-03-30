@@ -49,11 +49,11 @@ internal sealed class PublishOpenApiCollectionCommand : Command
     {
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        await using (var activity = console.StartActivity("Publishing..."))
+        await using (var activity = console.StartActivity($"Publishing new OpenAPI collection version '{tag.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}'"))
         {
             if (force)
             {
-                console.Log("[yellow]Force push is enabled[/]");
+                activity.Warning("Force push is enabled.");
             }
 
             var publishRequest = await client.StartOpenApiCollectionPublishAsync(
@@ -67,7 +67,7 @@ internal sealed class PublishOpenApiCollectionCommand : Command
 
             if (publishRequest.Errors?.Count > 0)
             {
-                activity.Fail();
+                activity.Fail("Failed to publish a new OpenAPI collection version.");
 
                 foreach (var error in publishRequest.Errors)
                 {
@@ -89,7 +89,7 @@ internal sealed class PublishOpenApiCollectionCommand : Command
 
             if (publishRequest.Id is not { } requestId)
             {
-                activity.Fail();
+                activity.Fail("Failed to publish a new OpenAPI collection version.");
                 await console.Error.WriteLineAsync("Could not create publish request.");
                 return ExitCodes.Error;
             }
@@ -99,12 +99,11 @@ internal sealed class PublishOpenApiCollectionCommand : Command
                 switch (update)
                 {
                     case IProcessingTaskIsQueued v:
-                        activity.Update(
-                            $"Your request is queued. The current position in the queue is {v.QueuePosition}.");
+                        activity.Update($"Queued at position {v.QueuePosition}.");
                         break;
 
                     case IOpenApiCollectionVersionPublishFailed { Errors: var errors }:
-                        activity.Fail();
+                        activity.Fail("Failed to publish a new OpenAPI collection version.");
 
                         foreach (var error in errors)
                         {
@@ -132,15 +131,15 @@ internal sealed class PublishOpenApiCollectionCommand : Command
                         return ExitCodes.Error;
 
                     case IOpenApiCollectionVersionPublishSuccess:
-                        activity.Success("Successfully published OpenAPI collection!");
+                        activity.Success($"Published new OpenAPI collection version '{tag.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}'.");
                         return ExitCodes.Success;
 
                     case IProcessingTaskIsReady:
-                        console.Success("Your request is ready for processing.");
+                        activity.Update("Ready.");
                         break;
 
                     case IOperationInProgress:
-                        activity.Update("Your request is in progress.");
+                        activity.Update("Processing...");
                         break;
 
                     case IWaitForApproval waitForApprovalEvent:
@@ -160,22 +159,20 @@ internal sealed class PublishOpenApiCollectionCommand : Command
                             }
                         }
 
-                        activity.Update(
-                            "The processing of your request is waiting for approval. Check Nitro to approve the request.");
+                        activity.Update("Waiting for approval. Approve in Nitro to continue.");
                         break;
 
                     case IProcessingTaskApproved:
-                        activity.Update("The processing of your request is approved.");
+                        activity.Update("Approved. Processing...");
                         break;
 
                     default:
-                        activity.Update(
-                            "Warning: Received an unknown server response. Ensure your CLI is on the latest version.");
+                        activity.Warning("Unknown server response. Consider updating the CLI.");
                         break;
                 }
             }
 
-            activity.Fail();
+            activity.Fail("Failed to publish a new OpenAPI collection version.");
         }
 
         return ExitCodes.Error;

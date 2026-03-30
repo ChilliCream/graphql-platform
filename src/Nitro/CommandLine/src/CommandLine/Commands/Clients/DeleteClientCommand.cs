@@ -92,13 +92,13 @@ internal sealed class DeleteClientCommand : Command
             }
         }
 
-        await using (var activity = console.StartActivity("Deleting client..."))
+        await using (var activity = console.StartActivity($"Deleting client '{clientId.EscapeMarkup()}'"))
         {
             var deletedClient = await client.DeleteClientAsync(clientId, cancellationToken);
 
             if (deletedClient.Errors?.Count > 0)
             {
-                activity.Fail();
+                activity.Fail("Failed to delete the client.");
 
                 foreach (var error in deletedClient.Errors)
                 {
@@ -117,12 +117,12 @@ internal sealed class DeleteClientCommand : Command
 
             if (deletedClient.Client is not IClientDetailPrompt_Client clientModel)
             {
-                activity.Fail();
+                activity.Fail("Failed to delete the client.");
                 await console.Error.WriteLineAsync("Could not delete the client.");
                 return ExitCodes.Error;
             }
 
-            activity.Success("Successfully deleted client!");
+            activity.Success($"Deleted client '{clientId.EscapeMarkup()}'.");
 
             resultHolder.SetResult(new ObjectResult(ClientDetailPrompt.From(clientModel).ToObject()));
 

@@ -53,41 +53,45 @@ internal sealed class FusionDownloadCommand : Command
 
         var isFgp = Path.GetExtension(outputFile).Equals(".fgp", StringComparison.OrdinalIgnoreCase);
 
-        await using var stream = isFgp
-            ? await fusionConfigurationClient.DownloadLatestLegacyFusionArchiveAsync(
-                apiId,
-                stageName,
-                cancellationToken)
-            : await fusionConfigurationClient.DownloadLatestFusionArchiveAsync(
-                apiId,
-                stageName,
-                cancellationToken);
-
-        if (stream is null)
+        await using (var activity = console.StartActivity($"Downloading latest Fusion configuration from stage '{stageName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'"))
         {
-            throw new ExitException("The API with the given ID does not exist or does not have a download URL.");
-        }
+            await using var stream = isFgp
+                ? await fusionConfigurationClient.DownloadLatestLegacyFusionArchiveAsync(
+                    apiId,
+                    stageName,
+                    cancellationToken)
+                : await fusionConfigurationClient.DownloadLatestFusionArchiveAsync(
+                    apiId,
+                    stageName,
+                    cancellationToken);
 
-        if (fileSystem.FileExists(outputFile))
-        {
-            fileSystem.DeleteFile(outputFile);
-        }
-
-        await using var fileStream = fileSystem.CreateFile(outputFile);
-
-        await stream.CopyToAsync(fileStream, cancellationToken);
-
-        console.MarkupLine($"Downloaded Fusion configuration to: {outputFile}");
-
-        if (!console.IsHumanReadable)
-        {
-            resultHolder.SetResult(new ObjectResult(new FusionDownloadResult
+            if (stream is null)
             {
-                File = outputFile
-            }));
-        }
+                activity.Fail("Failed to download the latest Fusion configuration.");
+                throw new ExitException("The API with the given ID does not exist or does not have a download URL.");
+            }
 
-        return ExitCodes.Success;
+            if (fileSystem.FileExists(outputFile))
+            {
+                fileSystem.DeleteFile(outputFile);
+            }
+
+            await using var fileStream = fileSystem.CreateFile(outputFile);
+
+            await stream.CopyToAsync(fileStream, cancellationToken);
+
+            activity.Success("Downloaded the latest Fusion configuration.");
+
+            if (!console.IsHumanReadable)
+            {
+                resultHolder.SetResult(new ObjectResult(new FusionDownloadResult
+                {
+                    File = outputFile
+                }));
+            }
+
+            return ExitCodes.Success;
+        }
     }
 
     public class FusionDownloadResult

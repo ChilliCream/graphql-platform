@@ -47,21 +47,7 @@ internal sealed class FusionConfigurationPublishCommitCommand : Command
 
         var committed = false;
 
-        await using (var activity = console.StartActivity("Committing..."))
-        {
-            await Commit(activity);
-        }
-
-        if (!committed)
-        {
-            throw Exit("The commit has failed.");
-        }
-
-        console.Success("Fusion composition was successful.");
-
-        return ExitCodes.Success;
-
-        async Task Commit(INitroConsoleActivity activity)
+        await using (var activity = console.StartActivity("Publishing Fusion configuration"))
         {
             await using var stream = fileSystem.OpenReadStream(archiveFile);
             committed = await FusionPublishHelpers.UploadFusionArchiveAsync(
@@ -71,6 +57,22 @@ internal sealed class FusionConfigurationPublishCommitCommand : Command
                 console,
                 fusionConfigurationClient,
                 ct);
+
+            if (committed)
+            {
+                activity.Success("Published Fusion configuration.");
+            }
+            else
+            {
+                activity.Fail("Failed to publish a new Fusion configuration version.");
+            }
         }
+
+        if (!committed)
+        {
+            throw Exit("The commit has failed.");
+        }
+
+        return ExitCodes.Success;
     }
 }

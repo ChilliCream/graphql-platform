@@ -55,7 +55,7 @@ internal sealed class ValidateClientCommand : Command
 
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        await using (var activity = console.StartActivity("Validating..."))
+        await using (var activity = console.StartActivity($"Validating client against stage '{stage.EscapeMarkup()}' of client '{clientId.EscapeMarkup()}'"))
         {
             await using var stream = fileSystem.OpenReadStream(operationsFilePath);
 
@@ -68,7 +68,7 @@ internal sealed class ValidateClientCommand : Command
 
             if (validationRequest.Errors?.Count > 0)
             {
-                activity.Fail();
+                activity.Fail("Failed to validate the client.");
 
                 foreach (var error in validationRequest.Errors)
                 {
@@ -100,7 +100,7 @@ internal sealed class ValidateClientCommand : Command
                 switch (update)
                 {
                     case IClientVersionValidationFailed { Errors: var errors }:
-                        activity.Fail();
+                        activity.Fail("Failed to validate the client.");
 
                         foreach (var error in errors)
                         {
@@ -125,7 +125,7 @@ internal sealed class ValidateClientCommand : Command
                         return ExitCodes.Error;
 
                     case IClientVersionValidationSuccess:
-                        activity.Success("Client validation succeeded.");
+                        activity.Success("Validated the client.");
 
                         resultHolder.SetResult(new ObjectResult(new ValidateClientResult
                         {
@@ -147,7 +147,7 @@ internal sealed class ValidateClientCommand : Command
                 }
             }
 
-            activity.Fail();
+            activity.Fail("Failed to validate the client.");
         }
 
         return ExitCodes.Error;

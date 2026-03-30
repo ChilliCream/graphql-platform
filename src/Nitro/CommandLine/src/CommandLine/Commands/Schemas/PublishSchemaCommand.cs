@@ -56,11 +56,11 @@ internal sealed class PublishSchemaCommand : Command
 
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        await using (var activity = console.StartActivity("Publishing..."))
+        await using (var activity = console.StartActivity($"Publishing new schema version '{tag.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'"))
         {
             if (force)
             {
-                console.Log("[yellow]Force push is enabled[/]");
+                activity.Warning("Force push is enabled.");
             }
 
             var publishRequest = await client.StartSchemaPublishAsync(
@@ -74,7 +74,7 @@ internal sealed class PublishSchemaCommand : Command
 
             if (publishRequest.Errors?.Count > 0)
             {
-                activity.Fail();
+                activity.Fail("Failed to publish a new schema version.");
 
                 foreach (var error in publishRequest.Errors)
                 {
@@ -96,7 +96,7 @@ internal sealed class PublishSchemaCommand : Command
 
             if (publishRequest.Id is not { } requestId)
             {
-                activity.Fail();
+                activity.Fail("Failed to publish a new schema version.");
                 await console.Error.WriteLineAsync("Could not create publish request.");
                 return ExitCodes.Error;
             }
@@ -113,7 +113,7 @@ internal sealed class PublishSchemaCommand : Command
                         break;
 
                     case ISchemaVersionPublishFailed { Errors: var schemaErrors }:
-                        activity.Fail();
+                        activity.Fail("Failed to publish a new schema version.");
 
                         foreach (var error in schemaErrors)
                         {
@@ -162,7 +162,7 @@ internal sealed class PublishSchemaCommand : Command
                         return ExitCodes.Error;
 
                     case ISchemaVersionPublishSuccess:
-                        activity.Success("Successfully published schema!");
+                        activity.Success($"Published new schema version '{tag.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}'.");
 
                         if (!console.IsHumanReadable)
                         {
@@ -234,7 +234,7 @@ internal sealed class PublishSchemaCommand : Command
                 }
             }
 
-            activity.Fail();
+            activity.Fail("Failed to publish a new schema version.");
         }
 
         return ExitCodes.Error;

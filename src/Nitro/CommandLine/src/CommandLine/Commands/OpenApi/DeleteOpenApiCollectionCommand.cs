@@ -86,7 +86,7 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
             }
         }
 
-        await using (var activity = console.StartActivity("Deleting OpenAPI collection..."))
+        await using (var activity = console.StartActivity($"Deleting OpenAPI collection '{openApiCollectionId.EscapeMarkup()}'"))
         {
             var data = await client.DeleteOpenApiCollectionAsync(
                 openApiCollectionId,
@@ -94,7 +94,7 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail();
+                activity.Fail("Failed to delete the OpenAPI collection.");
 
                 foreach (var error in data.Errors)
                 {
@@ -113,12 +113,12 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
 
             if (data.OpenApiCollection is not IOpenApiCollectionDetailPrompt_OpenApiCollection detail)
             {
-                activity.Fail();
+                activity.Fail("Failed to delete the OpenAPI collection.");
                 await console.Error.WriteLineAsync("Could not delete the OpenAPI collection.");
                 return ExitCodes.Error;
             }
 
-            activity.Success("Successfully deleted OpenAPI collection!");
+            activity.Success($"Deleted OpenAPI collection '{openApiCollectionId.EscapeMarkup()}'.");
 
             resultHolder.SetResult(new ObjectResult(OpenApiCollectionDetailPrompt.From(detail).ToObject()));
 

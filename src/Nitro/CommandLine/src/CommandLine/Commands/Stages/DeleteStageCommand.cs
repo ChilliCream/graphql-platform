@@ -69,13 +69,13 @@ internal sealed class DeleteStageCommand : Command
             throw Exit("Stage was not deleted.");
         }
 
-        await using (var activity = console.StartActivity("Deleting stage..."))
+        await using (var activity = console.StartActivity($"Deleting stage '{stageName.EscapeMarkup()}' from API '{apiId.EscapeMarkup()}'"))
         {
             var data = await client.ForceDeleteStageAsync(apiId, stageName, cancellationToken);
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail();
+                activity.Fail("Failed to delete the stage.");
 
                 foreach (var error in data.Errors)
                 {
@@ -96,12 +96,12 @@ internal sealed class DeleteStageCommand : Command
 
             if (data.Api is null)
             {
-                activity.Fail();
+                activity.Fail("Failed to delete the stage.");
                 await console.Error.WriteLineAsync("Could not delete the stage.");
                 return ExitCodes.Error;
             }
 
-            activity.Success($"Stage {stageName} was force deleted!");
+            activity.Success($"Deleted stage '{stageName.EscapeMarkup()}'.");
 
             console.WriteLine();
 

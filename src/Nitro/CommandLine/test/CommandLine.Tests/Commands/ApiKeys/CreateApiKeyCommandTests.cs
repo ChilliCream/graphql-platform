@@ -91,7 +91,6 @@ public sealed class CreateApiKeyCommandTests
     public async Task MissingRequiredOptions_PromptsUser_SelectsApi_ReturnsSuccess()
     {
         // arrange
-        //IApisClient.SelectApisAsync("workspace-from-session", null, 5, CancellationToken) invocation failed with mock behavior Strict.
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
         apisClient.Setup(x => x.SelectApisAsync(
                 "workspace-from-session",

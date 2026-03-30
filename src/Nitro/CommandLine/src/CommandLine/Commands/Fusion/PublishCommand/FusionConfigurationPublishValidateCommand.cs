@@ -41,7 +41,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
         var archiveFile =
             parseResult.GetValue(Opt<FusionArchiveFileOption>.Instance)!;
 
-        await using (var activity = console.StartActivity("Validating..."))
+        await using (var activity = console.StartActivity("Validating Fusion configuration"))
         {
             return await ValidateAsync(activity);
         }
@@ -57,7 +57,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
 
             if (result.Errors?.Count > 0)
             {
-                activity.Fail();
+                activity.Fail("Failed to validate the Fusion configuration.");
 
                 foreach (var error in result.Errors)
                 {
@@ -96,7 +96,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
                             "Your request is ready for the composition. Run `fusion-configuration publish start`");
 
                     case IFusionConfigurationValidationFailed failed:
-                        activity.Fail();
+                        activity.Fail("Failed to validate the Fusion configuration.");
 
                         foreach (var error in failed.Errors)
                         {
@@ -112,18 +112,19 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
                         return ExitCodes.Error;
 
                     case IFusionConfigurationValidationSuccess:
-                        activity.Success("The validation was successful");
+                        activity.Success("Validated the Fusion configuration.");
                         return ExitCodes.Success;
 
                     case IOperationInProgress:
                     case IValidationInProgress:
                     case IWaitForApproval:
                     case IProcessingTaskApproved:
-                        activity.Update("The validation is in progress");
+                        activity.Update("Validating...");
                         break;
 
                     default:
-                        throw Exit("Unknown response");
+                        activity.Warning("Unknown server response. Consider updating the CLI.");
+                        break;
                 }
             }
 

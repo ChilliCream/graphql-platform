@@ -47,13 +47,13 @@ internal sealed class CreateEnvironmentCommand : Command
             Opt<EnvironmentNameOption>.Instance,
             cancellationToken);
 
-        await using (var activity = console.StartActivity("Creating environment..."))
+        await using (var activity = console.StartActivity($"Creating environment '{name.EscapeMarkup()}'"))
         {
             var data = await client.CreateEnvironmentAsync(workspaceId, name, cancellationToken);
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail();
+                activity.Fail("Failed to create the environment.");
 
                 foreach (var error in data.Errors)
                 {
@@ -73,26 +73,26 @@ internal sealed class CreateEnvironmentCommand : Command
             var changeResult = data.Changes?.SingleOrDefault();
             if (changeResult is null)
             {
-                activity.Fail();
+                activity.Fail("Failed to create the environment.");
                 await console.Error.WriteLineAsync("Could not create environment.");
                 return ExitCodes.Error;
             }
 
             if (changeResult.Error is IError changeError)
             {
-                activity.Fail();
+                activity.Fail("Failed to create the environment.");
                 await console.Error.WriteLineAsync(changeError.Message);
                 return ExitCodes.Error;
             }
 
             if (changeResult.Result is not IEnvironmentDetailPrompt_Environment detail)
             {
-                activity.Fail();
+                activity.Fail("Failed to create the environment.");
                 await console.Error.WriteLineAsync("Could not create environment.");
                 return ExitCodes.Error;
             }
 
-            activity.Success("Successfully created environment!");
+            activity.Success($"Created environment '{name.EscapeMarkup()}'.");
 
             resultHolder.SetResult(new ObjectResult(EnvironmentDetailPrompt.From(detail).ToObject()));
 

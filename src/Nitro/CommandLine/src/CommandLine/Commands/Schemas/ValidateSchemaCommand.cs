@@ -55,7 +55,7 @@ internal sealed class ValidateSchemaCommand : Command
 
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        await using (var activity = console.StartActivity("Validating schema..."))
+        await using (var activity = console.StartActivity($"Validating schema against stage '{stage.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'"))
         {
             await using var stream = fileSystem.OpenReadStream(schemaFilePath);
 
@@ -68,7 +68,7 @@ internal sealed class ValidateSchemaCommand : Command
 
             if (validationRequest.Errors?.Count > 0)
             {
-                activity.Fail();
+                activity.Fail("Failed to validate the schema.");
 
                 foreach (var error in validationRequest.Errors)
                 {
@@ -100,7 +100,7 @@ internal sealed class ValidateSchemaCommand : Command
                 switch (update)
                 {
                     case ISchemaVersionValidationFailed { Errors: var schemaErrors }:
-                        activity.Fail();
+                        activity.Fail("Failed to validate the schema.");
 
                         foreach (var error in schemaErrors)
                         {
@@ -146,7 +146,7 @@ internal sealed class ValidateSchemaCommand : Command
                         return ExitCodes.Error;
 
                     case ISchemaVersionValidationSuccess:
-                        activity.Success("Schema validation succeeded.");
+                        activity.Success("Validated the schema.");
 
                         if (!console.IsHumanReadable)
                         {
@@ -171,7 +171,7 @@ internal sealed class ValidateSchemaCommand : Command
                 }
             }
 
-            activity.Fail();
+            activity.Fail("Failed to validate the schema.");
         }
 
         return ExitCodes.Error;

@@ -87,7 +87,7 @@ internal sealed class FusionValidateCommand : Command
     {
         var isValid = false;
 
-        await using (var activity = console.StartActivity("Validating..."))
+        await using (var activity = console.StartActivity($"Validating Fusion configuration against stage '{stageName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'"))
         {
             if (archiveFile is not null)
             {
@@ -202,7 +202,7 @@ internal sealed class FusionValidateCommand : Command
                 switch (@event)
                 {
                     case ISchemaVersionValidationFailed v:
-                        activity.Fail();
+                        activity.Fail("Failed to validate the Fusion configuration.");
 
                         foreach (var error in v.Errors)
                         {
@@ -220,7 +220,7 @@ internal sealed class FusionValidateCommand : Command
 
                     case ISchemaVersionValidationSuccess:
                         isValid = true;
-                        activity.Success("Schema validation succeeded.");
+                        activity.Success("Validated the Fusion configuration.");
 
                         if (!console.IsHumanReadable)
                         {
@@ -235,12 +235,11 @@ internal sealed class FusionValidateCommand : Command
 
                     case IOperationInProgress:
                     case IValidationInProgress:
-                        activity.Update("The validation is in progress.");
+                        activity.Update("Validating...");
                         break;
 
                     default:
-                        activity.Update(
-                            "This is an unknown response, upgrade Nitro CLI to the latest version.");
+                        activity.Warning("Unknown server response. Consider updating the CLI.");
                         break;
                 }
             }
@@ -264,7 +263,7 @@ internal sealed class FusionValidateCommand : Command
 
         if (result.Errors?.Count > 0)
         {
-            activity.Fail();
+            activity.Fail("Failed to validate the Fusion configuration.");
 
             foreach (var error in result.Errors)
             {

@@ -11,7 +11,9 @@ internal sealed class NitroConsole(
 {
     private OutputFormat? _outputFormat;
 
-    public bool IsInteractive => console.Profile.Capabilities.Interactive;
+    public bool IsInteractive =>
+        console.Profile.Capabilities.Interactive
+        && !IsNonInteractiveEnvironment();
 
     public bool IsHumanReadable => _outputFormat is null;
 
@@ -61,12 +63,18 @@ internal sealed class NitroConsole(
 
     public IAnsiConsoleInput Input => console.Input;
 
-    public IExclusivityMode ExclusivityMode => console.ExclusivityMode;
-        // IsInteractive
-        //     ? console.ExclusivityMode
-        //     : throw new ExitException(
-        //         "Console runs in non interactive mode, yet a user interaction was attempted. "
-        //         + "Check the documentation of the command to see all options");
+    public IExclusivityMode ExclusivityMode =>
+        IsInteractive
+            ? console.ExclusivityMode
+            : throw new ExitException(
+                "Console runs in non interactive mode, yet a user interaction was attempted. "
+                + "Check the documentation of the command to see all options");
 
     public RenderPipeline Pipeline => console.Pipeline;
+
+    private static bool IsNonInteractiveEnvironment()
+    {
+        var value = Environment.GetEnvironmentVariable("NITRO_NON_INTERACTIVE");
+        return value is "1" or "true";
+    }
 }

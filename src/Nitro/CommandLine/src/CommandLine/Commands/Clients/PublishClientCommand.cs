@@ -55,11 +55,11 @@ internal sealed class PublishClientCommand : Command
 
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        await using (var activity = console.StartActivity("Publishing client..."))
+        await using (var activity = console.StartActivity($"Publishing new client version '{tag.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}' of client '{clientId.EscapeMarkup()}'"))
         {
             if (force)
             {
-                console.Log("[yellow]Force push is enabled[/]");
+                activity.Warning("Force push is enabled.");
             }
 
             var publishRequest = await client.StartClientPublishAsync(
@@ -73,7 +73,7 @@ internal sealed class PublishClientCommand : Command
 
             if (publishRequest.Errors?.Count > 0)
             {
-                activity.Fail();
+                activity.Fail("Failed to publish a new client version.");
 
                 foreach (var error in publishRequest.Errors)
                 {
@@ -96,7 +96,7 @@ internal sealed class PublishClientCommand : Command
 
             if (publishRequest.Id is not { } requestId)
             {
-                activity.Fail();
+                activity.Fail("Failed to publish a new client version.");
                 await console.Error.WriteLineAsync("Could not create publish request.");
                 return ExitCodes.Error;
             }
@@ -111,7 +111,7 @@ internal sealed class PublishClientCommand : Command
                         break;
 
                     case IClientVersionPublishFailed { Errors: var errors }:
-                        activity.Fail();
+                        activity.Fail("Failed to publish a new client version.");
 
                         foreach (var error in errors)
                         {
@@ -139,7 +139,7 @@ internal sealed class PublishClientCommand : Command
                         return ExitCodes.Error;
 
                     case IClientVersionPublishSuccess:
-                        activity.Success("Successfully published client!");
+                        activity.Success($"Published new client version '{tag.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}'.");
 
                         resultHolder.SetResult(new ObjectResult(new PublishClientResult
                         {
@@ -190,7 +190,7 @@ internal sealed class PublishClientCommand : Command
                 }
             }
 
-            activity.Fail();
+            activity.Fail("Failed to publish a new client version.");
         }
 
         return ExitCodes.Error;

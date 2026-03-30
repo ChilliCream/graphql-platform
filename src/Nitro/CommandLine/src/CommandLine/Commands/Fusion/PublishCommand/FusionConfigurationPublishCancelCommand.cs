@@ -40,10 +40,13 @@ internal sealed class FusionConfigurationPublishCancelCommand : Command
             throw new ExitException(
                 "No request ID was provided and no request ID was found in the cache. Please provide a request ID.");
 
-        await fusionConfigurationClient.ReleaseDeploymentSlotAsync(requestId, cancellationToken);
+        await using (var activity = console.StartActivity("Canceling publication"))
+        {
+            await fusionConfigurationClient.ReleaseDeploymentSlotAsync(requestId, cancellationToken);
 
-        console.MarkupLine("Cancelled the composition of Fusion configuration.");
+            activity.Success("Canceled the publication.");
 
-        return ExitCodes.Success;
+            return ExitCodes.Success;
+        }
     }
 }

@@ -76,7 +76,7 @@ internal sealed class FusionUploadCommand : Command
             sourceSchemaFile,
             cancellationToken);
 
-        await using (var activity = console.StartActivity($"Uploading source schema '{sourceSchemaFile}'..."))
+        await using (var activity = console.StartActivity($"Uploading new source schema version '{tag.EscapeMarkup()}' to API '{apiId.EscapeMarkup()}'"))
         {
             await using var archiveStream = new MemoryStream();
             var archive = FusionSourceSchemaArchive.Create(archiveStream, leaveOpen: true);
@@ -101,7 +101,7 @@ internal sealed class FusionUploadCommand : Command
 
             if (result.Errors?.Count > 0)
             {
-                activity.Fail();
+                activity.Fail("Failed to upload a new source schema version.");
 
                 foreach (var error in result.Errors)
                 {
@@ -126,7 +126,7 @@ internal sealed class FusionUploadCommand : Command
                 throw Exit("Upload of source schema failed.");
             }
 
-            activity.Success("Successfully uploaded source schema!");
+            activity.Success($"Uploaded new source schema version '{tag.EscapeMarkup()}'.");
 
             if (!console.IsHumanReadable)
             {

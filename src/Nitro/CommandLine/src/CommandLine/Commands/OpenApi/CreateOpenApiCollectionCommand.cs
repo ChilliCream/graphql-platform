@@ -47,7 +47,7 @@ internal sealed class CreateOpenApiCollectionCommand : Command
         var name = await console
             .PromptAsync("Name", defaultValue: null, parseResult, Opt<OpenApiCollectionNameOption>.Instance, cancellationToken);
 
-        await using (var activity = console.StartActivity("Creating OpenAPI collection..."))
+        await using (var activity = console.StartActivity($"Creating OpenAPI collection '{name.EscapeMarkup()}' for API '{apiId.EscapeMarkup()}'"))
         {
             var data = await client.CreateOpenApiCollectionAsync(
                 apiId,
@@ -56,7 +56,7 @@ internal sealed class CreateOpenApiCollectionCommand : Command
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail();
+                activity.Fail("Failed to create the OpenAPI collection.");
 
                 foreach (var error in data.Errors)
                 {
@@ -75,12 +75,12 @@ internal sealed class CreateOpenApiCollectionCommand : Command
 
             if (data.OpenApiCollection is not IOpenApiCollectionDetailPrompt_OpenApiCollection detail)
             {
-                activity.Fail();
+                activity.Fail("Failed to create the OpenAPI collection.");
                 await console.Error.WriteLineAsync("Could not create OpenAPI collection.");
                 return ExitCodes.Error;
             }
 
-            activity.Success("Successfully created OpenAPI collection!");
+            activity.Success($"Created OpenAPI collection '{name.EscapeMarkup()}'.");
 
             resultHolder.SetResult(new ObjectResult(OpenApiCollectionDetailPrompt.From(detail).ToObject()));
 

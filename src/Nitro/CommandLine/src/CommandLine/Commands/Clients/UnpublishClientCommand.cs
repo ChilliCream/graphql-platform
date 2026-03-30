@@ -39,7 +39,7 @@ internal sealed class UnpublishClientCommand : Command
         var stage = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
         var clientId = parseResult.GetValue(Opt<ClientIdOption>.Instance)!;
 
-        await using (var activity = console.StartActivity("Unpublishing..."))
+        await using (var activity = console.StartActivity($"Unpublishing client '{clientId.EscapeMarkup()}' from stage '{stage.EscapeMarkup()}'"))
         {
             foreach (var tag in tags)
             {
@@ -53,7 +53,7 @@ internal sealed class UnpublishClientCommand : Command
 
                 if (result.Errors?.Count > 0)
                 {
-                    activity.Fail();
+                    activity.Fail("Failed to unpublish the client.");
 
                     foreach (var error in result.Errors)
                     {
@@ -80,7 +80,7 @@ internal sealed class UnpublishClientCommand : Command
                     $"Unpublished [bold]{clientName.EscapeMarkup()}:{tag.EscapeMarkup()}[/] from {stage.EscapeMarkup()} ");
             }
 
-            activity.Success("Unpublishing complete!");
+            activity.Success($"Unpublished client '{clientId.EscapeMarkup()}' from stage '{stage.EscapeMarkup()}'.");
         }
 
         return ExitCodes.Success;

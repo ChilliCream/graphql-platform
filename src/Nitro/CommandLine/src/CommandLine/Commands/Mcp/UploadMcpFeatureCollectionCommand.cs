@@ -63,7 +63,7 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
                 toolFiles,
                 cancellationToken);
 
-        await using (var activity = console.StartActivity("Uploading new MCP Feature Collection version..."))
+        await using (var activity = console.StartActivity($"Uploading new MCP feature collection version '{tag.EscapeMarkup()}' for collection '{mcpFeatureCollectionId.EscapeMarkup()}'"))
         {
             var data = await client.UploadMcpFeatureCollectionVersionAsync(
                 mcpFeatureCollectionId,
@@ -74,7 +74,7 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail();
+                activity.Fail("Failed to upload a new MCP feature collection version.");
 
                 foreach (var error in data.Errors)
                 {
@@ -97,12 +97,12 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
 
             if (data.McpFeatureCollectionVersion is null)
             {
-                activity.Fail();
+                activity.Fail("Failed to upload a new MCP feature collection version.");
                 await console.Error.WriteLineAsync("Could not upload MCP Feature Collection version.");
                 return ExitCodes.Error;
             }
 
-            activity.Success("Successfully uploaded new MCP Feature Collection version!");
+            activity.Success($"Uploaded new MCP feature collection version '{tag.EscapeMarkup()}'.");
 
             return ExitCodes.Success;
         }

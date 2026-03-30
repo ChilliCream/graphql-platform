@@ -194,13 +194,13 @@ file static class ClientExtensions
         IReadOnlyList<StageUpdateModel> updatedStages,
         CancellationToken cancellationToken)
     {
-        await using (var activity = console.StartActivity("Updating stages..."))
+        await using (var activity = console.StartActivity($"Updating stages for API '{apiId.EscapeMarkup()}'"))
         {
             var data = await client.UpdateStagesAsync(apiId, updatedStages, cancellationToken);
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail();
+                activity.Fail("Failed to update the stages.");
 
                 foreach (var error in data.Errors)
                 {
@@ -220,7 +220,7 @@ file static class ClientExtensions
                 return ExitCodes.Error;
             }
 
-            activity.Success("Successfully updated stages!");
+            activity.Success($"Updated stages for API '{apiId.EscapeMarkup()}'.");
 
             var items = data.Api?.Stages
                 .Select(x => StageDetailPrompt.From(x).ToObject())

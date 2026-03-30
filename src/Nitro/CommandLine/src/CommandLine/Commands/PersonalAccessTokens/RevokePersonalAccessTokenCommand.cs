@@ -60,13 +60,13 @@ internal sealed class RevokePersonalAccessTokenCommand : Command
             }
         }
 
-        await using (var activity = console.StartActivity("Revoking personal access token..."))
+        await using (var activity = console.StartActivity($"Revoking personal access token '{patId.EscapeMarkup()}'"))
         {
             var data = await client.RevokePersonalAccessTokenAsync(patId, cancellationToken);
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail();
+                activity.Fail("Failed to revoke the personal access token.");
 
                 foreach (var error in data.Errors)
                 {
@@ -85,12 +85,12 @@ internal sealed class RevokePersonalAccessTokenCommand : Command
 
             if (data.PersonalAccessToken is not IPersonalAccessTokenDetailPrompt_PersonalAccessToken token)
             {
-                activity.Fail();
+                activity.Fail("Failed to revoke the personal access token.");
                 await console.Error.WriteLineAsync("Could not revoke personal access token.");
                 return ExitCodes.Error;
             }
 
-            activity.Success("Successfully revoked personal access token!");
+            activity.Success($"Revoked personal access token '{patId.EscapeMarkup()}'.");
 
             resultHolder.SetResult(new ObjectResult(PersonalAccessTokenDetailPrompt.From(token).ToObject()));
 

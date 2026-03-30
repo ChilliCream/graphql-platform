@@ -48,7 +48,7 @@ internal sealed class CreateMcpFeatureCollectionCommand : Command
         var name = await console
             .PromptAsync("Name", defaultValue: null, parseResult, Opt<McpFeatureCollectionNameOption>.Instance, cancellationToken);
 
-        await using (var activity = console.StartActivity("Creating MCP Feature Collection..."))
+        await using (var activity = console.StartActivity($"Creating MCP feature collection '{name.EscapeMarkup()}' for API '{apiId.EscapeMarkup()}'"))
         {
             var data = await client.CreateMcpFeatureCollectionAsync(
                 apiId,
@@ -57,7 +57,7 @@ internal sealed class CreateMcpFeatureCollectionCommand : Command
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail();
+                activity.Fail("Failed to create the MCP feature collection.");
 
                 foreach (var error in data.Errors)
                 {
@@ -76,12 +76,12 @@ internal sealed class CreateMcpFeatureCollectionCommand : Command
 
             if (data.McpFeatureCollection is not IMcpFeatureCollectionDetailPrompt_McpFeatureCollection detail)
             {
-                activity.Fail();
+                activity.Fail("Failed to create the MCP feature collection.");
                 await console.Error.WriteLineAsync("Could not create MCP Feature Collection.");
                 return ExitCodes.Error;
             }
 
-            activity.Success("Successfully created MCP Feature Collection!");
+            activity.Success($"Created MCP feature collection '{name.EscapeMarkup()}'.");
 
             resultHolder.SetResult(new ObjectResult(McpFeatureCollectionDetailPrompt.From(detail).ToObject()));
 

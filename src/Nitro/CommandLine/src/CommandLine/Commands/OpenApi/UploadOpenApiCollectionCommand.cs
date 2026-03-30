@@ -58,7 +58,7 @@ internal sealed class UploadOpenApiCollectionCommand : Command
                 files,
                 cancellationToken);
 
-        await using (var activity = console.StartActivity("Uploading new OpenAPI collection version..."))
+        await using (var activity = console.StartActivity($"Uploading new OpenAPI collection version '{tag.EscapeMarkup()}' for collection '{openApiCollectionId.EscapeMarkup()}'"))
         {
             var data = await client.UploadOpenApiCollectionVersionAsync(
                 openApiCollectionId,
@@ -69,7 +69,7 @@ internal sealed class UploadOpenApiCollectionCommand : Command
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail();
+                activity.Fail("Failed to upload a new OpenAPI collection version.");
 
                 foreach (var error in data.Errors)
                 {
@@ -92,12 +92,12 @@ internal sealed class UploadOpenApiCollectionCommand : Command
 
             if (data.OpenApiCollectionVersion is null)
             {
-                activity.Fail();
+                activity.Fail("Failed to upload a new OpenAPI collection version.");
                 await console.Error.WriteLineAsync("Could not upload OpenAPI collection version.");
                 return ExitCodes.Error;
             }
 
-            activity.Success("Successfully uploaded new OpenAPI collection version!");
+            activity.Success($"Uploaded new OpenAPI collection version '{tag.EscapeMarkup()}'.");
 
             return ExitCodes.Success;
         }

@@ -56,7 +56,7 @@ internal sealed class SetApiSettingsApiCommand : Command
                 "Allow breaking schema changes when no client breaks?",
                 ct);
 
-        await using var activity = console.StartActivity("Updating API settings...");
+        await using var activity = console.StartActivity($"Updating settings for API '{id.EscapeMarkup()}'");
 
         var data = await client.UpdateApiSettingsAsync(
             id,
@@ -66,7 +66,7 @@ internal sealed class SetApiSettingsApiCommand : Command
 
         if (data.Errors?.Count > 0)
         {
-            activity.Fail();
+            activity.Fail("Failed to update the API settings.");
 
             foreach (var mutationError in data.Errors)
             {
@@ -85,12 +85,12 @@ internal sealed class SetApiSettingsApiCommand : Command
 
         if (data.Api is not IApiDetailPrompt_Api api)
         {
-            activity.Fail();
+            activity.Fail("Failed to update the API settings.");
             await console.Error.WriteLineAsync("Could not update settings.");
             return ExitCodes.Error;
         }
 
-        activity.Success("Successfully updated API settings!");
+        activity.Success($"Updated settings for API '{id.EscapeMarkup()}'.");
 
         resultHolder.SetResult(new ObjectResult(ApiDetailPrompt.From(api).ToObject()));
 

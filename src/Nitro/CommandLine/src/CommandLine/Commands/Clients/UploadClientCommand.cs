@@ -56,7 +56,7 @@ internal sealed class UploadClientCommand : Command
 
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        await using (var activity = console.StartActivity($"Uploading new version for client '{clientId}'..."))
+        await using (var activity = console.StartActivity($"Uploading new client version '{tag.EscapeMarkup()}' for client '{clientId.EscapeMarkup()}'"))
         {
             await using var stream = fileSystem.OpenReadStream(operationsFilePath);
 
@@ -69,7 +69,7 @@ internal sealed class UploadClientCommand : Command
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail();
+                activity.Fail("Failed to upload a new client version.");
 
                 foreach (var error in data.Errors)
                 {
@@ -96,7 +96,7 @@ internal sealed class UploadClientCommand : Command
                 throw Exit("Could not upload client.");
             }
 
-            activity.Success("Successfully uploaded operations!");
+            activity.Success($"Uploaded new client version '{tag.EscapeMarkup()}'.");
 
             resultHolder.SetResult(new ObjectResult(new UploadClientResult
             {

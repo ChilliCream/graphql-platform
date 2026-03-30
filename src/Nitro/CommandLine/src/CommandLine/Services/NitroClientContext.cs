@@ -9,9 +9,11 @@ internal sealed class NitroClientContext : INitroClientContextProvider
 
     public INitroClientAuthorization? Authorization { get; private set; }
 
-    public void Configure(Uri url, INitroClientAuthorization? authorization)
+    public void Configure(string? apiUrl, INitroClientAuthorization? authorization)
     {
-        Url = url;
+        Url = apiUrl is not null
+            ? new Uri($"https://{apiUrl}/graphql")
+            : new Uri(Constants.ApiUrl + "/graphql");
         Authorization = authorization;
     }
 }

@@ -40,10 +40,13 @@ internal sealed class FusionConfigurationPublishStartCommand : Command
             throw new ExitException(
                 "No request ID was provided and no request ID was found in the cache. Please provide a request ID.");
 
-        await fusionConfigurationClient.ClaimDeploymentSlotAsync(requestId, cancellationToken);
+        await using (var activity = console.StartActivity("Starting composition"))
+        {
+            await fusionConfigurationClient.ClaimDeploymentSlotAsync(requestId, cancellationToken);
 
-        console.MarkupLine("Started composition of Fusion configuration.");
+            activity.Success("Started composition.");
 
-        return ExitCodes.Success;
+            return ExitCodes.Success;
+        }
     }
 }

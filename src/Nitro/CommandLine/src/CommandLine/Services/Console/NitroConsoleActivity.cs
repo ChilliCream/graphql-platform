@@ -8,7 +8,12 @@ internal sealed class NitroConsoleActivity(INitroConsole console) : INitroConsol
 
     public void Update(string message)
     {
-        console.WriteLine("├── " + message);
+        console.MarkupLine("├── " + message);
+    }
+
+    public void Warning(string message)
+    {
+        console.MarkupLine("├── " + Glyphs.ExclamationMark.Space() + message);
     }
 
     public void Success(string? message = null)
@@ -46,7 +51,7 @@ internal sealed class NitroConsoleActivity(INitroConsole console) : INitroConsol
 
     public static INitroConsoleActivity Start(INitroConsole console, string title)
     {
-        console.WriteLine(title);
+        console.MarkupLine(title);
 
         return new NitroConsoleActivity(console);
     }

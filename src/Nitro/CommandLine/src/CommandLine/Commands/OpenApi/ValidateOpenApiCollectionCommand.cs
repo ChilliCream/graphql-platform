@@ -46,7 +46,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
     {
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        await using (var activity = console.StartActivity("Validating OpenAPI collection..."))
+        await using (var activity = console.StartActivity($"Validating OpenAPI collection against stage '{stage.EscapeMarkup()}'"))
         {
             // console.Log("Searching for OpenAPI documents with the following patterns:");
             // foreach (var pattern in patterns)
@@ -58,7 +58,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
 
             if (files.Length < 1)
             {
-                activity.Fail();
+                activity.Fail("Failed to validate the OpenAPI collection.");
                 throw new ExitException("Could not find any OpenAPI documents with the provided pattern.");
             }
 
@@ -77,7 +77,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
 
             if (validationRequest.Errors?.Count > 0)
             {
-                activity.Fail();
+                activity.Fail("Failed to validate the OpenAPI collection.");
 
                 foreach (var error in validationRequest.Errors)
                 {
@@ -108,7 +108,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
                 switch (update)
                 {
                     case IOpenApiCollectionVersionValidationFailed { Errors: var errors }:
-                        activity.Fail();
+                        activity.Fail("Failed to validate the OpenAPI collection.");
 
                         foreach (var error in errors)
                         {
@@ -136,22 +136,21 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
                         return ExitCodes.Error;
 
                     case IOpenApiCollectionVersionValidationSuccess:
-                        activity.Success("OpenAPI collection validation succeeded.");
+                        activity.Success("Validated the OpenAPI collection.");
                         return ExitCodes.Success;
 
                     case IOperationInProgress:
                     case IValidationInProgress:
-                        activity.Update("The validation is in progress.");
+                        activity.Update("Validating...");
                         break;
 
                     default:
-                        activity.Update(
-                            "Warning: Received an unknown server response. Ensure your CLI is on the latest version.");
+                        activity.Warning("Unknown server response. Consider updating the CLI.");
                         break;
                 }
             }
 
-            activity.Fail();
+            activity.Fail("Failed to validate the OpenAPI collection.");
         }
 
         return ExitCodes.Error;
