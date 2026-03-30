@@ -7,6 +7,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
+using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi;
 
@@ -76,8 +77,7 @@ internal sealed class CreateOpenApiCollectionCommand : Command
             if (data.OpenApiCollection is not IOpenApiCollectionDetailPrompt_OpenApiCollection detail)
             {
                 activity.Fail("Failed to create the OpenAPI collection.");
-                console.Error.WriteErrorLine("Could not create OpenAPI collection.");
-                return ExitCodes.Error;
+                throw MutationReturnedNoData();
             }
 
             activity.Success($"Created OpenAPI collection '{name.EscapeMarkup()}'.");

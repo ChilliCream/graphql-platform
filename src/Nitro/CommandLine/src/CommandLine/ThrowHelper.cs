@@ -33,6 +33,9 @@ internal static class ThrowHelper
 
     public static Exception NoMcpFeatureCollectionSelected() => Exit("You did not select an MCP Feature Collection!");
 
+    public static ExitException MutationReturnedNoData()
+        => Exit("The GraphQL mutation completed without errors, but the server did not return the expected data.");
+
     public static Exception ThereWasAnIssueWithTheRequest(string? additional = null)
         => new ExitException(
             $"There was an issue with the request to the server.\n{additional ?? ""}");

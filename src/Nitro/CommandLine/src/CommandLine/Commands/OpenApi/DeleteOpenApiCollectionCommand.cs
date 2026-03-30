@@ -114,8 +114,7 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
             if (data.OpenApiCollection is not IOpenApiCollectionDetailPrompt_OpenApiCollection detail)
             {
                 activity.Fail("Failed to delete the OpenAPI collection.");
-                console.Error.WriteErrorLine("Could not delete the OpenAPI collection.");
-                return ExitCodes.Error;
+                throw MutationReturnedNoData();
             }
 
             activity.Success($"Deleted OpenAPI collection '{openApiCollectionId.EscapeMarkup()}'.");

@@ -164,7 +164,7 @@ if (data.Errors?.Count > 0)
 
     foreach (var error in data.Errors)
     {
-        await console.Error.WriteLineAsync(error.Message);
+        console.Error.WriteErrorLine(error.Message);
         return ExitCodes.Error;
     }
 }
@@ -194,7 +194,7 @@ if (data.Errors?.Count > 0)
             _                                   => "Unexpected mutation error."
         };
 
-        await console.Error.WriteLineAsync(errorMessage);
+        console.Error.WriteErrorLine(errorMessage);
         return ExitCodes.Error;
     }
 }

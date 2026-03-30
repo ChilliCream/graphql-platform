@@ -3,6 +3,7 @@ using ChilliCream.Nitro.Client.OpenApi;
 using ChilliCream.Nitro.CommandLine.Commands.OpenApi.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
+using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi;
 
@@ -90,8 +91,7 @@ internal sealed class PublishOpenApiCollectionCommand : Command
             if (publishRequest.Id is not { } requestId)
             {
                 activity.Fail("Failed to publish a new OpenAPI collection version.");
-                console.Error.WriteErrorLine("Could not create publish request.");
-                return ExitCodes.Error;
+                throw MutationReturnedNoData();
             }
 
             await foreach (var update in client.SubscribeToOpenApiCollectionPublishAsync(requestId, ct))

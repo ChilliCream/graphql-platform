@@ -85,7 +85,7 @@ internal sealed class DeleteApiKeyCommand : Command
             if (data.ApiKey is not { } key)
             {
                 activity.Fail("Failed to delete the API key.");
-                throw Exit("Could not delete API key.");
+                throw MutationReturnedNoData();
             }
 
             activity.Success($"Deleted API key '{keyId.EscapeMarkup()}'.");

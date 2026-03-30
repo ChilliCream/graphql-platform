@@ -1,4 +1,5 @@
-using ChilliCream.Nitro.Client.Exceptions;
+using System.Net;
+using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
@@ -21,33 +22,47 @@ internal static class CommandExtensions
             catch (ExitException exception)
             {
                 console.Error.WriteErrorLine(exception.Message);
-
-                return ExitCodes.Error;
             }
             catch (NitroClientAuthorizationException)
             {
                 console.Error.WriteErrorLine(
                     "The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.");
+            }
+            catch (NitroClientHttpRequestException ex) when (ex.StatusCode == HttpStatusCode.RequestEntityTooLarge)
+            {
+                console.Error.WriteErrorLine(
+                    "The server rejected the request because the payload is too large. "
+                    + "If you are running a self-hosted instance, check your ingress controller body-size limits, "
+                    + "reverse proxy settings, or load balancer request size limits.");
+            }
+            catch (NitroClientHttpRequestException exception)
+            {
+                console.Error.WriteErrorLine(
+                    $"The server returned an unexpected HTTP status code ({(int?)exception.StatusCode} - ({exception.StatusCode})");
+            }
+            catch (NitroClientGraphQLException exception)
+            {
+                var message = string.IsNullOrEmpty(exception.Code)
+                    ? $"The server returned an unexpected GraphQL error: {exception.ErrorMessage}"
+                    : $"The server returned an unexpected GraphQL error: {exception.ErrorMessage} ({exception.Code})";
 
-                return ExitCodes.Error;
+                console.Error.WriteErrorLine(message);
             }
             catch (NitroClientException exception)
             {
                 console.Error.WriteErrorLine(
-                    $"There was an unexpected error executing your request: {exception.Message}");
-
-                return ExitCodes.Error;
+                    $"There was an unexpected error: {exception.Message}");
             }
             catch (Exception ex) when (ex is OperationCanceledException or TaskCanceledException)
             {
-                return ExitCodes.Error;
+                // No message needed for cancellation.
             }
             catch (Exception exception)
             {
                 console.Error.WriteErrorLine(exception.Message);
-
-                return ExitCodes.Error;
             }
+
+            return ExitCodes.Error;
         });
 
         return command;

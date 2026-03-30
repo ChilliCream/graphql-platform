@@ -118,8 +118,7 @@ internal sealed class DeleteClientCommand : Command
             if (deletedClient.Client is not IClientDetailPrompt_Client clientModel)
             {
                 activity.Fail("Failed to delete the client.");
-                console.Error.WriteErrorLine("Could not delete the client.");
-                return ExitCodes.Error;
+                throw MutationReturnedNoData();
             }
 
             activity.Success($"Deleted client '{clientId.EscapeMarkup()}'.");

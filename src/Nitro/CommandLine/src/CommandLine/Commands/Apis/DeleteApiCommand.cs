@@ -83,8 +83,7 @@ internal sealed class DeleteApiCommand : Command
         if (data.Api is not IApiDetailPrompt_Api api)
         {
             activity.Fail("Failed to delete the API.");
-            console.Error.WriteErrorLine("Could not delete API.");
-            return ExitCodes.Error;
+            throw MutationReturnedNoData();
         }
 
         activity.Success($"Deleted API '{apiId.EscapeMarkup()}'.");

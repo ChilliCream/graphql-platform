@@ -6,6 +6,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
+using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Environments;
 
@@ -74,8 +75,7 @@ internal sealed class CreateEnvironmentCommand : Command
             if (changeResult is null)
             {
                 activity.Fail("Failed to create the environment.");
-                console.Error.WriteErrorLine("Could not create environment.");
-                return ExitCodes.Error;
+                throw MutationReturnedNoData();
             }
 
             if (changeResult.Error is IError changeError)
@@ -88,8 +88,7 @@ internal sealed class CreateEnvironmentCommand : Command
             if (changeResult.Result is not IEnvironmentDetailPrompt_Environment detail)
             {
                 activity.Fail("Failed to create the environment.");
-                console.Error.WriteErrorLine("Could not create environment.");
-                return ExitCodes.Error;
+                throw MutationReturnedNoData();
             }
 
             activity.Success($"Created environment '{name.EscapeMarkup()}'.");

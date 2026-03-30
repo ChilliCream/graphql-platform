@@ -122,8 +122,7 @@ internal sealed class UpdateMockCommand : Command
             if (updatedMock.MockSchema is not IMockSchemaDetailPrompt mockSchema)
             {
                 activity.Fail("Failed to update the mock schema.");
-                console.Error.WriteErrorLine("Could not update mock schema.");
-                return ExitCodes.Error;
+                throw MutationReturnedNoData();
             }
 
             activity.Success($"Updated mock schema '{mockSchemaId.EscapeMarkup()}'.");

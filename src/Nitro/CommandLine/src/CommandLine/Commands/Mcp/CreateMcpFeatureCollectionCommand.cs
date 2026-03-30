@@ -77,8 +77,7 @@ internal sealed class CreateMcpFeatureCollectionCommand : Command
             if (data.McpFeatureCollection is not IMcpFeatureCollectionDetailPrompt_McpFeatureCollection detail)
             {
                 activity.Fail("Failed to create the MCP feature collection.");
-                console.Error.WriteErrorLine("Could not create MCP Feature Collection.");
-                return ExitCodes.Error;
+                throw MutationReturnedNoData();
             }
 
             activity.Success($"Created MCP feature collection '{name.EscapeMarkup()}'.");

@@ -3,6 +3,7 @@ using ChilliCream.Nitro.Client.Mcp;
 using ChilliCream.Nitro.CommandLine.Commands.Mcp.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
+using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mcp;
 
@@ -85,8 +86,7 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
             if (publishRequest.Id is not { } requestId)
             {
                 activity.Fail("Failed to publish a new MCP feature collection version.");
-                console.Error.WriteErrorLine("Could not create publish request.");
-                return ExitCodes.Error;
+                throw MutationReturnedNoData();
             }
 
             await foreach (var update in client.SubscribeToMcpFeatureCollectionPublishAsync(requestId, ct))

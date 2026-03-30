@@ -7,6 +7,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
+using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Apis;
 
@@ -86,8 +87,7 @@ internal sealed class SetApiSettingsApiCommand : Command
         if (data.Api is not IApiDetailPrompt_Api api)
         {
             activity.Fail("Failed to update the API settings.");
-            console.Error.WriteErrorLine("Could not update settings.");
-            return ExitCodes.Error;
+            throw MutationReturnedNoData();
         }
 
         activity.Success($"Updated settings for API '{id.EscapeMarkup()}'.");

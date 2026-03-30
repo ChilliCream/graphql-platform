@@ -6,6 +6,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
+using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mocks;
 
@@ -100,8 +101,7 @@ internal sealed class CreateMockCommand : Command
             if (createdMock.MockSchema is not IMockSchemaDetailPrompt mockSchema)
             {
                 activity.Fail("Failed to create the mock schema.");
-                console.Error.WriteErrorLine("Could not create mock schema.");
-                return ExitCodes.Error;
+                throw MutationReturnedNoData();
             }
 
             activity.Success($"Created mock schema '{mockSchemaName.EscapeMarkup()}'.");

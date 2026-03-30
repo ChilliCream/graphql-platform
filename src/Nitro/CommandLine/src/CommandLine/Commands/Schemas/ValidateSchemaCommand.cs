@@ -5,6 +5,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
+using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Schemas;
 
@@ -90,7 +91,7 @@ internal sealed class ValidateSchemaCommand : Command
 
             if (validationRequest.Id is not { } requestId)
             {
-                throw new ExitException("Could not create schema validation request.");
+                throw MutationReturnedNoData();
             }
 
             activity.Update($"Validation request created (ID: {requestId.EscapeMarkup()})");

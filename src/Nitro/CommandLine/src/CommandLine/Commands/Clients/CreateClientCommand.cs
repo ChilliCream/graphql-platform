@@ -7,6 +7,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
+using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
 
@@ -78,8 +79,7 @@ internal sealed class CreateClientCommand : Command
             if (data.Client is not IClientDetailPrompt_Client createdClient)
             {
                 activity.Fail("Failed to create the client.");
-                console.Error.WriteErrorLine("Could not create client.");
-                return ExitCodes.Error;
+                throw MutationReturnedNoData();
             }
 
             activity.Success($"Created client '{name.EscapeMarkup()}'.");

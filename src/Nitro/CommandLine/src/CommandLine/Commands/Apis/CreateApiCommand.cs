@@ -82,8 +82,7 @@ internal sealed class CreateApiCommand : Command
             if (changeResult is null)
             {
                 activity.Fail("Failed to create the API.");
-                console.Error.WriteErrorLine("Could not create API.");
-                return ExitCodes.Error;
+                throw MutationReturnedNoData();
             }
 
             if (changeResult.Error is IError error)
@@ -96,8 +95,7 @@ internal sealed class CreateApiCommand : Command
             if (changeResult.Result is not ICreateApiCommandMutation_Api result)
             {
                 activity.Fail("Failed to create the API.");
-                console.Error.WriteErrorLine("Could not create API.");
-                return ExitCodes.Error;
+                throw MutationReturnedNoData();
             }
 
             activity.Success($"Created API '{name.EscapeMarkup()}'.");

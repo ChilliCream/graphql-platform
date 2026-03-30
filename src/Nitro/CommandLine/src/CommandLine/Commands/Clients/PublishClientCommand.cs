@@ -4,6 +4,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
+using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
 
@@ -97,8 +98,7 @@ internal sealed class PublishClientCommand : Command
             if (publishRequest.Id is not { } requestId)
             {
                 activity.Fail("Failed to publish a new client version.");
-                console.Error.WriteErrorLine("Could not create publish request.");
-                return ExitCodes.Error;
+                throw MutationReturnedNoData();
             }
 
             await foreach (var update in client.SubscribeToClientPublishAsync(requestId, ct))

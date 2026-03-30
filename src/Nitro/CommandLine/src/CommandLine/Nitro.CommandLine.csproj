@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CommandLine.Client\ChilliCream.Nitro.Client.csproj" />
+    <ProjectReference Include="..\ChilliCream.Nitro.Client\ChilliCream.Nitro.Client.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Adapters\src\Adapters.Mcp.Core\HotChocolate.Adapters.Mcp.Core.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Adapters\src\Adapters.Mcp.Packaging\HotChocolate.Adapters.Mcp.Packaging.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Adapters\src\Adapters.OpenApi.Core\HotChocolate.Adapters.OpenApi.Core.csproj" />

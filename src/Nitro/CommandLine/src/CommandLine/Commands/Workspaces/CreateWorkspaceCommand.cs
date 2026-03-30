@@ -6,6 +6,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
+using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Workspaces;
 
@@ -81,8 +82,7 @@ internal sealed class CreateWorkspaceCommand : Command
             if (createdWorkspace.Workspace is not IWorkspaceDetailPrompt_Workspace workspaceDetail)
             {
                 activity.Fail("Failed to create the workspace.");
-                console.Error.WriteErrorLine("Could not create workspace.");
-                return ExitCodes.Error;
+                throw MutationReturnedNoData();
             }
 
             activity.Success($"Created workspace '{name.EscapeMarkup()}'.");

@@ -4,6 +4,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
+using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 using Command = System.CommandLine.Command;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Schemas;
@@ -97,8 +98,7 @@ internal sealed class PublishSchemaCommand : Command
             if (publishRequest.Id is not { } requestId)
             {
                 activity.Fail("Failed to publish a new schema version.");
-                console.Error.WriteErrorLine("Could not create publish request.");
-                return ExitCodes.Error;
+                throw MutationReturnedNoData();
             }
 
             // console.Log($"Publish request created [grey](ID: {requestId.EscapeMarkup()})[/]");

@@ -97,8 +97,7 @@ internal sealed class DeleteStageCommand : Command
             if (data.Api is null)
             {
                 activity.Fail("Failed to delete the stage.");
-                console.Error.WriteErrorLine("Could not delete the stage.");
-                return ExitCodes.Error;
+                throw MutationReturnedNoData();
             }
 
             activity.Success($"Deleted stage '{stageName.EscapeMarkup()}'.");

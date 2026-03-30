@@ -6,6 +6,7 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
+using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens;
 
@@ -77,8 +78,7 @@ internal sealed class CreatePersonalAccessTokenCommand : Command
             if (result is null)
             {
                 activity.Fail("Failed to create the personal access token.");
-                console.Error.WriteErrorLine("Could not create personal access token.");
-                return ExitCodes.Error;
+                throw MutationReturnedNoData();
             }
 
             activity.Success("Created personal access token.");

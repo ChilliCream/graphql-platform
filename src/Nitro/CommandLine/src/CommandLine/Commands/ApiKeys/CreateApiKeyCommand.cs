@@ -125,7 +125,7 @@ internal sealed class CreateApiKeyCommand : Command
             var result = data.Result;
             if (result is null)
             {
-                throw Exit("Could not create API key.");
+                throw MutationReturnedNoData();
             }
 
             activity.Success($"Created API key '{name.EscapeMarkup()}'.");

@@ -114,8 +114,7 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
             if (data.McpFeatureCollection is not IMcpFeatureCollectionDetailPrompt_McpFeatureCollection detail)
             {
                 activity.Fail("Failed to delete the MCP feature collection.");
-                console.Error.WriteErrorLine("Could not delete the MCP Feature Collection.");
-                return ExitCodes.Error;
+                throw MutationReturnedNoData();
             }
 
             activity.Success($"Deleted MCP feature collection '{mcpFeatureCollectionId.EscapeMarkup()}'.");
