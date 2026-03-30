@@ -2,6 +2,11 @@ using System.Collections.Immutable;
 
 namespace HotChocolate.Caching;
 
+/// <summary>
+/// An immutable snapshot of the computed cache control constraints for an operation,
+/// representing the most restrictive combination of all <c>@cacheControl</c> directives
+/// encountered while walking the operation's selection set.
+/// </summary>
 internal sealed class ImmutableCacheConstraints(
     int? maxAge,
     int? sharedMaxAge,

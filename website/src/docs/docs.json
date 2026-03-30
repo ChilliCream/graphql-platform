@@ -185,6 +185,20 @@
             "title": "Adding a Subgraph"
           },
           {
+            "path": "guides",
+            "title": "Guides",
+            "items": [
+              {
+                "path": "third-party-api",
+                "title": "Third-Party API"
+              },
+              {
+                "path": "first-party-api",
+                "title": "First-Party API"
+              }
+            ]
+          },
+          {
             "path": "entities-and-lookups",
             "title": "Entities and Lookups"
           },
@@ -211,6 +225,10 @@
           {
             "path": "authentication-and-authorization",
             "title": "Authentication and Authorization"
+          },
+          {
+            "path": "cache-control",
+            "title": "Cache Control"
           },
           {
             "path": "performance-tuning",
@@ -422,6 +440,7 @@
               { "path": "index", "title": "Overview" },
               { "path": "endpoints", "title": "Endpoints" },
               { "path": "http-transport", "title": "Transports" },
+              { "path": "cache-control", "title": "Cache Control" },
               { "path": "interceptors", "title": "Interceptors" },
               { "path": "warmup", "title": "Warmup" },
               { "path": "global-state", "title": "Global State" },

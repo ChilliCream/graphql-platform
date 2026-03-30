@@ -183,6 +183,7 @@ Start with the default of 64 and adjust based on your workload. Set to `null` to
 
 ## Next Steps
 
+- **"I need CDN and HTTP response caching behavior"**: [Cache Control](/docs/fusion/v16/cache-control) covers `@cacheControl`, composition merge behavior, and gateway response headers.
 - **"I need to secure my gateway"**: [Authentication and Authorization](/docs/fusion/v16/authentication-and-authorization) covers JWT validation, header propagation, and subgraph-level authorization.
 - **"I need to deploy this"**: [Deployment & CI/CD](/docs/fusion/v16/deployment-and-ci-cd) covers production deployment patterns and CI pipeline setup.
 - **"I want to monitor performance"**: Observability and distributed tracing will be covered in future documentation.

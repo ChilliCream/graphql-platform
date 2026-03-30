@@ -106,3 +106,5 @@ Where you go from here depends on what you need:
 - **"I'm migrating from another distributed GraphQL framework."** Read [Coming from Apollo Federation](/docs/fusion/v16/migration/coming-from-apollo-federation) or [Migrating from Schema Stitching](/docs/fusion/v16/migration/migrating-from-schema-stitching). These guides map familiar concepts to Fusion equivalents and walk through a migration.
 
 - **"I need to deploy this."** See [Deployment & CI/CD](/docs/fusion/v16/deployment-and-ci-cd) for pipeline setup, schema management, and gateway configuration.
+
+- **"I need CDN and browser caching behavior."** See [Cache Control](/docs/fusion/v16/cache-control) for `@cacheControl`, composition merge behavior, and gateway response headers.

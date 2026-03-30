@@ -5,6 +5,17 @@ using static HotChocolate.WellKnownContextData;
 
 namespace HotChocolate.Caching;
 
+/// <summary>
+/// A shared request middleware that reads computed cache control constraints
+/// from the operation's features and writes them to the result's context data.
+/// The ASP.NET Core HTTP response formatter then translates these into
+/// Cache-Control and Vary HTTP response headers.
+/// </summary>
+/// <remarks>
+/// Both HotChocolate and Fusion store the <see cref="IOperation"/> on the
+/// request context's feature collection, so this middleware reads it directly
+/// from <c>context.Features.Get&lt;IOperation&gt;()</c>.
+/// </remarks>
 internal sealed class QueryCacheMiddleware
 {
     private readonly ICacheControlOptions _options;
@@ -12,7 +23,7 @@ internal sealed class QueryCacheMiddleware
 
     private QueryCacheMiddleware(
         RequestDelegate next,
-        [SchemaService] ICacheControlOptionsAccessor optionsAccessor)
+        ICacheControlOptionsAccessor optionsAccessor)
     {
         _next = next;
         _options = optionsAccessor.CacheControl;
@@ -29,7 +40,9 @@ internal sealed class QueryCacheMiddleware
             return;
         }
 
-        if (!context.TryGetOperation(out var operation)
+        var operation = context.Features.Get<IOperation>();
+
+        if (operation is null
             || !operation.Features.TryGet<CacheControlHeaderValue>(out var headerValue)
             || !operation.Features.TryGet<ImmutableCacheConstraints>(out var constraints))
         {
@@ -49,6 +62,9 @@ internal sealed class QueryCacheMiddleware
         }
     }
 
+    /// <summary>
+    /// Creates a <see cref="RequestMiddlewareConfiguration"/> for the query cache middleware.
+    /// </summary>
     internal static RequestMiddlewareConfiguration Create()
         => new RequestMiddlewareConfiguration(
             (core, next) =>
