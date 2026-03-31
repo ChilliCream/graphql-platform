@@ -8,8 +8,7 @@ namespace Mocha;
 /// A consumer middleware that implements in-process retry using Polly, replaying the handler
 /// with configurable backoff strategies when transient failures occur.
 /// </summary>
-internal sealed class ConsumerRetryMiddleware(
-    ResiliencePipeline resiliencePipeline)
+internal sealed class ConsumerRetryMiddleware(ResiliencePipeline resiliencePipeline)
 {
     public async ValueTask InvokeAsync(IConsumeContext context, ConsumerDelegate next)
     {
@@ -24,11 +23,7 @@ internal sealed class ConsumerRetryMiddleware(
 
         // Expose retry state to handlers via features.
         // ImmediateRetryCount starts at -1 so the first increment in the callback yields 0.
-        var retryState = new RetryState
-        {
-            DelayedRetryCount = delayedRetryCount,
-            ImmediateRetryCount = -1
-        };
+        var retryState = new RetryRuntimeFeature { DelayedRetryCount = delayedRetryCount, ImmediateRetryCount = -1 };
         context.Features.Set(retryState);
 
         await resiliencePipeline.ExecuteAsync(
@@ -54,21 +49,18 @@ internal sealed class ConsumerRetryMiddleware(
                 }
 
                 var intervals = context.GetConfiguration(f => f.Intervals);
-                var maxRetryAttempts = intervals?.Length
+                var maxRetryAttempts =
+                    intervals?.Length
                     ?? context.GetConfiguration(f => f.MaxRetryAttempts)
                     ?? RetryOptions.Defaults.MaxRetryAttempts;
 
-                var delay = context.GetConfiguration(f => f.Delay)
-                    ?? RetryOptions.Defaults.Delay;
+                var delay = context.GetConfiguration(f => f.Delay) ?? RetryOptions.Defaults.Delay;
 
-                var maxDelay = context.GetConfiguration(f => f.MaxDelay)
-                    ?? RetryOptions.Defaults.MaxDelay;
+                var maxDelay = context.GetConfiguration(f => f.MaxDelay) ?? RetryOptions.Defaults.MaxDelay;
 
-                var backoffType = context.GetConfiguration(f => f.BackoffType)
-                    ?? RetryOptions.Defaults.BackoffType;
+                var backoffType = context.GetConfiguration(f => f.BackoffType) ?? RetryOptions.Defaults.BackoffType;
 
-                var useJitter = context.GetConfiguration(f => f.UseJitter)
-                    ?? RetryOptions.Defaults.UseJitter;
+                var useJitter = context.GetConfiguration(f => f.UseJitter) ?? RetryOptions.Defaults.UseJitter;
 
                 // Resolve exception rules (atomically from first scope that has them).
                 var exceptionRules = ResolveExceptionRules(context);
@@ -116,9 +108,7 @@ internal sealed class ConsumerRetryMiddleware(
                     };
                 }
 
-                var pipeline = new ResiliencePipelineBuilder()
-                    .AddRetry(strategyOptions)
-                    .Build();
+                var pipeline = new ResiliencePipelineBuilder().AddRetry(strategyOptions).Build();
 
                 var middleware = new ConsumerRetryMiddleware(pipeline);
 
@@ -153,9 +143,7 @@ file static class Extensions
     /// <summary>
     /// Resolves configuration with the most specific scope taking precedence.
     /// </summary>
-    public static T? GetConfiguration<T>(
-        this ConsumerMiddlewareFactoryContext context,
-        Func<RetryFeature, T> selector)
+    public static T? GetConfiguration<T>(this ConsumerMiddlewareFactoryContext context, Func<RetryFeature, T> selector)
     {
         var busFeatures = context.Services.GetRequiredService<IFeatureCollection>();
 
