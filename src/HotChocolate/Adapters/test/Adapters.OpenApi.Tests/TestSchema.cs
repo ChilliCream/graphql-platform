@@ -87,6 +87,11 @@ public sealed class TestSchema
                 input.Url,
                 input.Uuid);
         }
+
+        public string SearchProducts(string? text, float? minPrice)
+        {
+            return $"Searched for: {text ?? "all"}, minPrice: {minPrice}";
+        }
     }
 
     public class Mutation
