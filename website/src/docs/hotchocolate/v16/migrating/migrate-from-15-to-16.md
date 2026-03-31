@@ -446,7 +446,7 @@ Previously the `TryConfigure` or `OnConfigure` methods carried a non-nullable pa
 
 ## HotChocolate.Fusion.SourceSchema
 
-The `HotChocolate.Fusion.SourceSchema` package has been removed. The `[Internal]`, `[Lookup]`, `[Is]`, and `[Require]` attributes have moved to the `HotChocolate.Types` package under the `HotChocolate.Types.Composite` namespace. You don't need to install `HotChocolate.Types` separately — it's already included in the `HotChocolate.AspNetCore` meta-package.
+The `HotChocolate.Fusion.SourceSchema` package has been removed and you can safely remove any references to it from your project. The `[Internal]`, `[Lookup]`, `[Is]`, and `[Require]` attributes have moved to the `HotChocolate.Types` package under the `HotChocolate.Types.Composite` namespace. You don't need to install `HotChocolate.Types` separately — it's already included in the `HotChocolate.AspNetCore` meta-package.
 
 ## Merged Assemblies HotChocolate.Types, HotChocolate.Execution, HotChocolate.Fetching
 
