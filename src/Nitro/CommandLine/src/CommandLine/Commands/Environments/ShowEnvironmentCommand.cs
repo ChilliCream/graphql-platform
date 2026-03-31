@@ -39,7 +39,7 @@ internal sealed class ShowEnvironmentCommand : Command
 
         var id = parseResult.GetValue(Opt<IdArgument>.Instance)!;
 
-        var model = await client.ShowEnvironmentAsync(id, cancellationToken);
+        var model = await client.GetEnvironmentAsync(id, cancellationToken);
 
         if (model is IShowEnvironmentCommandQuery_Node_Environment environmentModel)
         {

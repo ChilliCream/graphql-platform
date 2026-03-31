@@ -22,7 +22,7 @@ internal sealed class LogoutCommand : Command
         ISessionService sessionService,
         CancellationToken cancellationToken)
     {
-        await using (var activity = console.StartActivity("Logging out"))
+        await using (var activity = console.StartActivity("Logging out", "Failed to log out."))
         {
             await sessionService.LogoutAsync(cancellationToken);
 

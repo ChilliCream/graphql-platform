@@ -56,7 +56,9 @@ internal sealed class PublishClientCommand : Command
 
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        await using (var activity = console.StartActivity($"Publishing new client version '{tag.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}' of client '{clientId.EscapeMarkup()}'"))
+        await using (var activity = console.StartActivity(
+            $"Publishing new client version '{tag.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}' of client '{clientId.EscapeMarkup()}'",
+            "Failed to publish a new client version."))
         {
             if (force)
             {
@@ -74,7 +76,7 @@ internal sealed class PublishClientCommand : Command
 
             if (publishRequest.Errors?.Count > 0)
             {
-                activity.Fail("Failed to publish a new client version.");
+                activity.Fail();
 
                 foreach (var error in publishRequest.Errors)
                 {
@@ -97,7 +99,6 @@ internal sealed class PublishClientCommand : Command
 
             if (publishRequest.Id is not { } requestId)
             {
-                activity.Fail("Failed to publish a new client version.");
                 throw MutationReturnedNoData();
             }
 
@@ -111,7 +112,7 @@ internal sealed class PublishClientCommand : Command
                         break;
 
                     case IClientVersionPublishFailed { Errors: var errors }:
-                        activity.Fail("Failed to publish a new client version.");
+                        activity.Fail();
 
                         foreach (var error in errors)
                         {
@@ -190,7 +191,7 @@ internal sealed class PublishClientCommand : Command
                 }
             }
 
-            activity.Fail("Failed to publish a new client version.");
+            activity.Fail();
         }
 
         return ExitCodes.Error;

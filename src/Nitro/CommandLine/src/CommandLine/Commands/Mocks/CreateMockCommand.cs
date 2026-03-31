@@ -63,7 +63,9 @@ internal sealed class CreateMockCommand : Command
             sessionService,
             cancellationToken);
 
-        await using (var activity = console.StartActivity($"Creating mock schema '{mockSchemaName.EscapeMarkup()}' for API '{apiId.EscapeMarkup()}'"))
+        await using (var activity = console.StartActivity(
+            $"Creating mock schema '{mockSchemaName.EscapeMarkup()}' for API '{apiId.EscapeMarkup()}'",
+            "Failed to create the mock schema."))
         {
             await using var extensionFileStream = fileSystem.OpenReadStream(extensionFile);
             await using var schemaFileStream = fileSystem.OpenReadStream(baseSchemaFile);
@@ -78,7 +80,7 @@ internal sealed class CreateMockCommand : Command
 
             if (createdMock.Errors?.Count > 0)
             {
-                activity.Fail("Failed to create the mock schema.");
+                activity.Fail();
 
                 foreach (var error in createdMock.Errors)
                 {
@@ -100,7 +102,6 @@ internal sealed class CreateMockCommand : Command
 
             if (createdMock.MockSchema is not IMockSchemaDetailPrompt mockSchema)
             {
-                activity.Fail("Failed to create the mock schema.");
                 throw MutationReturnedNoData();
             }
 

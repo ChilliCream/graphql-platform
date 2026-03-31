@@ -48,7 +48,9 @@ internal sealed class CreateOpenApiCollectionCommand : Command
         var name = await console
             .PromptAsync("Name", defaultValue: null, parseResult, Opt<OpenApiCollectionNameOption>.Instance, cancellationToken);
 
-        await using (var activity = console.StartActivity($"Creating OpenAPI collection '{name.EscapeMarkup()}' for API '{apiId.EscapeMarkup()}'"))
+        await using (var activity = console.StartActivity(
+            $"Creating OpenAPI collection '{name.EscapeMarkup()}' for API '{apiId.EscapeMarkup()}'",
+            "Failed to create the OpenAPI collection."))
         {
             var data = await client.CreateOpenApiCollectionAsync(
                 apiId,
@@ -57,7 +59,7 @@ internal sealed class CreateOpenApiCollectionCommand : Command
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail("Failed to create the OpenAPI collection.");
+                activity.Fail();
 
                 foreach (var error in data.Errors)
                 {
@@ -76,7 +78,6 @@ internal sealed class CreateOpenApiCollectionCommand : Command
 
             if (data.OpenApiCollection is not IOpenApiCollectionDetailPrompt_OpenApiCollection detail)
             {
-                activity.Fail("Failed to create the OpenAPI collection.");
                 throw MutationReturnedNoData();
             }
 

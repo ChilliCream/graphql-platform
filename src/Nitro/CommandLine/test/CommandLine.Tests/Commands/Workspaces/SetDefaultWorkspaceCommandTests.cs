@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Exceptions;
 using ChilliCream.Nitro.Client.Workspaces;
 using Moq;
 
@@ -52,7 +51,8 @@ public sealed class SetDefaultWorkspaceCommandTests
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run
+            'nitro login'.
             """);
     }
 
@@ -94,7 +94,7 @@ public sealed class SetDefaultWorkspaceCommandTests
     public async Task ClientThrowsException_ReturnsError_Interactive()
     {
         // arrange
-        var client = CreateSelectExceptionClient(new NitroClientException("select failed"));
+        var client = CreateSelectExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -109,7 +109,7 @@ public sealed class SetDefaultWorkspaceCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: select failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -119,7 +119,7 @@ public sealed class SetDefaultWorkspaceCommandTests
     public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
-        var client = CreateSelectExceptionClient(new NitroClientException("select failed"));
+        var client = CreateSelectExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -134,7 +134,7 @@ public sealed class SetDefaultWorkspaceCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: select failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -144,7 +144,7 @@ public sealed class SetDefaultWorkspaceCommandTests
     public async Task ClientThrowsException_ReturnsError_JsonOutput()
     {
         // arrange
-        var client = CreateSelectExceptionClient(new NitroClientException("select failed"));
+        var client = CreateSelectExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -159,7 +159,7 @@ public sealed class SetDefaultWorkspaceCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: select failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -169,7 +169,7 @@ public sealed class SetDefaultWorkspaceCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
     {
         // arrange
-        var client = CreateSelectExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateSelectExceptionClient(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -184,7 +184,8 @@ public sealed class SetDefaultWorkspaceCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();
@@ -194,7 +195,7 @@ public sealed class SetDefaultWorkspaceCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
     {
         // arrange
-        var client = CreateSelectExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateSelectExceptionClient(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -209,7 +210,8 @@ public sealed class SetDefaultWorkspaceCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();
@@ -219,7 +221,7 @@ public sealed class SetDefaultWorkspaceCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
     {
         // arrange
-        var client = CreateSelectExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateSelectExceptionClient(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -234,7 +236,8 @@ public sealed class SetDefaultWorkspaceCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();

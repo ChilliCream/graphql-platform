@@ -1,6 +1,5 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Apis;
-using ChilliCream.Nitro.Client.Exceptions;
 using ChilliCream.Nitro.Client.Mocks;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using Moq;
@@ -69,7 +68,8 @@ public sealed class CreateMockCommandTests
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run
+            'nitro login'.
             """);
     }
 
@@ -170,8 +170,8 @@ public sealed class CreateMockCommandTests
         // assert
         result.AssertSuccess(
             """
-            Creating mock schema...
-            └── ✓ Successfully created mock schema!
+            Creating mock schema 'my-mock' for API 'api-1'
+            └── ✓ Created mock schema 'my-mock'.
 
             {
               "id": "mock-1",
@@ -307,12 +307,13 @@ public sealed class CreateMockCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Creating mock schema...
-            └── ✕ Failed!
+            Creating mock schema 'my-mock' for API 'api-1'
+            └── ✕ Failed to create the mock schema.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Could not create mock schema.
+            The GraphQL mutation completed without errors, but the server did not return the
+            expected data.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -370,8 +371,8 @@ public sealed class CreateMockCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Creating mock schema...
-            └── ✕ Failed!
+            Creating mock schema 'my-mock' for API 'api-1'
+            └── ✕ Failed to create the mock schema.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -431,7 +432,7 @@ public sealed class CreateMockCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Creating mock schema...
+            [    ] Failed to create the mock schema.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -499,13 +500,13 @@ public sealed class CreateMockCommandTests
     {
         // arrange
         var result = await RunCreateMockWithException(
-            new NitroClientException("create failed"),
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"),
             InteractionMode.Interactive);
 
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: create failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -515,13 +516,13 @@ public sealed class CreateMockCommandTests
     {
         // arrange
         var result = await RunCreateMockWithException(
-            new NitroClientException("create failed"),
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"),
             InteractionMode.NonInteractive);
 
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: create failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -531,13 +532,13 @@ public sealed class CreateMockCommandTests
     {
         // arrange
         var result = await RunCreateMockWithException(
-            new NitroClientException("create failed"),
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"),
             InteractionMode.JsonOutput);
 
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: create failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
     }
 
@@ -546,13 +547,14 @@ public sealed class CreateMockCommandTests
     {
         // arrange
         var result = await RunCreateMockWithException(
-            new NitroClientAuthorizationException("forbidden"),
+            new NitroClientAuthorizationException(),
             InteractionMode.Interactive);
 
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -562,13 +564,14 @@ public sealed class CreateMockCommandTests
     {
         // arrange
         var result = await RunCreateMockWithException(
-            new NitroClientAuthorizationException("forbidden"),
+            new NitroClientAuthorizationException(),
             InteractionMode.NonInteractive);
 
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -578,13 +581,14 @@ public sealed class CreateMockCommandTests
     {
         // arrange
         var result = await RunCreateMockWithException(
-            new NitroClientAuthorizationException("forbidden"),
+            new NitroClientAuthorizationException(),
             InteractionMode.JsonOutput);
 
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
     }
 

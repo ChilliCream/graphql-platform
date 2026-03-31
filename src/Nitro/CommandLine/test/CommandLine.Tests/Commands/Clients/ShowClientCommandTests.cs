@@ -1,6 +1,5 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Clients;
-using ChilliCream.Nitro.Client.Exceptions;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Clients;
@@ -56,7 +55,8 @@ public sealed class ShowClientCommandTests
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run
+            'nitro login'.
             """);
     }
 
@@ -68,7 +68,7 @@ public sealed class ShowClientCommandTests
     {
         // arrange
         var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.ShowClientAsync(
+        client.Setup(x => x.GetClientAsync(
                 "client-1",
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync((IShowClientCommandQuery_Node?)null);
@@ -100,7 +100,7 @@ public sealed class ShowClientCommandTests
     {
         // arrange
         var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.ShowClientAsync(
+        client.Setup(x => x.GetClientAsync(
                 "client-1",
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(CreateShowClientNode("client-1", "web-client", "products"));
@@ -137,7 +137,7 @@ public sealed class ShowClientCommandTests
     {
         // arrange
         var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.ShowClientAsync(
+        client.Setup(x => x.GetClientAsync(
                 "client-1",
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(CreateShowClientNode("client-1", "web-client", "products"));
@@ -172,7 +172,7 @@ public sealed class ShowClientCommandTests
     public async Task ClientThrowsException_ReturnsError_Interactive()
     {
         // arrange
-        var client = CreateShowExceptionClient(new NitroClientException("show failed"));
+        var client = CreateShowExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -188,7 +188,7 @@ public sealed class ShowClientCommandTests
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: show failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -199,7 +199,7 @@ public sealed class ShowClientCommandTests
     public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
-        var client = CreateShowExceptionClient(new NitroClientException("show failed"));
+        var client = CreateShowExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -215,7 +215,7 @@ public sealed class ShowClientCommandTests
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: show failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -226,7 +226,7 @@ public sealed class ShowClientCommandTests
     public async Task ClientThrowsException_ReturnsError_JsonOutput()
     {
         // arrange
-        var client = CreateShowExceptionClient(new NitroClientException("show failed"));
+        var client = CreateShowExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -242,7 +242,7 @@ public sealed class ShowClientCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: show failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -252,7 +252,7 @@ public sealed class ShowClientCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
     {
         // arrange
-        var client = CreateShowExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateShowExceptionClient(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -268,7 +268,8 @@ public sealed class ShowClientCommandTests
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -279,7 +280,7 @@ public sealed class ShowClientCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
     {
         // arrange
-        var client = CreateShowExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateShowExceptionClient(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -295,7 +296,8 @@ public sealed class ShowClientCommandTests
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -306,7 +308,7 @@ public sealed class ShowClientCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
     {
         // arrange
-        var client = CreateShowExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateShowExceptionClient(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -322,7 +324,8 @@ public sealed class ShowClientCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();
@@ -349,7 +352,7 @@ public sealed class ShowClientCommandTests
     private static Mock<IClientsClient> CreateShowExceptionClient(Exception ex)
     {
         var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.ShowClientAsync(
+        client.Setup(x => x.GetClientAsync(
                 "client-1",
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(ex);

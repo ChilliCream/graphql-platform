@@ -79,7 +79,8 @@ internal sealed class ListClientVersionsCommand : Command
             .CreateConnectionData(async (after, first, cancellationToken) =>
             {
                 var page = await client.ListClientVersionsAsync(
-                    clientId, after ?? cursor, first, cancellationToken);
+                    clientId, after ?? cursor, first, cancellationToken)
+                    ?? throw ThrowHelper.ThereWasAnIssueWithTheRequest("The client was not found.");
 
                 return new ConnectionPage<ClientVersionResult>(
                     page.Items.Select(ToResult).ToArray(),
@@ -117,7 +118,8 @@ internal sealed class ListClientVersionsCommand : Command
         }
 
         var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
-        var page = await client.ListClientVersionsAsync(clientId, cursor, 10, ct);
+        var page = await client.ListClientVersionsAsync(clientId, cursor, 10, ct)
+            ?? throw ThrowHelper.ThereWasAnIssueWithTheRequest("The client was not found.");
 
         var items = page.Items
             .Select(ToResult)

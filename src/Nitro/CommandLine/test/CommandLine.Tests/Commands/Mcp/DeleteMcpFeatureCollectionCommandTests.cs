@@ -1,6 +1,5 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Apis;
-using ChilliCream.Nitro.Client.Exceptions;
 using ChilliCream.Nitro.Client.Mcp;
 using Moq;
 
@@ -59,7 +58,8 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run
+            'nitro login'.
             """);
     }
 
@@ -153,8 +153,8 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
         // assert
         result.AssertSuccess(
             """
-            Deleting MCP Feature Collection...
-            └── ✓ Successfully deleted MCP Feature Collection!
+            Deleting MCP feature collection 'mcp-1'
+            └── ✓ Deleted MCP feature collection 'mcp-1'.
 
             {
               "id": "mcp-1",
@@ -264,12 +264,13 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Deleting MCP Feature Collection...
-            └── ✕ Failed!
+            Deleting MCP feature collection 'mcp-1'
+            └── ✕ Failed to delete the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Could not delete the MCP Feature Collection.
+            The GraphQL mutation completed without errors, but the server did not return the
+            expected data.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -307,8 +308,8 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Deleting MCP Feature Collection...
-            └── ✕ Failed!
+            Deleting MCP feature collection 'mcp-1'
+            └── ✕ Failed to delete the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -348,7 +349,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Deleting MCP Feature Collection...
+            [    ] Failed to delete the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -400,7 +401,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
         mcpClient.Setup(x => x.DeleteMcpFeatureCollectionAsync(
                 "mcp-1",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientException("delete failed"));
+            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -418,12 +419,12 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Deleting MCP Feature Collection...
-            └── ✕ Failed!
+            Deleting MCP feature collection 'mcp-1'
+            └── ✕ Failed to delete the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: delete failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -440,7 +441,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
         mcpClient.Setup(x => x.DeleteMcpFeatureCollectionAsync(
                 "mcp-1",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientException("delete failed"));
+            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -459,11 +460,11 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Deleting MCP Feature Collection...
+            [    ] Failed to delete the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: delete failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -480,7 +481,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
         mcpClient.Setup(x => x.DeleteMcpFeatureCollectionAsync(
                 "mcp-1",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientException("delete failed"));
+            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -498,7 +499,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: delete failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         apisClient.VerifyAll();
@@ -514,7 +515,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
         mcpClient.Setup(x => x.DeleteMcpFeatureCollectionAsync(
                 "mcp-1",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException("forbidden"));
+            .ThrowsAsync(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -532,12 +533,13 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Deleting MCP Feature Collection...
-            └── ✕ Failed!
+            Deleting MCP feature collection 'mcp-1'
+            └── ✕ Failed to delete the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -554,7 +556,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
         mcpClient.Setup(x => x.DeleteMcpFeatureCollectionAsync(
                 "mcp-1",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException("forbidden"));
+            .ThrowsAsync(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -573,11 +575,12 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Deleting MCP Feature Collection...
+            [    ] Failed to delete the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -594,7 +597,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
         mcpClient.Setup(x => x.DeleteMcpFeatureCollectionAsync(
                 "mcp-1",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException("forbidden"));
+            .ThrowsAsync(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -612,7 +615,8 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         apisClient.VerifyAll();

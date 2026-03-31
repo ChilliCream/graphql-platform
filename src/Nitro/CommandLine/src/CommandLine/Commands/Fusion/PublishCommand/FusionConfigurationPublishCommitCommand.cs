@@ -47,7 +47,9 @@ internal sealed class FusionConfigurationPublishCommitCommand : Command
 
         var committed = false;
 
-        await using (var activity = console.StartActivity("Publishing Fusion configuration"))
+        await using (var activity = console.StartActivity(
+            "Publishing Fusion configuration",
+            "Failed to publish a new Fusion configuration version."))
         {
             await using var stream = fileSystem.OpenReadStream(archiveFile);
             committed = await FusionPublishHelpers.UploadFusionArchiveAsync(
@@ -64,7 +66,7 @@ internal sealed class FusionConfigurationPublishCommitCommand : Command
             }
             else
             {
-                activity.Fail("Failed to publish a new Fusion configuration version.");
+                activity.Fail();
             }
         }
 

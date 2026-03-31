@@ -1,6 +1,5 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Clients;
-using ChilliCream.Nitro.Client.Exceptions;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using Moq;
 using static ChilliCream.Nitro.CommandLine.Tests.TestHelpers;
@@ -70,7 +69,8 @@ public sealed class PublishClientCommandTests
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run
+            'nitro login'.
             """);
     }
 
@@ -79,7 +79,7 @@ public sealed class PublishClientCommandTests
     {
         // arrange
         var client = CreatePublishExceptionClient(
-            new NitroClientException("publish failed"));
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -100,12 +100,12 @@ public sealed class PublishClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing client...
-            └── ✕ Failed!
+            Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
+            └── ✕ Failed to publish a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: publish failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -117,7 +117,7 @@ public sealed class PublishClientCommandTests
     {
         // arrange
         var client = CreatePublishExceptionClient(
-            new NitroClientException("publish failed"));
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -139,11 +139,11 @@ public sealed class PublishClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Publishing client...
+            [    ] Failed to publish a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: publish failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -155,7 +155,7 @@ public sealed class PublishClientCommandTests
     {
         // arrange
         var client = CreatePublishExceptionClient(
-            new NitroClientException("publish failed"));
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -176,7 +176,7 @@ public sealed class PublishClientCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: publish failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -187,7 +187,7 @@ public sealed class PublishClientCommandTests
     {
         // arrange
         var client = CreatePublishExceptionClient(
-            new NitroClientAuthorizationException("forbidden"));
+            new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -208,12 +208,13 @@ public sealed class PublishClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing client...
-            └── ✕ Failed!
+            Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
+            └── ✕ Failed to publish a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -225,7 +226,7 @@ public sealed class PublishClientCommandTests
     {
         // arrange
         var client = CreatePublishExceptionClient(
-            new NitroClientAuthorizationException("forbidden"));
+            new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -247,11 +248,12 @@ public sealed class PublishClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Publishing client...
+            [    ] Failed to publish a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -263,7 +265,7 @@ public sealed class PublishClientCommandTests
     {
         // arrange
         var client = CreatePublishExceptionClient(
-            new NitroClientAuthorizationException("forbidden"));
+            new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -284,7 +286,8 @@ public sealed class PublishClientCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();
@@ -319,8 +322,8 @@ public sealed class PublishClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing client...
-            └── ✕ Failed!
+            Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
+            └── ✕ Failed to publish a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -358,7 +361,7 @@ public sealed class PublishClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Publishing client...
+            [    ] Failed to publish a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -429,12 +432,13 @@ public sealed class PublishClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing client...
-            └── ✕ Failed!
+            Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
+            └── ✕ Failed to publish a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Could not create publish request.
+            The GraphQL mutation completed without errors, but the server did not return the
+            expected data.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -473,11 +477,12 @@ public sealed class PublishClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Publishing client...
+            [    ] Failed to publish a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Could not create publish request.
+            The GraphQL mutation completed without errors, but the server did not return the
+            expected data.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -515,7 +520,8 @@ public sealed class PublishClientCommandTests
         // assert
         result.AssertError(
             """
-            Could not create publish request.
+            The GraphQL mutation completed without errors, but the server did not return the
+            expected data.
             """);
 
         client.VerifyAll();
@@ -552,9 +558,9 @@ public sealed class PublishClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing client...
+            Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
             ├── The committing of your request is in progress.
-            └── ✓ Successfully published client!
+            └── ✓ Published new client version 'v1.0' to stage 'production'.
 
             {
               "stage": "production",
@@ -599,7 +605,7 @@ public sealed class PublishClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Successfully published client!
+            [    ] Failed to publish a new client version.
 
             {
               "stage": "production",
@@ -689,9 +695,9 @@ public sealed class PublishClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing client...
+            Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
             ├── The committing of your request is in progress.
-            └── ✕ Failed!
+            └── ✕ Failed to publish a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -741,7 +747,7 @@ public sealed class PublishClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] The committing of your request is in progress.
+            [    ] Failed to publish a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -827,9 +833,9 @@ public sealed class PublishClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing client...
+            Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
             ├── The committing of your request is in progress.
-            └── ✕ Failed!
+            └── ✕ Failed to publish a new client version.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -868,10 +874,10 @@ public sealed class PublishClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing client...
+            Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
             ├── Your request is queued. The current position in the queue is 3.
             ├── The committing of your request is in progress.
-            └── ✓ Successfully published client!
+            └── ✓ Published new client version 'v1.0' to stage 'production'.
 
             {
               "stage": "production",
@@ -916,10 +922,10 @@ public sealed class PublishClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing client...
+            Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
             Your request is ready for the committing.
             ├── The committing of your request is in progress.
-            └── ✓ Successfully published client!
+            └── ✓ Published new client version 'v1.0' to stage 'production'.
 
             {
               "stage": "production",
@@ -964,10 +970,10 @@ public sealed class PublishClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing client...
+            Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
             ├── The committing of your request is approved.
             ├── The committing of your request is in progress.
-            └── ✓ Successfully published client!
+            └── ✓ Published new client version 'v1.0' to stage 'production'.
 
             {
               "stage": "production",
@@ -1018,12 +1024,12 @@ public sealed class PublishClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing client...
+            Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
             ├── The committing of your request is waiting for approval. Check Nitro to
             approve the request.
             ├── The committing of your request is approved.
             ├── The committing of your request is in progress.
-            └── ✓ Successfully published client!
+            └── ✓ Published new client version 'v1.0' to stage 'production'.
 
             {
               "stage": "production",
@@ -1106,9 +1112,9 @@ public sealed class PublishClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing client...
-            LOG: Force push is enabled
-            └── ✓ Successfully published client!
+            Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
+            ├── ! Force push is enabled.
+            └── ✓ Published new client version 'v1.0' to stage 'production'.
 
             {
               "stage": "production",

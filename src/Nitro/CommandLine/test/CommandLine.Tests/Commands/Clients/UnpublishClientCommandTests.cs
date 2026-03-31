@@ -1,6 +1,5 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Clients;
-using ChilliCream.Nitro.Client.Exceptions;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Clients;
@@ -61,7 +60,8 @@ public sealed class UnpublishClientCommandTests
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run
+            'nitro login'.
             """);
     }
 
@@ -96,10 +96,10 @@ public sealed class UnpublishClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Unpublishing...
+            Unpublishing client 'client-1' from stage 'production'
             ├── Unpublishing v1...
             Unpublished my-client:v1 from production
-            └── ✓ Unpublishing complete!
+            └── ✓ Unpublished client 'client-1' from stage 'production'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -181,12 +181,12 @@ public sealed class UnpublishClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Unpublishing...
+            Unpublishing client 'client-1' from stage 'production'
             ├── Unpublishing v1...
             Unpublished my-client:v1 from production
             ├── Unpublishing v2...
             Unpublished my-client:v2 from production
-            └── ✓ Unpublishing complete!
+            └── ✓ Unpublished client 'client-1' from stage 'production'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -228,9 +228,9 @@ public sealed class UnpublishClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Unpublishing...
+            Unpublishing client 'client-1' from stage 'production'
             ├── Unpublishing v1...
-            └── ✕ Failed!
+            └── ✕ Failed to unpublish the client.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -273,7 +273,7 @@ public sealed class UnpublishClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Unpublishing v1...
+            [    ] Failed to unpublish the client.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -328,7 +328,7 @@ public sealed class UnpublishClientCommandTests
                 "production",
                 "v1",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientException("unpublish failed"));
+            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -349,7 +349,7 @@ public sealed class UnpublishClientCommandTests
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: unpublish failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -366,7 +366,7 @@ public sealed class UnpublishClientCommandTests
                 "production",
                 "v1",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientException("unpublish failed"));
+            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -387,7 +387,7 @@ public sealed class UnpublishClientCommandTests
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: unpublish failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -404,7 +404,7 @@ public sealed class UnpublishClientCommandTests
                 "production",
                 "v1",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientException("unpublish failed"));
+            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -425,7 +425,7 @@ public sealed class UnpublishClientCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: unpublish failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -441,7 +441,7 @@ public sealed class UnpublishClientCommandTests
                 "production",
                 "v1",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException("forbidden"));
+            .ThrowsAsync(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -462,7 +462,8 @@ public sealed class UnpublishClientCommandTests
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -479,7 +480,7 @@ public sealed class UnpublishClientCommandTests
                 "production",
                 "v1",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException("forbidden"));
+            .ThrowsAsync(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -500,7 +501,8 @@ public sealed class UnpublishClientCommandTests
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -517,7 +519,7 @@ public sealed class UnpublishClientCommandTests
                 "production",
                 "v1",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException("forbidden"));
+            .ThrowsAsync(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -538,7 +540,8 @@ public sealed class UnpublishClientCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();

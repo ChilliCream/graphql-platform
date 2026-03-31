@@ -63,7 +63,9 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
                 toolFiles,
                 cancellationToken);
 
-        await using (var activity = console.StartActivity($"Uploading new MCP feature collection version '{tag.EscapeMarkup()}' for collection '{mcpFeatureCollectionId.EscapeMarkup()}'"))
+        await using (var activity = console.StartActivity(
+            $"Uploading new MCP feature collection version '{tag.EscapeMarkup()}' for collection '{mcpFeatureCollectionId.EscapeMarkup()}'",
+            "Failed to upload a new MCP feature collection version."))
         {
             var data = await client.UploadMcpFeatureCollectionVersionAsync(
                 mcpFeatureCollectionId,
@@ -74,7 +76,7 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail("Failed to upload a new MCP feature collection version.");
+                activity.Fail();
 
                 foreach (var error in data.Errors)
                 {
@@ -84,7 +86,8 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
                         IUnauthorizedOperation err => err.Message,
                         IDuplicatedTagError err => err.Message,
                         IConcurrentOperationError err => err.Message,
-                        IInvalidMcpFeatureCollectionArchiveError err => err.Message,
+                        IInvalidMcpFeatureCollectionArchiveError err =>
+                            ErrorMessages.InvalidArchive(err.Message),
                         IError err => "Unexpected mutation error: " + err.Message,
                         _ => "Unexpected mutation error."
                     };
@@ -97,7 +100,7 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
 
             if (data.McpFeatureCollectionVersion is null)
             {
-                activity.Fail("Failed to upload a new MCP feature collection version.");
+                activity.Fail();
                 console.Error.WriteErrorLine("Could not upload MCP Feature Collection version.");
                 return ExitCodes.Error;
             }

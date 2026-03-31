@@ -7,6 +7,7 @@ using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
+using HotChocolate.Fusion;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
@@ -53,7 +54,9 @@ internal sealed class FusionDownloadCommand : Command
 
         var isFgp = Path.GetExtension(outputFile).Equals(".fgp", StringComparison.OrdinalIgnoreCase);
 
-        await using (var activity = console.StartActivity($"Downloading latest Fusion configuration from stage '{stageName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'"))
+        await using (var activity = console.StartActivity(
+            $"Downloading latest Fusion configuration from stage '{stageName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'",
+            "Failed to download the latest Fusion configuration."))
         {
             await using var stream = isFgp
                 ? await fusionConfigurationClient.DownloadLatestLegacyFusionArchiveAsync(
@@ -63,11 +66,11 @@ internal sealed class FusionDownloadCommand : Command
                 : await fusionConfigurationClient.DownloadLatestFusionArchiveAsync(
                     apiId,
                     stageName,
+                    WellKnownVersions.LatestGatewayFormatVersion.ToString(),
                     cancellationToken);
 
             if (stream is null)
             {
-                activity.Fail("Failed to download the latest Fusion configuration.");
                 throw new ExitException("The API with the given ID does not exist or does not have a download URL.");
             }
 

@@ -67,8 +67,7 @@ internal sealed class ListStagesCommand : Command
         const string apiMessage = "For which API do you want to display the clients?";
         var apiId = await parseResult.GetOrPromptForApiIdAsync(apiMessage, console, apisClient, sessionService, ct);
 
-        var stageData = await client.ListStagesAsync(apiId, ct);
-        var stages = stageData.Stages;
+        var stages = await client.ListStagesAsync(apiId, ct) ?? [];
 
         var stage = await SelectableTable
             .From(stages)
@@ -103,8 +102,8 @@ internal sealed class ListStagesCommand : Command
             throw ThrowHelper.MissingRequiredOption(ApiIdOption.OptionName);
         }
 
-        var data = await client.ListStagesAsync(apiId, ct);
-        var items = data.Stages
+        var data = await client.ListStagesAsync(apiId, ct) ?? [];
+        var items = data
             .Select(x => StageDetailPrompt.From(x).ToObject())
             .ToArray();
 

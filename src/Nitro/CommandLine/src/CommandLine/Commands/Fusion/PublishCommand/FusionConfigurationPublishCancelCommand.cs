@@ -40,7 +40,9 @@ internal sealed class FusionConfigurationPublishCancelCommand : Command
             throw new ExitException(
                 "No request ID was provided and no request ID was found in the cache. Please provide a request ID.");
 
-        await using (var activity = console.StartActivity("Canceling publication"))
+        await using (var activity = console.StartActivity(
+            "Canceling publication",
+            "Failed to cancel the publication."))
         {
             await fusionConfigurationClient.ReleaseDeploymentSlotAsync(requestId, cancellationToken);
 

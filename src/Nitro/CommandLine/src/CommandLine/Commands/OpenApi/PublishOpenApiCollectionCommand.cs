@@ -50,7 +50,9 @@ internal sealed class PublishOpenApiCollectionCommand : Command
     {
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        await using (var activity = console.StartActivity($"Publishing new OpenAPI collection version '{tag.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}'"))
+        await using (var activity = console.StartActivity(
+            $"Publishing new OpenAPI collection version '{tag.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}'",
+            "Failed to publish a new OpenAPI collection version."))
         {
             if (force)
             {
@@ -68,7 +70,7 @@ internal sealed class PublishOpenApiCollectionCommand : Command
 
             if (publishRequest.Errors?.Count > 0)
             {
-                activity.Fail("Failed to publish a new OpenAPI collection version.");
+                activity.Fail();
 
                 foreach (var error in publishRequest.Errors)
                 {
@@ -90,7 +92,6 @@ internal sealed class PublishOpenApiCollectionCommand : Command
 
             if (publishRequest.Id is not { } requestId)
             {
-                activity.Fail("Failed to publish a new OpenAPI collection version.");
                 throw MutationReturnedNoData();
             }
 
@@ -103,7 +104,7 @@ internal sealed class PublishOpenApiCollectionCommand : Command
                         break;
 
                     case IOpenApiCollectionVersionPublishFailed { Errors: var errors }:
-                        activity.Fail("Failed to publish a new OpenAPI collection version.");
+                        activity.Fail();
 
                         foreach (var error in errors)
                         {
@@ -172,7 +173,7 @@ internal sealed class PublishOpenApiCollectionCommand : Command
                 }
             }
 
-            activity.Fail("Failed to publish a new OpenAPI collection version.");
+            activity.Fail();
         }
 
         return ExitCodes.Error;

@@ -1,6 +1,5 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.ApiKeys;
-using ChilliCream.Nitro.Client.Exceptions;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.ApiKeys;
@@ -58,7 +57,8 @@ public sealed class DeleteApiKeyCommandTests
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run
+            'nitro login'.
             """);
     }
 
@@ -88,8 +88,8 @@ public sealed class DeleteApiKeyCommandTests
         // assert
         result.AssertSuccess(
             """
-            Deleting API key...
-            └── ✓ Successfully deleted API key!
+            Deleting API key 'key-1'
+            └── ✓ Deleted API key 'key-1'.
 
             {
               "id": "key-1",
@@ -134,7 +134,7 @@ public sealed class DeleteApiKeyCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Deleting API key...
+            [    ] Failed to delete the API key.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -172,8 +172,8 @@ public sealed class DeleteApiKeyCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Deleting API key...
-            └── ✕ Failed!
+            Deleting API key 'key-1'
+            └── ✕ Failed to delete the API key.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -222,7 +222,7 @@ public sealed class DeleteApiKeyCommandTests
         client.Setup(x => x.DeleteApiKeyAsync(
                 "key-1",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientException("delete failed"));
+            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         var builder = new CommandBuilder()
             .AddService(client.Object)
@@ -240,7 +240,7 @@ public sealed class DeleteApiKeyCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: delete failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -254,7 +254,7 @@ public sealed class DeleteApiKeyCommandTests
         client.Setup(x => x.DeleteApiKeyAsync(
                 "key-1",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientException("delete failed"));
+            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         var builder = new CommandBuilder()
             .AddService(client.Object)
@@ -272,12 +272,12 @@ public sealed class DeleteApiKeyCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Deleting API key...
-            └── ✕ Failed!
+            Deleting API key 'key-1'
+            └── ✕ Failed to delete the API key.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: delete failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -292,7 +292,7 @@ public sealed class DeleteApiKeyCommandTests
         client.Setup(x => x.DeleteApiKeyAsync(
                 "key-1",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientException("delete failed"));
+            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         var builder = new CommandBuilder()
             .AddService(client.Object)
@@ -311,11 +311,11 @@ public sealed class DeleteApiKeyCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Deleting API key...
+            [    ] Failed to delete the API key.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: delete failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -330,7 +330,7 @@ public sealed class DeleteApiKeyCommandTests
         client.Setup(x => x.DeleteApiKeyAsync(
                 "key-1",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException("delete failed"));
+            .ThrowsAsync(new NitroClientAuthorizationException());
 
         var builder = new CommandBuilder()
             .AddService(client.Object)
@@ -349,11 +349,12 @@ public sealed class DeleteApiKeyCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Deleting API key...
+            [    ] Failed to delete the API key.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -368,7 +369,7 @@ public sealed class DeleteApiKeyCommandTests
         client.Setup(x => x.DeleteApiKeyAsync(
                 "key-1",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException("delete failed"));
+            .ThrowsAsync(new NitroClientAuthorizationException());
 
         var builder = new CommandBuilder()
             .AddService(client.Object)
@@ -386,12 +387,13 @@ public sealed class DeleteApiKeyCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Deleting API key...
-            └── ✕ Failed!
+            Deleting API key 'key-1'
+            └── ✕ Failed to delete the API key.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -406,7 +408,7 @@ public sealed class DeleteApiKeyCommandTests
         client.Setup(x => x.DeleteApiKeyAsync(
                 "key-1",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException("delete failed"));
+            .ThrowsAsync(new NitroClientAuthorizationException());
 
         var builder = new CommandBuilder()
             .AddService(client.Object)
@@ -424,7 +426,8 @@ public sealed class DeleteApiKeyCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();

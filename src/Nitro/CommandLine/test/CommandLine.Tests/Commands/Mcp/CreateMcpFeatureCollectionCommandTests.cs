@@ -1,6 +1,5 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Apis;
-using ChilliCream.Nitro.Client.Exceptions;
 using ChilliCream.Nitro.Client.Mcp;
 using Moq;
 
@@ -59,7 +58,8 @@ public sealed class CreateMcpFeatureCollectionCommandTests
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run
+            'nitro login'.
             """);
     }
 
@@ -119,7 +119,8 @@ public sealed class CreateMcpFeatureCollectionCommandTests
         // assert
         result.AssertError(
             """
-            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually specify the '--workspace-id' option (if available).
+            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually
+            specify the '--workspace-id' option (if available).
             """);
 
         apisClient.VerifyAll();
@@ -156,8 +157,8 @@ public sealed class CreateMcpFeatureCollectionCommandTests
         // assert
         result.AssertSuccess(
             """
-            Creating MCP Feature Collection...
-            └── ✓ Successfully created MCP Feature Collection!
+            Creating MCP feature collection 'my-mcp' for API 'api-1'
+            └── ✓ Created MCP feature collection 'my-mcp'.
 
             {
               "id": "mcp-1",
@@ -239,12 +240,13 @@ public sealed class CreateMcpFeatureCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Creating MCP Feature Collection...
-            └── ✕ Failed!
+            Creating MCP feature collection 'my-mcp' for API 'api-1'
+            └── ✕ Failed to create the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Could not create MCP Feature Collection.
+            The GraphQL mutation completed without errors, but the server did not return the
+            expected data.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -285,8 +287,8 @@ public sealed class CreateMcpFeatureCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Creating MCP Feature Collection...
-            └── ✕ Failed!
+            Creating MCP feature collection 'my-mcp' for API 'api-1'
+            └── ✕ Failed to create the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -329,7 +331,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Creating MCP Feature Collection...
+            [    ] Failed to create the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -385,7 +387,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests
                 "api-1",
                 "my-mcp",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientException("create failed"));
+            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -405,12 +407,12 @@ public sealed class CreateMcpFeatureCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Creating MCP Feature Collection...
-            └── ✕ Failed!
+            Creating MCP feature collection 'my-mcp' for API 'api-1'
+            └── ✕ Failed to create the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: create failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -428,7 +430,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests
                 "api-1",
                 "my-mcp",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientException("create failed"));
+            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -449,11 +451,11 @@ public sealed class CreateMcpFeatureCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Creating MCP Feature Collection...
+            [    ] Failed to create the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: create failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -471,7 +473,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests
                 "api-1",
                 "my-mcp",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientException("create failed"));
+            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -491,7 +493,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: create failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         apisClient.VerifyAll();
@@ -508,7 +510,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests
                 "api-1",
                 "my-mcp",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException("forbidden"));
+            .ThrowsAsync(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -528,12 +530,13 @@ public sealed class CreateMcpFeatureCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Creating MCP Feature Collection...
-            └── ✕ Failed!
+            Creating MCP feature collection 'my-mcp' for API 'api-1'
+            └── ✕ Failed to create the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -551,7 +554,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests
                 "api-1",
                 "my-mcp",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException("forbidden"));
+            .ThrowsAsync(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -572,11 +575,12 @@ public sealed class CreateMcpFeatureCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Creating MCP Feature Collection...
+            [    ] Failed to create the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -594,7 +598,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests
                 "api-1",
                 "my-mcp",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException("forbidden"));
+            .ThrowsAsync(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -614,7 +618,8 @@ public sealed class CreateMcpFeatureCollectionCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         apisClient.VerifyAll();

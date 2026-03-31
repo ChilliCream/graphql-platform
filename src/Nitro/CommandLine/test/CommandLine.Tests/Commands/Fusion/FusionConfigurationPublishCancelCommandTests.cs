@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Exceptions;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using Moq;
@@ -58,7 +57,8 @@ public sealed class FusionConfigurationPublishCancelCommandTests
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run
+            'nitro login'.
             """);
     }
 
@@ -87,7 +87,8 @@ public sealed class FusionConfigurationPublishCancelCommandTests
         // assert
         result.AssertError(
             """
-            No request ID was provided and no request ID was found in the cache. Please provide a request ID.
+            No request ID was provided and no request ID was found in the cache. Please
+            provide a request ID.
             """);
 
         fileSystem.VerifyAll();
@@ -126,7 +127,7 @@ public sealed class FusionConfigurationPublishCancelCommandTests
     public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
-        var client = CreateExceptionClient(new NitroClientException("cancel failed"));
+        var client = CreateExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -142,10 +143,11 @@ public sealed class FusionConfigurationPublishCancelCommandTests
             .ExecuteAsync();
 
         // assert
-        result.AssertError(
+        result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: cancel failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
+        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -154,7 +156,7 @@ public sealed class FusionConfigurationPublishCancelCommandTests
     public async Task ClientThrowsException_ReturnsError_Interactive()
     {
         // arrange
-        var client = CreateExceptionClient(new NitroClientException("cancel failed"));
+        var client = CreateExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -170,10 +172,11 @@ public sealed class FusionConfigurationPublishCancelCommandTests
             .ExecuteAsync();
 
         // assert
-        result.AssertError(
+        result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: cancel failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
+        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -182,7 +185,7 @@ public sealed class FusionConfigurationPublishCancelCommandTests
     public async Task ClientThrowsException_ReturnsError_JsonOutput()
     {
         // arrange
-        var client = CreateExceptionClient(new NitroClientException("cancel failed"));
+        var client = CreateExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -200,7 +203,7 @@ public sealed class FusionConfigurationPublishCancelCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: cancel failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -210,7 +213,7 @@ public sealed class FusionConfigurationPublishCancelCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
     {
         // arrange
-        var client = CreateExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateExceptionClient(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -226,10 +229,12 @@ public sealed class FusionConfigurationPublishCancelCommandTests
             .ExecuteAsync();
 
         // assert
-        result.AssertError(
+        result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
+        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -238,7 +243,7 @@ public sealed class FusionConfigurationPublishCancelCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
     {
         // arrange
-        var client = CreateExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateExceptionClient(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -254,10 +259,12 @@ public sealed class FusionConfigurationPublishCancelCommandTests
             .ExecuteAsync();
 
         // assert
-        result.AssertError(
+        result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
+        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -266,7 +273,7 @@ public sealed class FusionConfigurationPublishCancelCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
     {
         // arrange
-        var client = CreateExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateExceptionClient(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -284,7 +291,8 @@ public sealed class FusionConfigurationPublishCancelCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();
@@ -312,7 +320,8 @@ public sealed class FusionConfigurationPublishCancelCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Cancelled the composition of Fusion configuration.
+            Canceling publication
+            └── ✓ Canceled the publication.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -342,7 +351,8 @@ public sealed class FusionConfigurationPublishCancelCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Cancelled the composition of Fusion configuration.
+
+            [    ] Failed to cancel the publication.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);

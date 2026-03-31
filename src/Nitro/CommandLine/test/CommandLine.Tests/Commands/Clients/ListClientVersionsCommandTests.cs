@@ -1,7 +1,6 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Clients;
-using ChilliCream.Nitro.Client.Exceptions;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Clients;
@@ -57,7 +56,8 @@ public sealed class ListClientVersionsCommandTests
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run
+            'nitro login'.
             """);
     }
 
@@ -604,7 +604,7 @@ public sealed class ListClientVersionsCommandTests
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
         var clientsClient = CreateListExceptionClient(
-            new NitroClientException("list failed"), "client-1", null);
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"), "client-1", null);
 
         // act
         var result = await new CommandBuilder()
@@ -623,7 +623,7 @@ public sealed class ListClientVersionsCommandTests
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: list failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -637,7 +637,7 @@ public sealed class ListClientVersionsCommandTests
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
         var clientsClient = CreateListExceptionClient(
-            new NitroClientException("list failed"), "client-1", null);
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"), "client-1", null);
 
         // act
         var result = await new CommandBuilder()
@@ -656,7 +656,7 @@ public sealed class ListClientVersionsCommandTests
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: list failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -670,7 +670,7 @@ public sealed class ListClientVersionsCommandTests
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
         var clientsClient = CreateListExceptionClient(
-            new NitroClientException("list failed"), "client-1", null);
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"), "client-1", null);
 
         // act
         var result = await new CommandBuilder()
@@ -689,7 +689,7 @@ public sealed class ListClientVersionsCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: list failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         apisClient.VerifyAll();
@@ -702,7 +702,7 @@ public sealed class ListClientVersionsCommandTests
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
         var clientsClient = CreateListExceptionClient(
-            new NitroClientAuthorizationException("forbidden"), "client-1", null);
+            new NitroClientAuthorizationException(), "client-1", null);
 
         // act
         var result = await new CommandBuilder()
@@ -721,7 +721,8 @@ public sealed class ListClientVersionsCommandTests
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -735,7 +736,7 @@ public sealed class ListClientVersionsCommandTests
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
         var clientsClient = CreateListExceptionClient(
-            new NitroClientAuthorizationException("forbidden"), "client-1", null);
+            new NitroClientAuthorizationException(), "client-1", null);
 
         // act
         var result = await new CommandBuilder()
@@ -754,7 +755,8 @@ public sealed class ListClientVersionsCommandTests
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -768,7 +770,7 @@ public sealed class ListClientVersionsCommandTests
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
         var clientsClient = CreateListExceptionClient(
-            new NitroClientAuthorizationException("forbidden"), "client-1", null);
+            new NitroClientAuthorizationException(), "client-1", null);
 
         // act
         var result = await new CommandBuilder()
@@ -787,7 +789,8 @@ public sealed class ListClientVersionsCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         apisClient.VerifyAll();

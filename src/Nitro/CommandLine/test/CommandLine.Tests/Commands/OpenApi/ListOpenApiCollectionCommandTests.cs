@@ -1,6 +1,5 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Apis;
-using ChilliCream.Nitro.Client.Exceptions;
 using ChilliCream.Nitro.Client.OpenApi;
 using Moq;
 
@@ -52,7 +51,8 @@ public sealed class ListOpenApiCollectionCommandTests
         // assert
         result.AssertError(
             """
-            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually specify the '--workspace-id' option (if available).
+            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually
+            specify the '--workspace-id' option (if available).
             """);
     }
 
@@ -106,7 +106,8 @@ public sealed class ListOpenApiCollectionCommandTests
         // assert
         result.AssertError(
             """
-            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually specify the '--workspace-id' option (if available).
+            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually
+            specify the '--workspace-id' option (if available).
             """);
 
         apisClient.VerifyAll();
@@ -584,7 +585,7 @@ public sealed class ListOpenApiCollectionCommandTests
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var openApiClient = CreateListExceptionClient(new NitroClientException("list failed"), "api-1", null);
+        var openApiClient = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"), "api-1", null);
 
         // act
         var result = await new CommandBuilder()
@@ -602,7 +603,7 @@ public sealed class ListOpenApiCollectionCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: list failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         apisClient.VerifyAll();
@@ -614,7 +615,7 @@ public sealed class ListOpenApiCollectionCommandTests
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var openApiClient = CreateListExceptionClient(new NitroClientException("list failed"), "api-1", null);
+        var openApiClient = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"), "api-1", null);
 
         // act
         var result = await new CommandBuilder()
@@ -632,7 +633,7 @@ public sealed class ListOpenApiCollectionCommandTests
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: list failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -645,7 +646,7 @@ public sealed class ListOpenApiCollectionCommandTests
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var openApiClient = CreateListExceptionClient(new NitroClientException("list failed"), "api-1", null);
+        var openApiClient = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"), "api-1", null);
 
         // act
         var result = await new CommandBuilder()
@@ -663,7 +664,7 @@ public sealed class ListOpenApiCollectionCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: list failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         apisClient.VerifyAll();
@@ -675,7 +676,7 @@ public sealed class ListOpenApiCollectionCommandTests
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var openApiClient = CreateListExceptionClient(new NitroClientAuthorizationException("forbidden"), "api-1", null);
+        var openApiClient = CreateListExceptionClient(new NitroClientAuthorizationException(), "api-1", null);
 
         // act
         var result = await new CommandBuilder()
@@ -693,7 +694,8 @@ public sealed class ListOpenApiCollectionCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         apisClient.VerifyAll();
@@ -705,7 +707,7 @@ public sealed class ListOpenApiCollectionCommandTests
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var openApiClient = CreateListExceptionClient(new NitroClientAuthorizationException("forbidden"), "api-1", null);
+        var openApiClient = CreateListExceptionClient(new NitroClientAuthorizationException(), "api-1", null);
 
         // act
         var result = await new CommandBuilder()
@@ -723,7 +725,8 @@ public sealed class ListOpenApiCollectionCommandTests
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -736,7 +739,7 @@ public sealed class ListOpenApiCollectionCommandTests
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var openApiClient = CreateListExceptionClient(new NitroClientAuthorizationException("forbidden"), "api-1", null);
+        var openApiClient = CreateListExceptionClient(new NitroClientAuthorizationException(), "api-1", null);
 
         // act
         var result = await new CommandBuilder()
@@ -754,7 +757,8 @@ public sealed class ListOpenApiCollectionCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         apisClient.VerifyAll();

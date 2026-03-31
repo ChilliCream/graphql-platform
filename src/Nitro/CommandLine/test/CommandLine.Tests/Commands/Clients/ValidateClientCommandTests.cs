@@ -1,6 +1,5 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Clients;
-using ChilliCream.Nitro.Client.Exceptions;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using Moq;
 using static ChilliCream.Nitro.CommandLine.Tests.TestHelpers;
@@ -68,7 +67,8 @@ public sealed class ValidateClientCommandTests
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run
+            'nitro login'.
             """);
     }
 
@@ -77,7 +77,7 @@ public sealed class ValidateClientCommandTests
     {
         // arrange
         var client = CreateValidationExceptionClient(
-            new NitroClientException("validation request failed"));
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
         var fileSystem = CreateOperationsFileSystem();
 
         // act
@@ -100,12 +100,12 @@ public sealed class ValidateClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating...
-            └── ✕ Failed!
+            Validating client against stage 'production' of client 'client-1'
+            └── ✕ Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: validation request failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -117,7 +117,7 @@ public sealed class ValidateClientCommandTests
     {
         // arrange
         var client = CreateValidationExceptionClient(
-            new NitroClientException("validation request failed"));
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
         var fileSystem = CreateOperationsFileSystem();
 
         // act
@@ -141,11 +141,11 @@ public sealed class ValidateClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Validating...
+            [    ] Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: validation request failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -157,7 +157,7 @@ public sealed class ValidateClientCommandTests
     {
         // arrange
         var client = CreateValidationExceptionClient(
-            new NitroClientException("validation request failed"));
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
         var fileSystem = CreateOperationsFileSystem();
 
         // act
@@ -180,7 +180,7 @@ public sealed class ValidateClientCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: validation request failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -191,7 +191,7 @@ public sealed class ValidateClientCommandTests
     {
         // arrange
         var client = CreateValidationExceptionClient(
-            new NitroClientAuthorizationException("forbidden"));
+            new NitroClientAuthorizationException());
         var fileSystem = CreateOperationsFileSystem();
 
         // act
@@ -214,12 +214,13 @@ public sealed class ValidateClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating...
-            └── ✕ Failed!
+            Validating client against stage 'production' of client 'client-1'
+            └── ✕ Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -231,7 +232,7 @@ public sealed class ValidateClientCommandTests
     {
         // arrange
         var client = CreateValidationExceptionClient(
-            new NitroClientAuthorizationException("forbidden"));
+            new NitroClientAuthorizationException());
         var fileSystem = CreateOperationsFileSystem();
 
         // act
@@ -255,11 +256,12 @@ public sealed class ValidateClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Validating...
+            [    ] Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -271,7 +273,7 @@ public sealed class ValidateClientCommandTests
     {
         // arrange
         var client = CreateValidationExceptionClient(
-            new NitroClientAuthorizationException("forbidden"));
+            new NitroClientAuthorizationException());
         var fileSystem = CreateOperationsFileSystem();
 
         // act
@@ -294,7 +296,8 @@ public sealed class ValidateClientCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();
@@ -330,8 +333,8 @@ public sealed class ValidateClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating...
-            └── ✕ Failed!
+            Validating client against stage 'production' of client 'client-1'
+            └── ✕ Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -370,7 +373,7 @@ public sealed class ValidateClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Validating...
+            [    ] Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -443,8 +446,8 @@ public sealed class ValidateClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating...
-            └── ✕ Failed!
+            Validating client against stage 'production' of client 'client-1'
+            └── ✕ Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -488,7 +491,7 @@ public sealed class ValidateClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Validating...
+            [    ] Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -570,11 +573,11 @@ public sealed class ValidateClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating...
+            Validating client against stage 'production' of client 'client-1'
             ├── Validation request created (ID: request-1)
             ├── The client validation is in progress.
             ├── The client validation is in progress.
-            └── ✓ Client validation succeeded.
+            └── ✓ Validated the client.
 
             {
               "requestId": "request-1",
@@ -621,7 +624,7 @@ public sealed class ValidateClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Client validation succeeded.
+            [    ] Failed to validate the client.
 
             {
               "requestId": "request-1",
@@ -714,10 +717,10 @@ public sealed class ValidateClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating...
+            Validating client against stage 'production' of client 'client-1'
             ├── Validation request created (ID: request-1)
             ├── The client validation is in progress.
-            └── ✕ Failed!
+            └── ✕ Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -768,7 +771,7 @@ public sealed class ValidateClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] The client validation is in progress.
+            [    ] Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -856,10 +859,10 @@ public sealed class ValidateClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating...
+            Validating client against stage 'production' of client 'client-1'
             ├── Validation request created (ID: request-1)
             ├── The client validation is in progress.
-            └── ✕ Failed!
+            └── ✕ Failed to validate the client.
             """);
         Assert.Equal(1, result.ExitCode);
 

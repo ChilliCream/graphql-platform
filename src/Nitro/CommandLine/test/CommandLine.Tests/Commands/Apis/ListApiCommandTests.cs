@@ -1,5 +1,5 @@
 using ChilliCream.Nitro.Client.Apis;
-using ChilliCream.Nitro.Client.Exceptions;
+using ChilliCream.Nitro.Client;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Apis;
@@ -53,7 +53,8 @@ public sealed class ListApiCommandTests
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run
+            'nitro login'.
             """);
     }
 
@@ -76,7 +77,8 @@ public sealed class ListApiCommandTests
         // assert
         result.AssertError(
             """
-            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually specify the '--workspace-id' option (if available).
+            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually
+            specify the '--workspace-id' option (if available).
             """);
     }
 
@@ -682,7 +684,7 @@ public sealed class ListApiCommandTests
     public async Task ClientThrowsException_ReturnsError_Interactive()
     {
         // arrange
-        var client = CreateListExceptionClient(new NitroClientException("list failed"));
+        var client = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -695,7 +697,7 @@ public sealed class ListApiCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: list failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -705,7 +707,7 @@ public sealed class ListApiCommandTests
     public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
-        var client = CreateListExceptionClient(new NitroClientException("list failed"));
+        var client = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -718,7 +720,7 @@ public sealed class ListApiCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: list failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -728,7 +730,7 @@ public sealed class ListApiCommandTests
     public async Task ClientThrowsException_ReturnsError_JsonOutput()
     {
         // arrange
-        var client = CreateListExceptionClient(new NitroClientException("list failed"));
+        var client = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -741,7 +743,7 @@ public sealed class ListApiCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: list failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -751,7 +753,7 @@ public sealed class ListApiCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
     {
         // arrange
-        var client = CreateListExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateListExceptionClient(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -764,7 +766,8 @@ public sealed class ListApiCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();
@@ -774,7 +777,7 @@ public sealed class ListApiCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
     {
         // arrange
-        var client = CreateListExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateListExceptionClient(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -787,7 +790,8 @@ public sealed class ListApiCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();
@@ -797,7 +801,7 @@ public sealed class ListApiCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
     {
         // arrange
-        var client = CreateListExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateListExceptionClient(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -810,7 +814,8 @@ public sealed class ListApiCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();

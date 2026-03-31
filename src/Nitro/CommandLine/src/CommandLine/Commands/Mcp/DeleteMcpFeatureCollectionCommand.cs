@@ -86,7 +86,9 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
             }
         }
 
-        await using (var activity = console.StartActivity($"Deleting MCP feature collection '{mcpFeatureCollectionId.EscapeMarkup()}'"))
+        await using (var activity = console.StartActivity(
+            $"Deleting MCP feature collection '{mcpFeatureCollectionId.EscapeMarkup()}'",
+            "Failed to delete the MCP feature collection."))
         {
             var data = await client.DeleteMcpFeatureCollectionAsync(
                 mcpFeatureCollectionId,
@@ -94,7 +96,7 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail("Failed to delete the MCP feature collection.");
+                activity.Fail();
 
                 foreach (var error in data.Errors)
                 {
@@ -113,7 +115,6 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
 
             if (data.McpFeatureCollection is not IMcpFeatureCollectionDetailPrompt_McpFeatureCollection detail)
             {
-                activity.Fail("Failed to delete the MCP feature collection.");
                 throw MutationReturnedNoData();
             }
 

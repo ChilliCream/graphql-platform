@@ -1,5 +1,5 @@
+using System.Net;
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Exceptions;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using Moq;
@@ -69,7 +69,8 @@ public sealed class FusionUploadCommandTests
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run
+            'nitro login'.
             """);
     }
 
@@ -102,8 +103,8 @@ public sealed class FusionUploadCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading source schema '/tmp/subgraph.graphqls'...
-            └── ✕ Failed!
+            Uploading new source schema version 'v1' to API 'api-1'
+            └── ✕ Failed to upload a new source schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -144,7 +145,7 @@ public sealed class FusionUploadCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Uploading source schema '/tmp/subgraph.graphqls'...
+            [    ] Failed to upload a new source schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -219,8 +220,8 @@ public sealed class FusionUploadCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading source schema '/tmp/subgraph.graphqls'...
-            └── ✕ Failed!
+            Uploading new source schema version 'v1' to API 'api-1'
+            └── ✕ Failed to upload a new source schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -260,8 +261,8 @@ public sealed class FusionUploadCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading source schema '/tmp/subgraph.graphqls'...
-            └── ✕ Failed!
+            Uploading new source schema version 'v1' to API 'api-1'
+            └── ✕ Failed to upload a new source schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -302,12 +303,13 @@ public sealed class FusionUploadCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading source schema '/tmp/subgraph.graphqls'...
-            └── ✕ Failed!
+            Uploading new source schema version 'v1' to API 'api-1'
+            └── ✕ Failed to upload a new source schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The archive is invalid.
+            The server received an invalid archive. This indicates a bug in the tooling.
+            Please notify ChilliCream.Error received: The archive is invalid.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -343,8 +345,8 @@ public sealed class FusionUploadCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading source schema '/tmp/subgraph.graphqls'...
-            └── ✕ Failed!
+            Uploading new source schema version 'v1' to API 'api-1'
+            └── ✕ Failed to upload a new source schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -383,8 +385,8 @@ public sealed class FusionUploadCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading source schema '/tmp/subgraph.graphqls'...
-            └── ✕ Failed!
+            Uploading new source schema version 'v1' to API 'api-1'
+            └── ✕ Failed to upload a new source schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -427,8 +429,8 @@ public sealed class FusionUploadCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading source schema '/tmp/subgraph.graphqls'...
-            └── ✕ Failed!
+            Uploading new source schema version 'v1' to API 'api-1'
+            └── ✕ Failed to upload a new source schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -472,7 +474,7 @@ public sealed class FusionUploadCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Uploading source schema '/tmp/subgraph.graphqls'...
+            [    ] Failed to upload a new source schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -547,8 +549,8 @@ public sealed class FusionUploadCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading source schema '/tmp/subgraph.graphqls'...
-            └── ✓ Successfully uploaded source schema!
+            Uploading new source schema version 'v1' to API 'api-1'
+            └── ✓ Uploaded new source schema version 'v1'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -583,7 +585,7 @@ public sealed class FusionUploadCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Successfully uploaded source schema!
+            [    ] Failed to upload a new source schema version.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -631,7 +633,7 @@ public sealed class FusionUploadCommandTests
     public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
-        var (client, fileSystem) = CreateExceptionSetup(new NitroClientException("upload failed"));
+        var (client, fileSystem) = CreateExceptionSetup(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -653,12 +655,12 @@ public sealed class FusionUploadCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading source schema '/tmp/subgraph.graphqls'...
-            └── ✕ Failed!
+            Uploading new source schema version 'v1' to API 'api-1'
+            └── ✕ Failed to upload a new source schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: upload failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -669,7 +671,7 @@ public sealed class FusionUploadCommandTests
     public async Task ClientThrowsException_ReturnsError_Interactive()
     {
         // arrange
-        var (client, fileSystem) = CreateExceptionSetup(new NitroClientException("upload failed"));
+        var (client, fileSystem) = CreateExceptionSetup(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -692,11 +694,11 @@ public sealed class FusionUploadCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Uploading source schema '/tmp/subgraph.graphqls'...
+            [    ] Failed to upload a new source schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: upload failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -707,7 +709,7 @@ public sealed class FusionUploadCommandTests
     public async Task ClientThrowsException_ReturnsError_JsonOutput()
     {
         // arrange
-        var (client, fileSystem) = CreateExceptionSetup(new NitroClientException("upload failed"));
+        var (client, fileSystem) = CreateExceptionSetup(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -729,7 +731,7 @@ public sealed class FusionUploadCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: upload failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -739,7 +741,7 @@ public sealed class FusionUploadCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
     {
         // arrange
-        var (client, fileSystem) = CreateExceptionSetup(new NitroClientAuthorizationException("forbidden"));
+        var (client, fileSystem) = CreateExceptionSetup(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -761,12 +763,13 @@ public sealed class FusionUploadCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading source schema '/tmp/subgraph.graphqls'...
-            └── ✕ Failed!
+            Uploading new source schema version 'v1' to API 'api-1'
+            └── ✕ Failed to upload a new source schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -777,7 +780,7 @@ public sealed class FusionUploadCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
     {
         // arrange
-        var (client, fileSystem) = CreateExceptionSetup(new NitroClientAuthorizationException("forbidden"));
+        var (client, fileSystem) = CreateExceptionSetup(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -800,11 +803,12 @@ public sealed class FusionUploadCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Uploading source schema '/tmp/subgraph.graphqls'...
+            [    ] Failed to upload a new source schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -815,7 +819,7 @@ public sealed class FusionUploadCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
     {
         // arrange
-        var (client, fileSystem) = CreateExceptionSetup(new NitroClientAuthorizationException("forbidden"));
+        var (client, fileSystem) = CreateExceptionSetup(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -837,8 +841,123 @@ public sealed class FusionUploadCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsRequestEntityTooLarge_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var (client, fileSystem) = CreateExceptionSetup(new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "fusion",
+                "upload",
+                "--api-id",
+                "api-1",
+                "--tag",
+                "v1",
+                "--source-schema-file",
+                SchemaFilePath)
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            The server returned a 413 (Request Entity Too Large) HTTP status code. If you
+            are running a self-hosted instance, check your ingress controller body-size
+            limits, reverse proxy settings, or load balancer request size limits.
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsRequestEntityTooLarge_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var (client, fileSystem) = CreateExceptionSetup(new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "fusion",
+                "upload",
+                "--api-id",
+                "api-1",
+                "--tag",
+                "v1",
+                "--source-schema-file",
+                SchemaFilePath)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Uploading new source schema version 'v1' to API 'api-1'
+            └── ✕ Failed to upload a new source schema version.
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server returned a 413 (Request Entity Too Large) HTTP status code. If you
+            are running a self-hosted instance, check your ingress controller body-size
+            limits, reverse proxy settings, or load balancer request size limits.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsRequestEntityTooLarge_ReturnsError_Interactive()
+    {
+        // arrange
+        var (client, fileSystem) = CreateExceptionSetup(new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "fusion",
+                "upload",
+                "--api-id",
+                "api-1",
+                "--tag",
+                "v1",
+                "--source-schema-file",
+                SchemaFilePath)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Failed to upload a new source schema version.
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server returned a 413 (Request Entity Too Large) HTTP status code. If you
+            are running a self-hosted instance, check your ingress controller body-size
+            limits, reverse proxy settings, or load balancer request size limits.
+            """);
+        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }

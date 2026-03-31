@@ -57,7 +57,9 @@ internal sealed class PublishSchemaCommand : Command
 
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        await using (var activity = console.StartActivity($"Publishing new schema version '{tag.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'"))
+        await using (var activity = console.StartActivity(
+            $"Publishing new schema version '{tag.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'",
+            "Failed to publish a new schema version."))
         {
             if (force)
             {
@@ -75,7 +77,7 @@ internal sealed class PublishSchemaCommand : Command
 
             if (publishRequest.Errors?.Count > 0)
             {
-                activity.Fail("Failed to publish a new schema version.");
+                activity.Fail();
 
                 foreach (var error in publishRequest.Errors)
                 {
@@ -97,7 +99,6 @@ internal sealed class PublishSchemaCommand : Command
 
             if (publishRequest.Id is not { } requestId)
             {
-                activity.Fail("Failed to publish a new schema version.");
                 throw MutationReturnedNoData();
             }
 
@@ -113,7 +114,7 @@ internal sealed class PublishSchemaCommand : Command
                         break;
 
                     case ISchemaVersionPublishFailed { Errors: var schemaErrors }:
-                        activity.Fail("Failed to publish a new schema version.");
+                        activity.Fail();
 
                         foreach (var error in schemaErrors)
                         {
@@ -234,7 +235,7 @@ internal sealed class PublishSchemaCommand : Command
                 }
             }
 
-            activity.Fail("Failed to publish a new schema version.");
+            activity.Fail();
         }
 
         return ExitCodes.Error;

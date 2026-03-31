@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using ChilliCream.Nitro.Client.Clients;
-using ChilliCream.Nitro.Client.Exceptions;
+using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using Moq;
 
@@ -64,7 +64,8 @@ public sealed class DownloadClientCommandTests
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run
+            'nitro login'.
             """);
     }
 
@@ -117,7 +118,7 @@ public sealed class DownloadClientCommandTests
     public async Task ClientThrowsException_ReturnsError_Interactive()
     {
         // arrange
-        var client = CreateDownloadExceptionClient(new NitroClientException("download failed"));
+        var client = CreateDownloadExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -139,11 +140,11 @@ public sealed class DownloadClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Fetching queries...
+            [    ] Failed to download the client.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: download failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -154,7 +155,7 @@ public sealed class DownloadClientCommandTests
     public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
-        var client = CreateDownloadExceptionClient(new NitroClientException("download failed"));
+        var client = CreateDownloadExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -175,12 +176,12 @@ public sealed class DownloadClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Fetching queries...
-            └── ✕ Failed!
+            Downloading client from stage 'production' of API 'api-1'
+            └── ✕ Failed to download the client.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: download failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -191,7 +192,7 @@ public sealed class DownloadClientCommandTests
     public async Task ClientThrowsException_ReturnsError_JsonOutput()
     {
         // arrange
-        var client = CreateDownloadExceptionClient(new NitroClientException("download failed"));
+        var client = CreateDownloadExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -212,7 +213,7 @@ public sealed class DownloadClientCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: download failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -222,7 +223,7 @@ public sealed class DownloadClientCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
     {
         // arrange
-        var client = CreateDownloadExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateDownloadExceptionClient(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -244,11 +245,12 @@ public sealed class DownloadClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Fetching queries...
+            [    ] Failed to download the client.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -259,7 +261,7 @@ public sealed class DownloadClientCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
     {
         // arrange
-        var client = CreateDownloadExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateDownloadExceptionClient(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -280,12 +282,13 @@ public sealed class DownloadClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Fetching queries...
-            └── ✕ Failed!
+            Downloading client from stage 'production' of API 'api-1'
+            └── ✕ Failed to download the client.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -296,7 +299,7 @@ public sealed class DownloadClientCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
     {
         // arrange
-        var client = CreateDownloadExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateDownloadExceptionClient(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -317,7 +320,8 @@ public sealed class DownloadClientCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();
@@ -354,7 +358,7 @@ public sealed class DownloadClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Fetching queries...
+            [    ] Failed to download the client.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -395,8 +399,8 @@ public sealed class DownloadClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Fetching queries...
-            └── ✕ Failed!
+            Downloading client from stage 'production' of API 'api-1'
+            └── ✕ Failed to download the client.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -486,7 +490,7 @@ public sealed class DownloadClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Downloaded client to 'queries.json'.
+            [    ] Failed to download the client.
 
             {
               "file": "queries.json",
@@ -548,8 +552,8 @@ public sealed class DownloadClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Fetching queries...
-            └── ✓ Downloaded client to 'queries.json'.
+            Downloading client from stage 'production' of API 'api-1'
+            └── ✓ Downloaded the client from stage 'production'.
 
             {
               "file": "queries.json",
@@ -669,8 +673,8 @@ public sealed class DownloadClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Fetching queries...
-            └── ✓ Downloaded client to 'queries.json'.
+            Downloading client from stage 'production' of API 'api-1'
+            └── ✓ Downloaded the client from stage 'production'.
 
             {
               "file": "queries.json",
@@ -729,7 +733,7 @@ public sealed class DownloadClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Downloaded client to 'output-dir'.
+            [    ] Failed to download the client.
 
             {
               "file": "output-dir",
@@ -789,8 +793,8 @@ public sealed class DownloadClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Fetching queries...
-            └── ✓ Downloaded client to 'output-dir'.
+            Downloading client from stage 'production' of API 'api-1'
+            └── ✓ Downloaded the client from stage 'production'.
 
             {
               "file": "output-dir",
@@ -906,8 +910,8 @@ public sealed class DownloadClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Fetching queries...
-            └── ✓ Downloaded client to 'output-dir'.
+            Downloading client from stage 'production' of API 'api-1'
+            └── ✓ Downloaded the client from stage 'production'.
 
             {
               "file": "output-dir",
@@ -967,8 +971,8 @@ public sealed class DownloadClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Fetching queries...
-            └── ✓ Downloaded client to 'output-dir'.
+            Downloading client from stage 'production' of API 'api-1'
+            └── ✓ Downloaded the client from stage 'production'.
 
             {
               "file": "output-dir",

@@ -86,7 +86,9 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
             }
         }
 
-        await using (var activity = console.StartActivity($"Deleting OpenAPI collection '{openApiCollectionId.EscapeMarkup()}'"))
+        await using (var activity = console.StartActivity(
+            $"Deleting OpenAPI collection '{openApiCollectionId.EscapeMarkup()}'",
+            "Failed to delete the OpenAPI collection."))
         {
             var data = await client.DeleteOpenApiCollectionAsync(
                 openApiCollectionId,
@@ -94,7 +96,7 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail("Failed to delete the OpenAPI collection.");
+                activity.Fail();
 
                 foreach (var error in data.Errors)
                 {
@@ -113,7 +115,6 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
 
             if (data.OpenApiCollection is not IOpenApiCollectionDetailPrompt_OpenApiCollection detail)
             {
-                activity.Fail("Failed to delete the OpenAPI collection.");
                 throw MutationReturnedNoData();
             }
 

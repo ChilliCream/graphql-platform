@@ -1,6 +1,5 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Apis;
-using ChilliCream.Nitro.Client.Exceptions;
 using ChilliCream.Nitro.Client.Mcp;
 using Moq;
 
@@ -55,7 +54,8 @@ public sealed class ListMcpFeatureCollectionCommandTests
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run
+            'nitro login'.
             """);
     }
 
@@ -80,7 +80,8 @@ public sealed class ListMcpFeatureCollectionCommandTests
         // assert
         result.AssertError(
             """
-            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually specify the '--workspace-id' option (if available).
+            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually
+            specify the '--workspace-id' option (if available).
             """);
 
         apisClient.VerifyAll();
@@ -629,7 +630,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mcpClient = CreateListExceptionClient(new NitroClientException("list failed"), "api-1", null);
+        var mcpClient = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"), "api-1", null);
 
         // act
         var result = await new CommandBuilder()
@@ -647,7 +648,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: list failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         apisClient.VerifyAll();
@@ -659,7 +660,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mcpClient = CreateListExceptionClient(new NitroClientException("list failed"), "api-1", null);
+        var mcpClient = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"), "api-1", null);
 
         // act
         var result = await new CommandBuilder()
@@ -677,7 +678,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: list failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         apisClient.VerifyAll();
@@ -689,7 +690,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mcpClient = CreateListExceptionClient(new NitroClientException("list failed"), "api-1", null);
+        var mcpClient = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"), "api-1", null);
 
         // act
         var result = await new CommandBuilder()
@@ -707,7 +708,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: list failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         apisClient.VerifyAll();
@@ -719,7 +720,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mcpClient = CreateListExceptionClient(new NitroClientAuthorizationException("forbidden"), "api-1", null);
+        var mcpClient = CreateListExceptionClient(new NitroClientAuthorizationException(), "api-1", null);
 
         // act
         var result = await new CommandBuilder()
@@ -737,7 +738,8 @@ public sealed class ListMcpFeatureCollectionCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         apisClient.VerifyAll();
@@ -749,7 +751,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mcpClient = CreateListExceptionClient(new NitroClientAuthorizationException("forbidden"), "api-1", null);
+        var mcpClient = CreateListExceptionClient(new NitroClientAuthorizationException(), "api-1", null);
 
         // act
         var result = await new CommandBuilder()
@@ -767,7 +769,8 @@ public sealed class ListMcpFeatureCollectionCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         apisClient.VerifyAll();
@@ -779,7 +782,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mcpClient = CreateListExceptionClient(new NitroClientAuthorizationException("forbidden"), "api-1", null);
+        var mcpClient = CreateListExceptionClient(new NitroClientAuthorizationException(), "api-1", null);
 
         // act
         var result = await new CommandBuilder()
@@ -797,7 +800,8 @@ public sealed class ListMcpFeatureCollectionCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         apisClient.VerifyAll();

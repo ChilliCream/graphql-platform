@@ -195,6 +195,13 @@ internal sealed class FusionPublishCommand : Command
                     sourceSchemaVersion.Name,
                     sourceSchemaVersion.Version,
                     cancellationToken);
+
+                if (sourceSchemaArchiveStream is null)
+                {
+                    throw new ExitException(
+                        $"Failed to download archive for source schema '{sourceSchemaVersion.Name}' version '{sourceSchemaVersion.Version}'.");
+                }
+
                 using var archive = FusionSourceSchemaArchive.Open(sourceSchemaArchiveStream);
 
                 var settings = await archive.TryGetSettingsAsync(cancellationToken);
@@ -250,7 +257,9 @@ internal sealed class FusionPublishCommand : Command
         string requestId = null!;
         try
         {
-            await using (var beginActivity = console.StartActivity("Requesting deployment slot..."))
+            await using (var beginActivity = console.StartActivity(
+                "Requesting deployment slot...",
+                "Failed to request a deployment slot."))
             {
                 requestId = await FusionPublishHelpers.RequestDeploymentSlotAsync(
                     apiId,
@@ -267,13 +276,16 @@ internal sealed class FusionPublishCommand : Command
                     cancellationToken);
             }
 
-            await using (var _ = console.StartActivity("Claiming deployment slot..."))
+            await using (var _ = console.StartActivity(
+                "Claiming deployment slot...",
+                "Failed to claim the deployment slot."))
             {
                 await client.ClaimDeploymentSlotAsync(requestId, cancellationToken);
             }
 
             await using (var commitActivity = console.StartActivity(
-                $"Uploading new configuration to '{stageName}'..."))
+                $"Uploading new configuration to '{stageName}'...",
+                "Failed to upload the new configuration."))
             {
                 await FusionPublishHelpers.UploadFusionArchiveAsync(
                     requestId,
@@ -320,13 +332,17 @@ internal sealed class FusionPublishCommand : Command
         try
         {
             // begin
-            await using (var beginActivity = console.StartActivity("Requesting deployment slot..."))
+            await using (var beginActivity = console.StartActivity(
+                "Requesting deployment slot...",
+                "Failed to request a deployment slot."))
             {
                 requestId = await RequestDeploymentSlotAsync(beginActivity);
             }
 
             // start
-            await using (var _ = console.StartActivity("Claiming deployment slot..."))
+            await using (var _ = console.StartActivity(
+                "Claiming deployment slot...",
+                "Failed to claim the deployment slot."))
             {
                 await ClaimDeploymentSlotAsync();
             }
@@ -334,16 +350,18 @@ internal sealed class FusionPublishCommand : Command
             // download
             Stream? existingArchiveStream;
             await using (var _ = console.StartActivity(
-                $"Downloading existing configuration from '{stageName}'..."))
+                $"Downloading existing configuration from '{stageName}'...",
+                "Failed to download the existing Fusion configuration."))
             {
-                // TODO: Needs to handle old and new archive
                 existingArchiveStream = await DownloadConfigurationAsync();
             }
 
             // compose
             bool success;
             await using Stream archiveStream = new MemoryStream();
-            await using (var _ = console.StartActivity("Composing new configuration..."))
+            await using (var _ = console.StartActivity(
+                "Composing new configuration...",
+                "Failed to compose a new Fusion configuration."))
             {
                 success = await FusionPublishHelpers.ComposeAsync(
                     archiveStream,
@@ -360,7 +378,7 @@ internal sealed class FusionPublishCommand : Command
                 }
                 else
                 {
-                    console.ErrorLine("Failed to compose new configuration.");
+                    console.Error.WriteErrorLine("Failed to compose new configuration.");
                 }
             }
 
@@ -374,7 +392,8 @@ internal sealed class FusionPublishCommand : Command
 
             // commit
             await using (var commitActivity = console.StartActivity(
-                $"Uploading new configuration to '{stageName}'..."))
+                $"Uploading new configuration to '{stageName}'...",
+                "Failed to upload the new configuration."))
             {
                 await UploadConfigurationAsync(archiveStream, commitActivity);
             }
@@ -429,6 +448,7 @@ internal sealed class FusionPublishCommand : Command
                 stream = await client.DownloadLatestFusionArchiveAsync(
                     apiId,
                     stageName,
+                    WellKnownVersions.LatestGatewayFormatVersion.ToString(),
                     cancellationToken);
             }
             catch (HttpRequestException ex) when (ex.StatusCode is HttpStatusCode.BadRequest)

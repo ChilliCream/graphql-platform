@@ -2,7 +2,8 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 
 namespace ChilliCream.Nitro.CommandLine;
 
-internal sealed class NitroConsoleActivity(INitroConsole console) : INitroConsoleActivity
+internal sealed class NitroConsoleActivity(INitroConsole console, string failureMessage)
+    : INitroConsoleActivity
 {
     private bool _completed;
 
@@ -16,18 +17,19 @@ internal sealed class NitroConsoleActivity(INitroConsole console) : INitroConsol
         console.MarkupLine("├── " + Glyphs.ExclamationMark.Space() + message);
     }
 
-    public void Success(string? message = null)
+    public void Success(string message)
     {
-        message ??= "Done!";
-
         Complete(Glyphs.Check.Space() + message);
     }
 
-    public void Fail(string? message = null)
+    public void Fail(string message)
     {
-        message ??= "Failed!";
-
         Complete(Glyphs.Cross.Space() + message);
+    }
+
+    public void Fail()
+    {
+        Fail(failureMessage);
     }
 
     public ValueTask DisposeAsync()
@@ -49,10 +51,13 @@ internal sealed class NitroConsoleActivity(INitroConsole console) : INitroConsol
         _completed = true;
     }
 
-    public static INitroConsoleActivity Start(INitroConsole console, string title)
+    public static INitroConsoleActivity Start(
+        INitroConsole console,
+        string title,
+        string failureMessage)
     {
         console.MarkupLine(title);
 
-        return new NitroConsoleActivity(console);
+        return new NitroConsoleActivity(console, failureMessage);
     }
 }

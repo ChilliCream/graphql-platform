@@ -42,7 +42,9 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
 
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        await using (var activity = console.StartActivity($"Validating MCP feature collection against stage '{stage.EscapeMarkup()}'"))
+        await using (var activity = console.StartActivity(
+            $"Validating MCP feature collection against stage '{stage.EscapeMarkup()}'",
+            "Failed to validate the MCP feature collection."))
         {
             // console.Log("Searching for MCP prompt definition files with the following patterns:");
             // foreach (var promptPattern in promptPatterns)
@@ -61,7 +63,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
 
             if (promptFiles.Length < 1 && toolFiles.Length < 1)
             {
-                activity.Fail("Failed to validate the MCP feature collection.");
+                activity.Fail();
                 console.Error.WriteErrorLine(
                     "Could not find any MCP prompt or tool definition files with the provided patterns.");
                 return ExitCodes.Error;
@@ -83,7 +85,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
 
             if (validationRequest.Errors?.Count > 0)
             {
-                activity.Fail("Failed to validate the MCP feature collection.");
+                activity.Fail();
 
                 foreach (var error in validationRequest.Errors)
                 {
@@ -114,7 +116,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
                 switch (update)
                 {
                     case IMcpFeatureCollectionVersionValidationFailed { Errors: var errors }:
-                        activity.Fail("Failed to validate the MCP feature collection.");
+                        activity.Fail();
 
                         foreach (var error in errors)
                         {
@@ -130,7 +132,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
                                     console.PrintMcpFeatureCollectionValidationErrors(e);
                                     break;
                                 case IMcpFeatureCollectionValidationArchiveError e:
-                                    console.Error.WriteErrorLine(e.Message);
+                                    console.Error.WriteErrorLine(ErrorMessages.InvalidArchive(e.Message));
                                     break;
                                 case IError e:
                                     console.Error.WriteErrorLine("Unexpected error: " + e.Message);
@@ -156,7 +158,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
                 }
             }
 
-            activity.Fail("Failed to validate the MCP feature collection.");
+            activity.Fail();
         }
 
         return ExitCodes.Error;

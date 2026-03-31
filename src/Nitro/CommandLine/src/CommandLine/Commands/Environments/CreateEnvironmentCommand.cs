@@ -48,13 +48,15 @@ internal sealed class CreateEnvironmentCommand : Command
             Opt<EnvironmentNameOption>.Instance,
             cancellationToken);
 
-        await using (var activity = console.StartActivity($"Creating environment '{name.EscapeMarkup()}'"))
+        await using (var activity = console.StartActivity(
+            $"Creating environment '{name.EscapeMarkup()}'",
+            "Failed to create the environment."))
         {
             var data = await client.CreateEnvironmentAsync(workspaceId, name, cancellationToken);
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail("Failed to create the environment.");
+                activity.Fail();
 
                 foreach (var error in data.Errors)
                 {
@@ -74,20 +76,18 @@ internal sealed class CreateEnvironmentCommand : Command
             var changeResult = data.Changes?.SingleOrDefault();
             if (changeResult is null)
             {
-                activity.Fail("Failed to create the environment.");
                 throw MutationReturnedNoData();
             }
 
             if (changeResult.Error is IError changeError)
             {
-                activity.Fail("Failed to create the environment.");
+                activity.Fail();
                 console.Error.WriteErrorLine(changeError.Message);
                 return ExitCodes.Error;
             }
 
             if (changeResult.Result is not IEnvironmentDetailPrompt_Environment detail)
             {
-                activity.Fail("Failed to create the environment.");
                 throw MutationReturnedNoData();
             }
 

@@ -38,7 +38,7 @@ internal static class FusionPublishHelpers
 
         if (deploymentSlotRequest.Errors?.Count > 0)
         {
-            activity.Fail("Failed to request a deployment slot.");
+            activity.Fail();
 
             foreach (var error in deploymentSlotRequest.Errors)
             {
@@ -144,7 +144,7 @@ internal static class FusionPublishHelpers
 
         if (commitResult.Errors?.Count > 0)
         {
-            activity.Fail("Failed to publish a new Fusion configuration version.");
+            activity.Fail();
 
             foreach (var error in commitResult.Errors)
             {

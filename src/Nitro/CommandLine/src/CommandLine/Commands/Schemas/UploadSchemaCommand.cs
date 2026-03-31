@@ -57,7 +57,9 @@ internal sealed class UploadSchemaCommand : Command
 
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        await using (var activity = console.StartActivity($"Uploading new schema version '{tag.EscapeMarkup()}' to API '{apiId.EscapeMarkup()}'"))
+        await using (var activity = console.StartActivity(
+            $"Uploading new schema version '{tag.EscapeMarkup()}' to API '{apiId.EscapeMarkup()}'",
+            "Failed to upload a new schema version."))
         {
             await using var stream = fileSystem.OpenReadStream(schemaFilePath);
 
@@ -70,7 +72,7 @@ internal sealed class UploadSchemaCommand : Command
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail("Failed to upload a new schema version.");
+                activity.Fail();
 
                 foreach (var error in data.Errors)
                 {

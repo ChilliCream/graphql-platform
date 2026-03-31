@@ -1,5 +1,5 @@
+using System.Net;
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Exceptions;
 using ChilliCream.Nitro.Client.OpenApi;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using Moq;
@@ -62,7 +62,8 @@ public sealed class UploadOpenApiCollectionCommandTests
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run
+            'nitro login'.
             """);
     }
 
@@ -127,7 +128,7 @@ public sealed class UploadOpenApiCollectionCommandTests
     public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
-        var (client, fileSystem) = CreateUploadSetup(new NitroClientException("upload failed"));
+        var (client, fileSystem) = CreateUploadSetup(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -149,12 +150,12 @@ public sealed class UploadOpenApiCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new OpenAPI collection version...
-            └── ✕ Failed!
+            Uploading new OpenAPI collection version 'v1' for collection 'oa-1'
+            └── ✕ Failed to upload a new OpenAPI collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: upload failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -165,7 +166,7 @@ public sealed class UploadOpenApiCollectionCommandTests
     public async Task ClientThrowsException_ReturnsError_Interactive()
     {
         // arrange
-        var (client, fileSystem) = CreateUploadSetup(new NitroClientException("upload failed"));
+        var (client, fileSystem) = CreateUploadSetup(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -188,11 +189,11 @@ public sealed class UploadOpenApiCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Uploading new OpenAPI collection version...
+            [    ] Failed to upload a new OpenAPI collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: upload failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -203,7 +204,7 @@ public sealed class UploadOpenApiCollectionCommandTests
     public async Task ClientThrowsException_ReturnsError_JsonOutput()
     {
         // arrange
-        var (client, fileSystem) = CreateUploadSetup(new NitroClientException("upload failed"));
+        var (client, fileSystem) = CreateUploadSetup(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -225,7 +226,7 @@ public sealed class UploadOpenApiCollectionCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: upload failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -235,7 +236,7 @@ public sealed class UploadOpenApiCollectionCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
     {
         // arrange
-        var (client, fileSystem) = CreateUploadSetup(new NitroClientAuthorizationException("forbidden"));
+        var (client, fileSystem) = CreateUploadSetup(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -257,12 +258,13 @@ public sealed class UploadOpenApiCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new OpenAPI collection version...
-            └── ✕ Failed!
+            Uploading new OpenAPI collection version 'v1' for collection 'oa-1'
+            └── ✕ Failed to upload a new OpenAPI collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -273,7 +275,7 @@ public sealed class UploadOpenApiCollectionCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
     {
         // arrange
-        var (client, fileSystem) = CreateUploadSetup(new NitroClientAuthorizationException("forbidden"));
+        var (client, fileSystem) = CreateUploadSetup(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -296,11 +298,12 @@ public sealed class UploadOpenApiCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Uploading new OpenAPI collection version...
+            [    ] Failed to upload a new OpenAPI collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -311,7 +314,7 @@ public sealed class UploadOpenApiCollectionCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
     {
         // arrange
-        var (client, fileSystem) = CreateUploadSetup(new NitroClientAuthorizationException("forbidden"));
+        var (client, fileSystem) = CreateUploadSetup(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -333,8 +336,123 @@ public sealed class UploadOpenApiCollectionCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsRequestEntityTooLarge_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var (client, fileSystem) = CreateUploadSetup(new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "openapi",
+                "upload",
+                "--tag",
+                "v1",
+                "--openapi-collection-id",
+                "oa-1",
+                "--pattern",
+                "*.openapi.json")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            The server returned a 413 (Request Entity Too Large) HTTP status code. If you
+            are running a self-hosted instance, check your ingress controller body-size
+            limits, reverse proxy settings, or load balancer request size limits.
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsRequestEntityTooLarge_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var (client, fileSystem) = CreateUploadSetup(new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "openapi",
+                "upload",
+                "--tag",
+                "v1",
+                "--openapi-collection-id",
+                "oa-1",
+                "--pattern",
+                "*.openapi.json")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Uploading new OpenAPI collection version 'v1' for collection 'oa-1'
+            └── ✕ Failed to upload a new OpenAPI collection version.
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server returned a 413 (Request Entity Too Large) HTTP status code. If you
+            are running a self-hosted instance, check your ingress controller body-size
+            limits, reverse proxy settings, or load balancer request size limits.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsRequestEntityTooLarge_ReturnsError_Interactive()
+    {
+        // arrange
+        var (client, fileSystem) = CreateUploadSetup(new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "openapi",
+                "upload",
+                "--tag",
+                "v1",
+                "--openapi-collection-id",
+                "oa-1",
+                "--pattern",
+                "*.openapi.json")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Failed to upload a new OpenAPI collection version.
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server returned a 413 (Request Entity Too Large) HTTP status code. If you
+            are running a self-hosted instance, check your ingress controller body-size
+            limits, reverse proxy settings, or load balancer request size limits.
+            """);
+        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -368,8 +486,8 @@ public sealed class UploadOpenApiCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new OpenAPI collection version...
-            └── ✕ Failed!
+            Uploading new OpenAPI collection version 'v1' for collection 'oa-1'
+            └── ✕ Failed to upload a new OpenAPI collection version.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -407,7 +525,7 @@ public sealed class UploadOpenApiCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Uploading new OpenAPI collection version...
+            [    ] Failed to upload a new OpenAPI collection version.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -473,8 +591,8 @@ public sealed class UploadOpenApiCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new OpenAPI collection version...
-            └── ✕ Failed!
+            Uploading new OpenAPI collection version 'v1' for collection 'oa-1'
+            └── ✕ Failed to upload a new OpenAPI collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -511,8 +629,8 @@ public sealed class UploadOpenApiCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new OpenAPI collection version...
-            └── ✓ Successfully uploaded new OpenAPI collection version!
+            Uploading new OpenAPI collection version 'v1' for collection 'oa-1'
+            └── ✓ Uploaded new OpenAPI collection version 'v1'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -547,7 +665,7 @@ public sealed class UploadOpenApiCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Successfully uploaded new OpenAPI collection version!
+            [    ] Failed to upload a new OpenAPI collection version.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -724,7 +842,9 @@ public sealed class UploadOpenApiCollectionCommandTests
             new UploadOpenApiCollectionCommandMutation_UploadOpenApiCollection_Errors_InvalidOpenApiCollectionArchiveError(
                 "Invalid archive format."),
             """
-            Invalid archive format.
+            The server received an invalid archive. This indicates a bug in the tooling.
+            Please notify ChilliCream.
+            Error received: Invalid archive format.
             """
         ];
 

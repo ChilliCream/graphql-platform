@@ -326,12 +326,15 @@ public sealed class FusionComposeCommandTests : IDisposable
         // assert
         var nonExistentFilePath = Path.GetFullPath(nonExistentFile);
 
-        result = result with { StdErr = result.StdErr.Replace(nonExistentFilePath, "/path/to/" + nonExistentFile) };
+        // The console wraps long paths across lines, so normalize before replacing
+        var stderr = result.StdErr.Replace("\n", "").Replace("\r", "");
+        stderr = stderr.Replace(nonExistentFilePath, "/path/to/" + nonExistentFile);
 
-        result.AssertError(
+        stderr.MatchInlineSnapshot(
             """
             ❌ Source schema file '/path/to/non-existent-1.graphqls' does not exist.
             """);
+        Assert.Equal(1, result.ExitCode);
     }
 
     [Fact]
@@ -356,8 +359,10 @@ public sealed class FusionComposeCommandTests : IDisposable
 
         result.AssertSuccess(
             """
-            ⚠️ [WRN] The lookup field 'Query.userById' in schema 'Schema1' should return a nullable type. (LOOKUP_RETURNS_NON_NULLABLE_TYPE)
-            ⚠️ [WRN] The lookup field 'Query.userById' in schema 'Schema2' should return a nullable type. (LOOKUP_RETURNS_NON_NULLABLE_TYPE)
+            ⚠️ [WRN] The lookup field 'Query.userById' in schema 'Schema1' should return a
+            nullable type. (LOOKUP_RETURNS_NON_NULLABLE_TYPE)
+            ⚠️ [WRN] The lookup field 'Query.userById' in schema 'Schema2' should return a
+            nullable type. (LOOKUP_RETURNS_NON_NULLABLE_TYPE)
 
             ✅ Composite schema written to
             '/path/to/archive-file.far'.
@@ -380,12 +385,16 @@ public sealed class FusionComposeCommandTests : IDisposable
         Assert.Equal(1, result.ExitCode);
         result.StdOut.MatchInlineSnapshot(
             """
-            ⚠️ [WRN] The lookup field 'Query.userById' in schema 'Schema1' should return a nullable type. (LOOKUP_RETURNS_NON_NULLABLE_TYPE)
-            ❌ [ERR] The @provides directive on field 'Query.userById' in schema 'Schema1' specifies an invalid field selection. (PROVIDES_INVALID_FIELDS)
+            ⚠️ [WRN] The lookup field 'Query.userById' in schema 'Schema1' should return a
+            nullable type. (LOOKUP_RETURNS_NON_NULLABLE_TYPE)
+            ❌ [ERR] The @provides directive on field 'Query.userById' in schema 'Schema1'
+            specifies an invalid field selection. (PROVIDES_INVALID_FIELDS)
                - The field 'username' does not exist on the type 'User'.
                - The field 'email' does not exist on the type 'User'.
-            ⚠️ [WRN] The lookup field 'Query.userByUsername' in schema 'Schema2' should return a nullable type. (LOOKUP_RETURNS_NON_NULLABLE_TYPE)
-            ❌ [ERR] The @provides directive on field 'Query.userByUsername' in schema 'Schema2' specifies an invalid field selection. (PROVIDES_INVALID_FIELDS)
+            ⚠️ [WRN] The lookup field 'Query.userByUsername' in schema 'Schema2' should
+            return a nullable type. (LOOKUP_RETURNS_NON_NULLABLE_TYPE)
+            ❌ [ERR] The @provides directive on field 'Query.userByUsername' in schema
+            'Schema2' specifies an invalid field selection. (PROVIDES_INVALID_FIELDS)
                - The field 'id' does not exist on the type 'User'.
                - The field 'email' does not exist on the type 'User'.
             """);

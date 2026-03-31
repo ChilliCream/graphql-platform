@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Exceptions;
 using ChilliCream.Nitro.Client.PersonalAccessTokens;
 using Moq;
 
@@ -57,7 +56,8 @@ public sealed class RevokePersonalAccessTokenCommandTests
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run
+            'nitro login'.
             """);
     }
 
@@ -119,7 +119,7 @@ public sealed class RevokePersonalAccessTokenCommandTests
             """
             ? Do you really want to delete PAT with ID pat-1 [y/n] (y): y
 
-            [    ] Successfully revoked personal access token!
+            [    ] Failed to revoke the personal access token.
 
             {
               "id": "pat-1",
@@ -159,8 +159,8 @@ public sealed class RevokePersonalAccessTokenCommandTests
         // assert
         result.AssertSuccess(
             """
-            Revoking personal access token...
-            └── ✓ Successfully revoked personal access token!
+            Revoking personal access token 'pat-1'
+            └── ✓ Revoked personal access token 'pat-1'.
 
             {
               "id": "pat-1",
@@ -234,8 +234,8 @@ public sealed class RevokePersonalAccessTokenCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Revoking personal access token...
-            └── ✕ Failed!
+            Revoking personal access token 'pat-1'
+            └── ✕ Failed to revoke the personal access token.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -274,8 +274,8 @@ public sealed class RevokePersonalAccessTokenCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Revoking personal access token...
-            └── ✕ Failed!
+            Revoking personal access token 'pat-1'
+            └── ✕ Failed to revoke the personal access token.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -315,7 +315,7 @@ public sealed class RevokePersonalAccessTokenCommandTests
             """
             ? Do you really want to delete PAT with ID pat-1 [y/n] (y): y
 
-            [    ] Revoking personal access token...
+            [    ] Failed to revoke the personal access token.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -362,7 +362,7 @@ public sealed class RevokePersonalAccessTokenCommandTests
         client.Setup(x => x.RevokePersonalAccessTokenAsync(
                 "pat-1",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientException("revoke failed"));
+            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -380,11 +380,11 @@ public sealed class RevokePersonalAccessTokenCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Revoking personal access token...
+            [    ] Failed to revoke the personal access token.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: revoke failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -399,7 +399,7 @@ public sealed class RevokePersonalAccessTokenCommandTests
         client.Setup(x => x.RevokePersonalAccessTokenAsync(
                 "pat-1",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientException("revoke failed"));
+            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -416,12 +416,12 @@ public sealed class RevokePersonalAccessTokenCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Revoking personal access token...
-            └── ✕ Failed!
+            Revoking personal access token 'pat-1'
+            └── ✕ Failed to revoke the personal access token.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: revoke failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -436,7 +436,7 @@ public sealed class RevokePersonalAccessTokenCommandTests
         client.Setup(x => x.RevokePersonalAccessTokenAsync(
                 "pat-1",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientException("revoke failed"));
+            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -453,7 +453,7 @@ public sealed class RevokePersonalAccessTokenCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: revoke failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -467,7 +467,7 @@ public sealed class RevokePersonalAccessTokenCommandTests
         client.Setup(x => x.RevokePersonalAccessTokenAsync(
                 "pat-1",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException("forbidden"));
+            .ThrowsAsync(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -485,11 +485,12 @@ public sealed class RevokePersonalAccessTokenCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Revoking personal access token...
+            [    ] Failed to revoke the personal access token.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -504,7 +505,7 @@ public sealed class RevokePersonalAccessTokenCommandTests
         client.Setup(x => x.RevokePersonalAccessTokenAsync(
                 "pat-1",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException("forbidden"));
+            .ThrowsAsync(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -521,12 +522,13 @@ public sealed class RevokePersonalAccessTokenCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Revoking personal access token...
-            └── ✕ Failed!
+            Revoking personal access token 'pat-1'
+            └── ✕ Failed to revoke the personal access token.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -541,7 +543,7 @@ public sealed class RevokePersonalAccessTokenCommandTests
         client.Setup(x => x.RevokePersonalAccessTokenAsync(
                 "pat-1",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException("forbidden"));
+            .ThrowsAsync(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -558,7 +560,8 @@ public sealed class RevokePersonalAccessTokenCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();

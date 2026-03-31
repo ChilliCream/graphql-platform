@@ -46,7 +46,9 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
     {
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        await using (var activity = console.StartActivity($"Validating OpenAPI collection against stage '{stage.EscapeMarkup()}'"))
+        await using (var activity = console.StartActivity(
+            $"Validating OpenAPI collection against stage '{stage.EscapeMarkup()}'",
+            "Failed to validate the OpenAPI collection."))
         {
             // console.Log("Searching for OpenAPI documents with the following patterns:");
             // foreach (var pattern in patterns)
@@ -58,7 +60,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
 
             if (files.Length < 1)
             {
-                activity.Fail("Failed to validate the OpenAPI collection.");
+                activity.Fail();
                 throw new ExitException("Could not find any OpenAPI documents with the provided pattern.");
             }
 
@@ -77,7 +79,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
 
             if (validationRequest.Errors?.Count > 0)
             {
-                activity.Fail("Failed to validate the OpenAPI collection.");
+                activity.Fail();
 
                 foreach (var error in validationRequest.Errors)
                 {
@@ -108,7 +110,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
                 switch (update)
                 {
                     case IOpenApiCollectionVersionValidationFailed { Errors: var errors }:
-                        activity.Fail("Failed to validate the OpenAPI collection.");
+                        activity.Fail();
 
                         foreach (var error in errors)
                         {
@@ -124,7 +126,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
                                     console.PrintOpenApiCollectionValidationErrors(e);
                                     break;
                                 case IOpenApiCollectionValidationArchiveError e:
-                                    console.Error.WriteErrorLine(e.Message);
+                                    console.Error.WriteErrorLine(ErrorMessages.InvalidArchive(e.Message));
                                     break;
                                 case IError e:
                                     console.Error.WriteErrorLine("Unexpected error: " + e.Message);
@@ -150,7 +152,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
                 }
             }
 
-            activity.Fail("Failed to validate the OpenAPI collection.");
+            activity.Fail();
         }
 
         return ExitCodes.Error;

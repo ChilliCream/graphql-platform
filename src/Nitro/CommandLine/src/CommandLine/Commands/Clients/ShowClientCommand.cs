@@ -39,7 +39,7 @@ internal sealed class ShowClientCommand : Command
 
         var id = parseResult.GetValue(Opt<IdArgument>.Instance)!;
 
-        var model = await client.ShowClientAsync(id, cancellationToken);
+        var model = await client.GetClientAsync(id, cancellationToken);
 
         if (model is IShowClientCommandQuery_Node_Client clientModel)
         {

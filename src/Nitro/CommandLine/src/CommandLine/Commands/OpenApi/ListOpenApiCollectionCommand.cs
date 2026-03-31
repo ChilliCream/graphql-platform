@@ -67,8 +67,9 @@ internal sealed class ListOpenApiCollectionCommand : Command
         var apiId = await parseResult.GetOrPromptForApiIdAsync(apiMessage, console, apisClient, sessionService, ct);
 
         var container = PaginationContainer
-            .CreateConnectionData((after, first, token) =>
-                client.ListOpenApiCollectionsAsync(apiId, after, first, token))
+            .CreateConnectionData(async (after, first, token) =>
+                await client.ListOpenApiCollectionsAsync(apiId, after, first, token)
+                    ?? throw ThrowHelper.ThereWasAnIssueWithTheRequest("The API was not found."))
             .PageSize(10);
 
         var api = await PagedTable
@@ -99,7 +100,8 @@ internal sealed class ListOpenApiCollectionCommand : Command
         }
 
         var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
-        var data = await client.ListOpenApiCollectionsAsync(apiId, cursor, 10, ct);
+        var data = await client.ListOpenApiCollectionsAsync(apiId, cursor, 10, ct)
+            ?? throw ThrowHelper.ThereWasAnIssueWithTheRequest("The API was not found.");
         var items = data.Items
             .Select(OpenApiCollectionDetailPrompt.From)
             .Select(x => x.ToObject())

@@ -6,9 +6,15 @@ internal sealed class InteractiveNitroConsoleActivity : INitroConsoleActivity
 {
     private readonly TaskCompletionSource _completion =
         new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private readonly string _failureMessage;
     private Task? _spinnerTask;
     private StatusContext? _context;
     private bool _completed;
+
+    private InteractiveNitroConsoleActivity(string failureMessage)
+    {
+        _failureMessage = failureMessage;
+    }
 
     public void Update(string message)
     {
@@ -20,14 +26,19 @@ internal sealed class InteractiveNitroConsoleActivity : INitroConsoleActivity
         _context?.Status(Glyphs.ExclamationMark.Space() + message);
     }
 
-    public void Success(string? message = null)
+    public void Success(string message)
     {
         Complete(message);
     }
 
-    public void Fail(string? message = null)
+    public void Fail(string message)
     {
         Complete(message);
+    }
+
+    public void Fail()
+    {
+        Fail(_failureMessage);
     }
 
     public async ValueTask DisposeAsync()
@@ -37,6 +48,7 @@ internal sealed class InteractiveNitroConsoleActivity : INitroConsoleActivity
             return;
         }
 
+        _context?.Status(_failureMessage);
         _completed = true;
 
         _completion.TrySetResult();
@@ -72,9 +84,12 @@ internal sealed class InteractiveNitroConsoleActivity : INitroConsoleActivity
 
     private void SetSpinnerTask(Task spinnerTask) => _spinnerTask = spinnerTask;
 
-    public static INitroConsoleActivity Start(INitroConsole console, string title)
+    public static INitroConsoleActivity Start(
+        INitroConsole console,
+        string title,
+        string failureMessage)
     {
-        var activity = new InteractiveNitroConsoleActivity();
+        var activity = new InteractiveNitroConsoleActivity(failureMessage);
 
         var spinnerTask = console
             .Status()

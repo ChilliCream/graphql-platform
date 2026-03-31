@@ -57,13 +57,15 @@ internal sealed class CreateApiCommand : Command
 
         var kind = GetApiKind(parseResult);
 
-        await using (var activity = console.StartActivity($"Creating API '{name.EscapeMarkup()}'"))
+        await using (var activity = console.StartActivity(
+            $"Creating API '{name.EscapeMarkup()}'",
+            "Failed to create the API."))
         {
             var payload = await client.CreateApiAsync(workspaceId, path, name, kind, ct);
 
             if (payload.Errors?.Count > 0)
             {
-                activity.Fail("Failed to create the API.");
+                activity.Fail();
 
                 foreach (var mutationError in payload.Errors)
                 {
@@ -81,20 +83,18 @@ internal sealed class CreateApiCommand : Command
             var changeResult = payload.Changes?.SingleOrDefault();
             if (changeResult is null)
             {
-                activity.Fail("Failed to create the API.");
                 throw MutationReturnedNoData();
             }
 
             if (changeResult.Error is IError error)
             {
-                activity.Fail("Failed to create the API.");
+                activity.Fail();
                 console.Error.WriteErrorLine(error.Message);
                 return ExitCodes.Error;
             }
 
             if (changeResult.Result is not ICreateApiCommandMutation_Api result)
             {
-                activity.Fail("Failed to create the API.");
                 throw MutationReturnedNoData();
             }
 

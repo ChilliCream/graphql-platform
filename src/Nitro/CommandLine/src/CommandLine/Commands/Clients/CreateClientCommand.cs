@@ -52,13 +52,15 @@ internal sealed class CreateClientCommand : Command
         var name = await console
             .PromptAsync("Name", defaultValue: null, parseResult, Opt<ClientNameOption>.Instance, cancellationToken);
 
-        await using (var activity = console.StartActivity($"Creating client '{name.EscapeMarkup()}' for API '{apiId.EscapeMarkup()}'"))
+        await using (var activity = console.StartActivity(
+            $"Creating client '{name.EscapeMarkup()}' for API '{apiId.EscapeMarkup()}'",
+            "Failed to create the client."))
         {
             var data = await client.CreateClientAsync(apiId, name, cancellationToken);
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail("Failed to create the client.");
+                activity.Fail();
 
                 foreach (var error in data.Errors)
                 {
@@ -78,7 +80,6 @@ internal sealed class CreateClientCommand : Command
 
             if (data.Client is not IClientDetailPrompt_Client createdClient)
             {
-                activity.Fail("Failed to create the client.");
                 throw MutationReturnedNoData();
             }
 

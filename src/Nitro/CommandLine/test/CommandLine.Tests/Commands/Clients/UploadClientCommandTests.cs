@@ -1,6 +1,6 @@
+using System.Net;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Clients;
-using ChilliCream.Nitro.Client.Exceptions;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using Moq;
 
@@ -62,7 +62,8 @@ public sealed class UploadClientCommandTests
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run
+            'nitro login'.
             """);
     }
 
@@ -70,7 +71,7 @@ public sealed class UploadClientCommandTests
     public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
-        var client = CreateUploadExceptionClient(new NitroClientException("upload failed"));
+        var client = CreateUploadExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
         var fileSystem = CreateOperationsFileSystem();
 
         // act
@@ -93,12 +94,12 @@ public sealed class UploadClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new version for client 'client-1'...
-            └── ✕ Failed!
+            Uploading new client version 'v1' for client 'client-1'
+            └── ✕ Failed to upload a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: upload failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -109,7 +110,7 @@ public sealed class UploadClientCommandTests
     public async Task ClientThrowsException_ReturnsError_Interactive()
     {
         // arrange
-        var client = CreateUploadExceptionClient(new NitroClientException("upload failed"));
+        var client = CreateUploadExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
         var fileSystem = CreateOperationsFileSystem();
 
         // act
@@ -133,11 +134,11 @@ public sealed class UploadClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Uploading new version for client 'client-1'...
+            [    ] Failed to upload a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: upload failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -148,7 +149,7 @@ public sealed class UploadClientCommandTests
     public async Task ClientThrowsException_ReturnsError_JsonOutput()
     {
         // arrange
-        var client = CreateUploadExceptionClient(new NitroClientException("upload failed"));
+        var client = CreateUploadExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
         var fileSystem = CreateOperationsFileSystem();
 
         // act
@@ -171,7 +172,7 @@ public sealed class UploadClientCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: upload failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -182,7 +183,7 @@ public sealed class UploadClientCommandTests
     {
         // arrange
         var client = CreateUploadExceptionClient(
-            new NitroClientAuthorizationException("forbidden"));
+            new NitroClientAuthorizationException());
         var fileSystem = CreateOperationsFileSystem();
 
         // act
@@ -205,12 +206,13 @@ public sealed class UploadClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new version for client 'client-1'...
-            └── ✕ Failed!
+            Uploading new client version 'v1' for client 'client-1'
+            └── ✕ Failed to upload a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -222,7 +224,7 @@ public sealed class UploadClientCommandTests
     {
         // arrange
         var client = CreateUploadExceptionClient(
-            new NitroClientAuthorizationException("forbidden"));
+            new NitroClientAuthorizationException());
         var fileSystem = CreateOperationsFileSystem();
 
         // act
@@ -246,11 +248,12 @@ public sealed class UploadClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Uploading new version for client 'client-1'...
+            [    ] Failed to upload a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -262,7 +265,7 @@ public sealed class UploadClientCommandTests
     {
         // arrange
         var client = CreateUploadExceptionClient(
-            new NitroClientAuthorizationException("forbidden"));
+            new NitroClientAuthorizationException());
         var fileSystem = CreateOperationsFileSystem();
 
         // act
@@ -285,8 +288,129 @@ public sealed class UploadClientCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsRequestEntityTooLarge_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var client = CreateUploadExceptionClient(
+            new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
+        var fileSystem = CreateOperationsFileSystem();
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "client",
+                "upload",
+                "--tag",
+                "v1",
+                "--operations-file",
+                "operations.json",
+                "--client-id",
+                "client-1")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            The server returned a 413 (Request Entity Too Large) HTTP status code. If you
+            are running a self-hosted instance, check your ingress controller body-size
+            limits, reverse proxy settings, or load balancer request size limits.
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsRequestEntityTooLarge_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var client = CreateUploadExceptionClient(
+            new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
+        var fileSystem = CreateOperationsFileSystem();
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "client",
+                "upload",
+                "--tag",
+                "v1",
+                "--operations-file",
+                "operations.json",
+                "--client-id",
+                "client-1")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Uploading new client version 'v1' for client 'client-1'
+            └── ✕ Failed to upload a new client version.
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server returned a 413 (Request Entity Too Large) HTTP status code. If you
+            are running a self-hosted instance, check your ingress controller body-size
+            limits, reverse proxy settings, or load balancer request size limits.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsRequestEntityTooLarge_ReturnsError_Interactive()
+    {
+        // arrange
+        var client = CreateUploadExceptionClient(
+            new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
+        var fileSystem = CreateOperationsFileSystem();
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "client",
+                "upload",
+                "--tag",
+                "v1",
+                "--operations-file",
+                "operations.json",
+                "--client-id",
+                "client-1")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Failed to upload a new client version.
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server returned a 413 (Request Entity Too Large) HTTP status code. If you
+            are running a self-hosted instance, check your ingress controller body-size
+            limits, reverse proxy settings, or load balancer request size limits.
+            """);
+        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -321,8 +445,8 @@ public sealed class UploadClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new version for client 'client-1'...
-            └── ✕ Failed!
+            Uploading new client version 'v1' for client 'client-1'
+            └── ✕ Failed to upload a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -361,7 +485,7 @@ public sealed class UploadClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Uploading new version for client 'client-1'...
+            [    ] Failed to upload a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -434,8 +558,8 @@ public sealed class UploadClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new version for client 'client-1'...
-            └── ✕ Failed!
+            Uploading new client version 'v1' for client 'client-1'
+            └── ✕ Failed to upload a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -479,7 +603,7 @@ public sealed class UploadClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Uploading new version for client 'client-1'...
+            [    ] Failed to upload a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -554,8 +678,8 @@ public sealed class UploadClientCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new version for client 'client-1'...
-            └── ✓ Successfully uploaded operations!
+            Uploading new client version 'v1' for client 'client-1'
+            └── ✓ Uploaded new client version 'v1'.
 
             {
               "clientVersionId": "cv-1",
@@ -596,7 +720,7 @@ public sealed class UploadClientCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Successfully uploaded operations!
+            [    ] Failed to upload a new client version.
 
             {
               "clientVersionId": "cv-1",

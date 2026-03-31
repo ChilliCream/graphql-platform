@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Exceptions;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using Moq;
@@ -63,7 +62,8 @@ public sealed class FusionConfigurationPublishCommitCommandTests
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run
+            'nitro login'.
             """);
     }
 
@@ -94,7 +94,8 @@ public sealed class FusionConfigurationPublishCommitCommandTests
         // assert
         result.AssertError(
             """
-            No request ID was provided and no request ID was found in the cache. Please provide a request ID.
+            No request ID was provided and no request ID was found in the cache. Please
+            provide a request ID.
             """);
 
         fileSystem.VerifyAll();
@@ -104,7 +105,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests
     public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
-        var (client, fileSystem) = CreateExceptionSetup(new NitroClientException("commit failed"));
+        var (client, fileSystem) = CreateExceptionSetup(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -125,12 +126,12 @@ public sealed class FusionConfigurationPublishCommitCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Committing...
-            └── ✕ Failed!
+            Publishing Fusion configuration
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: commit failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -141,7 +142,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests
     public async Task ClientThrowsException_ReturnsError_Interactive()
     {
         // arrange
-        var (client, fileSystem) = CreateExceptionSetup(new NitroClientException("commit failed"));
+        var (client, fileSystem) = CreateExceptionSetup(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -163,11 +164,11 @@ public sealed class FusionConfigurationPublishCommitCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Committing...
+            [    ] Failed to publish a new Fusion configuration version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: commit failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -178,7 +179,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests
     public async Task ClientThrowsException_ReturnsError_JsonOutput()
     {
         // arrange
-        var (client, fileSystem) = CreateExceptionSetup(new NitroClientException("commit failed"));
+        var (client, fileSystem) = CreateExceptionSetup(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -199,7 +200,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: commit failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -209,7 +210,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
     {
         // arrange
-        var (client, fileSystem) = CreateExceptionSetup(new NitroClientAuthorizationException("forbidden"));
+        var (client, fileSystem) = CreateExceptionSetup(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -230,12 +231,13 @@ public sealed class FusionConfigurationPublishCommitCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Committing...
-            └── ✕ Failed!
+            Publishing Fusion configuration
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -246,7 +248,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
     {
         // arrange
-        var (client, fileSystem) = CreateExceptionSetup(new NitroClientAuthorizationException("forbidden"));
+        var (client, fileSystem) = CreateExceptionSetup(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -268,11 +270,12 @@ public sealed class FusionConfigurationPublishCommitCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Committing...
+            [    ] Failed to publish a new Fusion configuration version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -283,7 +286,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
     {
         // arrange
-        var (client, fileSystem) = CreateExceptionSetup(new NitroClientAuthorizationException("forbidden"));
+        var (client, fileSystem) = CreateExceptionSetup(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -304,7 +307,8 @@ public sealed class FusionConfigurationPublishCommitCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();
@@ -339,8 +343,8 @@ public sealed class FusionConfigurationPublishCommitCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Committing...
-            └── ✕ Failed!
+            Publishing Fusion configuration
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -381,8 +385,8 @@ public sealed class FusionConfigurationPublishCommitCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Committing...
-            └── ✕ Failed!
+            Publishing Fusion configuration
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """

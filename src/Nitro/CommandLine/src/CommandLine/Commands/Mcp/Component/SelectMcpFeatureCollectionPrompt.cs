@@ -19,7 +19,8 @@ internal sealed class SelectMcpFeatureCollectionPrompt(IMcpClient client, string
         CancellationToken cancellationToken)
     {
         var paginationContainer = PaginationContainer.CreateConnectionData(
-            (after, first, ct) => client.ListMcpFeatureCollectionsAsync(apiId, after, first, ct));
+            async (after, first, ct) => await client.ListMcpFeatureCollectionsAsync(apiId, after, first, ct)
+                ?? throw ThrowHelper.ThereWasAnIssueWithTheRequest("The API was not found."));
 
         return await PagedSelectionPrompt
             .New(paginationContainer)

@@ -39,7 +39,7 @@ internal sealed class ShowWorkspaceCommand : Command
 
         var id = parseResult.GetValue(Opt<IdArgument>.Instance)!;
 
-        var data = await client.ShowWorkspaceAsync(id, cancellationToken);
+        var data = await client.GetWorkspaceAsync(id, cancellationToken);
 
         if (data is IShowWorkspaceCommandQuery_Node_Workspace node)
         {

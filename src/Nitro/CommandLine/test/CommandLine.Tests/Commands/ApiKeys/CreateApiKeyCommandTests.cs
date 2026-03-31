@@ -1,7 +1,6 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.ApiKeys;
 using ChilliCream.Nitro.Client.Apis;
-using ChilliCream.Nitro.Client.Exceptions;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.ApiKeys;
@@ -61,7 +60,8 @@ public sealed class CreateApiKeyCommandTests
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run
+            'nitro login'.
             """);
     }
 
@@ -146,7 +146,7 @@ public sealed class CreateApiKeyCommandTests
               Workspace                                                                 For which API do you want to create an API key?
 
             > Api 1
-            [    ] Successfully created API key!
+            [    ] Failed to create the API key.
 
             {
               "secret": "secret-123",
@@ -202,7 +202,7 @@ public sealed class CreateApiKeyCommandTests
 
               Api
             > Workspace
-            [    ] Successfully created API key!
+            [    ] Failed to create the API key.
 
             {
               "secret": "secret-123",
@@ -268,7 +268,8 @@ public sealed class CreateApiKeyCommandTests
         // assert
         result.AssertError(
             """
-            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually specify the '--workspace-id' option (if available).
+            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually
+            specify the '--workspace-id' option (if available).
             """);
     }
 
@@ -355,8 +356,8 @@ public sealed class CreateApiKeyCommandTests
         // assert
         result.AssertSuccess(
             """
-            Creating API key...
-            └── ✓ Successfully created API key!
+            Creating API key 'integration'
+            └── ✓ Created API key 'integration'.
 
             {
               "secret": "secret-123",
@@ -502,8 +503,8 @@ public sealed class CreateApiKeyCommandTests
         // assert
         result.AssertSuccess(
             """
-            Creating API key...
-            └── ✓ Successfully created API key!
+            Creating API key 'tenant-key'
+            └── ✓ Created API key 'tenant-key'.
 
             {
               "secret": "secret-xyz",
@@ -551,8 +552,8 @@ public sealed class CreateApiKeyCommandTests
         // assert
         result.AssertSuccess(
             """
-            Creating API key...
-            └── ✓ Successfully created API key!
+            Creating API key 'tenant-key'
+            └── ✓ Created API key 'tenant-key'.
 
             {
               "secret": "secret-xyz",
@@ -606,7 +607,7 @@ public sealed class CreateApiKeyCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Creating API key...
+            [    ] Failed to create the API key.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -650,8 +651,8 @@ public sealed class CreateApiKeyCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Creating API key...
-            └── ✕ Failed!
+            Creating API key 'tenant-key'
+            └── ✕ Failed to create the API key.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -709,7 +710,7 @@ public sealed class CreateApiKeyCommandTests
                 "api-1",
                 null,
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientException("create failed"));
+            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         var builder = new CommandBuilder()
             .AddService(client.Object)
@@ -729,7 +730,7 @@ public sealed class CreateApiKeyCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: create failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -746,7 +747,7 @@ public sealed class CreateApiKeyCommandTests
                 "api-1",
                 null,
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientException("create failed"));
+            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         var builder = new CommandBuilder()
             .AddService(client.Object)
@@ -766,12 +767,12 @@ public sealed class CreateApiKeyCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Creating API key...
-            └── ✕ Failed!
+            Creating API key 'broken'
+            └── ✕ Failed to create the API key.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: create failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -789,7 +790,7 @@ public sealed class CreateApiKeyCommandTests
                 "api-1",
                 null,
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientException("create failed"));
+            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         var builder = new CommandBuilder()
             .AddService(client.Object)
@@ -810,11 +811,11 @@ public sealed class CreateApiKeyCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Creating API key...
+            [    ] Failed to create the API key.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: create failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -832,7 +833,7 @@ public sealed class CreateApiKeyCommandTests
                 "api-1",
                 null,
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException("create failed"));
+            .ThrowsAsync(new NitroClientAuthorizationException());
 
         var builder = new CommandBuilder()
             .AddService(client.Object)
@@ -852,7 +853,8 @@ public sealed class CreateApiKeyCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();
@@ -869,7 +871,7 @@ public sealed class CreateApiKeyCommandTests
                 "api-1",
                 null,
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException("create failed"));
+            .ThrowsAsync(new NitroClientAuthorizationException());
 
         var builder = new CommandBuilder()
             .AddService(client.Object)
@@ -889,12 +891,13 @@ public sealed class CreateApiKeyCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Creating API key...
-            └── ✕ Failed!
+            Creating API key 'broken'
+            └── ✕ Failed to create the API key.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -912,7 +915,7 @@ public sealed class CreateApiKeyCommandTests
                 "api-1",
                 null,
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException("create failed"));
+            .ThrowsAsync(new NitroClientAuthorizationException());
 
         var builder = new CommandBuilder()
             .AddService(client.Object)
@@ -933,11 +936,12 @@ public sealed class CreateApiKeyCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Creating API key...
+            [    ] Failed to create the API key.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 

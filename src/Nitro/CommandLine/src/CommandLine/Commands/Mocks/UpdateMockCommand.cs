@@ -80,7 +80,9 @@ internal sealed class UpdateMockCommand : Command
             mockSchemaId = selectedMock?.Id ?? throw new ExitException("No mock schema selected.");
         }
 
-        await using (var activity = console.StartActivity($"Updating mock schema '{mockSchemaId.EscapeMarkup()}'"))
+        await using (var activity = console.StartActivity(
+            $"Updating mock schema '{mockSchemaId.EscapeMarkup()}'",
+            "Failed to update the mock schema."))
         {
             await using var baseSchemaStream = baseSchemaFile is null
                 ? null
@@ -99,7 +101,7 @@ internal sealed class UpdateMockCommand : Command
 
             if (updatedMock.Errors?.Count > 0)
             {
-                activity.Fail("Failed to update the mock schema.");
+                activity.Fail();
 
                 foreach (var error in updatedMock.Errors)
                 {
@@ -121,7 +123,6 @@ internal sealed class UpdateMockCommand : Command
 
             if (updatedMock.MockSchema is not IMockSchemaDetailPrompt mockSchema)
             {
-                activity.Fail("Failed to update the mock schema.");
                 throw MutationReturnedNoData();
             }
 

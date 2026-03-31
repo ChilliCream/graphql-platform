@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Exceptions;
 using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using Moq;
@@ -68,7 +67,8 @@ public sealed class ValidateSchemaCommandTests
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run
+            'nitro login'.
             """);
     }
 
@@ -77,7 +77,7 @@ public sealed class ValidateSchemaCommandTests
     {
         // arrange
         var client = CreateValidationExceptionClient(
-            new NitroClientException("validation request failed"));
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
         var fileSystem = CreateSchemaFileSystem();
 
         // act
@@ -100,12 +100,12 @@ public sealed class ValidateSchemaCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating schema...
-            └── ✕ Failed!
+            Validating schema against stage 'production' of API 'api-1'
+            └── ✕ Failed to validate the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: validation request failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -117,7 +117,7 @@ public sealed class ValidateSchemaCommandTests
     {
         // arrange
         var client = CreateValidationExceptionClient(
-            new NitroClientException("validation request failed"));
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
         var fileSystem = CreateSchemaFileSystem();
 
         // act
@@ -141,11 +141,11 @@ public sealed class ValidateSchemaCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Validating schema...
+            [    ] Failed to validate the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: validation request failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -157,7 +157,7 @@ public sealed class ValidateSchemaCommandTests
     {
         // arrange
         var client = CreateValidationExceptionClient(
-            new NitroClientException("validation request failed"));
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
         var fileSystem = CreateSchemaFileSystem();
 
         // act
@@ -180,7 +180,7 @@ public sealed class ValidateSchemaCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: validation request failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -191,7 +191,7 @@ public sealed class ValidateSchemaCommandTests
     {
         // arrange
         var client = CreateValidationExceptionClient(
-            new NitroClientAuthorizationException("forbidden"));
+            new NitroClientAuthorizationException());
         var fileSystem = CreateSchemaFileSystem();
 
         // act
@@ -214,12 +214,13 @@ public sealed class ValidateSchemaCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating schema...
-            └── ✕ Failed!
+            Validating schema against stage 'production' of API 'api-1'
+            └── ✕ Failed to validate the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -231,7 +232,7 @@ public sealed class ValidateSchemaCommandTests
     {
         // arrange
         var client = CreateValidationExceptionClient(
-            new NitroClientAuthorizationException("forbidden"));
+            new NitroClientAuthorizationException());
         var fileSystem = CreateSchemaFileSystem();
 
         // act
@@ -255,11 +256,12 @@ public sealed class ValidateSchemaCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Validating schema...
+            [    ] Failed to validate the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -271,7 +273,7 @@ public sealed class ValidateSchemaCommandTests
     {
         // arrange
         var client = CreateValidationExceptionClient(
-            new NitroClientAuthorizationException("forbidden"));
+            new NitroClientAuthorizationException());
         var fileSystem = CreateSchemaFileSystem();
 
         // act
@@ -294,7 +296,8 @@ public sealed class ValidateSchemaCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();
@@ -330,8 +333,8 @@ public sealed class ValidateSchemaCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating schema...
-            └── ✕ Failed!
+            Validating schema against stage 'production' of API 'api-1'
+            └── ✕ Failed to validate the schema.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -370,7 +373,7 @@ public sealed class ValidateSchemaCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Validating schema...
+            [    ] Failed to validate the schema.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -443,12 +446,13 @@ public sealed class ValidateSchemaCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating schema...
-            └── ✕ Failed!
+            Validating schema against stage 'production' of API 'api-1'
+            └── ✕ Failed to validate the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Could not create schema validation request.
+            The GraphQL mutation completed without errors, but the server did not return the
+            expected data.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -488,11 +492,12 @@ public sealed class ValidateSchemaCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Validating schema...
+            [    ] Failed to validate the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Could not create schema validation request.
+            The GraphQL mutation completed without errors, but the server did not return the
+            expected data.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -531,7 +536,8 @@ public sealed class ValidateSchemaCommandTests
         // assert
         result.AssertError(
             """
-            Could not create schema validation request.
+            The GraphQL mutation completed without errors, but the server did not return the
+            expected data.
             """);
 
         client.VerifyAll();
@@ -570,11 +576,11 @@ public sealed class ValidateSchemaCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating schema...
+            Validating schema against stage 'production' of API 'api-1'
             ├── Validation request created (ID: request-1)
             ├── The schema validation is in progress.
             ├── The schema validation is in progress.
-            └── ✓ Schema validation succeeded.
+            └── ✓ Validated the schema.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -616,7 +622,7 @@ public sealed class ValidateSchemaCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Schema validation succeeded.
+            [    ] Failed to validate the schema.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -706,10 +712,10 @@ public sealed class ValidateSchemaCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating schema...
+            Validating schema against stage 'production' of API 'api-1'
             ├── Validation request created (ID: request-1)
             ├── The schema validation is in progress.
-            └── ✕ Failed!
+            └── ✕ Failed to validate the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -760,7 +766,7 @@ public sealed class ValidateSchemaCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] The schema validation is in progress.
+            [    ] Failed to validate the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -848,10 +854,10 @@ public sealed class ValidateSchemaCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating schema...
+            Validating schema against stage 'production' of API 'api-1'
             ├── Validation request created (ID: request-1)
             ├── The schema validation is in progress.
-            └── ✕ Failed!
+            └── ✕ Failed to validate the schema.
             """);
         Assert.Equal(1, result.ExitCode);
 

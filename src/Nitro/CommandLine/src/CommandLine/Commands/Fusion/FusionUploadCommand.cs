@@ -76,7 +76,9 @@ internal sealed class FusionUploadCommand : Command
             sourceSchemaFile,
             cancellationToken);
 
-        await using (var activity = console.StartActivity($"Uploading new source schema version '{tag.EscapeMarkup()}' to API '{apiId.EscapeMarkup()}'"))
+        await using (var activity = console.StartActivity(
+            $"Uploading new source schema version '{tag.EscapeMarkup()}' to API '{apiId.EscapeMarkup()}'",
+            "Failed to upload a new source schema version."))
         {
             await using var archiveStream = new MemoryStream();
             var archive = FusionSourceSchemaArchive.Create(archiveStream, leaveOpen: true);
@@ -101,7 +103,7 @@ internal sealed class FusionUploadCommand : Command
 
             if (result.Errors?.Count > 0)
             {
-                activity.Fail("Failed to upload a new source schema version.");
+                activity.Fail();
 
                 foreach (var error in result.Errors)
                 {
@@ -110,7 +112,12 @@ internal sealed class FusionUploadCommand : Command
                         IUnauthorizedOperation err => err.Message,
                         IDuplicatedTagError err => err.Message,
                         IConcurrentOperationError err => err.Message,
-                        IInvalidFusionSourceSchemaArchiveError err => err.Message,
+                        IInvalidFusionSourceSchemaArchiveError err =>
+                            "The server received an invalid archive. "
+                            + "This indicates a bug in the tooling. "
+                            + "Please notify ChilliCream."
+                            + "Error received: "
+                            + err.Message,
                         IError err => "Unexpected mutation error: " + err.Message,
                         _ => "Unexpected mutation error."
                     };

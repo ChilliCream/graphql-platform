@@ -29,7 +29,7 @@ internal sealed class CurrentWorkspaceCommand : Command
             return Task.FromResult(ExitCodes.Success);
         }
 
-        console.ErrorLine(
+        console.Error.WriteErrorLine(
             $"No workspace selected. Run 'nitro workspace {SetDefaultWorkspaceCommand.Command}' to set a default.");
 
         return Task.FromResult(ExitCodes.Error);

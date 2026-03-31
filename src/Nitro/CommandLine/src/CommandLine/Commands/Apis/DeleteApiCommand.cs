@@ -60,12 +60,14 @@ internal sealed class DeleteApiCommand : Command
             }
         }
 
-        await using var activity = console.StartActivity($"Deleting API '{apiId.EscapeMarkup()}'");
+        await using var activity = console.StartActivity(
+            $"Deleting API '{apiId.EscapeMarkup()}'",
+            "Failed to delete the API.");
 
         var data = await client.DeleteApiAsync(apiId, cancellationToken);
         if (data.Errors?.Count > 0)
         {
-            activity.Fail("Failed to delete the API.");
+            activity.Fail();
 
             foreach (var mutationError in data.Errors)
             {
@@ -82,7 +84,6 @@ internal sealed class DeleteApiCommand : Command
 
         if (data.Api is not IApiDetailPrompt_Api api)
         {
-            activity.Fail("Failed to delete the API.");
             throw MutationReturnedNoData();
         }
 

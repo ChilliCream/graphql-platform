@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Exceptions;
 using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using Moq;
@@ -70,7 +69,8 @@ public sealed class PublishSchemaCommandTests
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run
+            'nitro login'.
             """);
     }
 
@@ -79,7 +79,7 @@ public sealed class PublishSchemaCommandTests
     {
         // arrange
         var client = CreatePublishExceptionClient(
-            new NitroClientException("publish failed"));
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -100,12 +100,12 @@ public sealed class PublishSchemaCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing...
-            └── ✕ Failed!
+            Publishing new schema version 'v1' to stage 'production' of API 'api-1'
+            └── ✕ Failed to publish a new schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: publish failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -117,7 +117,7 @@ public sealed class PublishSchemaCommandTests
     {
         // arrange
         var client = CreatePublishExceptionClient(
-            new NitroClientException("publish failed"));
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -139,11 +139,11 @@ public sealed class PublishSchemaCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Publishing...
+            [    ] Failed to publish a new schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: publish failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -155,7 +155,7 @@ public sealed class PublishSchemaCommandTests
     {
         // arrange
         var client = CreatePublishExceptionClient(
-            new NitroClientException("publish failed"));
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -176,7 +176,7 @@ public sealed class PublishSchemaCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: publish failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -187,7 +187,7 @@ public sealed class PublishSchemaCommandTests
     {
         // arrange
         var client = CreatePublishExceptionClient(
-            new NitroClientAuthorizationException("forbidden"));
+            new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -208,12 +208,13 @@ public sealed class PublishSchemaCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing...
-            └── ✕ Failed!
+            Publishing new schema version 'v1' to stage 'production' of API 'api-1'
+            └── ✕ Failed to publish a new schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -225,7 +226,7 @@ public sealed class PublishSchemaCommandTests
     {
         // arrange
         var client = CreatePublishExceptionClient(
-            new NitroClientAuthorizationException("forbidden"));
+            new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -247,11 +248,12 @@ public sealed class PublishSchemaCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Publishing...
+            [    ] Failed to publish a new schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -263,7 +265,7 @@ public sealed class PublishSchemaCommandTests
     {
         // arrange
         var client = CreatePublishExceptionClient(
-            new NitroClientAuthorizationException("forbidden"));
+            new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -284,7 +286,8 @@ public sealed class PublishSchemaCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();
@@ -319,8 +322,8 @@ public sealed class PublishSchemaCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing...
-            └── ✕ Failed!
+            Publishing new schema version 'v1' to stage 'production' of API 'api-1'
+            └── ✕ Failed to publish a new schema version.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -358,7 +361,7 @@ public sealed class PublishSchemaCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Publishing...
+            [    ] Failed to publish a new schema version.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -429,12 +432,13 @@ public sealed class PublishSchemaCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing...
-            └── ✕ Failed!
+            Publishing new schema version 'v1' to stage 'production' of API 'api-1'
+            └── ✕ Failed to publish a new schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Could not create publish request.
+            The GraphQL mutation completed without errors, but the server did not return the
+            expected data.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -473,11 +477,12 @@ public sealed class PublishSchemaCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Publishing...
+            [    ] Failed to publish a new schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Could not create publish request.
+            The GraphQL mutation completed without errors, but the server did not return the
+            expected data.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -515,7 +520,8 @@ public sealed class PublishSchemaCommandTests
         // assert
         result.AssertError(
             """
-            Could not create publish request.
+            The GraphQL mutation completed without errors, but the server did not return the
+            expected data.
             """);
 
         client.VerifyAll();
@@ -552,9 +558,9 @@ public sealed class PublishSchemaCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing...
+            Publishing new schema version 'v1' to stage 'production' of API 'api-1'
             ├── The committing of your request is in progress.
-            └── ✓ Successfully published schema!
+            └── ✓ Published new schema version 'v1' to stage 'production'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -594,7 +600,7 @@ public sealed class PublishSchemaCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Successfully published schema!
+            [    ] Failed to publish a new schema version.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -681,9 +687,9 @@ public sealed class PublishSchemaCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing...
+            Publishing new schema version 'v1' to stage 'production' of API 'api-1'
             ├── The committing of your request is in progress.
-            └── ✕ Failed!
+            └── ✕ Failed to publish a new schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -733,7 +739,7 @@ public sealed class PublishSchemaCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] The committing of your request is in progress.
+            [    ] Failed to publish a new schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -819,9 +825,9 @@ public sealed class PublishSchemaCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing...
+            Publishing new schema version 'v1' to stage 'production' of API 'api-1'
             ├── The committing of your request is in progress.
-            └── ✕ Failed!
+            └── ✕ Failed to publish a new schema version.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -860,10 +866,10 @@ public sealed class PublishSchemaCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing...
+            Publishing new schema version 'v1' to stage 'production' of API 'api-1'
             ├── Your request is queued. The current position in the queue is 3.
             ├── The committing of your request is in progress.
-            └── ✓ Successfully published schema!
+            └── ✓ Published new schema version 'v1' to stage 'production'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -903,10 +909,10 @@ public sealed class PublishSchemaCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing...
+            Publishing new schema version 'v1' to stage 'production' of API 'api-1'
             Your request is ready for the committing.
             ├── The committing of your request is in progress.
-            └── ✓ Successfully published schema!
+            └── ✓ Published new schema version 'v1' to stage 'production'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -946,10 +952,10 @@ public sealed class PublishSchemaCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing...
+            Publishing new schema version 'v1' to stage 'production' of API 'api-1'
             ├── The committing of your request is approved.
             ├── The committing of your request is in progress.
-            └── ✓ Successfully published schema!
+            └── ✓ Published new schema version 'v1' to stage 'production'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -995,12 +1001,12 @@ public sealed class PublishSchemaCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing...
+            Publishing new schema version 'v1' to stage 'production' of API 'api-1'
             ├── The committing of your request is waiting for approval. Check Nitro to
             approve the request.
             ├── The committing of your request is approved.
             ├── The committing of your request is in progress.
-            └── ✓ Successfully published schema!
+            └── ✓ Published new schema version 'v1' to stage 'production'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -1078,9 +1084,9 @@ public sealed class PublishSchemaCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing...
-            LOG: Force push is enabled
-            └── ✓ Successfully published schema!
+            Publishing new schema version 'v1' to stage 'production' of API 'api-1'
+            ├── ! Force push is enabled.
+            └── ✓ Published new schema version 'v1' to stage 'production'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);

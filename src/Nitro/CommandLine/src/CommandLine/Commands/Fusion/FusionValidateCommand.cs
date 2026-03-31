@@ -9,6 +9,7 @@ using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Results;
+using HotChocolate.Fusion;
 using HotChocolate.Fusion.Packaging;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
@@ -87,7 +88,9 @@ internal sealed class FusionValidateCommand : Command
     {
         var isValid = false;
 
-        await using (var activity = console.StartActivity($"Validating Fusion configuration against stage '{stageName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'"))
+        await using (var activity = console.StartActivity(
+            $"Validating Fusion configuration against stage '{stageName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'",
+            "Failed to validate the Fusion configuration."))
         {
             if (archiveFile is not null)
             {
@@ -116,6 +119,7 @@ internal sealed class FusionValidateCommand : Command
                 existingArchiveStream = await fusionConfigurationClient.DownloadLatestFusionArchiveAsync(
                     apiId,
                     stageName,
+                    WellKnownVersions.LatestGatewayFormatVersion.ToString(),
                     ct);
             }
             catch (HttpRequestException ex) when (ex.StatusCode is HttpStatusCode.BadRequest)
@@ -202,7 +206,7 @@ internal sealed class FusionValidateCommand : Command
                 switch (@event)
                 {
                     case ISchemaVersionValidationFailed v:
-                        activity.Fail("Failed to validate the Fusion configuration.");
+                        activity.Fail();
 
                         foreach (var error in v.Errors)
                         {
@@ -263,7 +267,7 @@ internal sealed class FusionValidateCommand : Command
 
         if (result.Errors?.Count > 0)
         {
-            activity.Fail("Failed to validate the Fusion configuration.");
+            activity.Fail();
 
             foreach (var error in result.Errors)
             {

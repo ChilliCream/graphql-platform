@@ -6,7 +6,9 @@ internal interface INitroConsoleActivity : IAsyncDisposable
 
     void Warning(string message);
 
-    void Success(string? message = null);
+    void Success(string message);
 
-    void Fail(string? message = null);
+    void Fail(string message);
+
+    void Fail();
 }

@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Exceptions;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using Moq;
@@ -228,7 +227,7 @@ public sealed class FusionPublishCommandTests
     {
         // arrange
         var (client, fileSystem) = CreateArchivePublishExceptionSetup(
-            new NitroClientException("request failed"));
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -253,11 +252,11 @@ public sealed class FusionPublishCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Requesting deployment slot...
-            └── ✕ Failed!
+            └── ✕ Failed to request a deployment slot.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: request failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -269,7 +268,7 @@ public sealed class FusionPublishCommandTests
     {
         // arrange
         var (client, fileSystem) = CreateArchivePublishExceptionSetup(
-            new NitroClientException("request failed"));
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -294,11 +293,11 @@ public sealed class FusionPublishCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Requesting deployment slot...
+            [    ] Failed to request a deployment slot.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: request failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -310,7 +309,7 @@ public sealed class FusionPublishCommandTests
     {
         // arrange
         var (client, fileSystem) = CreateArchivePublishExceptionSetup(
-            new NitroClientException("request failed"));
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -334,7 +333,7 @@ public sealed class FusionPublishCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: request failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -345,7 +344,7 @@ public sealed class FusionPublishCommandTests
     {
         // arrange
         var (client, fileSystem) = CreateArchivePublishExceptionSetup(
-            new NitroClientAuthorizationException("forbidden"));
+            new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -370,11 +369,12 @@ public sealed class FusionPublishCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Requesting deployment slot...
-            └── ✕ Failed!
+            └── ✕ Failed to request a deployment slot.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -386,7 +386,7 @@ public sealed class FusionPublishCommandTests
     {
         // arrange
         var (client, fileSystem) = CreateArchivePublishExceptionSetup(
-            new NitroClientAuthorizationException("forbidden"));
+            new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -411,11 +411,12 @@ public sealed class FusionPublishCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Requesting deployment slot...
+            [    ] Failed to request a deployment slot.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -427,7 +428,7 @@ public sealed class FusionPublishCommandTests
     {
         // arrange
         var (client, fileSystem) = CreateArchivePublishExceptionSetup(
-            new NitroClientAuthorizationException("forbidden"));
+            new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -451,7 +452,8 @@ public sealed class FusionPublishCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();

@@ -41,7 +41,9 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
         var archiveFile =
             parseResult.GetValue(Opt<FusionArchiveFileOption>.Instance)!;
 
-        await using (var activity = console.StartActivity("Validating Fusion configuration"))
+        await using (var activity = console.StartActivity(
+            "Validating Fusion configuration",
+            "Failed to validate the Fusion configuration."))
         {
             return await ValidateAsync(activity);
         }
@@ -57,7 +59,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
 
             if (result.Errors?.Count > 0)
             {
-                activity.Fail("Failed to validate the Fusion configuration.");
+                activity.Fail();
 
                 foreach (var error in result.Errors)
                 {
@@ -96,7 +98,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
                             "Your request is ready for the composition. Run `fusion-configuration publish start`");
 
                     case IFusionConfigurationValidationFailed failed:
-                        activity.Fail("Failed to validate the Fusion configuration.");
+                        activity.Fail();
 
                         foreach (var error in failed.Errors)
                         {

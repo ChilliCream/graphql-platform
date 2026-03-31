@@ -60,13 +60,15 @@ internal sealed class DeleteApiKeyCommand : Command
             }
         }
 
-        await using (var activity = console.StartActivity($"Deleting API key '{keyId.EscapeMarkup()}'"))
+        await using (var activity = console.StartActivity(
+            $"Deleting API key '{keyId.EscapeMarkup()}'",
+            "Failed to delete the API key."))
         {
             var data = await client.DeleteApiKeyAsync(keyId, cancellationToken);
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail("Failed to delete the API key.");
+                activity.Fail();
 
                 foreach (var error in data.Errors)
                 {
@@ -84,7 +86,6 @@ internal sealed class DeleteApiKeyCommand : Command
 
             if (data.ApiKey is not { } key)
             {
-                activity.Fail("Failed to delete the API key.");
                 throw MutationReturnedNoData();
             }
 

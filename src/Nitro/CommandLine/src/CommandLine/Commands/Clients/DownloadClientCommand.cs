@@ -54,7 +54,9 @@ internal sealed class DownloadClientCommand : Command
         var output = parseResult.GetValue(Opt<FileSystemOutputOptions>.Instance)!;
         var format = parseResult.GetValue(Opt<ClientFormatOption>.Instance)!;
 
-        await using (var activity = console.StartActivity($"Downloading client from stage '{stageName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'"))
+        await using (var activity = console.StartActivity(
+            $"Downloading client from stage '{stageName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'",
+            "Failed to download the client."))
         {
             var stream = await client.DownloadPersistedQueriesAsync(apiId, stageName, ct);
 

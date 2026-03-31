@@ -1,6 +1,5 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Environments;
-using ChilliCream.Nitro.Client.Exceptions;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Environments;
@@ -58,7 +57,8 @@ public sealed class CreateEnvironmentCommandTests
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run
+            'nitro login'.
             """);
     }
 
@@ -83,7 +83,8 @@ public sealed class CreateEnvironmentCommandTests
         // assert
         result.AssertError(
             """
-            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually specify the '--workspace-id' option (if available).
+            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually
+            specify the '--workspace-id' option (if available).
             """);
     }
 
@@ -139,7 +140,7 @@ public sealed class CreateEnvironmentCommandTests
             """
             ? Name production
 
-            [    ] Successfully created environment!
+            [    ] Failed to create the environment.
 
             {
               "id": "env-1",
@@ -183,8 +184,8 @@ public sealed class CreateEnvironmentCommandTests
         // assert
         result.AssertSuccess(
             """
-            Creating environment...
-            └── ✓ Successfully created environment!
+            Creating environment 'production'
+            └── ✓ Created environment 'production'.
 
             {
               "id": "env-1",
@@ -266,12 +267,13 @@ public sealed class CreateEnvironmentCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Creating environment...
-            └── ✕ Failed!
+            Creating environment 'production'
+            └── ✕ Failed to create the environment.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Could not create environment.
+            The GraphQL mutation completed without errors, but the server did not return the
+            expected data.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -312,7 +314,7 @@ public sealed class CreateEnvironmentCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Creating environment...
+            [    ] Failed to create the environment.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -356,8 +358,8 @@ public sealed class CreateEnvironmentCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Creating environment...
-            └── ✕ Failed!
+            Creating environment 'production'
+            └── ✕ Failed to create the environment.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -440,7 +442,7 @@ public sealed class CreateEnvironmentCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Creating environment...
+            [    ] Failed to create the environment.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -483,8 +485,8 @@ public sealed class CreateEnvironmentCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Creating environment...
-            └── ✕ Failed!
+            Creating environment 'production'
+            └── ✕ Failed to create the environment.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -566,12 +568,13 @@ public sealed class CreateEnvironmentCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Creating environment...
-            └── ✕ Failed!
+            Creating environment 'production'
+            └── ✕ Failed to create the environment.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Could not create environment.
+            The GraphQL mutation completed without errors, but the server did not return the
+            expected data.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -582,7 +585,7 @@ public sealed class CreateEnvironmentCommandTests
     public async Task ClientThrowsException_ReturnsError_Interactive()
     {
         // arrange
-        var client = CreateExceptionClient(new NitroClientException("create failed"));
+        var client = CreateExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -602,11 +605,11 @@ public sealed class CreateEnvironmentCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Creating environment...
+            [    ] Failed to create the environment.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: create failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -617,7 +620,7 @@ public sealed class CreateEnvironmentCommandTests
     public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
-        var client = CreateExceptionClient(new NitroClientException("create failed"));
+        var client = CreateExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -636,12 +639,12 @@ public sealed class CreateEnvironmentCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Creating environment...
-            └── ✕ Failed!
+            Creating environment 'production'
+            └── ✕ Failed to create the environment.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: create failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -652,7 +655,7 @@ public sealed class CreateEnvironmentCommandTests
     public async Task ClientThrowsException_ReturnsError_JsonOutput()
     {
         // arrange
-        var client = CreateExceptionClient(new NitroClientException("create failed"));
+        var client = CreateExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -671,7 +674,7 @@ public sealed class CreateEnvironmentCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: create failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -681,7 +684,7 @@ public sealed class CreateEnvironmentCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
     {
         // arrange
-        var client = CreateExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateExceptionClient(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -701,11 +704,12 @@ public sealed class CreateEnvironmentCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Creating environment...
+            [    ] Failed to create the environment.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -716,7 +720,7 @@ public sealed class CreateEnvironmentCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
     {
         // arrange
-        var client = CreateExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateExceptionClient(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -735,12 +739,13 @@ public sealed class CreateEnvironmentCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Creating environment...
-            └── ✕ Failed!
+            Creating environment 'production'
+            └── ✕ Failed to create the environment.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -751,7 +756,7 @@ public sealed class CreateEnvironmentCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
     {
         // arrange
-        var client = CreateExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateExceptionClient(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -770,7 +775,8 @@ public sealed class CreateEnvironmentCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();

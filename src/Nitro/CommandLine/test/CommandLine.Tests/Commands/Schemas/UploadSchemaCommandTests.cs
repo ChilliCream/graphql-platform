@@ -1,5 +1,5 @@
+using System.Net;
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Exceptions;
 using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using Moq;
@@ -62,7 +62,8 @@ public sealed class UploadSchemaCommandTests
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run
+            'nitro login'.
             """);
     }
 
@@ -70,7 +71,7 @@ public sealed class UploadSchemaCommandTests
     public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
-        var client = CreateUploadExceptionClient(new NitroClientException("upload failed"));
+        var client = CreateUploadExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
         var fileSystem = CreateSchemaFileSystem();
 
         // act
@@ -93,12 +94,12 @@ public sealed class UploadSchemaCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading schema...
-            └── ✕ Failed!
+            Uploading new schema version 'v1' to API 'api-1'
+            └── ✕ Failed to upload a new schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: upload failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -109,7 +110,7 @@ public sealed class UploadSchemaCommandTests
     public async Task ClientThrowsException_ReturnsError_Interactive()
     {
         // arrange
-        var client = CreateUploadExceptionClient(new NitroClientException("upload failed"));
+        var client = CreateUploadExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
         var fileSystem = CreateSchemaFileSystem();
 
         // act
@@ -133,11 +134,11 @@ public sealed class UploadSchemaCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Uploading schema...
+            [    ] Failed to upload a new schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: upload failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -148,7 +149,7 @@ public sealed class UploadSchemaCommandTests
     public async Task ClientThrowsException_ReturnsError_JsonOutput()
     {
         // arrange
-        var client = CreateUploadExceptionClient(new NitroClientException("upload failed"));
+        var client = CreateUploadExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
         var fileSystem = CreateSchemaFileSystem();
 
         // act
@@ -171,7 +172,7 @@ public sealed class UploadSchemaCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: upload failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -181,7 +182,7 @@ public sealed class UploadSchemaCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
     {
         // arrange
-        var client = CreateUploadExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateUploadExceptionClient(new NitroClientAuthorizationException());
         var fileSystem = CreateSchemaFileSystem();
 
         // act
@@ -204,12 +205,13 @@ public sealed class UploadSchemaCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading schema...
-            └── ✕ Failed!
+            Uploading new schema version 'v1' to API 'api-1'
+            └── ✕ Failed to upload a new schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -220,7 +222,7 @@ public sealed class UploadSchemaCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
     {
         // arrange
-        var client = CreateUploadExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateUploadExceptionClient(new NitroClientAuthorizationException());
         var fileSystem = CreateSchemaFileSystem();
 
         // act
@@ -244,11 +246,12 @@ public sealed class UploadSchemaCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Uploading schema...
+            [    ] Failed to upload a new schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -259,7 +262,7 @@ public sealed class UploadSchemaCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
     {
         // arrange
-        var client = CreateUploadExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateUploadExceptionClient(new NitroClientAuthorizationException());
         var fileSystem = CreateSchemaFileSystem();
 
         // act
@@ -282,7 +285,125 @@ public sealed class UploadSchemaCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsRequestEntityTooLarge_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var client = CreateUploadExceptionClient(new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
+        var fileSystem = CreateSchemaFileSystem();
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "schema",
+                "upload",
+                "--tag",
+                "v1",
+                "--schema-file",
+                "schema.graphql",
+                "--api-id",
+                "api-1")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Uploading new schema version 'v1' to API 'api-1'
+            └── ✕ Failed to upload a new schema version.
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server returned a 413 (Request Entity Too Large) HTTP status code. If you
+            are running a self-hosted instance, check your ingress controller body-size
+            limits, reverse proxy settings, or load balancer request size limits.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsRequestEntityTooLarge_ReturnsError_Interactive()
+    {
+        // arrange
+        var client = CreateUploadExceptionClient(new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
+        var fileSystem = CreateSchemaFileSystem();
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "schema",
+                "upload",
+                "--tag",
+                "v1",
+                "--schema-file",
+                "schema.graphql",
+                "--api-id",
+                "api-1")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            [    ] Failed to upload a new schema version.
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server returned a 413 (Request Entity Too Large) HTTP status code. If you
+            are running a self-hosted instance, check your ingress controller body-size
+            limits, reverse proxy settings, or load balancer request size limits.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsRequestEntityTooLarge_ReturnsError_JsonOutput()
+    {
+        // arrange
+        var client = CreateUploadExceptionClient(new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
+        var fileSystem = CreateSchemaFileSystem();
+
+        // act
+        var result = await new CommandBuilder()
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "schema",
+                "upload",
+                "--tag",
+                "v1",
+                "--schema-file",
+                "schema.graphql",
+                "--api-id",
+                "api-1")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            The server returned a 413 (Request Entity Too Large) HTTP status code. If you
+            are running a self-hosted instance, check your ingress controller body-size
+            limits, reverse proxy settings, or load balancer request size limits.
             """);
 
         client.VerifyAll();
@@ -317,8 +438,8 @@ public sealed class UploadSchemaCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading schema...
-            └── ✕ Failed!
+            Uploading new schema version 'v1' to API 'api-1'
+            └── ✕ Failed to upload a new schema version.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -356,7 +477,7 @@ public sealed class UploadSchemaCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Uploading schema...
+            [    ] Failed to upload a new schema version.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -428,8 +549,8 @@ public sealed class UploadSchemaCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading schema...
-            └── ✕ Failed!
+            Uploading new schema version 'v1' to API 'api-1'
+            └── ✕ Failed to upload a new schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -473,7 +594,7 @@ public sealed class UploadSchemaCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Uploading schema...
+            [    ] Failed to upload a new schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -548,8 +669,8 @@ public sealed class UploadSchemaCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading schema...
-            └── ✓ Successfully uploaded schema!
+            Uploading new schema version 'v1' to API 'api-1'
+            └── ✓ Uploaded new schema version 'v1'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -584,7 +705,7 @@ public sealed class UploadSchemaCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Successfully uploaded schema!
+            [    ] Failed to upload a new schema version.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);

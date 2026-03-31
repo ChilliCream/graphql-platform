@@ -39,7 +39,7 @@ internal sealed class ShowApiCommand : Command
 
         var id = parseResult.GetValue(Opt<IdArgument>.Instance)!;
 
-        var data = await client.ShowApiAsync(id, cancellationToken);
+        var data = await client.GetApiAsync(id, cancellationToken);
 
         if (data is IShowApiCommandQuery_Node_Api node)
         {

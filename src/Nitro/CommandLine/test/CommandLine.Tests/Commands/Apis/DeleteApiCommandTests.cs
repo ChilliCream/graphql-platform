@@ -1,6 +1,5 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Apis;
-using ChilliCream.Nitro.Client.Exceptions;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Apis;
@@ -58,7 +57,8 @@ public sealed class DeleteApiCommandTests
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run
+            'nitro login'.
             """);
     }
 
@@ -160,8 +160,8 @@ public sealed class DeleteApiCommandTests
         // assert
         result.AssertSuccess(
             """
-            Deleting API...
-            └── ✓ Successfully deleted API!
+            Deleting API 'api-1'
+            └── ✓ Deleted API 'api-1'.
 
             {
               "id": "api-1",
@@ -207,7 +207,7 @@ public sealed class DeleteApiCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Deleting API...
+            [    ] Failed to delete the API.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -239,8 +239,8 @@ public sealed class DeleteApiCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Deleting API...
-            └── ✕ Failed!
+            Deleting API 'api-1'
+            └── ✕ Failed to delete the API.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -279,7 +279,7 @@ public sealed class DeleteApiCommandTests
     public async Task ClientThrowsException_ReturnsError_Interactive()
     {
         // arrange
-        var client = CreateDeleteExceptionClient(new NitroClientException("delete failed"));
+        var client = CreateDeleteExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -297,11 +297,11 @@ public sealed class DeleteApiCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Deleting API...
+            [    ] Failed to delete the API.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: delete failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -312,7 +312,7 @@ public sealed class DeleteApiCommandTests
     public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
-        var client = CreateDeleteExceptionClient(new NitroClientException("delete failed"));
+        var client = CreateDeleteExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -329,12 +329,12 @@ public sealed class DeleteApiCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Deleting API...
-            └── ✕ Failed!
+            Deleting API 'api-1'
+            └── ✕ Failed to delete the API.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: delete failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -345,7 +345,7 @@ public sealed class DeleteApiCommandTests
     public async Task ClientThrowsException_ReturnsError_JsonOutput()
     {
         // arrange
-        var client = CreateDeleteExceptionClient(new NitroClientException("delete failed"));
+        var client = CreateDeleteExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -362,7 +362,7 @@ public sealed class DeleteApiCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: delete failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -372,7 +372,7 @@ public sealed class DeleteApiCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
     {
         // arrange
-        var client = CreateDeleteExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateDeleteExceptionClient(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -390,11 +390,12 @@ public sealed class DeleteApiCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Deleting API...
+            [    ] Failed to delete the API.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -405,7 +406,7 @@ public sealed class DeleteApiCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
     {
         // arrange
-        var client = CreateDeleteExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateDeleteExceptionClient(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -422,12 +423,13 @@ public sealed class DeleteApiCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Deleting API...
-            └── ✕ Failed!
+            Deleting API 'api-1'
+            └── ✕ Failed to delete the API.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -438,7 +440,7 @@ public sealed class DeleteApiCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
     {
         // arrange
-        var client = CreateDeleteExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateDeleteExceptionClient(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -455,7 +457,8 @@ public sealed class DeleteApiCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();

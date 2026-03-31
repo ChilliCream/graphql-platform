@@ -19,7 +19,8 @@ internal sealed class SelectClientPrompt(IClientsClient client, string apiId)
         CancellationToken cancellationToken)
     {
         var paginationContainer = PaginationContainer.CreateConnectionData(
-            (after, first, ct) => client.ListClientsAsync(apiId, after, first, ct));
+            async (after, first, ct) => await client.ListClientsAsync(apiId, after, first, ct)
+                ?? throw ThrowHelper.ThereWasAnIssueWithTheRequest("The API was not found."));
 
         return await PagedSelectionPrompt
             .New(paginationContainer)

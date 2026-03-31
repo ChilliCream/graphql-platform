@@ -1,6 +1,5 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Apis;
-using ChilliCream.Nitro.Client.Exceptions;
 using ChilliCream.Nitro.Client.Stages;
 using Moq;
 
@@ -61,7 +60,8 @@ public sealed class DeleteStageCommandTests
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run
+            'nitro login'.
             """);
     }
 
@@ -179,7 +179,8 @@ public sealed class DeleteStageCommandTests
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Could not delete the stage.
+            The GraphQL mutation completed without errors, but the server did not return the
+            expected data.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -240,7 +241,7 @@ public sealed class DeleteStageCommandTests
                 "api-1",
                 "production",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientException("delete failed"));
+            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         var command = new CommandBuilder()
             .AddService(stagesClient.Object)
@@ -263,7 +264,7 @@ public sealed class DeleteStageCommandTests
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: delete failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -282,7 +283,7 @@ public sealed class DeleteStageCommandTests
                 "api-1",
                 "production",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException("forbidden"));
+            .ThrowsAsync(new NitroClientAuthorizationException());
 
         var command = new CommandBuilder()
             .AddService(stagesClient.Object)
@@ -305,7 +306,8 @@ public sealed class DeleteStageCommandTests
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 

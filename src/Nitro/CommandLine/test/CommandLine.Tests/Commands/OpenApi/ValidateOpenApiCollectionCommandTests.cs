@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Exceptions;
 using ChilliCream.Nitro.Client.OpenApi;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using Moq;
@@ -64,8 +63,8 @@ public sealed class ValidateOpenApiCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating OpenAPI collection...
-            └── ✕ Failed!
+            Validating OpenAPI collection against stage 'production'
+            └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -95,7 +94,7 @@ public sealed class ValidateOpenApiCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Validating OpenAPI collection...
+            [    ] Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -133,7 +132,7 @@ public sealed class ValidateOpenApiCollectionCommandTests
     {
         // arrange
         var (client, fileSystem) = CreateValidationSetupWithException(
-            new NitroClientException("validation request failed"));
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -155,12 +154,12 @@ public sealed class ValidateOpenApiCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating OpenAPI collection...
-            └── ✕ Failed!
+            Validating OpenAPI collection against stage 'production'
+            └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: validation request failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -172,7 +171,7 @@ public sealed class ValidateOpenApiCollectionCommandTests
     {
         // arrange
         var (client, fileSystem) = CreateValidationSetupWithException(
-            new NitroClientException("validation request failed"));
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -195,11 +194,11 @@ public sealed class ValidateOpenApiCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Validating OpenAPI collection...
+            [    ] Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: validation request failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -211,7 +210,7 @@ public sealed class ValidateOpenApiCollectionCommandTests
     {
         // arrange
         var (client, fileSystem) = CreateValidationSetupWithException(
-            new NitroClientException("validation request failed"));
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -233,7 +232,7 @@ public sealed class ValidateOpenApiCollectionCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: validation request failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -244,7 +243,7 @@ public sealed class ValidateOpenApiCollectionCommandTests
     {
         // arrange
         var (client, fileSystem) = CreateValidationSetupWithException(
-            new NitroClientAuthorizationException("forbidden"));
+            new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -266,12 +265,13 @@ public sealed class ValidateOpenApiCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating OpenAPI collection...
-            └── ✕ Failed!
+            Validating OpenAPI collection against stage 'production'
+            └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -283,7 +283,7 @@ public sealed class ValidateOpenApiCollectionCommandTests
     {
         // arrange
         var (client, fileSystem) = CreateValidationSetupWithException(
-            new NitroClientAuthorizationException("forbidden"));
+            new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -306,11 +306,12 @@ public sealed class ValidateOpenApiCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Validating OpenAPI collection...
+            [    ] Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -322,7 +323,7 @@ public sealed class ValidateOpenApiCollectionCommandTests
     {
         // arrange
         var (client, fileSystem) = CreateValidationSetupWithException(
-            new NitroClientAuthorizationException("forbidden"));
+            new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -344,7 +345,8 @@ public sealed class ValidateOpenApiCollectionCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();
@@ -380,8 +382,8 @@ public sealed class ValidateOpenApiCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating OpenAPI collection...
-            └── ✕ Failed!
+            Validating OpenAPI collection against stage 'production'
+            └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -420,7 +422,7 @@ public sealed class ValidateOpenApiCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Validating OpenAPI collection...
+            [    ] Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -493,8 +495,8 @@ public sealed class ValidateOpenApiCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating OpenAPI collection...
-            └── ✕ Failed!
+            Validating OpenAPI collection against stage 'production'
+            └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -538,7 +540,7 @@ public sealed class ValidateOpenApiCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Validating OpenAPI collection...
+            [    ] Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -620,11 +622,11 @@ public sealed class ValidateOpenApiCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating OpenAPI collection...
+            Validating OpenAPI collection against stage 'production'
             ├── Validation request created (ID: request-1)
-            ├── The validation is in progress.
-            ├── The validation is in progress.
-            └── ✓ OpenAPI collection validation succeeded.
+            ├── Validating...
+            ├── Validating...
+            └── ✓ Validated the OpenAPI collection.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -666,7 +668,7 @@ public sealed class ValidateOpenApiCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] OpenAPI collection validation succeeded.
+            [    ] Failed to validate the OpenAPI collection.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -751,10 +753,10 @@ public sealed class ValidateOpenApiCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating OpenAPI collection...
+            Validating OpenAPI collection against stage 'production'
             ├── Validation request created (ID: request-1)
-            ├── The validation is in progress.
-            └── ✕ Failed!
+            ├── Validating...
+            └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -805,7 +807,7 @@ public sealed class ValidateOpenApiCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] The validation is in progress.
+            [    ] Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -893,10 +895,10 @@ public sealed class ValidateOpenApiCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating OpenAPI collection...
+            Validating OpenAPI collection against stage 'production'
             ├── Validation request created (ID: request-1)
-            ├── The validation is in progress.
-            └── ✕ Failed!
+            ├── Validating...
+            └── ✕ Failed to validate the OpenAPI collection.
             """);
         Assert.Equal(1, result.ExitCode);
 

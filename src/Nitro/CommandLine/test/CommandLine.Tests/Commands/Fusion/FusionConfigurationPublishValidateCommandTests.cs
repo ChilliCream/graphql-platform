@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Exceptions;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using Moq;
@@ -59,7 +58,7 @@ public sealed class FusionConfigurationPublishValidateCommandTests
     {
         // arrange
         var (client, fileSystem) = CreateExceptionSetup(
-            new NitroClientException("validation request failed"));
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -73,12 +72,12 @@ public sealed class FusionConfigurationPublishValidateCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating...
-            └── ✕ Failed!
+            Validating Fusion configuration
+            └── ✕ Failed to validate the Fusion configuration.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: validation request failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -90,7 +89,7 @@ public sealed class FusionConfigurationPublishValidateCommandTests
     {
         // arrange
         var (client, fileSystem) = CreateExceptionSetup(
-            new NitroClientException("validation request failed"));
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -105,11 +104,11 @@ public sealed class FusionConfigurationPublishValidateCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Validating...
+            [    ] Failed to validate the Fusion configuration.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: validation request failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -121,7 +120,7 @@ public sealed class FusionConfigurationPublishValidateCommandTests
     {
         // arrange
         var (client, fileSystem) = CreateExceptionSetup(
-            new NitroClientException("validation request failed"));
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -135,7 +134,7 @@ public sealed class FusionConfigurationPublishValidateCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: validation request failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -146,7 +145,7 @@ public sealed class FusionConfigurationPublishValidateCommandTests
     {
         // arrange
         var (client, fileSystem) = CreateExceptionSetup(
-            new NitroClientAuthorizationException("forbidden"));
+            new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -160,12 +159,13 @@ public sealed class FusionConfigurationPublishValidateCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating...
-            └── ✕ Failed!
+            Validating Fusion configuration
+            └── ✕ Failed to validate the Fusion configuration.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -177,7 +177,7 @@ public sealed class FusionConfigurationPublishValidateCommandTests
     {
         // arrange
         var (client, fileSystem) = CreateExceptionSetup(
-            new NitroClientAuthorizationException("forbidden"));
+            new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -192,11 +192,12 @@ public sealed class FusionConfigurationPublishValidateCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Validating...
+            [    ] Failed to validate the Fusion configuration.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -208,7 +209,7 @@ public sealed class FusionConfigurationPublishValidateCommandTests
     {
         // arrange
         var (client, fileSystem) = CreateExceptionSetup(
-            new NitroClientAuthorizationException("forbidden"));
+            new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -222,7 +223,8 @@ public sealed class FusionConfigurationPublishValidateCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();
@@ -250,8 +252,8 @@ public sealed class FusionConfigurationPublishValidateCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating...
-            └── ✕ Failed!
+            Validating Fusion configuration
+            └── ✕ Failed to validate the Fusion configuration.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -284,8 +286,8 @@ public sealed class FusionConfigurationPublishValidateCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating...
-            └── ✕ Failed!
+            Validating Fusion configuration
+            └── ✕ Failed to validate the Fusion configuration.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -319,8 +321,8 @@ public sealed class FusionConfigurationPublishValidateCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating...
-            └── ✓ The validation was successful
+            Validating Fusion configuration
+            └── ✓ Validated the Fusion configuration.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -352,7 +354,7 @@ public sealed class FusionConfigurationPublishValidateCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] The validation was successful
+            [    ] Failed to validate the Fusion configuration.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -388,8 +390,8 @@ public sealed class FusionConfigurationPublishValidateCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating...
-            └── ✕ Failed!
+            Validating Fusion configuration
+            └── ✕ Failed to validate the Fusion configuration.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -430,12 +432,13 @@ public sealed class FusionConfigurationPublishValidateCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating...
-            └── ✕ Failed!
+            Validating Fusion configuration
+            └── ✕ Failed to validate the Fusion configuration.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Your request is in the queued state. Try to run `fusion-configuration publish start` once the request is ready
+            Your request is in the queued state. Try to run `fusion-configuration publish
+            start` once the request is ready
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -471,8 +474,8 @@ public sealed class FusionConfigurationPublishValidateCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating...
-            └── ✕ Failed!
+            Validating Fusion configuration
+            └── ✕ Failed to validate the Fusion configuration.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -511,8 +514,8 @@ public sealed class FusionConfigurationPublishValidateCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating...
-            └── ✕ Failed!
+            Validating Fusion configuration
+            └── ✕ Failed to validate the Fusion configuration.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -551,12 +554,13 @@ public sealed class FusionConfigurationPublishValidateCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating...
-            └── ✕ Failed!
+            Validating Fusion configuration
+            └── ✕ Failed to validate the Fusion configuration.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Your request is ready for the composition. Run `fusion-configuration publish start`
+            Your request is ready for the composition. Run `fusion-configuration publish
+            start`
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -592,10 +596,10 @@ public sealed class FusionConfigurationPublishValidateCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating...
-            ├── The validation is in progress
-            ├── The validation is in progress
-            └── ✓ The validation was successful
+            Validating Fusion configuration
+            ├── Validating...
+            ├── Validating...
+            └── ✓ Validated the Fusion configuration.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -630,13 +634,11 @@ public sealed class FusionConfigurationPublishValidateCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating...
-            └── ✕ Failed!
+            Validating Fusion configuration
+            ├── ! Unknown server response. Consider updating the CLI.
+            └── ✕ Failed to validate the Fusion configuration.
             """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Unknown response
-            """);
+        Assert.Empty(result.StdErr);
         Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();

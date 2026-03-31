@@ -49,7 +49,7 @@ internal sealed class LoginCommand : Command
         url ??= cloudUrl;
 
         Session? session = null;
-        await using (var activity = console.StartActivity("Logging in via browser"))
+        await using (var activity = console.StartActivity("Logging in via browser", "Failed to log in."))
         {
             activity.Update($"Browser opened at {url.EscapeMarkup()}. Continue login there.");
 

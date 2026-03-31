@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Exceptions;
 using ChilliCream.Nitro.Client.Mcp;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using Moq;
@@ -67,8 +66,8 @@ public sealed class PublishMcpFeatureCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing...
-            └── ✕ Failed!
+            Publishing new MCP feature collection version 'v1' to stage 'production'
+            └── ✕ Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -98,7 +97,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Publishing...
+            [    ] Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -136,7 +135,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests
     {
         // arrange
         var client = CreatePublishExceptionClient(
-            new NitroClientException("publish failed"));
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -157,12 +156,12 @@ public sealed class PublishMcpFeatureCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing...
-            └── ✕ Failed!
+            Publishing new MCP feature collection version 'v1' to stage 'production'
+            └── ✕ Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: publish failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -174,7 +173,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests
     {
         // arrange
         var client = CreatePublishExceptionClient(
-            new NitroClientException("publish failed"));
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -196,11 +195,11 @@ public sealed class PublishMcpFeatureCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Publishing...
+            [    ] Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: publish failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -212,7 +211,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests
     {
         // arrange
         var client = CreatePublishExceptionClient(
-            new NitroClientException("publish failed"));
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -233,7 +232,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: publish failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -244,7 +243,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests
     {
         // arrange
         var client = CreatePublishExceptionClient(
-            new NitroClientAuthorizationException("forbidden"));
+            new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -265,12 +264,13 @@ public sealed class PublishMcpFeatureCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing...
-            └── ✕ Failed!
+            Publishing new MCP feature collection version 'v1' to stage 'production'
+            └── ✕ Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -282,7 +282,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests
     {
         // arrange
         var client = CreatePublishExceptionClient(
-            new NitroClientAuthorizationException("forbidden"));
+            new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -304,11 +304,12 @@ public sealed class PublishMcpFeatureCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Publishing...
+            [    ] Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -320,7 +321,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests
     {
         // arrange
         var client = CreatePublishExceptionClient(
-            new NitroClientAuthorizationException("forbidden"));
+            new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -341,7 +342,8 @@ public sealed class PublishMcpFeatureCollectionCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();
@@ -376,8 +378,8 @@ public sealed class PublishMcpFeatureCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing...
-            └── ✕ Failed!
+            Publishing new MCP feature collection version 'v1' to stage 'production'
+            └── ✕ Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -415,7 +417,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Publishing...
+            [    ] Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -486,12 +488,13 @@ public sealed class PublishMcpFeatureCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing...
-            └── ✕ Failed!
+            Publishing new MCP feature collection version 'v1' to stage 'production'
+            └── ✕ Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Could not create publish request.
+            The GraphQL mutation completed without errors, but the server did not return the
+            expected data.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -530,11 +533,12 @@ public sealed class PublishMcpFeatureCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Publishing...
+            [    ] Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Could not create publish request.
+            The GraphQL mutation completed without errors, but the server did not return the
+            expected data.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -572,7 +576,8 @@ public sealed class PublishMcpFeatureCollectionCommandTests
         // assert
         result.AssertError(
             """
-            Could not create publish request.
+            The GraphQL mutation completed without errors, but the server did not return the
+            expected data.
             """);
 
         client.VerifyAll();
@@ -609,9 +614,9 @@ public sealed class PublishMcpFeatureCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing...
-            ├── Your request is in progress.
-            └── ✓ Successfully published MCP Feature Collection!
+            Publishing new MCP feature collection version 'v1' to stage 'production'
+            ├── Processing...
+            └── ✓ Published new MCP feature collection version 'v1' to stage 'production'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -651,7 +656,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Successfully published MCP Feature Collection!
+            [    ] Failed to publish a new MCP feature collection version.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -733,9 +738,9 @@ public sealed class PublishMcpFeatureCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing...
-            ├── Your request is in progress.
-            └── ✕ Failed!
+            Publishing new MCP feature collection version 'v1' to stage 'production'
+            ├── Processing...
+            └── ✕ Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -785,7 +790,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Your request is in progress.
+            [    ] Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -871,9 +876,9 @@ public sealed class PublishMcpFeatureCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing...
-            ├── Your request is in progress.
-            └── ✕ Failed!
+            Publishing new MCP feature collection version 'v1' to stage 'production'
+            ├── Processing...
+            └── ✕ Failed to publish a new MCP feature collection version.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -912,10 +917,10 @@ public sealed class PublishMcpFeatureCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing...
-            ├── Your request is queued. The current position in the queue is 3.
-            ├── Your request is in progress.
-            └── ✓ Successfully published MCP Feature Collection!
+            Publishing new MCP feature collection version 'v1' to stage 'production'
+            ├── Queued at position 3.
+            ├── Processing...
+            └── ✓ Published new MCP feature collection version 'v1' to stage 'production'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -955,10 +960,10 @@ public sealed class PublishMcpFeatureCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing...
-            Your request is ready for processing.
-            ├── Your request is in progress.
-            └── ✓ Successfully published MCP Feature Collection!
+            Publishing new MCP feature collection version 'v1' to stage 'production'
+            ├── Ready.
+            ├── Processing...
+            └── ✓ Published new MCP feature collection version 'v1' to stage 'production'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -998,10 +1003,10 @@ public sealed class PublishMcpFeatureCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing...
-            ├── The processing of your request is approved.
-            ├── Your request is in progress.
-            └── ✓ Successfully published MCP Feature Collection!
+            Publishing new MCP feature collection version 'v1' to stage 'production'
+            ├── Approved. Processing...
+            ├── Processing...
+            └── ✓ Published new MCP feature collection version 'v1' to stage 'production'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -1047,12 +1052,11 @@ public sealed class PublishMcpFeatureCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing...
-            ├── The processing of your request is waiting for approval. Check Nitro to
-            approve the request.
-            ├── The processing of your request is approved.
-            ├── Your request is in progress.
-            └── ✓ Successfully published MCP Feature Collection!
+            Publishing new MCP feature collection version 'v1' to stage 'production'
+            ├── Waiting for approval. Approve in Nitro to continue.
+            ├── Approved. Processing...
+            ├── Processing...
+            └── ✓ Published new MCP feature collection version 'v1' to stage 'production'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);

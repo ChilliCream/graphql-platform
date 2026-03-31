@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Exceptions;
 using ChilliCream.Nitro.Client.Mcp;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using Moq;
@@ -67,8 +66,8 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating...
-            └── ✕ Failed!
+            Validating MCP feature collection against stage 'production'
+            └── ✕ Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -100,7 +99,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Validating...
+            [    ] Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -140,7 +139,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
     {
         // arrange
         var (client, fileSystem) = CreateValidationSetupWithException(
-            new NitroClientException("validation request failed"));
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -164,12 +163,12 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating...
-            └── ✕ Failed!
+            Validating MCP feature collection against stage 'production'
+            └── ✕ Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: validation request failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -181,7 +180,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
     {
         // arrange
         var (client, fileSystem) = CreateValidationSetupWithException(
-            new NitroClientException("validation request failed"));
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -206,11 +205,11 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Validating...
+            [    ] Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: validation request failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -222,7 +221,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
     {
         // arrange
         var (client, fileSystem) = CreateValidationSetupWithException(
-            new NitroClientException("validation request failed"));
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -246,7 +245,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: validation request failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -257,7 +256,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
     {
         // arrange
         var (client, fileSystem) = CreateValidationSetupWithException(
-            new NitroClientAuthorizationException("forbidden"));
+            new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -281,12 +280,13 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating...
-            └── ✕ Failed!
+            Validating MCP feature collection against stage 'production'
+            └── ✕ Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -298,7 +298,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
     {
         // arrange
         var (client, fileSystem) = CreateValidationSetupWithException(
-            new NitroClientAuthorizationException("forbidden"));
+            new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -323,11 +323,12 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Validating...
+            [    ] Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -339,7 +340,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
     {
         // arrange
         var (client, fileSystem) = CreateValidationSetupWithException(
-            new NitroClientAuthorizationException("forbidden"));
+            new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -363,7 +364,8 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();
@@ -401,8 +403,8 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating...
-            └── ✕ Failed!
+            Validating MCP feature collection against stage 'production'
+            └── ✕ Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -443,7 +445,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Validating...
+            [    ] Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -520,8 +522,8 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating...
-            └── ✕ Failed!
+            Validating MCP feature collection against stage 'production'
+            └── ✕ Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -567,7 +569,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Validating...
+            [    ] Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -653,11 +655,11 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating...
+            Validating MCP feature collection against stage 'production'
             ├── Validation request created (ID: request-1)
-            ├── The validation is in progress.
-            ├── The validation is in progress.
-            └── ✓ MCP Feature Collection validation succeeded.
+            ├── Validating...
+            ├── Validating...
+            └── ✓ Validated the MCP feature collection.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -701,7 +703,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] MCP Feature Collection validation succeeded.
+            [    ] Failed to validate the MCP feature collection.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -790,10 +792,10 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating...
+            Validating MCP feature collection against stage 'production'
             ├── Validation request created (ID: request-1)
-            ├── The validation is in progress.
-            └── ✕ Failed!
+            ├── Validating...
+            └── ✕ Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -846,7 +848,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] The validation is in progress.
+            [    ] Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -938,10 +940,10 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating...
+            Validating MCP feature collection against stage 'production'
             ├── Validation request created (ID: request-1)
-            ├── The validation is in progress.
-            └── ✕ Failed!
+            ├── Validating...
+            └── ✕ Failed to validate the MCP feature collection.
             """);
         Assert.Equal(1, result.ExitCode);
 

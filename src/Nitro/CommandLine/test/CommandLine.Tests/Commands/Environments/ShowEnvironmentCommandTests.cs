@@ -1,6 +1,5 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Environments;
-using ChilliCream.Nitro.Client.Exceptions;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Environments;
@@ -56,7 +55,8 @@ public sealed class ShowEnvironmentCommandTests
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run
+            'nitro login'.
             """);
     }
 
@@ -68,7 +68,7 @@ public sealed class ShowEnvironmentCommandTests
     {
         // arrange
         var client = new Mock<IEnvironmentsClient>(MockBehavior.Strict);
-        client.Setup(x => x.ShowEnvironmentAsync(
+        client.Setup(x => x.GetEnvironmentAsync(
                 "environment-1",
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync((IShowEnvironmentCommandQuery_Node?)null);
@@ -100,7 +100,7 @@ public sealed class ShowEnvironmentCommandTests
     {
         // arrange
         var client = new Mock<IEnvironmentsClient>(MockBehavior.Strict);
-        client.Setup(x => x.ShowEnvironmentAsync(
+        client.Setup(x => x.GetEnvironmentAsync(
                 "environment-1",
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(CreateShowEnvironmentNode("environment-1", "production", "workspace-a"));
@@ -137,7 +137,7 @@ public sealed class ShowEnvironmentCommandTests
     {
         // arrange
         var client = new Mock<IEnvironmentsClient>(MockBehavior.Strict);
-        client.Setup(x => x.ShowEnvironmentAsync(
+        client.Setup(x => x.GetEnvironmentAsync(
                 "environment-1",
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(CreateShowEnvironmentNode("environment-1", "production", "workspace-a"));
@@ -172,7 +172,7 @@ public sealed class ShowEnvironmentCommandTests
     public async Task ClientThrowsException_ReturnsError_Interactive()
     {
         // arrange
-        var client = CreateShowExceptionClient(new NitroClientException("show failed"));
+        var client = CreateShowExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -188,7 +188,7 @@ public sealed class ShowEnvironmentCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: show failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -198,7 +198,7 @@ public sealed class ShowEnvironmentCommandTests
     public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
-        var client = CreateShowExceptionClient(new NitroClientException("show failed"));
+        var client = CreateShowExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -214,7 +214,7 @@ public sealed class ShowEnvironmentCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: show failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -224,7 +224,7 @@ public sealed class ShowEnvironmentCommandTests
     public async Task ClientThrowsException_ReturnsError_JsonOutput()
     {
         // arrange
-        var client = CreateShowExceptionClient(new NitroClientException("show failed"));
+        var client = CreateShowExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -240,7 +240,7 @@ public sealed class ShowEnvironmentCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: show failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -250,7 +250,7 @@ public sealed class ShowEnvironmentCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
     {
         // arrange
-        var client = CreateShowExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateShowExceptionClient(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -266,7 +266,8 @@ public sealed class ShowEnvironmentCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();
@@ -276,7 +277,7 @@ public sealed class ShowEnvironmentCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
     {
         // arrange
-        var client = CreateShowExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateShowExceptionClient(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -292,7 +293,8 @@ public sealed class ShowEnvironmentCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();
@@ -302,7 +304,7 @@ public sealed class ShowEnvironmentCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
     {
         // arrange
-        var client = CreateShowExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateShowExceptionClient(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -318,7 +320,8 @@ public sealed class ShowEnvironmentCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();
@@ -344,7 +347,7 @@ public sealed class ShowEnvironmentCommandTests
     private static Mock<IEnvironmentsClient> CreateShowExceptionClient(Exception ex)
     {
         var client = new Mock<IEnvironmentsClient>(MockBehavior.Strict);
-        client.Setup(x => x.ShowEnvironmentAsync(
+        client.Setup(x => x.GetEnvironmentAsync(
                 "environment-1",
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(ex);

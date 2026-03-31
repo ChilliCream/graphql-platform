@@ -52,7 +52,7 @@ internal sealed class DownloadSchemaCommand : Command
         var stageName = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
         var schemaFilePath = parseResult.GetValue(Opt<FileNameOption>.Instance)!;
 
-        await using (var activity = console.StartActivity($"Downloading schema from stage '{stageName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'"))
+        await using (var activity = console.StartActivity($"Downloading schema from stage '{stageName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'", "Failed to download the schema."))
         {
             await using var schemaStream = await client.DownloadLatestSchemaAsync(
                 apiId,

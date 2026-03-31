@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Exceptions;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using Moq;
@@ -69,7 +68,8 @@ public sealed class FusionConfigurationPublishBeginCommandTests
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run
+            'nitro login'.
             """);
     }
 
@@ -77,7 +77,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests
     public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
-        var client = CreateExceptionClient(new NitroClientException("request failed"));
+        var client = CreateExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
         var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
 
         // act
@@ -92,12 +92,12 @@ public sealed class FusionConfigurationPublishBeginCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Requesting deployment slot ...
-            └── ✕ Failed!
+            Requesting deployment slot for stage 'prod' of API 'api-1'
+            └── ✕ Failed to request a deployment slot.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: request failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -108,7 +108,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests
     public async Task ClientThrowsException_ReturnsError_Interactive()
     {
         // arrange
-        var client = CreateExceptionClient(new NitroClientException("request failed"));
+        var client = CreateExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
         var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
 
         // act
@@ -124,11 +124,11 @@ public sealed class FusionConfigurationPublishBeginCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Requesting deployment slot ...
+            [    ] Failed to request a deployment slot.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: request failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -139,7 +139,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests
     public async Task ClientThrowsException_ReturnsError_JsonOutput()
     {
         // arrange
-        var client = CreateExceptionClient(new NitroClientException("request failed"));
+        var client = CreateExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
         var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
 
         // act
@@ -154,7 +154,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: request failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -164,7 +164,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
     {
         // arrange
-        var client = CreateExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateExceptionClient(new NitroClientAuthorizationException());
         var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
 
         // act
@@ -179,12 +179,13 @@ public sealed class FusionConfigurationPublishBeginCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Requesting deployment slot ...
-            └── ✕ Failed!
+            Requesting deployment slot for stage 'prod' of API 'api-1'
+            └── ✕ Failed to request a deployment slot.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -195,7 +196,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
     {
         // arrange
-        var client = CreateExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateExceptionClient(new NitroClientAuthorizationException());
         var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
 
         // act
@@ -211,11 +212,12 @@ public sealed class FusionConfigurationPublishBeginCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Requesting deployment slot ...
+            [    ] Failed to request a deployment slot.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -226,7 +228,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
     {
         // arrange
-        var client = CreateExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateExceptionClient(new NitroClientAuthorizationException());
         var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
 
         // act
@@ -241,7 +243,8 @@ public sealed class FusionConfigurationPublishBeginCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();
@@ -269,8 +272,8 @@ public sealed class FusionConfigurationPublishBeginCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Requesting deployment slot ...
-            └── ✕ Failed!
+            Requesting deployment slot for stage 'prod' of API 'api-1'
+            └── ✕ Failed to request a deployment slot.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -304,8 +307,8 @@ public sealed class FusionConfigurationPublishBeginCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Requesting deployment slot ...
-            └── ✕ Failed!
+            Requesting deployment slot for stage 'prod' of API 'api-1'
+            └── ✕ Failed to request a deployment slot.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -335,8 +338,8 @@ public sealed class FusionConfigurationPublishBeginCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Requesting deployment slot ...
-            └── ✕ Failed!
+            Requesting deployment slot for stage 'prod' of API 'api-1'
+            └── ✕ Failed to request a deployment slot.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -365,10 +368,10 @@ public sealed class FusionConfigurationPublishBeginCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Requesting deployment slot ...
-            Your request ID is request-123
-            Your deployment slot is ready.
-            └── ✕ Failed!
+            Requesting deployment slot for stage 'prod' of API 'api-1'
+            ├── Request ID: request-123
+            ├── Deployment slot ready.
+            └── ✕ Failed to request a deployment slot.
 
             {
               "requestId": "request-123"
@@ -399,10 +402,8 @@ public sealed class FusionConfigurationPublishBeginCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Your request ID is request-123
-            Your deployment slot is ready.
 
-            [    ] Requesting deployment slot ...
+            [    ] Failed to request a deployment slot.
 
             {
               "requestId": "request-123"

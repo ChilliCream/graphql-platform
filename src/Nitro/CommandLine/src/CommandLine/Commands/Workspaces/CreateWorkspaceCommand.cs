@@ -55,13 +55,15 @@ internal sealed class CreateWorkspaceCommand : Command
                 ct);
         }
 
-        await using (var activity = console.StartActivity($"Creating workspace '{name.EscapeMarkup()}'"))
+        await using (var activity = console.StartActivity(
+            $"Creating workspace '{name.EscapeMarkup()}'",
+            "Failed to create the workspace."))
         {
             var createdWorkspace = await client.CreateWorkspaceAsync(name, ct);
 
             if (createdWorkspace.Errors?.Count > 0)
             {
-                activity.Fail("Failed to create the workspace.");
+                activity.Fail();
 
                 foreach (var error in createdWorkspace.Errors)
                 {
@@ -81,7 +83,6 @@ internal sealed class CreateWorkspaceCommand : Command
 
             if (createdWorkspace.Workspace is not IWorkspaceDetailPrompt_Workspace workspaceDetail)
             {
-                activity.Fail("Failed to create the workspace.");
                 throw MutationReturnedNoData();
             }
 

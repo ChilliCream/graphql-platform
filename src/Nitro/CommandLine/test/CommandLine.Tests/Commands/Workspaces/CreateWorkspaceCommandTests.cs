@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Exceptions;
 using ChilliCream.Nitro.Client.Workspaces;
 using Moq;
 
@@ -56,7 +55,8 @@ public sealed class CreateWorkspaceCommandTests
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run
+            'nitro login'.
             """);
     }
 
@@ -106,8 +106,8 @@ public sealed class CreateWorkspaceCommandTests
         // assert
         result.AssertSuccess(
             """
-            Creating workspace...
-            └── ✓ Successfully created workspace!
+            Creating workspace 'my-workspace'
+            └── ✓ Created workspace 'my-workspace'.
 
             {
               "id": "ws-1",
@@ -186,7 +186,7 @@ public sealed class CreateWorkspaceCommandTests
             ? Name my-workspace
             ? Set as default workspace [y/n] (y): n
 
-            [    ] Successfully created workspace!
+            [    ] Failed to create the workspace.
 
             {
               "id": "ws-1",
@@ -225,12 +225,13 @@ public sealed class CreateWorkspaceCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Creating workspace...
-            └── ✕ Failed!
+            Creating workspace 'my-workspace'
+            └── ✕ Failed to create the workspace.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Could not create workspace.
+            The GraphQL mutation completed without errors, but the server did not return the
+            expected data.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -265,8 +266,8 @@ public sealed class CreateWorkspaceCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Creating workspace...
-            └── ✕ Failed!
+            Creating workspace 'my-workspace'
+            └── ✕ Failed to create the workspace.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -303,7 +304,7 @@ public sealed class CreateWorkspaceCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Creating workspace...
+            [    ] Failed to create the workspace.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -350,7 +351,7 @@ public sealed class CreateWorkspaceCommandTests
         client.Setup(x => x.CreateWorkspaceAsync(
                 "my-workspace",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientException("create failed"));
+            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -368,11 +369,11 @@ public sealed class CreateWorkspaceCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Creating workspace...
+            [    ] Failed to create the workspace.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: create failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -387,7 +388,7 @@ public sealed class CreateWorkspaceCommandTests
         client.Setup(x => x.CreateWorkspaceAsync(
                 "my-workspace",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientException("create failed"));
+            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -404,12 +405,12 @@ public sealed class CreateWorkspaceCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Creating workspace...
-            └── ✕ Failed!
+            Creating workspace 'my-workspace'
+            └── ✕ Failed to create the workspace.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: create failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -424,7 +425,7 @@ public sealed class CreateWorkspaceCommandTests
         client.Setup(x => x.CreateWorkspaceAsync(
                 "my-workspace",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientException("create failed"));
+            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -441,7 +442,7 @@ public sealed class CreateWorkspaceCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: create failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -455,7 +456,7 @@ public sealed class CreateWorkspaceCommandTests
         client.Setup(x => x.CreateWorkspaceAsync(
                 "my-workspace",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException("forbidden"));
+            .ThrowsAsync(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -473,11 +474,12 @@ public sealed class CreateWorkspaceCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Creating workspace...
+            [    ] Failed to create the workspace.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -492,7 +494,7 @@ public sealed class CreateWorkspaceCommandTests
         client.Setup(x => x.CreateWorkspaceAsync(
                 "my-workspace",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException("forbidden"));
+            .ThrowsAsync(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -509,12 +511,13 @@ public sealed class CreateWorkspaceCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Creating workspace...
-            └── ✕ Failed!
+            Creating workspace 'my-workspace'
+            └── ✕ Failed to create the workspace.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -529,7 +532,7 @@ public sealed class CreateWorkspaceCommandTests
         client.Setup(x => x.CreateWorkspaceAsync(
                 "my-workspace",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException("forbidden"));
+            .ThrowsAsync(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -546,7 +549,8 @@ public sealed class CreateWorkspaceCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();

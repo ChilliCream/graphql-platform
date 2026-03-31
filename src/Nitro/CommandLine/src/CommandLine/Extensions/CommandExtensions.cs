@@ -31,14 +31,17 @@ internal static class CommandExtensions
             catch (NitroClientHttpRequestException ex) when (ex.StatusCode == HttpStatusCode.RequestEntityTooLarge)
             {
                 console.Error.WriteErrorLine(
-                    "The server rejected the request because the payload is too large. "
+                    "The server returned a 413 (Request Entity Too Large) HTTP status code. "
                     + "If you are running a self-hosted instance, check your ingress controller body-size limits, "
                     + "reverse proxy settings, or load balancer request size limits.");
             }
             catch (NitroClientHttpRequestException exception)
             {
-                console.Error.WriteErrorLine(
-                    $"The server returned an unexpected HTTP status code ({(int?)exception.StatusCode} - ({exception.StatusCode})");
+                var message = exception.StatusCode is null
+                    ? "The server returned an unexpected HTTP status code."
+                    : $"The server returned an unexpected HTTP status code ({(int)exception.StatusCode} - {exception.StatusCode})";
+
+                console.Error.WriteErrorLine(message);
             }
             catch (NitroClientGraphQLException exception)
             {

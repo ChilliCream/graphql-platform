@@ -62,7 +62,7 @@ internal sealed class FusionSettingsSetCommand : Command
     {
         if (!fileSystem.FileExists(archiveFile))
         {
-            console.ErrorLine($"File '{archiveFile}' does not exist.");
+            console.Error.WriteErrorLine($"File '{archiveFile}' does not exist.");
             return ExitCodes.Error;
         }
 
@@ -73,7 +73,7 @@ internal sealed class FusionSettingsSetCommand : Command
             case FusionSettingsNameArgument.CacheControlMergeBehavior:
                 if (!TryParseDirectiveMergeBehavior(settingValue, out var cacheControlMergeBehavior))
                 {
-                    console.ErrorLine(
+                    console.Error.WriteErrorLine(
                         $"Expected one of the following values for setting '{settingName}': "
                         + $"{string.Join(", ", DirectiveMergeBehaviorNames.All)}");
                     return ExitCodes.Error;
@@ -92,7 +92,7 @@ internal sealed class FusionSettingsSetCommand : Command
             case FusionSettingsNameArgument.GlobalObjectIdentification:
                 if (!bool.TryParse(settingValue, out var enableGlobalObjectIdentification))
                 {
-                    console.ErrorLine($"Expected a boolean value for setting '{settingName}'.");
+                    console.Error.WriteErrorLine($"Expected a boolean value for setting '{settingName}'.");
                     return ExitCodes.Error;
                 }
 
@@ -102,7 +102,7 @@ internal sealed class FusionSettingsSetCommand : Command
             case FusionSettingsNameArgument.TagMergeBehavior:
                 if (!TryParseDirectiveMergeBehavior(settingValue, out var tagMergeBehavior))
                 {
-                    console.ErrorLine(
+                    console.Error.WriteErrorLine(
                         $"Expected one of the following values for setting '{settingName}': "
                         + $"{string.Join(", ", DirectiveMergeBehaviorNames.All)}");
                     return ExitCodes.Error;

@@ -1,4 +1,4 @@
-using ChilliCream.Nitro.Client.Exceptions;
+using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using Moq;
@@ -59,7 +59,8 @@ public sealed class FusionDownloadCommandTests
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run
+            'nitro login'.
             """);
     }
 
@@ -89,7 +90,8 @@ public sealed class FusionDownloadCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Downloaded Fusion configuration to: /tmp/gateway.far
+
+            [    ] Failed to download the latest Fusion configuration.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -124,7 +126,8 @@ public sealed class FusionDownloadCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Downloaded Fusion configuration to: /tmp/gateway.far
+            Downloading latest Fusion configuration from stage 'prod' of API 'api-1'
+            └── ✓ Downloaded the latest Fusion configuration.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -196,7 +199,8 @@ public sealed class FusionDownloadCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Downloaded Fusion configuration to: /tmp/gateway.fgp
+
+            [    ] Failed to download the latest Fusion configuration.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -231,7 +235,8 @@ public sealed class FusionDownloadCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Downloaded Fusion configuration to: /tmp/gateway.fgp
+            Downloading latest Fusion configuration from stage 'prod' of API 'api-1'
+            └── ✓ Downloaded the latest Fusion configuration.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -290,6 +295,7 @@ public sealed class FusionDownloadCommandTests
         client.Setup(x => x.DownloadLatestFusionArchiveAsync(
                 "api-1",
                 "prod",
+                It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(downloadStream);
 
@@ -336,6 +342,7 @@ public sealed class FusionDownloadCommandTests
         client.Setup(x => x.DownloadLatestFusionArchiveAsync(
                 "api-1",
                 "prod",
+                It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync((Stream?)null);
 
@@ -356,10 +363,11 @@ public sealed class FusionDownloadCommandTests
             .ExecuteAsync();
 
         // assert
-        result.AssertError(
+        result.StdErr.MatchInlineSnapshot(
             """
             The API with the given ID does not exist or does not have a download URL.
             """);
+        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -368,7 +376,7 @@ public sealed class FusionDownloadCommandTests
     public async Task ClientThrowsException_ReturnsError_Interactive()
     {
         // arrange
-        var client = CreateExceptionClient(new NitroClientException("download failed"));
+        var client = CreateExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -387,10 +395,11 @@ public sealed class FusionDownloadCommandTests
             .ExecuteAsync();
 
         // assert
-        result.AssertError(
+        result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: download failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
+        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -399,7 +408,7 @@ public sealed class FusionDownloadCommandTests
     public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
-        var client = CreateExceptionClient(new NitroClientException("download failed"));
+        var client = CreateExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -418,10 +427,11 @@ public sealed class FusionDownloadCommandTests
             .ExecuteAsync();
 
         // assert
-        result.AssertError(
+        result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: download failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
+        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -430,7 +440,7 @@ public sealed class FusionDownloadCommandTests
     public async Task ClientThrowsException_ReturnsError_JsonOutput()
     {
         // arrange
-        var client = CreateExceptionClient(new NitroClientException("download failed"));
+        var client = CreateExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -451,7 +461,7 @@ public sealed class FusionDownloadCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: download failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -461,7 +471,7 @@ public sealed class FusionDownloadCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
     {
         // arrange
-        var client = CreateExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateExceptionClient(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -480,10 +490,12 @@ public sealed class FusionDownloadCommandTests
             .ExecuteAsync();
 
         // assert
-        result.AssertError(
+        result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
+        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -492,7 +504,7 @@ public sealed class FusionDownloadCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
     {
         // arrange
-        var client = CreateExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateExceptionClient(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -511,10 +523,12 @@ public sealed class FusionDownloadCommandTests
             .ExecuteAsync();
 
         // assert
-        result.AssertError(
+        result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
+        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -523,7 +537,7 @@ public sealed class FusionDownloadCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
     {
         // arrange
-        var client = CreateExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateExceptionClient(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -544,7 +558,8 @@ public sealed class FusionDownloadCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();
@@ -571,6 +586,7 @@ public sealed class FusionDownloadCommandTests
             client.Setup(x => x.DownloadLatestFusionArchiveAsync(
                     "api-1",
                     "prod",
+                    It.IsAny<string>(),
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(downloadStream);
         }
@@ -590,6 +606,7 @@ public sealed class FusionDownloadCommandTests
         client.Setup(x => x.DownloadLatestFusionArchiveAsync(
                 "api-1",
                 "prod",
+                It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(ex);
         return client;

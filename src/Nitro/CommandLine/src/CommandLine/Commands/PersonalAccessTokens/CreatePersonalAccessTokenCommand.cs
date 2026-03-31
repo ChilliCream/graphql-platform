@@ -51,13 +51,15 @@ internal sealed class CreatePersonalAccessTokenCommand : Command
 
         var expiresAt = DateTimeOffset.UtcNow.AddDays(expires);
 
-        await using (var activity = console.StartActivity("Creating personal access token"))
+        await using (var activity = console.StartActivity(
+            "Creating personal access token",
+            "Failed to create the personal access token."))
         {
             var data = await client.CreatePersonalAccessTokenAsync(description, expiresAt, ct);
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail("Failed to create the personal access token.");
+                activity.Fail();
 
                 foreach (var error in data.Errors)
                 {
@@ -77,7 +79,6 @@ internal sealed class CreatePersonalAccessTokenCommand : Command
             var result = data.Result;
             if (result is null)
             {
-                activity.Fail("Failed to create the personal access token.");
                 throw MutationReturnedNoData();
             }
 

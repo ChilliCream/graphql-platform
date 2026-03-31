@@ -58,7 +58,9 @@ internal sealed class UploadOpenApiCollectionCommand : Command
                 files,
                 cancellationToken);
 
-        await using (var activity = console.StartActivity($"Uploading new OpenAPI collection version '{tag.EscapeMarkup()}' for collection '{openApiCollectionId.EscapeMarkup()}'"))
+        await using (var activity = console.StartActivity(
+            $"Uploading new OpenAPI collection version '{tag.EscapeMarkup()}' for collection '{openApiCollectionId.EscapeMarkup()}'",
+            "Failed to upload a new OpenAPI collection version."))
         {
             var data = await client.UploadOpenApiCollectionVersionAsync(
                 openApiCollectionId,
@@ -69,7 +71,7 @@ internal sealed class UploadOpenApiCollectionCommand : Command
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail("Failed to upload a new OpenAPI collection version.");
+                activity.Fail();
 
                 foreach (var error in data.Errors)
                 {
@@ -79,7 +81,7 @@ internal sealed class UploadOpenApiCollectionCommand : Command
                         IUnauthorizedOperation err => err.Message,
                         IDuplicatedTagError err => err.Message,
                         IConcurrentOperationError err => err.Message,
-                        IInvalidOpenApiCollectionArchiveError err => err.Message,
+                        IInvalidOpenApiCollectionArchiveError err => ErrorMessages.InvalidArchive(err.Message),
                         IError err => "Unexpected mutation error: " + err.Message,
                         _ => "Unexpected mutation error."
                     };
@@ -92,7 +94,7 @@ internal sealed class UploadOpenApiCollectionCommand : Command
 
             if (data.OpenApiCollectionVersion is null)
             {
-                activity.Fail("Failed to upload a new OpenAPI collection version.");
+                activity.Fail();
                 console.Error.WriteErrorLine("Could not upload OpenAPI collection version.");
                 return ExitCodes.Error;
             }

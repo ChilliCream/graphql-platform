@@ -1,4 +1,4 @@
-using ChilliCream.Nitro.Client.Exceptions;
+using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using Moq;
@@ -61,7 +61,8 @@ public sealed class DownloadSchemaCommandTests
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run
+            'nitro login'.
             """);
     }
 
@@ -113,7 +114,7 @@ public sealed class DownloadSchemaCommandTests
     public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
-        var client = CreateDownloadExceptionClient(new NitroClientException("download failed"));
+        var client = CreateDownloadExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -134,12 +135,12 @@ public sealed class DownloadSchemaCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Fetching Schema...
-            └── ✕ Failed!
+            Downloading schema from stage 'production' of API 'api-1'
+            └── ✕ Failed to download the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: download failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -150,7 +151,7 @@ public sealed class DownloadSchemaCommandTests
     public async Task ClientThrowsException_ReturnsError_Interactive()
     {
         // arrange
-        var client = CreateDownloadExceptionClient(new NitroClientException("download failed"));
+        var client = CreateDownloadExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -172,11 +173,11 @@ public sealed class DownloadSchemaCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Fetching Schema...
+            [    ] Failed to download the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            There was an unexpected error executing your request: download failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -187,7 +188,7 @@ public sealed class DownloadSchemaCommandTests
     public async Task ClientThrowsException_ReturnsError_JsonOutput()
     {
         // arrange
-        var client = CreateDownloadExceptionClient(new NitroClientException("download failed"));
+        var client = CreateDownloadExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder()
@@ -208,7 +209,7 @@ public sealed class DownloadSchemaCommandTests
         // assert
         result.AssertError(
             """
-            There was an unexpected error executing your request: download failed
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
 
         client.VerifyAll();
@@ -218,7 +219,7 @@ public sealed class DownloadSchemaCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
     {
         // arrange
-        var client = CreateDownloadExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateDownloadExceptionClient(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -239,12 +240,13 @@ public sealed class DownloadSchemaCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Fetching Schema...
-            └── ✕ Failed!
+            Downloading schema from stage 'production' of API 'api-1'
+            └── ✕ Failed to download the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -255,7 +257,7 @@ public sealed class DownloadSchemaCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
     {
         // arrange
-        var client = CreateDownloadExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateDownloadExceptionClient(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -277,11 +279,12 @@ public sealed class DownloadSchemaCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Fetching Schema...
+            [    ] Failed to download the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -292,7 +295,7 @@ public sealed class DownloadSchemaCommandTests
     public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
     {
         // arrange
-        var client = CreateDownloadExceptionClient(new NitroClientAuthorizationException("forbidden"));
+        var client = CreateDownloadExceptionClient(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder()
@@ -313,7 +316,8 @@ public sealed class DownloadSchemaCommandTests
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key
+            has the proper permissions for this action.
             """);
 
         client.VerifyAll();
@@ -349,8 +353,8 @@ public sealed class DownloadSchemaCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Fetching Schema...
-            └── ✕ Failed!
+            Downloading schema from stage 'production' of API 'api-1'
+            └── ✕ Failed to download the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -392,7 +396,7 @@ public sealed class DownloadSchemaCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Fetching Schema...
+            [    ] Failed to download the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -478,8 +482,8 @@ public sealed class DownloadSchemaCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Fetching Schema...
-            └── ✓ Downloaded schema to 'schema.graphql'.
+            Downloading schema from stage 'production' of API 'api-1'
+            └── ✓ Downloaded the schema from stage 'production'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -529,7 +533,7 @@ public sealed class DownloadSchemaCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
 
-            [    ] Downloaded schema to 'schema.graphql'.
+            [    ] Failed to download the schema.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -629,8 +633,8 @@ public sealed class DownloadSchemaCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Fetching Schema...
-            └── ✓ Downloaded schema to 'schema.graphql'.
+            Downloading schema from stage 'production' of API 'api-1'
+            └── ✓ Downloaded the schema from stage 'production'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);

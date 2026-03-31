@@ -68,8 +68,9 @@ internal sealed class ListClientCommand : Command
         var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
 
         var container = PaginationContainer
-            .CreateConnectionData((after, first, cancellationToken) =>
-                client.ListClientsAsync(apiId, after ?? cursor, first, cancellationToken))
+            .CreateConnectionData(async (after, first, cancellationToken) =>
+                await client.ListClientsAsync(apiId, after ?? cursor, first, cancellationToken)
+                    ?? throw ThrowHelper.ThereWasAnIssueWithTheRequest("The API was not found."))
             .PageSize(10);
 
         var selectedClient = await PagedTable
@@ -100,7 +101,8 @@ internal sealed class ListClientCommand : Command
         }
 
         var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
-        var page = await client.ListClientsAsync(apiId, cursor, 10, ct);
+        var page = await client.ListClientsAsync(apiId, cursor, 10, ct)
+            ?? throw ThrowHelper.ThereWasAnIssueWithTheRequest("The API was not found.");
 
         var items = page.Items
             .Select(x => ClientDetailPrompt.From(x).ToObject())

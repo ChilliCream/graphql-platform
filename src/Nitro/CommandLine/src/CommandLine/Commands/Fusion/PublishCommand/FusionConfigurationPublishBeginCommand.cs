@@ -67,7 +67,9 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
             parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        await using (var activity = console.StartActivity($"Requesting deployment slot for stage '{stageName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'"))
+        await using (var activity = console.StartActivity(
+            $"Requesting deployment slot for stage '{stageName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'",
+            "Failed to request a deployment slot."))
         {
             await RequestDeploymentSlotAsync(activity);
         }
