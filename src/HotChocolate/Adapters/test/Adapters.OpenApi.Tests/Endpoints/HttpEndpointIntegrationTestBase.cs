@@ -181,6 +181,27 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     }
 
     [Fact]
+    public async Task Http_Get_With_Query_Parameter_Float_Value_With_Decimals()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query SearchProducts($text: String, $minPrice: Float)
+              @http(method: GET, route: "/search", queryParameters: ["text", "minPrice"]) {
+              searchProducts(text: $text, minPrice: $minPrice)
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var response = await client.GetAsync("/search?text=Bed&minPrice=500.99");
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Http_Get_Invalid_Type_In_Route_Parameter()
     {
         // arrange
