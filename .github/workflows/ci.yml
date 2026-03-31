@@ -287,7 +287,7 @@ jobs:
         with:
           client-id: ${{ secrets.NITRO_API_CLIENT_ID }}
           operations-file: src/Nitro/CommandLine/src/ChilliCream.Nitro.Client/persisted/operations.json
-          stage: dev
+          stage: Dev
           api-key: ${{ secrets.NITRO_API_KEY }}
           comment-mode: "review"
 
