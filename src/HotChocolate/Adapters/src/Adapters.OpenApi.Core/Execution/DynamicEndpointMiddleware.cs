@@ -333,6 +333,12 @@ internal sealed class DynamicEndpointMiddleware(
                     return false;
                 }
 
+                if (leaf.Type.IsNonNullType())
+                {
+                    throw new BadRequestException(
+                        $"Required route parameter '{leaf.ParameterKey}' is missing");
+                }
+
                 parameterValue = s_nullValueNode;
                 return true;
             }
@@ -355,6 +361,12 @@ internal sealed class DynamicEndpointMiddleware(
                 if (leaf.HasDefaultValue)
                 {
                     return false;
+                }
+
+                if (leaf.Type.IsNonNullType())
+                {
+                    throw new BadRequestException(
+                        $"Required query parameter '{leaf.ParameterKey}' is missing");
                 }
 
                 parameterValue = s_nullValueNode;
