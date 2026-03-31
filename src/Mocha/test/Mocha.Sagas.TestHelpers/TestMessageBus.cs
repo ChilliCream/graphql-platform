@@ -72,24 +72,36 @@ public sealed class TestMessageBus(TestMessageOutbox outbox) : IMessageBus
     public ValueTask<SchedulingResult> SchedulePublishAsync<T>(
         T message,
         DateTimeOffset scheduledTime,
-        CancellationToken cancellationToken) where T : notnull
+        CancellationToken cancellationToken)
+        where T : notnull
     {
         var token = $"test:{Interlocked.Increment(ref _scheduleCounter)}";
-        outbox.Messages.Add(
-            new TestMessageOutbox.Operation(TestMessageOutbox.OperationKind.Publish, message, null));
-        return ValueTask.FromResult(new SchedulingResult { Token = token, ScheduledTime = scheduledTime, IsCancellable = true });
+        outbox.Messages.Add(new TestMessageOutbox.Operation(TestMessageOutbox.OperationKind.Publish, message, null));
+        return ValueTask.FromResult(
+            new SchedulingResult
+            {
+                Token = token,
+                ScheduledTime = scheduledTime,
+                IsCancellable = true
+            });
     }
 
     public ValueTask<SchedulingResult> SchedulePublishAsync<T>(
         T message,
         DateTimeOffset scheduledTime,
         PublishOptions options,
-        CancellationToken cancellationToken) where T : notnull
+        CancellationToken cancellationToken)
+        where T : notnull
     {
         var token = $"test:{Interlocked.Increment(ref _scheduleCounter)}";
-        outbox.Messages.Add(
-            new TestMessageOutbox.Operation(TestMessageOutbox.OperationKind.Publish, message, options));
-        return ValueTask.FromResult(new SchedulingResult { Token = token, ScheduledTime = scheduledTime, IsCancellable = true });
+        outbox.Messages.Add(new TestMessageOutbox.Operation(TestMessageOutbox.OperationKind.Publish, message, options));
+        return ValueTask.FromResult(
+            new SchedulingResult
+            {
+                Token = token,
+                ScheduledTime = scheduledTime,
+                IsCancellable = true
+            });
     }
 
     public ValueTask<SchedulingResult> ScheduleSendAsync(
@@ -98,9 +110,14 @@ public sealed class TestMessageBus(TestMessageOutbox outbox) : IMessageBus
         CancellationToken cancellationToken)
     {
         var token = $"test:{Interlocked.Increment(ref _scheduleCounter)}";
-        outbox.Messages.Add(
-            new TestMessageOutbox.Operation(TestMessageOutbox.OperationKind.Send, message, null));
-        return ValueTask.FromResult(new SchedulingResult { Token = token, ScheduledTime = scheduledTime, IsCancellable = true });
+        outbox.Messages.Add(new TestMessageOutbox.Operation(TestMessageOutbox.OperationKind.Send, message, null));
+        return ValueTask.FromResult(
+            new SchedulingResult
+            {
+                Token = token,
+                ScheduledTime = scheduledTime,
+                IsCancellable = true
+            });
     }
 
     public ValueTask<SchedulingResult> ScheduleSendAsync(
@@ -110,9 +127,14 @@ public sealed class TestMessageBus(TestMessageOutbox outbox) : IMessageBus
         CancellationToken cancellationToken)
     {
         var token = $"test:{Interlocked.Increment(ref _scheduleCounter)}";
-        outbox.Messages.Add(
-            new TestMessageOutbox.Operation(TestMessageOutbox.OperationKind.Send, message, options));
-        return ValueTask.FromResult(new SchedulingResult { Token = token, ScheduledTime = scheduledTime, IsCancellable = true });
+        outbox.Messages.Add(new TestMessageOutbox.Operation(TestMessageOutbox.OperationKind.Send, message, options));
+        return ValueTask.FromResult(
+            new SchedulingResult
+            {
+                Token = token,
+                ScheduledTime = scheduledTime,
+                IsCancellable = true
+            });
     }
 
     public ValueTask<bool> CancelScheduledMessageAsync(string token, CancellationToken cancellationToken)

@@ -44,21 +44,19 @@ public sealed class SagaTimeoutTests
     {
         // Arrange
         var timeout = TimeSpan.FromMinutes(5);
-        var saga = Saga.Create<TimeoutState>(x =>
-        {
-            x.Timeout(timeout);
+        var saga =
+            Saga.Create<TimeoutState>(x =>
+            {
+                x.Timeout(timeout);
 
-            x.Initially()
-                .OnEvent<StartEvent>()
-                .StateFactory(_ => new TimeoutState())
-                .TransitionTo("Active");
+                x.Initially().OnEvent<StartEvent>().StateFactory(_ => new TimeoutState()).TransitionTo("Active");
 
-            x.DuringAny().OnTimeout().TransitionTo(StateNames.TimedOut);
+                x.DuringAny().OnTimeout().TransitionTo(StateNames.TimedOut);
 
-            x.During("Active").OnEvent<EndEvent>().TransitionTo("Completed");
+                x.During("Active").OnEvent<EndEvent>().TransitionTo("Completed");
 
-            x.Finally("Completed");
-        });
+                x.Finally("Completed");
+            });
 
         Initialize(saga);
 
@@ -66,9 +64,8 @@ public sealed class SagaTimeoutTests
         var context = CreateContext(saga, new StartEvent());
         await saga.HandleEvent(context);
 
-        // Assert — ScheduleSendAsync should have been called with a SagaTimedOutEvent
-        var scheduledOp = _outbox.Messages
-            .FirstOrDefault(m => m.Message is SagaTimedOutEvent);
+        // Assert - ScheduleSendAsync should have been called with a SagaTimedOutEvent
+        var scheduledOp = _outbox.Messages.FirstOrDefault(m => m.Message is SagaTimedOutEvent);
         Assert.NotNull(scheduledOp);
 
         var timedOutEvent = Assert.IsType<SagaTimedOutEvent>(scheduledOp.Message);
@@ -83,21 +80,19 @@ public sealed class SagaTimeoutTests
     public async Task Timeout_Should_StoreToken_When_SagaCreated()
     {
         // Arrange
-        var saga = Saga.Create<TimeoutState>(x =>
-        {
-            x.Timeout(TimeSpan.FromMinutes(5));
+        var saga =
+            Saga.Create<TimeoutState>(x =>
+            {
+                x.Timeout(TimeSpan.FromMinutes(5));
 
-            x.Initially()
-                .OnEvent<StartEvent>()
-                .StateFactory(_ => new TimeoutState())
-                .TransitionTo("Active");
+                x.Initially().OnEvent<StartEvent>().StateFactory(_ => new TimeoutState()).TransitionTo("Active");
 
-            x.DuringAny().OnTimeout().TransitionTo(StateNames.TimedOut);
+                x.DuringAny().OnTimeout().TransitionTo(StateNames.TimedOut);
 
-            x.During("Active").OnEvent<EndEvent>().TransitionTo("Completed");
+                x.During("Active").OnEvent<EndEvent>().TransitionTo("Completed");
 
-            x.Finally("Completed");
-        });
+                x.Finally("Completed");
+            });
 
         Initialize(saga);
 
@@ -115,25 +110,23 @@ public sealed class SagaTimeoutTests
     public async Task Timeout_Should_CancelToken_When_SagaReachesFinalState()
     {
         // Arrange
-        var saga = Saga.Create<TimeoutState>(x =>
-        {
-            x.Timeout(TimeSpan.FromMinutes(5));
+        var saga =
+            Saga.Create<TimeoutState>(x =>
+            {
+                x.Timeout(TimeSpan.FromMinutes(5));
 
-            x.Initially()
-                .OnEvent<StartEvent>()
-                .StateFactory(_ => new TimeoutState())
-                .TransitionTo("Active");
+                x.Initially().OnEvent<StartEvent>().StateFactory(_ => new TimeoutState()).TransitionTo("Active");
 
-            x.DuringAny().OnTimeout().TransitionTo(StateNames.TimedOut);
+                x.DuringAny().OnTimeout().TransitionTo(StateNames.TimedOut);
 
-            x.During("Active").OnEvent<EndEvent>().TransitionTo("Completed");
+                x.During("Active").OnEvent<EndEvent>().TransitionTo("Completed");
 
-            x.Finally("Completed");
-        });
+                x.Finally("Completed");
+            });
 
         Initialize(saga);
 
-        // Act — create saga
+        // Act - create saga
         var createContext = CreateContext(saga, new StartEvent());
         await saga.HandleEvent(createContext);
 
@@ -141,11 +134,11 @@ public sealed class SagaTimeoutTests
         var token = state.TimeoutToken;
         Assert.NotNull(token);
 
-        // Act — send event that transitions to final state
+        // Act - send event that transitions to final state
         var endContext = CreateContextWithSagaId(saga, new EndEvent(), state.Id);
         await saga.HandleEvent(endContext);
 
-        // Assert — token should have been cancelled
+        // Assert - token should have been cancelled
         Assert.Contains(token, _bus.CancelledTokens);
         // Saga should be deleted from store
         Assert.Empty(_store.States);
@@ -155,54 +148,50 @@ public sealed class SagaTimeoutTests
     public async Task Timeout_Should_TransitionToTimedOut_When_TimeoutEventReceived()
     {
         // Arrange
-        var saga = Saga.Create<TimeoutState>(x =>
-        {
-            x.Timeout(TimeSpan.FromMinutes(5));
+        var saga =
+            Saga.Create<TimeoutState>(x =>
+            {
+                x.Timeout(TimeSpan.FromMinutes(5));
 
-            x.Initially()
-                .OnEvent<StartEvent>()
-                .StateFactory(_ => new TimeoutState())
-                .TransitionTo("Active");
+                x.Initially().OnEvent<StartEvent>().StateFactory(_ => new TimeoutState()).TransitionTo("Active");
 
-            x.DuringAny().OnTimeout().TransitionTo(StateNames.TimedOut);
+                x.DuringAny().OnTimeout().TransitionTo(StateNames.TimedOut);
 
-            x.During("Active").OnEvent<EndEvent>().TransitionTo("Completed");
+                x.During("Active").OnEvent<EndEvent>().TransitionTo("Completed");
 
-            x.Finally("Completed");
-        });
+                x.Finally("Completed");
+            });
 
         Initialize(saga);
 
-        // Act — create saga
+        // Act - create saga
         var createContext = CreateContext(saga, new StartEvent());
         await saga.HandleEvent(createContext);
 
         var state = Assert.Single(_store.States);
         var sagaId = state.Id;
 
-        // Act — simulate timeout by sending SagaTimedOutEvent
+        // Act - simulate timeout by sending SagaTimedOutEvent
         var timeoutContext = CreateContextWithSagaId(saga, new SagaTimedOutEvent(sagaId), sagaId);
         await saga.HandleEvent(timeoutContext);
 
-        // Assert — saga should be deleted (final state reached)
+        // Assert - saga should be deleted (final state reached)
         Assert.Empty(_store.States);
     }
 
     [Fact]
     public async Task NoTimeout_Should_NotSchedule_When_TimeoutNotConfigured()
     {
-        // Arrange — no Timeout() call
-        var saga = Saga.Create<TimeoutState>(x =>
-        {
-            x.Initially()
-                .OnEvent<StartEvent>()
-                .StateFactory(_ => new TimeoutState())
-                .TransitionTo("Active");
+        // Arrange - no Timeout() call
+        var saga =
+            Saga.Create<TimeoutState>(x =>
+            {
+                x.Initially().OnEvent<StartEvent>().StateFactory(_ => new TimeoutState()).TransitionTo("Active");
 
-            x.During("Active").OnEvent<EndEvent>().TransitionTo("Completed");
+                x.During("Active").OnEvent<EndEvent>().TransitionTo("Completed");
 
-            x.Finally("Completed");
-        });
+                x.Finally("Completed");
+            });
 
         Initialize(saga);
 
@@ -210,9 +199,8 @@ public sealed class SagaTimeoutTests
         var context = CreateContext(saga, new StartEvent());
         await saga.HandleEvent(context);
 
-        // Assert — no SagaTimedOutEvent should be scheduled
-        var scheduledOp = _outbox.Messages
-            .FirstOrDefault(m => m.Message is SagaTimedOutEvent);
+        // Assert - no SagaTimedOutEvent should be scheduled
+        var scheduledOp = _outbox.Messages.FirstOrDefault(m => m.Message is SagaTimedOutEvent);
         Assert.Null(scheduledOp);
 
         // State should not have a timeout token
