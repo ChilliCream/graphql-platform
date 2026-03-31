@@ -4,13 +4,13 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.ApiKeys;
 
-public sealed class DeleteApiKeyCommandTests
+public sealed class DeleteApiKeyCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "api-key",
                 "delete",
@@ -45,7 +45,7 @@ public sealed class DeleteApiKeyCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "api-key",
@@ -72,7 +72,7 @@ public sealed class DeleteApiKeyCommandTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(ApiKeyCommandTestHelper.CreateDeleteApiKeyResult("key-1", "my-key", "Workspace"));
 
-        var builder = new CommandBuilder()
+        var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -116,7 +116,7 @@ public sealed class DeleteApiKeyCommandTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(ApiKeyCommandTestHelper.CreateDeleteApiKeyResultWithErrors(mutationError));
 
-        var builder = new CommandBuilder()
+        var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddSessionWithWorkspace()
@@ -155,7 +155,7 @@ public sealed class DeleteApiKeyCommandTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(ApiKeyCommandTestHelper.CreateDeleteApiKeyResultWithErrors(mutationError));
 
-        var builder = new CommandBuilder()
+        var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddSessionWithWorkspace()
@@ -194,7 +194,7 @@ public sealed class DeleteApiKeyCommandTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(ApiKeyCommandTestHelper.CreateDeleteApiKeyResultWithErrors(mutationError));
 
-        var builder = new CommandBuilder()
+        var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddSessionWithWorkspace()
@@ -224,7 +224,7 @@ public sealed class DeleteApiKeyCommandTests
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
-        var builder = new CommandBuilder()
+        var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -256,7 +256,7 @@ public sealed class DeleteApiKeyCommandTests
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
-        var builder = new CommandBuilder()
+        var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -294,7 +294,7 @@ public sealed class DeleteApiKeyCommandTests
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
-        var builder = new CommandBuilder()
+        var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -332,7 +332,7 @@ public sealed class DeleteApiKeyCommandTests
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new NitroClientAuthorizationException());
 
-        var builder = new CommandBuilder()
+        var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -371,7 +371,7 @@ public sealed class DeleteApiKeyCommandTests
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new NitroClientAuthorizationException());
 
-        var builder = new CommandBuilder()
+        var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -410,7 +410,7 @@ public sealed class DeleteApiKeyCommandTests
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new NitroClientAuthorizationException());
 
-        var builder = new CommandBuilder()
+        var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)

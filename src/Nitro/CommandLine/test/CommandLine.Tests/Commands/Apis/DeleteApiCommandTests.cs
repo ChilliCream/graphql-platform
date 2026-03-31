@@ -4,13 +4,13 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Apis;
 
-public sealed class DeleteApiCommandTests
+public sealed class DeleteApiCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "api",
                 "delete",
@@ -45,7 +45,7 @@ public sealed class DeleteApiCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "api",
@@ -73,7 +73,7 @@ public sealed class DeleteApiCommandTests
             .ReturnsAsync((IDeleteApiCommandQuery_Node?)null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -103,7 +103,7 @@ public sealed class DeleteApiCommandTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(ApiCommandTestHelper.CreateDeleteApiNode("my-api"));
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -146,7 +146,7 @@ public sealed class DeleteApiCommandTests
             .ReturnsAsync(ApiCommandTestHelper.CreateDeleteApiPayload("api-1", "my-api", ["products"]));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -192,7 +192,7 @@ public sealed class DeleteApiCommandTests
         var client = CreateDeleteMutationErrorClient(mutationError);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -225,7 +225,7 @@ public sealed class DeleteApiCommandTests
         var client = CreateDeleteMutationErrorClient(mutationError);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -258,7 +258,7 @@ public sealed class DeleteApiCommandTests
         var client = CreateDeleteMutationErrorClient(mutationError);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -282,7 +282,7 @@ public sealed class DeleteApiCommandTests
         var client = CreateDeleteExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -315,7 +315,7 @@ public sealed class DeleteApiCommandTests
         var client = CreateDeleteExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -348,7 +348,7 @@ public sealed class DeleteApiCommandTests
         var client = CreateDeleteExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -375,7 +375,7 @@ public sealed class DeleteApiCommandTests
         var client = CreateDeleteExceptionClient(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -409,7 +409,7 @@ public sealed class DeleteApiCommandTests
         var client = CreateDeleteExceptionClient(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -443,7 +443,7 @@ public sealed class DeleteApiCommandTests
         var client = CreateDeleteExceptionClient(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.JsonOutput)

@@ -10,17 +10,13 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Mocks;
 #endif
 internal sealed class MockCommand : Command
 {
-    public MockCommand(
-        CreateMockCommand createMockCommand,
-        ListMockCommand listMockCommand,
-        UpdateMockCommand updateMockCommand)
-        : base("mock")
+    public MockCommand() : base("mock")
     {
         Description = "Create, update, and delete mocks.";
         Hidden = true;
 
-        Subcommands.Add(createMockCommand);
-        Subcommands.Add(listMockCommand);
-        Subcommands.Add(updateMockCommand);
+        Subcommands.Add(new CreateMockCommand());
+        Subcommands.Add(new ListMockCommand());
+        Subcommands.Add(new UpdateMockCommand());
     }
 }

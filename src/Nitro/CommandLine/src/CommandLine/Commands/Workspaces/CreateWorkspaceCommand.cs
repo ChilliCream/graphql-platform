@@ -12,11 +12,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Workspaces;
 
 internal sealed class CreateWorkspaceCommand : Command
 {
-    public CreateWorkspaceCommand(
-        INitroConsole console,
-        IWorkspacesClient client,
-        ISessionService sessionService,
-        IResultHolder resultHolder) : base("create")
+    public CreateWorkspaceCommand() : base("create")
     {
         Description =
             "Create a new workspace.";
@@ -26,8 +22,14 @@ internal sealed class CreateWorkspaceCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, console, client, sessionService, resultHolder, cancellationToken));
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var client = services.GetRequiredService<IWorkspacesClient>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            var resultHolder = services.GetRequiredService<IResultHolder>();
+            return await ExecuteAsync(parseResult, console, client, sessionService, resultHolder, cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

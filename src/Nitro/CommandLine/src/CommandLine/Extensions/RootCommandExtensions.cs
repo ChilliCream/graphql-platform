@@ -40,6 +40,7 @@ internal static class RootCommandExtensions
         ConfigureClientContext(context, parseResult, session);
 
         // Execute command
+        CommandExecutionContext.Services.Value = new CommandServices(services);
         var exitCode = await parseResult.InvokeAsync(invocationConfiguration, cancellationToken);
 
         // Print result

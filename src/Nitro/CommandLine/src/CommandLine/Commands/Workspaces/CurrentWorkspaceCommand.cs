@@ -6,16 +6,18 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Workspaces;
 
 internal sealed class CurrentWorkspaceCommand : Command
 {
-    public CurrentWorkspaceCommand(
-        INitroConsole console,
-        ISessionService sessionService) : base("current")
+    public CurrentWorkspaceCommand() : base("current")
     {
         Description = "Show the name of the currently selected workspace.";
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, (_, cancellationToken)
-            => ExecuteAsync(console, sessionService, cancellationToken));
+        this.SetActionWithExceptionHandling((services, _, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            return ExecuteAsync(console, sessionService, cancellationToken);
+        });
     }
 
     private static Task<int> ExecuteAsync(

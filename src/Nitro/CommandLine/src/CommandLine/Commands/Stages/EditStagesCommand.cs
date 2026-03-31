@@ -19,13 +19,7 @@ internal sealed class EditStagesCommand : Command
         DisplayName: "Default",
         AfterStages: []);
 
-    public EditStagesCommand(
-        INitroConsole console,
-        IStagesClient client,
-        IApisClient apisClient,
-        ISessionService sessionService,
-        IResultHolder resultHolder)
-        : base("edit")
+    public EditStagesCommand() : base("edit")
     {
         Description = "Edit stages of an API.";
 
@@ -34,15 +28,22 @@ internal sealed class EditStagesCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var client = services.GetRequiredService<IStagesClient>();
+            var apisClient = services.GetRequiredService<IApisClient>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            var resultHolder = services.GetRequiredService<IResultHolder>();
+            return await ExecuteAsync(
                 parseResult,
                 console,
                 client,
                 apisClient,
                 sessionService,
                 resultHolder,
-                cancellationToken));
+                cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

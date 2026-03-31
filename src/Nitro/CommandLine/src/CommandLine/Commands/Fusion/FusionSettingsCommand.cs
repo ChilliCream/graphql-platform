@@ -10,10 +10,10 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 #endif
 internal sealed class FusionSettingsCommand : Command
 {
-    public FusionSettingsCommand(FusionSettingsSetCommand fusionSettingsSetCommand) : base("settings")
+    public FusionSettingsCommand() : base("settings")
     {
         Description = "Manage Fusion settings.";
 
-        Subcommands.Add(fusionSettingsSetCommand);
+        Subcommands.Add(new FusionSettingsSetCommand());
     }
 }

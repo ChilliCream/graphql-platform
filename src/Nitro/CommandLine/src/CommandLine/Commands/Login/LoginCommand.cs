@@ -10,11 +10,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Login;
 
 internal sealed class LoginCommand : Command
 {
-    public LoginCommand(
-        INitroConsole console,
-        IWorkspacesClient workspacesClient,
-        ISessionService sessionService,
-        NitroClientContext clientContext) : base("login")
+    public LoginCommand() : base("login")
     {
         Description =
             "Log in interactively through your default browser";
@@ -24,8 +20,14 @@ internal sealed class LoginCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, console, workspacesClient, sessionService, clientContext, cancellationToken));
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var workspacesClient = services.GetRequiredService<IWorkspacesClient>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            var clientContext = services.GetRequiredService<NitroClientContext>();
+            return await ExecuteAsync(parseResult, console, workspacesClient, sessionService, clientContext, cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

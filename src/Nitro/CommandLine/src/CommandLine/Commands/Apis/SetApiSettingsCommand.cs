@@ -13,11 +13,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Apis;
 
 internal sealed class SetApiSettingsApiCommand : Command
 {
-    public SetApiSettingsApiCommand(
-        INitroConsole console,
-        IApisClient client,
-        ISessionService sessionService,
-        IResultHolder resultHolder) : base("set-settings")
+    public SetApiSettingsApiCommand() : base("set-settings")
     {
         Description = "Set the settings of an API.";
 
@@ -27,8 +23,14 @@ internal sealed class SetApiSettingsApiCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, console, client, sessionService, resultHolder, cancellationToken));
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var client = services.GetRequiredService<IApisClient>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            var resultHolder = services.GetRequiredService<IResultHolder>();
+            return await ExecuteAsync(parseResult, console, client, sessionService, resultHolder, cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

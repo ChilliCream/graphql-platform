@@ -9,9 +9,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Mcp;
 
 internal sealed class PublishMcpFeatureCollectionCommand : Command
 {
-    public PublishMcpFeatureCollectionCommand(
-        INitroConsole console,
-        IMcpClient client) : base("publish")
+    public PublishMcpFeatureCollectionCommand() : base("publish")
     {
         Description = "Publish an MCP feature collection version to a stage.";
 
@@ -24,10 +22,12 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(
-            console,
-            async (parseResult, cancellationToken)
-                => await ExecuteAsync(parseResult, console, client, cancellationToken));
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var client = services.GetRequiredService<IMcpClient>();
+            return await ExecuteAsync(parseResult, console, client, cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

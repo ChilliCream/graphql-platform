@@ -9,9 +9,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi;
 
 internal sealed class PublishOpenApiCollectionCommand : Command
 {
-    public PublishOpenApiCollectionCommand(
-        INitroConsole console,
-        IOpenApiClient client) : base("publish")
+    public PublishOpenApiCollectionCommand() : base("publish")
     {
         Description = "Publish an OpenAPI collection version to a stage.";
 
@@ -24,8 +22,11 @@ internal sealed class PublishOpenApiCollectionCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var client = services.GetRequiredService<IOpenApiClient>();
+            return await ExecuteAsync(
                 console,
                 client,
                 parseResult.GetValue(Opt<TagOption>.Instance)!,
@@ -34,7 +35,8 @@ internal sealed class PublishOpenApiCollectionCommand : Command
                 parseResult.GetValue(Opt<ForceOption>.Instance),
                 parseResult.GetValue(Opt<OptionalWaitForApprovalOption>.Instance),
                 parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance),
-                cancellationToken));
+                cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

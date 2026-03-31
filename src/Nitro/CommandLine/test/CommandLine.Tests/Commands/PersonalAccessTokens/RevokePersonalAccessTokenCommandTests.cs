@@ -4,13 +4,13 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.PersonalAccessTokens;
 
-public sealed class RevokePersonalAccessTokenCommandTests
+public sealed class RevokePersonalAccessTokenCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "pat",
                 "revoke",
@@ -45,7 +45,7 @@ public sealed class RevokePersonalAccessTokenCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "pat",
@@ -65,7 +65,7 @@ public sealed class RevokePersonalAccessTokenCommandTests
     public async Task ConfirmationRejected_ReturnsError_Interactive()
     {
         // arrange
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
             .AddArguments(
@@ -100,7 +100,7 @@ public sealed class RevokePersonalAccessTokenCommandTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(CreateRevokePayload("pat-1", "my-token"));
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -145,7 +145,7 @@ public sealed class RevokePersonalAccessTokenCommandTests
             .ReturnsAsync(CreateRevokePayload("pat-1", "my-token"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -184,7 +184,7 @@ public sealed class RevokePersonalAccessTokenCommandTests
             .ReturnsAsync(CreateRevokePayload("pat-1", "my-token"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -220,7 +220,7 @@ public sealed class RevokePersonalAccessTokenCommandTests
             .ReturnsAsync(CreateRevokePayloadWithNullResult());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -260,7 +260,7 @@ public sealed class RevokePersonalAccessTokenCommandTests
             .ReturnsAsync(CreateRevokePayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -296,7 +296,7 @@ public sealed class RevokePersonalAccessTokenCommandTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(CreateRevokePayloadWithErrors(mutationError));
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -337,7 +337,7 @@ public sealed class RevokePersonalAccessTokenCommandTests
             .ReturnsAsync(CreateRevokePayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -365,7 +365,7 @@ public sealed class RevokePersonalAccessTokenCommandTests
             .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -402,7 +402,7 @@ public sealed class RevokePersonalAccessTokenCommandTests
             .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -439,7 +439,7 @@ public sealed class RevokePersonalAccessTokenCommandTests
             .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -470,7 +470,7 @@ public sealed class RevokePersonalAccessTokenCommandTests
             .ThrowsAsync(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -508,7 +508,7 @@ public sealed class RevokePersonalAccessTokenCommandTests
             .ThrowsAsync(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -546,7 +546,7 @@ public sealed class RevokePersonalAccessTokenCommandTests
             .ThrowsAsync(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)

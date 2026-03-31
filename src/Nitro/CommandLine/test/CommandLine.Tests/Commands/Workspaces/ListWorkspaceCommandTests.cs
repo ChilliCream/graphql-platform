@@ -4,13 +4,13 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Workspaces;
 
-public sealed class ListWorkspaceCommandTests
+public sealed class ListWorkspaceCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "workspace",
                 "list",
@@ -50,7 +50,7 @@ public sealed class ListWorkspaceCommandTests
                 ("ws-1", "my-workspace", false),
                 ("ws-2", "personal-workspace", true)));
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -119,7 +119,7 @@ public sealed class ListWorkspaceCommandTests
                 ("ws-2", "personal-workspace", true)));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -168,7 +168,7 @@ public sealed class ListWorkspaceCommandTests
                 ("ws-2", "personal-workspace", true)));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -211,7 +211,7 @@ public sealed class ListWorkspaceCommandTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(CreateListWorkspacesPage());
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -253,7 +253,7 @@ public sealed class ListWorkspaceCommandTests
             .ReturnsAsync(CreateListWorkspacesPage());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -287,7 +287,7 @@ public sealed class ListWorkspaceCommandTests
             .ReturnsAsync(CreateListWorkspacesPage());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -322,7 +322,7 @@ public sealed class ListWorkspaceCommandTests
                 false,
                 ("ws-1", "my-workspace", false)));
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -389,7 +389,7 @@ public sealed class ListWorkspaceCommandTests
                 ("ws-1", "my-workspace", false)));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -434,7 +434,7 @@ public sealed class ListWorkspaceCommandTests
                 ("ws-1", "my-workspace", false)));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -470,7 +470,7 @@ public sealed class ListWorkspaceCommandTests
         var client = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -493,7 +493,7 @@ public sealed class ListWorkspaceCommandTests
         var client = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -516,7 +516,7 @@ public sealed class ListWorkspaceCommandTests
         var client = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -539,7 +539,7 @@ public sealed class ListWorkspaceCommandTests
         var client = CreateListExceptionClient(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -563,7 +563,7 @@ public sealed class ListWorkspaceCommandTests
         var client = CreateListExceptionClient(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -587,7 +587,7 @@ public sealed class ListWorkspaceCommandTests
         var client = CreateListExceptionClient(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.JsonOutput)

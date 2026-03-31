@@ -4,7 +4,7 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
-public sealed class FusionSettingsSetCommandTests : IDisposable
+public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>, IDisposable
 {
     private readonly List<string> _tempFiles = [];
 
@@ -12,7 +12,7 @@ public sealed class FusionSettingsSetCommandTests : IDisposable
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "fusion",
                 "settings",
@@ -49,7 +49,7 @@ public sealed class FusionSettingsSetCommandTests : IDisposable
     public async Task MissingRequiredOptions_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "fusion",
@@ -99,7 +99,7 @@ public sealed class FusionSettingsSetCommandTests : IDisposable
             .Returns(false);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(fileSystem.Object)
             .AddInteractionMode(mode)
             .AddArguments(
@@ -132,7 +132,7 @@ public sealed class FusionSettingsSetCommandTests : IDisposable
             .Returns(false);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(fileSystem.Object)
             .AddInteractionMode(InteractionMode.JsonOutput)
             .AddArguments(
@@ -162,7 +162,7 @@ public sealed class FusionSettingsSetCommandTests : IDisposable
         var archiveFile = CreateArchiveWithSourceSchemas();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "fusion",
@@ -191,7 +191,7 @@ public sealed class FusionSettingsSetCommandTests : IDisposable
         var archiveFile = CreateArchiveWithSourceSchemas();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(InteractionMode.JsonOutput)
             .AddArguments(
                 "fusion",
@@ -218,7 +218,7 @@ public sealed class FusionSettingsSetCommandTests : IDisposable
         var archiveFile = CreateArchiveWithSourceSchemas();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "fusion",
@@ -249,7 +249,7 @@ public sealed class FusionSettingsSetCommandTests : IDisposable
         var archiveFile = CreateArchiveWithSourceSchemas();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "fusion",
@@ -279,7 +279,7 @@ public sealed class FusionSettingsSetCommandTests : IDisposable
         var archiveFile = CreateArchiveWithSourceSchemas();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "fusion",
@@ -305,7 +305,7 @@ public sealed class FusionSettingsSetCommandTests : IDisposable
         var archiveFile = CreateArchiveWithSourceSchemas();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "fusion",
@@ -331,7 +331,7 @@ public sealed class FusionSettingsSetCommandTests : IDisposable
         var archiveFile = CreateArchiveWithSourceSchemas();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "fusion",
@@ -357,7 +357,7 @@ public sealed class FusionSettingsSetCommandTests : IDisposable
         var archiveFile = CreateArchiveWithSourceSchemas();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "fusion",
@@ -381,7 +381,7 @@ public sealed class FusionSettingsSetCommandTests : IDisposable
         var archiveFile = CreateArchiveWithSourceSchemas();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(InteractionMode.JsonOutput)
             .AddArguments(
                 "fusion",
@@ -411,7 +411,7 @@ public sealed class FusionSettingsSetCommandTests : IDisposable
         _tempFiles.Add(archiveFile);
 
         // Create an archive by running the compose command
-        var result = new CommandBuilder()
+        var result = new CommandBuilder(fixture)
             .AddArguments(
                 "fusion",
                 "compose",

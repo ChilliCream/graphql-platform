@@ -8,7 +8,7 @@ using static ChilliCream.Nitro.CommandLine.Tests.TestHelpers;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
-public sealed class FusionValidateCommandTests
+public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     private const string DefaultApiId = "api-1";
     private const string DefaultStage = "production";
@@ -19,7 +19,7 @@ public sealed class FusionValidateCommandTests
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "fusion",
                 "validate",
@@ -54,7 +54,7 @@ public sealed class FusionValidateCommandTests
     public async Task BothArchiveAndSourceFiles_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddApiKey()
             .AddArguments(
@@ -104,7 +104,7 @@ public sealed class FusionValidateCommandTests
     public async Task NeitherArchiveNorSourceFiles_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddApiKey()
             .AddArguments(
@@ -152,7 +152,7 @@ public sealed class FusionValidateCommandTests
         var fileSystem = CreateArchiveFileSystem();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -192,7 +192,7 @@ public sealed class FusionValidateCommandTests
         var fileSystem = CreateArchiveFileSystem();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -232,7 +232,7 @@ public sealed class FusionValidateCommandTests
         var fileSystem = CreateArchiveFileSystem();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -266,7 +266,7 @@ public sealed class FusionValidateCommandTests
         var fileSystem = CreateArchiveFileSystem();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -307,7 +307,7 @@ public sealed class FusionValidateCommandTests
         var fileSystem = CreateArchiveFileSystem();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -348,7 +348,7 @@ public sealed class FusionValidateCommandTests
         var fileSystem = CreateArchiveFileSystem();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -385,7 +385,7 @@ public sealed class FusionValidateCommandTests
             CreateValidationPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -424,7 +424,7 @@ public sealed class FusionValidateCommandTests
             CreateValidationPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -463,7 +463,7 @@ public sealed class FusionValidateCommandTests
             CreateValidationPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -498,7 +498,7 @@ public sealed class FusionValidateCommandTests
         var (client, fileSystem) = CreateValidationSetup(payload.Object);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -542,7 +542,7 @@ public sealed class FusionValidateCommandTests
         var (client, fileSystem) = CreateValidationSetup(payload.Object);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -586,7 +586,7 @@ public sealed class FusionValidateCommandTests
         var (client, fileSystem) = CreateValidationSetup(payload.Object);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -625,7 +625,7 @@ public sealed class FusionValidateCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -670,7 +670,7 @@ public sealed class FusionValidateCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -715,7 +715,7 @@ public sealed class FusionValidateCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -764,7 +764,7 @@ public sealed class FusionValidateCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -816,7 +816,7 @@ public sealed class FusionValidateCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -867,7 +867,7 @@ public sealed class FusionValidateCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()

@@ -4,13 +4,13 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.ApiKeys;
 
-public sealed class ListApiKeyCommandTests
+public sealed class ListApiKeyCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "api-key",
                 "list",
@@ -43,7 +43,7 @@ public sealed class ListApiKeyCommandTests
     public async Task NoSession_And_NoWorkspaceId_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "api-key",
@@ -76,7 +76,7 @@ public sealed class ListApiKeyCommandTests
                         ("key-2", "integration-key", "Workspace")
                     ]));
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -147,7 +147,7 @@ public sealed class ListApiKeyCommandTests
                         ("key-2", "integration-key", "Workspace")
                     ]));
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.Interactive)
             .AddArguments(
@@ -213,7 +213,7 @@ public sealed class ListApiKeyCommandTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(ApiKeyCommandTestHelper.CreateListApiKeysPage());
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.Interactive)
             .AddArguments(
@@ -259,7 +259,7 @@ public sealed class ListApiKeyCommandTests
                     ("key-1", "tenant-key", "Workspace"),
                     ("key-2", "integration-key", "Workspace")));
 
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -313,7 +313,7 @@ public sealed class ListApiKeyCommandTests
                     ("key-1", "tenant-key", "Workspace"),
                     ("key-2", "integration-key", "Workspace")));
 
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -363,7 +363,7 @@ public sealed class ListApiKeyCommandTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(ApiKeyCommandTestHelper.CreateListApiKeysPage());
 
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
@@ -398,7 +398,7 @@ public sealed class ListApiKeyCommandTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(ApiKeyCommandTestHelper.CreateListApiKeysPage());
 
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.JsonOutput)
             .AddArguments(
@@ -437,7 +437,7 @@ public sealed class ListApiKeyCommandTests
                     ("key-1", "tenant-key", "Workspace"),
                     ("key-2", "integration-key", "Workspace")));
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.Interactive)
             .AddArguments(
@@ -510,7 +510,7 @@ public sealed class ListApiKeyCommandTests
                     ("key-1", "tenant-key", "Workspace"),
                     ("key-2", "integration-key", "Workspace")));
 
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
@@ -567,7 +567,7 @@ public sealed class ListApiKeyCommandTests
                     ("key-1", "tenant-key", "Workspace"),
                     ("key-2", "integration-key", "Workspace")));
 
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.JsonOutput)
             .AddArguments(
@@ -618,7 +618,7 @@ public sealed class ListApiKeyCommandTests
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.Interactive)
             .AddSessionWithWorkspace()
@@ -648,7 +648,7 @@ public sealed class ListApiKeyCommandTests
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.NonInteractive)
             .AddSessionWithWorkspace()
@@ -678,7 +678,7 @@ public sealed class ListApiKeyCommandTests
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.JsonOutput)
             .AddSessionWithWorkspace()
@@ -708,7 +708,7 @@ public sealed class ListApiKeyCommandTests
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new NitroClientAuthorizationException());
 
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.Interactive)
             .AddSessionWithWorkspace()
@@ -739,7 +739,7 @@ public sealed class ListApiKeyCommandTests
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new NitroClientAuthorizationException());
 
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.NonInteractive)
             .AddSessionWithWorkspace()
@@ -770,7 +770,7 @@ public sealed class ListApiKeyCommandTests
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new NitroClientAuthorizationException());
 
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.JsonOutput)
             .AddSessionWithWorkspace()

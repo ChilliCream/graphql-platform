@@ -6,7 +6,7 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
-public sealed class FusionUploadCommandTests
+public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     private const string SchemaFilePath = "/tmp/subgraph.graphqls";
     private const string SettingsFilePath = "/tmp/subgraph-settings.json";
@@ -18,7 +18,7 @@ public sealed class FusionUploadCommandTests
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "fusion",
                 "upload",
@@ -53,7 +53,7 @@ public sealed class FusionUploadCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "fusion",
@@ -84,7 +84,7 @@ public sealed class FusionUploadCommandTests
         var (client, fileSystem) = CreateUploadSetup(CreatePayloadWithErrors(error.Object));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -125,7 +125,7 @@ public sealed class FusionUploadCommandTests
         var (client, fileSystem) = CreateUploadSetup(CreatePayloadWithErrors(error.Object));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -166,7 +166,7 @@ public sealed class FusionUploadCommandTests
         var (client, fileSystem) = CreateUploadSetup(CreatePayloadWithErrors(error.Object));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -201,7 +201,7 @@ public sealed class FusionUploadCommandTests
         var (client, fileSystem) = CreateUploadSetup(CreatePayloadWithErrors(error.Object));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -242,7 +242,7 @@ public sealed class FusionUploadCommandTests
         var (client, fileSystem) = CreateUploadSetup(CreatePayloadWithErrors(error.Object));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -284,7 +284,7 @@ public sealed class FusionUploadCommandTests
         var (client, fileSystem) = CreateUploadSetup(CreatePayloadWithErrors(error.Object));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -326,7 +326,7 @@ public sealed class FusionUploadCommandTests
         var (client, fileSystem) = CreateUploadSetup(CreatePayloadWithErrors(error.Object));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -366,7 +366,7 @@ public sealed class FusionUploadCommandTests
         var (client, fileSystem) = CreateUploadSetup(CreatePayloadWithErrors(error.Object));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -410,7 +410,7 @@ public sealed class FusionUploadCommandTests
         var (client, fileSystem) = CreateUploadSetup(payload.Object);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -454,7 +454,7 @@ public sealed class FusionUploadCommandTests
         var (client, fileSystem) = CreateUploadSetup(payload.Object);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -498,7 +498,7 @@ public sealed class FusionUploadCommandTests
         var (client, fileSystem) = CreateUploadSetup(payload.Object);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -530,7 +530,7 @@ public sealed class FusionUploadCommandTests
         var (client, fileSystem) = CreateUploadSetup(CreateSuccessPayload());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -565,7 +565,7 @@ public sealed class FusionUploadCommandTests
         var (client, fileSystem) = CreateUploadSetup(CreateSuccessPayload());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -600,7 +600,7 @@ public sealed class FusionUploadCommandTests
         var (client, fileSystem) = CreateUploadSetup(CreateSuccessPayload());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -636,7 +636,7 @@ public sealed class FusionUploadCommandTests
         var (client, fileSystem) = CreateExceptionSetup(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -674,7 +674,7 @@ public sealed class FusionUploadCommandTests
         var (client, fileSystem) = CreateExceptionSetup(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -712,7 +712,7 @@ public sealed class FusionUploadCommandTests
         var (client, fileSystem) = CreateExceptionSetup(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -744,7 +744,7 @@ public sealed class FusionUploadCommandTests
         var (client, fileSystem) = CreateExceptionSetup(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -783,7 +783,7 @@ public sealed class FusionUploadCommandTests
         var (client, fileSystem) = CreateExceptionSetup(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -822,7 +822,7 @@ public sealed class FusionUploadCommandTests
         var (client, fileSystem) = CreateExceptionSetup(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -855,7 +855,7 @@ public sealed class FusionUploadCommandTests
         var (client, fileSystem) = CreateExceptionSetup(new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -889,7 +889,7 @@ public sealed class FusionUploadCommandTests
         var (client, fileSystem) = CreateExceptionSetup(new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -929,7 +929,7 @@ public sealed class FusionUploadCommandTests
         var (client, fileSystem) = CreateExceptionSetup(new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()

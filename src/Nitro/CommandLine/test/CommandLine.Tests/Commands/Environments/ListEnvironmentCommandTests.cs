@@ -4,13 +4,13 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Environments;
 
-public sealed class ListEnvironmentCommandTests
+public sealed class ListEnvironmentCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "environment",
                 "list",
@@ -43,7 +43,7 @@ public sealed class ListEnvironmentCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "environment",
@@ -67,7 +67,7 @@ public sealed class ListEnvironmentCommandTests
         // arrange & act
         var client = new Mock<IEnvironmentsClient>(MockBehavior.Strict);
 
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddSession()
@@ -103,7 +103,7 @@ public sealed class ListEnvironmentCommandTests
                 ("env-1", "production", "workspace-a"),
                 ("env-2", "staging", "workspace-a")));
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -176,7 +176,7 @@ public sealed class ListEnvironmentCommandTests
                 ("env-1", "production", "workspace-a")));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -224,7 +224,7 @@ public sealed class ListEnvironmentCommandTests
                 ("env-1", "production", "workspace-a")));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -270,7 +270,7 @@ public sealed class ListEnvironmentCommandTests
                 hasNextPage: false,
                 ("env-2", "staging", "workspace-a")));
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -342,7 +342,7 @@ public sealed class ListEnvironmentCommandTests
                 ("env-2", "staging", "workspace-a")));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -392,7 +392,7 @@ public sealed class ListEnvironmentCommandTests
                 ("env-2", "staging", "workspace-a")));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -432,7 +432,7 @@ public sealed class ListEnvironmentCommandTests
         var client = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"), "ws-1", null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -459,7 +459,7 @@ public sealed class ListEnvironmentCommandTests
         var client = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"), "ws-1", null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -486,7 +486,7 @@ public sealed class ListEnvironmentCommandTests
         var client = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"), "ws-1", null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -513,7 +513,7 @@ public sealed class ListEnvironmentCommandTests
         var client = CreateListExceptionClient(new NitroClientAuthorizationException(), "ws-1", null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -541,7 +541,7 @@ public sealed class ListEnvironmentCommandTests
         var client = CreateListExceptionClient(new NitroClientAuthorizationException(), "ws-1", null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -569,7 +569,7 @@ public sealed class ListEnvironmentCommandTests
         var client = CreateListExceptionClient(new NitroClientAuthorizationException(), "ws-1", null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)

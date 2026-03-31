@@ -11,12 +11,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Schemas;
 
 internal sealed class ValidateSchemaCommand : Command
 {
-    public ValidateSchemaCommand(
-        INitroConsole console,
-        ISchemasClient client,
-        IFileSystem fileSystem,
-        ISessionService sessionService,
-        IResultHolder resultHolder) : base("validate")
+    public ValidateSchemaCommand() : base("validate")
     {
         Description = "Validate a schema against a stage.";
 
@@ -27,15 +22,22 @@ internal sealed class ValidateSchemaCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var client = services.GetRequiredService<ISchemasClient>();
+            var fileSystem = services.GetRequiredService<IFileSystem>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            var resultHolder = services.GetRequiredService<IResultHolder>();
+            return await ExecuteAsync(
                 parseResult,
                 console,
                 client,
                 fileSystem,
                 sessionService,
                 resultHolder,
-                cancellationToken));
+                cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

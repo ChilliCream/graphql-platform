@@ -5,7 +5,7 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
-public sealed class FusionConfigurationPublishBeginCommandTests
+public sealed class FusionConfigurationPublishBeginCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     private static readonly string[] _baseArgs =
     [
@@ -24,7 +24,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "fusion",
                 "publish",
@@ -60,7 +60,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(_baseArgs)
             .ExecuteAsync();
@@ -81,7 +81,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests
         var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -112,7 +112,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests
         var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -143,7 +143,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests
         var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -168,7 +168,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests
         var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -200,7 +200,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests
         var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -232,7 +232,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests
         var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -261,7 +261,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests
         var (client, fileSystem) = CreateMutationErrorSetup(error.Object);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -296,7 +296,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests
         var (client, fileSystem) = CreateMutationErrorSetup(error.Object);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -327,7 +327,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests
         var (client, fileSystem) = CreateNullRequestIdSetup();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -357,7 +357,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests
         var (client, fileSystem) = CreateSuccessSetup();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -391,7 +391,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests
         var (client, fileSystem) = CreateSuccessSetup();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -423,7 +423,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests
         var (client, fileSystem) = CreateSuccessSetup();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()

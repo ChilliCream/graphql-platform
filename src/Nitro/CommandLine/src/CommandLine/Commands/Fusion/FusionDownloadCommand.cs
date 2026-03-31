@@ -17,12 +17,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 #endif
 internal sealed class FusionDownloadCommand : Command
 {
-    public FusionDownloadCommand(
-        INitroConsole console,
-        IFusionConfigurationClient fusionConfigurationClient,
-        IFileSystem fileSystem,
-        ISessionService sessionService,
-        IResultHolder resultHolder) : base("download")
+    public FusionDownloadCommand() : base("download")
     {
         Description = "Download the most recent gateway configuration.";
 
@@ -31,8 +26,15 @@ internal sealed class FusionDownloadCommand : Command
         Options.Add(Opt<OptionalOutputFileOption>.Instance);
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, console, fusionConfigurationClient, fileSystem, sessionService, resultHolder, cancellationToken));
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var fusionConfigurationClient = services.GetRequiredService<IFusionConfigurationClient>();
+            var fileSystem = services.GetRequiredService<IFileSystem>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            var resultHolder = services.GetRequiredService<IResultHolder>();
+            return await ExecuteAsync(parseResult, console, fusionConfigurationClient, fileSystem, sessionService, resultHolder, cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

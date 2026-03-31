@@ -6,7 +6,7 @@ using static ChilliCream.Nitro.CommandLine.Tests.TestHelpers;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
-public sealed class FusionPublishCommandTests
+public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     private const string DefaultApiId = "api-1";
     private const string DefaultStage = "production";
@@ -18,7 +18,7 @@ public sealed class FusionPublishCommandTests
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "fusion",
                 "publish",
@@ -66,7 +66,7 @@ public sealed class FusionPublishCommandTests
     public async Task NoOptions_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddApiKey()
             .AddInteractionMode(mode)
             .AddArguments(
@@ -127,7 +127,7 @@ public sealed class FusionPublishCommandTests
     public async Task MultipleExclusiveOptions_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddApiKey()
             .AddInteractionMode(mode)
             .AddArguments(
@@ -196,7 +196,7 @@ public sealed class FusionPublishCommandTests
             .Returns(false);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(fileSystem.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -230,7 +230,7 @@ public sealed class FusionPublishCommandTests
             new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -271,7 +271,7 @@ public sealed class FusionPublishCommandTests
             new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -312,7 +312,7 @@ public sealed class FusionPublishCommandTests
             new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -347,7 +347,7 @@ public sealed class FusionPublishCommandTests
             new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -389,7 +389,7 @@ public sealed class FusionPublishCommandTests
             new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -431,7 +431,7 @@ public sealed class FusionPublishCommandTests
             new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()

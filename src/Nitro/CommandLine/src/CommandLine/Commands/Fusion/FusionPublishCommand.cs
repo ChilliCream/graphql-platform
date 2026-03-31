@@ -22,16 +22,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 #endif
 internal sealed class FusionPublishCommand : Command
 {
-    public FusionPublishCommand(
-        FusionConfigurationPublishBeginCommand fusionConfigurationPublishBeginCommand,
-        FusionConfigurationPublishStartCommand fusionConfigurationPublishStartCommand,
-        FusionConfigurationPublishValidateCommand fusionConfigurationPublishValidateCommand,
-        FusionConfigurationPublishCancelCommand fusionConfigurationPublishCancelCommand,
-        FusionConfigurationPublishCommitCommand fusionConfigurationPublishCommitCommand,
-        INitroConsole console,
-        IFusionConfigurationClient fusionConfigurationClient,
-        IFileSystem fileSystem)
-        : base("publish")
+    public FusionPublishCommand() : base("publish")
     {
         Description = "Publish a Fusion archive to Nitro."
             + Environment.NewLine
@@ -43,11 +34,11 @@ internal sealed class FusionPublishCommand : Command
             + Environment.NewLine
             + "The orchestration sub-commands can be used for both Fusion v1 and v2.";
 
-        Subcommands.Add(fusionConfigurationPublishBeginCommand);
-        Subcommands.Add(fusionConfigurationPublishStartCommand);
-        Subcommands.Add(fusionConfigurationPublishValidateCommand);
-        Subcommands.Add(fusionConfigurationPublishCancelCommand);
-        Subcommands.Add(fusionConfigurationPublishCommitCommand);
+        Subcommands.Add(new FusionConfigurationPublishBeginCommand());
+        Subcommands.Add(new FusionConfigurationPublishStartCommand());
+        Subcommands.Add(new FusionConfigurationPublishValidateCommand());
+        Subcommands.Add(new FusionConfigurationPublishCancelCommand());
+        Subcommands.Add(new FusionConfigurationPublishCommitCommand());
 
         Options.Add(Opt<ApiIdOption>.Instance);
         Options.Add(Opt<StageNameOption>.Instance);
@@ -82,8 +73,12 @@ internal sealed class FusionPublishCommand : Command
             }
         });
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken) =>
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
         {
+            var console = services.GetRequiredService<INitroConsole>();
+            var fusionConfigurationClient = services.GetRequiredService<IFusionConfigurationClient>();
+            var fileSystem = services.GetRequiredService<IFileSystem>();
+
             var workingDirectory = parseResult.GetValue(Opt<WorkingDirectoryOption>.Instance)
                 ?? fileSystem.GetCurrentDirectory();
             var sourceSchemaFiles =

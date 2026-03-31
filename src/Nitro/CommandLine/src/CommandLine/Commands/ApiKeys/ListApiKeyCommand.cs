@@ -10,11 +10,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.ApiKeys;
 
 internal sealed class ListApiKeyCommand : Command
 {
-    public ListApiKeyCommand(
-        INitroConsole console,
-        IApiKeysClient apiKeysClient,
-        ISessionService sessionService,
-        IResultHolder resultHolder) : base("list")
+    public ListApiKeyCommand() : base("list")
     {
         Description = "List all API keys of a workspace.";
 
@@ -23,8 +19,14 @@ internal sealed class ListApiKeyCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, console, apiKeysClient, sessionService, resultHolder, cancellationToken));
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var apiKeysClient = services.GetRequiredService<IApiKeysClient>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            var resultHolder = services.GetRequiredService<IResultHolder>();
+            return await ExecuteAsync(parseResult, console, apiKeysClient, sessionService, resultHolder, cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

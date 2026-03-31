@@ -4,13 +4,13 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Apis;
 
-public sealed class SetApiSettingsCommandTests
+public sealed class SetApiSettingsCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "api",
                 "set-settings",
@@ -46,7 +46,7 @@ public sealed class SetApiSettingsCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "api",
@@ -79,7 +79,7 @@ public sealed class SetApiSettingsCommandTests
             .ReturnsAsync(ApiCommandTestHelper.CreateSetApiSettingsPayload("api-1", "my-api", ["products"]));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -128,7 +128,7 @@ public sealed class SetApiSettingsCommandTests
         var client = CreateSetSettingsMutationErrorClient(mutationError);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -164,7 +164,7 @@ public sealed class SetApiSettingsCommandTests
         var client = CreateSetSettingsMutationErrorClient(mutationError);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -200,7 +200,7 @@ public sealed class SetApiSettingsCommandTests
         var client = CreateSetSettingsMutationErrorClient(mutationError);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -227,7 +227,7 @@ public sealed class SetApiSettingsCommandTests
         var client = CreateSetSettingsExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -263,7 +263,7 @@ public sealed class SetApiSettingsCommandTests
         var client = CreateSetSettingsExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -299,7 +299,7 @@ public sealed class SetApiSettingsCommandTests
         var client = CreateSetSettingsExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -329,7 +329,7 @@ public sealed class SetApiSettingsCommandTests
         var client = CreateSetSettingsExceptionClient(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -366,7 +366,7 @@ public sealed class SetApiSettingsCommandTests
         var client = CreateSetSettingsExceptionClient(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -403,7 +403,7 @@ public sealed class SetApiSettingsCommandTests
         var client = CreateSetSettingsExceptionClient(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.JsonOutput)

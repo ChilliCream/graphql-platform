@@ -10,11 +10,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
 
 internal sealed class PublishClientCommand : Command
 {
-    public PublishClientCommand(
-        INitroConsole console,
-        IClientsClient client,
-        ISessionService sessionService,
-        IResultHolder resultHolder) : base("publish")
+    public PublishClientCommand() : base("publish")
     {
         Description = "Publish a client version to a stage.";
 
@@ -27,14 +23,20 @@ internal sealed class PublishClientCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var client = services.GetRequiredService<IClientsClient>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            var resultHolder = services.GetRequiredService<IResultHolder>();
+            return await ExecuteAsync(
                 parseResult,
                 console,
                 client,
                 sessionService,
                 resultHolder,
-                cancellationToken));
+                cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

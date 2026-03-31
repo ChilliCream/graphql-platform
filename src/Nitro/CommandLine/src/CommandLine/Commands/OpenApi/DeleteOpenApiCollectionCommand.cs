@@ -14,12 +14,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi;
 
 internal sealed class DeleteOpenApiCollectionCommand : Command
 {
-    public DeleteOpenApiCollectionCommand(
-        INitroConsole console,
-        IApisClient apisClient,
-        IOpenApiClient client,
-        ISessionService sessionService,
-        IResultHolder resultHolder) : base("delete")
+    public DeleteOpenApiCollectionCommand() : base("delete")
     {
         Description = "Delete an OpenAPI collection.";
 
@@ -28,8 +23,15 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, console, apisClient, client, sessionService, resultHolder, cancellationToken));
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var apisClient = services.GetRequiredService<IApisClient>();
+            var client = services.GetRequiredService<IOpenApiClient>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            var resultHolder = services.GetRequiredService<IResultHolder>();
+            return await ExecuteAsync(parseResult, console, apisClient, client, sessionService, resultHolder, cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

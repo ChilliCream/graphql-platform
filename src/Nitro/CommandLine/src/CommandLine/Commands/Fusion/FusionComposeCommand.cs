@@ -11,9 +11,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
 internal sealed class FusionComposeCommand : Command
 {
-    public FusionComposeCommand(
-        INitroConsole console,
-        IFileSystem fileSystem) : base("compose")
+    public FusionComposeCommand() : base("compose")
     {
         Description = "Compose multiple source schemas into a single composite schema.";
 
@@ -28,8 +26,11 @@ internal sealed class FusionComposeCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken) =>
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
         {
+            var console = services.GetRequiredService<INitroConsole>();
+            var fileSystem = services.GetRequiredService<IFileSystem>();
+
             var workingDirectory = parseResult.GetValue(Opt<WorkingDirectoryOption>.Instance)
                 ?? fileSystem.GetCurrentDirectory();
             var sourceSchemaFiles = parseResult.GetValue(Opt<OptionalSourceSchemaFileListOption>.Instance)!;

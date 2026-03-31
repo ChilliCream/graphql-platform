@@ -28,7 +28,6 @@ public class NitroClientRegistrationTests
         Session? session = null)
     {
         var services = new ServiceCollection();
-        services.AddNitroCommands();
         services.AddNitroServices();
 
         var sessionMock = new Mock<ISessionService>();
@@ -63,7 +62,7 @@ public class NitroClientRegistrationTests
             new NitroConsole(testConsole, errorConsole));
 
         var provider = services.BuildServiceProvider();
-        var rootCommand = provider.GetRequiredService<NitroRootCommand>();
+        var rootCommand = new NitroRootCommand();
 
         var probeCommand = new Command("__probe");
         probeCommand.AddGlobalNitroOptions();

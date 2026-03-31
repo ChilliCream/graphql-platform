@@ -5,13 +5,13 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Mcp;
 
-public sealed class ListMcpFeatureCollectionCommandTests
+public sealed class ListMcpFeatureCollectionCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "mcp",
                 "list",
@@ -44,7 +44,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "mcp",
@@ -66,7 +66,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
         var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
 
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -97,7 +97,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
         var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
 
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -134,7 +134,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
                 ("mcp-1", "auth-tools"),
                 ("mcp-2", "data-tools")));
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -176,7 +176,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
                 ("mcp-2", "data-tools")));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -229,7 +229,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
                 ("mcp-2", "data-tools")));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -276,7 +276,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(McpCommandTestHelper.CreateListPage());
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -314,7 +314,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
             .ReturnsAsync(McpCommandTestHelper.CreateListPage());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -354,7 +354,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
             .ReturnsAsync(McpCommandTestHelper.CreateListPage());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -395,7 +395,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
                 hasNextPage: false,
                 ("mcp-1", "auth-tools")));
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -438,7 +438,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
                 ("mcp-1", "auth-tools")));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -488,7 +488,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
                 ("mcp-1", "auth-tools")));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -538,7 +538,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
                 ("mcp-2", "data-tools")));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -591,7 +591,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
                 ("mcp-2", "data-tools")));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -633,7 +633,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
         var mcpClient = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"), "api-1", null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -663,7 +663,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
         var mcpClient = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"), "api-1", null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -693,7 +693,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
         var mcpClient = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"), "api-1", null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -723,7 +723,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
         var mcpClient = CreateListExceptionClient(new NitroClientAuthorizationException(), "api-1", null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -754,7 +754,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
         var mcpClient = CreateListExceptionClient(new NitroClientAuthorizationException(), "api-1", null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -785,7 +785,7 @@ public sealed class ListMcpFeatureCollectionCommandTests
         var mcpClient = CreateListExceptionClient(new NitroClientAuthorizationException(), "api-1", null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()

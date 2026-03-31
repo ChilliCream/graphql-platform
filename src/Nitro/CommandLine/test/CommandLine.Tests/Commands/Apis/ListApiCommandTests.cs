@@ -4,13 +4,13 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Apis;
 
-public sealed class ListApiCommandTests
+public sealed class ListApiCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "api",
                 "list",
@@ -43,7 +43,7 @@ public sealed class ListApiCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "api",
@@ -65,7 +65,7 @@ public sealed class ListApiCommandTests
     public async Task NoWorkspaceInSession_And_NoWorkspaceOption_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddApiKey()
             .AddSession()
             .AddInteractionMode(mode)
@@ -98,7 +98,7 @@ public sealed class ListApiCommandTests
                 ("api-1", "products", new[] { "products" }, "Workspace"),
                 ("api-2", "catalog", new[] { "catalog" }, "Workspace")));
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -178,7 +178,7 @@ public sealed class ListApiCommandTests
                 ("api-1", "products", new[] { "products" }, "Workspace"),
                 ("api-2", "catalog", new[] { "catalog" }, "Workspace")));
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -257,7 +257,7 @@ public sealed class ListApiCommandTests
                 ("api-2", "catalog", new[] { "catalog" }, "Workspace")));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -325,7 +325,7 @@ public sealed class ListApiCommandTests
                 ("api-2", "catalog", new[] { "catalog" }, "Workspace")));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -387,7 +387,7 @@ public sealed class ListApiCommandTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(ApiCommandTestHelper.CreateListApisPage());
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -432,7 +432,7 @@ public sealed class ListApiCommandTests
             .ReturnsAsync(ApiCommandTestHelper.CreateListApisPage());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -469,7 +469,7 @@ public sealed class ListApiCommandTests
             .ReturnsAsync(ApiCommandTestHelper.CreateListApisPage());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -507,7 +507,7 @@ public sealed class ListApiCommandTests
                 false,
                 ("api-1", "products", new[] { "products" }, "Workspace")));
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddSessionWithWorkspace()
@@ -585,7 +585,7 @@ public sealed class ListApiCommandTests
                 ("api-1", "products", new[] { "products" }, "Workspace")));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddSessionWithWorkspace()
@@ -641,7 +641,7 @@ public sealed class ListApiCommandTests
                 ("api-1", "products", new[] { "products" }, "Workspace")));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddSessionWithWorkspace()
@@ -687,7 +687,7 @@ public sealed class ListApiCommandTests
         var client = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -710,7 +710,7 @@ public sealed class ListApiCommandTests
         var client = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -733,7 +733,7 @@ public sealed class ListApiCommandTests
         var client = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -756,7 +756,7 @@ public sealed class ListApiCommandTests
         var client = CreateListExceptionClient(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -780,7 +780,7 @@ public sealed class ListApiCommandTests
         var client = CreateListExceptionClient(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -804,7 +804,7 @@ public sealed class ListApiCommandTests
         var client = CreateListExceptionClient(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.JsonOutput)

@@ -10,16 +10,12 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Stages;
 #endif
 internal sealed class StageCommand : Command
 {
-    public StageCommand(
-        EditStagesCommand editStagesCommand,
-        DeleteStageCommand deleteStageCommand,
-        ListStagesCommand listStagesCommand)
-        : base("stage")
+    public StageCommand() : base("stage")
     {
         Description = "Manage stages.";
 
-        Subcommands.Add(editStagesCommand);
-        Subcommands.Add(deleteStageCommand);
-        Subcommands.Add(listStagesCommand);
+        Subcommands.Add(new EditStagesCommand());
+        Subcommands.Add(new DeleteStageCommand());
+        Subcommands.Add(new ListStagesCommand());
     }
 }

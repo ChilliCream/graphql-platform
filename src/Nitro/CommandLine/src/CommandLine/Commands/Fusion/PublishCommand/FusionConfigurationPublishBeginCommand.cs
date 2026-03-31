@@ -10,13 +10,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
 
 internal sealed class FusionConfigurationPublishBeginCommand : Command
 {
-    public FusionConfigurationPublishBeginCommand(
-        INitroConsole console,
-        IFusionConfigurationClient fusionConfigurationClient,
-        IConfigurationService configurationService,
-        ISessionService sessionService,
-        IFileSystem fileSystem,
-        IResultHolder resultHolder) : base("begin")
+    public FusionConfigurationPublishBeginCommand() : base("begin")
     {
         Description = "Begin a configuration publish. This command will request a deployment slot.";
 
@@ -30,8 +24,15 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var fusionConfigurationClient = services.GetRequiredService<IFusionConfigurationClient>();
+            var configurationService = services.GetRequiredService<IConfigurationService>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            var fileSystem = services.GetRequiredService<IFileSystem>();
+            var resultHolder = services.GetRequiredService<IResultHolder>();
+            return await ExecuteAsync(
                 parseResult,
                 console,
                 fusionConfigurationClient,
@@ -39,7 +40,8 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
                 sessionService,
                 fileSystem,
                 resultHolder,
-                cancellationToken));
+                cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

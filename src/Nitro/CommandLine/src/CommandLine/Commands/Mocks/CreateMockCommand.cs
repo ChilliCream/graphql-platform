@@ -12,14 +12,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Mocks;
 
 internal sealed class CreateMockCommand : Command
 {
-    public CreateMockCommand(
-        INitroConsole console,
-        IApisClient apisClient,
-        IMocksClient client,
-        IFileSystem fileSystem,
-        ISessionService sessionService,
-        IResultHolder resultHolder)
-        : base("create")
+    public CreateMockCommand() : base("create")
     {
         Description = "Create a new mock schema.";
 
@@ -31,8 +24,16 @@ internal sealed class CreateMockCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, console, apisClient, client, fileSystem, sessionService, resultHolder, cancellationToken));
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var apisClient = services.GetRequiredService<IApisClient>();
+            var client = services.GetRequiredService<IMocksClient>();
+            var fileSystem = services.GetRequiredService<IFileSystem>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            var resultHolder = services.GetRequiredService<IResultHolder>();
+            return await ExecuteAsync(parseResult, console, apisClient, client, fileSystem, sessionService, resultHolder, cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

@@ -1,12 +1,12 @@
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Workspaces;
 
-public sealed class CurrentWorkspaceCommandTests
+public sealed class CurrentWorkspaceCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "workspace",
                 "current",
@@ -36,7 +36,7 @@ public sealed class CurrentWorkspaceCommandTests
     public async Task NoSession_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "workspace",
@@ -56,7 +56,7 @@ public sealed class CurrentWorkspaceCommandTests
     public async Task NoSession_ReturnsError_JsonOutput()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(InteractionMode.JsonOutput)
             .AddArguments(
                 "workspace",
@@ -75,7 +75,7 @@ public sealed class CurrentWorkspaceCommandTests
     public async Task SessionWithoutWorkspace_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddSession()
             .AddInteractionMode(mode)
             .AddArguments(
@@ -96,7 +96,7 @@ public sealed class CurrentWorkspaceCommandTests
     public async Task SessionWithoutWorkspace_ReturnsError_JsonOutput()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddSession()
             .AddInteractionMode(InteractionMode.JsonOutput)
             .AddArguments(
@@ -116,7 +116,7 @@ public sealed class CurrentWorkspaceCommandTests
     public async Task SessionWithWorkspace_ReturnsSuccess(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddSessionWithWorkspace()
             .AddInteractionMode(mode)
             .AddArguments(
@@ -137,7 +137,7 @@ public sealed class CurrentWorkspaceCommandTests
     public async Task SessionWithWorkspace_ReturnsSuccess_JsonOutput()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.JsonOutput)
             .AddArguments(

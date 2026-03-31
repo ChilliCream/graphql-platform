@@ -14,14 +14,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Mocks;
 
 internal sealed class UpdateMockCommand : Command
 {
-    public UpdateMockCommand(
-        INitroConsole console,
-        IApisClient apisClient,
-        IMocksClient client,
-        IFileSystem fileSystem,
-        ISessionService sessionService,
-        IResultHolder resultHolder)
-        : base("update")
+    public UpdateMockCommand() : base("update")
     {
         Description = "Update a mock schema with a new schema and extension file.";
 
@@ -33,8 +26,16 @@ internal sealed class UpdateMockCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, console, apisClient, client, fileSystem, sessionService, resultHolder, cancellationToken));
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var apisClient = services.GetRequiredService<IApisClient>();
+            var client = services.GetRequiredService<IMocksClient>();
+            var fileSystem = services.GetRequiredService<IFileSystem>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            var resultHolder = services.GetRequiredService<IResultHolder>();
+            return await ExecuteAsync(parseResult, console, apisClient, client, fileSystem, sessionService, resultHolder, cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

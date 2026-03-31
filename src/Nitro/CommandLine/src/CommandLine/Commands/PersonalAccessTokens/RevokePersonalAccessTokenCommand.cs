@@ -12,11 +12,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens;
 
 internal sealed class RevokePersonalAccessTokenCommand : Command
 {
-    public RevokePersonalAccessTokenCommand(
-        INitroConsole console,
-        IPersonalAccessTokensClient client,
-        ISessionService sessionService,
-        IResultHolder resultHolder) : base("revoke")
+    public RevokePersonalAccessTokenCommand() : base("revoke")
     {
         Description = "Revoke a personal access token.";
 
@@ -25,15 +21,21 @@ internal sealed class RevokePersonalAccessTokenCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var client = services.GetRequiredService<IPersonalAccessTokensClient>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            var resultHolder = services.GetRequiredService<IResultHolder>();
+            return await ExecuteAsync(
                 parseResult,
                 console,
                 client,
                 sessionService,
                 resultHolder,
                 parseResult.GetValue(Opt<IdArgument>.Instance)!,
-                cancellationToken));
+                cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

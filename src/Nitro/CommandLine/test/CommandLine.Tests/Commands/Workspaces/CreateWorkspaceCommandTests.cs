@@ -4,13 +4,13 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Workspaces;
 
-public sealed class CreateWorkspaceCommandTests
+public sealed class CreateWorkspaceCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "workspace",
                 "create",
@@ -43,7 +43,7 @@ public sealed class CreateWorkspaceCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "workspace",
@@ -66,7 +66,7 @@ public sealed class CreateWorkspaceCommandTests
     public async Task MissingRequiredName_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddApiKey()
             .AddInteractionMode(mode)
             .AddArguments(
@@ -92,7 +92,7 @@ public sealed class CreateWorkspaceCommandTests
             .ReturnsAsync(CreateWorkspacePayload("ws-1", "my-workspace", false));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -130,7 +130,7 @@ public sealed class CreateWorkspaceCommandTests
             .ReturnsAsync(CreateWorkspacePayload("ws-1", "my-workspace", false));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -164,7 +164,7 @@ public sealed class CreateWorkspaceCommandTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(CreateWorkspacePayload("ws-1", "my-workspace", false));
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddSession()
@@ -211,7 +211,7 @@ public sealed class CreateWorkspaceCommandTests
             .ReturnsAsync(CreateWorkspacePayloadWithNullResult());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -252,7 +252,7 @@ public sealed class CreateWorkspaceCommandTests
             .ReturnsAsync(CreateWorkspacePayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -289,7 +289,7 @@ public sealed class CreateWorkspaceCommandTests
             .ReturnsAsync(CreateWorkspacePayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -326,7 +326,7 @@ public sealed class CreateWorkspaceCommandTests
             .ReturnsAsync(CreateWorkspacePayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -354,7 +354,7 @@ public sealed class CreateWorkspaceCommandTests
             .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -391,7 +391,7 @@ public sealed class CreateWorkspaceCommandTests
             .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -428,7 +428,7 @@ public sealed class CreateWorkspaceCommandTests
             .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -459,7 +459,7 @@ public sealed class CreateWorkspaceCommandTests
             .ThrowsAsync(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -497,7 +497,7 @@ public sealed class CreateWorkspaceCommandTests
             .ThrowsAsync(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -535,7 +535,7 @@ public sealed class CreateWorkspaceCommandTests
             .ThrowsAsync(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)

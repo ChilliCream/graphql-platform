@@ -6,13 +6,13 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.OpenApi;
 
-public sealed class UploadOpenApiCollectionCommandTests
+public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "openapi",
                 "upload",
@@ -46,7 +46,7 @@ public sealed class UploadOpenApiCollectionCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "openapi",
@@ -73,7 +73,7 @@ public sealed class UploadOpenApiCollectionCommandTests
     public async Task MissingRequiredOptions_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddApiKey()
             .AddInteractionMode(mode)
             .AddArguments(
@@ -99,7 +99,7 @@ public sealed class UploadOpenApiCollectionCommandTests
         var fileSystem = CreateEmptyFileSystem();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -131,7 +131,7 @@ public sealed class UploadOpenApiCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -169,7 +169,7 @@ public sealed class UploadOpenApiCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -207,7 +207,7 @@ public sealed class UploadOpenApiCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -239,7 +239,7 @@ public sealed class UploadOpenApiCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -278,7 +278,7 @@ public sealed class UploadOpenApiCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -317,7 +317,7 @@ public sealed class UploadOpenApiCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -350,7 +350,7 @@ public sealed class UploadOpenApiCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -384,7 +384,7 @@ public sealed class UploadOpenApiCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -424,7 +424,7 @@ public sealed class UploadOpenApiCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -467,7 +467,7 @@ public sealed class UploadOpenApiCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(CreateUploadPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -505,7 +505,7 @@ public sealed class UploadOpenApiCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(CreateUploadPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -543,7 +543,7 @@ public sealed class UploadOpenApiCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(CreateUploadPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -572,7 +572,7 @@ public sealed class UploadOpenApiCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(CreateUploadPayloadWithNullVersion());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -610,7 +610,7 @@ public sealed class UploadOpenApiCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(CreateUploadSuccessPayload());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -645,7 +645,7 @@ public sealed class UploadOpenApiCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(CreateUploadSuccessPayload());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -680,7 +680,7 @@ public sealed class UploadOpenApiCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(CreateUploadSuccessPayload());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()

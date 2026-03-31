@@ -9,11 +9,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Mcp;
 
 internal sealed class UploadMcpFeatureCollectionCommand : Command
 {
-    public UploadMcpFeatureCollectionCommand(
-        INitroConsole console,
-        IMcpClient client,
-        IFileSystem fileSystem,
-        ISessionService sessionService) : base("upload")
+    public UploadMcpFeatureCollectionCommand() : base("upload")
     {
         Description = "Upload a new MCP feature collection version.";
 
@@ -25,8 +21,14 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, console, client, fileSystem, sessionService, cancellationToken));
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var client = services.GetRequiredService<IMcpClient>();
+            var fileSystem = services.GetRequiredService<IFileSystem>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            return await ExecuteAsync(parseResult, console, client, fileSystem, sessionService, cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

@@ -5,13 +5,13 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Clients;
 
-public sealed class ListClientPublishedVersionsCommandTests
+public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "client",
                 "list",
@@ -45,7 +45,7 @@ public sealed class ListClientPublishedVersionsCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "client",
@@ -70,7 +70,7 @@ public sealed class ListClientPublishedVersionsCommandTests
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
         var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
 
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -109,7 +109,7 @@ public sealed class ListClientPublishedVersionsCommandTests
                 ("v2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero), new[] { "staging", "production" })));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -170,7 +170,7 @@ public sealed class ListClientPublishedVersionsCommandTests
                 ("v2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero), new[] { "staging", "production" })));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -229,7 +229,7 @@ public sealed class ListClientPublishedVersionsCommandTests
                 ("v1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero), new[] { "production" }),
                 ("v2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero), new[] { "staging", "production" })));
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -307,7 +307,7 @@ public sealed class ListClientPublishedVersionsCommandTests
                 ("v2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero), Array.Empty<string>())));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -360,7 +360,7 @@ public sealed class ListClientPublishedVersionsCommandTests
                 ("v2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero), Array.Empty<string>())));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -408,7 +408,7 @@ public sealed class ListClientPublishedVersionsCommandTests
             .ReturnsAsync(CreateListClientVersionsPage());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -449,7 +449,7 @@ public sealed class ListClientPublishedVersionsCommandTests
             .ReturnsAsync(CreateListClientVersionsPage());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -488,7 +488,7 @@ public sealed class ListClientPublishedVersionsCommandTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(CreateListClientVersionsPage());
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -539,7 +539,7 @@ public sealed class ListClientPublishedVersionsCommandTests
                 hasNextPage: false,
                 ("v1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero), new[] { "production" })));
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -615,7 +615,7 @@ public sealed class ListClientPublishedVersionsCommandTests
                 ("v1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero), new[] { "production" })));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -669,7 +669,7 @@ public sealed class ListClientPublishedVersionsCommandTests
                 ("v1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero), new[] { "production" })));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -714,7 +714,7 @@ public sealed class ListClientPublishedVersionsCommandTests
             new NitroClientGraphQLException("Some message.", "SOME_CODE"), "client-1", null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -747,7 +747,7 @@ public sealed class ListClientPublishedVersionsCommandTests
             new NitroClientGraphQLException("Some message.", "SOME_CODE"), "client-1", null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -780,7 +780,7 @@ public sealed class ListClientPublishedVersionsCommandTests
             new NitroClientGraphQLException("Some message.", "SOME_CODE"), "client-1", null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -812,7 +812,7 @@ public sealed class ListClientPublishedVersionsCommandTests
             new NitroClientAuthorizationException(), "client-1", null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -846,7 +846,7 @@ public sealed class ListClientPublishedVersionsCommandTests
             new NitroClientAuthorizationException(), "client-1", null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -880,7 +880,7 @@ public sealed class ListClientPublishedVersionsCommandTests
             new NitroClientAuthorizationException(), "client-1", null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()

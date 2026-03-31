@@ -5,13 +5,13 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Clients;
 
-public sealed class DeleteClientCommandTests
+public sealed class DeleteClientCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "client",
                 "delete",
@@ -46,7 +46,7 @@ public sealed class DeleteClientCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "client",
@@ -73,7 +73,7 @@ public sealed class DeleteClientCommandTests
         var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -105,7 +105,7 @@ public sealed class DeleteClientCommandTests
             .ReturnsAsync(CreateDeletePayload(CreateClientNode("client-1", "web-client", "products"), errors: null));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -146,7 +146,7 @@ public sealed class DeleteClientCommandTests
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
         var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -192,7 +192,7 @@ public sealed class DeleteClientCommandTests
             .ReturnsAsync(CreateDeletePayload(client: null, errors: [notFound.Object]));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -232,7 +232,7 @@ public sealed class DeleteClientCommandTests
             .ReturnsAsync(CreateDeletePayload(client: null, errors: [notFound.Object]));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -272,7 +272,7 @@ public sealed class DeleteClientCommandTests
             .ReturnsAsync(CreateDeletePayload(client: null, errors: [notFound.Object]));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -306,7 +306,7 @@ public sealed class DeleteClientCommandTests
             .ReturnsAsync(CreateDeletePayload(client: null, errors: null));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -342,7 +342,7 @@ public sealed class DeleteClientCommandTests
             .ReturnsAsync(CreateDeletePayload(client: null, errors: null));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -378,7 +378,7 @@ public sealed class DeleteClientCommandTests
             .ReturnsAsync(CreateDeletePayload(client: null, errors: null));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -409,7 +409,7 @@ public sealed class DeleteClientCommandTests
         var clientsClient = CreateDeleteExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -440,7 +440,7 @@ public sealed class DeleteClientCommandTests
         var clientsClient = CreateDeleteExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -471,7 +471,7 @@ public sealed class DeleteClientCommandTests
         var clientsClient = CreateDeleteExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -501,7 +501,7 @@ public sealed class DeleteClientCommandTests
         var clientsClient = CreateDeleteExceptionClient(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -533,7 +533,7 @@ public sealed class DeleteClientCommandTests
         var clientsClient = CreateDeleteExceptionClient(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -565,7 +565,7 @@ public sealed class DeleteClientCommandTests
         var clientsClient = CreateDeleteExceptionClient(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()

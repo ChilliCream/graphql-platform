@@ -9,11 +9,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
 
 internal sealed class FusionConfigurationPublishCommitCommand : Command
 {
-    public FusionConfigurationPublishCommitCommand(
-        INitroConsole console,
-        IFusionConfigurationClient fusionConfigurationClient,
-        ISessionService sessionService,
-        IFileSystem fileSystem) : base("commit")
+    public FusionConfigurationPublishCommitCommand() : base("commit")
     {
         Description = "Commit a Fusion configuration publish.";
 
@@ -22,8 +18,14 @@ internal sealed class FusionConfigurationPublishCommitCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, (parseResult, cancellationToken)
-            => ExecuteAsync(parseResult, console, fusionConfigurationClient, sessionService, fileSystem, cancellationToken));
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var fusionConfigurationClient = services.GetRequiredService<IFusionConfigurationClient>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            var fileSystem = services.GetRequiredService<IFileSystem>();
+            return await ExecuteAsync(parseResult, console, fusionConfigurationClient, sessionService, fileSystem, cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

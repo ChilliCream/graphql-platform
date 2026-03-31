@@ -9,10 +9,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
 
 internal sealed class FusionConfigurationPublishValidateCommand : Command
 {
-    public FusionConfigurationPublishValidateCommand(
-        INitroConsole console,
-        IFusionConfigurationClient fusionConfigurationClient,
-        IFileSystem fileSystem) : base("validate")
+    public FusionConfigurationPublishValidateCommand() : base("validate")
     {
         Description = "Validate a Fusion configuration against the schema and clients.";
 
@@ -21,8 +18,13 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, (parseResult, cancellationToken)
-            => ExecuteAsync(parseResult, console, fusionConfigurationClient, fileSystem, cancellationToken));
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var fusionConfigurationClient = services.GetRequiredService<IFusionConfigurationClient>();
+            var fileSystem = services.GetRequiredService<IFileSystem>();
+            return await ExecuteAsync(parseResult, console, fusionConfigurationClient, fileSystem, cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

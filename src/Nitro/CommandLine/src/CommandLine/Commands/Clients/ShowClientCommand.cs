@@ -12,11 +12,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
 
 internal sealed class ShowClientCommand : Command
 {
-    public ShowClientCommand(
-        INitroConsole console,
-        IClientsClient client,
-        ISessionService sessionService,
-        IResultHolder resultHolder) : base("show")
+    public ShowClientCommand() : base("show")
     {
         Description = "Show details of a client.";
 
@@ -24,8 +20,13 @@ internal sealed class ShowClientCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, client, sessionService, resultHolder, cancellationToken));
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var client = services.GetRequiredService<IClientsClient>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            var resultHolder = services.GetRequiredService<IResultHolder>();
+            return await ExecuteAsync(parseResult, client, sessionService, resultHolder, cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

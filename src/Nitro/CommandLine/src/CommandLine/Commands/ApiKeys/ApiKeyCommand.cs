@@ -10,15 +10,12 @@ namespace ChilliCream.Nitro.CommandLine.Commands.ApiKeys;
 #endif
 internal sealed class ApiKeyCommand : Command
 {
-    public ApiKeyCommand(
-        CreateApiKeyCommand createApiKeyCommand,
-        DeleteApiKeyCommand deleteApiKeyCommand,
-        ListApiKeyCommand listApiKeyCommand) : base("api-key")
+    public ApiKeyCommand() : base("api-key")
     {
         Description = "Manage API keys.";
 
-        Subcommands.Add(createApiKeyCommand);
-        Subcommands.Add(deleteApiKeyCommand);
-        Subcommands.Add(listApiKeyCommand);
+        Subcommands.Add(new CreateApiKeyCommand());
+        Subcommands.Add(new DeleteApiKeyCommand());
+        Subcommands.Add(new ListApiKeyCommand());
     }
 }

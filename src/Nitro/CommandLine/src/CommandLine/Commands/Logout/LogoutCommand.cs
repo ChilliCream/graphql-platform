@@ -5,16 +5,18 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Logout;
 
 internal sealed class LogoutCommand : Command
 {
-    public LogoutCommand(
-        INitroConsole console,
-        ISessionService sessionService) : base("logout")
+    public LogoutCommand() : base("logout")
     {
         Description = "Log out and remove session information.";
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(console, sessionService, cancellationToken));
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            return await ExecuteAsync(console, sessionService, cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

@@ -5,13 +5,13 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.ApiKeys;
 
-public sealed class CreateApiKeyCommandTests
+public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "api-key",
                 "create",
@@ -46,7 +46,7 @@ public sealed class CreateApiKeyCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "api-key",
@@ -71,7 +71,7 @@ public sealed class CreateApiKeyCommandTests
     public async Task MissingRequiredOptions_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddApiKey()
             .AddSession()
             .AddInteractionMode(mode)
@@ -119,7 +119,7 @@ public sealed class CreateApiKeyCommandTests
             .ReturnsAsync(
                 ApiKeyCommandTestHelper.CreateApiKeyResult("secret-123", "key-1", "integration", "Workspace"));
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(apiKeysClient.Object)
             .AddSessionWithWorkspace()
@@ -176,7 +176,7 @@ public sealed class CreateApiKeyCommandTests
             .ReturnsAsync(
                 ApiKeyCommandTestHelper.CreateApiKeyResult("secret-123", "key-1", "integration", "Workspace"));
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -225,7 +225,7 @@ public sealed class CreateApiKeyCommandTests
     {
         // arrange
         var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
-        var builder = new CommandBuilder()
+        var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddSession()
@@ -253,7 +253,7 @@ public sealed class CreateApiKeyCommandTests
     public async Task WithApiId_NoWorkspaceIdOption_NoWorkspaceInSession_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddSession()
             .AddInteractionMode(mode)
             .AddArguments(
@@ -287,7 +287,7 @@ public sealed class CreateApiKeyCommandTests
             .ReturnsAsync(
                 ApiKeyCommandTestHelper.CreateApiKeyResult("secret-123", "key-1", "integration", "Workspace"));
 
-        var builder = new CommandBuilder()
+        var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -336,7 +336,7 @@ public sealed class CreateApiKeyCommandTests
             .ReturnsAsync(
                 ApiKeyCommandTestHelper.CreateApiKeyResult("secret-123", "key-1", "integration", "Workspace"));
 
-        var builder = new CommandBuilder()
+        var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -387,7 +387,7 @@ public sealed class CreateApiKeyCommandTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(ApiKeyCommandTestHelper.CreateApiKeyResult("secret-xyz", "key-9", "tenant-key", "Workspace"));
 
-        var builder = new CommandBuilder()
+        var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -434,7 +434,7 @@ public sealed class CreateApiKeyCommandTests
             .ReturnsAsync(
                 ApiKeyCommandTestHelper.CreateApiKeyResult("secret-xyz", "key-9", "tenant-key", "Workspace"));
 
-        var builder = new CommandBuilder()
+        var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSession()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -483,7 +483,7 @@ public sealed class CreateApiKeyCommandTests
             .ReturnsAsync(
                 ApiKeyCommandTestHelper.CreateApiKeyResult("secret-xyz", "key-9", "tenant-key", "Workspace"));
 
-        var builder = new CommandBuilder()
+        var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSession()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -534,7 +534,7 @@ public sealed class CreateApiKeyCommandTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(ApiKeyCommandTestHelper.CreateApiKeyResult("secret-xyz", "key-9", "tenant-key", "Workspace"));
 
-        var builder = new CommandBuilder()
+        var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -588,7 +588,7 @@ public sealed class CreateApiKeyCommandTests
                 ApiKeyCommandTestHelper.CreateApiKeyResultWithErrors(
                     mutationError));
 
-        var builder = new CommandBuilder()
+        var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -633,7 +633,7 @@ public sealed class CreateApiKeyCommandTests
                 ApiKeyCommandTestHelper.CreateApiKeyResultWithErrors(
                     mutationError));
 
-        var builder = new CommandBuilder()
+        var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -678,7 +678,7 @@ public sealed class CreateApiKeyCommandTests
                 ApiKeyCommandTestHelper.CreateApiKeyResultWithErrors(
                     mutationError));
 
-        var builder = new CommandBuilder()
+        var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -712,7 +712,7 @@ public sealed class CreateApiKeyCommandTests
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
-        var builder = new CommandBuilder()
+        var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.JsonOutput)
             .AddSessionWithWorkspace()
@@ -749,7 +749,7 @@ public sealed class CreateApiKeyCommandTests
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
-        var builder = new CommandBuilder()
+        var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.NonInteractive)
             .AddSessionWithWorkspace()
@@ -792,7 +792,7 @@ public sealed class CreateApiKeyCommandTests
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
-        var builder = new CommandBuilder()
+        var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.Interactive)
             .AddSessionWithWorkspace()
@@ -835,7 +835,7 @@ public sealed class CreateApiKeyCommandTests
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new NitroClientAuthorizationException());
 
-        var builder = new CommandBuilder()
+        var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.JsonOutput)
             .AddSessionWithWorkspace()
@@ -873,7 +873,7 @@ public sealed class CreateApiKeyCommandTests
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new NitroClientAuthorizationException());
 
-        var builder = new CommandBuilder()
+        var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.NonInteractive)
             .AddSessionWithWorkspace()
@@ -917,7 +917,7 @@ public sealed class CreateApiKeyCommandTests
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(new NitroClientAuthorizationException());
 
-        var builder = new CommandBuilder()
+        var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddInteractionMode(InteractionMode.Interactive)
             .AddSessionWithWorkspace()

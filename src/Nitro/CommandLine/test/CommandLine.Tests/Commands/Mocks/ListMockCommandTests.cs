@@ -5,13 +5,13 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Mocks;
 
-public sealed class ListMockCommandTests
+public sealed class ListMockCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "mock",
                 "list",
@@ -44,7 +44,7 @@ public sealed class ListMockCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "mock",
@@ -66,7 +66,7 @@ public sealed class ListMockCommandTests
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
         var mocksClient = new Mock<IMocksClient>(MockBehavior.Strict);
 
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddApiKey()
@@ -97,7 +97,7 @@ public sealed class ListMockCommandTests
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
         var mocksClient = new Mock<IMocksClient>(MockBehavior.Strict);
 
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddApiKey()
@@ -138,7 +138,7 @@ public sealed class ListMockCommandTests
                     "user3", new DateTimeOffset(2025, 2, 10, 10, 0, 0, TimeSpan.Zero),
                     "user4", new DateTimeOffset(2025, 2, 11, 10, 0, 0, TimeSpan.Zero))));
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddApiKey()
@@ -184,7 +184,7 @@ public sealed class ListMockCommandTests
                     "user4", new DateTimeOffset(2025, 2, 11, 10, 0, 0, TimeSpan.Zero))));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddApiKey()
@@ -261,7 +261,7 @@ public sealed class ListMockCommandTests
                     "user4", new DateTimeOffset(2025, 2, 11, 10, 0, 0, TimeSpan.Zero))));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddApiKey()
@@ -334,7 +334,7 @@ public sealed class ListMockCommandTests
                     "user2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero))));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddApiKey()
@@ -396,7 +396,7 @@ public sealed class ListMockCommandTests
                     "user2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero))));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddApiKey()
@@ -451,7 +451,7 @@ public sealed class ListMockCommandTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(CreateListMockSchemasPage());
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddApiKey()
@@ -489,7 +489,7 @@ public sealed class ListMockCommandTests
             .ReturnsAsync(CreateListMockSchemasPage());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddApiKey()
@@ -529,7 +529,7 @@ public sealed class ListMockCommandTests
             .ReturnsAsync(CreateListMockSchemasPage());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddApiKey()
@@ -572,7 +572,7 @@ public sealed class ListMockCommandTests
                     "user1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero),
                     "user2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero))));
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddApiKey()
@@ -607,7 +607,7 @@ public sealed class ListMockCommandTests
             new NitroClientGraphQLException("Some message.", "SOME_CODE"), "api-1", null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddApiKey()
@@ -639,7 +639,7 @@ public sealed class ListMockCommandTests
             new NitroClientGraphQLException("Some message.", "SOME_CODE"), "api-1", null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddApiKey()
@@ -671,7 +671,7 @@ public sealed class ListMockCommandTests
             new NitroClientGraphQLException("Some message.", "SOME_CODE"), "api-1", null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddApiKey()
@@ -702,7 +702,7 @@ public sealed class ListMockCommandTests
             new NitroClientAuthorizationException(), "api-1", null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddApiKey()
@@ -735,7 +735,7 @@ public sealed class ListMockCommandTests
             new NitroClientAuthorizationException(), "api-1", null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddApiKey()
@@ -768,7 +768,7 @@ public sealed class ListMockCommandTests
             new NitroClientAuthorizationException(), "api-1", null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddApiKey()

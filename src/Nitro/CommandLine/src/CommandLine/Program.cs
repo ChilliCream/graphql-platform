@@ -37,12 +37,11 @@ public static class Program
         });
 
         services
-            .AddSingleton<INitroConsole>(new NitroConsole(AnsiConsole.Console, errorConsole))
-            .AddNitroCommands();
+            .AddSingleton<INitroConsole>(new NitroConsole(AnsiConsole.Console, errorConsole));
 
         await using var provider = services.BuildServiceProvider();
 
-        var rootCommand = provider.GetRequiredService<NitroRootCommand>();
+        var rootCommand = new NitroRootCommand();
 
         return await rootCommand.ExecuteAsync(args, provider, null, cts.Token);
     }

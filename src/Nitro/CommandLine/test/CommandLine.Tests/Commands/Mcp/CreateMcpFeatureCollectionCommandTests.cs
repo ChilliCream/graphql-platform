@@ -5,13 +5,13 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Mcp;
 
-public sealed class CreateMcpFeatureCollectionCommandTests
+public sealed class CreateMcpFeatureCollectionCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "mcp",
                 "create",
@@ -44,7 +44,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "mcp",
@@ -72,7 +72,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
         var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
 
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -103,7 +103,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
         var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
 
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -140,7 +140,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests
             .ReturnsAsync(McpCommandTestHelper.CreateMcpFeatureCollectionPayload("mcp-1", "my-mcp"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -183,7 +183,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests
             .ReturnsAsync(McpCommandTestHelper.CreateMcpFeatureCollectionPayload("mcp-1", "my-mcp"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -223,7 +223,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests
             .ReturnsAsync(McpCommandTestHelper.CreateMcpFeatureCollectionPayloadWithNullResult());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -270,7 +270,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests
             .ReturnsAsync(McpCommandTestHelper.CreateMcpFeatureCollectionPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -313,7 +313,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests
             .ReturnsAsync(McpCommandTestHelper.CreateMcpFeatureCollectionPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -356,7 +356,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests
             .ReturnsAsync(McpCommandTestHelper.CreateMcpFeatureCollectionPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -390,7 +390,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests
             .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -433,7 +433,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests
             .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -476,7 +476,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests
             .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -513,7 +513,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests
             .ThrowsAsync(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -557,7 +557,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests
             .ThrowsAsync(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -601,7 +601,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests
             .ThrowsAsync(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()

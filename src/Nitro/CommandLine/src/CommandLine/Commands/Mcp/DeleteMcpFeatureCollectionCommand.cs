@@ -14,12 +14,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Mcp;
 
 internal sealed class DeleteMcpFeatureCollectionCommand : Command
 {
-    public DeleteMcpFeatureCollectionCommand(
-        INitroConsole console,
-        IApisClient apisClient,
-        IMcpClient client,
-        ISessionService sessionService,
-        IResultHolder resultHolder) : base("delete")
+    public DeleteMcpFeatureCollectionCommand() : base("delete")
     {
         Description = "Delete an MCP feature collection.";
 
@@ -28,8 +23,15 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, console, apisClient, client, sessionService, resultHolder, cancellationToken));
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var apisClient = services.GetRequiredService<IApisClient>();
+            var client = services.GetRequiredService<IMcpClient>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            var resultHolder = services.GetRequiredService<IResultHolder>();
+            return await ExecuteAsync(parseResult, console, apisClient, client, sessionService, resultHolder, cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

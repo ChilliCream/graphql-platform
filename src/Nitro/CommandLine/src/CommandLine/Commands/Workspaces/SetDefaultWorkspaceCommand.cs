@@ -10,18 +10,18 @@ internal sealed class SetDefaultWorkspaceCommand : Command
 {
     public const string Command = "set-default";
 
-    public SetDefaultWorkspaceCommand(
-        INitroConsole console,
-        IWorkspacesClient client,
-        ISessionService sessionService) : base(Command)
+    public SetDefaultWorkspaceCommand() : base(Command)
     {
         Description =
             "Select a workspace and set it as the default workspace.";
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken) =>
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
         {
+            var console = services.GetRequiredService<INitroConsole>();
+            var client = services.GetRequiredService<IWorkspacesClient>();
+            var sessionService = services.GetRequiredService<ISessionService>();
             parseResult.AssertHasAuthentication(sessionService);
             return await ExecuteAsync(true, console, client, sessionService, cancellationToken);
         });

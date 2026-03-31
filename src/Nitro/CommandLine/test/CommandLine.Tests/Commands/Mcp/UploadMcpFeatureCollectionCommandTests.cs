@@ -6,13 +6,13 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Mcp;
 
-public sealed class UploadMcpFeatureCollectionCommandTests
+public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "mcp",
                 "upload",
@@ -47,7 +47,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "mcp",
@@ -72,7 +72,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests
     public async Task MissingRequiredOptions_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddApiKey()
             .AddInteractionMode(mode)
             .AddArguments(
@@ -97,7 +97,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests
         var fileSystem = CreateEmptyFileSystem();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -128,7 +128,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -164,7 +164,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -200,7 +200,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -230,7 +230,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -267,7 +267,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -304,7 +304,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -335,7 +335,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -367,7 +367,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -405,7 +405,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -446,7 +446,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(CreateUploadPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -482,7 +482,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(CreateUploadPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -518,7 +518,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(CreateUploadPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -545,7 +545,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(CreateUploadPayloadWithNullVersion());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -581,7 +581,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(CreateUploadSuccessPayload());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -614,7 +614,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(CreateUploadSuccessPayload());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -647,7 +647,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests
         var (client, fileSystem) = CreateUploadSetup(CreateUploadSuccessPayload());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()

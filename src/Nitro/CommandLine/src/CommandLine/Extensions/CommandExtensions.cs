@@ -10,14 +10,16 @@ internal static class CommandExtensions
 {
     public static Command SetActionWithExceptionHandling(
         this Command command,
-        INitroConsole console,
-        Func<ParseResult, CancellationToken, Task<int>> action)
+        Func<ICommandServices, ParseResult, CancellationToken, Task<int>> action)
     {
         command.SetAction(async (parseResult, cancellationToken) =>
         {
+            var services = CommandExecutionContext.Services.Value!;
+            var console = services.GetRequiredService<INitroConsole>();
+
             try
             {
-                return await action.Invoke(parseResult, cancellationToken);
+                return await action.Invoke(services, parseResult, cancellationToken);
             }
             catch (ExitException exception)
             {

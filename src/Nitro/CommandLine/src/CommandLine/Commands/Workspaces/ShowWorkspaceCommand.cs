@@ -12,11 +12,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Workspaces;
 
 internal sealed class ShowWorkspaceCommand : Command
 {
-    public ShowWorkspaceCommand(
-        INitroConsole console,
-        IWorkspacesClient client,
-        ISessionService sessionService,
-        IResultHolder resultHolder) : base("show")
+    public ShowWorkspaceCommand() : base("show")
     {
         Description = "Show details of a workspace.";
 
@@ -24,8 +20,13 @@ internal sealed class ShowWorkspaceCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, client, sessionService, resultHolder, cancellationToken));
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var client = services.GetRequiredService<IWorkspacesClient>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            var resultHolder = services.GetRequiredService<IResultHolder>();
+            return await ExecuteAsync(parseResult, client, sessionService, resultHolder, cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

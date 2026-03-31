@@ -6,7 +6,7 @@ using static ChilliCream.Nitro.CommandLine.Tests.TestHelpers;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Schemas;
 
-public sealed class ValidateSchemaCommandTests
+public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     private const string DefaultApiId = "api-1";
     private const string DefaultStage = "production";
@@ -17,7 +17,7 @@ public sealed class ValidateSchemaCommandTests
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "schema",
                 "validate",
@@ -51,7 +51,7 @@ public sealed class ValidateSchemaCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "schema",
@@ -81,7 +81,7 @@ public sealed class ValidateSchemaCommandTests
         var fileSystem = CreateSchemaFileSystem();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -121,7 +121,7 @@ public sealed class ValidateSchemaCommandTests
         var fileSystem = CreateSchemaFileSystem();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -161,7 +161,7 @@ public sealed class ValidateSchemaCommandTests
         var fileSystem = CreateSchemaFileSystem();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -195,7 +195,7 @@ public sealed class ValidateSchemaCommandTests
         var fileSystem = CreateSchemaFileSystem();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -236,7 +236,7 @@ public sealed class ValidateSchemaCommandTests
         var fileSystem = CreateSchemaFileSystem();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -277,7 +277,7 @@ public sealed class ValidateSchemaCommandTests
         var fileSystem = CreateSchemaFileSystem();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -314,7 +314,7 @@ public sealed class ValidateSchemaCommandTests
             CreateValidationPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -353,7 +353,7 @@ public sealed class ValidateSchemaCommandTests
             CreateValidationPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -392,7 +392,7 @@ public sealed class ValidateSchemaCommandTests
             CreateValidationPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -427,7 +427,7 @@ public sealed class ValidateSchemaCommandTests
         var (client, fileSystem) = CreateValidationSetup(payload.Object);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -472,7 +472,7 @@ public sealed class ValidateSchemaCommandTests
         var (client, fileSystem) = CreateValidationSetup(payload.Object);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -517,7 +517,7 @@ public sealed class ValidateSchemaCommandTests
         var (client, fileSystem) = CreateValidationSetup(payload.Object);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -557,7 +557,7 @@ public sealed class ValidateSchemaCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -602,7 +602,7 @@ public sealed class ValidateSchemaCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -644,7 +644,7 @@ public sealed class ValidateSchemaCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -693,7 +693,7 @@ public sealed class ValidateSchemaCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -746,7 +746,7 @@ public sealed class ValidateSchemaCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -797,7 +797,7 @@ public sealed class ValidateSchemaCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -835,7 +835,7 @@ public sealed class ValidateSchemaCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -880,7 +880,7 @@ public sealed class ValidateSchemaCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()

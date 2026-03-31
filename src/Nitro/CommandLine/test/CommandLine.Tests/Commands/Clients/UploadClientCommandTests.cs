@@ -6,13 +6,13 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Clients;
 
-public sealed class UploadClientCommandTests
+public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "client",
                 "upload",
@@ -46,7 +46,7 @@ public sealed class UploadClientCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "client",
@@ -75,7 +75,7 @@ public sealed class UploadClientCommandTests
         var fileSystem = CreateOperationsFileSystem();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -114,7 +114,7 @@ public sealed class UploadClientCommandTests
         var fileSystem = CreateOperationsFileSystem();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -153,7 +153,7 @@ public sealed class UploadClientCommandTests
         var fileSystem = CreateOperationsFileSystem();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -187,7 +187,7 @@ public sealed class UploadClientCommandTests
         var fileSystem = CreateOperationsFileSystem();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -228,7 +228,7 @@ public sealed class UploadClientCommandTests
         var fileSystem = CreateOperationsFileSystem();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -269,7 +269,7 @@ public sealed class UploadClientCommandTests
         var fileSystem = CreateOperationsFileSystem();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -304,7 +304,7 @@ public sealed class UploadClientCommandTests
         var fileSystem = CreateOperationsFileSystem();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -340,7 +340,7 @@ public sealed class UploadClientCommandTests
         var fileSystem = CreateOperationsFileSystem();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -382,7 +382,7 @@ public sealed class UploadClientCommandTests
         var fileSystem = CreateOperationsFileSystem();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -426,7 +426,7 @@ public sealed class UploadClientCommandTests
             CreateUploadPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -465,7 +465,7 @@ public sealed class UploadClientCommandTests
             CreateUploadPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -504,7 +504,7 @@ public sealed class UploadClientCommandTests
             CreateUploadPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -539,7 +539,7 @@ public sealed class UploadClientCommandTests
         var (client, fileSystem) = CreateUploadSetup(payload.Object);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -583,7 +583,7 @@ public sealed class UploadClientCommandTests
         var (client, fileSystem) = CreateUploadSetup(payload.Object);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -627,7 +627,7 @@ public sealed class UploadClientCommandTests
         var (client, fileSystem) = CreateUploadSetup(payload.Object);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -659,7 +659,7 @@ public sealed class UploadClientCommandTests
         var (client, fileSystem) = CreateUploadSetup(CreateUploadSuccessPayload());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -700,7 +700,7 @@ public sealed class UploadClientCommandTests
         var (client, fileSystem) = CreateUploadSetup(CreateUploadSuccessPayload());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -741,7 +741,7 @@ public sealed class UploadClientCommandTests
         var (client, fileSystem) = CreateUploadSetup(CreateUploadSuccessPayload());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()

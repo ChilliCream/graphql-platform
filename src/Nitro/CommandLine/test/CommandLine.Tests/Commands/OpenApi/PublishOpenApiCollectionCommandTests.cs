@@ -6,7 +6,7 @@ using static ChilliCream.Nitro.CommandLine.Tests.TestHelpers;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.OpenApi;
 
-public sealed class PublishOpenApiCollectionCommandTests
+public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     private const string DefaultOpenApiCollectionId = "oa-1";
     private const string DefaultStage = "production";
@@ -17,7 +17,7 @@ public sealed class PublishOpenApiCollectionCommandTests
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "openapi",
                 "publish",
@@ -50,7 +50,7 @@ public sealed class PublishOpenApiCollectionCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError_NonInteractive()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "openapi",
@@ -80,7 +80,7 @@ public sealed class PublishOpenApiCollectionCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError_Interactive()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(InteractionMode.Interactive)
             .AddArguments(
                 "openapi",
@@ -110,7 +110,7 @@ public sealed class PublishOpenApiCollectionCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError_JsonOutput()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(InteractionMode.JsonOutput)
             .AddArguments(
                 "openapi",
@@ -138,7 +138,7 @@ public sealed class PublishOpenApiCollectionCommandTests
             new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -176,7 +176,7 @@ public sealed class PublishOpenApiCollectionCommandTests
             new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -214,7 +214,7 @@ public sealed class PublishOpenApiCollectionCommandTests
             new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -246,7 +246,7 @@ public sealed class PublishOpenApiCollectionCommandTests
             new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -285,7 +285,7 @@ public sealed class PublishOpenApiCollectionCommandTests
             new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -324,7 +324,7 @@ public sealed class PublishOpenApiCollectionCommandTests
             new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -360,7 +360,7 @@ public sealed class PublishOpenApiCollectionCommandTests
             CreatePublishPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -398,7 +398,7 @@ public sealed class PublishOpenApiCollectionCommandTests
             CreatePublishPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -436,7 +436,7 @@ public sealed class PublishOpenApiCollectionCommandTests
             CreatePublishPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -470,7 +470,7 @@ public sealed class PublishOpenApiCollectionCommandTests
         var client = CreatePublishSetup(payload.Object);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -514,7 +514,7 @@ public sealed class PublishOpenApiCollectionCommandTests
         var client = CreatePublishSetup(payload.Object);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -558,7 +558,7 @@ public sealed class PublishOpenApiCollectionCommandTests
         var client = CreatePublishSetup(payload.Object);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -596,7 +596,7 @@ public sealed class PublishOpenApiCollectionCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -637,7 +637,7 @@ public sealed class PublishOpenApiCollectionCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -677,7 +677,7 @@ public sealed class PublishOpenApiCollectionCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -720,7 +720,7 @@ public sealed class PublishOpenApiCollectionCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -771,7 +771,7 @@ public sealed class PublishOpenApiCollectionCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -821,7 +821,7 @@ public sealed class PublishOpenApiCollectionCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -858,7 +858,7 @@ public sealed class PublishOpenApiCollectionCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -899,7 +899,7 @@ public sealed class PublishOpenApiCollectionCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -942,7 +942,7 @@ public sealed class PublishOpenApiCollectionCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -985,7 +985,7 @@ public sealed class PublishOpenApiCollectionCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -1034,7 +1034,7 @@ public sealed class PublishOpenApiCollectionCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -1080,7 +1080,7 @@ public sealed class PublishOpenApiCollectionCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)

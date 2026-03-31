@@ -12,15 +12,17 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Launch;
 #endif
 internal sealed class LaunchCommand : Command
 {
-    public LaunchCommand(
-        INitroConsole console) : base("launch")
+    public LaunchCommand() : base("launch")
     {
         Description = "Launch Nitro in your default browser.";
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, (parseResult, cancellationToken)
-            => ExecuteAsync(console));
+        this.SetActionWithExceptionHandling((services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            return ExecuteAsync(console);
+        });
     }
 
     private static Task<int> ExecuteAsync(

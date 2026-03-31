@@ -11,12 +11,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
 
 internal sealed class UploadClientCommand : Command
 {
-    public UploadClientCommand(
-        INitroConsole console,
-        IClientsClient client,
-        IFileSystem fileSystem,
-        ISessionService sessionService,
-        IResultHolder resultHolder) : base("upload")
+    public UploadClientCommand() : base("upload")
     {
         Description = "Upload a new client version.";
 
@@ -27,15 +22,22 @@ internal sealed class UploadClientCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var client = services.GetRequiredService<IClientsClient>();
+            var fileSystem = services.GetRequiredService<IFileSystem>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            var resultHolder = services.GetRequiredService<IResultHolder>();
+            return await ExecuteAsync(
                 parseResult,
                 console,
                 client,
                 fileSystem,
                 sessionService,
                 resultHolder,
-                cancellationToken));
+                cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

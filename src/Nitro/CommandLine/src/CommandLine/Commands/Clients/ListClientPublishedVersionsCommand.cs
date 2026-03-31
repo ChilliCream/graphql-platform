@@ -12,12 +12,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
 
 internal sealed class ListClientPublishedVersionsCommand : Command
 {
-    public ListClientPublishedVersionsCommand(
-        INitroConsole console,
-        IClientsClient clientsClient,
-        IApisClient apisClient,
-        ISessionService sessionService,
-        IResultHolder resultHolder) : base("published-versions")
+    public ListClientPublishedVersionsCommand() : base("published-versions")
     {
         Description = "List all published versions of a client.";
 
@@ -26,8 +21,15 @@ internal sealed class ListClientPublishedVersionsCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, console, clientsClient, apisClient, sessionService, resultHolder, cancellationToken));
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var clientsClient = services.GetRequiredService<IClientsClient>();
+            var apisClient = services.GetRequiredService<IApisClient>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            var resultHolder = services.GetRequiredService<IResultHolder>();
+            return await ExecuteAsync(parseResult, console, clientsClient, apisClient, sessionService, resultHolder, cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

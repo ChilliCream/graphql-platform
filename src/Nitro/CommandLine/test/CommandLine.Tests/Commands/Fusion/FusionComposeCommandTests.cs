@@ -3,7 +3,7 @@ using HotChocolate.Fusion.Packaging;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
-public sealed class FusionComposeCommandTests : IDisposable
+public sealed class FusionComposeCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>, IDisposable
 {
     private readonly List<string> _tempFiles = [];
 
@@ -20,7 +20,7 @@ public sealed class FusionComposeCommandTests : IDisposable
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "fusion",
                 "compose",
@@ -59,7 +59,7 @@ public sealed class FusionComposeCommandTests : IDisposable
         var archiveFileName = CreateTempFile();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "fusion",
                 "compose",
@@ -88,7 +88,7 @@ public sealed class FusionComposeCommandTests : IDisposable
         var archiveFileName = CreateTempFile();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "fusion",
                 "compose",
@@ -115,7 +115,7 @@ public sealed class FusionComposeCommandTests : IDisposable
         var archiveFileName = CreateTempFile();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "fusion",
                 "compose",
@@ -148,7 +148,7 @@ public sealed class FusionComposeCommandTests : IDisposable
         _tempFiles.Add(filePath);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "fusion",
                 "compose",
@@ -181,7 +181,7 @@ public sealed class FusionComposeCommandTests : IDisposable
         _tempFiles.Add(filePath);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "fusion",
                 "compose",
@@ -212,7 +212,7 @@ public sealed class FusionComposeCommandTests : IDisposable
         _tempFiles.Add(filePath);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "fusion",
                 "compose",
@@ -241,7 +241,7 @@ public sealed class FusionComposeCommandTests : IDisposable
         var filePath = CreateTempFile();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "fusion",
                 "compose",
@@ -266,7 +266,7 @@ public sealed class FusionComposeCommandTests : IDisposable
     public async Task Compose_ValidExample1_FromSpecified_ToFileInNonExistentWorkingDirectory()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "fusion",
                 "compose",
@@ -293,7 +293,7 @@ public sealed class FusionComposeCommandTests : IDisposable
         var archiveFileName = CreateTempFile();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "fusion",
                 "compose",
@@ -315,7 +315,7 @@ public sealed class FusionComposeCommandTests : IDisposable
     {
         // arrange & act
         const string nonExistentFile = "non-existent-1.graphqls";
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "fusion",
                 "compose",
@@ -344,7 +344,7 @@ public sealed class FusionComposeCommandTests : IDisposable
         var archiveFileName = CreateTempFile();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "fusion",
                 "compose",
@@ -373,7 +373,7 @@ public sealed class FusionComposeCommandTests : IDisposable
     public async Task Compose_InvalidExample2_FromWorkingDirectory_ToStdOutWithWarningsAndErrors()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "fusion",
                 "compose",
@@ -411,7 +411,7 @@ public sealed class FusionComposeCommandTests : IDisposable
         var archiveFileName = CreateTempFile();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "fusion",
                 "compose",
@@ -435,7 +435,7 @@ public sealed class FusionComposeCommandTests : IDisposable
         var archiveFileName = CreateTempFile();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "fusion",
                 "compose",

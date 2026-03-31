@@ -5,13 +5,13 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Clients;
 
-public sealed class CreateClientCommandTests
+public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "client",
                 "create",
@@ -44,7 +44,7 @@ public sealed class CreateClientCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "client",
@@ -73,7 +73,7 @@ public sealed class CreateClientCommandTests
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
         var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
 
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -103,7 +103,7 @@ public sealed class CreateClientCommandTests
     public async Task MissingRequiredOptions_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddApiKey()
             .AddSessionWithWorkspace()
             .AddInteractionMode(mode)
@@ -151,7 +151,7 @@ public sealed class CreateClientCommandTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(CreateClientPayload(CreateClientNode("client-1", "web-client", "products"), errors: null));
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddSessionWithWorkspace()
@@ -203,7 +203,7 @@ public sealed class CreateClientCommandTests
             .ReturnsAsync(CreateClientPayload(CreateClientNode("client-1", "web-client", "products"), errors: null));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -251,7 +251,7 @@ public sealed class CreateClientCommandTests
             .ReturnsAsync(CreateClientPayload(CreateClientNode("client-1", "web-client", "products"), errors: null));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -298,7 +298,7 @@ public sealed class CreateClientCommandTests
             .ReturnsAsync(CreateClientPayload(client: null, errors: [apiNotFound.Object]));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -345,7 +345,7 @@ public sealed class CreateClientCommandTests
             .ReturnsAsync(CreateClientPayload(client: null, errors: [apiNotFound.Object]));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -392,7 +392,7 @@ public sealed class CreateClientCommandTests
             .ReturnsAsync(CreateClientPayload(client: null, errors: [apiNotFound.Object]));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -433,7 +433,7 @@ public sealed class CreateClientCommandTests
             .ReturnsAsync(CreateClientPayload(client: null, errors: [unauthorized.Object]));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -480,7 +480,7 @@ public sealed class CreateClientCommandTests
             .ReturnsAsync(CreateClientPayload(client: null, errors: [unauthorized.Object]));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -527,7 +527,7 @@ public sealed class CreateClientCommandTests
             .ReturnsAsync(CreateClientPayload(client: null, errors: [unauthorized.Object]));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -568,7 +568,7 @@ public sealed class CreateClientCommandTests
             .ReturnsAsync(CreateClientPayload(client: null, errors: [genericError.Object]));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -615,7 +615,7 @@ public sealed class CreateClientCommandTests
             .ReturnsAsync(CreateClientPayload(client: null, errors: [genericError.Object]));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -662,7 +662,7 @@ public sealed class CreateClientCommandTests
             .ReturnsAsync(CreateClientPayload(client: null, errors: [genericError.Object]));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -699,7 +699,7 @@ public sealed class CreateClientCommandTests
             .ReturnsAsync(CreateClientPayload(client: null, errors: null));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -743,7 +743,7 @@ public sealed class CreateClientCommandTests
             .ReturnsAsync(CreateClientPayload(client: null, errors: null));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -787,7 +787,7 @@ public sealed class CreateClientCommandTests
             .ReturnsAsync(CreateClientPayload(client: null, errors: null));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -820,7 +820,7 @@ public sealed class CreateClientCommandTests
         var clientsClient = CreateExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -858,7 +858,7 @@ public sealed class CreateClientCommandTests
         var clientsClient = CreateExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -896,7 +896,7 @@ public sealed class CreateClientCommandTests
         var clientsClient = CreateExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -928,7 +928,7 @@ public sealed class CreateClientCommandTests
         var clientsClient = CreateExceptionClient(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -967,7 +967,7 @@ public sealed class CreateClientCommandTests
         var clientsClient = CreateExceptionClient(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -1006,7 +1006,7 @@ public sealed class CreateClientCommandTests
         var clientsClient = CreateExceptionClient(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()

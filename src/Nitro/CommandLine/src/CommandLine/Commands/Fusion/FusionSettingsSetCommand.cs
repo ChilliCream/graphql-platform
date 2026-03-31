@@ -15,10 +15,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 #endif
 internal sealed class FusionSettingsSetCommand : Command
 {
-    public FusionSettingsSetCommand(
-        INitroConsole console,
-        IFileSystem fileSystem,
-        IResultHolder resultHolder) : base("set")
+    public FusionSettingsSetCommand() : base("set")
     {
         Description = "Set a Fusion composition setting in a Fusion archive.";
 
@@ -31,8 +28,12 @@ internal sealed class FusionSettingsSetCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken) =>
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
         {
+            var console = services.GetRequiredService<INitroConsole>();
+            var fileSystem = services.GetRequiredService<IFileSystem>();
+            var resultHolder = services.GetRequiredService<IResultHolder>();
+
             var settingName = parseResult.GetRequiredValue(Opt<FusionSettingsNameArgument>.Instance);
             var settingValue = parseResult.GetRequiredValue(Opt<FusionSettingsValueArgument>.Instance);
             var archiveFile = parseResult.GetRequiredValue(Opt<FusionArchiveFileOption>.Instance);

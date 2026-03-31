@@ -5,13 +5,13 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
-public sealed class FusionConfigurationPublishCancelCommandTests
+public sealed class FusionConfigurationPublishCancelCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "fusion",
                 "publish",
@@ -44,7 +44,7 @@ public sealed class FusionConfigurationPublishCancelCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "fusion",
@@ -74,7 +74,7 @@ public sealed class FusionConfigurationPublishCancelCommandTests
         fileSystem.Setup(x => x.FileExists(cacheFile)).Returns(false);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(fileSystem.Object)
             .AddApiKey()
             .AddInteractionMode(mode)
@@ -104,7 +104,7 @@ public sealed class FusionConfigurationPublishCancelCommandTests
         var (client, fileSystem) = CreateSuccessSetup(fromStateFile: true);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -130,7 +130,7 @@ public sealed class FusionConfigurationPublishCancelCommandTests
         var client = CreateExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -159,7 +159,7 @@ public sealed class FusionConfigurationPublishCancelCommandTests
         var client = CreateExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -188,7 +188,7 @@ public sealed class FusionConfigurationPublishCancelCommandTests
         var client = CreateExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -216,7 +216,7 @@ public sealed class FusionConfigurationPublishCancelCommandTests
         var client = CreateExceptionClient(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -246,7 +246,7 @@ public sealed class FusionConfigurationPublishCancelCommandTests
         var client = CreateExceptionClient(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -276,7 +276,7 @@ public sealed class FusionConfigurationPublishCancelCommandTests
         var client = CreateExceptionClient(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -305,7 +305,7 @@ public sealed class FusionConfigurationPublishCancelCommandTests
         var (client, _) = CreateSuccessSetup(fromStateFile: false);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -336,7 +336,7 @@ public sealed class FusionConfigurationPublishCancelCommandTests
         var (client, _) = CreateSuccessSetup(fromStateFile: false);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -367,7 +367,7 @@ public sealed class FusionConfigurationPublishCancelCommandTests
         var (client, _) = CreateSuccessSetup(fromStateFile: false);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)

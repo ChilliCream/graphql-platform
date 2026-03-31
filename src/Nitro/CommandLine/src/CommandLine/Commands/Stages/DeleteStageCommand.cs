@@ -12,12 +12,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Stages;
 
 internal sealed class DeleteStageCommand : Command
 {
-    public DeleteStageCommand(
-        INitroConsole console,
-        IStagesClient client,
-        IApisClient apisClient,
-        ISessionService sessionService,
-        IResultHolder resultHolder) : base("delete")
+    public DeleteStageCommand() : base("delete")
     {
         Description = "Delete a stage by name.";
 
@@ -27,15 +22,22 @@ internal sealed class DeleteStageCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var client = services.GetRequiredService<IStagesClient>();
+            var apisClient = services.GetRequiredService<IApisClient>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            var resultHolder = services.GetRequiredService<IResultHolder>();
+            return await ExecuteAsync(
                 parseResult,
                 console,
                 client,
                 apisClient,
                 sessionService,
                 resultHolder,
-                cancellationToken));
+                cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

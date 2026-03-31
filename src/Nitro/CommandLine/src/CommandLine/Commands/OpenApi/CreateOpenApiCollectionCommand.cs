@@ -13,12 +13,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi;
 
 internal sealed class CreateOpenApiCollectionCommand : Command
 {
-    public CreateOpenApiCollectionCommand(
-        INitroConsole console,
-        IApisClient apisClient,
-        IOpenApiClient client,
-        ISessionService sessionService,
-        IResultHolder resultHolder) : base("create")
+    public CreateOpenApiCollectionCommand() : base("create")
     {
         Description = "Create a new OpenAPI collection.";
 
@@ -27,8 +22,15 @@ internal sealed class CreateOpenApiCollectionCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, console, apisClient, client, sessionService, resultHolder, cancellationToken));
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var apisClient = services.GetRequiredService<IApisClient>();
+            var client = services.GetRequiredService<IOpenApiClient>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            var resultHolder = services.GetRequiredService<IResultHolder>();
+            return await ExecuteAsync(parseResult, console, apisClient, client, sessionService, resultHolder, cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

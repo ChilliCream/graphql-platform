@@ -13,12 +13,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
 
 internal sealed class CreateClientCommand : Command
 {
-    public CreateClientCommand(
-        INitroConsole console,
-        IClientsClient client,
-        IApisClient apisClient,
-        ISessionService sessionService,
-        IResultHolder resultHolder) : base("create")
+    public CreateClientCommand() : base("create")
     {
         Description = "Create a new client.";
 
@@ -27,8 +22,15 @@ internal sealed class CreateClientCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, console, client, apisClient, sessionService, resultHolder, cancellationToken));
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var client = services.GetRequiredService<IClientsClient>();
+            var apisClient = services.GetRequiredService<IApisClient>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            var resultHolder = services.GetRequiredService<IResultHolder>();
+            return await ExecuteAsync(parseResult, console, client, apisClient, sessionService, resultHolder, cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

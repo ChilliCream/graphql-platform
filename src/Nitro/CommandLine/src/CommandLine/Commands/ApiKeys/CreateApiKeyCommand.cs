@@ -12,12 +12,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.ApiKeys;
 
 internal sealed class CreateApiKeyCommand : Command
 {
-    public CreateApiKeyCommand(
-        INitroConsole console,
-        IApisClient apisClient,
-        IApiKeysClient apiKeysClient,
-        ISessionService sessionService,
-        IResultHolder resultHolder) : base("create")
+    public CreateApiKeyCommand() : base("create")
     {
         Description = "Create a new API key.";
 
@@ -28,17 +23,22 @@ internal sealed class CreateApiKeyCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(
-            console,
-            async (parseResult, cancellationToken)
-                => await ExecuteAsync(
-                    parseResult,
-                    console,
-                    apisClient,
-                    apiKeysClient,
-                    sessionService,
-                    resultHolder,
-                    cancellationToken));
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var apisClient = services.GetRequiredService<IApisClient>();
+            var apiKeysClient = services.GetRequiredService<IApiKeysClient>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            var resultHolder = services.GetRequiredService<IResultHolder>();
+            return await ExecuteAsync(
+                parseResult,
+                console,
+                apisClient,
+                apiKeysClient,
+                sessionService,
+                resultHolder,
+                cancellationToken);
+        });
     }
 
     private async Task<int> ExecuteAsync(

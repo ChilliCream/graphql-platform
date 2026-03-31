@@ -8,10 +8,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Mcp;
 
 internal sealed class ValidateMcpFeatureCollectionCommand : Command
 {
-    public ValidateMcpFeatureCollectionCommand(
-        INitroConsole console,
-        IMcpClient client,
-        IFileSystem fileSystem) : base("validate")
+    public ValidateMcpFeatureCollectionCommand() : base("validate")
     {
         Description = "Validate an MCP feature collection version.";
 
@@ -23,8 +20,13 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, console, client, fileSystem, cancellationToken));
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var client = services.GetRequiredService<IMcpClient>();
+            var fileSystem = services.GetRequiredService<IFileSystem>();
+            return await ExecuteAsync(parseResult, console, client, fileSystem, cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

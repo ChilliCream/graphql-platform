@@ -5,13 +5,13 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Clients;
 
-public sealed class ListClientCommandTests
+public sealed class ListClientCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "client",
                 "list",
@@ -48,7 +48,7 @@ public sealed class ListClientCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "client",
@@ -70,7 +70,7 @@ public sealed class ListClientCommandTests
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
         var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
 
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -101,7 +101,7 @@ public sealed class ListClientCommandTests
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
         var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
 
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -138,7 +138,7 @@ public sealed class ListClientCommandTests
                 ("client-1", "web-client", "products"),
                 ("client-2", "mobile-client", "products")));
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -212,7 +212,7 @@ public sealed class ListClientCommandTests
                 ("client-1", "web-client", "products")));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -263,7 +263,7 @@ public sealed class ListClientCommandTests
                 ("client-1", "web-client", "products")));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -312,7 +312,7 @@ public sealed class ListClientCommandTests
                 hasNextPage: false,
                 ("client-1", "web-client", "products")));
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -385,7 +385,7 @@ public sealed class ListClientCommandTests
                 ("client-1", "web-client", "products")));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -438,7 +438,7 @@ public sealed class ListClientCommandTests
                 ("client-1", "web-client", "products")));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -481,7 +481,7 @@ public sealed class ListClientCommandTests
         var clientsClient = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"), "api-1", null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -512,7 +512,7 @@ public sealed class ListClientCommandTests
         var clientsClient = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"), "api-1", null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -543,7 +543,7 @@ public sealed class ListClientCommandTests
         var clientsClient = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"), "api-1", null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -573,7 +573,7 @@ public sealed class ListClientCommandTests
         var clientsClient = CreateListExceptionClient(new NitroClientAuthorizationException(), "api-1", null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -605,7 +605,7 @@ public sealed class ListClientCommandTests
         var clientsClient = CreateListExceptionClient(new NitroClientAuthorizationException(), "api-1", null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
@@ -637,7 +637,7 @@ public sealed class ListClientCommandTests
         var clientsClient = CreateListExceptionClient(new NitroClientAuthorizationException(), "api-1", null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()

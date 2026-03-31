@@ -5,7 +5,7 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
-public sealed class FusionConfigurationPublishCommitCommandTests
+public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     private const string ArchiveFilePath = "/tmp/gateway.far";
 
@@ -13,7 +13,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "fusion",
                 "publish",
@@ -47,7 +47,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "fusion",
@@ -79,7 +79,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests
         fileSystem.Setup(x => x.FileExists(cacheFile)).Returns(false);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(fileSystem.Object)
             .AddApiKey()
             .AddInteractionMode(mode)
@@ -108,7 +108,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests
         var (client, fileSystem) = CreateExceptionSetup(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -145,7 +145,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests
         var (client, fileSystem) = CreateExceptionSetup(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -182,7 +182,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests
         var (client, fileSystem) = CreateExceptionSetup(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -213,7 +213,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests
         var (client, fileSystem) = CreateExceptionSetup(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -251,7 +251,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests
         var (client, fileSystem) = CreateExceptionSetup(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -289,7 +289,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests
         var (client, fileSystem) = CreateExceptionSetup(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -325,7 +325,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests
         var (client, fileSystem) = CreateMutationErrorSetup(error.Object);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -367,7 +367,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests
         var (client, fileSystem) = CreateMutationErrorSetup(error.Object);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -405,7 +405,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests
         var (client, fileSystem) = CreateSuccessSetup();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -435,7 +435,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests
         var (client, fileSystem) = CreateSuccessSetup();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -465,7 +465,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests
         var (client, fileSystem) = CreateSuccessSetup();
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -498,7 +498,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests
         var (client, fileSystem) = CreateSuccessSetup(fromStateFile: true);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()

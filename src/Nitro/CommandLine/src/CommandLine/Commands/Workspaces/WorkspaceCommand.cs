@@ -10,20 +10,14 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Workspaces;
 #endif
 internal sealed class WorkspaceCommand : Command
 {
-    public WorkspaceCommand(
-        CreateWorkspaceCommand createWorkspaceCommand,
-        CurrentWorkspaceCommand currentWorkspaceCommand,
-        SetDefaultWorkspaceCommand setDefaultWorkspaceCommand,
-        ListWorkspaceCommand listWorkspaceCommand,
-        ShowWorkspaceCommand showWorkspaceCommand)
-        : base("workspace")
+    public WorkspaceCommand() : base("workspace")
     {
         Description = "Manage workspaces.";
 
-        Subcommands.Add(createWorkspaceCommand);
-        Subcommands.Add(currentWorkspaceCommand);
-        Subcommands.Add(setDefaultWorkspaceCommand);
-        Subcommands.Add(listWorkspaceCommand);
-        Subcommands.Add(showWorkspaceCommand);
+        Subcommands.Add(new CreateWorkspaceCommand());
+        Subcommands.Add(new CurrentWorkspaceCommand());
+        Subcommands.Add(new SetDefaultWorkspaceCommand());
+        Subcommands.Add(new ListWorkspaceCommand());
+        Subcommands.Add(new ShowWorkspaceCommand());
     }
 }

@@ -13,46 +13,40 @@ using ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens;
 using ChilliCream.Nitro.CommandLine.Commands.Schemas;
 using ChilliCream.Nitro.CommandLine.Commands.Stages;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces;
+
+#if !NET9_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
+
 namespace ChilliCream.Nitro.CommandLine;
 
 /// <summary>
 /// The root command of the Nitro CLI.
 /// </summary>
+#if !NET9_0_OR_GREATER
+[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+#endif
 internal sealed class NitroRootCommand : RootCommand
 {
-    public NitroRootCommand(
-        ApiKeyCommand apiKeyCommand,
-        ApiCommand apiCommand,
-        ClientCommand clientCommand,
-        EnvironmentCommand environmentCommand,
-        FusionCommand fusionCommand,
-        LaunchCommand launchCommand,
-        LoginCommand loginCommand,
-        LogoutCommand logoutCommand,
-        McpCommand mcpCommand,
-        MockCommand mockCommand,
-        OpenApiCommand openApiCommand,
-        PersonalAccessTokenCommand personalAccessTokenCommand,
-        SchemaCommand schemaCommand,
-        StageCommand stageCommand,
-        WorkspaceCommand workspaceCommand)
+    public NitroRootCommand()
     {
         Description = "Nitro CLI";
 
-        Subcommands.Add(apiKeyCommand);
-        Subcommands.Add(apiCommand);
-        Subcommands.Add(clientCommand);
-        Subcommands.Add(environmentCommand);
-        Subcommands.Add(fusionCommand);
-        Subcommands.Add(launchCommand);
-        Subcommands.Add(loginCommand);
-        Subcommands.Add(logoutCommand);
-        Subcommands.Add(mcpCommand);
-        Subcommands.Add(mockCommand);
-        Subcommands.Add(openApiCommand);
-        Subcommands.Add(personalAccessTokenCommand);
-        Subcommands.Add(schemaCommand);
-        Subcommands.Add(stageCommand);
-        Subcommands.Add(workspaceCommand);
+        Subcommands.Add(new ApiKeyCommand());
+        Subcommands.Add(new ApiCommand());
+        Subcommands.Add(new ClientCommand());
+        Subcommands.Add(new EnvironmentCommand());
+        Subcommands.Add(new FusionCommand());
+        Subcommands.Add(new LaunchCommand());
+        Subcommands.Add(new LoginCommand());
+        Subcommands.Add(new LogoutCommand());
+        Subcommands.Add(new McpCommand());
+        Subcommands.Add(new MockCommand());
+        Subcommands.Add(new OpenApiCommand());
+        Subcommands.Add(new PersonalAccessTokenCommand());
+        Subcommands.Add(new SchemaCommand());
+        Subcommands.Add(new StageCommand());
+        Subcommands.Add(new WorkspaceCommand());
     }
 }

@@ -20,9 +20,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 #endif
 internal class FusionRunCommand : Command
 {
-    public FusionRunCommand(
-        INitroConsole console,
-        IFileSystem fileSystem) : base("run")
+    public FusionRunCommand() : base("run")
     {
         base.Description = "Start a Fusion gateway with the specified archive."
             + Environment.NewLine
@@ -33,8 +31,11 @@ internal class FusionRunCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken) =>
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
         {
+            var console = services.GetRequiredService<INitroConsole>();
+            var fileSystem = services.GetRequiredService<IFileSystem>();
+
             var archiveFilePath = parseResult.GetValue(Opt<FusionRunArchiveArgument>.Instance)!;
             var port = parseResult.GetValue(Opt<FusionRunPortOption>.Instance);
 

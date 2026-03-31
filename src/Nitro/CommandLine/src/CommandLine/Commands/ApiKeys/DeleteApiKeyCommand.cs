@@ -12,11 +12,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.ApiKeys;
 
 internal sealed class DeleteApiKeyCommand : Command
 {
-    public DeleteApiKeyCommand(
-        INitroConsole console,
-        IApiKeysClient apiKeysClient,
-        ISessionService sessionService,
-        IResultHolder resultHolder) : base("delete")
+    public DeleteApiKeyCommand() : base("delete")
     {
         Description = "Delete an API key by ID.";
 
@@ -25,14 +21,20 @@ internal sealed class DeleteApiKeyCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var apiKeysClient = services.GetRequiredService<IApiKeysClient>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            var resultHolder = services.GetRequiredService<IResultHolder>();
+            return await ExecuteAsync(
                 parseResult,
                 console,
                 apiKeysClient,
                 sessionService,
                 resultHolder,
-                cancellationToken));
+                cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

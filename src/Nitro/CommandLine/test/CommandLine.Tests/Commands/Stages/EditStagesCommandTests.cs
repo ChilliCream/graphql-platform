@@ -5,13 +5,13 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Stages;
 
-public sealed class EditStagesCommandTests
+public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "stage",
                 "edit",
@@ -44,7 +44,7 @@ public sealed class EditStagesCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "stage",
@@ -81,7 +81,7 @@ public sealed class EditStagesCommandTests
             .ReturnsAsync(CreateUpdateStagesSuccessPayload());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(stagesClient.Object)
             .AddService(apisClient.Object)
             .AddApiKey()
@@ -141,7 +141,7 @@ public sealed class EditStagesCommandTests
             .ReturnsAsync(CreateUpdateStagesSuccessPayload());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(stagesClient.Object)
             .AddService(apisClient.Object)
             .AddApiKey()
@@ -195,7 +195,7 @@ public sealed class EditStagesCommandTests
             .ReturnsAsync(CreateUpdateStagesSuccessPayload());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(stagesClient.Object)
             .AddService(apisClient.Object)
             .AddApiKey()
@@ -225,7 +225,7 @@ public sealed class EditStagesCommandTests
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(stagesClient.Object)
             .AddService(apisClient.Object)
             .AddApiKey()
@@ -258,7 +258,7 @@ public sealed class EditStagesCommandTests
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(stagesClient.Object)
             .AddService(apisClient.Object)
             .AddApiKey()
@@ -299,7 +299,7 @@ public sealed class EditStagesCommandTests
             .ReturnsAsync(CreateUpdateStagesPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(stagesClient.Object)
             .AddService(apisClient.Object)
             .AddApiKey()
@@ -347,7 +347,7 @@ public sealed class EditStagesCommandTests
             .ReturnsAsync(CreateUpdateStagesPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(stagesClient.Object)
             .AddService(apisClient.Object)
             .AddApiKey()
@@ -467,7 +467,7 @@ public sealed class EditStagesCommandTests
             """);
     }
 
-    private static async Task<CommandResult> RunEditStagesWithException(
+    private async Task<CommandResult> RunEditStagesWithException(
         Exception ex,
         InteractionMode mode)
     {
@@ -480,7 +480,7 @@ public sealed class EditStagesCommandTests
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(ex);
 
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(stagesClient.Object)
             .AddService(apisClient.Object)
             .AddApiKey()
@@ -514,7 +514,7 @@ public sealed class EditStagesCommandTests
             .ReturnsAsync(CreateUpdateStagesPayloadWithNullApi());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(stagesClient.Object)
             .AddService(apisClient.Object)
             .AddApiKey()

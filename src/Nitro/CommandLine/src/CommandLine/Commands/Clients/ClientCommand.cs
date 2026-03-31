@@ -10,28 +10,18 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
 #endif
 internal sealed class ClientCommand : Command
 {
-    public ClientCommand(
-        PublishClientCommand publishClientCommand,
-        UnpublishClientCommand unpublishClientCommand,
-        ValidateClientCommand validateClientCommand,
-        UploadClientCommand uploadClientCommand,
-        CreateClientCommand createClientCommand,
-        DeleteClientCommand deleteClientCommand,
-        ListClientCommand listClientCommand,
-        ShowClientCommand showClientCommand,
-        DownloadClientCommand downloadClientCommand)
-        : base("client")
+    public ClientCommand() : base("client")
     {
         Description = "Manage clients.";
 
-        Subcommands.Add(publishClientCommand);
-        Subcommands.Add(unpublishClientCommand);
-        Subcommands.Add(validateClientCommand);
-        Subcommands.Add(uploadClientCommand);
-        Subcommands.Add(createClientCommand);
-        Subcommands.Add(deleteClientCommand);
-        Subcommands.Add(listClientCommand);
-        Subcommands.Add(showClientCommand);
-        Subcommands.Add(downloadClientCommand);
+        Subcommands.Add(new PublishClientCommand());
+        Subcommands.Add(new UnpublishClientCommand());
+        Subcommands.Add(new ValidateClientCommand());
+        Subcommands.Add(new UploadClientCommand());
+        Subcommands.Add(new CreateClientCommand());
+        Subcommands.Add(new DeleteClientCommand());
+        Subcommands.Add(new ListClientCommand());
+        Subcommands.Add(new ShowClientCommand());
+        Subcommands.Add(new DownloadClientCommand());
     }
 }

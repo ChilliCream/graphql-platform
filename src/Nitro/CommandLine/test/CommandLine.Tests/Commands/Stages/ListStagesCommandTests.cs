@@ -5,13 +5,13 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Stages;
 
-public sealed class ListStagesCommandTests
+public sealed class ListStagesCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "stage",
                 "list",
@@ -43,7 +43,7 @@ public sealed class ListStagesCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "stage",
@@ -67,7 +67,7 @@ public sealed class ListStagesCommandTests
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
         var stagesClient = new Mock<IStagesClient>(MockBehavior.Strict);
 
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(stagesClient.Object)
             .AddApiKey()
@@ -101,7 +101,7 @@ public sealed class ListStagesCommandTests
                 ("stage-2", "staging", Array.Empty<string>())));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(stagesClient.Object)
             .AddApiKey()
@@ -157,7 +157,7 @@ public sealed class ListStagesCommandTests
                 ("stage-2", "staging", Array.Empty<string>())));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(stagesClient.Object)
             .AddApiKey()
@@ -210,7 +210,7 @@ public sealed class ListStagesCommandTests
             .ReturnsAsync(CreateListStagesResult());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(stagesClient.Object)
             .AddApiKey()
@@ -248,7 +248,7 @@ public sealed class ListStagesCommandTests
             .ReturnsAsync(CreateListStagesResult());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(stagesClient.Object)
             .AddApiKey()
@@ -282,7 +282,7 @@ public sealed class ListStagesCommandTests
             new NitroClientGraphQLException("Some message.", "SOME_CODE"), "api-1");
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(stagesClient.Object)
             .AddApiKey()
@@ -314,7 +314,7 @@ public sealed class ListStagesCommandTests
             new NitroClientGraphQLException("Some message.", "SOME_CODE"), "api-1");
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(stagesClient.Object)
             .AddApiKey()
@@ -345,7 +345,7 @@ public sealed class ListStagesCommandTests
             new NitroClientAuthorizationException(), "api-1");
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(stagesClient.Object)
             .AddApiKey()
@@ -378,7 +378,7 @@ public sealed class ListStagesCommandTests
             new NitroClientAuthorizationException(), "api-1");
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(stagesClient.Object)
             .AddApiKey()

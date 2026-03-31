@@ -9,11 +9,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi;
 
 internal sealed class UploadOpenApiCollectionCommand : Command
 {
-    public UploadOpenApiCollectionCommand(
-        INitroConsole console,
-        IOpenApiClient client,
-        IFileSystem fileSystem,
-        ISessionService sessionService) : base("upload")
+    public UploadOpenApiCollectionCommand() : base("upload")
     {
         Description = "Upload a new OpenAPI collection version.";
 
@@ -24,8 +20,14 @@ internal sealed class UploadOpenApiCollectionCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, console, client, fileSystem, sessionService, cancellationToken));
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var client = services.GetRequiredService<IOpenApiClient>();
+            var fileSystem = services.GetRequiredService<IFileSystem>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            return await ExecuteAsync(parseResult, console, client, fileSystem, sessionService, cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

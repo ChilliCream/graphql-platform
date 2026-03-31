@@ -20,11 +20,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 #endif
 internal sealed class FusionValidateCommand : Command
 {
-    public FusionValidateCommand(
-        INitroConsole console,
-        IFusionConfigurationClient fusionConfigurationClient,
-        IFileSystem fileSystem,
-        IResultHolder resultHolder) : base("validate")
+    public FusionValidateCommand() : base("validate")
     {
         Description = "Validate the composed GraphQL schema of a Fusion configuration against a stage.";
 
@@ -54,8 +50,13 @@ internal sealed class FusionValidateCommand : Command
             }
         });
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken) =>
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
         {
+            var console = services.GetRequiredService<INitroConsole>();
+            var fusionConfigurationClient = services.GetRequiredService<IFusionConfigurationClient>();
+            var fileSystem = services.GetRequiredService<IFileSystem>();
+            var resultHolder = services.GetRequiredService<IResultHolder>();
+
             var stageName = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
             var apiId = parseResult.GetValue(Opt<ApiIdOption>.Instance)!;
             var archiveFile = parseResult.GetValue(Opt<OptionalFusionArchiveFileOption>.Instance);

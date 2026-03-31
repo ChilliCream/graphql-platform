@@ -6,7 +6,7 @@ using static ChilliCream.Nitro.CommandLine.Tests.TestHelpers;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Mcp;
 
-public sealed class ValidateMcpFeatureCollectionCommandTests
+public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     private const string DefaultMcpFeatureCollectionId = "mcp-1";
     private const string DefaultStage = "production";
@@ -16,7 +16,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "mcp",
                 "validate",
@@ -48,7 +48,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError_NonInteractive()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "mcp",
@@ -80,7 +80,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError_Interactive()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(InteractionMode.Interactive)
             .AddArguments(
                 "mcp",
@@ -112,7 +112,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError_JsonOutput()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(InteractionMode.JsonOutput)
             .AddArguments(
                 "mcp",
@@ -142,7 +142,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
             new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -183,7 +183,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
             new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -224,7 +224,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
             new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -259,7 +259,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
             new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -301,7 +301,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
             new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -343,7 +343,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
             new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -382,7 +382,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
             CreateValidationPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -423,7 +423,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
             CreateValidationPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -464,7 +464,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
             CreateValidationPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -501,7 +501,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
         var (client, fileSystem) = CreateValidationSetup(payload.Object);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -547,7 +547,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
         var (client, fileSystem) = CreateValidationSetup(payload.Object);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -593,7 +593,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
         var (client, fileSystem) = CreateValidationSetup(payload.Object);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -634,7 +634,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -681,7 +681,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -725,7 +725,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -771,7 +771,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -826,7 +826,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -879,7 +879,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -919,7 +919,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -966,7 +966,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
             });
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()

@@ -10,18 +10,13 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Schemas;
 #endif
 internal sealed class SchemaCommand : Command
 {
-    public SchemaCommand(
-        PublishSchemaCommand publishSchemaCommand,
-        ValidateSchemaCommand validateSchemaCommand,
-        UploadSchemaCommand uploadSchemaCommand,
-        DownloadSchemaCommand downloadSchemaCommand)
-        : base("schema")
+    public SchemaCommand() : base("schema")
     {
         Description = "Manage schemas.";
 
-        Subcommands.Add(publishSchemaCommand);
-        Subcommands.Add(validateSchemaCommand);
-        Subcommands.Add(uploadSchemaCommand);
-        Subcommands.Add(downloadSchemaCommand);
+        Subcommands.Add(new PublishSchemaCommand());
+        Subcommands.Add(new ValidateSchemaCommand());
+        Subcommands.Add(new UploadSchemaCommand());
+        Subcommands.Add(new DownloadSchemaCommand());
     }
 }

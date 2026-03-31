@@ -24,6 +24,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests;
 
 internal sealed class CommandBuilder
 {
+    private readonly NitroCommandFixture? _fixture;
     private readonly Mock<ISessionService> _sessionServiceMock = new();
     private readonly IServiceCollection _services = new ServiceCollection();
     private readonly List<string> _arguments = [];
@@ -32,9 +33,7 @@ internal sealed class CommandBuilder
 
     public CommandBuilder()
     {
-        _services
-            .AddNitroCommands()
-            .AddNitroServices();
+        _services.AddNitroServices();
 
         _services.AddSingleton<NitroClientContext>();
         _services.AddSingleton<INitroClientContextProvider>(
@@ -47,6 +46,11 @@ internal sealed class CommandBuilder
         _sessionServiceMock
             .SetupGet(x => x.Session)
             .Returns(() => _session);
+    }
+
+    public CommandBuilder(NitroCommandFixture fixture) : this()
+    {
+        _fixture = fixture;
     }
 
     public CommandBuilder AddInteractionMode(InteractionMode mode)
@@ -156,7 +160,7 @@ internal sealed class CommandBuilder
 
         var services = _services.BuildServiceProvider();
 
-        var rootCommand = services.GetRequiredService<NitroRootCommand>();
+        var rootCommand = _fixture?.RootCommand ?? new NitroRootCommand();
 
         var arguments = _arguments.ToList();
 

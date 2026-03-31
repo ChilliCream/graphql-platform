@@ -10,11 +10,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Environments;
 
 internal sealed class ListEnvironmentCommand : Command
 {
-    public ListEnvironmentCommand(
-        INitroConsole console,
-        IEnvironmentsClient client,
-        ISessionService sessionService,
-        IResultHolder resultHolder) : base("list")
+    public ListEnvironmentCommand() : base("list")
     {
         Description = "List all environments of a workspace.";
 
@@ -23,8 +19,14 @@ internal sealed class ListEnvironmentCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, console, client, sessionService, resultHolder, cancellationToken));
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var client = services.GetRequiredService<IEnvironmentsClient>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            var resultHolder = services.GetRequiredService<IResultHolder>();
+            return await ExecuteAsync(parseResult, console, client, sessionService, resultHolder, cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

@@ -20,12 +20,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 #endif
 internal sealed class FusionUploadCommand : Command
 {
-    public FusionUploadCommand(
-        INitroConsole console,
-        IFusionConfigurationClient fusionConfigurationClient,
-        IFileSystem fileSystem,
-        ISessionService sessionService,
-        IResultHolder resultHolder) : base("upload")
+    public FusionUploadCommand() : base("upload")
     {
         Description = "Upload a source schema for a later composition.";
 
@@ -36,15 +31,22 @@ internal sealed class FusionUploadCommand : Command
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var fusionConfigurationClient = services.GetRequiredService<IFusionConfigurationClient>();
+            var fileSystem = services.GetRequiredService<IFileSystem>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            var resultHolder = services.GetRequiredService<IResultHolder>();
+            return await ExecuteAsync(
                 parseResult,
                 console,
                 fusionConfigurationClient,
                 fileSystem,
                 sessionService,
                 resultHolder,
-                cancellationToken));
+                cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

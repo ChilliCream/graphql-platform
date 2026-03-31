@@ -7,9 +7,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
 internal sealed class FusionMigrateCommand : Command
 {
-    public FusionMigrateCommand(
-        INitroConsole console,
-        IFileSystem fileSystem) : base("migrate")
+    public FusionMigrateCommand() : base("migrate")
     {
         Description = "Migrate Fusion configuration files.";
 
@@ -18,8 +16,12 @@ internal sealed class FusionMigrateCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, console, fileSystem, cancellationToken));
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var fileSystem = services.GetRequiredService<IFileSystem>();
+            return await ExecuteAsync(parseResult, console, fileSystem, cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

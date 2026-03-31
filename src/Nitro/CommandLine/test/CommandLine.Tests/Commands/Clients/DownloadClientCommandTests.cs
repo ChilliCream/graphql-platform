@@ -7,13 +7,13 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Clients;
 
-public sealed class DownloadClientCommandTests
+public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "client",
                 "download",
@@ -48,7 +48,7 @@ public sealed class DownloadClientCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "client",
@@ -75,7 +75,7 @@ public sealed class DownloadClientCommandTests
     public async Task MissingRequiredOptions_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddApiKey()
             .AddInteractionMode(mode)
             .AddArguments(
@@ -121,7 +121,7 @@ public sealed class DownloadClientCommandTests
         var client = CreateDownloadExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -158,7 +158,7 @@ public sealed class DownloadClientCommandTests
         var client = CreateDownloadExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -195,7 +195,7 @@ public sealed class DownloadClientCommandTests
         var client = CreateDownloadExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -226,7 +226,7 @@ public sealed class DownloadClientCommandTests
         var client = CreateDownloadExceptionClient(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -264,7 +264,7 @@ public sealed class DownloadClientCommandTests
         var client = CreateDownloadExceptionClient(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -302,7 +302,7 @@ public sealed class DownloadClientCommandTests
         var client = CreateDownloadExceptionClient(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -339,7 +339,7 @@ public sealed class DownloadClientCommandTests
             .ReturnsAsync((Stream?)null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
@@ -381,7 +381,7 @@ public sealed class DownloadClientCommandTests
             .ReturnsAsync((Stream?)null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.NonInteractive)
@@ -423,7 +423,7 @@ public sealed class DownloadClientCommandTests
             .ReturnsAsync((Stream?)null);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.JsonOutput)
@@ -468,7 +468,7 @@ public sealed class DownloadClientCommandTests
         fileSystem.Setup(x => x.CreateFile("queries.json")).Returns(fileStream);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -531,7 +531,7 @@ public sealed class DownloadClientCommandTests
         fileSystem.Setup(x => x.CreateFile("queries.json")).Returns(fileStream);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -594,7 +594,7 @@ public sealed class DownloadClientCommandTests
         fileSystem.Setup(x => x.CreateFile("queries.json")).Returns(fileStream);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -652,7 +652,7 @@ public sealed class DownloadClientCommandTests
         fileSystem.Setup(x => x.CreateFile("queries.json")).Returns(fileStream);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -711,7 +711,7 @@ public sealed class DownloadClientCommandTests
         fileSystem.Setup(x => x.CreateFile(Path.Combine("output-dir", "doc-1.graphql"))).Returns(docFileStream);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -772,7 +772,7 @@ public sealed class DownloadClientCommandTests
         fileSystem.Setup(x => x.CreateFile(Path.Combine("output-dir", "doc-1.graphql"))).Returns(docFileStream);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -833,7 +833,7 @@ public sealed class DownloadClientCommandTests
         fileSystem.Setup(x => x.CreateFile(Path.Combine("output-dir", "doc-1.graphql"))).Returns(docFileStream);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -889,7 +889,7 @@ public sealed class DownloadClientCommandTests
         fileSystem.Setup(x => x.CreateFile(Path.Combine("output-dir", "doc-1.graphql"))).Returns(docFileStream);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
@@ -950,7 +950,7 @@ public sealed class DownloadClientCommandTests
         fileSystem.Setup(x => x.CreateFile(Path.Combine("output-dir", "doc-1.graphql"))).Returns(docFileStream);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()

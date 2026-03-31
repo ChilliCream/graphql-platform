@@ -6,13 +6,13 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Mocks;
 
-public sealed class CreateMockCommandTests
+public sealed class CreateMockCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "mock",
                 "create",
@@ -48,7 +48,7 @@ public sealed class CreateMockCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "mock",
@@ -79,7 +79,7 @@ public sealed class CreateMockCommandTests
     public async Task MissingRequiredOptions_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddApiKey()
             .AddInteractionMode(mode)
             .AddArguments(
@@ -146,7 +146,7 @@ public sealed class CreateMockCommandTests
             .ReturnsAsync(CreateMockSuccessPayload());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddService(fileSystem.Object)
@@ -216,7 +216,7 @@ public sealed class CreateMockCommandTests
             .ReturnsAsync(CreateMockSuccessPayload());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddService(fileSystem.Object)
@@ -283,7 +283,7 @@ public sealed class CreateMockCommandTests
             .ReturnsAsync(CreateMockPayloadWithNullResult());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddService(fileSystem.Object)
@@ -347,7 +347,7 @@ public sealed class CreateMockCommandTests
             .ReturnsAsync(CreateMockPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddService(fileSystem.Object)
@@ -407,7 +407,7 @@ public sealed class CreateMockCommandTests
             .ReturnsAsync(CreateMockPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddService(fileSystem.Object)
@@ -467,7 +467,7 @@ public sealed class CreateMockCommandTests
             .ReturnsAsync(CreateMockPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddService(fileSystem.Object)
@@ -592,7 +592,7 @@ public sealed class CreateMockCommandTests
             """);
     }
 
-    private static async Task<CommandResult> RunCreateMockWithException(
+    private async Task<CommandResult> RunCreateMockWithException(
         Exception ex,
         InteractionMode mode)
     {
@@ -614,7 +614,7 @@ public sealed class CreateMockCommandTests
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(ex);
 
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddService(fileSystem.Object)

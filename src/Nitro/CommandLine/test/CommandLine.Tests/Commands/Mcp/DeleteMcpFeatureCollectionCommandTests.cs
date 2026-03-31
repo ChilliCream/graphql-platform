@@ -5,13 +5,13 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Mcp;
 
-public sealed class DeleteMcpFeatureCollectionCommandTests
+public sealed class DeleteMcpFeatureCollectionCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "mcp",
                 "delete",
@@ -46,7 +46,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "mcp",
@@ -72,7 +72,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
         var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
 
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -100,7 +100,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
         var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddSessionWithWorkspace()
@@ -138,7 +138,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
             .ReturnsAsync(McpCommandTestHelper.CreateDeleteMcpFeatureCollectionPayload("mcp-1", "my-mcp"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -178,7 +178,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
             .ReturnsAsync(McpCommandTestHelper.CreateDeleteMcpFeatureCollectionPayload("mcp-1", "my-mcp"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -214,7 +214,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(McpCommandTestHelper.CreateDeleteMcpFeatureCollectionPayload("mcp-1", "my-mcp"));
 
-        var command = new CommandBuilder()
+        var command = new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddSessionWithWorkspace()
@@ -249,7 +249,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
             .ReturnsAsync(McpCommandTestHelper.CreateDeleteMcpFeatureCollectionPayloadWithNullResult());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -293,7 +293,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
             .ReturnsAsync(McpCommandTestHelper.CreateDeleteMcpFeatureCollectionPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -333,7 +333,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
             .ReturnsAsync(McpCommandTestHelper.CreateDeleteMcpFeatureCollectionPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -373,7 +373,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
             .ReturnsAsync(McpCommandTestHelper.CreateDeleteMcpFeatureCollectionPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -404,7 +404,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
             .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -444,7 +444,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
             .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -484,7 +484,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
             .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -518,7 +518,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
             .ThrowsAsync(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -559,7 +559,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
             .ThrowsAsync(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
@@ -600,7 +600,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests
             .ThrowsAsync(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()

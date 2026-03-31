@@ -1,20 +1,21 @@
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
-public sealed class FusionMigrateCommandTests : IDisposable
+public sealed class FusionMigrateCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>, IDisposable
 {
-    private readonly string _tempDir;
+    private readonly string _tempDir = CreateTempDir();
 
-    public FusionMigrateCommandTests()
+    private static string CreateTempDir()
     {
-        _tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-        Directory.CreateDirectory(_tempDir);
+        var dir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(dir);
+        return dir;
     }
 
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "fusion",
                 "migrate",
@@ -48,7 +49,7 @@ public sealed class FusionMigrateCommandTests : IDisposable
     public async Task MissingRequiredOptions_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "fusion",
@@ -106,7 +107,7 @@ public sealed class FusionMigrateCommandTests : IDisposable
             """);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "fusion",
                 "migrate",
@@ -158,7 +159,7 @@ public sealed class FusionMigrateCommandTests : IDisposable
             existingContent);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "fusion",
                 "migrate",
@@ -178,7 +179,7 @@ public sealed class FusionMigrateCommandTests : IDisposable
     public async Task Migrate_SubgraphConfig_NoFilesFound_ReturnsError()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "fusion",
                 "migrate",
@@ -204,7 +205,7 @@ public sealed class FusionMigrateCommandTests : IDisposable
             """);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "fusion",
                 "migrate",
@@ -258,7 +259,7 @@ public sealed class FusionMigrateCommandTests : IDisposable
             """);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "fusion",
                 "migrate",

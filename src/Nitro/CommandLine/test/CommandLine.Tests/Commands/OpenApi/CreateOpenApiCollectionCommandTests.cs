@@ -5,13 +5,13 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.OpenApi;
 
-public sealed class CreateOpenApiCollectionCommandTests
+public sealed class CreateOpenApiCollectionCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "openapi",
                 "create",
@@ -44,7 +44,7 @@ public sealed class CreateOpenApiCollectionCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "openapi",
@@ -72,7 +72,7 @@ public sealed class CreateOpenApiCollectionCommandTests
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
         var openApiClient = new Mock<IOpenApiClient>(MockBehavior.Strict);
 
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(openApiClient.Object)
             .AddApiKey()
@@ -103,7 +103,7 @@ public sealed class CreateOpenApiCollectionCommandTests
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
         var openApiClient = new Mock<IOpenApiClient>(MockBehavior.Strict);
 
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(openApiClient.Object)
             .AddApiKey()
@@ -140,7 +140,7 @@ public sealed class CreateOpenApiCollectionCommandTests
             .ReturnsAsync(OpenApiCommandTestHelper.CreateOpenApiCollectionPayload("oa-1", "my-openapi"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(openApiClient.Object)
             .AddApiKey()
@@ -183,7 +183,7 @@ public sealed class CreateOpenApiCollectionCommandTests
             .ReturnsAsync(OpenApiCommandTestHelper.CreateOpenApiCollectionPayload("oa-1", "my-openapi"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(openApiClient.Object)
             .AddApiKey()
@@ -223,7 +223,7 @@ public sealed class CreateOpenApiCollectionCommandTests
             .ReturnsAsync(OpenApiCommandTestHelper.CreateOpenApiCollectionPayloadWithNullResult());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(openApiClient.Object)
             .AddApiKey()
@@ -270,7 +270,7 @@ public sealed class CreateOpenApiCollectionCommandTests
             .ReturnsAsync(OpenApiCommandTestHelper.CreateOpenApiCollectionPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(openApiClient.Object)
             .AddApiKey()
@@ -313,7 +313,7 @@ public sealed class CreateOpenApiCollectionCommandTests
             .ReturnsAsync(OpenApiCommandTestHelper.CreateOpenApiCollectionPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(openApiClient.Object)
             .AddApiKey()
@@ -356,7 +356,7 @@ public sealed class CreateOpenApiCollectionCommandTests
             .ReturnsAsync(OpenApiCommandTestHelper.CreateOpenApiCollectionPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(openApiClient.Object)
             .AddApiKey()
@@ -390,7 +390,7 @@ public sealed class CreateOpenApiCollectionCommandTests
             .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(openApiClient.Object)
             .AddApiKey()
@@ -433,7 +433,7 @@ public sealed class CreateOpenApiCollectionCommandTests
             .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(openApiClient.Object)
             .AddApiKey()
@@ -476,7 +476,7 @@ public sealed class CreateOpenApiCollectionCommandTests
             .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(openApiClient.Object)
             .AddApiKey()
@@ -513,7 +513,7 @@ public sealed class CreateOpenApiCollectionCommandTests
             .ThrowsAsync(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(openApiClient.Object)
             .AddApiKey()
@@ -557,7 +557,7 @@ public sealed class CreateOpenApiCollectionCommandTests
             .ThrowsAsync(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(openApiClient.Object)
             .AddApiKey()
@@ -601,7 +601,7 @@ public sealed class CreateOpenApiCollectionCommandTests
             .ThrowsAsync(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(openApiClient.Object)
             .AddApiKey()

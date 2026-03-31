@@ -6,13 +6,13 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Mocks;
 
-public sealed class UpdateMockCommandTests
+public sealed class UpdateMockCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddArguments(
                 "mock",
                 "update",
@@ -50,7 +50,7 @@ public sealed class UpdateMockCommandTests
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
             .AddArguments(
                 "mock",
@@ -77,7 +77,7 @@ public sealed class UpdateMockCommandTests
         var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddService(fileSystem.Object)
@@ -121,7 +121,7 @@ public sealed class UpdateMockCommandTests
             .ReturnsAsync(CreateUpdateMockSuccessPayload());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddService(fileSystem.Object)
@@ -190,7 +190,7 @@ public sealed class UpdateMockCommandTests
             .ReturnsAsync(CreateUpdateMockSuccessPayload());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddService(fileSystem.Object)
@@ -251,7 +251,7 @@ public sealed class UpdateMockCommandTests
             .ReturnsAsync(CreateUpdateMockSuccessPayload());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddService(fileSystem.Object)
@@ -307,7 +307,7 @@ public sealed class UpdateMockCommandTests
             .ReturnsAsync(CreateUpdateMockPayloadWithNullResult());
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddService(fileSystem.Object)
@@ -357,7 +357,7 @@ public sealed class UpdateMockCommandTests
             .ReturnsAsync(CreateUpdateMockPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddService(fileSystem.Object)
@@ -403,7 +403,7 @@ public sealed class UpdateMockCommandTests
             .ReturnsAsync(CreateUpdateMockPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddService(fileSystem.Object)
@@ -449,7 +449,7 @@ public sealed class UpdateMockCommandTests
             .ReturnsAsync(CreateUpdateMockPayloadWithErrors(mutationError));
 
         // act
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddService(fileSystem.Object)
@@ -565,7 +565,7 @@ public sealed class UpdateMockCommandTests
             """);
     }
 
-    private static async Task<CommandResult> RunUpdateMockWithException(
+    private async Task<CommandResult> RunUpdateMockWithException(
         Exception ex,
         InteractionMode mode)
     {
@@ -582,7 +582,7 @@ public sealed class UpdateMockCommandTests
                 It.IsAny<CancellationToken>()))
             .ThrowsAsync(ex);
 
-        var result = await new CommandBuilder()
+        var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(mocksClient.Object)
             .AddService(fileSystem.Object)

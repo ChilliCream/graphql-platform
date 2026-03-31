@@ -12,11 +12,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Environments;
 
 internal sealed class CreateEnvironmentCommand : Command
 {
-    public CreateEnvironmentCommand(
-        INitroConsole console,
-        IEnvironmentsClient client,
-        ISessionService sessionService,
-        IResultHolder resultHolder) : base("create")
+    public CreateEnvironmentCommand() : base("create")
     {
         Description = "Create a new environment.";
 
@@ -25,8 +21,14 @@ internal sealed class CreateEnvironmentCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, console, client, sessionService, resultHolder, cancellationToken));
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var client = services.GetRequiredService<IEnvironmentsClient>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            var resultHolder = services.GetRequiredService<IResultHolder>();
+            return await ExecuteAsync(parseResult, console, client, sessionService, resultHolder, cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

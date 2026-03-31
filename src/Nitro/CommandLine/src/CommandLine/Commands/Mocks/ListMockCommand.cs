@@ -11,12 +11,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Mocks;
 
 internal sealed class ListMockCommand : Command
 {
-    public ListMockCommand(
-        INitroConsole console,
-        IApisClient apisClient,
-        IMocksClient client,
-        ISessionService sessionService,
-        IResultHolder resultHolder) : base("list")
+    public ListMockCommand() : base("list")
     {
         Description = "List all mock schemas in an API.";
 
@@ -25,8 +20,15 @@ internal sealed class ListMockCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, console, apisClient, client, sessionService, resultHolder, cancellationToken));
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var apisClient = services.GetRequiredService<IApisClient>();
+            var client = services.GetRequiredService<IMocksClient>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            var resultHolder = services.GetRequiredService<IResultHolder>();
+            return await ExecuteAsync(parseResult, console, apisClient, client, sessionService, resultHolder, cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

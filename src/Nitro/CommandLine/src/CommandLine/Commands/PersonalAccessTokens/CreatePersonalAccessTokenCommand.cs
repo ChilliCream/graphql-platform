@@ -13,11 +13,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens;
 
 internal sealed class CreatePersonalAccessTokenCommand : Command
 {
-    public CreatePersonalAccessTokenCommand(
-        INitroConsole console,
-        IPersonalAccessTokensClient client,
-        ISessionService sessionService,
-        IResultHolder resultHolder) : base("create")
+    public CreatePersonalAccessTokenCommand() : base("create")
     {
         Description = "Create a new personal access token.";
 
@@ -26,8 +22,14 @@ internal sealed class CreatePersonalAccessTokenCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(console, async (parseResult, cancellationToken)
-            => await ExecuteAsync(parseResult, console, client, sessionService, resultHolder, cancellationToken));
+        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
+        {
+            var console = services.GetRequiredService<INitroConsole>();
+            var client = services.GetRequiredService<IPersonalAccessTokensClient>();
+            var sessionService = services.GetRequiredService<ISessionService>();
+            var resultHolder = services.GetRequiredService<IResultHolder>();
+            return await ExecuteAsync(parseResult, console, client, sessionService, resultHolder, cancellationToken);
+        });
     }
 
     private static async Task<int> ExecuteAsync(

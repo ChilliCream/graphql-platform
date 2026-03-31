@@ -10,22 +10,15 @@ namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi;
 #endif
 internal sealed class OpenApiCommand : Command
 {
-    public OpenApiCommand(
-        CreateOpenApiCollectionCommand createOpenApiCollectionCommand,
-        DeleteOpenApiCollectionCommand deleteOpenApiCollectionCommand,
-        ListOpenApiCollectionCommand listOpenApiCollectionCommand,
-        UploadOpenApiCollectionCommand uploadOpenApiCollectionCommand,
-        PublishOpenApiCollectionCommand publishOpenApiCollectionCommand,
-        ValidateOpenApiCollectionCommand validateOpenApiCollectionCommand)
-        : base("openapi")
+    public OpenApiCommand() : base("openapi")
     {
         Description = "Manage OpenAPI collections.";
 
-        Subcommands.Add(createOpenApiCollectionCommand);
-        Subcommands.Add(deleteOpenApiCollectionCommand);
-        Subcommands.Add(listOpenApiCollectionCommand);
-        Subcommands.Add(uploadOpenApiCollectionCommand);
-        Subcommands.Add(publishOpenApiCollectionCommand);
-        Subcommands.Add(validateOpenApiCollectionCommand);
+        Subcommands.Add(new CreateOpenApiCollectionCommand());
+        Subcommands.Add(new DeleteOpenApiCollectionCommand());
+        Subcommands.Add(new ListOpenApiCollectionCommand());
+        Subcommands.Add(new UploadOpenApiCollectionCommand());
+        Subcommands.Add(new PublishOpenApiCollectionCommand());
+        Subcommands.Add(new ValidateOpenApiCollectionCommand());
     }
 }
