@@ -36,12 +36,14 @@ internal sealed class ListMcpFeatureCollectionCommand : Command
 
         parseResult.AssertHasAuthentication(sessionService);
 
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
+
         if (console.IsInteractive)
         {
-            return await RenderInteractiveAsync(parseResult, console, apisClient, client, sessionService, resultHolder, ct);
+            return await RenderInteractiveAsync(parseResult, console, apisClient, client, sessionService, resultHolder, cursor, ct);
         }
 
-        return await RenderNonInteractiveAsync(parseResult, client, resultHolder, ct);
+        return await RenderNonInteractiveAsync(parseResult, client, resultHolder, cursor, ct);
     }
 
     private static async Task<int> RenderInteractiveAsync(
@@ -51,11 +53,11 @@ internal sealed class ListMcpFeatureCollectionCommand : Command
         IMcpClient client,
         ISessionService sessionService,
         IResultHolder resultHolder,
+        string? cursor,
         CancellationToken ct)
     {
         const string apiMessage = "For which API do you want to list the MCP Feature Collections?";
         var apiId = await console.GetOrPromptForApiIdAsync(apiMessage, parseResult, apisClient, sessionService, ct);
-        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
 
         var container = PaginationContainer
             .CreateConnectionData(async (after, first, token) =>
@@ -82,6 +84,7 @@ internal sealed class ListMcpFeatureCollectionCommand : Command
         ParseResult parseResult,
         IMcpClient client,
         IResultHolder resultHolder,
+        string? cursor,
         CancellationToken ct)
     {
         var apiId = parseResult.GetValue(Opt<OptionalApiIdOption>.Instance);
@@ -90,7 +93,6 @@ internal sealed class ListMcpFeatureCollectionCommand : Command
             throw MissingRequiredOption(ApiIdOption.OptionName);
         }
 
-        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var data = await client.ListMcpFeatureCollectionsAsync(apiId, cursor, 10, ct)
             ?? throw ThrowHelper.ThereWasAnIssueWithTheRequest("The API was not found.");
         var items = data.Items

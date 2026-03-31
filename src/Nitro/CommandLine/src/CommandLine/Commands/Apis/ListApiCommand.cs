@@ -36,23 +36,24 @@ internal sealed class ListApiCommand : Command
 
         var workspaceId = parseResult.GetWorkspaceId(sessionService);
 
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
+
         if (console.IsInteractive)
         {
-            return await RenderInteractiveAsync(parseResult, console, client, resultHolder, workspaceId, ct);
+            return await RenderInteractiveAsync(cursor, console, client, resultHolder, workspaceId, ct);
         }
 
-        return await RenderNonInteractiveAsync(parseResult, client, resultHolder, workspaceId, ct);
+        return await RenderNonInteractiveAsync(cursor, client, resultHolder, workspaceId, ct);
     }
 
     private static async Task<int> RenderInteractiveAsync(
-        ParseResult parseResult,
+        string? cursor,
         INitroConsole console,
         IApisClient client,
         IResultHolder resultHolder,
         string workspaceId,
         CancellationToken ct)
     {
-        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var container = PaginationContainer
             .CreateConnectionData((after, first, token)
                 => client.ListApisAsync(workspaceId, after ?? cursor, first, token))
@@ -75,13 +76,12 @@ internal sealed class ListApiCommand : Command
     }
 
     private static async Task<int> RenderNonInteractiveAsync(
-        ParseResult parseResult,
+        string? cursor,
         IApisClient client,
         IResultHolder resultHolder,
         string workspaceId,
         CancellationToken ct)
     {
-        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var data = await client.ListApisAsync(workspaceId, cursor, 10, ct);
 
         var items = data.Items

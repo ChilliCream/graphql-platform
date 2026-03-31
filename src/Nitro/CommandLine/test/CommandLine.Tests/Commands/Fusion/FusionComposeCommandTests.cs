@@ -364,8 +364,7 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture) : ICl
             ⚠️ [WRN] The lookup field 'Query.userById' in schema 'Schema2' should return a
             nullable type. (LOOKUP_RETURNS_NON_NULLABLE_TYPE)
 
-            ✅ Composite schema written to
-            '/path/to/archive-file.far'.
+            ✅ Composite schema written to '/path/to/archive-file.far'.
             """);
     }
 

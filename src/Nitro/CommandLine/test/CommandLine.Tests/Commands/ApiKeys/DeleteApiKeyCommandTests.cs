@@ -105,9 +105,10 @@ public sealed class DeleteApiKeyCommandTests(NitroCommandFixture fixture) : ICla
 
     [Theory]
     [MemberData(nameof(DeleteApiKeyMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_Interactive(
+    public async Task MutationReturnsTypedError_ReturnsError(
         IDeleteApiKeyCommandMutation_DeleteApiKey_Errors mutationError,
-        string expectedStdErr)
+        string expectedStdErr,
+        InteractionMode mode)
     {
         // arrange
         var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
@@ -120,7 +121,7 @@ public sealed class DeleteApiKeyCommandTests(NitroCommandFixture fixture) : ICla
             .AddService(client.Object)
             .AddApiKey()
             .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "api-key",
                 "delete",
@@ -138,7 +139,7 @@ public sealed class DeleteApiKeyCommandTests(NitroCommandFixture fixture) : ICla
     }
 
     [Theory]
-    [MemberData(nameof(DeleteApiKeyMutationErrorCases))]
+    [MemberData(nameof(DeleteApiKeyMutationErrorCases_NonInteractive))]
     public async Task MutationReturnsTypedError_ReturnsError_NonInteractive(
         IDeleteApiKeyCommandMutation_DeleteApiKey_Errors mutationError,
         string expectedStdErr)
@@ -177,40 +178,9 @@ public sealed class DeleteApiKeyCommandTests(NitroCommandFixture fixture) : ICla
     }
 
     [Theory]
-    [MemberData(nameof(DeleteApiKeyMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_JsonOutput(
-        IDeleteApiKeyCommandMutation_DeleteApiKey_Errors mutationError,
-        string expectedStdErr)
-    {
-        // arrange
-        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
-        client.Setup(x => x.DeleteApiKeyAsync(
-                "key-1",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ApiKeyCommandTestHelper.CreateDeleteApiKeyResultWithErrors(mutationError));
-
-        var builder = new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "api-key",
-                "delete",
-                "key-1",
-                "--force");
-
-        // act
-        var result = await builder.ExecuteAsync();
-
-        // assert
-        result.AssertError(expectedStdErr);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_OutputJson()
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
@@ -222,7 +192,7 @@ public sealed class DeleteApiKeyCommandTests(NitroCommandFixture fixture) : ICla
         var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "api-key",
                 "delete",
@@ -233,10 +203,11 @@ public sealed class DeleteApiKeyCommandTests(NitroCommandFixture fixture) : ICla
         var result = await builder.ExecuteAsync();
 
         // assert
-        result.AssertError(
+        result.StdErr.MatchInlineSnapshot(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
+        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -279,41 +250,10 @@ public sealed class DeleteApiKeyCommandTests(NitroCommandFixture fixture) : ICla
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
-    {
-        // arrange
-        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
-        client.Setup(x => x.DeleteApiKeyAsync(
-                "key-1",
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        var builder = new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "api-key",
-                "delete",
-                "key-1",
-                "--force");
-
-        // act
-        var result = await builder.ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
@@ -325,7 +265,7 @@ public sealed class DeleteApiKeyCommandTests(NitroCommandFixture fixture) : ICla
         var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "api-key",
                 "delete",
@@ -385,40 +325,26 @@ public sealed class DeleteApiKeyCommandTests(NitroCommandFixture fixture) : ICla
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_OutputJson()
+    public static IEnumerable<object[]> DeleteApiKeyMutationErrorCases()
     {
-        // arrange
-        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
-        client.Setup(x => x.DeleteApiKeyAsync(
-                "key-1",
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException());
+        foreach (var mode in new[] { InteractionMode.Interactive, InteractionMode.JsonOutput })
+        {
+            var apiKeyNotFound =
+                new Mock<IDeleteApiKeyCommandMutation_DeleteApiKey_Errors_ApiKeyNotFoundError>(MockBehavior.Strict);
+            apiKeyNotFound.SetupGet(x => x.ApiKeyId).Returns("key-1");
+            apiKeyNotFound.As<IApiKeyNotFoundError>().SetupGet(x => x.Message).Returns("API key not found");
+            apiKeyNotFound.As<IError>().SetupGet(x => x.Message).Returns("API key not found");
 
-        var builder = new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "api-key",
-                "delete",
-                "key-1",
-                "--force");
+            var unknownError =
+                new Mock<IDeleteApiKeyCommandMutation_DeleteApiKey_Errors_UnauthorizedOperation>(MockBehavior.Strict);
+            unknownError.As<IError>().SetupGet(x => x.Message).Returns("Unauthorized");
 
-        // act
-        var result = await builder.ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
-
-        client.VerifyAll();
+            yield return [apiKeyNotFound.Object, "API key not found", mode];
+            yield return [unknownError.Object, "Unexpected mutation error: Unauthorized", mode];
+        }
     }
 
-    public static IEnumerable<object[]> DeleteApiKeyMutationErrorCases()
+    public static IEnumerable<object[]> DeleteApiKeyMutationErrorCases_NonInteractive()
     {
         var apiKeyNotFound =
             new Mock<IDeleteApiKeyCommandMutation_DeleteApiKey_Errors_ApiKeyNotFoundError>(MockBehavior.Strict);

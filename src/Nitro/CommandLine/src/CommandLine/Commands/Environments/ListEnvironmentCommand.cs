@@ -36,23 +36,24 @@ internal sealed class ListEnvironmentCommand : Command
 
         var workspaceId = parseResult.GetWorkspaceId(sessionService);
 
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
+
         if (console.IsInteractive)
         {
-            return await RenderInteractiveAsync(parseResult, console, client, resultHolder, workspaceId, ct);
+            return await RenderInteractiveAsync(cursor, console, client, resultHolder, workspaceId, ct);
         }
 
-        return await RenderNonInteractiveAsync(parseResult, client, resultHolder, workspaceId, ct);
+        return await RenderNonInteractiveAsync(cursor, client, resultHolder, workspaceId, ct);
     }
 
     private static async Task<int> RenderInteractiveAsync(
-        ParseResult parseResult,
+        string? cursor,
         INitroConsole console,
         IEnvironmentsClient client,
         IResultHolder resultHolder,
         string workspaceId,
         CancellationToken ct)
     {
-        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var container = PaginationContainer
             .CreateConnectionData((after, first, token)
                 => client.ListEnvironmentsAsync(workspaceId, after ?? cursor, first, token))
@@ -74,13 +75,12 @@ internal sealed class ListEnvironmentCommand : Command
     }
 
     private static async Task<int> RenderNonInteractiveAsync(
-        ParseResult parseResult,
+        string? cursor,
         IEnvironmentsClient client,
         IResultHolder resultHolder,
         string workspaceId,
         CancellationToken ct)
     {
-        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var data = await client.ListEnvironmentsAsync(workspaceId, cursor, 10, ct);
 
         var items = data.Items

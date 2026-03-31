@@ -112,8 +112,10 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = CreatePublishExceptionClient(
@@ -123,7 +125,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "client",
                 "publish",
@@ -141,38 +143,6 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = CreatePublishExceptionClient(
-            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--client-id",
-                DefaultClientId)
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
 
         client.VerifyAll();
     }
@@ -216,8 +186,10 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = CreatePublishExceptionClient(
@@ -227,7 +199,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "client",
                 "publish",
@@ -246,39 +218,6 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = CreatePublishExceptionClient(
-            new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--client-id",
-                DefaultClientId)
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
 
         client.VerifyAll();
     }
@@ -323,7 +262,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
 
     [Theory]
     [MemberData(nameof(MutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_Interactive(
+    public async Task MutationReturnsTypedError_ReturnsError(
         IPublishClientVersion_PublishClient_Errors mutationError,
         string expectedStdErr)
     {
@@ -350,38 +289,6 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
         // assert
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [MemberData(nameof(MutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_JsonOutput(
-        IPublishClientVersion_PublishClient_Errors mutationError,
-        string expectedStdErr)
-    {
-        // arrange
-        var client = CreatePublishSetup(
-            CreatePublishPayloadWithErrors(mutationError));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--client-id",
-                DefaultClientId)
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(expectedStdErr);
 
         client.VerifyAll();
     }
@@ -430,8 +337,10 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task MutationReturnsNullRequestId_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task MutationReturnsNullRequestId_ReturnsError(InteractionMode mode)
     {
         // arrange
         var payload = new Mock<IPublishClientVersion_PublishClient>(MockBehavior.Strict);
@@ -446,7 +355,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "client",
                 "publish",
@@ -465,44 +374,6 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             expected data.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task MutationReturnsNullRequestId_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var payload = new Mock<IPublishClientVersion_PublishClient>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors)
-            .Returns((IReadOnlyList<IPublishClientVersion_PublishClient_Errors>?)null);
-        payload.SetupGet(x => x.Id)
-            .Returns((string?)null);
-
-        var client = CreatePublishSetup(payload.Object);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--client-id",
-                DefaultClientId)
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The GraphQL mutation completed without errors, but the server did not return the
-            expected data.
-            """);
 
         client.VerifyAll();
     }
@@ -680,8 +551,10 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task Subscription_FailedWithSimpleError_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Subscription_FailedWithSimpleError_ReturnsError(InteractionMode mode)
     {
         // arrange
         var errorMock = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Errors>(
@@ -702,7 +575,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "client",
                 "publish",
@@ -721,50 +594,6 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             Client publish failed.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task Subscription_FailedWithSimpleError_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var errorMock = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Errors>(
-            MockBehavior.Strict);
-        errorMock.As<IUnexpectedProcessingError>()
-            .SetupGet(x => x.Message)
-            .Returns("Something went wrong during publish.");
-
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate[]
-            {
-                CreateOperationInProgress(),
-                CreatePublishFailed(errorMock.Object)
-            });
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--client-id",
-                DefaultClientId)
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            Something went wrong during publish.
-            Client publish failed.
-            """);
 
         client.VerifyAll();
     }
@@ -804,6 +633,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             ├── The committing of your request is in progress.
             └── ✕ Failed to publish a new client version.
             """);
+        Assert.Empty(result.StdErr);
         Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
@@ -1046,6 +876,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
 
         // assert
         // Falls through the loop with no terminal state, so activity.Fail() is called
+        Assert.Empty(result.StdErr);
         Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();

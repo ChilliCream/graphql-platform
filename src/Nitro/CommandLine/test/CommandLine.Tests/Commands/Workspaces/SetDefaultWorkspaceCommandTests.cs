@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Workspaces;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Workspaces;
@@ -21,16 +22,17 @@ public sealed class SetDefaultWorkspaceCommandTests(NitroCommandFixture fixture)
         result.AssertHelpOutput(
             """
             Description:
-              Select a workspace and set it as the default workspace.
+              Set the default workspace.
 
             Usage:
               nitro workspace set-default [options]
 
             Options:
-              --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>      The API key used for authentication [env: NITRO_API_KEY]
-              --output <json>          The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help           Show help and usage information
+              --workspace-id <workspace-id>  The ID of the workspace [env: NITRO_WORKSPACE_ID]
+              --cloud-url <cloud-url>        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>            The API key used for authentication [env: NITRO_API_KEY]
+              --output <json>                The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                 Show help and usage information
             """);
     }
 
@@ -56,11 +58,8 @@ public sealed class SetDefaultWorkspaceCommandTests(NitroCommandFixture fixture)
             """);
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task NoWorkspaces_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task NoWorkspaces_ReturnsError()
     {
         // arrange
         var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
@@ -75,7 +74,7 @@ public sealed class SetDefaultWorkspaceCommandTests(NitroCommandFixture fixture)
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.Interactive)
             .AddArguments(
                 "workspace",
                 "set-default")
@@ -91,7 +90,7 @@ public sealed class SetDefaultWorkspaceCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    public async Task ClientThrowsException_ReturnsError()
     {
         // arrange
         var client = CreateSelectExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
@@ -107,10 +106,11 @@ public sealed class SetDefaultWorkspaceCommandTests(NitroCommandFixture fixture)
             .ExecuteAsync();
 
         // assert
-        result.AssertError(
+        result.StdErr.MatchInlineSnapshot(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
+        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -119,7 +119,11 @@ public sealed class SetDefaultWorkspaceCommandTests(NitroCommandFixture fixture)
     public async Task ClientThrowsException_ReturnsError_NonInteractive()
     {
         // arrange
-        var client = CreateSelectExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
+        var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
+        client.Setup(x => x.GetWorkspaceAsync(
+                "ws-1",
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
         var result = await new CommandBuilder(fixture)
@@ -128,7 +132,8 @@ public sealed class SetDefaultWorkspaceCommandTests(NitroCommandFixture fixture)
             .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "workspace",
-                "set-default")
+                "set-default",
+                "--workspace-id", "ws-1")
             .ExecuteAsync();
 
         // assert
@@ -141,32 +146,7 @@ public sealed class SetDefaultWorkspaceCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = CreateSelectExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "workspace",
-                "set-default")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    public async Task ClientThrowsAuthorizationException_ReturnsError()
     {
         // arrange
         var client = CreateSelectExceptionClient(new NitroClientAuthorizationException());
@@ -182,11 +162,12 @@ public sealed class SetDefaultWorkspaceCommandTests(NitroCommandFixture fixture)
             .ExecuteAsync();
 
         // assert
-        result.AssertError(
+        result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key
             has the proper permissions for this action.
             """);
+        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -195,7 +176,11 @@ public sealed class SetDefaultWorkspaceCommandTests(NitroCommandFixture fixture)
     public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
     {
         // arrange
-        var client = CreateSelectExceptionClient(new NitroClientAuthorizationException());
+        var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
+        client.Setup(x => x.GetWorkspaceAsync(
+                "ws-1",
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new NitroClientAuthorizationException());
 
         // act
         var result = await new CommandBuilder(fixture)
@@ -204,33 +189,8 @@ public sealed class SetDefaultWorkspaceCommandTests(NitroCommandFixture fixture)
             .AddInteractionMode(InteractionMode.NonInteractive)
             .AddArguments(
                 "workspace",
-                "set-default")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = CreateSelectExceptionClient(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "workspace",
-                "set-default")
+                "set-default",
+                "--workspace-id", "ws-1")
             .ExecuteAsync();
 
         // assert
@@ -256,14 +216,15 @@ public sealed class SetDefaultWorkspaceCommandTests(NitroCommandFixture fixture)
                 new SetDefaultWorkspaceCommand_SelectWorkspace_Query_Me_Workspaces_Edges_Node_Workspace(
                     "ws-1", "my-workspace", false)));
 
-        var command = new CommandBuilder(fixture)
+        var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(InteractionMode.Interactive)
             .AddArguments(
                 "workspace",
-                "set-default")
-            .Start();
+                "set-default");
+
+        var command = builder.Start();
 
         // act
         command.SelectOption(0);
@@ -281,6 +242,64 @@ public sealed class SetDefaultWorkspaceCommandTests(NitroCommandFixture fixture)
             """);
 
         client.VerifyAll();
+        builder.SessionServiceMock.Verify(
+            x => x.SelectWorkspaceAsync(
+                It.Is<Workspace>(w => w.Id == "ws-1" && w.Name == "my-workspace"),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task NonInteractive_NoWorkspaceId_ReturnsError()
+    {
+        // arrange & act
+        var result = await new CommandBuilder(fixture)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "workspace",
+                "set-default")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            The '--workspace-id' option is required in non-interactive mode.
+            """);
+    }
+
+    [Fact]
+    public async Task NonInteractive_WithWorkspaceId_SetsDefault()
+    {
+        // arrange
+        var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
+        client.Setup(x => x.GetWorkspaceAsync(
+                "ws-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ShowWorkspaceCommandQuery_Node_Workspace("ws-1", "my-workspace", false));
+
+        var builder = new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "workspace",
+                "set-default",
+                "--workspace-id", "ws-1");
+
+        // act
+        var result = await builder.ExecuteAsync();
+
+        // assert
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+
+        client.VerifyAll();
+        builder.SessionServiceMock.Verify(
+            x => x.SelectWorkspaceAsync(
+                It.Is<Workspace>(w => w.Id == "ws-1" && w.Name == "my-workspace"),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     private static Mock<IWorkspacesClient> CreateSelectExceptionClient(Exception ex)

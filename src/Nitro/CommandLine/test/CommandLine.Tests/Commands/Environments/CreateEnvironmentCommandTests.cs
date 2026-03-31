@@ -265,8 +265,10 @@ public sealed class CreateEnvironmentCommandTests(NitroCommandFixture fixture) :
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task MutationReturnsChangeError_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task MutationReturnsChangeError_ReturnsError(InteractionMode mode)
     {
         // arrange
         var changeError = new Mock<ICreateEnvironmentCommandMutation_PushWorkspaceChanges_Changes_Error>(MockBehavior.Strict);
@@ -285,7 +287,7 @@ public sealed class CreateEnvironmentCommandTests(NitroCommandFixture fixture) :
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "environment",
                 "create",
@@ -350,47 +352,10 @@ public sealed class CreateEnvironmentCommandTests(NitroCommandFixture fixture) :
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task MutationReturnsChangeError_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var changeError = new Mock<ICreateEnvironmentCommandMutation_PushWorkspaceChanges_Changes_Error>(MockBehavior.Strict);
-        changeError.As<IError>().SetupGet(x => x.Message).Returns("Create denied");
-
-        var client = new Mock<IEnvironmentsClient>(MockBehavior.Strict);
-        client.Setup(x => x.CreateEnvironmentAsync(
-                "ws-1",
-                "production",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreatePayload(
-                changes: [CreateChange(result: null, error: changeError.Object)],
-                errors: null));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "environment",
-                "create",
-                "--workspace-id",
-                "ws-1",
-                "--name",
-                "production")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            Create denied
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task MutationReturnsTypedError_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task MutationReturnsTypedError_ReturnsError(InteractionMode mode)
     {
         // arrange
         var typedError = new Mock<ICreateEnvironmentCommandMutation_PushWorkspaceChanges_Errors_ChangeStructureInvalid>(
@@ -408,7 +373,7 @@ public sealed class CreateEnvironmentCommandTests(NitroCommandFixture fixture) :
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "environment",
                 "create",
@@ -473,44 +438,6 @@ public sealed class CreateEnvironmentCommandTests(NitroCommandFixture fixture) :
     }
 
     [Fact]
-    public async Task MutationReturnsTypedError_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var typedError = new Mock<ICreateEnvironmentCommandMutation_PushWorkspaceChanges_Errors_ChangeStructureInvalid>(
-            MockBehavior.Strict);
-        typedError.As<IError>().SetupGet(x => x.Message).Returns("Change structure invalid.");
-
-        var client = new Mock<IEnvironmentsClient>(MockBehavior.Strict);
-        client.Setup(x => x.CreateEnvironmentAsync(
-                "ws-1",
-                "production",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreatePayload(changes: null, errors: [typedError.Object]));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "environment",
-                "create",
-                "--workspace-id",
-                "ws-1",
-                "--name",
-                "production")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            Change structure invalid.
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
     public async Task MutationReturnsResultNotEnvironment_ReturnsError()
     {
         // arrange
@@ -556,8 +483,10 @@ public sealed class CreateEnvironmentCommandTests(NitroCommandFixture fixture) :
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = CreateExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
@@ -566,7 +495,7 @@ public sealed class CreateEnvironmentCommandTests(NitroCommandFixture fixture) :
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "environment",
                 "create",
@@ -621,37 +550,10 @@ public sealed class CreateEnvironmentCommandTests(NitroCommandFixture fixture) :
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = CreateExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "environment",
-                "create",
-                "--workspace-id",
-                "ws-1",
-                "--name",
-                "production")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = CreateExceptionClient(new NitroClientAuthorizationException());
@@ -660,7 +562,7 @@ public sealed class CreateEnvironmentCommandTests(NitroCommandFixture fixture) :
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "environment",
                 "create",
@@ -713,36 +615,6 @@ public sealed class CreateEnvironmentCommandTests(NitroCommandFixture fixture) :
             has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = CreateExceptionClient(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "environment",
-                "create",
-                "--workspace-id",
-                "ws-1",
-                "--name",
-                "production")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
 
         client.VerifyAll();
     }

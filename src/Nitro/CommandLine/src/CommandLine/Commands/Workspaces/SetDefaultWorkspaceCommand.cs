@@ -1,6 +1,7 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
@@ -13,7 +14,9 @@ internal sealed class SetDefaultWorkspaceCommand : Command
     public SetDefaultWorkspaceCommand() : base(Command)
     {
         Description =
-            "Select a workspace and set it as the default workspace.";
+            "Set the default workspace.";
+
+        Options.Add(Opt<OptionalWorkspaceIdOption>.Instance);
 
         this.AddGlobalNitroOptions();
 
@@ -30,6 +33,27 @@ internal sealed class SetDefaultWorkspaceCommand : Command
         var sessionService = services.GetRequiredService<ISessionService>();
 
         parseResult.AssertHasAuthentication(sessionService);
+
+        var workspaceId = parseResult.GetValue(Opt<OptionalWorkspaceIdOption>.Instance);
+
+        if (workspaceId is not null)
+        {
+            var data = await client.GetWorkspaceAsync(workspaceId, cancellationToken);
+
+            if (data is not IShowWorkspaceCommandQuery_Node_Workspace node)
+            {
+                throw Exit($"The workspace with ID '{workspaceId}' was not found.");
+            }
+
+            var workspace = new Workspace(node.Id, node.Name);
+            await sessionService.SelectWorkspaceAsync(workspace, cancellationToken);
+            return ExitCodes.Success;
+        }
+
+        if (!console.IsInteractive)
+        {
+            throw MissingRequiredOption(OptionalWorkspaceIdOption.OptionName);
+        }
 
         return await ExecuteAsync(true, console, client, sessionService, cancellationToken);
     }

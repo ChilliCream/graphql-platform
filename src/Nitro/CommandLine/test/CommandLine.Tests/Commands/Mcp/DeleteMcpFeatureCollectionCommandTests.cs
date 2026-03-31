@@ -278,7 +278,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests(NitroCommandFixture f
     }
 
     [Theory]
-    [MemberData(nameof(DeleteMutationErrorCases))]
+    [MemberData(nameof(DeleteMutationErrorCasesNonInteractive))]
     public async Task MutationReturnsTypedError_ReturnsError_NonInteractive(
         IDeleteMcpFeatureCollectionByIdCommandMutation_DeleteMcpFeatureCollectionById_Errors mutationError,
         string expectedStdErr)
@@ -319,7 +319,8 @@ public sealed class DeleteMcpFeatureCollectionCommandTests(NitroCommandFixture f
 
     [Theory]
     [MemberData(nameof(DeleteMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_Interactive(
+    public async Task MutationReturnsTypedError_ReturnsError(
+        InteractionMode mode,
         IDeleteMcpFeatureCollectionByIdCommandMutation_DeleteMcpFeatureCollectionById_Errors mutationError,
         string expectedStdErr)
     {
@@ -336,7 +337,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests(NitroCommandFixture f
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "mcp",
                 "delete",
@@ -347,40 +348,6 @@ public sealed class DeleteMcpFeatureCollectionCommandTests(NitroCommandFixture f
         // assert
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        mcpClient.VerifyAll();
-    }
-
-    [Theory]
-    [MemberData(nameof(DeleteMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_JsonOutput(
-        IDeleteMcpFeatureCollectionByIdCommandMutation_DeleteMcpFeatureCollectionById_Errors mutationError,
-        string expectedStdErr)
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
-        mcpClient.Setup(x => x.DeleteMcpFeatureCollectionAsync(
-                "mcp-1",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(McpCommandTestHelper.CreateDeleteMcpFeatureCollectionPayloadWithErrors(mutationError));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mcpClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "mcp",
-                "delete",
-                "mcp-1",
-                "--force")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(expectedStdErr);
 
         apisClient.VerifyAll();
         mcpClient.VerifyAll();
@@ -426,8 +393,10 @@ public sealed class DeleteMcpFeatureCollectionCommandTests(NitroCommandFixture f
         mcpClient.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -442,7 +411,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests(NitroCommandFixture f
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "mcp",
                 "delete",
@@ -456,40 +425,6 @@ public sealed class DeleteMcpFeatureCollectionCommandTests(NitroCommandFixture f
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        mcpClient.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
-        mcpClient.Setup(x => x.DeleteMcpFeatureCollectionAsync(
-                "mcp-1",
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mcpClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "mcp",
-                "delete",
-                "mcp-1",
-                "--force")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
 
         apisClient.VerifyAll();
         mcpClient.VerifyAll();
@@ -536,8 +471,10 @@ public sealed class DeleteMcpFeatureCollectionCommandTests(NitroCommandFixture f
         mcpClient.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -552,7 +489,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests(NitroCommandFixture f
             .AddService(apisClient.Object)
             .AddService(mcpClient.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "mcp",
                 "delete",
@@ -572,42 +509,44 @@ public sealed class DeleteMcpFeatureCollectionCommandTests(NitroCommandFixture f
         mcpClient.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
-        mcpClient.Setup(x => x.DeleteMcpFeatureCollectionAsync(
-                "mcp-1",
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException());
+    public static TheoryData<InteractionMode, IDeleteMcpFeatureCollectionByIdCommandMutation_DeleteMcpFeatureCollectionById_Errors, string> DeleteMutationErrorCases =>
+        new()
+        {
+            {
+                InteractionMode.Interactive,
+                new DeleteMcpFeatureCollectionByIdCommandMutation_DeleteMcpFeatureCollectionById_Errors_McpFeatureCollectionNotFoundError(
+                    "MCP Feature Collection not found", "mcp-1"),
+                """
+                MCP Feature Collection not found
+                """
+            },
+            {
+                InteractionMode.Interactive,
+                new DeleteMcpFeatureCollectionByIdCommandMutation_DeleteMcpFeatureCollectionById_Errors_UnauthorizedOperation(
+                    "Not authorized", "UnauthorizedOperation"),
+                """
+                Not authorized
+                """
+            },
+            {
+                InteractionMode.JsonOutput,
+                new DeleteMcpFeatureCollectionByIdCommandMutation_DeleteMcpFeatureCollectionById_Errors_McpFeatureCollectionNotFoundError(
+                    "MCP Feature Collection not found", "mcp-1"),
+                """
+                MCP Feature Collection not found
+                """
+            },
+            {
+                InteractionMode.JsonOutput,
+                new DeleteMcpFeatureCollectionByIdCommandMutation_DeleteMcpFeatureCollectionById_Errors_UnauthorizedOperation(
+                    "Not authorized", "UnauthorizedOperation"),
+                """
+                Not authorized
+                """
+            }
+        };
 
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mcpClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "mcp",
-                "delete",
-                "mcp-1",
-                "--force")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
-
-        apisClient.VerifyAll();
-        mcpClient.VerifyAll();
-    }
-
-    public static TheoryData<IDeleteMcpFeatureCollectionByIdCommandMutation_DeleteMcpFeatureCollectionById_Errors, string> DeleteMutationErrorCases =>
+    public static TheoryData<IDeleteMcpFeatureCollectionByIdCommandMutation_DeleteMcpFeatureCollectionById_Errors, string> DeleteMutationErrorCasesNonInteractive =>
         new()
         {
             {

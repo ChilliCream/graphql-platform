@@ -138,8 +138,10 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var (client, fileSystem) = CreateExceptionSetup(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
@@ -149,7 +151,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "fusion",
                 "publish",
@@ -166,37 +168,6 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var (client, fileSystem) = CreateExceptionSetup(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "fusion",
-                "publish",
-                "commit",
-                "--request-id",
-                "req-1",
-                "--archive",
-                ArchiveFilePath)
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
 
         client.VerifyAll();
     }
@@ -239,8 +210,10 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var (client, fileSystem) = CreateExceptionSetup(new NitroClientAuthorizationException());
@@ -250,7 +223,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "fusion",
                 "publish",
@@ -268,38 +241,6 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
             has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var (client, fileSystem) = CreateExceptionSetup(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "fusion",
-                "publish",
-                "commit",
-                "--request-id",
-                "req-1",
-                "--archive",
-                ArchiveFilePath)
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
 
         client.VerifyAll();
     }
@@ -411,6 +352,11 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
             .ExecuteAsync();
 
         // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration
+            └── ✓ Published Fusion configuration.
+            """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
 

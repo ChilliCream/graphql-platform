@@ -354,8 +354,10 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : IClassF
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task MutationReturnsChangeError_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task MutationReturnsChangeError_ReturnsError(InteractionMode mode)
     {
         // arrange
         var changeError = new Mock<ICreateApiCommandMutation_PushWorkspaceChanges_Changes_Error>(MockBehavior.Strict);
@@ -378,7 +380,7 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : IClassF
             .AddService(client.Object)
             .AddApiKey()
             .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "api",
                 "create",
@@ -389,51 +391,6 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : IClassF
             .ExecuteAsync();
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Create denied
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task MutationReturnsChangeError_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var changeError = new Mock<ICreateApiCommandMutation_PushWorkspaceChanges_Changes_Error>(MockBehavior.Strict);
-        changeError
-            .As<IError>()
-            .SetupGet(x => x.Message)
-            .Returns("Create denied");
-
-        var client = new Mock<IApisClient>(MockBehavior.Strict);
-        client.Setup(x => x.CreateApiAsync(
-                "workspace-from-session",
-                It.IsAny<IReadOnlyList<string>>(),
-                "my-api",
-                null,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateApiPayloadWithChangeError(changeError.Object));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "api",
-                "create",
-                "--name",
-                "my-api",
-                "--path",
-                "/products")
-            .ExecuteAsync();
-
-        // assert
-        Assert.Empty(result.StdOut);
         result.StdErr.MatchInlineSnapshot(
             """
             Create denied
@@ -493,8 +450,10 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : IClassF
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task MutationReturnsError_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task MutationReturnsError_ReturnsError(InteractionMode mode)
     {
         // arrange
         var mutationError = new Mock<ICreateApiCommandMutation_PushWorkspaceChanges_Errors>(MockBehavior.Strict);
@@ -517,7 +476,7 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : IClassF
             .AddService(client.Object)
             .AddApiKey()
             .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "api",
                 "create",
@@ -537,51 +496,10 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : IClassF
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task MutationReturnsError_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var mutationError = new Mock<ICreateApiCommandMutation_PushWorkspaceChanges_Errors>(MockBehavior.Strict);
-        mutationError
-            .As<IError>()
-            .SetupGet(x => x.Message)
-            .Returns("Mutation payload denied");
-
-        var client = new Mock<IApisClient>(MockBehavior.Strict);
-        client.Setup(x => x.CreateApiAsync(
-                "workspace-from-session",
-                It.IsAny<IReadOnlyList<string>>(),
-                "my-api",
-                null,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateApiPayloadWithMutationErrors(mutationError.Object));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "api",
-                "create",
-                "--name",
-                "my-api",
-                "--path",
-                "/products")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            Unexpected mutation error: Mutation payload denied
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = new Mock<IApisClient>(MockBehavior.Strict);
@@ -597,7 +515,7 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : IClassF
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "api",
                 "create",
@@ -660,44 +578,10 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : IClassF
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = new Mock<IApisClient>(MockBehavior.Strict);
-        client.Setup(x => x.CreateApiAsync(
-                "workspace-from-session",
-                It.IsAny<IReadOnlyList<string>>(),
-                "my-api",
-                null,
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "api",
-                "create",
-                "--name",
-                "my-api",
-                "--path",
-                "/products")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = new Mock<IApisClient>(MockBehavior.Strict);
@@ -713,7 +597,7 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : IClassF
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "api",
                 "create",
@@ -773,43 +657,6 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : IClassF
             has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = new Mock<IApisClient>(MockBehavior.Strict);
-        client.Setup(x => x.CreateApiAsync(
-                "workspace-from-session",
-                It.IsAny<IReadOnlyList<string>>(),
-                "my-api",
-                null,
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "api",
-                "create",
-                "--name",
-                "my-api",
-                "--path",
-                "/products")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
 
         client.VerifyAll();
     }

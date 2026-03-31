@@ -162,8 +162,10 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var (client, fileSystem) = CreateUploadSetup(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
@@ -173,7 +175,7 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "openapi",
                 "upload",
@@ -191,38 +193,6 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var (client, fileSystem) = CreateUploadSetup(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "openapi",
-                "upload",
-                "--tag",
-                "v1",
-                "--openapi-collection-id",
-                "oa-1",
-                "--pattern",
-                "*.openapi.json")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
 
         client.VerifyAll();
     }
@@ -266,8 +236,10 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var (client, fileSystem) = CreateUploadSetup(new NitroClientAuthorizationException());
@@ -277,7 +249,7 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "openapi",
                 "upload",
@@ -296,73 +268,6 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
             has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var (client, fileSystem) = CreateUploadSetup(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "openapi",
-                "upload",
-                "--tag",
-                "v1",
-                "--openapi-collection-id",
-                "oa-1",
-                "--pattern",
-                "*.openapi.json")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsRequestEntityTooLarge_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var (client, fileSystem) = CreateUploadSetup(new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "openapi",
-                "upload",
-                "--tag",
-                "v1",
-                "--openapi-collection-id",
-                "oa-1",
-                "--pattern",
-                "*.openapi.json")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned a 413 (Request Entity Too Large) HTTP status code. If you
-            are running a self-hosted instance, check your ingress controller body-size
-            limits, reverse proxy settings, or load balancer request size limits.
-            """);
 
         client.VerifyAll();
     }
@@ -407,8 +312,10 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsRequestEntityTooLarge_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsRequestEntityTooLarge_ReturnsError(InteractionMode mode)
     {
         // arrange
         var (client, fileSystem) = CreateUploadSetup(new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
@@ -418,7 +325,7 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "openapi",
                 "upload",
@@ -481,10 +388,11 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
     }
 
     [Theory]
-    [MemberData(nameof(UploadMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_Interactive(
+    [MemberData(nameof(UploadMutationErrorCasesWithModes))]
+    public async Task MutationReturnsTypedError_ReturnsError(
         IUploadOpenApiCollectionCommandMutation_UploadOpenApiCollection_Errors mutationError,
-        string expectedStdErr)
+        string expectedStdErr,
+        InteractionMode mode)
     {
         // arrange
         var (client, fileSystem) = CreateUploadSetup(CreateUploadPayloadWithErrors(mutationError));
@@ -494,7 +402,7 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "openapi",
                 "upload",
@@ -509,38 +417,6 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
         // assert
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [MemberData(nameof(UploadMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_JsonOutput(
-        IUploadOpenApiCollectionCommandMutation_UploadOpenApiCollection_Errors mutationError,
-        string expectedStdErr)
-    {
-        // arrange
-        var (client, fileSystem) = CreateUploadSetup(CreateUploadPayloadWithErrors(mutationError));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "openapi",
-                "upload",
-                "--tag",
-                "v1",
-                "--openapi-collection-id",
-                "oa-1",
-                "--pattern",
-                "*.openapi.json")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(expectedStdErr);
 
         client.VerifyAll();
     }
@@ -771,6 +647,15 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
             .Returns((IUploadOpenApiCollectionCommandMutation_UploadOpenApiCollection_OpenApiCollectionVersion?)null);
 
         return payload.Object;
+    }
+
+    public static IEnumerable<object[]> UploadMutationErrorCasesWithModes()
+    {
+        foreach (var errorCase in UploadMutationErrorCases())
+        {
+            yield return [.. errorCase, InteractionMode.Interactive];
+            yield return [.. errorCase, InteractionMode.JsonOutput];
+        }
     }
 
     public static IEnumerable<object[]> UploadMutationErrorCases()

@@ -206,7 +206,7 @@ public sealed class CreatePersonalAccessTokenCommandTests(NitroCommandFixture fi
     }
 
     [Theory]
-    [MemberData(nameof(CreateMutationErrorCases))]
+    [MemberData(nameof(CreateMutationErrorCases_NonInteractive))]
     public async Task MutationReturnsTypedError_ReturnsError_NonInteractive(
         ICreatePersonalAccessTokenCommandMutation_CreatePersonalAccessToken_Errors mutationError,
         string expectedStdErr)
@@ -245,9 +245,10 @@ public sealed class CreatePersonalAccessTokenCommandTests(NitroCommandFixture fi
 
     [Theory]
     [MemberData(nameof(CreateMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_Interactive(
+    public async Task MutationReturnsTypedError_ReturnsError(
         ICreatePersonalAccessTokenCommandMutation_CreatePersonalAccessToken_Errors mutationError,
-        string expectedStdErr)
+        string expectedStdErr,
+        InteractionMode mode)
     {
         // arrange
         var client = new Mock<IPersonalAccessTokensClient>(MockBehavior.Strict);
@@ -261,7 +262,7 @@ public sealed class CreatePersonalAccessTokenCommandTests(NitroCommandFixture fi
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "pat",
                 "create",
@@ -277,39 +278,9 @@ public sealed class CreatePersonalAccessTokenCommandTests(NitroCommandFixture fi
     }
 
     [Theory]
-    [MemberData(nameof(CreateMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_JsonOutput(
-        ICreatePersonalAccessTokenCommandMutation_CreatePersonalAccessToken_Errors mutationError,
-        string expectedStdErr)
-    {
-        // arrange
-        var client = new Mock<IPersonalAccessTokensClient>(MockBehavior.Strict);
-        client.Setup(x => x.CreatePersonalAccessTokenAsync(
-                "my-token",
-                It.IsAny<DateTimeOffset>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreatePatPayloadWithErrors(mutationError));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "pat",
-                "create",
-                "--description",
-                "my-token")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(expectedStdErr);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = new Mock<IPersonalAccessTokensClient>(MockBehavior.Strict);
@@ -323,7 +294,7 @@ public sealed class CreatePersonalAccessTokenCommandTests(NitroCommandFixture fi
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "pat",
                 "create",
@@ -379,40 +350,10 @@ public sealed class CreatePersonalAccessTokenCommandTests(NitroCommandFixture fi
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = new Mock<IPersonalAccessTokensClient>(MockBehavior.Strict);
-        client.Setup(x => x.CreatePersonalAccessTokenAsync(
-                "my-token",
-                It.IsAny<DateTimeOffset>(),
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "pat",
-                "create",
-                "--description",
-                "my-token")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = new Mock<IPersonalAccessTokensClient>(MockBehavior.Strict);
@@ -426,7 +367,7 @@ public sealed class CreatePersonalAccessTokenCommandTests(NitroCommandFixture fi
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "pat",
                 "create",
@@ -484,40 +425,7 @@ public sealed class CreatePersonalAccessTokenCommandTests(NitroCommandFixture fi
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = new Mock<IPersonalAccessTokensClient>(MockBehavior.Strict);
-        client.Setup(x => x.CreatePersonalAccessTokenAsync(
-                "my-token",
-                It.IsAny<DateTimeOffset>(),
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "pat",
-                "create",
-                "--description",
-                "my-token")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
-
-        client.VerifyAll();
-    }
-
-    public static TheoryData<ICreatePersonalAccessTokenCommandMutation_CreatePersonalAccessToken_Errors, string> CreateMutationErrorCases =>
+    public static TheoryData<ICreatePersonalAccessTokenCommandMutation_CreatePersonalAccessToken_Errors, string> CreateMutationErrorCases_NonInteractive =>
         new()
         {
             {
@@ -533,6 +441,43 @@ public sealed class CreatePersonalAccessTokenCommandTests(NitroCommandFixture fi
                 """
                 Unexpected mutation error: Validation failed
                 """
+            }
+        };
+
+    public static TheoryData<ICreatePersonalAccessTokenCommandMutation_CreatePersonalAccessToken_Errors, string, InteractionMode> CreateMutationErrorCases =>
+        new()
+        {
+            {
+                new CreatePersonalAccessTokenCommandMutation_CreatePersonalAccessToken_Errors_UnauthorizedOperation(
+                    "UnauthorizedOperation", "Not authorized"),
+                """
+                Not authorized
+                """,
+                InteractionMode.Interactive
+            },
+            {
+                new CreatePersonalAccessTokenCommandMutation_CreatePersonalAccessToken_Errors_ValidationError(
+                    "Validation failed"),
+                """
+                Unexpected mutation error: Validation failed
+                """,
+                InteractionMode.Interactive
+            },
+            {
+                new CreatePersonalAccessTokenCommandMutation_CreatePersonalAccessToken_Errors_UnauthorizedOperation(
+                    "UnauthorizedOperation", "Not authorized"),
+                """
+                Not authorized
+                """,
+                InteractionMode.JsonOutput
+            },
+            {
+                new CreatePersonalAccessTokenCommandMutation_CreatePersonalAccessToken_Errors_ValidationError(
+                    "Validation failed"),
+                """
+                Unexpected mutation error: Validation failed
+                """,
+                InteractionMode.JsonOutput
             }
         };
 

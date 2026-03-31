@@ -96,6 +96,7 @@ public sealed class ShowEnvironmentCommandTests(NitroCommandFixture fixture) : I
     [Theory]
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
     public async Task WithEnvironmentId_ReturnSuccess(InteractionMode mode)
     {
         // arrange
@@ -131,44 +132,11 @@ public sealed class ShowEnvironmentCommandTests(NitroCommandFixture fixture) : I
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task WithEnvironmentId_ReturnSuccess_JsonOutput()
-    {
-        // arrange
-        var client = new Mock<IEnvironmentsClient>(MockBehavior.Strict);
-        client.Setup(x => x.GetEnvironmentAsync(
-                "environment-1",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateShowEnvironmentNode("environment-1", "production", "workspace-a"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "environment",
-                "show",
-                "environment-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertSuccess(
-            """
-            {
-              "id": "environment-1",
-              "name": "production",
-              "workspace": {
-                "name": "workspace-a"
-              }
-            }
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = CreateShowExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
@@ -177,7 +145,7 @@ public sealed class ShowEnvironmentCommandTests(NitroCommandFixture fixture) : I
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "environment",
                 "show",
@@ -193,60 +161,11 @@ public sealed class ShowEnvironmentCommandTests(NitroCommandFixture fixture) : I
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var client = CreateShowExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "environment",
-                "show",
-                "environment-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = CreateShowExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "environment",
-                "show",
-                "environment-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = CreateShowExceptionClient(new NitroClientAuthorizationException());
@@ -255,61 +174,7 @@ public sealed class ShowEnvironmentCommandTests(NitroCommandFixture fixture) : I
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "environment",
-                "show",
-                "environment-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var client = CreateShowExceptionClient(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "environment",
-                "show",
-                "environment-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = CreateShowExceptionClient(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "environment",
                 "show",

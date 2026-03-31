@@ -30,22 +30,23 @@ internal sealed class ListWorkspaceCommand : Command
         var client = services.GetRequiredService<IWorkspacesClient>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
+
         if (console.IsInteractive)
         {
-            return await RenderInteractiveAsync(parseResult, console, client, resultHolder, ct);
+            return await RenderInteractiveAsync(cursor, console, client, resultHolder, ct);
         }
 
-        return await RenderNonInteractiveAsync(parseResult, client, resultHolder, ct);
+        return await RenderNonInteractiveAsync(cursor, client, resultHolder, ct);
     }
 
     private static async Task<int> RenderInteractiveAsync(
-        ParseResult parseResult,
+        string? cursor,
         INitroConsole console,
         IWorkspacesClient client,
         IResultHolder resultHolder,
         CancellationToken ct)
     {
-        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var container = PaginationContainer
             .CreateConnectionData((after, first, token)
                 => client.ListWorkspacesAsync(after ?? cursor, first, token))
@@ -68,12 +69,11 @@ internal sealed class ListWorkspaceCommand : Command
     }
 
     private static async Task<int> RenderNonInteractiveAsync(
-        ParseResult parseResult,
+        string? cursor,
         IWorkspacesClient client,
         IResultHolder resultHolder,
         CancellationToken ct)
     {
-        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var data = await client.ListWorkspacesAsync(cursor, 10, ct);
 
         var items = data.Items

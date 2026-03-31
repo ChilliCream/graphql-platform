@@ -143,6 +143,11 @@ public sealed class FusionConfigurationPublishStartCommandTests(NitroCommandFixt
             .ExecuteAsync();
 
         // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Starting composition
+            └── ✕ Failed to start the composition.
+            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
@@ -152,8 +157,10 @@ public sealed class FusionConfigurationPublishStartCommandTests(NitroCommandFixt
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = CreateExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
@@ -162,7 +169,7 @@ public sealed class FusionConfigurationPublishStartCommandTests(NitroCommandFixt
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "fusion",
                 "publish",
@@ -177,34 +184,6 @@ public sealed class FusionConfigurationPublishStartCommandTests(NitroCommandFixt
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = CreateExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "fusion",
-                "publish",
-                "start",
-                "--request-id",
-                "req-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
 
         client.VerifyAll();
     }
@@ -229,6 +208,11 @@ public sealed class FusionConfigurationPublishStartCommandTests(NitroCommandFixt
             .ExecuteAsync();
 
         // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Starting composition
+            └── ✕ Failed to start the composition.
+            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key
@@ -239,8 +223,10 @@ public sealed class FusionConfigurationPublishStartCommandTests(NitroCommandFixt
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = CreateExceptionClient(new NitroClientAuthorizationException());
@@ -249,7 +235,7 @@ public sealed class FusionConfigurationPublishStartCommandTests(NitroCommandFixt
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "fusion",
                 "publish",
@@ -265,35 +251,6 @@ public sealed class FusionConfigurationPublishStartCommandTests(NitroCommandFixt
             has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = CreateExceptionClient(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "fusion",
-                "publish",
-                "start",
-                "--request-id",
-                "req-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
 
         client.VerifyAll();
     }

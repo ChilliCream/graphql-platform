@@ -529,9 +529,10 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ICla
 
     [Theory]
     [MemberData(nameof(CreateApiKeyMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_Interactive(
+    public async Task MutationReturnsTypedError_ReturnsError(
         ICreateApiKeyCommandMutation_CreateApiKey_Errors mutationError,
-        string expectedStdErr)
+        string expectedStdErr,
+        InteractionMode mode)
     {
         // arrange
         var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
@@ -548,7 +549,7 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ICla
         var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "api-key",
                 "create",
@@ -568,7 +569,7 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ICla
     }
 
     [Theory]
-    [MemberData(nameof(CreateApiKeyMutationErrorCases))]
+    [MemberData(nameof(CreateApiKeyMutationErrorCases_NonInteractive))]
     public async Task MutationReturnsTypedError_ReturnsError_NonInteractive(
         ICreateApiKeyCommandMutation_CreateApiKey_Errors mutationError,
         string expectedStdErr)
@@ -613,46 +614,9 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ICla
     }
 
     [Theory]
-    [MemberData(nameof(CreateApiKeyMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_JsonOutput(
-        ICreateApiKeyCommandMutation_CreateApiKey_Errors mutationError,
-        string expectedStdErr)
-    {
-        // arrange
-        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
-        client.Setup(x => x.CreateApiKeyAsync(
-                "tenant-key",
-                "workspace-from-session",
-                "api-404",
-                null,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(
-                ApiKeyCommandTestHelper.CreateApiKeyResultWithErrors(
-                    mutationError));
-
-        var builder = new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "api-key",
-                "create",
-                "--api-id",
-                "api-404",
-                "--name",
-                "tenant-key");
-
-        // act
-        var result = await builder.ExecuteAsync();
-
-        // assert
-        result.AssertError(expectedStdErr);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_OutputJson()
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
@@ -666,7 +630,7 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ICla
 
         var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
-            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddInteractionMode(mode)
             .AddSessionWithWorkspace()
             .AddArguments(
                 "api-key",
@@ -680,10 +644,11 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ICla
         var result = await builder.ExecuteAsync();
 
         // assert
-        result.AssertError(
+        result.StdErr.MatchInlineSnapshot(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
+        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -731,8 +696,10 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ICla
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
@@ -742,11 +709,11 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ICla
                 "api-1",
                 null,
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
+            .ThrowsAsync(new NitroClientAuthorizationException());
 
         var builder = new CommandBuilder(fixture)
             .AddService(client.Object)
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddSessionWithWorkspace()
             .AddArguments(
                 "api-key",
@@ -762,47 +729,10 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ICla
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_OutputJson()
-    {
-        // arrange
-        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
-        client.Setup(x => x.CreateApiKeyAsync(
-                "broken",
-                "workspace-from-session",
-                "api-1",
-                null,
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException());
-
-        var builder = new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddSessionWithWorkspace()
-            .AddArguments(
-                "api-key",
-                "create",
-                "--name",
-                "broken",
-                "--api-id",
-                "api-1");
-
-        // act
-        var result = await builder.ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
             The server rejected your request as unauthorized. Ensure your account or API key
             has the proper permissions for this action.
             """);
+        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -851,46 +781,87 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ICla
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    public static IEnumerable<object[]> CreateApiKeyMutationErrorCases()
     {
-        // arrange
-        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
-        client.Setup(x => x.CreateApiKeyAsync(
-                "broken",
-                "workspace-from-session",
-                "api-1",
-                null,
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException());
+        foreach (var mode in new[] { InteractionMode.Interactive, InteractionMode.JsonOutput })
+        {
+            yield return
+            [
+                new CreateApiKeyCommandMutation_CreateApiKey_Errors_ApiNotFoundError(
+                    "ApiNotFoundError",
+                    "The API with ID 'api-404' was not found.",
+                    "api-404"),
+                """
+                The API with ID 'api-404' was not found.
+                """,
+                mode
+            ];
 
-        var builder = new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddSessionWithWorkspace()
-            .AddArguments(
-                "api-key",
-                "create",
-                "--name",
-                "broken",
-                "--api-id",
-                "api-1");
+            yield return
+            [
+                new CreateApiKeyCommandMutation_CreateApiKey_Errors_WorkspaceNotFound(
+                    "WorkspaceNotFound",
+                    "The workspace with ID 'ws-404' was not found.",
+                    "ws-404"),
+                """
+                The workspace with ID 'ws-404' was not found.
+                """,
+                mode
+            ];
 
-        // act
-        var result = await builder.ExecuteAsync();
+            yield return
+            [
+                new CreateApiKeyCommandMutation_CreateApiKey_Errors_PersonalWorkspaceNotSupportedError(
+                    "PersonalWorkspaceNotSupportedError",
+                    "Personal workspaces are not supported for this operation."),
+                """
+                Personal workspaces are not supported for this operation.
+                """,
+                mode
+            ];
 
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
-        Assert.Equal(1, result.ExitCode);
+            yield return
+            [
+                new CreateApiKeyCommandMutation_CreateApiKey_Errors_RoleNotFoundError(
+                    "RoleNotFoundError",
+                    "The role with ID 'role-404' was not found.",
+                    "role-404"),
+                """
+                The role with ID 'role-404' was not found.
+                """,
+                mode
+            ];
 
-        client.VerifyAll();
+            yield return
+            [
+                new CreateApiKeyCommandMutation_CreateApiKey_Errors_ValidationError(
+                    "ValidationError",
+                    "The input is invalid.",
+                    []),
+                """
+                The input is invalid.
+                """,
+                mode
+            ];
+
+            var unexpectedError = new Mock<ICreateApiKeyCommandMutation_CreateApiKey_Errors>();
+            unexpectedError
+                .As<IError>()
+                .SetupGet(x => x.Message)
+                .Returns("unexpected failure");
+
+            yield return
+            [
+                unexpectedError.Object,
+                """
+                Unexpected mutation error: unexpected failure
+                """,
+                mode
+            ];
+        }
     }
 
-    public static IEnumerable<object[]> CreateApiKeyMutationErrorCases()
+    public static IEnumerable<object[]> CreateApiKeyMutationErrorCases_NonInteractive()
     {
         yield return
         [

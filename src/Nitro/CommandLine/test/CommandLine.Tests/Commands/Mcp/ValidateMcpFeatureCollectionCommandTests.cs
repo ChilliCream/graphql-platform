@@ -77,12 +77,14 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
         Assert.Equal(1, result.ExitCode);
     }
 
-    [Fact]
-    public async Task NoSession_Or_ApiKey_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
         var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "mcp",
                 "validate",
@@ -102,32 +104,6 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             A prompt with the name 'source-schema-1-settings' already exists in the archive.
             """);
         Assert.Equal(1, result.ExitCode);
-    }
-
-    [Fact]
-    public async Task NoSession_Or_ApiKey_ReturnsError_JsonOutput()
-    {
-        // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "mcp",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId,
-                "--prompt-pattern",
-                "**/*.json",
-                "--tool-pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            A prompt with the name 'source-schema-1-settings' already exists in the archive.
-            """);
     }
 
     [Fact]
@@ -172,8 +148,10 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var (client, fileSystem) = CreateValidationSetupWithException(
@@ -184,7 +162,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "mcp",
                 "validate",
@@ -204,41 +182,6 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var (client, fileSystem) = CreateValidationSetupWithException(
-            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "mcp",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId,
-                "--prompt-pattern",
-                "**/*.json",
-                "--tool-pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
 
         client.VerifyAll();
     }
@@ -286,8 +229,10 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var (client, fileSystem) = CreateValidationSetupWithException(
@@ -298,7 +243,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "mcp",
                 "validate",
@@ -323,44 +268,8 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var (client, fileSystem) = CreateValidationSetupWithException(
-            new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "mcp",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId,
-                "--prompt-pattern",
-                "**/*.json",
-                "--tool-pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
-
-        client.VerifyAll();
-    }
-
     [Theory]
-    [MemberData(nameof(MutationErrorCases))]
+    [MemberData(nameof(MutationErrorCasesNonInteractive))]
     public async Task MutationReturnsTypedError_ReturnsError_NonInteractive(
         IValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection_Errors mutationError,
         string expectedStdErr)
@@ -403,7 +312,8 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
 
     [Theory]
     [MemberData(nameof(MutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_Interactive(
+    public async Task MutationReturnsTypedError_ReturnsError(
+        InteractionMode mode,
         IValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection_Errors mutationError,
         string expectedStdErr)
     {
@@ -416,7 +326,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "mcp",
                 "validate",
@@ -433,41 +343,6 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
         // assert
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [MemberData(nameof(MutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_JsonOutput(
-        IValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection_Errors mutationError,
-        string expectedStdErr)
-    {
-        // arrange
-        var (client, fileSystem) = CreateValidationSetup(
-            CreateValidationPayloadWithErrors(mutationError));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "mcp",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId,
-                "--prompt-pattern",
-                "**/*.json",
-                "--tool-pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(expectedStdErr);
 
         client.VerifyAll();
     }
@@ -519,8 +394,10 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task MutationReturnsNullRequestId_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task MutationReturnsNullRequestId_ReturnsError(InteractionMode mode)
     {
         // arrange
         var payload = new Mock<IValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection>(MockBehavior.Strict);
@@ -536,7 +413,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "mcp",
                 "validate",
@@ -556,46 +433,6 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             Could not create validation request!
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task MutationReturnsNullRequestId_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var payload = new Mock<IValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors)
-            .Returns((IReadOnlyList<IValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection_Errors>?)null);
-        payload.SetupGet(x => x.Id)
-            .Returns((string?)null);
-
-        var (client, fileSystem) = CreateValidationSetup(payload.Object);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "mcp",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId,
-                "--prompt-pattern",
-                "**/*.json",
-                "--tool-pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            Could not create validation request!
-            """);
 
         client.VerifyAll();
     }
@@ -783,8 +620,10 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task Subscription_FailedWithSimpleError_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Subscription_FailedWithSimpleError_ReturnsError(InteractionMode mode)
     {
         // arrange
         var errorMock = new Mock<IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate_Errors>(
@@ -806,7 +645,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "mcp",
                 "validate",
@@ -827,53 +666,6 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             MCP Feature Collection validation failed.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task Subscription_FailedWithSimpleError_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var errorMock = new Mock<IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate_Errors>(
-            MockBehavior.Strict);
-        errorMock.As<IUnexpectedProcessingError>()
-            .SetupGet(x => x.Message)
-            .Returns("Something went wrong during validation.");
-
-        var (client, fileSystem) = CreateValidationSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate[]
-            {
-                CreateOperationInProgress(),
-                CreateValidationFailed(errorMock.Object)
-            });
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "mcp",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId,
-                "--prompt-pattern",
-                "**/*.json",
-                "--tool-pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            Something went wrong during validation.
-            MCP Feature Collection validation failed.
-            """);
 
         client.VerifyAll();
     }
@@ -917,6 +709,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             ├── Validating...
             └── ✕ Failed to validate the MCP feature collection.
             """);
+        Assert.Empty(result.StdErr);
         Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
@@ -957,6 +750,16 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             .ExecuteAsync();
 
         // assert
+        // Falls through the loop with no terminal state, so activity.Fail() is called
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating MCP feature collection against stage 'production'
+            ├── Found 1 prompt(s) and 1 tool(s).
+            ├── Validation request created (ID: request-1)
+            ├── ! Unknown server response. Consider updating the CLI.
+            └── ✕ Failed to validate the MCP feature collection.
+            """);
+        Assert.Empty(result.StdErr);
         Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
@@ -1084,6 +887,63 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
     }
 
     public static IEnumerable<object[]> MutationErrorCases()
+    {
+        var modes = new[] { InteractionMode.Interactive, InteractionMode.JsonOutput };
+
+        foreach (var mode in modes)
+        {
+            yield return
+            [
+                mode,
+                new ValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection_Errors_UnauthorizedOperation(
+                    "UnauthorizedOperation",
+                    "Not authorized to validate."),
+                """
+                Not authorized to validate.
+                """
+            ];
+
+            yield return
+            [
+                mode,
+                new ValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection_Errors_StageNotFoundError(
+                    "StageNotFoundError",
+                    "Stage not found.",
+                    DefaultStage),
+                """
+                Stage not found.
+                """
+            ];
+
+            yield return
+            [
+                mode,
+                new ValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection_Errors_McpFeatureCollectionNotFoundError(
+                    DefaultMcpFeatureCollectionId,
+                    "MCP Feature Collection not found."),
+                """
+                MCP Feature Collection not found.
+                """
+            ];
+
+            var unexpectedError = new Mock<IValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection_Errors>();
+            unexpectedError
+                .As<IError>()
+                .SetupGet(x => x.Message)
+                .Returns("Something went wrong.");
+
+            yield return
+            [
+                mode,
+                unexpectedError.Object,
+                """
+                Unexpected mutation error: Something went wrong.
+                """
+            ];
+        }
+    }
+
+    public static IEnumerable<object[]> MutationErrorCasesNonInteractive()
     {
         yield return
         [

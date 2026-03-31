@@ -96,6 +96,7 @@ public sealed class ShowClientCommandTests(NitroCommandFixture fixture) : IClass
     [Theory]
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
     public async Task WithClientId_ReturnSuccess(InteractionMode mode)
     {
         // arrange
@@ -110,42 +111,6 @@ public sealed class ShowClientCommandTests(NitroCommandFixture fixture) : IClass
             .AddService(client.Object)
             .AddApiKey()
             .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "show",
-                "client-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertSuccess(
-            """
-            {
-              "id": "client-1",
-              "name": "web-client",
-              "api": {
-                "name": "products"
-              }
-            }
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task WithClientId_ReturnSuccess_JsonOutput()
-    {
-        // arrange
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.GetClientAsync(
-                "client-1",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateShowClientNode("client-1", "web-client", "products"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
             .AddArguments(
                 "client",
                 "show",
@@ -212,11 +177,10 @@ public sealed class ShowClientCommandTests(NitroCommandFixture fixture) : IClass
             .ExecuteAsync();
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
-        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -293,12 +257,11 @@ public sealed class ShowClientCommandTests(NitroCommandFixture fixture) : IClass
             .ExecuteAsync();
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             The server rejected your request as unauthorized. Ensure your account or API key
             has the proper permissions for this action.
             """);
-        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }

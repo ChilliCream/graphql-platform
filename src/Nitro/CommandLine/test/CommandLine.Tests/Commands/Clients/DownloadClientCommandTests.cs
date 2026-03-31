@@ -114,8 +114,10 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
         Assert.Equal(1, result.ExitCode);
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = CreateDownloadExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
@@ -124,7 +126,7 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "client",
                 "download",
@@ -183,39 +185,10 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = CreateDownloadExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "production",
-                "--path",
-                "queries.json")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = CreateDownloadExceptionClient(new NitroClientAuthorizationException());
@@ -224,7 +197,7 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "client",
                 "download",
@@ -285,40 +258,10 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = CreateDownloadExceptionClient(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "production",
-                "--path",
-                "queries.json")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task NoPublishedClient_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task NoPublishedClient_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = new Mock<IClientsClient>(MockBehavior.Strict);
@@ -332,7 +275,7 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "client",
                 "download",
@@ -392,42 +335,6 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
             Could not find a published client on stage 'production'.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task NoPublishedClient_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.DownloadPersistedQueriesAsync(
-                "api-1",
-                "production",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Stream?)null);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "production",
-                "--path",
-                "queries.json")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            Could not find a published client on stage 'production'.
-            """);
 
         client.VerifyAll();
     }

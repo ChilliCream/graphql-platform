@@ -120,7 +120,8 @@ public sealed class SetApiSettingsCommandTests(NitroCommandFixture fixture) : IC
 
     [Theory]
     [MemberData(nameof(SetApiSettingsMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_Interactive(
+    public async Task MutationReturnsTypedError_ReturnsError(
+        InteractionMode mode,
         ISetApiSettingsCommandMutation_UpdateApiSettings_Errors mutationError,
         string expectedStdErr)
     {
@@ -131,7 +132,7 @@ public sealed class SetApiSettingsCommandTests(NitroCommandFixture fixture) : IC
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "api",
                 "set-settings",
@@ -150,7 +151,7 @@ public sealed class SetApiSettingsCommandTests(NitroCommandFixture fixture) : IC
     }
 
     [Theory]
-    [MemberData(nameof(SetApiSettingsMutationErrorCases))]
+    [MemberData(nameof(SetApiSettingsMutationErrorCasesNonInteractive))]
     public async Task MutationReturnsTypedError_ReturnsError_NonInteractive(
         ISetApiSettingsCommandMutation_UpdateApiSettings_Errors mutationError,
         string expectedStdErr)
@@ -186,37 +187,9 @@ public sealed class SetApiSettingsCommandTests(NitroCommandFixture fixture) : IC
     }
 
     [Theory]
-    [MemberData(nameof(SetApiSettingsMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_JsonOutput(
-        ISetApiSettingsCommandMutation_UpdateApiSettings_Errors mutationError,
-        string expectedStdErr)
-    {
-        // arrange
-        var client = CreateSetSettingsMutationErrorClient(mutationError);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "api",
-                "set-settings",
-                "api-1",
-                "--treat-dangerous-as-breaking",
-                "true",
-                "--allow-breaking-schema-changes",
-                "false")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(expectedStdErr);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = CreateSetSettingsExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
@@ -225,7 +198,7 @@ public sealed class SetApiSettingsCommandTests(NitroCommandFixture fixture) : IC
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "api",
                 "set-settings",
@@ -282,38 +255,10 @@ public sealed class SetApiSettingsCommandTests(NitroCommandFixture fixture) : IC
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = CreateSetSettingsExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "api",
-                "set-settings",
-                "api-1",
-                "--treat-dangerous-as-breaking",
-                "true",
-                "--allow-breaking-schema-changes",
-                "false")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = CreateSetSettingsExceptionClient(new NitroClientAuthorizationException());
@@ -322,7 +267,7 @@ public sealed class SetApiSettingsCommandTests(NitroCommandFixture fixture) : IC
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "api",
                 "set-settings",
@@ -381,39 +326,66 @@ public sealed class SetApiSettingsCommandTests(NitroCommandFixture fixture) : IC
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = CreateSetSettingsExceptionClient(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "api",
-                "set-settings",
-                "api-1",
-                "--treat-dangerous-as-breaking",
-                "true",
-                "--allow-breaking-schema-changes",
-                "false")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
-
-        client.VerifyAll();
-    }
+    public static TheoryData<InteractionMode, ISetApiSettingsCommandMutation_UpdateApiSettings_Errors, string>
+        SetApiSettingsMutationErrorCases =>
+        new()
+        {
+            {
+                InteractionMode.Interactive,
+                new SetApiSettingsCommandMutation_UpdateApiSettings_Errors_ApiNotFoundError(
+                    "ApiNotFoundError",
+                    "API not found",
+                    "api-1"),
+                """
+                API not found
+                """
+            },
+            {
+                InteractionMode.Interactive,
+                new SetApiSettingsCommandMutation_UpdateApiSettings_Errors_UnauthorizedOperation(
+                    "UnauthorizedOperation",
+                    "Not authorized"),
+                """
+                Not authorized
+                """
+            },
+            {
+                InteractionMode.Interactive,
+                CreateUnknownSetApiSettingsMutationError("payload denied"),
+                """
+                Unexpected mutation error: payload denied
+                """
+            },
+            {
+                InteractionMode.JsonOutput,
+                new SetApiSettingsCommandMutation_UpdateApiSettings_Errors_ApiNotFoundError(
+                    "ApiNotFoundError",
+                    "API not found",
+                    "api-1"),
+                """
+                API not found
+                """
+            },
+            {
+                InteractionMode.JsonOutput,
+                new SetApiSettingsCommandMutation_UpdateApiSettings_Errors_UnauthorizedOperation(
+                    "UnauthorizedOperation",
+                    "Not authorized"),
+                """
+                Not authorized
+                """
+            },
+            {
+                InteractionMode.JsonOutput,
+                CreateUnknownSetApiSettingsMutationError("payload denied"),
+                """
+                Unexpected mutation error: payload denied
+                """
+            }
+        };
 
     public static TheoryData<ISetApiSettingsCommandMutation_UpdateApiSettings_Errors, string>
-        SetApiSettingsMutationErrorCases =>
+        SetApiSettingsMutationErrorCasesNonInteractive =>
         new()
         {
             {

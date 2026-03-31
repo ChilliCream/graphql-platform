@@ -31,6 +31,8 @@ internal sealed class CommandBuilder
     private InteractionMode? _interactionMode;
     private Session? _session;
 
+    public Mock<ISessionService> SessionServiceMock => _sessionServiceMock;
+
     public CommandBuilder()
     {
         _services.AddNitroServices();

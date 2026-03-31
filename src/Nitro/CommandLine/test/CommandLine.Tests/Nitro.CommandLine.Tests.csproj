@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="Moq" />
-    <PackageReference Include="Spectre.Console.Testing" VersionOverride="0.52.0" />
+    <PackageReference Include="Spectre.Console.Testing" />
   </ItemGroup>
 
   <ItemGroup>

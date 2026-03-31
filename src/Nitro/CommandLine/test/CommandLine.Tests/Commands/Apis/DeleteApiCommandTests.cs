@@ -180,7 +180,8 @@ public sealed class DeleteApiCommandTests(NitroCommandFixture fixture) : IClassF
 
     [Theory]
     [MemberData(nameof(DeleteApiMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_Interactive(
+    public async Task MutationReturnsTypedError_ReturnsError(
+        InteractionMode mode,
         IDeleteApiCommandMutation_DeleteApiById_Errors mutationError,
         string expectedStdErr)
     {
@@ -191,7 +192,7 @@ public sealed class DeleteApiCommandTests(NitroCommandFixture fixture) : IClassF
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "api",
                 "delete",
@@ -207,7 +208,7 @@ public sealed class DeleteApiCommandTests(NitroCommandFixture fixture) : IClassF
     }
 
     [Theory]
-    [MemberData(nameof(DeleteApiMutationErrorCases))]
+    [MemberData(nameof(DeleteApiMutationErrorCasesNonInteractive))]
     public async Task MutationReturnsTypedError_ReturnsError_NonInteractive(
         IDeleteApiCommandMutation_DeleteApiById_Errors mutationError,
         string expectedStdErr)
@@ -240,34 +241,9 @@ public sealed class DeleteApiCommandTests(NitroCommandFixture fixture) : IClassF
     }
 
     [Theory]
-    [MemberData(nameof(DeleteApiMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_JsonOutput(
-        IDeleteApiCommandMutation_DeleteApiById_Errors mutationError,
-        string expectedStdErr)
-    {
-        // arrange
-        var client = CreateDeleteMutationErrorClient(mutationError);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "api",
-                "delete",
-                "api-1",
-                "--force")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(expectedStdErr);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = CreateDeleteExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
@@ -276,7 +252,7 @@ public sealed class DeleteApiCommandTests(NitroCommandFixture fixture) : IClassF
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "api",
                 "delete",
@@ -327,35 +303,10 @@ public sealed class DeleteApiCommandTests(NitroCommandFixture fixture) : IClassF
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = CreateDeleteExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "api",
-                "delete",
-                "api-1",
-                "--force")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = CreateDeleteExceptionClient(new NitroClientAuthorizationException());
@@ -364,7 +315,7 @@ public sealed class DeleteApiCommandTests(NitroCommandFixture fixture) : IClassF
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "api",
                 "delete",
@@ -417,35 +368,54 @@ public sealed class DeleteApiCommandTests(NitroCommandFixture fixture) : IClassF
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = CreateDeleteExceptionClient(new NitroClientAuthorizationException());
+    public static TheoryData<InteractionMode, IDeleteApiCommandMutation_DeleteApiById_Errors, string> DeleteApiMutationErrorCases =>
+        new()
+        {
+            {
+                InteractionMode.Interactive,
+                new DeleteApiCommandMutation_DeleteApiById_Errors_ApiNotFoundError("API not found"),
+                """
+                Unexpected mutation error: API not found
+                """
+            },
+            {
+                InteractionMode.Interactive,
+                new DeleteApiCommandMutation_DeleteApiById_Errors_UnauthorizedOperation("Not authorized"),
+                """
+                Unexpected mutation error: Not authorized
+                """
+            },
+            {
+                InteractionMode.Interactive,
+                new DeleteApiCommandMutation_DeleteApiById_Errors_ApiDeletionFailedError("Deletion failed"),
+                """
+                Unexpected mutation error: Deletion failed
+                """
+            },
+            {
+                InteractionMode.JsonOutput,
+                new DeleteApiCommandMutation_DeleteApiById_Errors_ApiNotFoundError("API not found"),
+                """
+                Unexpected mutation error: API not found
+                """
+            },
+            {
+                InteractionMode.JsonOutput,
+                new DeleteApiCommandMutation_DeleteApiById_Errors_UnauthorizedOperation("Not authorized"),
+                """
+                Unexpected mutation error: Not authorized
+                """
+            },
+            {
+                InteractionMode.JsonOutput,
+                new DeleteApiCommandMutation_DeleteApiById_Errors_ApiDeletionFailedError("Deletion failed"),
+                """
+                Unexpected mutation error: Deletion failed
+                """
+            }
+        };
 
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "api",
-                "delete",
-                "api-1",
-                "--force")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
-
-        client.VerifyAll();
-    }
-
-    public static TheoryData<IDeleteApiCommandMutation_DeleteApiById_Errors, string> DeleteApiMutationErrorCases =>
+    public static TheoryData<IDeleteApiCommandMutation_DeleteApiById_Errors, string> DeleteApiMutationErrorCasesNonInteractive =>
         new()
         {
             {

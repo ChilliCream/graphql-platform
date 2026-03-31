@@ -311,8 +311,10 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
         clientsClient.VerifyAll();
     }
 
-    [Fact]
-    public async Task MutationReturnsApiNotFoundError_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task MutationReturnsApiNotFoundError_ReturnsError(InteractionMode mode)
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -332,7 +334,7 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "client",
                 "create",
@@ -348,47 +350,6 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
             The API was not found.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
-    }
-
-    [Fact]
-    public async Task MutationReturnsApiNotFoundError_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-
-        var apiNotFound = new Mock<ICreateClientCommandMutation_CreateClient_Errors_ApiNotFoundError>(MockBehavior.Strict);
-        apiNotFound.As<IApiNotFoundError>().SetupGet(x => x.Message).Returns("The API was not found.");
-
-        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
-        clientsClient.Setup(x => x.CreateClientAsync(
-                "api-1",
-                "web-client",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateClientPayload(client: null, errors: [apiNotFound.Object]));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "create",
-                "--api-id",
-                "api-1",
-                "--name",
-                "web-client")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The API was not found.
-            """);
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -441,8 +402,10 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
         clientsClient.VerifyAll();
     }
 
-    [Fact]
-    public async Task MutationReturnsUnauthorizedOperationError_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task MutationReturnsUnauthorizedOperationError_ReturnsError(InteractionMode mode)
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -462,7 +425,7 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "client",
                 "create",
@@ -478,47 +441,6 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
             Unauthorized operation.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
-    }
-
-    [Fact]
-    public async Task MutationReturnsUnauthorizedOperationError_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-
-        var unauthorized = new Mock<ICreateClientCommandMutation_CreateClient_Errors_UnauthorizedOperation>(MockBehavior.Strict);
-        unauthorized.As<IUnauthorizedOperation>().SetupGet(x => x.Message).Returns("Unauthorized operation.");
-
-        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
-        clientsClient.Setup(x => x.CreateClientAsync(
-                "api-1",
-                "web-client",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateClientPayload(client: null, errors: [unauthorized.Object]));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "create",
-                "--api-id",
-                "api-1",
-                "--name",
-                "web-client")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            Unauthorized operation.
-            """);
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -571,8 +493,10 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
         clientsClient.VerifyAll();
     }
 
-    [Fact]
-    public async Task MutationReturnsGenericError_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task MutationReturnsGenericError_ReturnsError(InteractionMode mode)
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -592,7 +516,7 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "client",
                 "create",
@@ -608,47 +532,6 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
             Unexpected mutation error: something bad happened
             """);
         Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
-    }
-
-    [Fact]
-    public async Task MutationReturnsGenericError_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-
-        var genericError = new Mock<ICreateClientCommandMutation_CreateClient_Errors>(MockBehavior.Strict);
-        genericError.As<IError>().SetupGet(x => x.Message).Returns("something bad happened");
-
-        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
-        clientsClient.Setup(x => x.CreateClientAsync(
-                "api-1",
-                "web-client",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateClientPayload(client: null, errors: [genericError.Object]));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "create",
-                "--api-id",
-                "api-1",
-                "--name",
-                "web-client")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            Unexpected mutation error: something bad happened
-            """);
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -698,8 +581,10 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
         clientsClient.VerifyAll();
     }
 
-    [Fact]
-    public async Task MutationReturnsNoClient_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task MutationReturnsNoClient_ReturnsError(InteractionMode mode)
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -715,7 +600,7 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "client",
                 "create",
@@ -732,44 +617,6 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
             expected data.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
-    }
-
-    [Fact]
-    public async Task MutationReturnsNoClient_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
-        clientsClient.Setup(x => x.CreateClientAsync(
-                "api-1",
-                "web-client",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateClientPayload(client: null, errors: null));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "create",
-                "--api-id",
-                "api-1",
-                "--name",
-                "web-client")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The GraphQL mutation completed without errors, but the server did not return the
-            expected data.
-            """);
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -813,8 +660,10 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
         clientsClient.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -825,7 +674,7 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "client",
                 "create",
@@ -841,38 +690,6 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = CreateExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "create",
-                "--api-id",
-                "api-1",
-                "--name",
-                "web-client")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -917,8 +734,10 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
         clientsClient.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -929,7 +748,7 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "client",
                 "create",
@@ -946,39 +765,6 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
             has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = CreateExceptionClient(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "create",
-                "--api-id",
-                "api-1",
-                "--name",
-                "web-client")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();

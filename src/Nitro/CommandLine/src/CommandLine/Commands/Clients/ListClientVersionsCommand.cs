@@ -37,12 +37,14 @@ internal sealed class ListClientVersionsCommand : Command
 
         parseResult.AssertHasAuthentication(sessionService);
 
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
+
         if (console.IsInteractive)
         {
-            return await RenderInteractiveAsync(parseResult, console, client, apisClient, sessionService, resultHolder, ct);
+            return await RenderInteractiveAsync(parseResult, console, client, apisClient, sessionService, resultHolder, cursor, ct);
         }
 
-        return await RenderNonInteractiveAsync(parseResult, client, resultHolder, ct);
+        return await RenderNonInteractiveAsync(parseResult, client, resultHolder, cursor, ct);
     }
 
     private static async Task<int> RenderInteractiveAsync(
@@ -52,6 +54,7 @@ internal sealed class ListClientVersionsCommand : Command
         IApisClient apisClient,
         ISessionService sessionService,
         IResultHolder resultHolder,
+        string? cursor,
         CancellationToken ct)
     {
         var clientId = parseResult.GetValue(Opt<OptionalClientIdOption>.Instance);
@@ -68,8 +71,6 @@ internal sealed class ListClientVersionsCommand : Command
 
             clientId = selectedClient.Id;
         }
-
-        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
 
         var container = PaginationContainer
             .CreateConnectionData(async (after, first, cancellationToken) =>
@@ -105,6 +106,7 @@ internal sealed class ListClientVersionsCommand : Command
         ParseResult parseResult,
         IClientsClient client,
         IResultHolder resultHolder,
+        string? cursor,
         CancellationToken ct)
     {
         var clientId = parseResult.GetValue(Opt<OptionalClientIdOption>.Instance);
@@ -113,7 +115,6 @@ internal sealed class ListClientVersionsCommand : Command
             throw MissingRequiredOption("--client-id");
         }
 
-        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var page = await client.ListClientVersionsAsync(clientId, cursor, 10, ct)
             ?? throw ThrowHelper.ThereWasAnIssueWithTheRequest("The client was not found.");
 

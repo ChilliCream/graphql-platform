@@ -208,8 +208,10 @@ public sealed class DeleteClientCommandTests(NitroCommandFixture fixture) : ICla
         clientsClient.VerifyAll();
     }
 
-    [Fact]
-    public async Task MutationReturnsClientNotFoundError_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task MutationReturnsClientNotFoundError_ReturnsError(InteractionMode mode)
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -229,7 +231,7 @@ public sealed class DeleteClientCommandTests(NitroCommandFixture fixture) : ICla
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "client",
                 "delete",
@@ -243,45 +245,6 @@ public sealed class DeleteClientCommandTests(NitroCommandFixture fixture) : ICla
             Client not found.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
-    }
-
-    [Fact]
-    public async Task MutationReturnsClientNotFoundError_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-
-        var notFound = new Mock<IDeleteClientByIdCommandMutation_DeleteClientById_Errors_ClientNotFoundError>(
-            MockBehavior.Strict);
-        notFound.As<IClientNotFoundError>().SetupGet(x => x.Message).Returns("Client not found.");
-
-        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
-        clientsClient.Setup(x => x.DeleteClientAsync(
-                "client-1",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateDeletePayload(client: null, errors: [notFound.Object]));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "delete",
-                "client-1",
-                "--force")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            Client not found.
-            """);
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -323,8 +286,10 @@ public sealed class DeleteClientCommandTests(NitroCommandFixture fixture) : ICla
         clientsClient.VerifyAll();
     }
 
-    [Fact]
-    public async Task MutationReturnsNoClient_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task MutationReturnsNoClient_ReturnsError(InteractionMode mode)
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -339,7 +304,7 @@ public sealed class DeleteClientCommandTests(NitroCommandFixture fixture) : ICla
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "client",
                 "delete",
@@ -354,41 +319,6 @@ public sealed class DeleteClientCommandTests(NitroCommandFixture fixture) : ICla
             expected data.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
-    }
-
-    [Fact]
-    public async Task MutationReturnsNoClient_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
-        clientsClient.Setup(x => x.DeleteClientAsync(
-                "client-1",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateDeletePayload(client: null, errors: null));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "delete",
-                "client-1",
-                "--force")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The GraphQL mutation completed without errors, but the server did not return the
-            expected data.
-            """);
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -425,8 +355,10 @@ public sealed class DeleteClientCommandTests(NitroCommandFixture fixture) : ICla
         clientsClient.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -437,7 +369,7 @@ public sealed class DeleteClientCommandTests(NitroCommandFixture fixture) : ICla
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "client",
                 "delete",
@@ -451,36 +383,6 @@ public sealed class DeleteClientCommandTests(NitroCommandFixture fixture) : ICla
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = CreateDeleteExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "delete",
-                "client-1",
-                "--force")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -518,8 +420,10 @@ public sealed class DeleteClientCommandTests(NitroCommandFixture fixture) : ICla
         clientsClient.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -530,7 +434,7 @@ public sealed class DeleteClientCommandTests(NitroCommandFixture fixture) : ICla
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "client",
                 "delete",
@@ -545,37 +449,6 @@ public sealed class DeleteClientCommandTests(NitroCommandFixture fixture) : ICla
             has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = CreateDeleteExceptionClient(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "delete",
-                "client-1",
-                "--force")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();

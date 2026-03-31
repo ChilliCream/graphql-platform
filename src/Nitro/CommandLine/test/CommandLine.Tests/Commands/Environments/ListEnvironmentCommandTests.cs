@@ -124,8 +124,10 @@ public sealed class ListEnvironmentCommandTests(NitroCommandFixture fixture) : I
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task WithWorkspaceId_ReturnSuccess_NonInteractive()
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task WithWorkspaceId_ReturnSuccess(InteractionMode mode)
     {
         // arrange
         var client = new Mock<IEnvironmentsClient>(MockBehavior.Strict);
@@ -143,54 +145,7 @@ public sealed class ListEnvironmentCommandTests(NitroCommandFixture fixture) : I
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "environment",
-                "list",
-                "--workspace-id",
-                "ws-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertSuccess(
-            """
-            {
-              "values": [
-                {
-                  "id": "env-1",
-                  "name": "production",
-                  "workspace": {
-                    "name": "workspace-a"
-                  }
-                }
-              ],
-              "cursor": null
-            }
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task WithWorkspaceId_ReturnSuccess_JsonOutput()
-    {
-        // arrange
-        var client = new Mock<IEnvironmentsClient>(MockBehavior.Strict);
-        client.Setup(x => x.ListEnvironmentsAsync(
-                "ws-1",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateListEnvironmentsPage(
-                endCursor: null,
-                hasNextPage: false,
-                ("env-1", "production", "workspace-a")));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "environment",
                 "list",
@@ -256,8 +211,10 @@ public sealed class ListEnvironmentCommandTests(NitroCommandFixture fixture) : I
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task WithCursor_ReturnSuccess_NonInteractive()
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task WithCursor_ReturnSuccess(InteractionMode mode)
     {
         // arrange
         var client = new Mock<IEnvironmentsClient>(MockBehavior.Strict);
@@ -275,7 +232,7 @@ public sealed class ListEnvironmentCommandTests(NitroCommandFixture fixture) : I
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "environment",
                 "list",
@@ -305,57 +262,11 @@ public sealed class ListEnvironmentCommandTests(NitroCommandFixture fixture) : I
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task WithCursor_ReturnSuccess_JsonOutput()
-    {
-        // arrange
-        var client = new Mock<IEnvironmentsClient>(MockBehavior.Strict);
-        client.Setup(x => x.ListEnvironmentsAsync(
-                "ws-1",
-                "cursor-1",
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateListEnvironmentsPage(
-                endCursor: null,
-                hasNextPage: false,
-                ("env-2", "staging", "workspace-a")));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "environment",
-                "list",
-                "--workspace-id",
-                "ws-1",
-                "--cursor",
-                "cursor-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertSuccess(
-            """
-            {
-              "values": [
-                {
-                  "id": "env-2",
-                  "name": "staging",
-                  "workspace": {
-                    "name": "workspace-a"
-                  }
-                }
-              ],
-              "cursor": null
-            }
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"), "ws-1", null);
@@ -364,7 +275,7 @@ public sealed class ListEnvironmentCommandTests(NitroCommandFixture fixture) : I
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "environment",
                 "list",
@@ -381,62 +292,11 @@ public sealed class ListEnvironmentCommandTests(NitroCommandFixture fixture) : I
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var client = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"), "ws-1", null);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "environment",
-                "list",
-                "--workspace-id",
-                "ws-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"), "ws-1", null);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "environment",
-                "list",
-                "--workspace-id",
-                "ws-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = CreateListExceptionClient(new NitroClientAuthorizationException(), "ws-1", null);
@@ -445,63 +305,7 @@ public sealed class ListEnvironmentCommandTests(NitroCommandFixture fixture) : I
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "environment",
-                "list",
-                "--workspace-id",
-                "ws-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var client = CreateListExceptionClient(new NitroClientAuthorizationException(), "ws-1", null);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "environment",
-                "list",
-                "--workspace-id",
-                "ws-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = CreateListExceptionClient(new NitroClientAuthorizationException(), "ws-1", null);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "environment",
                 "list",

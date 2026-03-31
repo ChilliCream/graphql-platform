@@ -158,8 +158,10 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var (client, fileSystem) = CreateUploadSetup(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
@@ -169,7 +171,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "mcp",
                 "upload",
@@ -185,36 +187,6 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var (client, fileSystem) = CreateUploadSetup(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "mcp",
-                "upload",
-                "--tag",
-                "v1",
-                "--mcp-feature-collection-id",
-                "mcp-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
 
         client.VerifyAll();
     }
@@ -257,8 +229,10 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var (client, fileSystem) = CreateUploadSetup(new NitroClientAuthorizationException());
@@ -268,7 +242,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "mcp",
                 "upload",
@@ -289,39 +263,10 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var (client, fileSystem) = CreateUploadSetup(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "mcp",
-                "upload",
-                "--tag",
-                "v1",
-                "--mcp-feature-collection-id",
-                "mcp-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsRequestEntityTooLarge_ReturnsError_JsonOutput()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsRequestEntityTooLarge_ReturnsError(InteractionMode mode)
     {
         // arrange
         var (client, fileSystem) = CreateUploadSetup(new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
@@ -331,7 +276,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "mcp",
                 "upload",
@@ -342,12 +287,13 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
             .ExecuteAsync();
 
         // assert
-        result.AssertError(
+        result.StdErr.MatchInlineSnapshot(
             """
             The server returned a 413 (Request Entity Too Large) HTTP status code. If you
             are running a self-hosted instance, check your ingress controller body-size
             limits, reverse proxy settings, or load balancer request size limits.
             """);
+        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -391,41 +337,8 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsRequestEntityTooLarge_ReturnsError_Interactive()
-    {
-        // arrange
-        var (client, fileSystem) = CreateUploadSetup(new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "mcp",
-                "upload",
-                "--tag",
-                "v1",
-                "--mcp-feature-collection-id",
-                "mcp-1")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned a 413 (Request Entity Too Large) HTTP status code. If you
-            are running a self-hosted instance, check your ingress controller body-size
-            limits, reverse proxy settings, or load balancer request size limits.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
     [Theory]
-    [MemberData(nameof(UploadMutationErrorCases))]
+    [MemberData(nameof(UploadMutationErrorCasesNonInteractive))]
     public async Task MutationReturnsTypedError_ReturnsError_NonInteractive(
         IUploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors mutationError,
         string expectedStdErr)
@@ -463,7 +376,8 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
 
     [Theory]
     [MemberData(nameof(UploadMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_Interactive(
+    public async Task MutationReturnsTypedError_ReturnsError(
+        InteractionMode mode,
         IUploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors mutationError,
         string expectedStdErr)
     {
@@ -475,7 +389,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "mcp",
                 "upload",
@@ -488,36 +402,6 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
         // assert
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [MemberData(nameof(UploadMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_JsonOutput(
-        IUploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors mutationError,
-        string expectedStdErr)
-    {
-        // arrange
-        var (client, fileSystem) = CreateUploadSetup(CreateUploadPayloadWithErrors(mutationError));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "mcp",
-                "upload",
-                "--tag",
-                "v1",
-                "--mcp-feature-collection-id",
-                "mcp-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(expectedStdErr);
 
         client.VerifyAll();
     }
@@ -742,6 +626,81 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
     }
 
     public static IEnumerable<object[]> UploadMutationErrorCases()
+    {
+        var modes = new[] { InteractionMode.Interactive, InteractionMode.JsonOutput };
+
+        foreach (var mode in modes)
+        {
+            yield return
+            [
+                mode,
+                new UploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors_McpFeatureCollectionNotFoundError(
+                    "mcp-1", "MCP Feature Collection not found."),
+                """
+                MCP Feature Collection not found.
+                """
+            ];
+
+            yield return
+            [
+                mode,
+                new UploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors_UnauthorizedOperation(
+                    "UnauthorizedOperation", "Not authorized to upload."),
+                """
+                Not authorized to upload.
+                """
+            ];
+
+            yield return
+            [
+                mode,
+                new UploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors_DuplicatedTagError(
+                    "DuplicatedTagError", "Tag 'v1' already exists."),
+                """
+                Tag 'v1' already exists.
+                """
+            ];
+
+            yield return
+            [
+                mode,
+                new UploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors_ConcurrentOperationError(
+                    "ConcurrentOperationError", "A concurrent operation is in progress."),
+                """
+                A concurrent operation is in progress.
+                """
+            ];
+
+            yield return
+            [
+                mode,
+                new UploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors_InvalidMcpFeatureCollectionArchiveError(
+                    "Invalid archive format."),
+                """
+                The server received an invalid archive. This indicates a bug in the tooling.
+                Please notify ChilliCream.
+                Error received: Invalid archive format.
+                """
+            ];
+
+            var unexpectedError = new Mock<IUploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors>();
+            unexpectedError
+                .As<IError>()
+                .SetupGet(x => x.Message)
+                .Returns("Something went wrong.");
+
+            yield return
+            [
+                mode,
+                unexpectedError.Object,
+                """
+                Unexpected mutation error: Something went wrong.
+                """
+            ];
+        }
+    }
+
+    public static IEnumerable<object[]> UploadMutationErrorCasesNonInteractive()
     {
         yield return
         [

@@ -320,7 +320,7 @@ public sealed class DeleteOpenApiCollectionCommandTests(NitroCommandFixture fixt
 
     [Theory]
     [MemberData(nameof(DeleteMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_Interactive(
+    public async Task MutationReturnsTypedError_ReturnsError(
         IDeleteOpenApiCollectionByIdCommandMutation_DeleteOpenApiCollectionById_Errors mutationError,
         string expectedStdErr)
     {
@@ -348,40 +348,6 @@ public sealed class DeleteOpenApiCollectionCommandTests(NitroCommandFixture fixt
         // assert
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        openApiClient.VerifyAll();
-    }
-
-    [Theory]
-    [MemberData(nameof(DeleteMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_JsonOutput(
-        IDeleteOpenApiCollectionByIdCommandMutation_DeleteOpenApiCollectionById_Errors mutationError,
-        string expectedStdErr)
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var openApiClient = new Mock<IOpenApiClient>(MockBehavior.Strict);
-        openApiClient.Setup(x => x.DeleteOpenApiCollectionAsync(
-                "oa-1",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(OpenApiCommandTestHelper.CreateDeleteOpenApiCollectionPayloadWithErrors(mutationError));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(openApiClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "openapi",
-                "delete",
-                "oa-1",
-                "--force")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(expectedStdErr);
 
         apisClient.VerifyAll();
         openApiClient.VerifyAll();
@@ -427,8 +393,10 @@ public sealed class DeleteOpenApiCollectionCommandTests(NitroCommandFixture fixt
         openApiClient.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -443,7 +411,7 @@ public sealed class DeleteOpenApiCollectionCommandTests(NitroCommandFixture fixt
             .AddService(apisClient.Object)
             .AddService(openApiClient.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "openapi",
                 "delete",
@@ -457,40 +425,6 @@ public sealed class DeleteOpenApiCollectionCommandTests(NitroCommandFixture fixt
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        openApiClient.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var openApiClient = new Mock<IOpenApiClient>(MockBehavior.Strict);
-        openApiClient.Setup(x => x.DeleteOpenApiCollectionAsync(
-                "oa-1",
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(openApiClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "openapi",
-                "delete",
-                "oa-1",
-                "--force")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
 
         apisClient.VerifyAll();
         openApiClient.VerifyAll();
@@ -537,8 +471,10 @@ public sealed class DeleteOpenApiCollectionCommandTests(NitroCommandFixture fixt
         openApiClient.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -553,7 +489,7 @@ public sealed class DeleteOpenApiCollectionCommandTests(NitroCommandFixture fixt
             .AddService(apisClient.Object)
             .AddService(openApiClient.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "openapi",
                 "delete",
@@ -568,41 +504,6 @@ public sealed class DeleteOpenApiCollectionCommandTests(NitroCommandFixture fixt
             has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        openApiClient.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var openApiClient = new Mock<IOpenApiClient>(MockBehavior.Strict);
-        openApiClient.Setup(x => x.DeleteOpenApiCollectionAsync(
-                "oa-1",
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(openApiClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "openapi",
-                "delete",
-                "oa-1",
-                "--force")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
 
         apisClient.VerifyAll();
         openApiClient.VerifyAll();

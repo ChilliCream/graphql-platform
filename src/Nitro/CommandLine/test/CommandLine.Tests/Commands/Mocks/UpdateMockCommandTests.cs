@@ -463,13 +463,15 @@ public sealed class UpdateMockCommandTests(NitroCommandFixture fixture) : IClass
         fileSystem.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var result = await RunUpdateMockWithException(
             new NitroClientGraphQLException("Some message.", "SOME_CODE"),
-            InteractionMode.Interactive);
+            mode);
 
         // assert
         result.StdErr.MatchInlineSnapshot(
@@ -488,6 +490,11 @@ public sealed class UpdateMockCommandTests(NitroCommandFixture fixture) : IClass
             InteractionMode.NonInteractive);
 
         // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Updating mock schema 'mock-1'
+            └── ✕ Failed to update the mock schema.
+            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
@@ -495,28 +502,15 @@ public sealed class UpdateMockCommandTests(NitroCommandFixture fixture) : IClass
         Assert.Equal(1, result.ExitCode);
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var result = await RunUpdateMockWithException(
-            new NitroClientGraphQLException("Some message.", "SOME_CODE"),
-            InteractionMode.JsonOutput);
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var result = await RunUpdateMockWithException(
             new NitroClientAuthorizationException(),
-            InteractionMode.Interactive);
+            mode);
 
         // assert
         result.StdErr.MatchInlineSnapshot(
@@ -536,28 +530,17 @@ public sealed class UpdateMockCommandTests(NitroCommandFixture fixture) : IClass
             InteractionMode.NonInteractive);
 
         // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Updating mock schema 'mock-1'
+            └── ✕ Failed to update the mock schema.
+            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key
             has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var result = await RunUpdateMockWithException(
-            new NitroClientAuthorizationException(),
-            InteractionMode.JsonOutput);
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
     }
 
     private async Task<CommandResult> RunUpdateMockWithException(

@@ -115,8 +115,10 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : ICla
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task MutationReturnsUnauthorizedOperationError_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task MutationReturnsUnauthorizedOperationError_ReturnsError(InteractionMode mode)
     {
         // arrange
         var error = new Mock<IUploadFusionSubgraph_UploadFusionSubgraph_Errors_UnauthorizedOperation>(MockBehavior.Strict);
@@ -129,7 +131,7 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : ICla
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "fusion",
                 "upload",
@@ -147,41 +149,6 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : ICla
             Not authorized to upload.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task MutationReturnsUnauthorizedOperationError_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var error = new Mock<IUploadFusionSubgraph_UploadFusionSubgraph_Errors_UnauthorizedOperation>(MockBehavior.Strict);
-        error.SetupGet(x => x.Message).Returns("Not authorized to upload.");
-
-        var (client, fileSystem) = CreateUploadSetup(CreatePayloadWithErrors(error.Object));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "fusion",
-                "upload",
-                "--api-id",
-                "api-1",
-                "--tag",
-                "v1",
-                "--source-schema-file",
-                SchemaFilePath)
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            Not authorized to upload.
-            """);
 
         client.VerifyAll();
     }
@@ -436,8 +403,10 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : ICla
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task MutationReturnsNullFusionSubgraphVersion_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task MutationReturnsNullFusionSubgraphVersion_ReturnsError(InteractionMode mode)
     {
         // arrange
         var payload = new Mock<IUploadFusionSubgraph_UploadFusionSubgraph>(MockBehavior.Strict);
@@ -453,7 +422,7 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : ICla
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "fusion",
                 "upload",
@@ -471,44 +440,6 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : ICla
             Upload of source schema failed.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task MutationReturnsNullFusionSubgraphVersion_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var payload = new Mock<IUploadFusionSubgraph_UploadFusionSubgraph>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors)
-            .Returns((IReadOnlyList<IUploadFusionSubgraph_UploadFusionSubgraph_Errors>?)null);
-        payload.SetupGet(x => x.FusionSubgraphVersion)
-            .Returns((IUploadFusionSubgraph_UploadFusionSubgraph_FusionSubgraphVersion?)null);
-
-        var (client, fileSystem) = CreateUploadSetup(payload.Object);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "fusion",
-                "upload",
-                "--api-id",
-                "api-1",
-                "--tag",
-                "v1",
-                "--source-schema-file",
-                SchemaFilePath)
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            Upload of source schema failed.
-            """);
 
         client.VerifyAll();
     }
@@ -651,8 +582,10 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : ICla
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var (client, fileSystem) = CreateExceptionSetup(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
@@ -662,7 +595,7 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : ICla
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "fusion",
                 "upload",
@@ -680,38 +613,6 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : ICla
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var (client, fileSystem) = CreateExceptionSetup(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "fusion",
-                "upload",
-                "--api-id",
-                "api-1",
-                "--tag",
-                "v1",
-                "--source-schema-file",
-                SchemaFilePath)
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
 
         client.VerifyAll();
     }
@@ -755,8 +656,10 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : ICla
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var (client, fileSystem) = CreateExceptionSetup(new NitroClientAuthorizationException());
@@ -766,7 +669,7 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : ICla
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "fusion",
                 "upload",
@@ -789,41 +692,10 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : ICla
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var (client, fileSystem) = CreateExceptionSetup(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "fusion",
-                "upload",
-                "--api-id",
-                "api-1",
-                "--tag",
-                "v1",
-                "--source-schema-file",
-                SchemaFilePath)
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsRequestEntityTooLarge_ReturnsError_JsonOutput()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsRequestEntityTooLarge_ReturnsError(InteractionMode mode)
     {
         // arrange
         var (client, fileSystem) = CreateExceptionSetup(new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
@@ -833,7 +705,7 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : ICla
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "fusion",
                 "upload",
@@ -846,12 +718,13 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : ICla
             .ExecuteAsync();
 
         // assert
-        result.AssertError(
+        result.StdErr.MatchInlineSnapshot(
             """
             The server returned a 413 (Request Entity Too Large) HTTP status code. If you
             are running a self-hosted instance, check your ingress controller body-size
             limits, reverse proxy settings, or load balancer request size limits.
             """);
+        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -885,41 +758,6 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : ICla
             Uploading new source schema version 'v1' to API 'api-1'
             └── ✕ Failed to upload a new source schema version.
             """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned a 413 (Request Entity Too Large) HTTP status code. If you
-            are running a self-hosted instance, check your ingress controller body-size
-            limits, reverse proxy settings, or load balancer request size limits.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsRequestEntityTooLarge_ReturnsError_Interactive()
-    {
-        // arrange
-        var (client, fileSystem) = CreateExceptionSetup(new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "fusion",
-                "upload",
-                "--api-id",
-                "api-1",
-                "--tag",
-                "v1",
-                "--source-schema-file",
-                SchemaFilePath)
-            .ExecuteAsync();
-
-        // assert
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned a 413 (Request Entity Too Large) HTTP status code. If you

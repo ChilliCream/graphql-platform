@@ -380,8 +380,10 @@ public sealed class ListApiKeyCommandTests(NitroCommandFixture fixture) : IClass
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task WithCursor_ReturnsSuccess_NonInteractive()
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task WithCursor_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
         var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
@@ -399,7 +401,7 @@ public sealed class ListApiKeyCommandTests(NitroCommandFixture fixture) : IClass
 
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
-            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "api-key",
                 "list",
@@ -436,64 +438,11 @@ public sealed class ListApiKeyCommandTests(NitroCommandFixture fixture) : IClass
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task WithCursor_ReturnsSuccess_OutputJson()
-    {
-        // arrange
-        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
-        client.Setup(x => x.ListApiKeysAsync(
-                "ws-1",
-                "cursor-1",
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(
-                ApiKeyCommandTestHelper.CreateListApiKeysPage(
-                    endCursor: null,
-                    hasNextPage: false,
-                    ("key-1", "tenant-key", "Workspace"),
-                    ("key-2", "integration-key", "Workspace")));
-
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "api-key",
-                "list",
-                "--workspace-id",
-                "ws-1",
-                "--cursor",
-                "cursor-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertSuccess(
-            """
-            {
-                "values": [
-                    {
-                        "id": "key-1",
-                        "name": "tenant-key",
-                        "workspace": {
-                            "name": "Workspace"
-                        }
-                    },
-                    {
-                        "id": "key-2",
-                        "name": "integration-key",
-                        "workspace": {
-                            "name": "Workspace"
-                        }
-                    }
-                ],
-                "cursor": null
-            }
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
@@ -506,7 +455,7 @@ public sealed class ListApiKeyCommandTests(NitroCommandFixture fixture) : IClass
 
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddSessionWithWorkspace()
             .AddArguments(
                 "api-key",
@@ -522,68 +471,11 @@ public sealed class ListApiKeyCommandTests(NitroCommandFixture fixture) : IClass
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
-        client.Setup(x => x.ListApiKeysAsync(
-                "workspace-from-session",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddSessionWithWorkspace()
-            .AddArguments(
-                "api-key",
-                "list")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_OutputJson()
-    {
-        // arrange
-        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
-        client.Setup(x => x.ListApiKeysAsync(
-                "workspace-from-session",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddSessionWithWorkspace()
-            .AddArguments(
-                "api-key",
-                "list")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
@@ -596,69 +488,7 @@ public sealed class ListApiKeyCommandTests(NitroCommandFixture fixture) : IClass
 
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddSessionWithWorkspace()
-            .AddArguments(
-                "api-key",
-                "list")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
-        client.Setup(x => x.ListApiKeysAsync(
-                "workspace-from-session",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException());
-
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddSessionWithWorkspace()
-            .AddArguments(
-                "api-key",
-                "list")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_OutputJson()
-    {
-        // arrange
-        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
-        client.Setup(x => x.ListApiKeysAsync(
-                "workspace-from-session",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException());
-
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddInteractionMode(mode)
             .AddSessionWithWorkspace()
             .AddArguments(
                 "api-key",

@@ -240,6 +240,13 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : IClass
             .ExecuteAsync();
 
         // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            Update stages
+
+            ? For which API do you want to edit the stages?: api-1
+            """);
         result.StdErr.MatchInlineSnapshot(
             """
             Could not parse stage configuration
@@ -370,13 +377,15 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : IClass
         apisClient.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var result = await RunEditStagesWithException(
             new NitroClientGraphQLException("Some message.", "SOME_CODE"),
-            InteractionMode.Interactive);
+            mode);
 
         // assert
         result.StdErr.MatchInlineSnapshot(
@@ -395,6 +404,15 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : IClass
             InteractionMode.NonInteractive);
 
         // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            Update stages
+
+            ? For which API do you want to edit the stages?: api-1
+            Updating stages for API 'api-1'
+            └── ✕ Failed to update the stages.
+            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
@@ -402,28 +420,15 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : IClass
         Assert.Equal(1, result.ExitCode);
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var result = await RunEditStagesWithException(
-            new NitroClientGraphQLException("Some message.", "SOME_CODE"),
-            InteractionMode.JsonOutput);
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var result = await RunEditStagesWithException(
             new NitroClientAuthorizationException(),
-            InteractionMode.Interactive);
+            mode);
 
         // assert
         result.StdErr.MatchInlineSnapshot(
@@ -443,28 +448,21 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : IClass
             InteractionMode.NonInteractive);
 
         // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+
+            Update stages
+
+            ? For which API do you want to edit the stages?: api-1
+            Updating stages for API 'api-1'
+            └── ✕ Failed to update the stages.
+            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key
             has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var result = await RunEditStagesWithException(
-            new NitroClientAuthorizationException(),
-            InteractionMode.JsonOutput);
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
     }
 
     private async Task<CommandResult> RunEditStagesWithException(

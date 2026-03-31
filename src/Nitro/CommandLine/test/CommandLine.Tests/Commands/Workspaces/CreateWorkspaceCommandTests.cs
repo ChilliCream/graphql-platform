@@ -225,7 +225,7 @@ public sealed class CreateWorkspaceCommandTests(NitroCommandFixture fixture) : I
     }
 
     [Theory]
-    [MemberData(nameof(CreateMutationErrorCases))]
+    [MemberData(nameof(CreateMutationErrorCases_NonInteractive))]
     public async Task MutationReturnsTypedError_ReturnsError_NonInteractive(
         ICreateWorkspaceCommandMutation_CreateWorkspace_Errors mutationError,
         string expectedStdErr)
@@ -263,9 +263,10 @@ public sealed class CreateWorkspaceCommandTests(NitroCommandFixture fixture) : I
 
     [Theory]
     [MemberData(nameof(CreateMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_Interactive(
+    public async Task MutationReturnsTypedError_ReturnsError(
         ICreateWorkspaceCommandMutation_CreateWorkspace_Errors mutationError,
-        string expectedStdErr)
+        string expectedStdErr,
+        InteractionMode mode)
     {
         // arrange
         var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
@@ -278,7 +279,7 @@ public sealed class CreateWorkspaceCommandTests(NitroCommandFixture fixture) : I
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "workspace",
                 "create",
@@ -294,38 +295,9 @@ public sealed class CreateWorkspaceCommandTests(NitroCommandFixture fixture) : I
     }
 
     [Theory]
-    [MemberData(nameof(CreateMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_JsonOutput(
-        ICreateWorkspaceCommandMutation_CreateWorkspace_Errors mutationError,
-        string expectedStdErr)
-    {
-        // arrange
-        var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
-        client.Setup(x => x.CreateWorkspaceAsync(
-                "my-workspace",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateWorkspacePayloadWithErrors(mutationError));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "workspace",
-                "create",
-                "--name",
-                "my-workspace")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(expectedStdErr);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
@@ -338,7 +310,7 @@ public sealed class CreateWorkspaceCommandTests(NitroCommandFixture fixture) : I
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "workspace",
                 "create",
@@ -393,39 +365,10 @@ public sealed class CreateWorkspaceCommandTests(NitroCommandFixture fixture) : I
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
-        client.Setup(x => x.CreateWorkspaceAsync(
-                "my-workspace",
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "workspace",
-                "create",
-                "--name",
-                "my-workspace")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
@@ -438,7 +381,7 @@ public sealed class CreateWorkspaceCommandTests(NitroCommandFixture fixture) : I
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "workspace",
                 "create",
@@ -495,39 +438,44 @@ public sealed class CreateWorkspaceCommandTests(NitroCommandFixture fixture) : I
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
-        client.Setup(x => x.CreateWorkspaceAsync(
-                "my-workspace",
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException());
+    public static TheoryData<ICreateWorkspaceCommandMutation_CreateWorkspace_Errors, string, InteractionMode> CreateMutationErrorCases =>
+        new()
+        {
+            {
+                new CreateWorkspaceCommandMutation_CreateWorkspace_Errors_UnauthorizedOperation(
+                    "UnauthorizedOperation", "Not authorized"),
+                """
+                Not authorized
+                """,
+                InteractionMode.Interactive
+            },
+            {
+                new CreateWorkspaceCommandMutation_CreateWorkspace_Errors_ValidationError(
+                    "ValidationError", "Name is required", []),
+                """
+                Name is required
+                """,
+                InteractionMode.Interactive
+            },
+            {
+                new CreateWorkspaceCommandMutation_CreateWorkspace_Errors_UnauthorizedOperation(
+                    "UnauthorizedOperation", "Not authorized"),
+                """
+                Not authorized
+                """,
+                InteractionMode.JsonOutput
+            },
+            {
+                new CreateWorkspaceCommandMutation_CreateWorkspace_Errors_ValidationError(
+                    "ValidationError", "Name is required", []),
+                """
+                Name is required
+                """,
+                InteractionMode.JsonOutput
+            }
+        };
 
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "workspace",
-                "create",
-                "--name",
-                "my-workspace")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
-
-        client.VerifyAll();
-    }
-
-    public static TheoryData<ICreateWorkspaceCommandMutation_CreateWorkspace_Errors, string> CreateMutationErrorCases =>
+    public static TheoryData<ICreateWorkspaceCommandMutation_CreateWorkspace_Errors, string> CreateMutationErrorCases_NonInteractive =>
         new()
         {
             {

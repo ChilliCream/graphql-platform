@@ -35,12 +35,14 @@ internal sealed class ListOpenApiCollectionCommand : Command
         var sessionService = services.GetRequiredService<ISessionService>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
+
         if (console.IsInteractive)
         {
-            return await RenderInteractiveAsync(parseResult, console, client, apisClient, sessionService, resultHolder, ct);
+            return await RenderInteractiveAsync(parseResult, console, client, apisClient, sessionService, resultHolder, cursor, ct);
         }
 
-        return await RenderNonInteractiveAsync(parseResult, client, resultHolder, ct);
+        return await RenderNonInteractiveAsync(parseResult, client, resultHolder, cursor, ct);
     }
 
     private static async Task<int> RenderInteractiveAsync(
@@ -50,6 +52,7 @@ internal sealed class ListOpenApiCollectionCommand : Command
         IApisClient apisClient,
         ISessionService sessionService,
         IResultHolder resultHolder,
+        string? cursor,
         CancellationToken ct)
     {
         const string apiMessage = "For which API do you want to list the OpenAPI collections?";
@@ -80,6 +83,7 @@ internal sealed class ListOpenApiCollectionCommand : Command
         ParseResult parseResult,
         IOpenApiClient client,
         IResultHolder resultHolder,
+        string? cursor,
         CancellationToken ct)
     {
         var apiId = parseResult.GetValue(Opt<OptionalApiIdOption>.Instance);
@@ -88,7 +92,6 @@ internal sealed class ListOpenApiCollectionCommand : Command
             throw MissingRequiredOption(ApiIdOption.OptionName);
         }
 
-        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var data = await client.ListOpenApiCollectionsAsync(apiId, cursor, 10, ct)
             ?? throw ThrowHelper.ThereWasAnIssueWithTheRequest("The API was not found.");
         var items = data.Items

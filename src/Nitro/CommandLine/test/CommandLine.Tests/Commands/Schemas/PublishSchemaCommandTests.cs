@@ -112,8 +112,10 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = CreatePublishExceptionClient(
@@ -123,7 +125,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "schema",
                 "publish",
@@ -141,38 +143,6 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = CreatePublishExceptionClient(
-            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "schema",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--api-id",
-                DefaultApiId)
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
 
         client.VerifyAll();
     }
@@ -216,8 +186,10 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = CreatePublishExceptionClient(
@@ -227,7 +199,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "schema",
                 "publish",
@@ -246,39 +218,6 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
             has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = CreatePublishExceptionClient(
-            new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "schema",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--api-id",
-                DefaultApiId)
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
 
         client.VerifyAll();
     }
@@ -322,10 +261,11 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
     }
 
     [Theory]
-    [MemberData(nameof(MutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_Interactive(
+    [MemberData(nameof(MutationErrorCasesWithModes))]
+    public async Task MutationReturnsTypedError_ReturnsError(
         IPublishSchemaVersion_PublishSchema_Errors mutationError,
-        string expectedStdErr)
+        string expectedStdErr,
+        InteractionMode mode)
     {
         // arrange
         var client = CreatePublishSetup(
@@ -335,7 +275,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "schema",
                 "publish",
@@ -350,38 +290,6 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
         // assert
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [MemberData(nameof(MutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_JsonOutput(
-        IPublishSchemaVersion_PublishSchema_Errors mutationError,
-        string expectedStdErr)
-    {
-        // arrange
-        var client = CreatePublishSetup(
-            CreatePublishPayloadWithErrors(mutationError));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "schema",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--api-id",
-                DefaultApiId)
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(expectedStdErr);
 
         client.VerifyAll();
     }
@@ -430,8 +338,10 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task MutationReturnsNullRequestId_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task MutationReturnsNullRequestId_ReturnsError(InteractionMode mode)
     {
         // arrange
         var payload = new Mock<IPublishSchemaVersion_PublishSchema>(MockBehavior.Strict);
@@ -446,7 +356,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "schema",
                 "publish",
@@ -465,44 +375,6 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
             expected data.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task MutationReturnsNullRequestId_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var payload = new Mock<IPublishSchemaVersion_PublishSchema>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors)
-            .Returns((IReadOnlyList<IPublishSchemaVersion_PublishSchema_Errors>?)null);
-        payload.SetupGet(x => x.Id)
-            .Returns((string?)null);
-
-        var client = CreatePublishSetup(payload.Object);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "schema",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--api-id",
-                DefaultApiId)
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The GraphQL mutation completed without errors, but the server did not return the
-            expected data.
-            """);
 
         client.VerifyAll();
     }
@@ -677,8 +549,10 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task Subscription_FailedWithSimpleError_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Subscription_FailedWithSimpleError_ReturnsError(InteractionMode mode)
     {
         // arrange
         var errorMock = new Mock<IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Errors>(
@@ -699,7 +573,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "schema",
                 "publish",
@@ -718,50 +592,6 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
             Schema publish failed.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task Subscription_FailedWithSimpleError_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var errorMock = new Mock<IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Errors>(
-            MockBehavior.Strict);
-        errorMock.As<IUnexpectedProcessingError>()
-            .SetupGet(x => x.Message)
-            .Returns("Something went wrong during publish.");
-
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate[]
-            {
-                CreateOperationInProgress(),
-                CreatePublishFailed(errorMock.Object)
-            });
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "schema",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--api-id",
-                DefaultApiId)
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            Something went wrong during publish.
-            Schema publish failed.
-            """);
 
         client.VerifyAll();
     }
@@ -801,6 +631,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
             ├── The committing of your request is in progress.
             └── ✕ Failed to publish a new schema version.
             """);
+        Assert.Empty(result.StdErr);
         Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
@@ -1023,6 +854,15 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
 
         // assert
         // Falls through the loop with no terminal state, so activity.Fail() is called
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing new schema version 'v1' to stage 'production' of API 'api-1'
+            ├── Publish request created (ID: request-1)
+            ├── Warning: Received an unknown server response. Ensure your CLI is on the
+            latest version.
+            └── ✕ Failed to publish a new schema version.
+            """);
+        Assert.Empty(result.StdErr);
         Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
@@ -1195,6 +1035,15 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
         return new OnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_ProcessingTaskApproved(
             "ProcessingTaskApproved",
             ProcessingState.Approved);
+    }
+
+    public static IEnumerable<object[]> MutationErrorCasesWithModes()
+    {
+        foreach (var errorCase in MutationErrorCases())
+        {
+            yield return [.. errorCase, InteractionMode.Interactive];
+            yield return [.. errorCase, InteractionMode.JsonOutput];
+        }
     }
 
     public static IEnumerable<object[]> MutationErrorCases()

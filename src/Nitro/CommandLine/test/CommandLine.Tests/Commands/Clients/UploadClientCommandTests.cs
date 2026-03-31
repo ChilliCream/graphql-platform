@@ -106,8 +106,10 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = CreateUploadExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
@@ -118,7 +120,7 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "client",
                 "upload",
@@ -136,39 +138,6 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = CreateUploadExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-        var fileSystem = CreateOperationsFileSystem();
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "upload",
-                "--tag",
-                "v1",
-                "--operations-file",
-                "operations.json",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
 
         client.VerifyAll();
     }
@@ -214,8 +183,10 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = CreateUploadExceptionClient(
@@ -227,7 +198,7 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "client",
                 "upload",
@@ -250,43 +221,10 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = CreateUploadExceptionClient(
-            new NitroClientAuthorizationException());
-        var fileSystem = CreateOperationsFileSystem();
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "upload",
-                "--tag",
-                "v1",
-                "--operations-file",
-                "operations.json",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsRequestEntityTooLarge_ReturnsError_JsonOutput()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsRequestEntityTooLarge_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = CreateUploadExceptionClient(
@@ -298,7 +236,7 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "client",
                 "upload",
@@ -311,12 +249,13 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
             .ExecuteAsync();
 
         // assert
-        result.AssertError(
+        result.StdErr.MatchInlineSnapshot(
             """
             The server returned a 413 (Request Entity Too Large) HTTP status code. If you
             are running a self-hosted instance, check your ingress controller body-size
             limits, reverse proxy settings, or load balancer request size limits.
             """);
+        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -352,43 +291,6 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
             Uploading new client version 'v1' for client 'client-1'
             └── ✕ Failed to upload a new client version.
             """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned a 413 (Request Entity Too Large) HTTP status code. If you
-            are running a self-hosted instance, check your ingress controller body-size
-            limits, reverse proxy settings, or load balancer request size limits.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsRequestEntityTooLarge_ReturnsError_Interactive()
-    {
-        // arrange
-        var client = CreateUploadExceptionClient(
-            new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
-        var fileSystem = CreateOperationsFileSystem();
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "client",
-                "upload",
-                "--tag",
-                "v1",
-                "--operations-file",
-                "operations.json",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
-
-        // assert
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned a 413 (Request Entity Too Large) HTTP status code. If you
@@ -441,7 +343,7 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
 
     [Theory]
     [MemberData(nameof(UploadMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_Interactive(
+    public async Task MutationReturnsTypedError_ReturnsError(
         IUploadClient_UploadClient_Errors mutationError,
         string expectedStdErr)
     {
@@ -469,39 +371,6 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
         // assert
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [MemberData(nameof(UploadMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_JsonOutput(
-        IUploadClient_UploadClient_Errors mutationError,
-        string expectedStdErr)
-    {
-        // arrange
-        var (client, fileSystem) = CreateUploadSetup(
-            CreateUploadPayloadWithErrors(mutationError));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "upload",
-                "--tag",
-                "v1",
-                "--operations-file",
-                "operations.json",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(expectedStdErr);
 
         client.VerifyAll();
     }
@@ -550,8 +419,10 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task MutationReturnsNullClientVersion_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task MutationReturnsNullClientVersion_ReturnsError(InteractionMode mode)
     {
         // arrange
         var payload = new Mock<IUploadClient_UploadClient>(MockBehavior.Strict);
@@ -567,7 +438,7 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
             .AddService(client.Object)
             .AddService(fileSystem.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "client",
                 "upload",
@@ -585,44 +456,6 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
             Could not upload client.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task MutationReturnsNullClientVersion_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var payload = new Mock<IUploadClient_UploadClient>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors)
-            .Returns((IReadOnlyList<IUploadClient_UploadClient_Errors>?)null);
-        payload.SetupGet(x => x.ClientVersion)
-            .Returns((IUploadClient_UploadClient_ClientVersion?)null);
-
-        var (client, fileSystem) = CreateUploadSetup(payload.Object);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "upload",
-                "--tag",
-                "v1",
-                "--operations-file",
-                "operations.json",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            Could not upload client.
-            """);
 
         client.VerifyAll();
     }

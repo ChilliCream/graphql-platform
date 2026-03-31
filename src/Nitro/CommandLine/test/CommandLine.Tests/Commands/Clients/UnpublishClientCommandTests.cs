@@ -313,8 +313,10 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : I
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = new Mock<IClientsClient>(MockBehavior.Strict);
@@ -329,7 +331,7 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : I
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "client",
                 "unpublish",
@@ -389,45 +391,10 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : I
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.UnpublishClientVersionAsync(
-                "client-1",
-                "production",
-                "v1",
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "unpublish",
-                "--tag",
-                "v1",
-                "--stage",
-                "production",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = new Mock<IClientsClient>(MockBehavior.Strict);
@@ -442,7 +409,7 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : I
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "client",
                 "unpublish",
@@ -500,44 +467,6 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : I
             has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.UnpublishClientVersionAsync(
-                "client-1",
-                "production",
-                "v1",
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "unpublish",
-                "--tag",
-                "v1",
-                "--stage",
-                "production",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
 
         client.VerifyAll();
     }

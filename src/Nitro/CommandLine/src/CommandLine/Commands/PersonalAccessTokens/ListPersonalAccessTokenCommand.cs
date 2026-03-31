@@ -30,22 +30,23 @@ internal sealed class ListPersonalAccessTokenCommand : Command
         var client = services.GetRequiredService<IPersonalAccessTokensClient>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
+
         if (console.IsInteractive)
         {
-            return await RenderInteractiveAsync(parseResult, console, client, resultHolder, ct);
+            return await RenderInteractiveAsync(cursor, console, client, resultHolder, ct);
         }
 
-        return await RenderNonInteractiveAsync(parseResult, client, resultHolder, ct);
+        return await RenderNonInteractiveAsync(cursor, client, resultHolder, ct);
     }
 
     private static async Task<int> RenderInteractiveAsync(
-        ParseResult parseResult,
+        string? cursor,
         INitroConsole console,
         IPersonalAccessTokensClient client,
         IResultHolder resultHolder,
         CancellationToken ct)
     {
-        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var container = PaginationContainer
             .CreateConnectionData((after, first, token)
                 => client.ListPersonalAccessTokensAsync(after ?? cursor, first, token))
@@ -79,12 +80,11 @@ internal sealed class ListPersonalAccessTokenCommand : Command
     }
 
     private static async Task<int> RenderNonInteractiveAsync(
-        ParseResult parseResult,
+        string? cursor,
         IPersonalAccessTokensClient client,
         IResultHolder resultHolder,
         CancellationToken ct)
     {
-        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
         var data = await client.ListPersonalAccessTokensAsync(cursor, 10, ct);
 
         var items = data.Items

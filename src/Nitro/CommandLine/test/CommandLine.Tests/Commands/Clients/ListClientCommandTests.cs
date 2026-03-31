@@ -161,8 +161,10 @@ public sealed class ListClientCommandTests(NitroCommandFixture fixture) : IClass
         clientsClient.VerifyAll();
     }
 
-    [Fact]
-    public async Task WithApiId_ReturnSuccess_NonInteractive()
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task WithApiId_ReturnSuccess(InteractionMode mode)
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -182,57 +184,7 @@ public sealed class ListClientCommandTests(NitroCommandFixture fixture) : IClass
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "list",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertSuccess(
-            """
-            {
-              "values": [
-                {
-                  "id": "client-1",
-                  "name": "web-client",
-                  "api": {
-                    "name": "products"
-                  }
-                }
-              ],
-              "cursor": null
-            }
-            """);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
-    }
-
-    [Fact]
-    public async Task WithApiId_ReturnSuccess_JsonOutput()
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
-        clientsClient.Setup(x => x.ListClientsAsync(
-                "api-1",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateListClientsPage(
-                endCursor: null,
-                hasNextPage: false,
-                ("client-1", "web-client", "products")));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "client",
                 "list",
@@ -302,8 +254,10 @@ public sealed class ListClientCommandTests(NitroCommandFixture fixture) : IClass
         clientsClient.VerifyAll();
     }
 
-    [Fact]
-    public async Task WithCursor_ReturnSuccess_NonInteractive()
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task WithCursor_ReturnSuccess(InteractionMode mode)
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -323,59 +277,7 @@ public sealed class ListClientCommandTests(NitroCommandFixture fixture) : IClass
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "list",
-                "--api-id",
-                "api-1",
-                "--cursor",
-                "cursor-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertSuccess(
-            """
-            {
-              "values": [
-                {
-                  "id": "client-1",
-                  "name": "web-client",
-                  "api": {
-                    "name": "products"
-                  }
-                }
-              ],
-              "cursor": null
-            }
-            """);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
-    }
-
-    [Fact]
-    public async Task WithCursor_ReturnSuccess_JsonOutput()
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
-        clientsClient.Setup(x => x.ListClientsAsync(
-                "api-1",
-                "cursor-1",
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateListClientsPage(
-                endCursor: null,
-                hasNextPage: false,
-                ("client-1", "web-client", "products")));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "client",
                 "list",
@@ -458,11 +360,10 @@ public sealed class ListClientCommandTests(NitroCommandFixture fixture) : IClass
             .ExecuteAsync();
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
-        Assert.Equal(1, result.ExitCode);
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -551,12 +452,11 @@ public sealed class ListClientCommandTests(NitroCommandFixture fixture) : IClass
             .ExecuteAsync();
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             The server rejected your request as unauthorized. Ensure your account or API key
             has the proper permissions for this action.
             """);
-        Assert.Equal(1, result.ExitCode);
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();

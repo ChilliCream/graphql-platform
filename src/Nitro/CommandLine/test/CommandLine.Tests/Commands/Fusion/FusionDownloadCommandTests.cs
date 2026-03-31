@@ -360,8 +360,10 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : IC
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = CreateExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
@@ -370,7 +372,7 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : IC
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "fusion",
                 "download",
@@ -415,6 +417,11 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Downloading latest Fusion configuration from stage 'prod' of API 'api-1'
+            └── ✕ Failed to download the latest Fusion configuration.
+            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
@@ -424,39 +431,10 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : IC
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = CreateExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "fusion",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "prod",
-                "--output-file",
-                "/tmp/gateway.far")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = CreateExceptionClient(new NitroClientAuthorizationException());
@@ -465,7 +443,7 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : IC
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "fusion",
                 "download",
@@ -511,44 +489,17 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Downloading latest Fusion configuration from stage 'prod' of API 'api-1'
+            └── ✕ Failed to download the latest Fusion configuration.
+            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key
             has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = CreateExceptionClient(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "fusion",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "prod",
-                "--output-file",
-                "/tmp/gateway.far")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
 
         client.VerifyAll();
     }

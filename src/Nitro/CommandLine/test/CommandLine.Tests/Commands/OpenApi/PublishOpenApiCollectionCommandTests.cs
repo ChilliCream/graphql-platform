@@ -76,12 +76,14 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
         Assert.Equal(1, result.ExitCode);
     }
 
-    [Fact]
-    public async Task NoSession_Or_ApiKey_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
         var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "openapi",
                 "publish",
@@ -99,30 +101,6 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             Object reference not set to an instance of an object.
             """);
         Assert.Equal(1, result.ExitCode);
-    }
-
-    [Fact]
-    public async Task NoSession_Or_ApiKey_ReturnsError_JsonOutput()
-    {
-        // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "openapi",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId)
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            Object reference not set to an instance of an object.
-            """);
     }
 
     [Fact]
@@ -163,8 +141,10 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = CreatePublishExceptionClient(
@@ -174,7 +154,7 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "openapi",
                 "publish",
@@ -192,38 +172,6 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = CreatePublishExceptionClient(
-            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "openapi",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId)
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
 
         client.VerifyAll();
     }
@@ -267,8 +215,10 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var client = CreatePublishExceptionClient(
@@ -278,7 +228,7 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "openapi",
                 "publish",
@@ -297,39 +247,6 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var client = CreatePublishExceptionClient(
-            new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "openapi",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId)
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
-            """);
 
         client.VerifyAll();
     }
@@ -373,10 +290,11 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
     }
 
     [Theory]
-    [MemberData(nameof(MutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_Interactive(
+    [MemberData(nameof(MutationErrorCasesWithModes))]
+    public async Task MutationReturnsTypedError_ReturnsError(
         IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors mutationError,
-        string expectedStdErr)
+        string expectedStdErr,
+        InteractionMode mode)
     {
         // arrange
         var client = CreatePublishSetup(
@@ -386,7 +304,7 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "openapi",
                 "publish",
@@ -401,38 +319,6 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
         // assert
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [MemberData(nameof(MutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_JsonOutput(
-        IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors mutationError,
-        string expectedStdErr)
-    {
-        // arrange
-        var client = CreatePublishSetup(
-            CreatePublishPayloadWithErrors(mutationError));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "openapi",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId)
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(expectedStdErr);
 
         client.VerifyAll();
     }
@@ -481,8 +367,10 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task MutationReturnsNullRequestId_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task MutationReturnsNullRequestId_ReturnsError(InteractionMode mode)
     {
         // arrange
         var payload = new Mock<IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection>(MockBehavior.Strict);
@@ -497,7 +385,7 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "openapi",
                 "publish",
@@ -516,44 +404,6 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             expected data.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task MutationReturnsNullRequestId_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var payload = new Mock<IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors)
-            .Returns((IReadOnlyList<IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors>?)null);
-        payload.SetupGet(x => x.Id)
-            .Returns((string?)null);
-
-        var client = CreatePublishSetup(payload.Object);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "openapi",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId)
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The GraphQL mutation completed without errors, but the server did not return the
-            expected data.
-            """);
 
         client.VerifyAll();
     }
@@ -721,8 +571,10 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task Subscription_FailedWithSimpleError_ReturnsError_Interactive()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Subscription_FailedWithSimpleError_ReturnsError(InteractionMode mode)
     {
         // arrange
         var errorMock = new Mock<IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Errors>(
@@ -743,7 +595,7 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "openapi",
                 "publish",
@@ -762,50 +614,6 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             OpenAPI collection publish failed.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task Subscription_FailedWithSimpleError_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var errorMock = new Mock<IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Errors>(
-            MockBehavior.Strict);
-        errorMock.As<IUnexpectedProcessingError>()
-            .SetupGet(x => x.Message)
-            .Returns("Something went wrong during publish.");
-
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate[]
-            {
-                CreateOperationInProgress(),
-                CreatePublishFailed(errorMock.Object)
-            });
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "openapi",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId)
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            Something went wrong during publish.
-            OpenAPI collection publish failed.
-            """);
 
         client.VerifyAll();
     }
@@ -844,6 +652,7 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             ├── Processing...
             └── ✕ Failed to publish a new OpenAPI collection version.
             """);
+        Assert.Empty(result.StdErr);
         Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
@@ -1060,6 +869,14 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             .ExecuteAsync();
 
         // assert
+        // Falls through the loop with no terminal state, so activity.Fail() is called
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing new OpenAPI collection version 'v1' to stage 'production'
+            ├── ! Unknown server response. Consider updating the CLI.
+            └── ✕ Failed to publish a new OpenAPI collection version.
+            """);
+        Assert.Empty(result.StdErr);
         Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
@@ -1189,6 +1006,15 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
         return new PublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_ProcessingTaskApproved(
             "ProcessingTaskApproved",
             ProcessingState.Approved);
+    }
+
+    public static IEnumerable<object[]> MutationErrorCasesWithModes()
+    {
+        foreach (var errorCase in MutationErrorCases())
+        {
+            yield return [.. errorCase, InteractionMode.Interactive];
+            yield return [.. errorCase, InteractionMode.JsonOutput];
+        }
     }
 
     public static IEnumerable<object[]> MutationErrorCases()
