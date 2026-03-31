@@ -19,7 +19,7 @@ internal sealed class ListStagesCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("list")
     {
-        Description = "Lists all stages of an API";
+        Description = "List all stages of an API.";
 
         Options.Add(Opt<OptionalApiIdOption>.Instance);
 

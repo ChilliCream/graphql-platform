@@ -19,7 +19,7 @@ internal sealed class ListOpenApiCollectionCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("list")
     {
-        Description = "Lists all OpenAPI collections of an API";
+        Description = "List all OpenAPI collections of an API.";
 
         Options.Add(Opt<OptionalApiIdOption>.Instance);
         Options.Add(Opt<OptionalCursorOption>.Instance);

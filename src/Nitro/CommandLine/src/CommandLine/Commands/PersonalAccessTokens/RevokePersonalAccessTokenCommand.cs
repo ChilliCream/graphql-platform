@@ -18,7 +18,7 @@ internal sealed class RevokePersonalAccessTokenCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("revoke")
     {
-        Description = "Revokes a personal access token";
+        Description = "Revoke a personal access token.";
 
         Arguments.Add(Opt<IdArgument>.Instance);
         Options.Add(Opt<ForceOption>.Instance);

@@ -11,7 +11,7 @@ internal sealed class FusionMigrateCommand : Command
         INitroConsole console,
         IFileSystem fileSystem) : base("migrate")
     {
-        Description = "Migrate Fusion configuration files";
+        Description = "Migrate Fusion configuration files.";
 
         Arguments.Add(Opt<FusionMigrateTargetArgument>.Instance);
         Options.Add(Opt<WorkingDirectoryOption>.Instance);

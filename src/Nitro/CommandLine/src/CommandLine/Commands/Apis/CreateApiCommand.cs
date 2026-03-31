@@ -19,7 +19,7 @@ internal sealed class CreateApiCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("create")
     {
-        Description = "Creates a new API";
+        Description = "Create a new API.";
 
         Options.Add(Opt<ApiPathOption>.Instance);
         Options.Add(Opt<ApiNameOption>.Instance);

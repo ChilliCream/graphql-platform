@@ -18,7 +18,7 @@ internal sealed class ValidateSchemaCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("validate")
     {
-        Description = "Validates a schema against a stage";
+        Description = "Validate a schema against a stage.";
 
         Options.Add(Opt<StageNameOption>.Instance);
         Options.Add(Opt<ApiIdOption>.Instance);

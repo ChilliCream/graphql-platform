@@ -7,7 +7,7 @@ internal sealed class OptionalOutputFormatOption : Option<OutputFormat?>
     public OptionalOutputFormatOption() : base("--output")
     {
         Description =
-            "The format in which the result should be displayed, if this option is set, the console will be non-interactive and the result will be displayed in the specified format";
+            "The output format. Setting this option will disable the interactive mode.";
 
         Required = false;
 

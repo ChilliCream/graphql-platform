@@ -14,7 +14,7 @@ internal sealed class UnpublishClientCommand : Command
         IClientsClient client,
         ISessionService sessionService) : base("unpublish")
     {
-        Description = "Unpublish a client version from a stage";
+        Description = "Unpublish a client version from a stage.";
 
         Options.Add(Opt<TagsOption>.Instance);
         Options.Add(Opt<StageNameOption>.Instance);

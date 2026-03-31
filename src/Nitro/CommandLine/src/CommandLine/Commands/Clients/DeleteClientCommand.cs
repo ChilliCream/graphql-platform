@@ -21,7 +21,7 @@ internal sealed class DeleteClientCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("delete")
     {
-        Description = "Deletes a client";
+        Description = "Delete a client.";
 
         Options.Add(Opt<ForceOption>.Instance);
         Arguments.Add(Opt<OptionalIdArgument>.Instance);

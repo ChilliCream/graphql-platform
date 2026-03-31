@@ -18,7 +18,7 @@ internal sealed class ShowEnvironmentCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("show")
     {
-        Description = "Shows details of an environment";
+        Description = "Show details of an environment.";
 
         Arguments.Add(Opt<IdArgument>.Instance);
 

@@ -15,7 +15,7 @@ internal sealed class LaunchCommand : Command
     public LaunchCommand(
         INitroConsole console) : base("launch")
     {
-        Description = "Launch Nitro in your default browser";
+        Description = "Launch Nitro in your default browser.";
 
         this.AddGlobalNitroOptions();
 

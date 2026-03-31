@@ -18,7 +18,7 @@ internal sealed class ApiCommand : Command
         SetApiSettingsApiCommand setApiSettingsApiCommand)
         : base("api")
     {
-        Description = "Manage APIs";
+        Description = "Manage APIs.";
 
         Subcommands.Add(createApiCommand);
         Subcommands.Add(deleteApiCommand);

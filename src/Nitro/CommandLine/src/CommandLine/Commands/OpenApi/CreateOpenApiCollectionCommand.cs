@@ -20,7 +20,7 @@ internal sealed class CreateOpenApiCollectionCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("create")
     {
-        Description = "Creates a new OpenAPI collection";
+        Description = "Create a new OpenAPI collection.";
 
         Options.Add(Opt<OptionalApiIdOption>.Instance);
         Options.Add(Opt<OpenApiCollectionNameOption>.Instance);

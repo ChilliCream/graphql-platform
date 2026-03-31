@@ -16,7 +16,7 @@ internal sealed class StageCommand : Command
         ListStagesCommand listStagesCommand)
         : base("stage")
     {
-        Description = "Manage stages";
+        Description = "Manage stages.";
 
         Subcommands.Add(editStagesCommand);
         Subcommands.Add(deleteStageCommand);

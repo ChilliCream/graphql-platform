@@ -16,7 +16,7 @@ internal sealed class SetDefaultWorkspaceCommand : Command
         ISessionService sessionService) : base(Command)
     {
         Description =
-            "Use this command to select a workspace and set it as your default workspace";
+            "Select a workspace and set it as the default workspace.";
 
         this.AddGlobalNitroOptions();
 

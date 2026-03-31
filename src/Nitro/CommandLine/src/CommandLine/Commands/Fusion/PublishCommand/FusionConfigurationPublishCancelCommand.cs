@@ -14,7 +14,7 @@ internal sealed class FusionConfigurationPublishCancelCommand : Command
         ISessionService sessionService,
         IFileSystem fileSystem) : base("cancel")
     {
-        Description = "Cancels a Fusion configuration publish.";
+        Description = "Cancel a Fusion configuration publish.";
 
         Options.Add(Opt<OptionalRequestIdOption>.Instance);
 

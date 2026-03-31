@@ -24,7 +24,7 @@ internal sealed class FusionDownloadCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("download")
     {
-        Description = "Downloads the most recent gateway configuration";
+        Description = "Download the most recent gateway configuration.";
 
         Options.Add(Opt<StageNameOption>.Instance);
         Options.Add(Opt<ApiIdOption>.Instance);

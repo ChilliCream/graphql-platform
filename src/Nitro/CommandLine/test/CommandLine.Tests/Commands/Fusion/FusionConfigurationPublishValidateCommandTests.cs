@@ -38,7 +38,7 @@ public sealed class FusionConfigurationPublishValidateCommandTests
         result.AssertHelpOutput(
             """
             Description:
-              Validates a Fusion configuration against the schema and clients.
+              Validate a Fusion configuration against the schema and clients.
 
             Usage:
               nitro fusion publish validate [options]
@@ -48,7 +48,7 @@ public sealed class FusionConfigurationPublishValidateCommandTests
               -a, --archive, --configuration <archive> (REQUIRED)  The path to a Fusion archive file. (the --configuration alias will be removed in an upcoming version) [env: NITRO_FUSION_CONFIG_FILE]
               --cloud-url <cloud-url>                              The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
               --api-key <api-key>                                  The API key that is used for the authentication [env: NITRO_API_KEY]
-              --output <json>                                      The format in which the result should be displayed, if this option is set, the console will be non-interactive and the result will be displayed in the specified format [env: NITRO_OUTPUT_FORMAT]
+              --output <json>                                      The output format. Setting this option will disable the interactive mode. [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                       Show help and usage information
             """);
     }

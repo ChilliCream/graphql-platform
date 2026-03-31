@@ -16,7 +16,7 @@ internal sealed class ListEnvironmentCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("list")
     {
-        Description = "Lists all environments of a workspace";
+        Description = "List all environments of a workspace.";
 
         Options.Add(Opt<OptionalCursorOption>.Instance);
         Options.Add(Opt<OptionalWorkspaceIdOption>.Instance);

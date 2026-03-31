@@ -13,7 +13,7 @@ internal sealed class PublishOpenApiCollectionCommand : Command
         INitroConsole console,
         IOpenApiClient client) : base("publish")
     {
-        Description = "Publish an OpenAPI collection version to a stage";
+        Description = "Publish an OpenAPI collection version to a stage.";
 
         Options.Add(Opt<TagOption>.Instance);
         Options.Add(Opt<StageNameOption>.Instance);

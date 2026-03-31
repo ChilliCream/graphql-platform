@@ -17,7 +17,7 @@ internal sealed class PublishSchemaCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("publish")
     {
-        Description = "Publish a schema version to a stage";
+        Description = "Publish a schema version to a stage.";
 
         Options.Add(Opt<TagOption>.Instance);
         Options.Add(Opt<StageNameOption>.Instance);

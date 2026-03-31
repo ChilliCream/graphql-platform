@@ -22,7 +22,7 @@ internal sealed class ClientCommand : Command
         DownloadClientCommand downloadClientCommand)
         : base("client")
     {
-        Description = "Manage clients";
+        Description = "Manage clients.";
 
         Subcommands.Add(publishClientCommand);
         Subcommands.Add(unpublishClientCommand);

@@ -18,7 +18,7 @@ internal sealed class CreatePersonalAccessTokenCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("create")
     {
-        Description = "Creates a new personal access token";
+        Description = "Create a new personal access token.";
 
         Options.Add(Opt<OptionalDescriptionOption>.Instance);
         Options.Add(Opt<ExpiresOption>.Instance);

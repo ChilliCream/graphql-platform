@@ -21,7 +21,7 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("delete")
     {
-        Description = "Deletes an OpenAPI collection";
+        Description = "Delete an OpenAPI collection.";
 
         Options.Add(Opt<ForceOption>.Instance);
         Arguments.Add(Opt<OptionalIdArgument>.Instance);

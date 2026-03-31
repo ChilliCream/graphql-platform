@@ -18,7 +18,7 @@ internal sealed class ShowClientCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("show")
     {
-        Description = "Shows details of a client";
+        Description = "Show details of a client.";
 
         Arguments.Add(Opt<IdArgument>.Instance);
 

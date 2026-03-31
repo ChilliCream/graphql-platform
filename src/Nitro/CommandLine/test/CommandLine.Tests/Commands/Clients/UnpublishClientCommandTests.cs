@@ -21,18 +21,18 @@ public sealed class UnpublishClientCommandTests
         result.AssertHelpOutput(
             """
             Description:
-              Unpublish a client version from a stage
+              Unpublish a client version from a stage.
 
             Usage:
               nitro client unpublish [options]
 
             Options:
-              --tag <tag> (REQUIRED)              The tag(s) of the schema version to deploy [env: NITRO_TAG]
+              --tag <tag> (REQUIRED)              One or more tags of the schema versions to deploy. [env: NITRO_TAG]
               --stage <stage> (REQUIRED)          The name of the stage [env: NITRO_STAGE]
               --client-id <client-id> (REQUIRED)  The ID of the client [env: NITRO_CLIENT_ID]
               --cloud-url <cloud-url>             The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
               --api-key <api-key>                 The API key that is used for the authentication [env: NITRO_API_KEY]
-              --output <json>                     The format in which the result should be displayed, if this option is set, the console will be non-interactive and the result will be displayed in the specified format [env: NITRO_OUTPUT_FORMAT]
+              --output <json>                     The output format. Setting this option will disable the interactive mode. [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                      Show help and usage information
             """);
     }

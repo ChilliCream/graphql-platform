@@ -20,7 +20,7 @@ internal sealed class CreateMcpFeatureCollectionCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("create")
     {
-        Description = "Creates a new MCP Feature Collection";
+        Description = "Create a new MCP feature collection.";
 
         Options.Add(Opt<OptionalApiIdOption>.Instance);
         Options.Add(Opt<McpFeatureCollectionNameOption>.Instance);

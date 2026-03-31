@@ -7,6 +7,7 @@ internal sealed class FusionMigrateTargetArgument : Argument<string>
 
     public FusionMigrateTargetArgument() : base(ArgumentName)
     {
+        Description = "The migration target.";
         this.AcceptOnlyFromAmong(SubgraphConfig);
     }
 }

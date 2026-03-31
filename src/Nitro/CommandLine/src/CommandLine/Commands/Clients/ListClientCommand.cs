@@ -21,7 +21,7 @@ internal sealed class ListClientCommand : Command
         IResultHolder resultHolder)
         : base("list")
     {
-        Description = "Lists all clients of an API";
+        Description = "List all clients of an API.";
 
         Options.Add(Opt<OptionalApiIdOption>.Instance);
         Options.Add(Opt<OptionalCursorOption>.Instance);

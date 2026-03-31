@@ -18,7 +18,7 @@ internal sealed class DownloadClientCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("download")
     {
-        Description = "Download the queries from a stage";
+        Description = "Download the queries from a stage.";
 
         Options.Add(Opt<ApiIdOption>.Instance);
         Options.Add(Opt<StageNameOption>.Instance);

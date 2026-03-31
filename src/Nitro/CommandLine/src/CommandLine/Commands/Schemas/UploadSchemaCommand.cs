@@ -19,7 +19,7 @@ internal sealed class UploadSchemaCommand : Command
         IResultHolder resultHolder)
         : base("upload")
     {
-        Description = "Upload a new schema version";
+        Description = "Upload a new schema version.";
 
         Options.Add(Opt<TagOption>.Instance);
         Options.Add(Opt<SchemaFileOption>.Instance);

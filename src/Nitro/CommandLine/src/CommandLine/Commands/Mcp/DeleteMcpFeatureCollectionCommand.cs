@@ -21,7 +21,7 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("delete")
     {
-        Description = "Deletes an MCP Feature Collection";
+        Description = "Delete an MCP feature collection.";
 
         Options.Add(Opt<ForceOption>.Instance);
         Arguments.Add(Opt<OptionalIdArgument>.Instance);

@@ -18,7 +18,7 @@ internal sealed class WorkspaceCommand : Command
         ShowWorkspaceCommand showWorkspaceCommand)
         : base("workspace")
     {
-        Description = "Manage workspaces";
+        Description = "Manage workspaces.";
 
         Subcommands.Add(createWorkspaceCommand);
         Subcommands.Add(currentWorkspaceCommand);

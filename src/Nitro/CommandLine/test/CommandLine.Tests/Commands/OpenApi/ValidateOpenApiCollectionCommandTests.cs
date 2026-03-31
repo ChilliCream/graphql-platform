@@ -27,7 +27,7 @@ public sealed class ValidateOpenApiCollectionCommandTests
         result.AssertHelpOutput(
             """
             Description:
-              Validate an OpenAPI collection version
+              Validate an OpenAPI collection version.
 
             Usage:
               nitro openapi validate [options]
@@ -38,7 +38,7 @@ public sealed class ValidateOpenApiCollectionCommandTests
               -p, --pattern <pattern> (REQUIRED)                          One or more glob patterns for selecting OpenAPI document files
               --cloud-url <cloud-url>                                     The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
               --api-key <api-key>                                         The API key that is used for the authentication [env: NITRO_API_KEY]
-              --output <json>                                             The format in which the result should be displayed, if this option is set, the console will be non-interactive and the result will be displayed in the specified format [env: NITRO_OUTPUT_FORMAT]
+              --output <json>                                             The output format. Setting this option will disable the interactive mode. [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                              Show help and usage information
             """);
     }

@@ -24,7 +24,7 @@ internal class FusionRunCommand : Command
         INitroConsole console,
         IFileSystem fileSystem) : base("run")
     {
-        base.Description = "Starts a Fusion gateway with the specified archive."
+        base.Description = "Start a Fusion gateway with the specified archive."
             + Environment.NewLine
             + "This command only supports Fusion v2.";
 

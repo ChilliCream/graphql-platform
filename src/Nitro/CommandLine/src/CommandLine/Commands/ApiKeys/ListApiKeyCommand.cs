@@ -16,7 +16,7 @@ internal sealed class ListApiKeyCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("list")
     {
-        Description = "Lists all API keys of a workspace";
+        Description = "List all API keys of a workspace.";
 
         Options.Add(Opt<OptionalCursorOption>.Instance);
         Options.Add(Opt<OptionalWorkspaceIdOption>.Instance);

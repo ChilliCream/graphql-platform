@@ -18,7 +18,7 @@ internal sealed class DeleteApiCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("delete")
     {
-        Description = "Deletes an API by ID";
+        Description = "Delete an API by ID.";
 
         Arguments.Add(Opt<IdArgument>.Instance);
         Options.Add(Opt<ForceOption>.Instance);

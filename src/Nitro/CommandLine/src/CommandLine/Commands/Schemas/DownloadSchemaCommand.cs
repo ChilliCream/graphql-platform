@@ -18,7 +18,7 @@ internal sealed class DownloadSchemaCommand : Command
         IResultHolder resultHolder)
         : base("download")
     {
-        Description = "Download a schema from a stage";
+        Description = "Download a schema from a stage.";
 
         Options.Add(Opt<ApiIdOption>.Instance);
         Options.Add(Opt<StageNameOption>.Instance);

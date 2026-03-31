@@ -19,7 +19,7 @@ internal sealed class McpCommand : Command
         ValidateMcpFeatureCollectionCommand validateMcpFeatureCollectionCommand)
         : base("mcp")
     {
-        Description = "Manage MCP Feature Collections";
+        Description = "Manage MCP feature collections.";
 
         Subcommands.Add(createMcpFeatureCollectionCommand);
         Subcommands.Add(deleteMcpFeatureCollectionCommand);

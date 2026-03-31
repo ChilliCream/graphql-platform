@@ -16,7 +16,7 @@ internal sealed class ListApiCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("list")
     {
-        Description = "Lists all APIs of a workspace";
+        Description = "List all APIs of a workspace.";
 
         Options.Add(Opt<OptionalCursorOption>.Instance);
         Options.Add(Opt<OptionalWorkspaceIdOption>.Instance);

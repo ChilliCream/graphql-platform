@@ -15,7 +15,7 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
         IFileSystem fileSystem,
         ISessionService sessionService) : base("upload")
     {
-        Description = "Upload a new MCP Feature Collection version";
+        Description = "Upload a new MCP feature collection version.";
 
         Options.Add(Opt<TagOption>.Instance);
         Options.Add(Opt<McpFeatureCollectionIdOption>.Instance);

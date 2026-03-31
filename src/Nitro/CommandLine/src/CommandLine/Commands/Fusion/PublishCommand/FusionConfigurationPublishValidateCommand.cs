@@ -14,7 +14,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
         IFusionConfigurationClient fusionConfigurationClient,
         IFileSystem fileSystem) : base("validate")
     {
-        Description = "Validates a Fusion configuration against the schema and clients.";
+        Description = "Validate a Fusion configuration against the schema and clients.";
 
         Options.Add(Opt<OptionalRequestIdOption>.Instance);
         Options.Add(Opt<FusionArchiveFileOption>.Instance);

@@ -34,7 +34,7 @@
     <value>✅ Composite schema written to '{0}'.</value>
   </data>
   <data name="ComposeCommand_Description" xml:space="preserve">
-    <value>Composes multiple source schemas into a single composite schema.</value>
+    <value>Compose multiple source schemas into a single composite schema.</value>
   </data>
   <data name="ComposeCommand_EnableGlobalObjectIdentification_Description" xml:space="preserve">
     <value>Determines whether the 'Query.node' field shall be added.</value>

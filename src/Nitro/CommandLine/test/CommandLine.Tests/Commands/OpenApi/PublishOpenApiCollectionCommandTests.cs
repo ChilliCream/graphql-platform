@@ -28,7 +28,7 @@ public sealed class PublishOpenApiCollectionCommandTests
         result.AssertHelpOutput(
             """
             Description:
-              Publish an OpenAPI collection version to a stage
+              Publish an OpenAPI collection version to a stage.
 
             Usage:
               nitro openapi publish [options]
@@ -38,10 +38,10 @@ public sealed class PublishOpenApiCollectionCommandTests
               --stage <stage> (REQUIRED)                                  The name of the stage [env: NITRO_STAGE]
               --openapi-collection-id <openapi-collection-id> (REQUIRED)  The ID of the OpenAPI collection [env: NITRO_OPENAPI_COLLECTION_ID]
               --force                                                     Will not ask for confirmation on deletes or overwrites.
-              --wait-for-approval                                         Wait for approval [env: NITRO_SUBGRAPH_NAME]
+              --wait-for-approval                                         Wait for approval [env: NITRO_WAIT_FOR_APPROVAL]
               --cloud-url <cloud-url>                                     The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
               --api-key <api-key>                                         The API key that is used for the authentication [env: NITRO_API_KEY]
-              --output <json>                                             The format in which the result should be displayed, if this option is set, the console will be non-interactive and the result will be displayed in the specified format [env: NITRO_OUTPUT_FORMAT]
+              --output <json>                                             The output format. Setting this option will disable the interactive mode. [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                              Show help and usage information
             """);
     }

@@ -19,7 +19,7 @@ internal sealed class ListClientVersionsCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("versions")
     {
-        Description = "Lists all versions of a client";
+        Description = "List all versions of a client.";
 
         Options.Add(Opt<OptionalClientIdOption>.Instance);
         Options.Add(Opt<OptionalCursorOption>.Instance);

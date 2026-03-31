@@ -16,7 +16,7 @@ internal sealed class PersonalAccessTokenCommand : Command
         ListPersonalAccessTokenCommand listPersonalAccessTokenCommand)
         : base("pat")
     {
-        Description = "Manage personal access tokens";
+        Description = "Manage personal access tokens.";
 
         Subcommands.Add(createPersonalAccessTokenCommand);
         Subcommands.Add(revokePersonalAccessTokenCommand);

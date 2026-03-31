@@ -19,7 +19,7 @@ internal sealed class DeleteStageCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("delete")
     {
-        Description = "Deletes a stage by name";
+        Description = "Delete a stage by name.";
 
         Options.Add(Opt<OptionalApiIdOption>.Instance);
         Options.Add(Opt<StageNameOption>.Instance);

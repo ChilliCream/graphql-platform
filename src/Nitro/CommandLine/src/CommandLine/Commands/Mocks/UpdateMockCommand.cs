@@ -23,7 +23,7 @@ internal sealed class UpdateMockCommand : Command
         IResultHolder resultHolder)
         : base("update")
     {
-        Description = "Updates a mock schema with a new schema and extension file.";
+        Description = "Update a mock schema with a new schema and extension file.";
 
         Options.Add(Opt<OptionalExtensionFileOption>.Instance);
         Options.Add(Opt<OptionalBaseSchemaFileOption>.Instance);

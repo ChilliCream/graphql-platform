@@ -33,7 +33,7 @@ internal sealed class FusionPublishCommand : Command
         IFileSystem fileSystem)
         : base("publish")
     {
-        Description = "Publishes a Fusion archive to Nitro."
+        Description = "Publish a Fusion archive to Nitro."
             + Environment.NewLine
             + "To take control over the deployment orchestration use sub-commands like 'begin'."
             + Environment.NewLine

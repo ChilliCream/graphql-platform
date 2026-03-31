@@ -13,7 +13,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
         IOpenApiClient client,
         IFileSystem fileSystem) : base("validate")
     {
-        Description = "Validate an OpenAPI collection version";
+        Description = "Validate an OpenAPI collection version.";
 
         Options.Add(Opt<StageNameOption>.Instance);
         Options.Add(Opt<OpenApiCollectionIdOption>.Instance);

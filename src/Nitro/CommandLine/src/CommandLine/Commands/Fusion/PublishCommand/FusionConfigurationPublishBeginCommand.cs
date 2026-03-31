@@ -18,7 +18,7 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
         IFileSystem fileSystem,
         IResultHolder resultHolder) : base("begin")
     {
-        Description = "Begin a configuration publish. This command will request a deployment slot";
+        Description = "Begin a configuration publish. This command will request a deployment slot.";
 
         Options.Add(Opt<TagOption>.Instance);
         Options.Add(Opt<StageNameOption>.Instance);

@@ -10,7 +10,7 @@ internal sealed class CurrentWorkspaceCommand : Command
         INitroConsole console,
         ISessionService sessionService) : base("current")
     {
-        Description = "Shows the name of the currently selected workspace.";
+        Description = "Show the name of the currently selected workspace.";
 
         this.AddGlobalNitroOptions();
 

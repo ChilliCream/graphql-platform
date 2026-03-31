@@ -19,7 +19,7 @@ internal sealed class OpenApiCommand : Command
         ValidateOpenApiCollectionCommand validateOpenApiCollectionCommand)
         : base("openapi")
     {
-        Description = "Manage OpenAPI collections";
+        Description = "Manage OpenAPI collections.";
 
         Subcommands.Add(createOpenApiCollectionCommand);
         Subcommands.Add(deleteOpenApiCollectionCommand);

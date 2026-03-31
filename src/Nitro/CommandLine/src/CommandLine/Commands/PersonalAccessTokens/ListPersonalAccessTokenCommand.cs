@@ -15,7 +15,7 @@ internal sealed class ListPersonalAccessTokenCommand : Command
         IPersonalAccessTokensClient client,
         IResultHolder resultHolder) : base("list")
     {
-        Description = "Lists all personal access tokens";
+        Description = "List all personal access tokens.";
 
         Options.Add(Opt<OptionalCursorOption>.Instance);
 

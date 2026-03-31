@@ -19,7 +19,7 @@ internal sealed class CreateWorkspaceCommand : Command
         IResultHolder resultHolder) : base("create")
     {
         Description =
-            "Creates a new workspace";
+            "Create a new workspace.";
 
         Options.Add(Opt<SetAsDefaultWorkspaceOption>.Instance);
         Options.Add(Opt<WorkspaceNameOption>.Instance);

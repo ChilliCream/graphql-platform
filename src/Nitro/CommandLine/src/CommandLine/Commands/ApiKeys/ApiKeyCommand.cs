@@ -15,7 +15,7 @@ internal sealed class ApiKeyCommand : Command
         DeleteApiKeyCommand deleteApiKeyCommand,
         ListApiKeyCommand listApiKeyCommand) : base("api-key")
     {
-        Description = "Manage API keys";
+        Description = "Manage API keys.";
 
         Subcommands.Add(createApiKeyCommand);
         Subcommands.Add(deleteApiKeyCommand);

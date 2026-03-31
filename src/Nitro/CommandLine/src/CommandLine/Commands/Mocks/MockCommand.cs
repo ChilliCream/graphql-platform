@@ -16,7 +16,7 @@ internal sealed class MockCommand : Command
         UpdateMockCommand updateMockCommand)
         : base("mock")
     {
-        Description = "Create, Update and Delete Mocks";
+        Description = "Create, update, and delete mocks.";
         Hidden = true;
 
         Subcommands.Add(createMockCommand);

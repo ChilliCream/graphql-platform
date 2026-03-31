@@ -6,7 +6,7 @@ internal class WaitForApprovalOption : Option<bool>
     {
         Required = false;
         Description = "Wait for approval";
-        this.DefaultFromEnvironmentValue("SUBGRAPH_NAME");
+        this.DefaultFromEnvironmentValue("WAIT_FOR_APPROVAL");
     }
 }
 

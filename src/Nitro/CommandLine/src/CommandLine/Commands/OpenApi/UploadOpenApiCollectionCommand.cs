@@ -15,7 +15,7 @@ internal sealed class UploadOpenApiCollectionCommand : Command
         IFileSystem fileSystem,
         ISessionService sessionService) : base("upload")
     {
-        Description = "Upload a new OpenAPI collection version";
+        Description = "Upload a new OpenAPI collection version.";
 
         Options.Add(Opt<TagOption>.Instance);
         Options.Add(Opt<OpenApiCollectionIdOption>.Instance);

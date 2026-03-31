@@ -16,7 +16,7 @@ internal sealed class PublishClientCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("publish")
     {
-        Description = "Publish a client version to a stage";
+        Description = "Publish a client version to a stage.";
 
         Options.Add(Opt<TagOption>.Instance);
         Options.Add(Opt<StageNameOption>.Instance);

@@ -18,7 +18,7 @@ internal sealed class ShowWorkspaceCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("show")
     {
-        Description = "Shows details of a workspace";
+        Description = "Show details of a workspace.";
 
         Arguments.Add(Opt<IdArgument>.Instance);
 

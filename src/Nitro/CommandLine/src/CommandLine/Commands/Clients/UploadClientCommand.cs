@@ -18,7 +18,7 @@ internal sealed class UploadClientCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("upload")
     {
-        Description = "Upload a new client version";
+        Description = "Upload a new client version.";
 
         Options.Add(Opt<TagOption>.Instance);
         Options.Add(Opt<OperationsFileOption>.Instance);

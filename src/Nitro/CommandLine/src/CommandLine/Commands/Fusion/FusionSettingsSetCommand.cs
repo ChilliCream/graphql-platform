@@ -20,7 +20,7 @@ internal sealed class FusionSettingsSetCommand : Command
         IFileSystem fileSystem,
         IResultHolder resultHolder) : base("set")
     {
-        Description = "Sets a Fusion composition setting in a Fusion archive.";
+        Description = "Set a Fusion composition setting in a Fusion archive.";
 
         Arguments.Add(Opt<FusionSettingsNameArgument>.Instance);
         Arguments.Add(Opt<FusionSettingsValueArgument>.Instance);

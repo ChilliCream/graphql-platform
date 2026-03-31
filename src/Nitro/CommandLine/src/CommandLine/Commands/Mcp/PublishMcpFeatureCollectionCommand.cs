@@ -13,7 +13,7 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
         INitroConsole console,
         IMcpClient client) : base("publish")
     {
-        Description = "Publish an MCP Feature Collection version to a stage";
+        Description = "Publish an MCP feature collection version to a stage.";
 
         Options.Add(Opt<TagOption>.Instance);
         Options.Add(Opt<StageNameOption>.Instance);

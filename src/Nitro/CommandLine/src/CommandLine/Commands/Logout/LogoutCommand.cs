@@ -9,7 +9,7 @@ internal sealed class LogoutCommand : Command
         INitroConsole console,
         ISessionService sessionService) : base("logout")
     {
-        Description = "Log out and remove session information";
+        Description = "Log out and remove session information.";
 
         this.AddGlobalNitroOptions();
 

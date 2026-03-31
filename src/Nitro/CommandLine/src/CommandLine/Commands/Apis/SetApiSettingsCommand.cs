@@ -19,7 +19,7 @@ internal sealed class SetApiSettingsApiCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("set-settings")
     {
-        Description = "Sets the settings of an API";
+        Description = "Set the settings of an API.";
 
         Arguments.Add(Opt<IdArgument>.Instance);
         Options.Add(Opt<TreatDangerousAsBreakingOption>.Instance);

@@ -16,7 +16,7 @@ internal sealed class EnvironmentCommand : Command
         ShowEnvironmentCommand showEnvironmentCommand)
         : base("environment")
     {
-        Description = "Manage environments";
+        Description = "Manage environments.";
 
         Subcommands.Add(createEnvironmentCommand);
         Subcommands.Add(listEnvironmentCommand);

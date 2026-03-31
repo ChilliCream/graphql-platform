@@ -15,7 +15,7 @@ internal sealed class ListWorkspaceCommand : Command
         IWorkspacesClient client,
         IResultHolder resultHolder) : base("list")
     {
-        Description = "Lists all workspaces";
+        Description = "List all workspaces.";
 
         Options.Add(Opt<OptionalCursorOption>.Instance);
 

@@ -4,7 +4,7 @@ internal sealed class TagsOption : Option<IEnumerable<string>>
 {
     public TagsOption() : base("--tag")
     {
-        Description = "The tag(s) of the schema version to deploy";
+        Description = "One or more tags of the schema versions to deploy.";
         Required = true;
         AllowMultipleArgumentsPerToken = true;
         this.DefaultFromEnvironmentValue("TAG");

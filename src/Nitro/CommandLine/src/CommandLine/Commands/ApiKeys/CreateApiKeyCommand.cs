@@ -19,7 +19,7 @@ internal sealed class CreateApiKeyCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("create")
     {
-        Description = "Creates a new API key";
+        Description = "Create a new API key.";
 
         Options.Add(Opt<ApiKeyNameOption>.Instance);
         Options.Add(Opt<OptionalApiIdOption>.Instance);

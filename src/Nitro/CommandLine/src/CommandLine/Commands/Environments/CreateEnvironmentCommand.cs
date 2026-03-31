@@ -18,7 +18,7 @@ internal sealed class CreateEnvironmentCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("create")
     {
-        Description = "Creates a new environment";
+        Description = "Create a new environment.";
 
         Options.Add(Opt<EnvironmentNameOption>.Instance);
         Options.Add(Opt<OptionalWorkspaceIdOption>.Instance);

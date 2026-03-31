@@ -21,7 +21,7 @@ internal sealed class FusionCommand : Command
         FusionUploadCommand fusionUploadCommand)
         : base("fusion")
     {
-        Description = "Manage Fusion configurations";
+        Description = "Manage Fusion configurations.";
 
         Subcommands.Add(fusionComposeCommand);
         Subcommands.Add(fusionDownloadCommand);

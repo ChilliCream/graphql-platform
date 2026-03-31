@@ -19,7 +19,7 @@ internal sealed class ListClientPublishedVersionsCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("published-versions")
     {
-        Description = "Lists all published versions of a client";
+        Description = "List all published versions of a client.";
 
         Options.Add(Opt<OptionalClientIdOption>.Instance);
         Options.Add(Opt<OptionalCursorOption>.Instance);

@@ -17,7 +17,7 @@ internal sealed class ValidateClientCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("validate")
     {
-        Description = "Validate a client version";
+        Description = "Validate a client version.";
 
         Options.Add(Opt<StageNameOption>.Instance);
         Options.Add(Opt<ClientIdOption>.Instance);

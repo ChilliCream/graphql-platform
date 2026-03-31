@@ -21,7 +21,7 @@ public sealed class CreateEnvironmentCommandTests
         result.AssertHelpOutput(
             """
             Description:
-              Creates a new environment
+              Create a new environment.
 
             Usage:
               nitro environment create [options]
@@ -31,7 +31,7 @@ public sealed class CreateEnvironmentCommandTests
               --workspace-id <workspace-id>  The ID of the workspace. [env: NITRO_WORKSPACE_ID]
               --cloud-url <cloud-url>        The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
               --api-key <api-key>            The API key that is used for the authentication [env: NITRO_API_KEY]
-              --output <json>                The format in which the result should be displayed, if this option is set, the console will be non-interactive and the result will be displayed in the specified format [env: NITRO_OUTPUT_FORMAT]
+              --output <json>                The output format. Setting this option will disable the interactive mode. [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                 Show help and usage information
             """);
     }

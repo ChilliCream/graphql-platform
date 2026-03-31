@@ -18,7 +18,7 @@ internal sealed class ShowApiCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("show")
     {
-        Description = "Shows details of an API";
+        Description = "Show details of an API.";
 
         Arguments.Add(Opt<IdArgument>.Instance);
 

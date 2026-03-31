@@ -26,7 +26,7 @@ internal sealed class FusionValidateCommand : Command
         IFileSystem fileSystem,
         IResultHolder resultHolder) : base("validate")
     {
-        Description = "Validates the composed GraphQL schema of a Fusion configuration against a stage.";
+        Description = "Validate the composed GraphQL schema of a Fusion configuration against a stage.";
 
         Options.Add(Opt<ApiIdOption>.Instance);
         Options.Add(Opt<StageNameOption>.Instance);

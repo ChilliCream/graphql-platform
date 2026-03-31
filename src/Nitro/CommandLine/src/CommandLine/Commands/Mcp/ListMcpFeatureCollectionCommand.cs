@@ -18,7 +18,7 @@ internal sealed class ListMcpFeatureCollectionCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("list")
     {
-        Description = "Lists all MCP Feature Collections of an API";
+        Description = "List all MCP feature collections of an API.";
 
         Options.Add(Opt<OptionalApiIdOption>.Instance);
         Options.Add(Opt<OptionalCursorOption>.Instance);

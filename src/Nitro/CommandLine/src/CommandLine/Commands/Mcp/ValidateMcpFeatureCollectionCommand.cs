@@ -13,7 +13,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
         IMcpClient client,
         IFileSystem fileSystem) : base("validate")
     {
-        Description = "Validate an MCP Feature Collection version";
+        Description = "Validate an MCP feature collection version.";
 
         Options.Add(Opt<StageNameOption>.Instance);
         Options.Add(Opt<McpFeatureCollectionIdOption>.Instance);

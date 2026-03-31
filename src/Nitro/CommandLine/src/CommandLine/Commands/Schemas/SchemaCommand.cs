@@ -17,7 +17,7 @@ internal sealed class SchemaCommand : Command
         DownloadSchemaCommand downloadSchemaCommand)
         : base("schema")
     {
-        Description = "Manage schemas";
+        Description = "Manage schemas.";
 
         Subcommands.Add(publishSchemaCommand);
         Subcommands.Add(validateSchemaCommand);

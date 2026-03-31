@@ -20,7 +20,7 @@ internal sealed class CreateClientCommand : Command
         ISessionService sessionService,
         IResultHolder resultHolder) : base("create")
     {
-        Description = "Creates a new client";
+        Description = "Create a new client.";
 
         Options.Add(Opt<OptionalApiIdOption>.Instance);
         Options.Add(Opt<ClientNameOption>.Instance);
