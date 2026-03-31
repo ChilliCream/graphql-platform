@@ -262,12 +262,13 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
             if (Configuration.Timeout is { } timeout)
             {
                 var bus = context.GetBus();
+
                 var timeProvider = context.Services.GetService<TimeProvider>() ?? TimeProvider.System;
+
                 var scheduledTime = timeProvider.GetUtcNow().Add(timeout);
-                var result = await bus.ScheduleSendAsync(
-                    new SagaTimedOutEvent(state.Id),
-                    scheduledTime,
-                    ct);
+
+                var result = await bus.ScheduleSendAsync(new SagaTimedOutEvent(state.Id), scheduledTime, ct);
+
                 if (result.Token is not null)
                 {
                     state.TimeoutToken = result.Token;
