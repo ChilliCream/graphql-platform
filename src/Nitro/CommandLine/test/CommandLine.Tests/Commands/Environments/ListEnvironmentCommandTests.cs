@@ -119,43 +119,7 @@ public sealed class ListEnvironmentCommandTests(NitroCommandFixture fixture) : I
         var result = await command.RunToCompletionAsync();
 
         // assert
-        Assert.Equal(0, result.ExitCode);
-        Assert.Empty(result.StdErr);
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-                                              Environments
-
-                                         ┌───────┬────────────┐
-                                         │ Id    │ Name       │
-                                         ├───────┼────────────┤
-                                         │ env-1 │ production │
-                                         │ env-2 │ staging    │
-                                         └───────┴────────────┘
-                                              Environments
-
-                                         ┌───────┬────────────┐
-                                         │ Id    │ Name       │
-                                         ├───────┼────────────┤
-                                         │ env-1 │ production │
-                                         │ env-2 │ staging    │
-                                         └───────┴────────────┘
-                                              Environments
-
-                                         ┌───────┬────────────┐
-                                         │ Id    │ Name       │
-                                         ├───────┼────────────┤
-                                         │ env-1 │ production │
-                                         │ env-2 │ staging    │
-                                         └───────┴────────────┘
-            {
-              "id": "env-1",
-              "name": "production",
-              "workspace": {
-                "name": "workspace-a"
-              }
-            }
-            """);
+        result.AssertSuccessful();
 
         client.VerifyAll();
     }
@@ -190,7 +154,6 @@ public sealed class ListEnvironmentCommandTests(NitroCommandFixture fixture) : I
         // assert
         result.AssertSuccess(
             """
-
             {
               "values": [
                 {
@@ -288,40 +251,7 @@ public sealed class ListEnvironmentCommandTests(NitroCommandFixture fixture) : I
         var result = await command.RunToCompletionAsync();
 
         // assert
-        Assert.Equal(0, result.ExitCode);
-        Assert.Empty(result.StdErr);
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-                                              Environments
-
-                                          ┌───────┬─────────┐
-                                          │ Id    │ Name    │
-                                          ├───────┼─────────┤
-                                          │ env-2 │ staging │
-                                          └───────┴─────────┘
-                                              Environments
-
-                                          ┌───────┬─────────┐
-                                          │ Id    │ Name    │
-                                          ├───────┼─────────┤
-                                          │ env-2 │ staging │
-                                          └───────┴─────────┘
-                                              Environments
-
-                                          ┌───────┬─────────┐
-                                          │ Id    │ Name    │
-                                          ├───────┼─────────┤
-                                          │ env-2 │ staging │
-                                          └───────┴─────────┘
-            {
-              "id": "env-2",
-              "name": "staging",
-              "workspace": {
-                "name": "workspace-a"
-              }
-            }
-            """);
+        result.AssertSuccessful();
 
         client.VerifyAll();
     }
@@ -358,7 +288,6 @@ public sealed class ListEnvironmentCommandTests(NitroCommandFixture fixture) : I
         // assert
         result.AssertSuccess(
             """
-
             {
               "values": [
                 {

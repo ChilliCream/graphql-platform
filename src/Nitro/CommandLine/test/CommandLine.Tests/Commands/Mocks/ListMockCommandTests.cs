@@ -199,7 +199,6 @@ public sealed class ListMockCommandTests(NitroCommandFixture fixture) : IClassFi
         // assert
         result.AssertSuccess(
             """
-
             {
               "values": [
                 {
@@ -351,7 +350,6 @@ public sealed class ListMockCommandTests(NitroCommandFixture fixture) : IClassFi
         // assert
         result.AssertSuccess(
             """
-
             {
               "values": [
                 {
@@ -504,7 +502,6 @@ public sealed class ListMockCommandTests(NitroCommandFixture fixture) : IClassFi
         // assert
         result.AssertSuccess(
             """
-
             {
               "values": [],
               "cursor": null

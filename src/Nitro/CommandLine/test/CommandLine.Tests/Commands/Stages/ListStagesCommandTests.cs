@@ -116,7 +116,6 @@ public sealed class ListStagesCommandTests(NitroCommandFixture fixture) : IClass
         // assert
         result.AssertSuccess(
             """
-
             {
               "values": [
                 {
@@ -225,7 +224,6 @@ public sealed class ListStagesCommandTests(NitroCommandFixture fixture) : IClass
         // assert
         result.AssertSuccess(
             """
-
             {
               "values": [],
               "cursor": null

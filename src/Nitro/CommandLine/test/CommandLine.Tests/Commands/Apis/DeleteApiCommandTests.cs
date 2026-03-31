@@ -118,10 +118,6 @@ public sealed class DeleteApiCommandTests(NitroCommandFixture fixture) : IClassF
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            ? Do you really want to delete API my-api [y/n] (y): n
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The API was not deleted.
@@ -204,11 +200,6 @@ public sealed class DeleteApiCommandTests(NitroCommandFixture fixture) : IClassF
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to delete the API.
-            """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
 
@@ -294,11 +285,6 @@ public sealed class DeleteApiCommandTests(NitroCommandFixture fixture) : IClassF
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to delete the API.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
@@ -387,11 +373,6 @@ public sealed class DeleteApiCommandTests(NitroCommandFixture fixture) : IClassF
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to delete the API.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key

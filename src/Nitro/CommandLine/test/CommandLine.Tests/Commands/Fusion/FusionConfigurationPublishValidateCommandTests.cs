@@ -101,11 +101,6 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the Fusion configuration.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
@@ -189,11 +184,6 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the Fusion configuration.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key
@@ -351,13 +341,7 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the Fusion configuration.
-            """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         client.VerifyAll();
     }

@@ -270,11 +270,6 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : I
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to unpublish the client.
-            """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
 

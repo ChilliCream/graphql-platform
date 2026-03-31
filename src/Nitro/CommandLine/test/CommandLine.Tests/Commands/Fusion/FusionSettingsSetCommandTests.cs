@@ -113,11 +113,11 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        Assert.Empty(result.StdOut);
+        result.StdErr.MatchInlineSnapshot(
             """
-            ✕ File '/tmp/nonexistent.far' does not exist.
+            File '/tmp/nonexistent.far' does not exist.
             """);
-        Assert.Empty(result.StdErr);
         Assert.Equal(1, result.ExitCode);
 
         fileSystem.VerifyAll();
@@ -147,7 +147,10 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
 
         // assert
         Assert.Empty(result.StdOut);
-        Assert.Empty(result.StdErr);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            File '/tmp/nonexistent.far' does not exist.
+            """);
         Assert.Equal(1, result.ExitCode);
 
         fileSystem.VerifyAll();
@@ -175,12 +178,12 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        Assert.Empty(result.StdOut);
+        result.StdErr.MatchInlineSnapshot(
             """
-            ✕ Expected one of the following values for setting
-            'cache-control-merge-behavior': ignore, include, include-private
+            Expected one of the following values for setting 'cache-control-merge-behavior':
+            ignore, include, include-private
             """);
-        Assert.Empty(result.StdErr);
         Assert.Equal(1, result.ExitCode);
     }
 
@@ -205,7 +208,11 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
 
         // assert
         Assert.Empty(result.StdOut);
-        Assert.Empty(result.StdErr);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Expected one of the following values for setting 'cache-control-merge-behavior':
+            ignore, include, include-private
+            """);
         Assert.Equal(1, result.ExitCode);
     }
 
@@ -231,12 +238,12 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        Assert.Empty(result.StdOut);
+        result.StdErr.MatchInlineSnapshot(
             """
-            ✕ Expected one of the following values for setting 'tag-merge-behavior': ignore,
+            Expected one of the following values for setting 'tag-merge-behavior': ignore,
             include, include-private
             """);
-        Assert.Empty(result.StdErr);
         Assert.Equal(1, result.ExitCode);
     }
 
@@ -262,11 +269,11 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        Assert.Empty(result.StdOut);
+        result.StdErr.MatchInlineSnapshot(
             """
-            ✕ Expected a boolean value for setting 'global-object-identification'.
+            Expected a boolean value for setting 'global-object-identification'.
             """);
-        Assert.Empty(result.StdErr);
         Assert.Equal(1, result.ExitCode);
     }
 

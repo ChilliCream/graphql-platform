@@ -138,11 +138,6 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the schema.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
@@ -253,11 +248,6 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the schema.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key
@@ -370,11 +360,6 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the schema.
-            """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
 
@@ -489,11 +474,6 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the schema.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The GraphQL mutation completed without errors, but the server did not return the
@@ -619,13 +599,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the schema.
-            """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         client.VerifyAll();
     }
@@ -763,11 +737,6 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the schema.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             Something went wrong during validation.

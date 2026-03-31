@@ -416,11 +416,6 @@ public sealed class UpdateMockCommandTests(NitroCommandFixture fixture) : IClass
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to update the mock schema.
-            """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
 

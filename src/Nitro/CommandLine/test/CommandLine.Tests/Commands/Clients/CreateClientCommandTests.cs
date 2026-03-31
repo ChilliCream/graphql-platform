@@ -167,24 +167,7 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            For which API do you want to create a client?
-
-            > products                                   ? Name web-client
-
-            [    ] Failed to create the client.
-
-            {
-              "id": "client-1",
-              "name": "web-client",
-              "api": {
-                "name": "products"
-              }
-            }
-            """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -360,11 +343,6 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to create the client.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The API was not found.
@@ -495,11 +473,6 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to create the client.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             Unauthorized operation.
@@ -630,11 +603,6 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to create the client.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             Unexpected mutation error: something bad happened
@@ -758,11 +726,6 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to create the client.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The GraphQL mutation completed without errors, but the server did not return the
@@ -873,11 +836,6 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to create the client.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
@@ -982,11 +940,6 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to create the client.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key

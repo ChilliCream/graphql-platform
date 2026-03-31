@@ -209,11 +209,6 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the Fusion configuration.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
@@ -324,11 +319,6 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the Fusion configuration.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key
@@ -441,11 +431,6 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the Fusion configuration.
-            """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
 
@@ -559,11 +544,6 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the Fusion configuration.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             Could not create validation request!
@@ -687,16 +667,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Validating Fusion configuration against stage 'production' of API 'api-1'
-            ├── Validation request created (ID: request-1)
-            ├── Validating...
-            ├── Validating...
-            └── ✓ Validated Fusion configuration against stage 'production'.
-            """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         client.VerifyAll();
     }
@@ -784,6 +755,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
         result.StdOut.MatchInlineSnapshot(
             """
             Validating Fusion configuration against stage 'production' of API 'api-1'
+            ├── Validation request created (ID: request-1)
             ├── Validating...
             └── ✕ Failed to validate the Fusion configuration.
             """);
@@ -833,11 +805,6 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the Fusion configuration.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             Something went wrong during validation.

@@ -131,11 +131,6 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to upload a new client version.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
@@ -245,11 +240,6 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to upload a new client version.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key
@@ -399,11 +389,6 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to upload a new client version.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned a 413 (Request Entity Too Large) HTTP status code. If you
@@ -482,11 +467,6 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to upload a new client version.
-            """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
 
@@ -600,11 +580,6 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to upload a new client version.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             Could not upload client.
@@ -717,19 +692,7 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to upload a new client version.
-
-            {
-              "clientVersionId": "cv-1",
-              "clientId": "client-1",
-              "tag": "v1"
-            }
-            """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         client.VerifyAll();
     }

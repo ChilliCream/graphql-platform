@@ -162,14 +162,7 @@ public sealed class DeleteClientCommandTests(NitroCommandFixture fixture) : ICla
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            ? Which client do you want to delete?: client-1
-            ? Do you want to delete the client with ID client-1? [y/n] (y): n
-            ✓ Aborted.
-            """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();

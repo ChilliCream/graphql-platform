@@ -9,12 +9,15 @@ internal sealed class NitroConsole(
     : INitroConsole
 {
     private OutputFormat? _outputFormat;
+    private bool _hasWrittenOutput;
 
     public bool IsInteractive =>
         console.Profile.Capabilities.Interactive
         && !IsNonInteractiveEnvironment();
 
     public bool IsHumanReadable => _outputFormat is null;
+
+    public bool HasWrittenOutput => _hasWrittenOutput;
 
     public IAnsiConsole Out => console;
 
@@ -37,6 +40,7 @@ internal sealed class NitroConsole(
     {
         if (IsHumanReadable)
         {
+            _hasWrittenOutput = true;
             console.Write(renderable);
             return;
         }

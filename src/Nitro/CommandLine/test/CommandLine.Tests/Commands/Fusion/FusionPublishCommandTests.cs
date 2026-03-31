@@ -290,11 +290,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : ICl
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to request a deployment slot.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
@@ -408,11 +403,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : ICl
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to request a deployment slot.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key

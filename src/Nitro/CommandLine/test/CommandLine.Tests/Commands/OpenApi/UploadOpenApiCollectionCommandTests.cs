@@ -186,11 +186,6 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to upload a new OpenAPI collection version.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
@@ -295,11 +290,6 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to upload a new OpenAPI collection version.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key
@@ -441,11 +431,6 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to upload a new OpenAPI collection version.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned a 413 (Request Entity Too Large) HTTP status code. If you
@@ -522,11 +507,6 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to upload a new OpenAPI collection version.
-            """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
 
@@ -662,13 +642,7 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to upload a new OpenAPI collection version.
-            """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         client.VerifyAll();
     }

@@ -146,6 +146,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
         result.StdOut.MatchInlineSnapshot(
             """
             Uploading new MCP feature collection version 'v1' for collection 'mcp-1'
+            ├── Found 1 prompt(s) and 1 tool(s).
             └── ✕ Failed to upload a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -179,11 +180,6 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to upload a new MCP feature collection version.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
@@ -248,6 +244,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
         result.StdOut.MatchInlineSnapshot(
             """
             Uploading new MCP feature collection version 'v1' for collection 'mcp-1'
+            ├── Found 1 prompt(s) and 1 tool(s).
             └── ✕ Failed to upload a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -282,11 +279,6 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to upload a new MCP feature collection version.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key
@@ -385,6 +377,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
         result.StdOut.MatchInlineSnapshot(
             """
             Uploading new MCP feature collection version 'v1' for collection 'mcp-1'
+            ├── Found 1 prompt(s) and 1 tool(s).
             └── ✕ Failed to upload a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -420,11 +413,6 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to upload a new MCP feature collection version.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned a 413 (Request Entity Too Large) HTTP status code. If you
@@ -464,6 +452,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
         result.StdOut.MatchInlineSnapshot(
             """
             Uploading new MCP feature collection version 'v1' for collection 'mcp-1'
+            ├── Found 1 prompt(s) and 1 tool(s).
             └── ✕ Failed to upload a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
@@ -497,11 +486,6 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to upload a new MCP feature collection version.
-            """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
 
@@ -563,6 +547,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
         result.StdOut.MatchInlineSnapshot(
             """
             Uploading new MCP feature collection version 'v1' for collection 'mcp-1'
+            ├── Found 1 prompt(s) and 1 tool(s).
             └── ✕ Failed to upload a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -599,6 +584,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
         result.StdOut.MatchInlineSnapshot(
             """
             Uploading new MCP feature collection version 'v1' for collection 'mcp-1'
+            ├── Found 1 prompt(s) and 1 tool(s).
             └── ✓ Uploaded new MCP feature collection version 'v1'.
             """);
         Assert.Empty(result.StdErr);
@@ -629,13 +615,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to upload a new MCP feature collection version.
-            """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         client.VerifyAll();
     }

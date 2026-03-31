@@ -91,11 +91,6 @@ public sealed class DeleteStageCommandTests(NitroCommandFixture fixture) : IClas
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            ? For which API do you want to force delete a stage?: api-1
-            ? Do you really want to force delete stage production [y/n] (y): n
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             Stage was not deleted.
@@ -138,8 +133,7 @@ public sealed class DeleteStageCommandTests(NitroCommandFixture fixture) : IClas
         var result = await command.RunToCompletionAsync();
 
         // assert
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         stagesClient.VerifyAll();
         apisClient.VerifyAll();

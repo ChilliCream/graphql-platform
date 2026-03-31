@@ -131,11 +131,6 @@ public sealed class UploadSchemaCommandTests(NitroCommandFixture fixture) : ICla
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to upload a new schema version.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
@@ -243,11 +238,6 @@ public sealed class UploadSchemaCommandTests(NitroCommandFixture fixture) : ICla
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to upload a new schema version.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key
@@ -358,11 +348,6 @@ public sealed class UploadSchemaCommandTests(NitroCommandFixture fixture) : ICla
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to upload a new schema version.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned a 413 (Request Entity Too Large) HTTP status code. If you
@@ -474,11 +459,6 @@ public sealed class UploadSchemaCommandTests(NitroCommandFixture fixture) : ICla
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to upload a new schema version.
-            """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
 
@@ -591,11 +571,6 @@ public sealed class UploadSchemaCommandTests(NitroCommandFixture fixture) : ICla
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to upload a new schema version.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             Could not upload schema.
@@ -702,13 +677,7 @@ public sealed class UploadSchemaCommandTests(NitroCommandFixture fixture) : ICla
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to upload a new schema version.
-            """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         client.VerifyAll();
     }

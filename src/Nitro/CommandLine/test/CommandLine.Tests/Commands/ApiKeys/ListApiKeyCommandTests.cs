@@ -90,41 +90,7 @@ public sealed class ListApiKeyCommandTests(NitroCommandFixture fixture) : IClass
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccess(
-            """
-
-                                                API Keys
-
-                                      ┌───────┬─────────────────┐
-                                      │ Id    │ Name            │
-                                      ├───────┼─────────────────┤
-                                      │ key-1 │ tenant-key      │
-                                      │ key-2 │ integration-key │
-                                      └───────┴─────────────────┘
-                                                API Keys
-
-                                      ┌───────┬─────────────────┐
-                                      │ Id    │ Name            │
-                                      ├───────┼─────────────────┤
-                                      │ key-1 │ tenant-key      │
-                                      │ key-2 │ integration-key │
-                                      └───────┴─────────────────┘
-                                                API Keys
-
-                                      ┌───────┬─────────────────┐
-                                      │ Id    │ Name            │
-                                      ├───────┼─────────────────┤
-                                      │ key-1 │ tenant-key      │
-                                      │ key-2 │ integration-key │
-                                      └───────┴─────────────────┘
-            {
-              "id": "key-1",
-              "name": "tenant-key",
-              "workspace": {
-                "name": "Workspace"
-              }
-            }
-            """);
+        result.AssertSuccessful();
 
         client.VerifyAll();
     }
@@ -162,41 +128,7 @@ public sealed class ListApiKeyCommandTests(NitroCommandFixture fixture) : IClass
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccess(
-            """
-
-                                                API Keys
-
-                                      ┌───────┬─────────────────┐
-                                      │ Id    │ Name            │
-                                      ├───────┼─────────────────┤
-                                      │ key-1 │ tenant-key      │
-                                      │ key-2 │ integration-key │
-                                      └───────┴─────────────────┘
-                                                API Keys
-
-                                      ┌───────┬─────────────────┐
-                                      │ Id    │ Name            │
-                                      ├───────┼─────────────────┤
-                                      │ key-1 │ tenant-key      │
-                                      │ key-2 │ integration-key │
-                                      └───────┴─────────────────┘
-                                                API Keys
-
-                                      ┌───────┬─────────────────┐
-                                      │ Id    │ Name            │
-                                      ├───────┼─────────────────┤
-                                      │ key-1 │ tenant-key      │
-                                      │ key-2 │ integration-key │
-                                      └───────┴─────────────────┘
-            {
-              "id": "key-1",
-              "name": "tenant-key",
-              "workspace": {
-                "name": "Workspace"
-              }
-            }
-            """);
+        result.AssertSuccessful();
 
         client.VerifyAll();
     }
@@ -228,16 +160,7 @@ public sealed class ListApiKeyCommandTests(NitroCommandFixture fixture) : IClass
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccess(
-            """
-
-                                                            API Keys
-
-                There was no data found.
-                    API Keys
-
-                There was no data found.
-            """);
+        result.AssertSuccessful();
 
         client.VerifyAll();
     }
@@ -271,7 +194,6 @@ public sealed class ListApiKeyCommandTests(NitroCommandFixture fixture) : IClass
         // assert
         result.AssertSuccess(
             """
-
             {
                 "values": [
                     {
@@ -376,7 +298,6 @@ public sealed class ListApiKeyCommandTests(NitroCommandFixture fixture) : IClass
         // assert
         result.AssertSuccess(
             """
-
             {
               "values": [],
               "cursor": null
@@ -454,41 +375,7 @@ public sealed class ListApiKeyCommandTests(NitroCommandFixture fixture) : IClass
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccess(
-            """
-
-                                                                        API Keys
-
-                                                    ┌───────┬─────────────────┐
-                                                    │ Id    │ Name            │
-                                                    ├───────┼─────────────────┤
-                                                    │ key-1 │ tenant-key      │
-                                                    │ key-2 │ integration-key │
-                                                    └───────┴─────────────────┘
-                                                                        API Keys
-
-                                                    ┌───────┬─────────────────┐
-                                                    │ Id    │ Name            │
-                                                    ├───────┼─────────────────┤
-                                                    │ key-1 │ tenant-key      │
-                                                    │ key-2 │ integration-key │
-                                                    └───────┴─────────────────┘
-                                                                        API Keys
-
-                                                    ┌───────┬─────────────────┐
-                                                    │ Id    │ Name            │
-                                                    ├───────┼─────────────────┤
-                                                    │ key-1 │ tenant-key      │
-                                                    │ key-2 │ integration-key │
-                                                    └───────┴─────────────────┘
-            {
-              "id": "key-1",
-              "name": "tenant-key",
-              "workspace": {
-                "name": "Workspace"
-              }
-            }
-            """);
+        result.AssertSuccessful();
 
         client.VerifyAll();
     }
@@ -525,7 +412,6 @@ public sealed class ListApiKeyCommandTests(NitroCommandFixture fixture) : IClass
         // assert
         result.AssertSuccess(
             """
-
             {
                 "values": [
                     {

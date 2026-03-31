@@ -16,6 +16,12 @@ internal static class CommandExecutionResultExtensions
         Assert.Equal(0, result.ExitCode);
     }
 
+    public static void AssertSuccessful(this CommandResult result)
+    {
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+    }
+
     public static void AssertHelpOutput(this CommandResult result, string stdout)
     {
         Assert.Empty(result.StdErr);

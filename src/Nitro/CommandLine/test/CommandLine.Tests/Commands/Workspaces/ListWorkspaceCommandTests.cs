@@ -64,41 +64,7 @@ public sealed class ListWorkspaceCommandTests(NitroCommandFixture fixture) : ICl
         var result = await command.RunToCompletionAsync();
 
         // assert
-        Assert.Empty(result.StdErr);
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-                                   Workspaces
-
-                   ┌──────┬────────────────────┬────────────┐
-                   │ Id   │ Name               │ IsPersonal │
-                   ├──────┼────────────────────┼────────────┤
-                   │ ws-1 │ my-workspace       │ ✕          │
-                   │ ws-2 │ personal-workspace │ ✓          │
-                   └──────┴────────────────────┴────────────┘
-                                   Workspaces
-
-                   ┌──────┬────────────────────┬────────────┐
-                   │ Id   │ Name               │ IsPersonal │
-                   ├──────┼────────────────────┼────────────┤
-                   │ ws-1 │ my-workspace       │ ✕          │
-                   │ ws-2 │ personal-workspace │ ✓          │
-                   └──────┴────────────────────┴────────────┘
-                                   Workspaces
-
-                   ┌──────┬────────────────────┬────────────┐
-                   │ Id   │ Name               │ IsPersonal │
-                   ├──────┼────────────────────┼────────────┤
-                   │ ws-1 │ my-workspace       │ ✕          │
-                   │ ws-2 │ personal-workspace │ ✓          │
-                   └──────┴────────────────────┴────────────┘
-            {
-              "id": "ws-1",
-              "name": "my-workspace",
-              "personal": false
-            }
-            """);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         client.VerifyAll();
     }
@@ -131,7 +97,6 @@ public sealed class ListWorkspaceCommandTests(NitroCommandFixture fixture) : ICl
         // assert
         result.AssertSuccess(
             """
-
             {
               "values": [
                 {
@@ -225,18 +190,7 @@ public sealed class ListWorkspaceCommandTests(NitroCommandFixture fixture) : ICl
         var result = await command.RunToCompletionAsync();
 
         // assert
-        Assert.Empty(result.StdErr);
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-                      Workspaces
-
-            There was no data found.
-                      Workspaces
-
-            There was no data found.
-            """);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         client.VerifyAll();
     }
@@ -265,7 +219,6 @@ public sealed class ListWorkspaceCommandTests(NitroCommandFixture fixture) : ICl
         // assert
         result.AssertSuccess(
             """
-
             {
               "values": [],
               "cursor": null
@@ -338,38 +291,7 @@ public sealed class ListWorkspaceCommandTests(NitroCommandFixture fixture) : ICl
         var result = await command.RunToCompletionAsync();
 
         // assert
-        Assert.Empty(result.StdErr);
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-                                   Workspaces
-
-                      ┌──────┬──────────────┬────────────┐
-                      │ Id   │ Name         │ IsPersonal │
-                      ├──────┼──────────────┼────────────┤
-                      │ ws-1 │ my-workspace │ ✕          │
-                      └──────┴──────────────┴────────────┘
-                                   Workspaces
-
-                      ┌──────┬──────────────┬────────────┐
-                      │ Id   │ Name         │ IsPersonal │
-                      ├──────┼──────────────┼────────────┤
-                      │ ws-1 │ my-workspace │ ✕          │
-                      └──────┴──────────────┴────────────┘
-                                   Workspaces
-
-                      ┌──────┬──────────────┬────────────┐
-                      │ Id   │ Name         │ IsPersonal │
-                      ├──────┼──────────────┼────────────┤
-                      │ ws-1 │ my-workspace │ ✕          │
-                      └──────┴──────────────┴────────────┘
-            {
-              "id": "ws-1",
-              "name": "my-workspace",
-              "personal": false
-            }
-            """);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         client.VerifyAll();
     }
@@ -403,7 +325,6 @@ public sealed class ListWorkspaceCommandTests(NitroCommandFixture fixture) : ICl
         // assert
         result.AssertSuccess(
             """
-
             {
               "values": [
                 {

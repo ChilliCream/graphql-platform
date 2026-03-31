@@ -181,21 +181,7 @@ public sealed class CreateWorkspaceCommandTests(NitroCommandFixture fixture) : I
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            ? Name my-workspace
-            ? Set as default workspace [y/n] (y): n
-
-            [    ] Failed to create the workspace.
-
-            {
-              "id": "ws-1",
-              "name": "my-workspace",
-              "personal": false
-            }
-            """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         client.VerifyAll();
     }
@@ -301,11 +287,6 @@ public sealed class CreateWorkspaceCommandTests(NitroCommandFixture fixture) : I
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to create the workspace.
-            """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
 
@@ -366,11 +347,6 @@ public sealed class CreateWorkspaceCommandTests(NitroCommandFixture fixture) : I
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to create the workspace.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
@@ -471,11 +447,6 @@ public sealed class CreateWorkspaceCommandTests(NitroCommandFixture fixture) : I
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to create the workspace.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key

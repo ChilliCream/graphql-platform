@@ -44,11 +44,11 @@ public sealed class CurrentWorkspaceCommandTests(NitroCommandFixture fixture) : 
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        Assert.Empty(result.StdOut);
+        result.StdErr.MatchInlineSnapshot(
             """
-            ✕ No workspace selected. Run 'nitro workspace set-default' to set a default.
+            No workspace selected. Run 'nitro workspace set-default' to set a default.
             """);
-        Assert.Empty(result.StdErr);
         Assert.Equal(1, result.ExitCode);
     }
 
@@ -65,7 +65,10 @@ public sealed class CurrentWorkspaceCommandTests(NitroCommandFixture fixture) : 
 
         // assert
         Assert.Empty(result.StdOut);
-        Assert.Empty(result.StdErr);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            No workspace selected. Run 'nitro workspace set-default' to set a default.
+            """);
         Assert.Equal(1, result.ExitCode);
     }
 
@@ -84,11 +87,11 @@ public sealed class CurrentWorkspaceCommandTests(NitroCommandFixture fixture) : 
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        Assert.Empty(result.StdOut);
+        result.StdErr.MatchInlineSnapshot(
             """
-            ✕ No workspace selected. Run 'nitro workspace set-default' to set a default.
+            No workspace selected. Run 'nitro workspace set-default' to set a default.
             """);
-        Assert.Empty(result.StdErr);
         Assert.Equal(1, result.ExitCode);
     }
 
@@ -106,7 +109,10 @@ public sealed class CurrentWorkspaceCommandTests(NitroCommandFixture fixture) : 
 
         // assert
         Assert.Empty(result.StdOut);
-        Assert.Empty(result.StdErr);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            No workspace selected. Run 'nitro workspace set-default' to set a default.
+            """);
         Assert.Equal(1, result.ExitCode);
     }
 

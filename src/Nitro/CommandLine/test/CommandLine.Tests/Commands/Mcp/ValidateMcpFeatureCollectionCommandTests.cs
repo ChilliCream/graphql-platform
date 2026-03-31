@@ -67,6 +67,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
         result.StdOut.MatchInlineSnapshot(
             """
             Validating MCP feature collection against stage 'production'
+            ├── Found 14 prompt(s) and 0 tool(s).
             └── ✕ Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -96,11 +97,6 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the MCP feature collection.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             A prompt with the name 'source-schema-1-settings' already exists in the archive.
@@ -164,6 +160,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
         result.StdOut.MatchInlineSnapshot(
             """
             Validating MCP feature collection against stage 'production'
+            ├── Found 1 prompt(s) and 1 tool(s).
             └── ✕ Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -202,11 +199,6 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the MCP feature collection.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
@@ -281,6 +273,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
         result.StdOut.MatchInlineSnapshot(
             """
             Validating MCP feature collection against stage 'production'
+            ├── Found 1 prompt(s) and 1 tool(s).
             └── ✕ Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -320,11 +313,6 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the MCP feature collection.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key
@@ -404,6 +392,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
         result.StdOut.MatchInlineSnapshot(
             """
             Validating MCP feature collection against stage 'production'
+            ├── Found 1 prompt(s) and 1 tool(s).
             └── ✕ Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
@@ -442,11 +431,6 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the MCP feature collection.
-            """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
 
@@ -523,6 +507,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
         result.StdOut.MatchInlineSnapshot(
             """
             Validating MCP feature collection against stage 'production'
+            ├── Found 1 prompt(s) and 1 tool(s).
             └── ✕ Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -566,11 +551,6 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the MCP feature collection.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             Could not create validation request!
@@ -656,6 +636,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
         result.StdOut.MatchInlineSnapshot(
             """
             Validating MCP feature collection against stage 'production'
+            ├── Found 1 prompt(s) and 1 tool(s).
             ├── Validation request created (ID: request-1)
             ├── Validating...
             ├── Validating...
@@ -700,13 +681,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the MCP feature collection.
-            """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         client.VerifyAll();
     }
@@ -793,6 +768,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
         result.StdOut.MatchInlineSnapshot(
             """
             Validating MCP feature collection against stage 'production'
+            ├── Found 1 prompt(s) and 1 tool(s).
             ├── Validation request created (ID: request-1)
             ├── Validating...
             └── ✕ Failed to validate the MCP feature collection.
@@ -845,11 +821,6 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the MCP feature collection.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             Something went wrong during validation.
@@ -941,6 +912,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
         result.StdOut.MatchInlineSnapshot(
             """
             Validating MCP feature collection against stage 'production'
+            ├── Found 1 prompt(s) and 1 tool(s).
             ├── Validation request created (ID: request-1)
             ├── Validating...
             └── ✕ Failed to validate the MCP feature collection.

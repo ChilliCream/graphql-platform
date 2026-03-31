@@ -138,11 +138,6 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the client.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
@@ -253,11 +248,6 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the client.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key
@@ -370,11 +360,6 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the client.
-            """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
 
@@ -488,11 +473,6 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the client.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             Could not create client validation request.
@@ -621,18 +601,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the client.
-
-            {
-              "requestId": "request-1",
-              "status": "success"
-            }
-            """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         client.VerifyAll();
     }
@@ -768,11 +737,6 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the client.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             Something went wrong during validation.

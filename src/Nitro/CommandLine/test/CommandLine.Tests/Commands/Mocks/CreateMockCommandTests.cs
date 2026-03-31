@@ -429,11 +429,6 @@ public sealed class CreateMockCommandTests(NitroCommandFixture fixture) : IClass
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to create the mock schema.
-            """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
 

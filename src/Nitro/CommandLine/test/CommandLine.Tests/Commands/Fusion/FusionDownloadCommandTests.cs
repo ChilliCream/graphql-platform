@@ -88,13 +88,7 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Downloading latest Fusion configuration from stage 'prod' of API 'api-1'
-            └── ✓ Downloaded Fusion configuration from stage 'prod'.
-            """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         client.VerifyAll();
         fileSystem.VerifyAll();
@@ -197,13 +191,7 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Downloading latest Fusion configuration from stage 'prod' of API 'api-1'
-            └── ✓ Downloaded Fusion configuration from stage 'prod'.
-            """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         client.VerifyAll();
         fileSystem.VerifyAll();

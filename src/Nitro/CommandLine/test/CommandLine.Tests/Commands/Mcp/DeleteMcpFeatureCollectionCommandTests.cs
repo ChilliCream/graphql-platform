@@ -230,8 +230,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests(NitroCommandFixture f
         var result = await command.RunToCompletionAsync();
 
         // assert
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         apisClient.VerifyAll();
         mcpClient.VerifyAll();
@@ -346,11 +345,6 @@ public sealed class DeleteMcpFeatureCollectionCommandTests(NitroCommandFixture f
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to delete the MCP feature collection.
-            """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
 
@@ -457,11 +451,6 @@ public sealed class DeleteMcpFeatureCollectionCommandTests(NitroCommandFixture f
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to delete the MCP feature collection.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
@@ -572,11 +561,6 @@ public sealed class DeleteMcpFeatureCollectionCommandTests(NitroCommandFixture f
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to delete the MCP feature collection.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key

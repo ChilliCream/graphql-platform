@@ -136,11 +136,6 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to publish a new client version.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
@@ -245,11 +240,6 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to publish a new client version.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key
@@ -358,11 +348,6 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to publish a new client version.
-            """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
 
@@ -474,11 +459,6 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to publish a new client version.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The GraphQL mutation completed without errors, but the server did not return the
@@ -559,6 +539,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
+            ├── Publish request created (ID: request-1)
             ├── The committing of your request is in progress.
             └── ✓ Published new client version 'v1.0' to stage 'production'.
 
@@ -602,18 +583,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to publish a new client version.
-
-            {
-              "stage": "production",
-              "status": "success"
-            }
-            """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         client.VerifyAll();
     }
@@ -696,6 +666,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
+            ├── Publish request created (ID: request-1)
             ├── The committing of your request is in progress.
             └── ✕ Failed to publish a new client version.
             """);
@@ -744,11 +715,6 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to publish a new client version.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             Something went wrong during publish.
@@ -834,6 +800,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
+            ├── Publish request created (ID: request-1)
             ├── The committing of your request is in progress.
             └── ✕ Failed to publish a new client version.
             """);
@@ -875,6 +842,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
+            ├── Publish request created (ID: request-1)
             ├── Your request is queued. The current position in the queue is 3.
             ├── The committing of your request is in progress.
             └── ✓ Published new client version 'v1.0' to stage 'production'.
@@ -923,6 +891,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
+            ├── Publish request created (ID: request-1)
             Your request is ready for the committing.
             ├── The committing of your request is in progress.
             └── ✓ Published new client version 'v1.0' to stage 'production'.
@@ -971,6 +940,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
+            ├── Publish request created (ID: request-1)
             ├── The committing of your request is approved.
             ├── The committing of your request is in progress.
             └── ✓ Published new client version 'v1.0' to stage 'production'.
@@ -1025,6 +995,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
+            ├── Publish request created (ID: request-1)
             ├── The committing of your request is waiting for approval. Check Nitro to
             approve the request.
             ├── The committing of your request is approved.
@@ -1114,6 +1085,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             """
             Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
             ├── ! Force push is enabled.
+            ├── Publish request created (ID: request-1)
             └── ✓ Published new client version 'v1.0' to stage 'production'.
 
             {

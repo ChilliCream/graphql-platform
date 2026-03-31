@@ -125,7 +125,6 @@ public sealed class ListClientVersionsCommandTests(NitroCommandFixture fixture) 
         // assert
         result.AssertSuccess(
             """
-
             {
               "values": [
                 {
@@ -240,7 +239,6 @@ public sealed class ListClientVersionsCommandTests(NitroCommandFixture fixture) 
         // assert
         result.AssertSuccess(
             """
-
             {
               "values": [],
               "cursor": null
@@ -326,43 +324,7 @@ public sealed class ListClientVersionsCommandTests(NitroCommandFixture fixture) 
         var result = await command.RunToCompletionAsync();
 
         // assert
-        Assert.Empty(result.StdErr);
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-                                        Versions
-
-                      ┌─────┬──────────────────────┬────────────┐
-                      │ Tag │ Created              │ Stages     │
-                      ├─────┼──────────────────────┼────────────┤
-                      │ v1  │ 2025-01-15 10:00:00Z │ production │
-                      │ v2  │ 2025-01-16 10:00:00Z │ staging    │
-                      └─────┴──────────────────────┴────────────┘
-                                        Versions
-
-                      ┌─────┬──────────────────────┬────────────┐
-                      │ Tag │ Created              │ Stages     │
-                      ├─────┼──────────────────────┼────────────┤
-                      │ v1  │ 2025-01-15 10:00:00Z │ production │
-                      │ v2  │ 2025-01-16 10:00:00Z │ staging    │
-                      └─────┴──────────────────────┴────────────┘
-                                        Versions
-
-                      ┌─────┬──────────────────────┬────────────┐
-                      │ Tag │ Created              │ Stages     │
-                      ├─────┼──────────────────────┼────────────┤
-                      │ v1  │ 2025-01-15 10:00:00Z │ production │
-                      │ v2  │ 2025-01-16 10:00:00Z │ staging    │
-                      └─────┴──────────────────────┴────────────┘
-            {
-              "tag": "v1",
-              "createdAt": "2025-01-15T10:00:00+00:00",
-              "stages": [
-                "production"
-              ]
-            }
-            """);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -399,18 +361,7 @@ public sealed class ListClientVersionsCommandTests(NitroCommandFixture fixture) 
         var result = await command.RunToCompletionAsync();
 
         // assert
-        Assert.Empty(result.StdErr);
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-                          Versions
-
-                There was no data found.
-                          Versions
-
-                There was no data found.
-            """);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -452,40 +403,7 @@ public sealed class ListClientVersionsCommandTests(NitroCommandFixture fixture) 
         var result = await command.RunToCompletionAsync();
 
         // assert
-        Assert.Empty(result.StdErr);
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-                                        Versions
-
-                      ┌─────┬──────────────────────┬────────────┐
-                      │ Tag │ Created              │ Stages     │
-                      ├─────┼──────────────────────┼────────────┤
-                      │ v1  │ 2025-01-15 10:00:00Z │ production │
-                      └─────┴──────────────────────┴────────────┘
-                                        Versions
-
-                      ┌─────┬──────────────────────┬────────────┐
-                      │ Tag │ Created              │ Stages     │
-                      ├─────┼──────────────────────┼────────────┤
-                      │ v1  │ 2025-01-15 10:00:00Z │ production │
-                      └─────┴──────────────────────┴────────────┘
-                                        Versions
-
-                      ┌─────┬──────────────────────┬────────────┐
-                      │ Tag │ Created              │ Stages     │
-                      ├─────┼──────────────────────┼────────────┤
-                      │ v1  │ 2025-01-15 10:00:00Z │ production │
-                      └─────┴──────────────────────┴────────────┘
-            {
-              "tag": "v1",
-              "createdAt": "2025-01-15T10:00:00+00:00",
-              "stages": [
-                "production"
-              ]
-            }
-            """);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -526,7 +444,6 @@ public sealed class ListClientVersionsCommandTests(NitroCommandFixture fixture) 
         // assert
         result.AssertSuccess(
             """
-
             {
               "values": [
                 {

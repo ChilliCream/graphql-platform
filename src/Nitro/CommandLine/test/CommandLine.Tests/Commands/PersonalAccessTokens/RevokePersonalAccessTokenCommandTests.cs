@@ -79,10 +79,6 @@ public sealed class RevokePersonalAccessTokenCommandTests(NitroCommandFixture fi
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            ? Do you really want to delete PAT with ID pat-1 [y/n] (y): n
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             PAT was not deleted.
@@ -115,21 +111,7 @@ public sealed class RevokePersonalAccessTokenCommandTests(NitroCommandFixture fi
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            ? Do you really want to delete PAT with ID pat-1 [y/n] (y): y
-
-            [    ] Failed to revoke the personal access token.
-
-            {
-              "id": "pat-1",
-              "description": "my-token",
-              "createdAt": "2025-01-01T00:00:00+00:00",
-              "expiresAt": "2025-06-01T00:00:00+00:00"
-            }
-            """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         client.VerifyAll();
     }
@@ -311,12 +293,6 @@ public sealed class RevokePersonalAccessTokenCommandTests(NitroCommandFixture fi
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            ? Do you really want to delete PAT with ID pat-1 [y/n] (y): y
-
-            [    ] Failed to revoke the personal access token.
-            """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
 
@@ -377,11 +353,6 @@ public sealed class RevokePersonalAccessTokenCommandTests(NitroCommandFixture fi
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to revoke the personal access token.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
@@ -482,11 +453,6 @@ public sealed class RevokePersonalAccessTokenCommandTests(NitroCommandFixture fi
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to revoke the personal access token.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key

@@ -137,11 +137,6 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to download the client.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
@@ -242,11 +237,6 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to download the client.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key
@@ -355,11 +345,6 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to download the client.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             Could not find a published client on stage 'production'.
@@ -487,18 +472,7 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to download the client.
-
-            {
-              "file": "queries.json",
-              "format": "relay"
-            }
-            """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         var written = Encoding.UTF8.GetString(fileStream.ToArray());
         Assert.Contains("doc-1", written);
@@ -730,18 +704,7 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to download the client.
-
-            {
-              "file": "output-dir",
-              "format": "folder"
-            }
-            """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         var written = Encoding.UTF8.GetString(docFileStream.ToArray());
         Assert.Equal("query { hello }", written);

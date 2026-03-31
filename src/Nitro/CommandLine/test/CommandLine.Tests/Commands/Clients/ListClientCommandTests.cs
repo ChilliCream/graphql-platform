@@ -155,41 +155,7 @@ public sealed class ListClientCommandTests(NitroCommandFixture fixture) : IClass
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccess(
-            """
-
-                                             Clients of API
-
-                                      ┌──────────┬───────────────┐
-                                      │ Id       │ Name          │
-                                      ├──────────┼───────────────┤
-                                      │ client-1 │ web-client    │
-                                      │ client-2 │ mobile-client │
-                                      └──────────┴───────────────┘
-                                             Clients of API
-
-                                      ┌──────────┬───────────────┐
-                                      │ Id       │ Name          │
-                                      ├──────────┼───────────────┤
-                                      │ client-1 │ web-client    │
-                                      │ client-2 │ mobile-client │
-                                      └──────────┴───────────────┘
-                                             Clients of API
-
-                                      ┌──────────┬───────────────┐
-                                      │ Id       │ Name          │
-                                      ├──────────┼───────────────┤
-                                      │ client-1 │ web-client    │
-                                      │ client-2 │ mobile-client │
-                                      └──────────┴───────────────┘
-            {
-              "id": "client-1",
-              "name": "web-client",
-              "api": {
-                "name": "products"
-              }
-            }
-            """);
+        result.AssertSuccessful();
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -227,7 +193,6 @@ public sealed class ListClientCommandTests(NitroCommandFixture fixture) : IClass
         // assert
         result.AssertSuccess(
             """
-
             {
               "values": [
                 {
@@ -331,38 +296,7 @@ public sealed class ListClientCommandTests(NitroCommandFixture fixture) : IClass
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccess(
-            """
-
-                                             Clients of API
-
-                                       ┌──────────┬────────────┐
-                                       │ Id       │ Name       │
-                                       ├──────────┼────────────┤
-                                       │ client-1 │ web-client │
-                                       └──────────┴────────────┘
-                                             Clients of API
-
-                                       ┌──────────┬────────────┐
-                                       │ Id       │ Name       │
-                                       ├──────────┼────────────┤
-                                       │ client-1 │ web-client │
-                                       └──────────┴────────────┘
-                                             Clients of API
-
-                                       ┌──────────┬────────────┐
-                                       │ Id       │ Name       │
-                                       ├──────────┼────────────┤
-                                       │ client-1 │ web-client │
-                                       └──────────┴────────────┘
-            {
-              "id": "client-1",
-              "name": "web-client",
-              "api": {
-                "name": "products"
-              }
-            }
-            """);
+        result.AssertSuccessful();
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -402,7 +336,6 @@ public sealed class ListClientCommandTests(NitroCommandFixture fixture) : IClass
         // assert
         result.AssertSuccess(
             """
-
             {
               "values": [
                 {

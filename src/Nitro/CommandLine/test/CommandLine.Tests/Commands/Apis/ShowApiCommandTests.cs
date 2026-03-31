@@ -119,7 +119,6 @@ public sealed class ShowApiCommandTests(NitroCommandFixture fixture) : IClassFix
         // assert
         result.AssertSuccess(
             """
-
             {
               "id": "api-1",
               "name": "my-api",

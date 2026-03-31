@@ -49,7 +49,11 @@ internal static class RootCommandExtensions
 
         if (resultHolder.Result is { } result)
         {
-            console.WriteLine();
+            if (console.HasWrittenOutput)
+            {
+                console.WriteLine();
+            }
+
             formatter.Format(result);
         }
         else if (format is OutputFormat.Json && exitCode == 0)

@@ -114,50 +114,7 @@ public sealed class ListApiCommandTests(NitroCommandFixture fixture) : IClassFix
         var result = await command.RunToCompletionAsync();
 
         // assert
-        Assert.Empty(result.StdErr);
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-                                                  APIs
-
-                                    ┌───────┬──────────┬──────────┐
-                                    │ Id    │ Name     │ Path     │
-                                    ├───────┼──────────┼──────────┤
-                                    │ api-1 │ products │ products │
-                                    │ api-2 │ catalog  │ catalog  │
-                                    └───────┴──────────┴──────────┘
-                                                  APIs
-
-                                    ┌───────┬──────────┬──────────┐
-                                    │ Id    │ Name     │ Path     │
-                                    ├───────┼──────────┼──────────┤
-                                    │ api-1 │ products │ products │
-                                    │ api-2 │ catalog  │ catalog  │
-                                    └───────┴──────────┴──────────┘
-                                                  APIs
-
-                                    ┌───────┬──────────┬──────────┐
-                                    │ Id    │ Name     │ Path     │
-                                    ├───────┼──────────┼──────────┤
-                                    │ api-1 │ products │ products │
-                                    │ api-2 │ catalog  │ catalog  │
-                                    └───────┴──────────┴──────────┘
-            {
-              "id": "api-1",
-              "name": "products",
-              "path": "products",
-              "workspace": {
-                "name": "Workspace"
-              },
-              "apiDetailPromptSettings": {
-                "apiDetailPromptSchemaRegistry": {
-                  "treatDangerousAsBreaking": true,
-                  "allowBreakingSchemaChanges": false
-                }
-              }
-            }
-            """);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         client.VerifyAll();
     }
@@ -192,50 +149,7 @@ public sealed class ListApiCommandTests(NitroCommandFixture fixture) : IClassFix
         var result = await command.RunToCompletionAsync();
 
         // assert
-        Assert.Empty(result.StdErr);
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-                                                  APIs
-
-                                    ┌───────┬──────────┬──────────┐
-                                    │ Id    │ Name     │ Path     │
-                                    ├───────┼──────────┼──────────┤
-                                    │ api-1 │ products │ products │
-                                    │ api-2 │ catalog  │ catalog  │
-                                    └───────┴──────────┴──────────┘
-                                                  APIs
-
-                                    ┌───────┬──────────┬──────────┐
-                                    │ Id    │ Name     │ Path     │
-                                    ├───────┼──────────┼──────────┤
-                                    │ api-1 │ products │ products │
-                                    │ api-2 │ catalog  │ catalog  │
-                                    └───────┴──────────┴──────────┘
-                                                  APIs
-
-                                    ┌───────┬──────────┬──────────┐
-                                    │ Id    │ Name     │ Path     │
-                                    ├───────┼──────────┼──────────┤
-                                    │ api-1 │ products │ products │
-                                    │ api-2 │ catalog  │ catalog  │
-                                    └───────┴──────────┴──────────┘
-            {
-              "id": "api-1",
-              "name": "products",
-              "path": "products",
-              "workspace": {
-                "name": "Workspace"
-              },
-              "apiDetailPromptSettings": {
-                "apiDetailPromptSchemaRegistry": {
-                  "treatDangerousAsBreaking": true,
-                  "allowBreakingSchemaChanges": false
-                }
-              }
-            }
-            """);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         client.VerifyAll();
     }
@@ -269,7 +183,6 @@ public sealed class ListApiCommandTests(NitroCommandFixture fixture) : IClassFix
         // assert
         result.AssertSuccess(
             """
-
             {
               "values": [
                 {
@@ -403,18 +316,7 @@ public sealed class ListApiCommandTests(NitroCommandFixture fixture) : IClassFix
         var result = await command.RunToCompletionAsync();
 
         // assert
-        Assert.Empty(result.StdErr);
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-                      APIs
-
-            There was no data found.
-                      APIs
-
-            There was no data found.
-            """);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         client.VerifyAll();
     }
@@ -446,7 +348,6 @@ public sealed class ListApiCommandTests(NitroCommandFixture fixture) : IClassFix
         // assert
         result.AssertSuccess(
             """
-
             {
               "values": [],
               "cursor": null
@@ -524,47 +425,7 @@ public sealed class ListApiCommandTests(NitroCommandFixture fixture) : IClassFix
         var result = await command.RunToCompletionAsync();
 
         // assert
-        Assert.Empty(result.StdErr);
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-                                                  APIs
-
-                                    ┌───────┬──────────┬──────────┐
-                                    │ Id    │ Name     │ Path     │
-                                    ├───────┼──────────┼──────────┤
-                                    │ api-1 │ products │ products │
-                                    └───────┴──────────┴──────────┘
-                                                  APIs
-
-                                    ┌───────┬──────────┬──────────┐
-                                    │ Id    │ Name     │ Path     │
-                                    ├───────┼──────────┼──────────┤
-                                    │ api-1 │ products │ products │
-                                    └───────┴──────────┴──────────┘
-                                                  APIs
-
-                                    ┌───────┬──────────┬──────────┐
-                                    │ Id    │ Name     │ Path     │
-                                    ├───────┼──────────┼──────────┤
-                                    │ api-1 │ products │ products │
-                                    └───────┴──────────┴──────────┘
-            {
-              "id": "api-1",
-              "name": "products",
-              "path": "products",
-              "workspace": {
-                "name": "Workspace"
-              },
-              "apiDetailPromptSettings": {
-                "apiDetailPromptSchemaRegistry": {
-                  "treatDangerousAsBreaking": true,
-                  "allowBreakingSchemaChanges": false
-                }
-              }
-            }
-            """);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         client.VerifyAll();
     }
@@ -600,7 +461,6 @@ public sealed class ListApiCommandTests(NitroCommandFixture fixture) : IClassFix
         // assert
         result.AssertSuccess(
             """
-
             {
               "values": [
                 {

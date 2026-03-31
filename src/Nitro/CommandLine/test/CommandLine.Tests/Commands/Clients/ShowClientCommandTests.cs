@@ -119,7 +119,6 @@ public sealed class ShowClientCommandTests(NitroCommandFixture fixture) : IClass
         // assert
         result.AssertSuccess(
             """
-
             {
               "id": "client-1",
               "name": "web-client",

@@ -64,6 +64,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
         result.StdOut.MatchInlineSnapshot(
             """
             Validating OpenAPI collection against stage 'production'
+            ├── Found 0 document(s).
             └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -91,11 +92,6 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the OpenAPI collection.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             Could not find any OpenAPI documents with the provided pattern.
@@ -155,6 +151,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
         result.StdOut.MatchInlineSnapshot(
             """
             Validating OpenAPI collection against stage 'production'
+            ├── Found 1 document(s).
             └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -191,11 +188,6 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the OpenAPI collection.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
@@ -266,6 +258,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
         result.StdOut.MatchInlineSnapshot(
             """
             Validating OpenAPI collection against stage 'production'
+            ├── Found 1 document(s).
             └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -303,11 +296,6 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the OpenAPI collection.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key
@@ -383,6 +371,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
         result.StdOut.MatchInlineSnapshot(
             """
             Validating OpenAPI collection against stage 'production'
+            ├── Found 1 document(s).
             └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
@@ -419,11 +408,6 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the OpenAPI collection.
-            """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
 
@@ -496,6 +480,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
         result.StdOut.MatchInlineSnapshot(
             """
             Validating OpenAPI collection against stage 'production'
+            ├── Found 1 document(s).
             └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -537,11 +522,6 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the OpenAPI collection.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             Could not create validation request!
@@ -623,6 +603,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
         result.StdOut.MatchInlineSnapshot(
             """
             Validating OpenAPI collection against stage 'production'
+            ├── Found 1 document(s).
             ├── Validation request created (ID: request-1)
             ├── Validating...
             ├── Validating...
@@ -665,13 +646,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the OpenAPI collection.
-            """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         client.VerifyAll();
     }
@@ -754,6 +729,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
         result.StdOut.MatchInlineSnapshot(
             """
             Validating OpenAPI collection against stage 'production'
+            ├── Found 1 document(s).
             ├── Validation request created (ID: request-1)
             ├── Validating...
             └── ✕ Failed to validate the OpenAPI collection.
@@ -804,11 +780,6 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to validate the OpenAPI collection.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             Something went wrong during validation.
@@ -896,6 +867,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
         result.StdOut.MatchInlineSnapshot(
             """
             Validating OpenAPI collection against stage 'production'
+            ├── Found 1 document(s).
             ├── Validation request created (ID: request-1)
             ├── Validating...
             └── ✕ Failed to validate the OpenAPI collection.

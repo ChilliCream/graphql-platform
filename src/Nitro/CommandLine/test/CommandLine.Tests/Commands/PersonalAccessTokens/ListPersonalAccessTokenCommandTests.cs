@@ -64,42 +64,7 @@ public sealed class ListPersonalAccessTokenCommandTests(NitroCommandFixture fixt
         var result = await command.RunToCompletionAsync();
 
         // assert
-        Assert.Empty(result.StdErr);
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-                                  PersonalAccessTokens
-
-                          ┌───────┬─────────────┬────────────┐
-                          │ Id    │ Description │ Expires in │
-                          ├───────┼─────────────┼────────────┤
-                          │ pat-1 │ my-token    │ Expired    │
-                          │ pat-2 │ ci-token    │ Expired    │
-                          └───────┴─────────────┴────────────┘
-                                  PersonalAccessTokens
-
-                          ┌───────┬─────────────┬────────────┐
-                          │ Id    │ Description │ Expires in │
-                          ├───────┼─────────────┼────────────┤
-                          │ pat-1 │ my-token    │ Expired    │
-                          │ pat-2 │ ci-token    │ Expired    │
-                          └───────┴─────────────┴────────────┘
-                                  PersonalAccessTokens
-
-                          ┌───────┬─────────────┬────────────┐
-                          │ Id    │ Description │ Expires in │
-                          ├───────┼─────────────┼────────────┤
-                          │ pat-1 │ my-token    │ Expired    │
-                          │ pat-2 │ ci-token    │ Expired    │
-                          └───────┴─────────────┴────────────┘
-            {
-              "id": "pat-1",
-              "description": "my-token",
-              "createdAt": "2025-01-01T00:00:00+00:00",
-              "expiresAt": "2025-06-01T00:00:00+00:00"
-            }
-            """);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         client.VerifyAll();
     }
@@ -132,7 +97,6 @@ public sealed class ListPersonalAccessTokenCommandTests(NitroCommandFixture fixt
         // assert
         result.AssertSuccess(
             """
-
             {
               "values": [
                 {
@@ -230,18 +194,7 @@ public sealed class ListPersonalAccessTokenCommandTests(NitroCommandFixture fixt
         var result = await command.RunToCompletionAsync();
 
         // assert
-        Assert.Empty(result.StdErr);
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-                          PersonalAccessTokens
-
-                        There was no data found.
-                          PersonalAccessTokens
-
-                        There was no data found.
-            """);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         client.VerifyAll();
     }
@@ -270,7 +223,6 @@ public sealed class ListPersonalAccessTokenCommandTests(NitroCommandFixture fixt
         // assert
         result.AssertSuccess(
             """
-
             {
               "values": [],
               "cursor": null
@@ -343,39 +295,7 @@ public sealed class ListPersonalAccessTokenCommandTests(NitroCommandFixture fixt
         var result = await command.RunToCompletionAsync();
 
         // assert
-        Assert.Empty(result.StdErr);
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-                                  PersonalAccessTokens
-
-                          ┌───────┬─────────────┬────────────┐
-                          │ Id    │ Description │ Expires in │
-                          ├───────┼─────────────┼────────────┤
-                          │ pat-1 │ my-token    │ Expired    │
-                          └───────┴─────────────┴────────────┘
-                                  PersonalAccessTokens
-
-                          ┌───────┬─────────────┬────────────┐
-                          │ Id    │ Description │ Expires in │
-                          ├───────┼─────────────┼────────────┤
-                          │ pat-1 │ my-token    │ Expired    │
-                          └───────┴─────────────┴────────────┘
-                                  PersonalAccessTokens
-
-                          ┌───────┬─────────────┬────────────┐
-                          │ Id    │ Description │ Expires in │
-                          ├───────┼─────────────┼────────────┤
-                          │ pat-1 │ my-token    │ Expired    │
-                          └───────┴─────────────┴────────────┘
-            {
-              "id": "pat-1",
-              "description": "my-token",
-              "createdAt": "2025-01-01T00:00:00+00:00",
-              "expiresAt": "2025-06-01T00:00:00+00:00"
-            }
-            """);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         client.VerifyAll();
     }
@@ -409,7 +329,6 @@ public sealed class ListPersonalAccessTokenCommandTests(NitroCommandFixture fixt
         // assert
         result.AssertSuccess(
             """
-
             {
               "values": [
                 {

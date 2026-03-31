@@ -254,28 +254,7 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : IClassF
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccess(
-            """
-            ? Name my-api
-            ? Path (e.g. /foo/bar) (/): /products
-
-            [    ] Failed to create the API.
-
-            {
-              "id": "api-1",
-              "name": "my-api",
-              "path": "products/catalog",
-              "workspace": {
-                "name": "Workspace"
-              },
-              "apiDetailPromptSettings": {
-                "apiDetailPromptSchemaRegistry": {
-                  "treatDangerousAsBreaking": true,
-                  "allowBreakingSchemaChanges": false
-                }
-              }
-            }
-            """);
+        result.AssertSuccessful();
 
         client.VerifyAll();
     }
@@ -410,11 +389,6 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : IClassF
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to create the API.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             Create denied
@@ -554,11 +528,6 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : IClassF
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to create the API.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             Unexpected mutation error: Mutation payload denied
@@ -639,12 +608,6 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : IClassF
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to create the API.
-            """);
-
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
@@ -761,11 +724,6 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : IClassF
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to create the API.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key

@@ -119,7 +119,6 @@ public sealed class ShowWorkspaceCommandTests(NitroCommandFixture fixture) : ICl
         // assert
         result.AssertSuccess(
             """
-
             {
               "id": "ws-1",
               "name": "my-workspace",

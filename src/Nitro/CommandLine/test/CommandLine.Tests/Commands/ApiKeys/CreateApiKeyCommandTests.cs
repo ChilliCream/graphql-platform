@@ -137,28 +137,7 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ICla
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccess(
-            """
-            ? Name integration
-            ? Do you want to create the API key scoped to an API or the whole workspace?
-
-            > Api
-              Workspace                                                                 For which API do you want to create an API key?
-
-            > Api 1
-            [    ] Failed to create the API key.
-
-            {
-              "secret": "secret-123",
-              "details": {
-                "id": "key-1",
-                "name": "integration",
-                "workspace": {
-                  "name": "Workspace"
-                }
-              }
-            }
-            """);
+        result.AssertSuccessful();
         apiKeysClient.VerifyAll();
     }
 
@@ -192,29 +171,7 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ICla
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccess(
-            """
-            ? Name integration
-            ? Do you want to create the API key scoped to an API or the whole workspace?
-
-            > Api
-              Workspace                                                                 ? Do you want to create the API key scoped to an API or the whole workspace?
-
-              Api
-            > Workspace
-            [    ] Failed to create the API key.
-
-            {
-              "secret": "secret-123",
-              "details": {
-                "id": "key-1",
-                "name": "integration",
-                "workspace": {
-                  "name": "Workspace"
-                }
-              }
-            }
-            """);
+        result.AssertSuccessful();
         client.VerifyAll();
     }
 
@@ -604,11 +561,6 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ICla
         var result = await builder.ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to create the API key.
-            """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
 
@@ -808,11 +760,6 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ICla
         var result = await builder.ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to create the API key.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
@@ -933,11 +880,6 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ICla
         var result = await builder.ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to create the API key.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key

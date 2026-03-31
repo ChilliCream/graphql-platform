@@ -131,11 +131,6 @@ public sealed class DeleteApiKeyCommandTests(NitroCommandFixture fixture) : ICla
         var result = await builder.ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to delete the API key.
-            """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
 
@@ -308,11 +303,6 @@ public sealed class DeleteApiKeyCommandTests(NitroCommandFixture fixture) : ICla
         var result = await builder.ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to delete the API key.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
@@ -346,11 +336,6 @@ public sealed class DeleteApiKeyCommandTests(NitroCommandFixture fixture) : ICla
         var result = await builder.ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to delete the API key.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key

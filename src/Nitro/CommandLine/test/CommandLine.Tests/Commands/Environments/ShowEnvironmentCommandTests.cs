@@ -119,7 +119,6 @@ public sealed class ShowEnvironmentCommandTests(NitroCommandFixture fixture) : I
         // assert
         result.AssertSuccess(
             """
-
             {
               "id": "environment-1",
               "name": "production",

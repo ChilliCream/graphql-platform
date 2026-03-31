@@ -136,22 +136,7 @@ public sealed class CreateEnvironmentCommandTests(NitroCommandFixture fixture) :
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            ? Name production
-
-            [    ] Failed to create the environment.
-
-            {
-              "id": "env-1",
-              "name": "production",
-              "workspace": {
-                "name": "workspace-a"
-              }
-            }
-            """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccessful();
 
         client.VerifyAll();
     }
@@ -311,11 +296,6 @@ public sealed class CreateEnvironmentCommandTests(NitroCommandFixture fixture) :
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to create the environment.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             Create denied
@@ -439,11 +419,6 @@ public sealed class CreateEnvironmentCommandTests(NitroCommandFixture fixture) :
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to create the environment.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             Change structure invalid.
@@ -602,11 +577,6 @@ public sealed class CreateEnvironmentCommandTests(NitroCommandFixture fixture) :
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to create the environment.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
@@ -701,11 +671,6 @@ public sealed class CreateEnvironmentCommandTests(NitroCommandFixture fixture) :
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-
-            [    ] Failed to create the environment.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key
