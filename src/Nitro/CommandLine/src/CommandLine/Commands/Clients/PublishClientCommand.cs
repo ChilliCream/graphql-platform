@@ -14,9 +14,9 @@ internal sealed class PublishClientCommand : Command
     {
         Description = "Publish a client version to a stage.";
 
+        Options.Add(Opt<ClientIdOption>.Instance);
         Options.Add(Opt<TagOption>.Instance);
         Options.Add(Opt<StageNameOption>.Instance);
-        Options.Add(Opt<ClientIdOption>.Instance);
         Options.Add(Opt<ForceOption>.Instance);
         Options.Add(Opt<OptionalWaitForApprovalOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);

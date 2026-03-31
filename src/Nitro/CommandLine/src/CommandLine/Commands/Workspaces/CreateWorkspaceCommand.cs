@@ -17,8 +17,8 @@ internal sealed class CreateWorkspaceCommand : Command
         Description =
             "Create a new workspace.";
 
-        Options.Add(Opt<SetAsDefaultWorkspaceOption>.Instance);
         Options.Add(Opt<WorkspaceNameOption>.Instance);
+        Options.Add(Opt<SetAsDefaultWorkspaceOption>.Instance);
 
         this.AddGlobalNitroOptions();
 

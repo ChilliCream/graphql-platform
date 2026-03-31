@@ -12,8 +12,8 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
     {
         Description = "Validate an OpenAPI collection version.";
 
-        Options.Add(Opt<StageNameOption>.Instance);
         Options.Add(Opt<OpenApiCollectionIdOption>.Instance);
+        Options.Add(Opt<StageNameOption>.Instance);
         Options.Add(Opt<OpenApiCollectionFilePatternOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 

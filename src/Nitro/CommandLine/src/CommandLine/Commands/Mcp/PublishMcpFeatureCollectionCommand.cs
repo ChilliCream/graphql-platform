@@ -13,9 +13,9 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
     {
         Description = "Publish an MCP feature collection version to a stage.";
 
+        Options.Add(Opt<McpFeatureCollectionIdOption>.Instance);
         Options.Add(Opt<TagOption>.Instance);
         Options.Add(Opt<StageNameOption>.Instance);
-        Options.Add(Opt<McpFeatureCollectionIdOption>.Instance);
         Options.Add(Opt<ForceOption>.Instance);
         Options.Add(Opt<OptionalWaitForApprovalOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);

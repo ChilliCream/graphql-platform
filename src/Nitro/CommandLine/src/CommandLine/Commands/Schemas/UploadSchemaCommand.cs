@@ -15,9 +15,9 @@ internal sealed class UploadSchemaCommand : Command
     {
         Description = "Upload a new schema version.";
 
+        Options.Add(Opt<ApiIdOption>.Instance);
         Options.Add(Opt<TagOption>.Instance);
         Options.Add(Opt<SchemaFileOption>.Instance);
-        Options.Add(Opt<ApiIdOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
         this.AddGlobalNitroOptions();

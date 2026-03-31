@@ -15,9 +15,9 @@ internal sealed class PublishSchemaCommand : Command
     {
         Description = "Publish a schema version to a stage.";
 
+        Options.Add(Opt<ApiIdOption>.Instance);
         Options.Add(Opt<TagOption>.Instance);
         Options.Add(Opt<StageNameOption>.Instance);
-        Options.Add(Opt<ApiIdOption>.Instance);
         Options.Add(Opt<ForceOption>.Instance);
         Options.Add(Opt<OptionalWaitForApprovalOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);

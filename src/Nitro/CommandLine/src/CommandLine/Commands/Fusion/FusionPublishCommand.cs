@@ -41,13 +41,14 @@ internal sealed class FusionPublishCommand : Command
         Subcommands.Add(new FusionConfigurationPublishCommitCommand());
 
         Options.Add(Opt<ApiIdOption>.Instance);
-        Options.Add(Opt<StageNameOption>.Instance);
         Options.Add(Opt<TagOption>.Instance);
+        Options.Add(Opt<StageNameOption>.Instance);
         Options.Add(Opt<OptionalSourceSchemaIdentifierListOption>.Instance);
         Options.Add(Opt<OptionalSourceSchemaFileListOption>.Instance);
         Options.Add(Opt<OptionalFusionArchiveFileOption>.Instance);
         Options.Add(Opt<WorkingDirectoryOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
+
         this.AddGlobalNitroOptions();
 
         Validators.Add(result =>

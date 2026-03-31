@@ -15,9 +15,9 @@ internal sealed class UploadClientCommand : Command
     {
         Description = "Upload a new client version.";
 
+        Options.Add(Opt<ClientIdOption>.Instance);
         Options.Add(Opt<TagOption>.Instance);
         Options.Add(Opt<OperationsFileOption>.Instance);
-        Options.Add(Opt<ClientIdOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
         this.AddGlobalNitroOptions();

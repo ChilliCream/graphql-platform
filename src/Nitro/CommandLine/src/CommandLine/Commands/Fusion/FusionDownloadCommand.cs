@@ -21,8 +21,8 @@ internal sealed class FusionDownloadCommand : Command
     {
         Description = "Download the most recent gateway configuration.";
 
-        Options.Add(Opt<StageNameOption>.Instance);
         Options.Add(Opt<ApiIdOption>.Instance);
+        Options.Add(Opt<StageNameOption>.Instance);
         Options.Add(Opt<OptionalOutputFileOption>.Instance);
         this.AddGlobalNitroOptions();
 

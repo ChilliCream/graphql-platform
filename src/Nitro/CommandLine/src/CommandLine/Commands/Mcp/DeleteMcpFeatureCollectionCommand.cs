@@ -18,8 +18,8 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
     {
         Description = "Delete an MCP feature collection.";
 
-        Options.Add(Opt<ForceOption>.Instance);
         Arguments.Add(Opt<OptionalIdArgument>.Instance);
+        Options.Add(Opt<ForceOption>.Instance);
 
         this.AddGlobalNitroOptions();
 

@@ -13,8 +13,8 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
     {
         Description = "Upload a new MCP feature collection version.";
 
-        Options.Add(Opt<TagOption>.Instance);
         Options.Add(Opt<McpFeatureCollectionIdOption>.Instance);
+        Options.Add(Opt<TagOption>.Instance);
         Options.Add(Opt<McpPromptFilePatternOption>.Instance);
         Options.Add(Opt<McpToolFilePatternOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);

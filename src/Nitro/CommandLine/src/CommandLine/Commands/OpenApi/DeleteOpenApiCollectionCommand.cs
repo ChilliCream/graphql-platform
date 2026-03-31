@@ -18,8 +18,8 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
     {
         Description = "Delete an OpenAPI collection.";
 
-        Options.Add(Opt<ForceOption>.Instance);
         Arguments.Add(Opt<OptionalIdArgument>.Instance);
+        Options.Add(Opt<ForceOption>.Instance);
 
         this.AddGlobalNitroOptions();
 

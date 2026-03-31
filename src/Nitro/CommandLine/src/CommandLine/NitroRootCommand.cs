@@ -12,6 +12,7 @@ using ChilliCream.Nitro.CommandLine.Commands.OpenApi;
 using ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens;
 using ChilliCream.Nitro.CommandLine.Commands.Schemas;
 using ChilliCream.Nitro.CommandLine.Commands.Stages;
+using ChilliCream.Nitro.CommandLine.Commands.Status;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces;
 
 #if !NET9_0_OR_GREATER
@@ -47,6 +48,7 @@ internal sealed class NitroRootCommand : RootCommand
         Subcommands.Add(new PersonalAccessTokenCommand());
         Subcommands.Add(new SchemaCommand());
         Subcommands.Add(new StageCommand());
+        Subcommands.Add(new StatusCommand());
         Subcommands.Add(new WorkspaceCommand());
     }
 }

@@ -15,8 +15,8 @@ internal sealed class ValidateSchemaCommand : Command
     {
         Description = "Validate a schema against a stage.";
 
-        Options.Add(Opt<StageNameOption>.Instance);
         Options.Add(Opt<ApiIdOption>.Instance);
+        Options.Add(Opt<StageNameOption>.Instance);
         Options.Add(Opt<SchemaFileOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 

@@ -18,8 +18,8 @@ internal sealed class DeleteClientCommand : Command
     {
         Description = "Delete a client.";
 
-        Options.Add(Opt<ForceOption>.Instance);
         Arguments.Add(Opt<OptionalIdArgument>.Instance);
+        Options.Add(Opt<ForceOption>.Instance);
 
         this.AddGlobalNitroOptions();
 

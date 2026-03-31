@@ -12,8 +12,8 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
     {
         Description = "Validate an MCP feature collection version.";
 
-        Options.Add(Opt<StageNameOption>.Instance);
         Options.Add(Opt<McpFeatureCollectionIdOption>.Instance);
+        Options.Add(Opt<StageNameOption>.Instance);
         Options.Add(Opt<McpPromptFilePatternOption>.Instance);
         Options.Add(Opt<McpToolFilePatternOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
