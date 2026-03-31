@@ -4,7 +4,7 @@ internal sealed class ForceOption : Option<bool>
 {
     public ForceOption() : base("--force")
     {
-        Description = "Will not ask for confirmation on deletes or overwrites.";
+        Description = "Skip confirmation prompts for deletes and overwrites";
         Required = false;
     }
 }

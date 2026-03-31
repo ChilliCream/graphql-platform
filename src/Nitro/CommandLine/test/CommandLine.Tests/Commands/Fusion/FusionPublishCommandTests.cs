@@ -42,12 +42,12 @@ public sealed class FusionPublishCommandTests
               --stage <stage> (REQUIRED)                     The name of the stage [env: NITRO_STAGE]
               --tag <tag> (REQUIRED)                         The tag of the schema version to deploy [env: NITRO_TAG]
               -s, --source-schema <source-schema>            One or more source schemas that should be included in the composition. Source schemas can either be just a name ('example') or a name and a version ('example@1.0.0'). If no version is specified the value of the '--tag' option is taken as the source schema version.
-              -f, --source-schema-file <source-schema-file>  One or more paths to a source schema file (.graphqls) or directory containing a source schema file.
-              -a, --archive, --configuration <archive>       The path to a Fusion archive file. (the --configuration alias will be removed in an upcoming version) [env: NITRO_FUSION_CONFIG_FILE]
-              -w, --working-directory <working-directory>    Sets the working directory for the command.
-              --cloud-url <cloud-url>                        The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                            The API key that is used for the authentication [env: NITRO_API_KEY]
-              --output <json>                                The output format. Setting this option will disable the interactive mode. [env: NITRO_OUTPUT_FORMAT]
+              -f, --source-schema-file <source-schema-file>  One or more paths to a source schema file (.graphqls) or directory containing a source schema file
+              -a, --archive, --configuration <archive>       The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
+              -w, --working-directory <working-directory>    Set the working directory for the command
+              --cloud-url <cloud-url>                        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>                            The API key used for authentication [env: NITRO_API_KEY]
+              --output <json>                                The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                 Show help and usage information
 
             Commands:
@@ -98,12 +98,12 @@ public sealed class FusionPublishCommandTests
               --stage <stage> (REQUIRED)                     The name of the stage [env: NITRO_STAGE]
               --tag <tag> (REQUIRED)                         The tag of the schema version to deploy [env: NITRO_TAG]
               -s, --source-schema <source-schema>            One or more source schemas that should be included in the composition. Source schemas can either be just a name ('example') or a name and a version ('example@1.0.0'). If no version is specified the value of the '--tag' option is taken as the source schema version.
-              -f, --source-schema-file <source-schema-file>  One or more paths to a source schema file (.graphqls) or directory containing a source schema file.
-              -a, --archive, --configuration <archive>       The path to a Fusion archive file. (the --configuration alias will be removed in an upcoming version) [env: NITRO_FUSION_CONFIG_FILE]
-              -w, --working-directory <working-directory>    Sets the working directory for the command.
-              --cloud-url <cloud-url>                        The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                            The API key that is used for the authentication [env: NITRO_API_KEY]
-              --output <json>                                The output format. Setting this option will disable the interactive mode. [env: NITRO_OUTPUT_FORMAT]
+              -f, --source-schema-file <source-schema-file>  One or more paths to a source schema file (.graphqls) or directory containing a source schema file
+              -a, --archive, --configuration <archive>       The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
+              -w, --working-directory <working-directory>    Set the working directory for the command
+              --cloud-url <cloud-url>                        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>                            The API key used for authentication [env: NITRO_API_KEY]
+              --output <json>                                The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                 Show help and usage information
 
             Commands:
@@ -163,12 +163,12 @@ public sealed class FusionPublishCommandTests
               --stage <stage> (REQUIRED)                     The name of the stage [env: NITRO_STAGE]
               --tag <tag> (REQUIRED)                         The tag of the schema version to deploy [env: NITRO_TAG]
               -s, --source-schema <source-schema>            One or more source schemas that should be included in the composition. Source schemas can either be just a name ('example') or a name and a version ('example@1.0.0'). If no version is specified the value of the '--tag' option is taken as the source schema version.
-              -f, --source-schema-file <source-schema-file>  One or more paths to a source schema file (.graphqls) or directory containing a source schema file.
-              -a, --archive, --configuration <archive>       The path to a Fusion archive file. (the --configuration alias will be removed in an upcoming version) [env: NITRO_FUSION_CONFIG_FILE]
-              -w, --working-directory <working-directory>    Sets the working directory for the command.
-              --cloud-url <cloud-url>                        The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                            The API key that is used for the authentication [env: NITRO_API_KEY]
-              --output <json>                                The output format. Setting this option will disable the interactive mode. [env: NITRO_OUTPUT_FORMAT]
+              -f, --source-schema-file <source-schema-file>  One or more paths to a source schema file (.graphqls) or directory containing a source schema file
+              -a, --archive, --configuration <archive>       The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
+              -w, --working-directory <working-directory>    Set the working directory for the command
+              --cloud-url <cloud-url>                        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>                            The API key used for authentication [env: NITRO_API_KEY]
+              --output <json>                                The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                 Show help and usage information
 
             Commands:

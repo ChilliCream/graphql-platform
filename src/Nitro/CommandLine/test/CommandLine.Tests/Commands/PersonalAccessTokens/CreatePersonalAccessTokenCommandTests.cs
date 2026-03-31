@@ -27,11 +27,11 @@ public sealed class CreatePersonalAccessTokenCommandTests
               nitro pat create [options]
 
             Options:
-              --description <description>  The description of the pat [env: NITRO_DESCRIPTION]
-              --expires <expires>          The expiration time of the pat in days [env: NITRO_EXPIRES] [default: 180]
-              --cloud-url <cloud-url>      The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>          The API key that is used for the authentication [env: NITRO_API_KEY]
-              --output <json>              The output format. Setting this option will disable the interactive mode. [env: NITRO_OUTPUT_FORMAT]
+              --description <description>  The description of the personal access token [env: NITRO_DESCRIPTION]
+              --expires <expires>          The expiration time of the personal access token in days [env: NITRO_EXPIRES] [default: 180]
+              --cloud-url <cloud-url>      The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>          The API key used for authentication [env: NITRO_API_KEY]
+              --output <json>              The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help               Show help and usage information
             """);
     }

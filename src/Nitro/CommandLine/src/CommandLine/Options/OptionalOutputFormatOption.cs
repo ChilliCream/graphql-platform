@@ -7,7 +7,7 @@ internal sealed class OptionalOutputFormatOption : Option<OutputFormat?>
     public OptionalOutputFormatOption() : base("--output")
     {
         Description =
-            "The output format. Setting this option will disable the interactive mode.";
+            "The output format (enables non-interactive mode)";
 
         Required = false;
 

@@ -3,6 +3,7 @@ using ChilliCream.Nitro.Client.PersonalAccessTokens;
 using ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens.Components;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens.Options;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
@@ -20,7 +21,7 @@ internal sealed class CreatePersonalAccessTokenCommand : Command
     {
         Description = "Create a new personal access token.";
 
-        Options.Add(Opt<OptionalDescriptionOption>.Instance);
+        Options.Add(Opt<OptionalPersonalAccessTokenDescriptionOption>.Instance);
         Options.Add(Opt<ExpiresOption>.Instance);
 
         this.AddGlobalNitroOptions();
@@ -44,7 +45,7 @@ internal sealed class CreatePersonalAccessTokenCommand : Command
                 "Description of the Personal Access Token",
                 defaultValue: null,
                 parseResult,
-                Opt<OptionalDescriptionOption>.Instance,
+                Opt<OptionalPersonalAccessTokenDescriptionOption>.Instance,
                 ct);
 
         var expires = parseResult.GetValue(Opt<ExpiresOption>.Instance);

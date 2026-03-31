@@ -6,7 +6,7 @@ internal sealed class OptionalIdArgument : Argument<string?>
 
     public OptionalIdArgument() : base(ArgumentName)
     {
-        Description = "The ID";
+        Description = "The resource ID";
         Arity = ArgumentArity.ZeroOrOne;
     }
 }

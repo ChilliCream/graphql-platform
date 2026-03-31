@@ -6,7 +6,6 @@ using ChilliCream.Nitro.CommandLine.Options;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Packaging;
-using static ChilliCream.Nitro.CommandLine.CommandLineResources;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
@@ -16,7 +15,7 @@ internal sealed class FusionComposeCommand : Command
         INitroConsole console,
         IFileSystem fileSystem) : base("compose")
     {
-        Description = ComposeCommand_Description;
+        Description = "Compose multiple source schemas into a single composite schema.";
 
         Options.Add(Opt<OptionalSourceSchemaFileListOption>.Instance);
         Options.Add(Opt<OptionalFusionArchiveFileOption>.Instance);
@@ -451,7 +450,7 @@ internal sealed class FusionComposeCommand : Command
             }
 
             console.WriteLine(
-                string.Format(ComposeCommand_CompositeSchemaFile_Written, archiveFile));
+                string.Format("✅ Composite schema written to '{0}'.", archiveFile));
 
             return 0;
         }
@@ -481,9 +480,9 @@ internal sealed class FusionComposeCommand : Command
 
             var abbreviatedSeverity = entry.Severity switch
             {
-                LogSeverity.Error => ComposeCommand_AbbreviatedSeverity_Error,
-                LogSeverity.Info => ComposeCommand_AbbreviatedSeverity_Info,
-                LogSeverity.Warning => ComposeCommand_AbbreviatedSeverity_Warning,
+                LogSeverity.Error => "ERR",
+                LogSeverity.Info => "INF",
+                LogSeverity.Warning => "WRN",
                 _ => throw new InvalidOperationException()
             };
 

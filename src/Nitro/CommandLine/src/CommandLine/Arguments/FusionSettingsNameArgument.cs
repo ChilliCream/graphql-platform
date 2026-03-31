@@ -18,6 +18,7 @@ internal sealed class FusionSettingsNameArgument : Argument<string>
 
     public FusionSettingsNameArgument() : base(ArgumentName)
     {
+        Description = "The name of the setting to change";
         this.AcceptOnlyFromAmong(All);
     }
 }

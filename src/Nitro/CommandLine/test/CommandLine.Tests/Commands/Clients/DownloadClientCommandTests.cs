@@ -33,10 +33,10 @@ public sealed class DownloadClientCommandTests
               --api-id <api-id> (REQUIRED)  The ID of the API [env: NITRO_API_ID]
               --stage <stage> (REQUIRED)    The name of the stage [env: NITRO_STAGE]
               --path <path> (REQUIRED)      The path where the client is stored
-              --format <folder|relay>       The format in which the client is stored. [default: relay]
-              --cloud-url <cloud-url>       The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>           The API key that is used for the authentication [env: NITRO_API_KEY]
-              --output <json>               The output format. Setting this option will disable the interactive mode. [env: NITRO_OUTPUT_FORMAT]
+              --format <folder|relay>       The format in which the client is stored [default: relay]
+              --cloud-url <cloud-url>       The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>           The API key used for authentication [env: NITRO_API_KEY]
+              --output <json>               The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                Show help and usage information
             """);
     }
@@ -92,7 +92,7 @@ public sealed class DownloadClientCommandTests
         output.MatchInlineSnapshot(
             """
             Description:
-              Download the queries from a stage
+              Download the queries from a stage.
 
             Usage:
               nitro client download [options]
@@ -101,10 +101,10 @@ public sealed class DownloadClientCommandTests
               --api-id <api-id> (REQUIRED)  The ID of the API [env: NITRO_API_ID]
               --stage <stage> (REQUIRED)    The name of the stage [env: NITRO_STAGE]
               --path <path> (REQUIRED)      The path where the client is stored
-              --format <folder|relay>       The format in which the client is stored. [default: relay]
-              --cloud-url <cloud-url>       The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>           The API key that is used for the authentication [env: NITRO_API_KEY]
-              --output <json>               The format in which the result should be displayed, if this option is set, the console will be non-interactive and the result will be displayed in the specified format [env: NITRO_OUTPUT_FORMAT]
+              --format <folder|relay>       The format in which the client is stored [default: relay]
+              --cloud-url <cloud-url>       The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>           The API key used for authentication [env: NITRO_API_KEY]
+              --output <json>               The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                Show help and usage information
             """);
         result.StdErr.MatchInlineSnapshot(

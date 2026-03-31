@@ -35,11 +35,11 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
             Options:
               --stage <stage> (REQUIRED)                                          The name of the stage [env: NITRO_STAGE]
               --mcp-feature-collection-id <mcp-feature-collection-id> (REQUIRED)  The ID of the MCP Feature Collection [env: NITRO_MCP_FEATURE_COLLECTION_ID]
-              -p, --prompt-pattern <prompt-pattern>                               One or more file patterns to locate MCP prompt definition files (*.json).
-              -t, --tool-pattern <tool-pattern>                                   One or more file patterns to locate MCP tool definition files (*.graphql).
-              --cloud-url <cloud-url>                                             The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                                                 The API key that is used for the authentication [env: NITRO_API_KEY]
-              --output <json>                                                     The output format. Setting this option will disable the interactive mode. [env: NITRO_OUTPUT_FORMAT]
+              -p, --prompt-pattern <prompt-pattern>                               One or more file patterns to locate MCP prompt definition files (*.json)
+              -t, --tool-pattern <tool-pattern>                                   One or more file patterns to locate MCP tool definition files (*.graphql)
+              --cloud-url <cloud-url>                                             The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>                                                 The API key used for authentication [env: NITRO_API_KEY]
+              --output <json>                                                     The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                                      Show help and usage information
             """);
     }

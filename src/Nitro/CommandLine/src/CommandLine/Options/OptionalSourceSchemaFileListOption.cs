@@ -6,8 +6,9 @@ public sealed class OptionalSourceSchemaFileListOption : Option<List<string>>
 
     public OptionalSourceSchemaFileListOption() : base(OptionName)
     {
-        Description = "One or more paths to a source schema file (.graphqls) or directory containing a source schema file.";
+        Description = "One or more paths to a source schema file (.graphqls) or directory containing a source schema file";
         Aliases.Add("-f");
+        AllowMultipleArgumentsPerToken = true;
         this.LegalFilePathsOnly();
     }
 }

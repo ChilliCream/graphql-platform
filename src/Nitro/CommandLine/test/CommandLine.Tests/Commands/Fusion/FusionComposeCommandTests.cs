@@ -37,17 +37,17 @@ public sealed class FusionComposeCommandTests : IDisposable
               nitro fusion compose [options]
 
             Options:
-              -f, --source-schema-file <source-schema-file>  One or more paths to a source schema file (.graphqls) or directory containing a source schema file.
-              -a, --archive, --configuration <archive>       The path to a Fusion archive file. (the --configuration alias will be removed in an upcoming version) [env: NITRO_FUSION_CONFIG_FILE]
-              -e, --env, --environment <environment>         The name of the environment used for value substitution in the schema-settings.json files.
-              --enable-global-object-identification          Determines whether the 'Query.node' field shall be added.
-              --include-satisfiability-paths                 Determines whether to include paths in satisfiability error messages.
-              --watch
-              -w, --working-directory <working-directory>    Sets the working directory for the command.
-              --exclude-by-tag <exclude-by-tag>              One or more tags to exclude from the composition.
-              --cloud-url <cloud-url>                        The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                            The API key that is used for the authentication [env: NITRO_API_KEY]
-              --output <json>                                The output format. Setting this option will disable the interactive mode. [env: NITRO_OUTPUT_FORMAT]
+              -f, --source-schema-file <source-schema-file>  One or more paths to a source schema file (.graphqls) or directory containing a source schema file
+              -a, --archive, --configuration <archive>       The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
+              -e, --env, --environment <environment>         The name of the environment used for value substitution in the schema-settings.json files
+              --enable-global-object-identification          Add the 'Query.node' field for global object identification
+              --include-satisfiability-paths                 Include paths in satisfiability error messages
+              --watch                                        Watch for file changes and recompose automatically
+              -w, --working-directory <working-directory>    Set the working directory for the command
+              --exclude-by-tag <exclude-by-tag>              One or more tags to exclude from the composition
+              --cloud-url <cloud-url>                        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>                            The API key used for authentication [env: NITRO_API_KEY]
+              --output <json>                                The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                 Show help and usage information
             """);
     }

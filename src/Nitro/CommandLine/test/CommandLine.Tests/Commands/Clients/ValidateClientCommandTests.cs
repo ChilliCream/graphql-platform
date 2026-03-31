@@ -37,9 +37,9 @@ public sealed class ValidateClientCommandTests
               --stage <stage> (REQUIRED)                      The name of the stage [env: NITRO_STAGE]
               --client-id <client-id> (REQUIRED)              The ID of the client [env: NITRO_CLIENT_ID]
               --operations-file <operations-file> (REQUIRED)  The path to the json file with the operations [env: NITRO_OPERATIONS_FILE]
-              --cloud-url <cloud-url>                         The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                             The API key that is used for the authentication [env: NITRO_API_KEY]
-              --output <json>                                 The output format. Setting this option will disable the interactive mode. [env: NITRO_OUTPUT_FORMAT]
+              --cloud-url <cloud-url>                         The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>                             The API key used for authentication [env: NITRO_API_KEY]
+              --output <json>                                 The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                  Show help and usage information
             """);
     }

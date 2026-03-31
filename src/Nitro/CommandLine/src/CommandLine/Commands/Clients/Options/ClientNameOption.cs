@@ -6,7 +6,7 @@ internal sealed class ClientNameOption : Option<string>
 {
     public ClientNameOption() : base("--name")
     {
-        Description = "The name of the client.";
+        Description = "The name of the client";
         Required = false;
         this.DefaultFromEnvironmentValue("CLIENT_NAME");
     }

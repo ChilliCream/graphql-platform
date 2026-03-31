@@ -53,19 +53,4 @@
     <PackageReference Include="System.Reactive" />
   </ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Update="Properties\CommandLineResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>CommandLineResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Properties\CommandLineResources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>CommandLineResources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
 </Project>

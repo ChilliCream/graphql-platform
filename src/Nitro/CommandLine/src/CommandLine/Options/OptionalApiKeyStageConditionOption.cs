@@ -6,7 +6,7 @@ internal sealed class OptionalApiKeyStageConditionOption : Option<string>
         : base("--stage-condition")
     {
         Description =
-            "**PREVIEW** Limit the API key to a specific stage name. If not provided, the API key will be valid for all stages.";
+            "[Preview] Limit the API key to a specific stage name (if not set, the key is valid for all stages)";
         Required = false;
     }
 }

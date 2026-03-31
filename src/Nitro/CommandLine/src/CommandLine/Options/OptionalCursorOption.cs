@@ -4,7 +4,7 @@ internal sealed class OptionalCursorOption : Option<string?>
 {
     public OptionalCursorOption() : base("--cursor")
     {
-        Description = "The cursor to start the query (non interactive mode)";
+        Description = "The pagination cursor to resume from";
         Required = false;
         this.DefaultFromEnvironmentValue("CURSOR");
     }

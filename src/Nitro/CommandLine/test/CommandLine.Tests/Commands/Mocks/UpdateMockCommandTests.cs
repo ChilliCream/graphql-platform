@@ -29,16 +29,16 @@ public sealed class UpdateMockCommandTests
               nitro mock update [<id>] [options]
 
             Arguments:
-              <id>  The ID
+              <id>  The resource ID
 
             Options:
               --extension <extension>  The path to the graphql file with the schema extension [env: NITRO_SCHEMA_EXTENSION_FILE]
               --schema <schema>        The path to the graphql file with the schema [env: NITRO_SCHEMA_FILE]
               --url <url>              The URL of the downstream service [env: NITRO_DOWNSTREAM_URL]
               --name <name>            The name of the mock schema [env: NITRO_MOCK_SCHEMA_NAME]
-              --cloud-url <cloud-url>  The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>      The API key that is used for the authentication [env: NITRO_API_KEY]
-              --output <json>          The output format. Setting this option will disable the interactive mode. [env: NITRO_OUTPUT_FORMAT]
+              --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>      The API key used for authentication [env: NITRO_API_KEY]
+              --output <json>          The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help           Show help and usage information
             """);
     }

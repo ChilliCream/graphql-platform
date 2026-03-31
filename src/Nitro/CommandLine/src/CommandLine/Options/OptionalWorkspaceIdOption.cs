@@ -6,7 +6,7 @@ internal class OptionalWorkspaceIdOption : Option<string>
 
     public OptionalWorkspaceIdOption() : base(OptionName)
     {
-        Description = "The ID of the workspace.";
+        Description = "The ID of the workspace";
         Required = false;
         this.DefaultFromEnvironmentValue("WORKSPACE_ID");
     }

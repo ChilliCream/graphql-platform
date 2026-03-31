@@ -6,5 +6,6 @@ internal sealed class FusionSettingsValueArgument : Argument<string>
 
     public FusionSettingsValueArgument() : base(ArgumentName)
     {
+        Description = "The value to set";
     }
 }

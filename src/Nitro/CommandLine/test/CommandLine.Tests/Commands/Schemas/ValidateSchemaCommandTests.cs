@@ -37,9 +37,9 @@ public sealed class ValidateSchemaCommandTests
               --stage <stage> (REQUIRED)              The name of the stage [env: NITRO_STAGE]
               --api-id <api-id> (REQUIRED)            The ID of the API [env: NITRO_API_ID]
               --schema-file <schema-file> (REQUIRED)  The path to the graphql file with the schema definition [env: NITRO_SCHEMA_FILE]
-              --cloud-url <cloud-url>                 The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                     The API key that is used for the authentication [env: NITRO_API_KEY]
-              --output <json>                         The output format. Setting this option will disable the interactive mode. [env: NITRO_OUTPUT_FORMAT]
+              --cloud-url <cloud-url>                 The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>                     The API key used for authentication [env: NITRO_API_KEY]
+              --output <json>                         The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                          Show help and usage information
             """);
     }

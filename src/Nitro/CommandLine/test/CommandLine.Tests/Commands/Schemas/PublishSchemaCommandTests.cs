@@ -37,11 +37,11 @@ public sealed class PublishSchemaCommandTests
               --tag <tag> (REQUIRED)        The tag of the schema version to deploy [env: NITRO_TAG]
               --stage <stage> (REQUIRED)    The name of the stage [env: NITRO_STAGE]
               --api-id <api-id> (REQUIRED)  The ID of the API [env: NITRO_API_ID]
-              --force                       Will not ask for confirmation on deletes or overwrites.
-              --wait-for-approval           Wait for approval [env: NITRO_WAIT_FOR_APPROVAL]
-              --cloud-url <cloud-url>       The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>           The API key that is used for the authentication [env: NITRO_API_KEY]
-              --output <json>               The output format. Setting this option will disable the interactive mode. [env: NITRO_OUTPUT_FORMAT]
+              --force                       Skip confirmation prompts for deletes and overwrites
+              --wait-for-approval           Wait for the deployment to be approved before completing [env: NITRO_WAIT_FOR_APPROVAL]
+              --cloud-url <cloud-url>       The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>           The API key used for authentication [env: NITRO_API_KEY]
+              --output <json>               The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                Show help and usage information
             """);
     }

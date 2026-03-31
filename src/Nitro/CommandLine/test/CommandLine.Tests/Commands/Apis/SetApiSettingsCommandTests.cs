@@ -27,14 +27,14 @@ public sealed class SetApiSettingsCommandTests
               nitro api set-settings <id> [options]
 
             Arguments:
-              <id>  The ID
+              <id>  The resource ID
 
             Options:
                             --treat-dangerous-as-breaking    Treat dangerous changes as breaking [env: NITRO_TREAT_DANGEROUS_AS_BREAKING]
                             --allow-breaking-schema-changes  Allow breaking schema changes when no client breaks [env: NITRO_ALLOW_BREAKING_SCHEMA_CHANGES]
-                            --cloud-url <cloud-url>          The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-                            --api-key <api-key>              The API key that is used for the authentication [env: NITRO_API_KEY]
-                            --output <json>                  The output format. Setting this option will disable the interactive mode. [env: NITRO_OUTPUT_FORMAT]
+                            --cloud-url <cloud-url>          The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+                            --api-key <api-key>              The API key used for authentication [env: NITRO_API_KEY]
+                            --output <json>                  The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
                             -?, -h, --help                   Show help and usage information
             """);
     }

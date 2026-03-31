@@ -4,7 +4,7 @@ internal sealed class WorkingDirectoryOption : Option<string>
 {
     public WorkingDirectoryOption() : base("--working-directory")
     {
-        Description = CommandLineResources.ComposeCommand_WorkingDirectory_Description;
+        Description = "Set the working directory for the command";
         Aliases.Add("-w");
         Validators.Add(result =>
         {
@@ -14,7 +14,7 @@ internal sealed class WorkingDirectoryOption : Option<string>
             {
                 result.AddError(
                     string.Format(
-                        CommandLineResources.ComposeCommand_Error_WorkingDirectoryDoesNotExist,
+                        "❌ Working directory '{0}' does not exist.",
                         workingDirectory));
             }
         });

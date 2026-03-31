@@ -27,10 +27,10 @@ public sealed class ListWorkspaceCommandTests
               nitro workspace list [options]
 
             Options:
-              --cursor <cursor>        The cursor to start the query (non interactive mode) [env: NITRO_CURSOR]
-              --cloud-url <cloud-url>  The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>      The API key that is used for the authentication [env: NITRO_API_KEY]
-              --output <json>          The output format. Setting this option will disable the interactive mode. [env: NITRO_OUTPUT_FORMAT]
+              --cursor <cursor>        The pagination cursor to resume from [env: NITRO_CURSOR]
+              --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>      The API key used for authentication [env: NITRO_API_KEY]
+              --output <json>          The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help           Show help and usage information
             """);
     }

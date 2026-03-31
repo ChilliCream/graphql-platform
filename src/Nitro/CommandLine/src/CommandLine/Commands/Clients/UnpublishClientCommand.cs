@@ -1,6 +1,7 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Commands.Clients.Options;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.Helpers.Placeholders;
@@ -16,7 +17,7 @@ internal sealed class UnpublishClientCommand : Command
     {
         Description = "Unpublish a client version from a stage.";
 
-        Options.Add(Opt<TagsOption>.Instance);
+        Options.Add(Opt<ClientTagsToUnpublishOption>.Instance);
         Options.Add(Opt<StageNameOption>.Instance);
         Options.Add(Opt<ClientIdOption>.Instance);
 
@@ -35,7 +36,7 @@ internal sealed class UnpublishClientCommand : Command
     {
         parseResult.AssertHasAuthentication(sessionService);
 
-        var tags = parseResult.GetValue(Opt<TagsOption>.Instance)?.ToArray()!;
+        var tags = parseResult.GetValue(Opt<ClientTagsToUnpublishOption>.Instance)?.ToArray()!;
         var stage = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
         var clientId = parseResult.GetValue(Opt<ClientIdOption>.Instance)!;
 

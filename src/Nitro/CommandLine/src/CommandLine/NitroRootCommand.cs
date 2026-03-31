@@ -13,8 +13,6 @@ using ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens;
 using ChilliCream.Nitro.CommandLine.Commands.Schemas;
 using ChilliCream.Nitro.CommandLine.Commands.Stages;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces;
-using static ChilliCream.Nitro.CommandLine.CommandLineResources;
-
 namespace ChilliCream.Nitro.CommandLine;
 
 /// <summary>
@@ -39,7 +37,7 @@ internal sealed class NitroRootCommand : RootCommand
         StageCommand stageCommand,
         WorkspaceCommand workspaceCommand)
     {
-        Description = RootCommand_Description;
+        Description = "Nitro CLI";
 
         Subcommands.Add(apiKeyCommand);
         Subcommands.Add(apiCommand);

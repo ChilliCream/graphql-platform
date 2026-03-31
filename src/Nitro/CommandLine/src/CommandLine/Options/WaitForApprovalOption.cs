@@ -5,7 +5,7 @@ internal class WaitForApprovalOption : Option<bool>
     public WaitForApprovalOption() : base("--wait-for-approval")
     {
         Required = false;
-        Description = "Wait for approval";
+        Description = "Wait for the deployment to be approved before completing";
         this.DefaultFromEnvironmentValue("WAIT_FOR_APPROVAL");
     }
 }

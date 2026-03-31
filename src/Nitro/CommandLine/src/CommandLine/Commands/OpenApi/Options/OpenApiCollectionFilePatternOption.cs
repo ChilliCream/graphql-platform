@@ -6,6 +6,7 @@ public class OpenApiCollectionFilePatternOption : Option<List<string>>
     {
         Description = "One or more glob patterns for selecting OpenAPI document files";
         Required = true;
+        AllowMultipleArgumentsPerToken = true;
 
         Aliases.Add("-p");
     }

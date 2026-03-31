@@ -12,5 +12,6 @@ internal sealed class OptionalSourceSchemaIdentifierListOption : Option<List<str
             + "' option is taken as the source schema version.";
 
         Aliases.Add("-s");
+        AllowMultipleArgumentsPerToken = true;
     }
 }

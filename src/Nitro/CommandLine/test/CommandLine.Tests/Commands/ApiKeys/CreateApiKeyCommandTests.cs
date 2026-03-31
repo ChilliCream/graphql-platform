@@ -30,11 +30,11 @@ public sealed class CreateApiKeyCommandTests
             Options:
               --name <name>                        The name of the API key (for later reference) [env: NITRO_API_KEY_NAME]
               --api-id <api-id>                    The ID of the API [env: NITRO_API_ID]
-              --workspace-id <workspace-id>        The ID of the workspace. [env: NITRO_WORKSPACE_ID]
-              --stage-condition <stage-condition>  **PREVIEW** Limit the API key to a specific stage name. If not provided, the API key will be valid for all stages.
-              --cloud-url <cloud-url>              The URL of the API. [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                  The API key that is used for the authentication [env: NITRO_API_KEY]
-              --output <json>                      The output format. Setting this option will disable the interactive mode. [env: NITRO_OUTPUT_FORMAT]
+              --workspace-id <workspace-id>        The ID of the workspace [env: NITRO_WORKSPACE_ID]
+              --stage-condition <stage-condition>  [Preview] Limit the API key to a specific stage name (if not set, the key is valid for all stages)
+              --cloud-url <cloud-url>              The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>                  The API key used for authentication [env: NITRO_API_KEY]
+              --output <json>                      The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                       Show help and usage information
             """);
     }
