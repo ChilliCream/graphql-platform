@@ -333,7 +333,7 @@ internal sealed class DynamicEndpointMiddleware(
                     return false;
                 }
 
-                if (leaf.Type.IsNonNullType())
+                if (leaf.IsNonNullType)
                 {
                     throw new BadRequestException(
                         $"Required route parameter '{leaf.ParameterKey}' is missing");
@@ -345,7 +345,7 @@ internal sealed class DynamicEndpointMiddleware(
 
             try
             {
-                parameterValue = ParseValueNode(value, leaf.Type);
+                parameterValue = ParseValueNode(value, leaf.NamedType);
                 return true;
             }
             catch (InvalidFormatException)
@@ -356,14 +356,14 @@ internal sealed class DynamicEndpointMiddleware(
 
         if (leaf.ParameterType is OpenApiEndpointParameterType.Query)
         {
-            if (!query.TryGetValue(leaf.ParameterKey, out var values) || values is not [{ } value])
+            if (!query.TryGetValue(leaf.ParameterKey, out var values))
             {
                 if (leaf.HasDefaultValue)
                 {
                     return false;
                 }
 
-                if (leaf.Type.IsNonNullType())
+                if (leaf.IsNonNullType)
                 {
                     throw new BadRequestException(
                         $"Required query parameter '{leaf.ParameterKey}' is missing");
@@ -373,9 +373,15 @@ internal sealed class DynamicEndpointMiddleware(
                 return true;
             }
 
+            if (values is not [{ } value])
+            {
+                throw new BadRequestException(
+                    $"Query parameter '{leaf.ParameterKey}' can only be specified once.");
+            }
+
             try
             {
-                parameterValue = ParseValueNode(value, leaf.Type);
+                parameterValue = ParseValueNode(value, leaf.NamedType);
                 return true;
             }
             catch (InvalidFormatException)
