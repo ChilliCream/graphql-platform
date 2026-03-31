@@ -136,7 +136,7 @@ public sealed class CreateEnvironmentCommandTests(NitroCommandFixture fixture) :
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
     }

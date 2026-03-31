@@ -460,6 +460,135 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture) : ICl
         sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExcludeByTagCompositeSchema);
     }
 
+    [Fact]
+    public async Task Compose_MissingSettingsFile_ReturnsError()
+    {
+        // arrange
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+        var schemaFile = Path.Combine(tempDir, "schema.graphqls");
+        await File.WriteAllTextAsync(schemaFile, "type Query { hello: String }");
+        _tempFiles.Add(tempDir);
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddArguments(
+                "fusion",
+                "compose",
+                "--source-schema-file",
+                schemaFile)
+            .ExecuteAsync();
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains("Missing source schema settings file", result.StdErr);
+    }
+
+    [Fact]
+    public async Task Compose_InvalidJsonInSettingsFile_ReturnsError()
+    {
+        // arrange
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+        var schemaFile = Path.Combine(tempDir, "schema.graphqls");
+        var settingsFile = Path.Combine(tempDir, "schema-settings.json");
+        await File.WriteAllTextAsync(schemaFile, "type Query { hello: String }");
+        await File.WriteAllTextAsync(settingsFile, "not valid json{{{");
+        _tempFiles.Add(tempDir);
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddArguments(
+                "fusion",
+                "compose",
+                "--source-schema-file",
+                schemaFile)
+            .ExecuteAsync();
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        Assert.NotEmpty(result.StdErr);
+    }
+
+    [Fact]
+    public async Task Compose_EnableGlobalObjectIdentification_ReturnsSuccess()
+    {
+        // arrange
+        var archiveFileName = CreateTempFile();
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddArguments(
+                "fusion",
+                "compose",
+                "--source-schema-file",
+                "__resources__/valid-example-1/source-schema-1.graphqls",
+                "--source-schema-file",
+                "__resources__/valid-example-1/source-schema-2.graphqls",
+                "--archive",
+                archiveFileName,
+                "--enable-global-object-identification")
+            .ExecuteAsync();
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.True(File.Exists(archiveFileName));
+    }
+
+    [Fact]
+    public async Task Compose_WithEnvironmentOption_ReturnsSuccess()
+    {
+        // arrange
+        var archiveFileName = CreateTempFile();
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddArguments(
+                "fusion",
+                "compose",
+                "--source-schema-file",
+                "__resources__/valid-example-1/source-schema-1.graphqls",
+                "--source-schema-file",
+                "__resources__/valid-example-1/source-schema-2.graphqls",
+                "--archive",
+                archiveFileName,
+                "--environment",
+                "Production")
+            .ExecuteAsync();
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.True(File.Exists(archiveFileName));
+    }
+
+    [Fact]
+    public async Task Compose_AutoDiscoveryFromWorkingDirectory_ReturnsSuccess()
+    {
+        // arrange
+        var archiveFileName = CreateTempFile();
+
+        // act - no --source-schema-file specified, should auto-discover
+        var result = await new CommandBuilder(fixture)
+            .AddArguments(
+                "fusion",
+                "compose",
+                "--working-directory",
+                "__resources__/valid-example-1",
+                "--archive",
+                archiveFileName)
+            .ExecuteAsync();
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.True(File.Exists(archiveFileName));
+
+        using var archive = FusionArchive.Open(archiveFileName);
+        var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
+        Assert.NotNull(config);
+        var sourceText = await ReadSchemaAsync(config);
+        sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
+    }
+
     private static async Task<string> ReadSchemaAsync(GatewayConfiguration config)
     {
         await using var stream = await config.OpenReadSchemaAsync();
@@ -478,16 +607,20 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture) : ICl
     {
         foreach (var file in _tempFiles)
         {
-            if (File.Exists(file))
+            try
             {
-                try
+                if (Directory.Exists(file))
+                {
+                    Directory.Delete(file, recursive: true);
+                }
+                else if (File.Exists(file))
                 {
                     File.Delete(file);
                 }
-                catch
-                {
-                    // ignore
-                }
+            }
+            catch
+            {
+                // ignore
             }
         }
 

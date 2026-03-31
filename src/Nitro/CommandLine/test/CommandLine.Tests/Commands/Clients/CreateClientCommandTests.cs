@@ -167,7 +167,7 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -201,7 +201,7 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Creating client 'web-client' for API 'api-1'
             └── ✓ Created client 'web-client'.
@@ -214,8 +214,6 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
               }
             }
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();

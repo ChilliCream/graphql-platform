@@ -111,7 +111,7 @@ public sealed class RevokePersonalAccessTokenCommandTests(NitroCommandFixture fi
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
     }

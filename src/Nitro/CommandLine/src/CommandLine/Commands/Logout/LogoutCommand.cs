@@ -9,8 +9,6 @@ internal sealed class LogoutCommand : Command
     {
         Description = "Log out and remove session information.";
 
-        this.AddGlobalNitroOptions();
-
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

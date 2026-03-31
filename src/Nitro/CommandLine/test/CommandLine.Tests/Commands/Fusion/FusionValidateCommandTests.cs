@@ -2,6 +2,7 @@ using System.IO.Compression;
 using System.Text;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
+using ChilliCream.Nitro.CommandLine.FusionCompatibility;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using Moq;
 using static ChilliCream.Nitro.CommandLine.Tests.TestHelpers;
@@ -71,25 +72,6 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        var output = result.StdOut.Replace(result.ExecutableName, "nitro");
-        output.MatchInlineSnapshot(
-            """
-            Description:
-              Validate the composed GraphQL schema of a Fusion configuration against a stage.
-
-            Usage:
-              nitro fusion validate [options]
-
-            Options:
-              --api-id <api-id> (REQUIRED)                   The ID of the API [env: NITRO_API_ID]
-              --stage <stage> (REQUIRED)                     The name of the stage [env: NITRO_STAGE]
-              -a, --archive, --configuration <archive>       The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
-              -f, --source-schema-file <source-schema-file>  One or more paths to a source schema file (.graphqls) or directory containing a source schema file
-              --cloud-url <cloud-url>                        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                            The API key used for authentication [env: NITRO_API_KEY]
-              --output <json>                                The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help                                 Show help and usage information
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             You can only specify one of: '--source-schema-file' or '--archive'.
@@ -117,25 +99,6 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        var output = result.StdOut.Replace(result.ExecutableName, "nitro");
-        output.MatchInlineSnapshot(
-            """
-            Description:
-              Validate the composed GraphQL schema of a Fusion configuration against a stage.
-
-            Usage:
-              nitro fusion validate [options]
-
-            Options:
-              --api-id <api-id> (REQUIRED)                   The ID of the API [env: NITRO_API_ID]
-              --stage <stage> (REQUIRED)                     The name of the stage [env: NITRO_STAGE]
-              -a, --archive, --configuration <archive>       The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
-              -f, --source-schema-file <source-schema-file>  One or more paths to a source schema file (.graphqls) or directory containing a source schema file
-              --cloud-url <cloud-url>                        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                            The API key used for authentication [env: NITRO_API_KEY]
-              --output <json>                                The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help                                 Show help and usage information
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             You need to specify one of: '--source-schema-file' or '--archive'.
@@ -488,7 +451,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Validating Fusion configuration against stage 'production' of API 'api-1'
             ├── Validation request created (ID: request-1)
@@ -496,8 +459,6 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
             ├── Validating...
             └── ✓ Validated Fusion configuration against stage 'production'.
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -533,7 +494,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
     }
@@ -569,15 +530,13 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             {
               "requestId": "request-1",
               "status": "success"
             }
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -678,6 +637,177 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
             Something went wrong during validation.
             Schema validation failed.
             """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Validate_Should_ReturnSuccess_When_SourceSchemaFilesProvided()
+    {
+        // arrange
+        const string sourceSchemaFile = "source-schema-1.graphqls";
+        const string settingsFile = "source-schema-1-settings.json";
+        const string settingsJson = """{"name":"Schema1","transports":{"http":{"url":"http://localhost/graphql"}}}""";
+        const string schemaText = "schema { query: Query } type Query { hello: String }";
+
+        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
+        fileSystem.Setup(x => x.DirectoryExists(sourceSchemaFile)).Returns(false);
+        fileSystem.Setup(x => x.FileExists(sourceSchemaFile)).Returns(true);
+        fileSystem.Setup(x => x.FileExists(settingsFile)).Returns(true);
+        fileSystem.Setup(x => x.ReadAllBytesAsync(settingsFile, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Encoding.UTF8.GetBytes(settingsJson));
+        fileSystem.Setup(x => x.ReadAllTextAsync(sourceSchemaFile, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(schemaText);
+
+        var client = new Mock<IFusionConfigurationClient>(MockBehavior.Strict);
+        client.Setup(x => x.DownloadLatestFusionArchiveAsync(
+                DefaultApiId,
+                DefaultStage,
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Stream?)null);
+        client.Setup(x => x.ValidateSchemaVersionAsync(
+                DefaultApiId,
+                DefaultStage,
+                It.IsAny<Stream>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateSuccessPayload());
+        client.Setup(x => x.SubscribeToSchemaVersionValidationUpdatedAsync(
+                DefaultRequestId,
+                It.IsAny<CancellationToken>()))
+            .Returns((string _, CancellationToken ct) =>
+                ToAsyncEnumerable(
+                    new IOnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate[]
+                    {
+                        CreateValidationSuccess()
+                    },
+                    ct));
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "fusion",
+                "validate",
+                "--api-id",
+                DefaultApiId,
+                "--stage",
+                DefaultStage,
+                "--source-schema-file",
+                sourceSchemaFile)
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess();
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Validate_Should_HandleLegacyFormat_When_FgpExtension()
+    {
+        // arrange
+        const string archiveFile = "fusion.fgp";
+
+        var fgpStream = new MemoryStream();
+        await using (var package = FusionGraphPackage.Open(fgpStream, FileAccess.ReadWrite))
+        {
+            await package.SetSchemaAsync(
+                HotChocolate.Language.Utf8GraphQLParser.Parse("type Query { hello: String }"));
+        }
+
+        fgpStream.Position = 0;
+
+        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
+        fileSystem.Setup(x => x.OpenReadStream(archiveFile))
+            .Returns(fgpStream);
+
+        var client = new Mock<IFusionConfigurationClient>(MockBehavior.Strict);
+        client.Setup(x => x.ValidateSchemaVersionAsync(
+                DefaultApiId,
+                DefaultStage,
+                It.IsAny<Stream>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateSuccessPayload());
+        client.Setup(x => x.SubscribeToSchemaVersionValidationUpdatedAsync(
+                DefaultRequestId,
+                It.IsAny<CancellationToken>()))
+            .Returns((string _, CancellationToken ct) =>
+                ToAsyncEnumerable(
+                    new IOnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate[]
+                    {
+                        CreateValidationSuccess()
+                    },
+                    ct));
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "fusion",
+                "validate",
+                "--api-id",
+                DefaultApiId,
+                "--stage",
+                DefaultStage,
+                "--archive",
+                archiveFile)
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess();
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Validate_Should_ReturnError_When_UnknownSubscriptionEvent()
+    {
+        // arrange
+        var unknownEvent = new Mock<IOnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate>(
+            MockBehavior.Strict);
+        unknownEvent.SetupGet(x => x.__typename).Returns("UnknownType");
+
+        var (client, fileSystem) = CreateValidationSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IOnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate[]
+            {
+                unknownEvent.Object
+            });
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "fusion",
+                "validate",
+                "--api-id",
+                DefaultApiId,
+                "--stage",
+                DefaultStage,
+                "--archive",
+                DefaultArchiveFile)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating Fusion configuration against stage 'production' of API 'api-1'
+            ├── Validation request created (ID: request-1)
+            ├── ! Unknown server response. Consider updating the CLI.
+            └── ✕ Failed to validate the Fusion configuration.
+            """);
+        Assert.Empty(result.StdErr);
         Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();

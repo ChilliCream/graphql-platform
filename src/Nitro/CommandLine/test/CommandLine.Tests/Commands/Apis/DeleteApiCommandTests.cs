@@ -38,6 +38,111 @@ public sealed class DeleteApiCommandTests(NitroCommandFixture fixture) : IClassF
             """);
     }
 
+    [Fact]
+    public async Task Delete_Should_PromptAndSucceed_When_UserConfirms()
+    {
+        // arrange
+        var client = new Mock<IApisClient>(MockBehavior.Strict);
+        client.Setup(x => x.GetApiForDeleteAsync(
+                "api-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ApiCommandTestHelper.CreateDeleteApiNode("my-api"));
+        client.Setup(x => x.DeleteApiAsync(
+                "api-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ApiCommandTestHelper.CreateDeleteApiPayload("api-1", "my-api", ["products"]));
+
+        var command = new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddSessionWithWorkspace()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "api",
+                "delete",
+                "api-1")
+            .Start();
+
+        // act
+        command.Confirm(true);
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+
+        client.VerifyAll();
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Delete_Should_ReturnError_When_NonInteractiveWithoutForce(InteractionMode mode)
+    {
+        // arrange
+        var client = new Mock<IApisClient>(MockBehavior.Strict);
+        client.Setup(x => x.GetApiForDeleteAsync(
+                "api-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ApiCommandTestHelper.CreateDeleteApiNode("my-api"));
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddSessionWithWorkspace()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "api",
+                "delete",
+                "api-1")
+            .ExecuteAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Attempted to prompt the user for confirmation, but the console is running in
+            non-interactive mode.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Delete_Should_ReturnError_When_MutationReturnsNoData()
+    {
+        // arrange
+        var client = new Mock<IApisClient>(MockBehavior.Strict);
+        client.Setup(x => x.GetApiForDeleteAsync(
+                "api-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ApiCommandTestHelper.CreateDeleteApiNode("my-api"));
+        client.Setup(x => x.DeleteApiAsync(
+                "api-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ApiCommandTestHelper.CreateDeleteApiPayloadWithErrors());
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddSessionWithWorkspace()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "api",
+                "delete",
+                "api-1",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The GraphQL mutation completed without errors, but the server did not return the
+            expected data.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
     [Theory]
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]

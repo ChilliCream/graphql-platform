@@ -275,13 +275,11 @@ public sealed class FusionConfigurationPublishCancelCommandTests(NitroCommandFix
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Canceling publication
             └── ✓ Canceled publication for request 'req-1'.
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -306,7 +304,7 @@ public sealed class FusionConfigurationPublishCancelCommandTests(NitroCommandFix
             .ExecuteAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
     }

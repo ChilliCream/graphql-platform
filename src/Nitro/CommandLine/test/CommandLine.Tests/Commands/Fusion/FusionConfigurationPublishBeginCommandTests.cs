@@ -309,7 +309,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests(NitroCommandFixt
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Requesting deployment slot for stage 'prod' of API 'api-1'
             ├── Request ID: request-123
@@ -320,8 +320,6 @@ public sealed class FusionConfigurationPublishBeginCommandTests(NitroCommandFixt
               "requestId": "request-123"
             }
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
         fileSystem.VerifyAll();
@@ -343,7 +341,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests(NitroCommandFixt
             .ExecuteAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
         fileSystem.VerifyAll();
@@ -370,6 +368,319 @@ public sealed class FusionConfigurationPublishBeginCommandTests(NitroCommandFixt
 
         client.VerifyAll();
         fileSystem.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Begin_Should_ReturnError_When_StageNotFound()
+    {
+        // arrange
+        var error = new Mock<IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish_Errors_StageNotFoundError>(MockBehavior.Strict);
+        error.As<IStageNotFoundError>().SetupGet(x => x.Message).Returns("Stage not found.");
+        error.As<IError>().SetupGet(x => x.Message).Returns("Stage not found.");
+
+        var (client, fileSystem) = CreateMutationErrorSetup(error.Object);
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(_baseArgs)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Requesting deployment slot for stage 'prod' of API 'api-1'
+            └── ✕ Failed to request a deployment slot.
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Stage not found.
+            Failed to request deployment slot.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Begin_Should_ReturnError_When_SubgraphInvalid()
+    {
+        // arrange
+        var error = new Mock<IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish_Errors_SubgraphInvalidError>(MockBehavior.Strict);
+        error.As<ISubgraphInvalidError>().SetupGet(x => x.Message).Returns("Subgraph is invalid.");
+        error.As<IError>().SetupGet(x => x.Message).Returns("Subgraph is invalid.");
+
+        var (client, fileSystem) = CreateMutationErrorSetup(error.Object);
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(_baseArgs)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Requesting deployment slot for stage 'prod' of API 'api-1'
+            └── ✕ Failed to request a deployment slot.
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Subgraph is invalid.
+            Failed to request deployment slot.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Begin_Should_ReturnError_When_InvalidProcessingStateTransition()
+    {
+        // arrange
+        var error = new Mock<IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish_Errors_InvalidProcessingStateTransitionError>(MockBehavior.Strict);
+        error.As<IInvalidProcessingStateTransitionError>().SetupGet(x => x.Message).Returns("Invalid state transition.");
+        error.As<IError>().SetupGet(x => x.Message).Returns("Invalid state transition.");
+
+        var (client, fileSystem) = CreateMutationErrorSetup(error.Object);
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(_baseArgs)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Requesting deployment slot for stage 'prod' of API 'api-1'
+            └── ✕ Failed to request a deployment slot.
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Invalid state transition.
+            Failed to request deployment slot.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Begin_Should_HandleQueuePosition_When_ProcessingTaskIsQueued()
+    {
+        // arrange
+        var queuedEvent = new OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_ProcessingTaskIsQueued(
+            ProcessingState.Queued,
+            "ProcessingTaskIsQueued",
+            "Queued",
+            3);
+
+        var readyEvent = Mock.Of<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_ProcessingTaskIsReady>();
+
+        var (client, fileSystem) = CreateSubscriptionSetup(
+            new IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged[]
+            {
+                queuedEvent,
+                readyEvent
+            });
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(_baseArgs)
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
+            Requesting deployment slot for stage 'prod' of API 'api-1'
+            ├── Request ID: request-123
+            ├── Queued at position 3.
+            ├── Deployment slot ready.
+            └── ✕ Failed to request a deployment slot.
+
+            {
+              "requestId": "request-123"
+            }
+            """);
+
+        client.VerifyAll();
+        fileSystem.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Begin_Should_PassSubgraphId_When_Provided()
+    {
+        // arrange
+        var payload = new Mock<IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish>(MockBehavior.Strict);
+        payload.SetupGet(x => x.Errors)
+            .Returns((IReadOnlyList<IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish_Errors>?)null);
+        payload.SetupGet(x => x.RequestId).Returns("request-123");
+
+        var readyEvent = Mock.Of<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_ProcessingTaskIsReady>();
+
+        var client = new Mock<IFusionConfigurationClient>(MockBehavior.Strict);
+        client.Setup(x => x.RequestDeploymentSlotAsync(
+                "api-1",
+                "prod",
+                "v1",
+                "subgraph-1",
+                null,
+                null,
+                false,
+                null,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(payload.Object);
+        client.Setup(x => x.SubscribeToFusionConfigurationPublishingTaskChangedAsync(
+                "request-123",
+                It.IsAny<CancellationToken>()))
+            .Returns(ToAsyncEnumerable<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged>(readyEvent));
+
+        var cacheFile = Path.Combine(Path.GetTempPath(), "fusion.configuration.publishing.state");
+        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
+        fileSystem.Setup(x => x.WriteAllTextAsync(
+                cacheFile,
+                "request-123",
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "fusion",
+                "publish",
+                "begin",
+                "--api-id",
+                "api-1",
+                "--stage",
+                "prod",
+                "--tag",
+                "v1",
+                "--subgraph-id",
+                "subgraph-1")
+            .ExecuteAsync();
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+
+        client.VerifyAll();
+        fileSystem.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Begin_Should_PassWaitForApproval_When_Provided()
+    {
+        // arrange
+        var payload = new Mock<IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish>(MockBehavior.Strict);
+        payload.SetupGet(x => x.Errors)
+            .Returns((IReadOnlyList<IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish_Errors>?)null);
+        payload.SetupGet(x => x.RequestId).Returns("request-123");
+
+        var readyEvent = Mock.Of<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_ProcessingTaskIsReady>();
+
+        var client = new Mock<IFusionConfigurationClient>(MockBehavior.Strict);
+        client.Setup(x => x.RequestDeploymentSlotAsync(
+                "api-1",
+                "prod",
+                "v1",
+                null,
+                null,
+                null,
+                true,
+                null,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(payload.Object);
+        client.Setup(x => x.SubscribeToFusionConfigurationPublishingTaskChangedAsync(
+                "request-123",
+                It.IsAny<CancellationToken>()))
+            .Returns(ToAsyncEnumerable<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged>(readyEvent));
+
+        var cacheFile = Path.Combine(Path.GetTempPath(), "fusion.configuration.publishing.state");
+        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
+        fileSystem.Setup(x => x.WriteAllTextAsync(
+                cacheFile,
+                "request-123",
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "fusion",
+                "publish",
+                "begin",
+                "--api-id",
+                "api-1",
+                "--stage",
+                "prod",
+                "--tag",
+                "v1",
+                "--wait-for-approval")
+            .ExecuteAsync();
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+
+        client.VerifyAll();
+        fileSystem.VerifyAll();
+    }
+
+    private static (Mock<IFusionConfigurationClient> Client, Mock<IFileSystem> FileSystem) CreateSubscriptionSetup(
+        IEnumerable<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged> subscriptionEvents)
+    {
+        var payload = new Mock<IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish>(MockBehavior.Strict);
+        payload.SetupGet(x => x.Errors)
+            .Returns((IReadOnlyList<IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish_Errors>?)null);
+        payload.SetupGet(x => x.RequestId).Returns("request-123");
+
+        var client = new Mock<IFusionConfigurationClient>(MockBehavior.Strict);
+        client.Setup(x => x.RequestDeploymentSlotAsync(
+                "api-1",
+                "prod",
+                "v1",
+                null,
+                null,
+                null,
+                false,
+                null,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(payload.Object);
+        client.Setup(x => x.SubscribeToFusionConfigurationPublishingTaskChangedAsync(
+                "request-123",
+                It.IsAny<CancellationToken>()))
+            .Returns((string _, CancellationToken _) =>
+                ToAsyncEnumerable(subscriptionEvents.ToArray()));
+
+        var cacheFile = Path.Combine(Path.GetTempPath(), "fusion.configuration.publishing.state");
+        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
+        fileSystem.Setup(x => x.WriteAllTextAsync(
+                cacheFile,
+                "request-123",
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        return (client, fileSystem);
     }
 
     private static (Mock<IFusionConfigurationClient> Client, Mock<IFileSystem> FileSystem) CreateSuccessSetup()

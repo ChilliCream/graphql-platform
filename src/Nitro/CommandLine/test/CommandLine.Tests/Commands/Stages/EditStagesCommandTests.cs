@@ -64,6 +64,78 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : IClass
     }
 
     [Fact]
+    public async Task MissingApiId_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var stagesClient = new Mock<IStagesClient>(MockBehavior.Strict);
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(stagesClient.Object)
+            .AddService(apisClient.Object)
+            .AddApiKey()
+            .AddSession()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "stage",
+                "edit",
+                "--configuration",
+                """[{"name":"dev","displayName":"Dev","conditions":[]}]""")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually
+            specify the '--workspace-id' option (if available).
+            """);
+
+        stagesClient.VerifyAll();
+        apisClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task WithJsonConfig_ReturnsSuccess_Interactive()
+    {
+        // arrange
+        var stagesClient = new Mock<IStagesClient>(MockBehavior.Strict);
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+
+        stagesClient.Setup(x => x.UpdateStagesAsync(
+                "api-1",
+                It.Is<IReadOnlyList<StageUpdateModel>>(s =>
+                    s.Count == 1
+                    && s[0].Name == "dev"
+                    && s[0].DisplayName == "Dev"
+                    && s[0].AfterStages.Count == 0),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateUpdateStagesSuccessPayload());
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(stagesClient.Object)
+            .AddService(apisClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "stage",
+                "edit",
+                "--api-id",
+                "api-1",
+                "--configuration",
+                """[{"name":"dev","displayName":"Dev","conditions":[]}]""")
+            .ExecuteAsync();
+
+        // assert
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+
+        stagesClient.VerifyAll();
+        apisClient.VerifyAll();
+    }
+
+    [Fact]
     public async Task WithJsonConfig_ReturnsSuccess_NonInteractive()
     {
         // arrange
@@ -96,11 +168,8 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : IClass
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
-
-            Update stages
-
             ? For which API do you want to edit the stages?: api-1
             Updating stages for API 'api-1'
             └── ✓ Updated stages for API 'api-1'.
@@ -116,8 +185,6 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : IClass
               "cursor": null
             }
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         stagesClient.VerifyAll();
         apisClient.VerifyAll();
@@ -156,7 +223,7 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : IClass
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             {
               "values": [
@@ -169,8 +236,6 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : IClass
               "cursor": null
             }
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         stagesClient.VerifyAll();
         apisClient.VerifyAll();
@@ -242,9 +307,6 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : IClass
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-
-            Update stages
-
             ? For which API do you want to edit the stages?: api-1
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -323,9 +385,6 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : IClass
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-
-            Update stages
-
             ? For which API do you want to edit the stages?: api-1
             Updating stages for API 'api-1'
             └── ✕ Failed to update the stages.
@@ -406,9 +465,6 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : IClass
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-
-            Update stages
-
             ? For which API do you want to edit the stages?: api-1
             Updating stages for API 'api-1'
             └── ✕ Failed to update the stages.
@@ -450,9 +506,6 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : IClass
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-
-            Update stages
-
             ? For which API do you want to edit the stages?: api-1
             Updating stages for API 'api-1'
             └── ✕ Failed to update the stages.

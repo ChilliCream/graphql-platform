@@ -155,7 +155,7 @@ public sealed class ListClientCommandTests(NitroCommandFixture fixture) : IClass
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -248,7 +248,7 @@ public sealed class ListClientCommandTests(NitroCommandFixture fixture) : IClass
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -339,8 +339,10 @@ public sealed class ListClientCommandTests(NitroCommandFixture fixture) : IClass
         clientsClient.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_NonInteractive()
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -351,37 +353,7 @@ public sealed class ListClientCommandTests(NitroCommandFixture fixture) : IClass
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "list",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"), "api-1", null);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "client",
                 "list",
@@ -431,8 +403,10 @@ public sealed class ListClientCommandTests(NitroCommandFixture fixture) : IClass
         clientsClient.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -443,7 +417,7 @@ public sealed class ListClientCommandTests(NitroCommandFixture fixture) : IClass
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "client",
                 "list",
@@ -463,18 +437,62 @@ public sealed class ListClientCommandTests(NitroCommandFixture fixture) : IClass
     }
 
     [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
+    public async Task List_Should_ReturnSuccess_When_NoClientsReturned_Interactive()
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = CreateListExceptionClient(new NitroClientAuthorizationException(), "api-1", null);
+        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
+        clientsClient.Setup(x => x.ListClientsAsync(
+                "api-1",
+                null,
+                10,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateListClientsPage());
+
+        var command = new CommandBuilder(fixture)
+            .AddService(apisClient.Object)
+            .AddService(clientsClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "client",
+                "list",
+                "--api-id",
+                "api-1")
+            .Start();
+
+        // act
+        command.SelectOption(0);
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+
+        apisClient.VerifyAll();
+        clientsClient.VerifyAll();
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task List_Should_ReturnError_When_ApiNotFound(InteractionMode mode)
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
+        clientsClient.Setup(x => x.ListClientsAsync(
+                "api-1",
+                null,
+                10,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ConnectionPage<IListClientCommandQuery_Node_Clients_Edges_Node>?)null);
 
         // act
         var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "client",
                 "list",
@@ -485,8 +503,8 @@ public sealed class ListClientCommandTests(NitroCommandFixture fixture) : IClass
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
+            There was an issue with the request to the server.
+            The API was not found.
             """);
 
         apisClient.VerifyAll();

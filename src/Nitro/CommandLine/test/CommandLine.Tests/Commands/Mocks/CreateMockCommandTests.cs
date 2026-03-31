@@ -194,6 +194,57 @@ public sealed class CreateMockCommandTests(NitroCommandFixture fixture) : IClass
     }
 
     [Fact]
+    public async Task WithOptions_ReturnsSuccess_Interactive()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var mocksClient = new Mock<IMocksClient>(MockBehavior.Strict);
+        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
+
+        var extensionStream = new MemoryStream();
+        var schemaStream = new MemoryStream();
+        fileSystem.Setup(x => x.OpenReadStream("ext.graphql")).Returns(extensionStream);
+        fileSystem.Setup(x => x.OpenReadStream("schema.graphql")).Returns(schemaStream);
+
+        mocksClient.Setup(x => x.CreateMockSchemaAsync(
+                "api-1",
+                schemaStream,
+                "https://downstream.example.com",
+                extensionStream,
+                "my-mock",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateMockSuccessPayload());
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(apisClient.Object)
+            .AddService(mocksClient.Object)
+            .AddService(fileSystem.Object)
+            .AddSessionWithWorkspace()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "mock",
+                "create",
+                "--api-id",
+                "api-1",
+                "--extension",
+                "ext.graphql",
+                "--schema",
+                "schema.graphql",
+                "--url",
+                "https://downstream.example.com",
+                "--name",
+                "my-mock")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess();
+
+        mocksClient.VerifyAll();
+        fileSystem.VerifyAll();
+    }
+
+    [Fact]
     public async Task WithOptions_ReturnsSuccess_JsonOutput()
     {
         // arrange

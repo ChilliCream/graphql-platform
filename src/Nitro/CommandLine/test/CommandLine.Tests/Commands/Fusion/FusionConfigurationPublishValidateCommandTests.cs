@@ -262,13 +262,11 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Validating Fusion configuration
             └── ✓ Validated the Fusion configuration.
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -294,7 +292,7 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
             .ExecuteAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
     }
@@ -531,15 +529,13 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Validating Fusion configuration
             ├── Validating...
             ├── Validating...
             └── ✓ Validated the Fusion configuration.
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -577,6 +573,83 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Validate_Should_ReturnError_When_InvalidProcessingStateTransition()
+    {
+        // arrange
+        var error = new Mock<IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError>(MockBehavior.Strict);
+        error.As<IInvalidProcessingStateTransitionError>().SetupGet(x => x.Message).Returns("Invalid state transition.");
+        error.As<IError>().SetupGet(x => x.Message).Returns("Invalid state transition.");
+
+        var (client, fileSystem) = CreateMutationErrorSetup(error.Object);
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(_baseArgs)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating Fusion configuration
+            └── ✕ Failed to validate the Fusion configuration.
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Invalid state transition.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Validate_Should_HandleApprovalEvents_When_WaitForApproval()
+    {
+        // arrange
+        var waitForApprovalEvent = new OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_WaitForApproval(
+            ProcessingState.Processing,
+            "WaitForApproval",
+            null);
+
+        var approvedEvent = new OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_ProcessingTaskApproved(
+            ProcessingState.Processing,
+            "ProcessingTaskApproved");
+
+        var (client, fileSystem) = CreateSubscriptionSetup(
+            CreateSuccessMutationPayload(),
+            new IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged[]
+            {
+                waitForApprovalEvent,
+                approvedEvent,
+                CreateValidationSuccess()
+            });
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(_baseArgs)
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
+            Validating Fusion configuration
+            ├── Validating...
+            ├── Validating...
+            └── ✓ Validated the Fusion configuration.
+            """);
 
         client.VerifyAll();
     }

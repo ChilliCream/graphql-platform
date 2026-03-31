@@ -470,7 +470,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Validating MCP feature collection against stage 'production'
             ├── Found 1 prompt(s) and 1 tool(s).
@@ -479,8 +479,6 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             ├── Validating...
             └── ✓ Validated MCP feature collection against stage 'production'.
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -518,7 +516,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             .ExecuteAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
     }
@@ -760,6 +758,115 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             └── ✕ Failed to validate the MCP feature collection.
             """);
         Assert.Empty(result.StdErr);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Subscription_FailedWithTimeoutError_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var timeoutError = new ValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate_Errors_ProcessingTimeoutError(
+            "ProcessingTimeoutError",
+            "The validation timed out.");
+
+        var (client, fileSystem) = CreateValidationSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate[]
+            {
+                CreateOperationInProgress(),
+                CreateValidationFailed(timeoutError)
+            });
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "mcp",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--mcp-feature-collection-id",
+                DefaultMcpFeatureCollectionId,
+                "--prompt-pattern",
+                "**/*.json",
+                "--tool-pattern",
+                "**/*.graphql")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating MCP feature collection against stage 'production'
+            ├── Found 1 prompt(s) and 1 tool(s).
+            ├── Validation request created (ID: request-1)
+            ├── Validating...
+            └── ✕ Failed to validate the MCP feature collection.
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The validation timed out.
+            MCP Feature Collection validation failed.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Subscription_FailedWithValidationError_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var validationError = new Mock<IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate_Errors>(
+            MockBehavior.Strict);
+        validationError.As<IMcpFeatureCollectionValidationError>()
+            .SetupGet(x => x.Collections)
+            .Returns(Array.Empty<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections>());
+
+        var (client, fileSystem) = CreateValidationSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate[]
+            {
+                CreateOperationInProgress(),
+                CreateValidationFailed(validationError.Object)
+            });
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "mcp",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--mcp-feature-collection-id",
+                DefaultMcpFeatureCollectionId,
+                "--prompt-pattern",
+                "**/*.json",
+                "--tool-pattern",
+                "**/*.graphql")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating MCP feature collection against stage 'production'
+            ├── Found 1 prompt(s) and 1 tool(s).
+            ├── Validation request created (ID: request-1)
+            ├── Validating...
+            └── ✕ Failed to validate the MCP feature collection.
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            MCP Feature Collection validation failed.
+            """);
         Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();

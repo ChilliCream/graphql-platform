@@ -38,6 +38,94 @@ public sealed class DeleteApiKeyCommandTests(NitroCommandFixture fixture) : ICla
             """);
     }
 
+    [Fact]
+    public async Task Delete_Should_PromptConfirmation_When_ForceNotProvided()
+    {
+        // arrange
+        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
+        client.Setup(x => x.DeleteApiKeyAsync(
+                "key-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ApiKeyCommandTestHelper.CreateDeleteApiKeyResult("key-1", "my-key", "Workspace"));
+
+        var command = new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "api-key",
+                "delete",
+                "key-1")
+            .Start();
+
+        // act
+        command.Confirm(true);
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Delete_Should_ReturnError_When_UserDeclinesConfirmation()
+    {
+        // arrange
+        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
+
+        var command = new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "api-key",
+                "delete",
+                "key-1")
+            .Start();
+
+        // act
+        command.Confirm(false);
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            API key was not deleted.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Delete_Should_SkipConfirmation_When_ForceProvided_Interactive()
+    {
+        // arrange
+        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
+        client.Setup(x => x.DeleteApiKeyAsync(
+                "key-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ApiKeyCommandTestHelper.CreateDeleteApiKeyResult("key-1", "my-key", "Workspace"));
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "api-key",
+                "delete",
+                "key-1",
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess();
+
+        client.VerifyAll();
+    }
+
     [Theory]
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]

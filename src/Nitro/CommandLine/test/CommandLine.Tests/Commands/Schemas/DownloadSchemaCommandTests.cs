@@ -372,13 +372,11 @@ public sealed class DownloadSchemaCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Downloading schema from stage 'production' of API 'api-1'
             └── ✓ Downloaded the schema from stage 'production'.
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
         Assert.Equal(schemaContent, fileStream.ToArray());
 
         client.VerifyAll();
@@ -422,7 +420,7 @@ public sealed class DownloadSchemaCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
         Assert.Equal(schemaContent, fileStream.ToArray());
 
         client.VerifyAll();
@@ -466,14 +464,12 @@ public sealed class DownloadSchemaCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             {
               "file": "schema.graphql"
             }
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
         Assert.Equal(schemaContent, fileStream.ToArray());
 
         client.VerifyAll();
@@ -517,13 +513,11 @@ public sealed class DownloadSchemaCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Downloading schema from stage 'production' of API 'api-1'
             └── ✓ Downloaded the schema from stage 'production'.
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         fileSystem.Verify(x => x.DeleteFile("schema.graphql"), Times.Once);
         client.VerifyAll();

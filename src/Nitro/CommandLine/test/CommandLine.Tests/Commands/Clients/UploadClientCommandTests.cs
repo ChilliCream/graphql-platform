@@ -484,7 +484,7 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Uploading new client version 'v1' for client 'client-1'
             └── ✓ Uploaded new client version 'v1'.
@@ -495,8 +495,6 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
               "tag": "v1"
             }
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -525,7 +523,7 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
             .ExecuteAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
     }
@@ -564,6 +562,69 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
             """);
 
         client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Upload_Should_ReturnError_When_SourceMetadataInvalid()
+    {
+        // arrange & act
+        var result = await new CommandBuilder(fixture)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "client",
+                "upload",
+                "--tag",
+                "v1",
+                "--operations-file",
+                "operations.json",
+                "--client-id",
+                "client-1",
+                "--source-metadata",
+                "{broken}")
+            .ExecuteAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Failed to parse --source-metadata: 'b' is an invalid start of a property name.
+            Expected a '"'. Path: $ | LineNumber: 0 | BytePositionInLine: 1.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task Upload_Should_ReturnError_When_FileNotFound()
+    {
+        // arrange
+        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
+        fileSystem.Setup(x => x.OpenReadStream("operations.json"))
+            .Throws(new FileNotFoundException("File not found.", "operations.json"));
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "client",
+                "upload",
+                "--tag",
+                "v1",
+                "--operations-file",
+                "operations.json",
+                "--client-id",
+                "client-1")
+            .ExecuteAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            File not found.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        fileSystem.VerifyAll();
     }
 
     private static Mock<IFileSystem> CreateOperationsFileSystem()

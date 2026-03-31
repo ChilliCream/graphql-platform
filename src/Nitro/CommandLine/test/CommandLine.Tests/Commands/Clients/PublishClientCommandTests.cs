@@ -407,7 +407,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
             ├── Publish request created (ID: request-1)
@@ -419,8 +419,6 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
               "status": "success"
             }
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -454,7 +452,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             .ExecuteAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
     }
@@ -669,7 +667,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
             ├── Publish request created (ID: request-1)
@@ -682,8 +680,6 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
               "status": "success"
             }
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -718,7 +714,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
             ├── Publish request created (ID: request-1)
@@ -731,8 +727,6 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
               "status": "success"
             }
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -767,7 +761,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
             ├── Publish request created (ID: request-1)
@@ -780,8 +774,6 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
               "status": "success"
             }
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -822,7 +814,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
             ├── Publish request created (ID: request-1)
@@ -837,8 +829,6 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
               "status": "success"
             }
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -912,7 +902,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
             ├── ! Force push is enabled.
@@ -924,8 +914,180 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
               "status": "success"
             }
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Publish_Should_ReturnError_When_SubscriptionHasConcurrentOperationError()
+    {
+        // arrange
+        var errorMock = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Errors>(
+            MockBehavior.Strict);
+        errorMock.As<IConcurrentOperationError>()
+            .SetupGet(x => x.Message)
+            .Returns("A concurrent operation is already in progress.");
+
+        var client = CreatePublishSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate[]
+            {
+                CreatePublishFailed(errorMock.Object)
+            });
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "client",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
+            ├── Publish request created (ID: request-1)
+            └── ✕ Failed to publish a new client version.
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            A concurrent operation is already in progress.
+            Client publish failed.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Publish_Should_ReturnError_When_SubscriptionHasValidationError()
+    {
+        // arrange
+        var queryErrorMock = new Mock<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Queries_Errors>(
+            MockBehavior.Strict);
+        queryErrorMock.SetupGet(x => x.Message).Returns("Field 'foo' does not exist.");
+        queryErrorMock.SetupGet(x => x.Code).Returns("FIELD_NOT_FOUND");
+        queryErrorMock.SetupGet(x => x.Path).Returns((string?)null);
+        queryErrorMock.SetupGet(x => x.Locations)
+            .Returns((IReadOnlyList<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Queries_Errors_Locations>?)null);
+
+        var queryMock = new Mock<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Queries>(
+            MockBehavior.Strict);
+        queryMock.SetupGet(x => x.Message).Returns("Query abc123 is invalid.");
+        queryMock.SetupGet(x => x.Hash).Returns("abc123");
+        queryMock.SetupGet(x => x.DeployedTags).Returns(new List<string>());
+        queryMock.SetupGet(x => x.Errors).Returns(new[] { queryErrorMock.Object });
+
+        var clientInfoMock = new Mock<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Client>(
+            MockBehavior.Strict);
+        clientInfoMock.SetupGet(x => x.Id).Returns(DefaultClientId);
+        clientInfoMock.SetupGet(x => x.Name).Returns("my-client");
+
+        var errorMock = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Errors>(
+            MockBehavior.Strict);
+        errorMock.As<IPersistedQueryValidationError>()
+            .SetupGet(x => x.Message)
+            .Returns("Validation failed for persisted queries.");
+        errorMock.As<IPersistedQueryValidationError>()
+            .SetupGet(x => x.Client)
+            .Returns(clientInfoMock.Object);
+        errorMock.As<IPersistedQueryValidationError>()
+            .SetupGet(x => x.Queries)
+            .Returns(new[] { queryMock.Object });
+
+        var client = CreatePublishSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate[]
+            {
+                CreatePublishFailed(errorMock.Object)
+            });
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "client",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
+            ├── Publish request created (ID: request-1)
+            └── ✕ Failed to publish a new client version.
+            ! There were errors on client my-client (ID: client-1)
+            Validation failed for persisted queries.
+            └── Query abc123 is invalid.
+                └── Field 'foo' does not exist.
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Client publish failed.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PassWaitForApproval_When_FlagProvided()
+    {
+        // arrange
+        var client = CreatePublishSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate[]
+            {
+                CreatePublishSuccess()
+            },
+            waitForApproval: true);
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "client",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId,
+                "--wait-for-approval")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
+            ├── Publish request created (ID: request-1)
+            └── ✓ Published new client version 'v1.0' to stage 'production'.
+
+            {
+              "stage": "production",
+              "status": "success"
+            }
+            """);
 
         client.VerifyAll();
     }

@@ -578,6 +578,122 @@ public sealed class UpdateMockCommandTests(NitroCommandFixture fixture) : IClass
         return result;
     }
 
+    [Fact]
+    public async Task Update_Should_UpdateOnlyName_When_OnlyNameProvided()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var mocksClient = new Mock<IMocksClient>(MockBehavior.Strict);
+        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
+
+        mocksClient.Setup(x => x.UpdateMockSchemaAsync(
+                "mock-1",
+                null,
+                null,
+                null,
+                "new-name",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateUpdateMockSuccessPayload());
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(apisClient.Object)
+            .AddService(mocksClient.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "mock",
+                "update",
+                "mock-1",
+                "--name",
+                "new-name")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
+            Updating mock schema 'mock-1'
+            └── ✓ Updated mock schema 'mock-1'.
+
+            {
+              "id": "mock-1",
+              "name": "updated-mock",
+              "url": "https://mock.example.com",
+              "downstreamUrl": "https://downstream.example.com/",
+              "createdBy": {
+                "username": "user1",
+                "createdAt": "2025-01-15T10:00:00+00:00"
+              },
+              "modifiedBy": {
+                "username": "user2",
+                "modifiedAt": "2025-01-16T10:00:00+00:00"
+              }
+            }
+            """);
+
+        mocksClient.VerifyAll();
+        fileSystem.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Update_Should_UpdateOnlyUrl_When_OnlyUrlProvided()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var mocksClient = new Mock<IMocksClient>(MockBehavior.Strict);
+        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
+
+        mocksClient.Setup(x => x.UpdateMockSchemaAsync(
+                "mock-1",
+                null,
+                "https://new-downstream.example.com",
+                null,
+                null,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateUpdateMockSuccessPayload());
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(apisClient.Object)
+            .AddService(mocksClient.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "mock",
+                "update",
+                "mock-1",
+                "--url",
+                "https://new-downstream.example.com")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
+            Updating mock schema 'mock-1'
+            └── ✓ Updated mock schema 'mock-1'.
+
+            {
+              "id": "mock-1",
+              "name": "updated-mock",
+              "url": "https://mock.example.com",
+              "downstreamUrl": "https://downstream.example.com/",
+              "createdBy": {
+                "username": "user1",
+                "createdAt": "2025-01-15T10:00:00+00:00"
+              },
+              "modifiedBy": {
+                "username": "user2",
+                "modifiedAt": "2025-01-16T10:00:00+00:00"
+              }
+            }
+            """);
+
+        mocksClient.VerifyAll();
+        fileSystem.VerifyAll();
+    }
+
     public static TheoryData<IUpdateMockSchema_UpdateMockSchema_Errors, string> UpdateMockMutationErrorCases =>
         new()
         {

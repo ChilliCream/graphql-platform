@@ -326,6 +326,169 @@ public sealed class SetApiSettingsCommandTests(NitroCommandFixture fixture) : IC
         client.VerifyAll();
     }
 
+    [Fact]
+    public async Task WithOptions_PromptsForTreatDangerousAsBreaking_ReturnsSuccess_Interactive()
+    {
+        // arrange
+        var client = new Mock<IApisClient>(MockBehavior.Strict);
+        client.Setup(x => x.UpdateApiSettingsAsync(
+                "api-1",
+                true,
+                false,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ApiCommandTestHelper.CreateSetApiSettingsPayload("api-1", "my-api", ["products"]));
+
+        var command = new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "api",
+                "set-settings",
+                "api-1",
+                "--allow-breaking-schema-changes",
+                "false")
+            .Start();
+
+        // act
+        command.Confirm(true);
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task WithOptions_PromptsForAllowBreakingChanges_ReturnsSuccess_Interactive()
+    {
+        // arrange
+        var client = new Mock<IApisClient>(MockBehavior.Strict);
+        client.Setup(x => x.UpdateApiSettingsAsync(
+                "api-1",
+                true,
+                false,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(ApiCommandTestHelper.CreateSetApiSettingsPayload("api-1", "my-api", ["products"]));
+
+        var command = new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "api",
+                "set-settings",
+                "api-1",
+                "--treat-dangerous-as-breaking",
+                "true")
+            .Start();
+
+        // act
+        command.Confirm(false);
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+
+        client.VerifyAll();
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task MissingOptions_ReturnsError_NonInteractive(InteractionMode mode)
+    {
+        // arrange & act
+        var client = new Mock<IApisClient>(MockBehavior.Strict);
+
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "api",
+                "set-settings",
+                "api-1")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            Missing required option '--treat-dangerous-as-breaking'.
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task MissingId_ReturnsError(InteractionMode mode)
+    {
+        // arrange & act
+        var result = await new CommandBuilder(fixture)
+            .AddApiKey()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "api",
+                "set-settings")
+            .ExecuteAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Required argument missing for command: 'set-settings'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task MutationReturnsNoData_ReturnsError_NonInteractive()
+    {
+        // arrange
+        var client = new Mock<IApisClient>(MockBehavior.Strict);
+        client.Setup(x => x.UpdateApiSettingsAsync(
+                "api-1",
+                true,
+                false,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                new SetApiSettingsCommandMutation_UpdateApiSettings_UpdateApiSettingsPayload(
+                    api: null,
+                    errors: []));
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "api",
+                "set-settings",
+                "api-1",
+                "--treat-dangerous-as-breaking",
+                "true",
+                "--allow-breaking-schema-changes",
+                "false")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Updating settings for API 'api-1'
+            └── ✕ Failed to update the API settings.
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The GraphQL mutation completed without errors, but the server did not return the
+            expected data.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
     public static TheoryData<InteractionMode, ISetApiSettingsCommandMutation_UpdateApiSettings_Errors, string>
         SetApiSettingsMutationErrorCases =>
         new()

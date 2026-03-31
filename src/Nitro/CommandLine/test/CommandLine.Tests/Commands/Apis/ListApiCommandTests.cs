@@ -114,7 +114,7 @@ public sealed class ListApiCommandTests(NitroCommandFixture fixture) : IClassFix
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
     }
@@ -149,7 +149,7 @@ public sealed class ListApiCommandTests(NitroCommandFixture fixture) : IClassFix
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
     }
@@ -251,7 +251,7 @@ public sealed class ListApiCommandTests(NitroCommandFixture fixture) : IClassFix
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
     }
@@ -326,7 +326,7 @@ public sealed class ListApiCommandTests(NitroCommandFixture fixture) : IClassFix
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
     }

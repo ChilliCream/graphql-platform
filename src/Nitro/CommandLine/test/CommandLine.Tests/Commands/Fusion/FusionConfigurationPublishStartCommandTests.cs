@@ -275,13 +275,11 @@ public sealed class FusionConfigurationPublishStartCommandTests(NitroCommandFixt
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Starting composition
             └── ✓ Started composition for request 'req-1'.
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -306,7 +304,7 @@ public sealed class FusionConfigurationPublishStartCommandTests(NitroCommandFixt
             .ExecuteAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
     }

@@ -254,7 +254,7 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : IClassF
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
     }
@@ -657,6 +657,207 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : IClassF
             has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Create_Should_PromptForPath_When_NameProvidedButPathMissing_Interactive()
+    {
+        // arrange
+        var client = new Mock<IApisClient>(MockBehavior.Strict);
+        client.Setup(x => x.CreateApiAsync(
+                "workspace-from-session",
+                It.Is<IReadOnlyList<string>>(p => p.SequenceEqual(new[] { "products" })),
+                "my-api",
+                null,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateApiSuccessPayload());
+
+        var command = new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddSessionWithWorkspace()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "api",
+                "create",
+                "--name",
+                "my-api")
+            .Start();
+
+        // act
+        command.Input("/products");
+
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Create_Should_ReturnSuccess_When_KindIsService()
+    {
+        // arrange
+        var client = new Mock<IApisClient>(MockBehavior.Strict);
+        client.Setup(x => x.CreateApiAsync(
+                "ws-1",
+                It.Is<IReadOnlyList<string>>(p => p.SequenceEqual(new[] { "products" })),
+                "my-api",
+                ApiKind.Service,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateApiSuccessPayload());
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "api",
+                "create",
+                "--workspace-id",
+                "ws-1",
+                "--name",
+                "my-api",
+                "--path",
+                "/products",
+                "--kind",
+                "service")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
+            Creating API 'my-api'
+            └── ✓ Created API 'my-api'.
+
+            {
+              "id": "api-1",
+              "name": "my-api",
+              "path": "products/catalog",
+              "workspace": {
+                "name": "Workspace"
+              },
+              "apiDetailPromptSettings": {
+                "apiDetailPromptSchemaRegistry": {
+                  "treatDangerousAsBreaking": true,
+                  "allowBreakingSchemaChanges": false
+                }
+              }
+            }
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Create_Should_ReturnSuccess_When_KindIsGateway()
+    {
+        // arrange
+        var client = new Mock<IApisClient>(MockBehavior.Strict);
+        client.Setup(x => x.CreateApiAsync(
+                "ws-1",
+                It.Is<IReadOnlyList<string>>(p => p.SequenceEqual(new[] { "products" })),
+                "my-api",
+                ApiKind.Gateway,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateApiSuccessPayload());
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "api",
+                "create",
+                "--workspace-id",
+                "ws-1",
+                "--name",
+                "my-api",
+                "--path",
+                "/products",
+                "--kind",
+                "gateway")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
+            Creating API 'my-api'
+            └── ✓ Created API 'my-api'.
+
+            {
+              "id": "api-1",
+              "name": "my-api",
+              "path": "products/catalog",
+              "workspace": {
+                "name": "Workspace"
+              },
+              "apiDetailPromptSettings": {
+                "apiDetailPromptSchemaRegistry": {
+                  "treatDangerousAsBreaking": true,
+                  "allowBreakingSchemaChanges": false
+                }
+              }
+            }
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Create_Should_ReturnSuccess_When_KindNotProvided()
+    {
+        // arrange
+        var client = new Mock<IApisClient>(MockBehavior.Strict);
+        client.Setup(x => x.CreateApiAsync(
+                "ws-1",
+                It.Is<IReadOnlyList<string>>(p => p.SequenceEqual(new[] { "products" })),
+                "my-api",
+                null,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateApiSuccessPayload());
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "api",
+                "create",
+                "--workspace-id",
+                "ws-1",
+                "--name",
+                "my-api",
+                "--path",
+                "/products")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
+            Creating API 'my-api'
+            └── ✓ Created API 'my-api'.
+
+            {
+              "id": "api-1",
+              "name": "my-api",
+              "path": "products/catalog",
+              "workspace": {
+                "name": "Workspace"
+              },
+              "apiDetailPromptSettings": {
+                "apiDetailPromptSchemaRegistry": {
+                  "treatDangerousAsBreaking": true,
+                  "allowBreakingSchemaChanges": false
+                }
+              }
+            }
+            """);
 
         client.VerifyAll();
     }

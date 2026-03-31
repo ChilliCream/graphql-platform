@@ -64,7 +64,7 @@ public sealed class ListWorkspaceCommandTests(NitroCommandFixture fixture) : ICl
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
     }
@@ -144,7 +144,7 @@ public sealed class ListWorkspaceCommandTests(NitroCommandFixture fixture) : ICl
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
     }
@@ -214,7 +214,7 @@ public sealed class ListWorkspaceCommandTests(NitroCommandFixture fixture) : ICl
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
     }

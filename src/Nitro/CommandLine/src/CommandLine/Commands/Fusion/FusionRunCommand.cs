@@ -29,8 +29,6 @@ internal class FusionRunCommand : Command
         Arguments.Add(Opt<FusionRunArchiveArgument>.Instance);
         Options.Add(Opt<FusionRunPortOption>.Instance);
 
-        this.AddGlobalNitroOptions();
-
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

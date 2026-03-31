@@ -88,7 +88,7 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
         fileSystem.VerifyAll();
@@ -118,13 +118,11 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Downloading latest Fusion configuration from stage 'prod' of API 'api-1'
             └── ✓ Downloaded Fusion configuration from stage 'prod'.
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
         fileSystem.VerifyAll();
@@ -154,14 +152,12 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             {
               "file": "/tmp/gateway.far"
             }
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
         fileSystem.VerifyAll();
@@ -191,7 +187,7 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
         fileSystem.VerifyAll();
@@ -221,13 +217,11 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Downloading latest Fusion configuration from stage 'prod' of API 'api-1'
             └── ✓ Downloaded Fusion configuration from stage 'prod'.
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
         fileSystem.VerifyAll();
@@ -257,14 +251,12 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             {
               "file": "/tmp/gateway.fgp"
             }
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
         fileSystem.VerifyAll();

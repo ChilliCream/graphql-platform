@@ -105,7 +105,7 @@ public sealed class CreatePersonalAccessTokenCommandTests(NitroCommandFixture fi
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Creating personal access token
             └── ✓ Created personal access token 'my-token'.
@@ -120,8 +120,6 @@ public sealed class CreatePersonalAccessTokenCommandTests(NitroCommandFixture fi
               }
             }
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }

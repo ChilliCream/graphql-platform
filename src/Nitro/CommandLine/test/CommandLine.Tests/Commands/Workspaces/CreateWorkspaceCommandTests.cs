@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Workspaces;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Workspaces;
@@ -181,7 +182,7 @@ public sealed class CreateWorkspaceCommandTests(NitroCommandFixture fixture) : I
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
     }
@@ -436,6 +437,120 @@ public sealed class CreateWorkspaceCommandTests(NitroCommandFixture fixture) : I
         Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Create_Should_PromptForDefault_When_InteractiveAndDefaultNotProvided()
+    {
+        // arrange
+        var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
+        client.Setup(x => x.CreateWorkspaceAsync(
+                "my-workspace",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateWorkspacePayload("ws-1", "my-workspace", false));
+
+        var builder = new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddSession()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "workspace",
+                "create",
+                "--name",
+                "my-workspace");
+
+        var command = builder.Start();
+
+        // act
+        command.Confirm(true);
+
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+
+        client.VerifyAll();
+        builder.SessionServiceMock.Verify(
+            x => x.SelectWorkspaceAsync(
+                It.Is<Workspace>(w => w.Id == "ws-1" && w.Name == "my-workspace"),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Create_Should_SetDefault_When_DefaultFlagProvided()
+    {
+        // arrange
+        var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
+        client.Setup(x => x.CreateWorkspaceAsync(
+                "my-workspace",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateWorkspacePayload("ws-1", "my-workspace", false));
+
+        var builder = new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddSession()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "workspace",
+                "create",
+                "--name",
+                "my-workspace",
+                "--default");
+
+        // act
+        var result = await builder.ExecuteAsync();
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+
+        client.VerifyAll();
+        builder.SessionServiceMock.Verify(
+            x => x.SelectWorkspaceAsync(
+                It.Is<Workspace>(w => w.Id == "ws-1" && w.Name == "my-workspace"),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Create_Should_ReturnSuccess_When_InteractiveWithNameOption()
+    {
+        // arrange
+        var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
+        client.Setup(x => x.CreateWorkspaceAsync(
+                "my-workspace",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateWorkspacePayload("ws-1", "my-workspace", false));
+
+        var builder = new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddSession()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "workspace",
+                "create",
+                "--name",
+                "my-workspace");
+
+        var command = builder.Start();
+
+        // act
+        command.Confirm(false);
+
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+
+        client.VerifyAll();
+        builder.SessionServiceMock.Verify(
+            x => x.SelectWorkspaceAsync(
+                It.IsAny<Workspace>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     public static TheoryData<ICreateWorkspaceCommandMutation_CreateWorkspace_Errors, string, InteractionMode> CreateMutationErrorCases =>

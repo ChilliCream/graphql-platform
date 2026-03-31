@@ -420,7 +420,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Validating schema against stage 'production' of API 'api-1'
             ├── Validation request created (ID: request-1)
@@ -428,8 +428,6 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
             ├── The schema validation is in progress.
             └── ✓ Validated schema against stage 'production'.
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -465,7 +463,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
     }
@@ -501,15 +499,13 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             {
               "requestId": "request-1",
               "status": "success"
             }
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -703,6 +699,77 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
         Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Validate_Should_ReturnError_When_SourceMetadataInvalid(InteractionMode mode)
+    {
+        // arrange & act
+        var result = await new CommandBuilder(fixture)
+            .AddApiKey()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "schema",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--api-id",
+                DefaultApiId,
+                "--schema-file",
+                DefaultSchemaFile,
+                "--source-metadata",
+                "{broken}")
+            .ExecuteAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Failed to parse --source-metadata: 'b' is an invalid start of a property name.
+            Expected a '"'. Path: $ | LineNumber: 0 | BytePositionInLine: 1.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task Validate_Should_ReturnError_When_SchemaFileNotFound()
+    {
+        // arrange
+        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
+        fileSystem.Setup(x => x.OpenReadStream("nonexistent.graphql"))
+            .Throws(new FileNotFoundException("Could not find file 'nonexistent.graphql'."));
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "schema",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--api-id",
+                DefaultApiId,
+                "--schema-file",
+                "nonexistent.graphql")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating schema against stage 'production' of API 'api-1'
+            └── ✕ Failed to validate the schema.
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Could not find file 'nonexistent.graphql'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        fileSystem.VerifyAll();
     }
 
     // --- Helpers ---

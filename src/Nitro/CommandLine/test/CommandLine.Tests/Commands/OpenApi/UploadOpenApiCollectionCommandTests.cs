@@ -483,13 +483,11 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Uploading new OpenAPI collection version 'v1' for collection 'oa-1'
             └── ✓ Uploaded new OpenAPI collection version 'v1'.
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -518,7 +516,7 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
             .ExecuteAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
     }

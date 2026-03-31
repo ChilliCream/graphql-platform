@@ -63,6 +63,100 @@ public sealed class DeleteClientCommandTests(NitroCommandFixture fixture) : ICla
             """);
     }
 
+    [Fact]
+    public async Task Delete_Should_SucceedWithConfirmation_When_UserConfirms_Interactive()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
+        clientsClient.Setup(x => x.DeleteClientAsync(
+                "client-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateDeletePayload(CreateClientNode("client-1", "web-client", "products"), errors: null));
+
+        var command = new CommandBuilder(fixture)
+            .AddService(apisClient.Object)
+            .AddService(clientsClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "client",
+                "delete",
+                "client-1")
+            .Start();
+
+        // act
+        command.Confirm(true);
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+
+        apisClient.VerifyAll();
+        clientsClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Delete_Should_PromptForApiAndClient_When_NoIdProvided_Interactive()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        apisClient.Setup(x => x.SelectApisAsync(
+                "workspace-from-session",
+                null,
+                5,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ConnectionPage<ISelectApiPromptQuery_WorkspaceById_Apis_Edges_Node>(
+                [
+                    new SelectApiPromptQuery_WorkspaceById_Apis_Edges_Node_Api(
+                        "api-1",
+                        "products",
+                        [],
+                        null,
+                        new ShowApiCommandQuery_Node_Settings_ApiSettings(
+                            new ShowApiCommandQuery_Node_Settings_SchemaRegistry_SchemaRegistrySettings(false, false)))
+                ],
+                null,
+                false));
+
+        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
+        clientsClient.Setup(x => x.ListClientsAsync(
+                "api-1",
+                null,
+                5,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ConnectionPage<IListClientCommandQuery_Node_Clients_Edges_Node>(
+                [CreateListClientNode("client-1", "web-client")],
+                null,
+                false));
+        clientsClient.Setup(x => x.DeleteClientAsync(
+                "client-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateDeletePayload(CreateClientNode("client-1", "web-client", "products"), errors: null));
+
+        var command = new CommandBuilder(fixture)
+            .AddService(apisClient.Object)
+            .AddService(clientsClient.Object)
+            .AddSessionWithWorkspace()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "client",
+                "delete")
+            .Start();
+
+        // act
+        command.SelectOption(0); // Select API
+        command.SelectOption(0); // Select Client
+        command.Confirm(true);   // Confirm deletion
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+
+        apisClient.VerifyAll();
+        clientsClient.VerifyAll();
+    }
+
     [Theory]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
@@ -118,7 +212,7 @@ public sealed class DeleteClientCommandTests(NitroCommandFixture fixture) : ICla
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             ? Which client do you want to delete?: client-1
             Deleting client 'client-1'
@@ -132,8 +226,6 @@ public sealed class DeleteClientCommandTests(NitroCommandFixture fixture) : ICla
               }
             }
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -162,7 +254,7 @@ public sealed class DeleteClientCommandTests(NitroCommandFixture fixture) : ICla
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -472,6 +564,16 @@ public sealed class DeleteClientCommandTests(NitroCommandFixture fixture) : ICla
         payload.SetupGet(x => x.Client).Returns(client);
         payload.SetupGet(x => x.Errors).Returns(errors);
         return payload.Object;
+    }
+
+    private static IListClientCommandQuery_Node_Clients_Edges_Node CreateListClientNode(
+        string id,
+        string name)
+    {
+        var clientNode = new Mock<IListClientCommandQuery_Node_Clients_Edges_Node>(MockBehavior.Strict);
+        clientNode.SetupGet(x => x.Id).Returns(id);
+        clientNode.SetupGet(x => x.Name).Returns(name);
+        return clientNode.Object;
     }
 
     private static IDeleteClientByIdCommandMutation_DeleteClientById_Client CreateClientNode(

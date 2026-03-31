@@ -417,7 +417,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Validating client against stage 'production' of client 'client-1'
             ├── Validation request created (ID: request-1)
@@ -430,8 +430,6 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
               "status": "success"
             }
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -467,7 +465,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
     }
@@ -695,6 +693,168 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
         Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Validate_Should_ReturnError_When_SubscriptionHasValidationError()
+    {
+        // arrange
+        var queryErrorMock = new Mock<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Queries_Errors>(
+            MockBehavior.Strict);
+        queryErrorMock.SetupGet(x => x.Message).Returns("Field 'bar' does not exist.");
+        queryErrorMock.SetupGet(x => x.Code).Returns("FIELD_NOT_FOUND");
+        queryErrorMock.SetupGet(x => x.Path).Returns((string?)null);
+        queryErrorMock.SetupGet(x => x.Locations)
+            .Returns((IReadOnlyList<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Queries_Errors_Locations>?)null);
+
+        var queryMock = new Mock<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Queries>(
+            MockBehavior.Strict);
+        queryMock.SetupGet(x => x.Message).Returns("Query def456 is invalid.");
+        queryMock.SetupGet(x => x.Hash).Returns("def456");
+        queryMock.SetupGet(x => x.DeployedTags).Returns(new List<string>());
+        queryMock.SetupGet(x => x.Errors).Returns(new[] { queryErrorMock.Object });
+
+        var clientInfoMock = new Mock<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Client>(
+            MockBehavior.Strict);
+        clientInfoMock.SetupGet(x => x.Id).Returns(DefaultClientId);
+        clientInfoMock.SetupGet(x => x.Name).Returns("my-client");
+
+        var errorMock = new Mock<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors>(
+            MockBehavior.Strict);
+        errorMock.As<IPersistedQueryValidationError>()
+            .SetupGet(x => x.Message)
+            .Returns("Validation failed for persisted queries.");
+        errorMock.As<IPersistedQueryValidationError>()
+            .SetupGet(x => x.Client)
+            .Returns(clientInfoMock.Object);
+        errorMock.As<IPersistedQueryValidationError>()
+            .SetupGet(x => x.Queries)
+            .Returns(new[] { queryMock.Object });
+
+        var (client, fileSystem) = CreateValidationSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate[]
+            {
+                CreateValidationFailed(errorMock.Object)
+            });
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "client",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId,
+                "--operations-file",
+                DefaultOperationsFile)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating client against stage 'production' of client 'client-1'
+            ├── Validation request created (ID: request-1)
+            └── ✕ Failed to validate the client.
+            ! There were errors on client my-client (ID: client-1)
+            Validation failed for persisted queries.
+            └── Query def456 is invalid.
+                └── Field 'bar' does not exist.
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Client validation failed.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Validate_Should_ReturnError_When_SubscriptionHasTimeoutError()
+    {
+        // arrange
+        var errorMock = new Mock<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors>(
+            MockBehavior.Strict);
+        errorMock.As<IProcessingTimeoutError>()
+            .SetupGet(x => x.Message)
+            .Returns("The operation has timed out.");
+
+        var (client, fileSystem) = CreateValidationSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate[]
+            {
+                CreateOperationInProgress(),
+                CreateValidationFailed(errorMock.Object)
+            });
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "client",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId,
+                "--operations-file",
+                DefaultOperationsFile)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating client against stage 'production' of client 'client-1'
+            ├── Validation request created (ID: request-1)
+            ├── The client validation is in progress.
+            └── ✕ Failed to validate the client.
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The operation has timed out.
+            Client validation failed.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Validate_Should_ReturnError_When_SourceMetadataInvalid()
+    {
+        // arrange & act
+        var result = await new CommandBuilder(fixture)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "client",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--client-id",
+                DefaultClientId,
+                "--operations-file",
+                DefaultOperationsFile,
+                "--source-metadata",
+                "{broken}")
+            .ExecuteAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Failed to parse --source-metadata: 'b' is an invalid start of a property name.
+            Expected a '"'. Path: $ | LineNumber: 0 | BytePositionInLine: 1.
+            """);
+        Assert.Equal(1, result.ExitCode);
     }
 
     // --- Helpers ---

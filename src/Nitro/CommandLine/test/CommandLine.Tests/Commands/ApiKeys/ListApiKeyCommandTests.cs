@@ -90,7 +90,7 @@ public sealed class ListApiKeyCommandTests(NitroCommandFixture fixture) : IClass
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
     }
@@ -128,7 +128,7 @@ public sealed class ListApiKeyCommandTests(NitroCommandFixture fixture) : IClass
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
     }
@@ -160,13 +160,15 @@ public sealed class ListApiKeyCommandTests(NitroCommandFixture fixture) : IClass
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task WithWorkspaceIdFromSession_ReturnsSuccess_NonInteractive()
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task WithWorkspaceIdFromSession_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
         var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
@@ -185,7 +187,7 @@ public sealed class ListApiKeyCommandTests(NitroCommandFixture fixture) : IClass
         var result = await new CommandBuilder(fixture)
             .AddService(client.Object)
             .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "api-key",
                 "list")
@@ -214,61 +216,6 @@ public sealed class ListApiKeyCommandTests(NitroCommandFixture fixture) : IClass
                 "cursor": "cursor-2"
             }
             """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task WithWorkspaceIdFromSession_ReturnsSuccess_OutputJson()
-    {
-        // arrange
-        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
-        client.Setup(x => x.ListApiKeysAsync(
-                "workspace-from-session",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(
-                ApiKeyCommandTestHelper.CreateListApiKeysPage(
-                    endCursor: "cursor-2",
-                    hasNextPage: true,
-                    ("key-1", "tenant-key", "Workspace"),
-                    ("key-2", "integration-key", "Workspace")));
-
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "api-key",
-                "list")
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            {
-                "values": [
-                    {
-                        "id": "key-1",
-                        "name": "tenant-key",
-                        "workspace": {
-                            "name": "Workspace"
-                        }
-                    },
-                    {
-                        "id": "key-2",
-                        "name": "integration-key",
-                        "workspace": {
-                            "name": "Workspace"
-                        }
-                    }
-                ],
-                "cursor": "cursor-2"
-            }
-            """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -375,7 +322,7 @@ public sealed class ListApiKeyCommandTests(NitroCommandFixture fixture) : IClass
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
     }

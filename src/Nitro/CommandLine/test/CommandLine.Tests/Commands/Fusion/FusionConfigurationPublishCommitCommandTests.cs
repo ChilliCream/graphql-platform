@@ -352,13 +352,11 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Publishing Fusion configuration
             └── ✓ Published Fusion configuration.
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
         fileSystem.VerifyAll();
@@ -450,6 +448,190 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
         // assert
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
+
+        client.VerifyAll();
+        fileSystem.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Commit_Should_ReturnError_When_CommitFails()
+    {
+        // arrange
+        var archiveStream = new MemoryStream("archive-content"u8.ToArray());
+
+        var commitPayload = new Mock<ICommitFusionConfigurationPublish_CommitFusionConfigurationPublish>(MockBehavior.Strict);
+        commitPayload.SetupGet(x => x.Errors)
+            .Returns((IReadOnlyList<ICommitFusionConfigurationPublish_CommitFusionConfigurationPublish_Errors>?)null);
+
+        var client = new Mock<IFusionConfigurationClient>(MockBehavior.Strict);
+        client.Setup(x => x.CommitFusionArchiveAsync(
+                "req-1",
+                It.IsAny<Stream>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(commitPayload.Object);
+        client.Setup(x => x.SubscribeToFusionConfigurationPublishingTaskChangedAsync(
+                "req-1",
+                It.IsAny<CancellationToken>()))
+            .Returns(ToAsyncEnumerable<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged>());
+
+        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
+        fileSystem.Setup(x => x.OpenReadStream(ArchiveFilePath))
+            .Returns(archiveStream);
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "fusion",
+                "publish",
+                "commit",
+                "--request-id",
+                "req-1",
+                "--archive",
+                ArchiveFilePath)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration
+            └── ✕ Failed to publish a new Fusion configuration version.
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The commit has failed.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Commit_Should_HandleSubscriptionEvents_When_PublishFails()
+    {
+        // arrange
+        var archiveStream = new MemoryStream("archive-content"u8.ToArray());
+
+        var commitPayload = new Mock<ICommitFusionConfigurationPublish_CommitFusionConfigurationPublish>(MockBehavior.Strict);
+        commitPayload.SetupGet(x => x.Errors)
+            .Returns((IReadOnlyList<ICommitFusionConfigurationPublish_CommitFusionConfigurationPublish_Errors>?)null);
+
+        var errorMock = new Mock<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors>(MockBehavior.Strict);
+        errorMock.SetupGet(x => x.Message).Returns("Deployment failed.");
+
+        var failedEvent = new OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_FusionConfigurationPublishingFailed(
+            ProcessingState.Failed,
+            "FusionConfigurationPublishingFailed",
+            "Failed",
+            new[] { errorMock.Object });
+
+        var client = new Mock<IFusionConfigurationClient>(MockBehavior.Strict);
+        client.Setup(x => x.CommitFusionArchiveAsync(
+                "req-1",
+                It.IsAny<Stream>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(commitPayload.Object);
+        client.Setup(x => x.SubscribeToFusionConfigurationPublishingTaskChangedAsync(
+                "req-1",
+                It.IsAny<CancellationToken>()))
+            .Returns(ToAsyncEnumerable<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged>(failedEvent));
+
+        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
+        fileSystem.Setup(x => x.OpenReadStream(ArchiveFilePath))
+            .Returns(archiveStream);
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "fusion",
+                "publish",
+                "commit",
+                "--request-id",
+                "req-1",
+                "--archive",
+                ArchiveFilePath)
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration
+            └── ✕ Failed to publish a new Fusion configuration version.
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Deployment failed.
+            The commit has failed.
+            The commit has failed.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Commit_Should_HandleSubscriptionEvents_When_Queued()
+    {
+        // arrange
+        var archiveStream = new MemoryStream("archive-content"u8.ToArray());
+
+        var commitPayload = new Mock<ICommitFusionConfigurationPublish_CommitFusionConfigurationPublish>(MockBehavior.Strict);
+        commitPayload.SetupGet(x => x.Errors)
+            .Returns((IReadOnlyList<ICommitFusionConfigurationPublish_CommitFusionConfigurationPublish_Errors>?)null);
+
+        var queuedEvent = new OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_ProcessingTaskIsQueued(
+            ProcessingState.Queued,
+            "ProcessingTaskIsQueued",
+            "Queued",
+            2);
+
+        var successEvent = Mock.Of<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_FusionConfigurationPublishingSuccess>();
+
+        var client = new Mock<IFusionConfigurationClient>(MockBehavior.Strict);
+        client.Setup(x => x.CommitFusionArchiveAsync(
+                "req-1",
+                It.IsAny<Stream>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(commitPayload.Object);
+        client.Setup(x => x.SubscribeToFusionConfigurationPublishingTaskChangedAsync(
+                "req-1",
+                It.IsAny<CancellationToken>()))
+            .Returns(ToAsyncEnumerable<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged>(queuedEvent, successEvent));
+
+        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
+        fileSystem.Setup(x => x.OpenReadStream(ArchiveFilePath))
+            .Returns(archiveStream);
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "fusion",
+                "publish",
+                "commit",
+                "--request-id",
+                "req-1",
+                "--archive",
+                ArchiveFilePath)
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing Fusion configuration
+            ├── Queued at position 2.
+            └── ✓ Published Fusion configuration.
+            """);
 
         client.VerifyAll();
         fileSystem.VerifyAll();

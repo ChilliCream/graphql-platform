@@ -437,14 +437,12 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Publishing new OpenAPI collection version 'v1' to stage 'production'
             ├── Processing...
             └── ✓ Published new OpenAPI collection version 'v1' to stage 'production'.
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -478,7 +476,7 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             .ExecuteAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
     }
@@ -688,15 +686,13 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Publishing new OpenAPI collection version 'v1' to stage 'production'
             ├── Queued at position 3.
             ├── Processing...
             └── ✓ Published new OpenAPI collection version 'v1' to stage 'production'.
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -731,15 +727,13 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Publishing new OpenAPI collection version 'v1' to stage 'production'
             ├── Ready.
             ├── Processing...
             └── ✓ Published new OpenAPI collection version 'v1' to stage 'production'.
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -774,15 +768,13 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Publishing new OpenAPI collection version 'v1' to stage 'production'
             ├── Approved. Processing...
             ├── Processing...
             └── ✓ Published new OpenAPI collection version 'v1' to stage 'production'.
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -823,7 +815,7 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Publishing new OpenAPI collection version 'v1' to stage 'production'
             ├── Waiting for approval. Approve in Nitro to continue.
@@ -831,8 +823,6 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             ├── Processing...
             └── ✓ Published new OpenAPI collection version 'v1' to stage 'production'.
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -878,6 +868,85 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Publish_Should_LogWarning_When_ForceEnabled()
+    {
+        // arrange
+        var client = CreatePublishSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate[]
+            {
+                CreatePublishSuccess()
+            },
+            force: true);
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "openapi",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--openapi-collection-id",
+                DefaultOpenApiCollectionId,
+                "--force")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing new OpenAPI collection version 'v1' to stage 'production'
+            ├── ! Force push is enabled.
+            └── ✓ Published new OpenAPI collection version 'v1' to stage 'production'.
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Publish_Should_PassWaitForApproval_When_FlagProvided()
+    {
+        // arrange
+        var client = CreatePublishSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate[]
+            {
+                CreatePublishSuccess()
+            },
+            waitForApproval: true);
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "openapi",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--openapi-collection-id",
+                DefaultOpenApiCollectionId,
+                "--wait-for-approval")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing new OpenAPI collection version 'v1' to stage 'production'
+            └── ✓ Published new OpenAPI collection version 'v1' to stage 'production'.
+            """);
 
         client.VerifyAll();
     }

@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Workspaces;
+using ChilliCream.Nitro.CommandLine.Commands.Workspaces;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using Moq;
 
@@ -300,6 +301,79 @@ public sealed class SetDefaultWorkspaceCommandTests(NitroCommandFixture fixture)
                 It.Is<Workspace>(w => w.Id == "ws-1" && w.Name == "my-workspace"),
                 It.IsAny<CancellationToken>()),
             Times.Once);
+    }
+
+    [Fact]
+    public async Task SetDefault_Should_ReturnError_When_WorkspaceIdNotFound()
+    {
+        // arrange
+        var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
+        client.Setup(x => x.GetWorkspaceAsync(
+                "ws-999",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IShowWorkspaceCommandQuery_Node?)null);
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "workspace",
+                "set-default",
+                "--workspace-id", "ws-999")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            The workspace with ID 'ws-999' was not found.
+            """);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task SetDefault_Should_AutoSelect_When_SingleWorkspaceAndNotForced()
+    {
+        // arrange
+        var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
+        client.Setup(x => x.SelectWorkspacesAsync(
+                null,
+                5,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateWorkspacePage(
+                new SetDefaultWorkspaceCommand_SelectWorkspace_Query_Me_Workspaces_Edges_Node_Workspace(
+                    "ws-1", "my-workspace", false)));
+
+        var console = Mock.Of<INitroConsole>();
+        var sessionService = new Mock<ISessionService>(MockBehavior.Strict);
+        sessionService.Setup(x => x.SelectWorkspaceAsync(
+                It.Is<Workspace>(w => w.Id == "ws-1" && w.Name == "my-workspace"),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new Session(
+                "session-1",
+                "subject-1",
+                "tenant-1",
+                "https://id.chillicream.com",
+                "api.chillicream.com",
+                "user@chillicream.com",
+                tokens: null,
+                workspace: new Workspace("ws-1", "my-workspace")));
+
+        // act
+        var exitCode = await SetDefaultWorkspaceCommand.ExecuteAsync(
+            forceSelection: false,
+            console,
+            client.Object,
+            sessionService.Object,
+            CancellationToken.None);
+
+        // assert
+        Assert.Equal(0, exitCode);
+
+        client.VerifyAll();
+        sessionService.VerifyAll();
     }
 
     private static Mock<IWorkspacesClient> CreateSelectExceptionClient(Exception ex)

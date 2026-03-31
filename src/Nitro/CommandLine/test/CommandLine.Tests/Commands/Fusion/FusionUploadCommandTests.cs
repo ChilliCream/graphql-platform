@@ -468,13 +468,11 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : ICla
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Uploading new source schema version 'v1' to API 'api-1'
             └── ✓ Uploaded new source schema version 'v1'.
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -503,7 +501,7 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : ICla
             .ExecuteAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
     }
@@ -532,14 +530,12 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : ICla
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             {
               "tag": "v1"
             }
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -765,6 +761,92 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : ICla
             limits, reverse proxy settings, or load balancer request size limits.
             """);
         Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Upload_Should_ReturnError_When_SchemaFileNotFound()
+    {
+        // arrange
+        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
+        fileSystem.Setup(x => x.GetCurrentDirectory()).Returns("/tmp");
+        fileSystem.Setup(x => x.DirectoryExists(SchemaFilePath)).Returns(false);
+        fileSystem.Setup(x => x.FileExists(SchemaFilePath)).Returns(false);
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "fusion",
+                "upload",
+                "--api-id",
+                "api-1",
+                "--tag",
+                "v1",
+                "--source-schema-file",
+                SchemaFilePath)
+            .ExecuteAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            ❌ Source schema file '/tmp/subgraph.graphqls' does not exist.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        fileSystem.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Upload_Should_PassSourceMetadata_When_Provided()
+    {
+        // arrange
+        const string sourceMetadataJson =
+            """{"actor":"user1","commitHash":"abc123","workflowName":"ci","runNumber":"1","runId":"run-1","repositoryUrl":"https://github.com/org/repo"}""";
+
+        var fusionSubgraphVersion = new Mock<IUploadFusionSubgraph_UploadFusionSubgraph_FusionSubgraphVersion>(MockBehavior.Strict);
+        fusionSubgraphVersion.SetupGet(x => x.Id).Returns("fsv-1");
+
+        var payload = new Mock<IUploadFusionSubgraph_UploadFusionSubgraph>(MockBehavior.Strict);
+        payload.SetupGet(x => x.Errors)
+            .Returns((IReadOnlyList<IUploadFusionSubgraph_UploadFusionSubgraph_Errors>?)null);
+        payload.SetupGet(x => x.FusionSubgraphVersion).Returns(fusionSubgraphVersion.Object);
+
+        var client = new Mock<IFusionConfigurationClient>(MockBehavior.Strict);
+        client.Setup(x => x.UploadFusionSubgraphAsync(
+                "api-1",
+                "v1",
+                It.IsAny<Stream>(),
+                It.Is<SourceMetadata?>(s => s != null),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(payload.Object);
+
+        var fileSystem = CreateSchemaFileSystem();
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "fusion",
+                "upload",
+                "--api-id",
+                "api-1",
+                "--tag",
+                "v1",
+                "--source-schema-file",
+                SchemaFilePath,
+                "--source-metadata",
+                sourceMetadataJson)
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess();
 
         client.VerifyAll();
     }

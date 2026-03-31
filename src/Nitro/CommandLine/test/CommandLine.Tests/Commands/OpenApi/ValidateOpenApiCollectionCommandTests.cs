@@ -447,7 +447,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Validating OpenAPI collection against stage 'production'
             ├── Found 1 document(s).
@@ -456,8 +456,6 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             ├── Validating...
             └── ✓ Validated OpenAPI collection against stage 'production'.
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -493,7 +491,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             .ExecuteAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
     }
@@ -725,6 +723,92 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             └── ✕ Failed to validate the OpenAPI collection.
             """);
         Assert.Empty(result.StdErr);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Validate_Should_ReturnError_When_SourceMetadataInvalid(InteractionMode mode)
+    {
+        // arrange & act
+        var result = await new CommandBuilder(fixture)
+            .AddApiKey()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "openapi",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--openapi-collection-id",
+                DefaultOpenApiCollectionId,
+                "--pattern",
+                "**/*.graphql",
+                "--source-metadata",
+                "{broken}")
+            .ExecuteAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Failed to parse --source-metadata: 'b' is an invalid start of a property name.
+            Expected a '"'. Path: $ | LineNumber: 0 | BytePositionInLine: 1.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task Validate_Should_ReturnError_When_ArchiveValidationError()
+    {
+        // arrange
+        var errorMock = new Mock<IValidateOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionValidationUpdate_Errors>(
+            MockBehavior.Strict);
+        errorMock.As<IOpenApiCollectionValidationArchiveError>()
+            .SetupGet(x => x.Message)
+            .Returns("Archive is corrupted.");
+
+        var (client, fileSystem) = CreateValidationSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IValidateOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionValidationUpdate[]
+            {
+                CreateValidationFailed(errorMock.Object)
+            });
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "openapi",
+                "validate",
+                "--stage",
+                DefaultStage,
+                "--openapi-collection-id",
+                DefaultOpenApiCollectionId,
+                "--pattern",
+                "**/*.graphql")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating OpenAPI collection against stage 'production'
+            ├── Found 1 document(s).
+            ├── Validation request created (ID: request-1)
+            └── ✕ Failed to validate the OpenAPI collection.
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server received an invalid archive. This indicates a bug in the tooling.
+            Please notify ChilliCream.
+            Error received: Archive is corrupted.
+            OpenAPI collection validation failed.
+            """);
         Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();

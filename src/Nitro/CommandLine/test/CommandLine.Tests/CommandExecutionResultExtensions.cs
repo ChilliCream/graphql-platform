@@ -9,16 +9,13 @@ internal static class CommandExecutionResultExtensions
         Assert.Equal(1, result.ExitCode);
     }
 
-    public static void AssertSuccess(this CommandResult result, string stdout)
+    public static void AssertSuccess(this CommandResult result, string? stdout = null)
     {
         Assert.Empty(result.StdErr);
-        result.StdOut.MatchInlineSnapshot(stdout);
-        Assert.Equal(0, result.ExitCode);
-    }
-
-    public static void AssertSuccessful(this CommandResult result)
-    {
-        Assert.Empty(result.StdErr);
+        if (stdout is not null)
+        {
+            result.StdOut.MatchInlineSnapshot(stdout);
+        }
         Assert.Equal(0, result.ExitCode);
     }
 

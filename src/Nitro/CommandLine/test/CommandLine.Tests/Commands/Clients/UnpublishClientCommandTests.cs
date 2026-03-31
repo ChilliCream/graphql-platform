@@ -94,15 +94,13 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : I
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Unpublishing client 'client-1' from stage 'production'
             ├── Unpublishing v1...
             Unpublished my-client:v1 from production
             └── ✓ Unpublished client 'client-1' from stage 'production'.
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -179,7 +177,7 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : I
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Unpublishing client 'client-1' from stage 'production'
             ├── Unpublishing v1...
@@ -188,8 +186,6 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : I
             Unpublished my-client:v2 from production
             └── ✓ Unpublished client 'client-1' from stage 'production'.
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -315,6 +311,7 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : I
 
     [Theory]
     [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
     public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
@@ -353,46 +350,9 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : I
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.UnpublishClientVersionAsync(
-                "client-1",
-                "production",
-                "v1",
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "unpublish",
-                "--tag",
-                "v1",
-                "--stage",
-                "production",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
     [Theory]
     [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
     public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
@@ -433,16 +393,20 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : I
     }
 
     [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
+    public async Task Unpublish_Should_ShowNotFound_When_ClientVersionNull()
     {
         // arrange
+        var payload = new Mock<IUnpublishClient_UnpublishClient>(MockBehavior.Strict);
+        payload.SetupGet(x => x.ClientVersion).Returns((IUnpublishClient_UnpublishClient_ClientVersion?)null);
+        payload.SetupGet(x => x.Errors).Returns((IReadOnlyList<IUnpublishClient_UnpublishClient_Errors>?)null);
+
         var client = new Mock<IClientsClient>(MockBehavior.Strict);
         client.Setup(x => x.UnpublishClientVersionAsync(
                 "client-1",
                 "production",
                 "v1",
                 It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException());
+            .ReturnsAsync(payload.Object);
 
         // act
         var result = await new CommandBuilder(fixture)
@@ -461,12 +425,13 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : I
             .ExecuteAsync();
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
+            Unpublishing client 'client-1' from stage 'production'
+            ├── Unpublishing v1...
+            Unpublished <<NotFound>>:v1 from production
+            └── ✓ Unpublished client 'client-1' from stage 'production'.
             """);
-        Assert.Equal(1, result.ExitCode);
 
         client.VerifyAll();
     }

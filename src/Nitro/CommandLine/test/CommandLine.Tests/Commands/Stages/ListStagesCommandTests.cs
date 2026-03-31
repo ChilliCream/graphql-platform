@@ -183,8 +183,10 @@ public sealed class ListStagesCommandTests(NitroCommandFixture fixture) : IClass
         stagesClient.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_NonInteractive()
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -196,7 +198,7 @@ public sealed class ListStagesCommandTests(NitroCommandFixture fixture) : IClass
             .AddService(apisClient.Object)
             .AddService(stagesClient.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "stage",
                 "list",
@@ -214,39 +216,10 @@ public sealed class ListStagesCommandTests(NitroCommandFixture fixture) : IClass
         stagesClient.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var stagesClient = CreateListExceptionClient(
-            new NitroClientGraphQLException("Some message.", "SOME_CODE"), "api-1");
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(stagesClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "stage",
-                "list",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-
-        apisClient.VerifyAll();
-        stagesClient.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -258,7 +231,7 @@ public sealed class ListStagesCommandTests(NitroCommandFixture fixture) : IClass
             .AddService(apisClient.Object)
             .AddService(stagesClient.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "stage",
                 "list",
@@ -278,7 +251,111 @@ public sealed class ListStagesCommandTests(NitroCommandFixture fixture) : IClass
     }
 
     [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
+    public async Task WithApiId_ReturnsSuccess_Interactive()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var stagesClient = new Mock<IStagesClient>(MockBehavior.Strict);
+        stagesClient.Setup(x => x.ListStagesAsync(
+                "api-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateListStagesResult(
+                ("stage-1", "production", new[] { "staging" }),
+                ("stage-2", "staging", Array.Empty<string>())));
+
+        var command = new CommandBuilder(fixture)
+            .AddService(apisClient.Object)
+            .AddService(stagesClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "stage",
+                "list",
+                "--api-id",
+                "api-1")
+            .Start();
+
+        // act
+        command.SelectOption(0);
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+
+        apisClient.VerifyAll();
+        stagesClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task WithApiId_NoData_ReturnsSuccess_Interactive()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var stagesClient = new Mock<IStagesClient>(MockBehavior.Strict);
+        stagesClient.Setup(x => x.ListStagesAsync(
+                "api-1",
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(CreateListStagesResult());
+
+        var command = new CommandBuilder(fixture)
+            .AddService(apisClient.Object)
+            .AddService(stagesClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "stage",
+                "list",
+                "--api-id",
+                "api-1")
+            .Start();
+
+        // act
+        command.SelectOption(0);
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        Assert.Empty(result.StdErr);
+        Assert.Equal(0, result.ExitCode);
+
+        apisClient.VerifyAll();
+        stagesClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsException_ReturnsError_Interactive()
+    {
+        // arrange
+        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        var stagesClient = CreateListExceptionClient(
+            new NitroClientGraphQLException("Some message.", "SOME_CODE"), "api-1");
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(apisClient.Object)
+            .AddService(stagesClient.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "stage",
+                "list",
+                "--api-id",
+                "api-1")
+            .ExecuteAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        apisClient.VerifyAll();
+        stagesClient.VerifyAll();
+    }
+
+    [Fact]
+    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -290,7 +367,7 @@ public sealed class ListStagesCommandTests(NitroCommandFixture fixture) : IClass
             .AddService(apisClient.Object)
             .AddService(stagesClient.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddInteractionMode(InteractionMode.Interactive)
             .AddArguments(
                 "stage",
                 "list",
@@ -299,11 +376,12 @@ public sealed class ListStagesCommandTests(NitroCommandFixture fixture) : IClass
             .ExecuteAsync();
 
         // assert
-        result.AssertError(
+        result.StdErr.MatchInlineSnapshot(
             """
             The server rejected your request as unauthorized. Ensure your account or API key
             has the proper permissions for this action.
             """);
+        Assert.Equal(1, result.ExitCode);
 
         apisClient.VerifyAll();
         stagesClient.VerifyAll();

@@ -133,7 +133,7 @@ public sealed class DeleteStageCommandTests(NitroCommandFixture fixture) : IClas
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         stagesClient.VerifyAll();
         apisClient.VerifyAll();

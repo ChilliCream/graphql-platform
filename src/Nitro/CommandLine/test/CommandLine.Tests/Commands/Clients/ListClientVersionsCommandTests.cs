@@ -229,7 +229,7 @@ public sealed class ListClientVersionsCommandTests(NitroCommandFixture fixture) 
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -266,7 +266,7 @@ public sealed class ListClientVersionsCommandTests(NitroCommandFixture fixture) 
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -308,7 +308,7 @@ public sealed class ListClientVersionsCommandTests(NitroCommandFixture fixture) 
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         apisClient.VerifyAll();
         clientsClient.VerifyAll();
@@ -402,8 +402,10 @@ public sealed class ListClientVersionsCommandTests(NitroCommandFixture fixture) 
         clientsClient.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_NonInteractive()
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -415,39 +417,7 @@ public sealed class ListClientVersionsCommandTests(NitroCommandFixture fixture) 
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "list",
-                "versions",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = CreateListExceptionClient(
-            new NitroClientGraphQLException("Some message.", "SOME_CODE"), "client-1", null);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "client",
                 "list",
@@ -500,8 +470,10 @@ public sealed class ListClientVersionsCommandTests(NitroCommandFixture fixture) 
         clientsClient.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
@@ -513,7 +485,7 @@ public sealed class ListClientVersionsCommandTests(NitroCommandFixture fixture) 
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "client",
                 "list",
@@ -533,20 +505,27 @@ public sealed class ListClientVersionsCommandTests(NitroCommandFixture fixture) 
         clientsClient.VerifyAll();
     }
 
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_JsonOutput()
+    [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ListVersions_Should_ReturnError_When_ClientNotFound(InteractionMode mode)
     {
         // arrange
         var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = CreateListExceptionClient(
-            new NitroClientAuthorizationException(), "client-1", null);
+        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
+        clientsClient.Setup(x => x.ListClientVersionsAsync(
+                "client-1",
+                null,
+                10,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ConnectionPage<IClientDetailPrompt_ClientVersionEdge>?)null);
 
         // act
         var result = await new CommandBuilder(fixture)
             .AddService(apisClient.Object)
             .AddService(clientsClient.Object)
             .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddInteractionMode(mode)
             .AddArguments(
                 "client",
                 "list",
@@ -558,8 +537,8 @@ public sealed class ListClientVersionsCommandTests(NitroCommandFixture fixture) 
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
+            There was an issue with the request to the server.
+            The client was not found.
             """);
 
         apisClient.VerifyAll();

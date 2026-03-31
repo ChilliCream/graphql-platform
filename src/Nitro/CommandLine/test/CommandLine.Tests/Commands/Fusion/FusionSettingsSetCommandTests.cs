@@ -91,6 +91,7 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
     [Theory]
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
     public async Task FileDoesNotExist_ReturnsError(InteractionMode mode)
     {
         // arrange
@@ -123,42 +124,10 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
         fileSystem.VerifyAll();
     }
 
-    [Fact]
-    public async Task FileDoesNotExist_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
-        fileSystem.Setup(x => x.FileExists("/tmp/nonexistent.far"))
-            .Returns(false);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(fileSystem.Object)
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "fusion",
-                "settings",
-                "set",
-                "cache-control-merge-behavior",
-                "ignore",
-                "--archive",
-                "/tmp/nonexistent.far")
-            .ExecuteAsync();
-
-        // assert
-        Assert.Empty(result.StdOut);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            File '/tmp/nonexistent.far' does not exist.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        fileSystem.VerifyAll();
-    }
-
     [Theory]
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
     public async Task InvalidCacheControlMergeBehavior_ReturnsError(InteractionMode mode)
     {
         // arrange
@@ -167,35 +136,6 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
         // act
         var result = await new CommandBuilder(fixture)
             .AddInteractionMode(mode)
-            .AddArguments(
-                "fusion",
-                "settings",
-                "set",
-                "cache-control-merge-behavior",
-                "invalid-value",
-                "--archive",
-                archiveFile)
-            .ExecuteAsync();
-
-        // assert
-        Assert.Empty(result.StdOut);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Expected one of the following values for setting 'cache-control-merge-behavior':
-            ignore, include, include-private
-            """);
-        Assert.Equal(1, result.ExitCode);
-    }
-
-    [Fact]
-    public async Task InvalidCacheControlMergeBehavior_ReturnsError_JsonOutput()
-    {
-        // arrange
-        var archiveFile = CreateArchiveWithSourceSchemas();
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(InteractionMode.JsonOutput)
             .AddArguments(
                 "fusion",
                 "settings",
@@ -401,15 +341,92 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
             .ExecuteAsync();
 
         // assert
-        Assert.Equal(0, result.ExitCode);
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             {
               "setting": "cache-control-merge-behavior",
               "value": "ignore"
             }
             """);
+    }
+
+    [Fact]
+    public async Task InvalidSettingName_ReturnsError()
+    {
+        // arrange
+        var archiveFile = CreateArchiveWithSourceSchemas();
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "fusion",
+                "settings",
+                "set",
+                "nonexistent-setting",
+                "some-value",
+                "--archive",
+                archiveFile)
+            .ExecuteAsync();
+
+        // assert
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains("nonexistent-setting", result.StdErr);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    public async Task ExcludeByTag_MultipleTags_ReturnsSuccess(InteractionMode mode)
+    {
+        // arrange
+        var archiveFile = CreateArchiveWithSourceSchemas();
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "fusion",
+                "settings",
+                "set",
+                "exclude-by-tag",
+                "tag1, tag2, tag3",
+                "--archive",
+                archiveFile)
+            .ExecuteAsync();
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
         Assert.Empty(result.StdErr);
+    }
+
+    [Fact]
+    public async Task ExcludeByTag_MultipleTags_ReturnsSuccess_JsonOutput()
+    {
+        // arrange
+        var archiveFile = CreateArchiveWithSourceSchemas();
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddInteractionMode(InteractionMode.JsonOutput)
+            .AddArguments(
+                "fusion",
+                "settings",
+                "set",
+                "exclude-by-tag",
+                "tag1, tag2, tag3",
+                "--archive",
+                archiveFile)
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
+            {
+              "setting": "exclude-by-tag",
+              "value": "tag1, tag2, tag3"
+            }
+            """);
     }
 
     private string CreateArchiveWithSourceSchemas()

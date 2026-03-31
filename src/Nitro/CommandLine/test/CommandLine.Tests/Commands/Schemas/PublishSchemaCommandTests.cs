@@ -408,15 +408,13 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Publishing new schema version 'v1' to stage 'production' of API 'api-1'
             ├── Publish request created (ID: request-1)
             ├── The committing of your request is in progress.
             └── ✓ Published new schema version 'v1' to stage 'production'.
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -450,7 +448,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
             .ExecuteAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         client.VerifyAll();
     }
@@ -484,15 +482,13 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             {
               "stage": "production",
               "status": "success"
             }
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -667,7 +663,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Publishing new schema version 'v1' to stage 'production' of API 'api-1'
             ├── Publish request created (ID: request-1)
@@ -675,8 +671,6 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
             ├── The committing of your request is in progress.
             └── ✓ Published new schema version 'v1' to stage 'production'.
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -711,7 +705,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Publishing new schema version 'v1' to stage 'production' of API 'api-1'
             ├── Publish request created (ID: request-1)
@@ -719,8 +713,6 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
             ├── The committing of your request is in progress.
             └── ✓ Published new schema version 'v1' to stage 'production'.
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -755,7 +747,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Publishing new schema version 'v1' to stage 'production' of API 'api-1'
             ├── Publish request created (ID: request-1)
@@ -763,8 +755,6 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
             ├── The committing of your request is in progress.
             └── ✓ Published new schema version 'v1' to stage 'production'.
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -805,7 +795,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Publishing new schema version 'v1' to stage 'production' of API 'api-1'
             ├── Publish request created (ID: request-1)
@@ -815,8 +805,6 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
             ├── The committing of your request is in progress.
             └── ✓ Published new schema version 'v1' to stage 'production'.
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         client.VerifyAll();
     }
@@ -898,15 +886,85 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Publishing new schema version 'v1' to stage 'production' of API 'api-1'
             ├── ! Force push is enabled.
             ├── Publish request created (ID: request-1)
             └── ✓ Published new schema version 'v1' to stage 'production'.
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Publish_Should_ReturnError_When_SourceMetadataInvalid(InteractionMode mode)
+    {
+        // arrange & act
+        var result = await new CommandBuilder(fixture)
+            .AddApiKey()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "schema",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--api-id",
+                DefaultApiId,
+                "--source-metadata",
+                "{broken}")
+            .ExecuteAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Failed to parse --source-metadata: 'b' is an invalid start of a property name.
+            Expected a '"'. Path: $ | LineNumber: 0 | BytePositionInLine: 1.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task Publish_Should_PassWaitForApproval_When_FlagProvided()
+    {
+        // arrange
+        var client = CreatePublishSetupWithSubscription(
+            CreateSuccessPayload(),
+            new IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate[]
+            {
+                CreatePublishSuccess()
+            },
+            waitForApproval: true);
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "schema",
+                "publish",
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--api-id",
+                DefaultApiId,
+                "--wait-for-approval")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing new schema version 'v1' to stage 'production' of API 'api-1'
+            ├── Publish request created (ID: request-1)
+            └── ✓ Published new schema version 'v1' to stage 'production'.
+            """);
 
         client.VerifyAll();
     }

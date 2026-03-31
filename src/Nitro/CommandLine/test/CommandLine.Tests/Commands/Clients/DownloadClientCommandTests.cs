@@ -115,6 +115,51 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
     }
 
     [Theory]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Download_Should_ReturnError_When_ApiIdNotProvided(InteractionMode mode)
+    {
+        // arrange & act
+        var result = await new CommandBuilder(fixture)
+            .AddApiKey()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "client",
+                "download",
+                "--stage",
+                "production",
+                "--path",
+                "queries.json")
+            .ExecuteAsync();
+
+        // assert
+        var output = result.StdOut.Replace(result.ExecutableName, "nitro");
+        output.MatchInlineSnapshot(
+            """
+            Description:
+              Download the queries from a stage.
+
+            Usage:
+              nitro client download [options]
+
+            Options:
+              --api-id <api-id> (REQUIRED)  The ID of the API [env: NITRO_API_ID]
+              --stage <stage> (REQUIRED)    The name of the stage [env: NITRO_STAGE]
+              --path <path> (REQUIRED)      The path where the client is stored
+              --format <folder|relay>       The format in which the client is stored [default: relay]
+              --cloud-url <cloud-url>       The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>           The API key used for authentication [env: NITRO_API_KEY]
+              --output <json>               The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                Show help and usage information
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Option '--api-id' is required.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.JsonOutput)]
     public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
@@ -379,7 +424,7 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         var written = Encoding.UTF8.GetString(fileStream.ToArray());
         Assert.Contains("doc-1", written);
@@ -431,7 +476,7 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Downloading client from stage 'production' of API 'api-1'
             └── ✓ Downloaded the client from stage 'production'.
@@ -441,8 +486,6 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
               "format": "relay"
             }
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         var written = Encoding.UTF8.GetString(fileStream.ToArray());
         Assert.Contains("doc-1", written);
@@ -552,7 +595,7 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Downloading client from stage 'production' of API 'api-1'
             └── ✓ Downloaded the client from stage 'production'.
@@ -562,8 +605,6 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
               "format": "relay"
             }
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
         fileSystem.Verify(x => x.DeleteFile("queries.json"), Times.Once);
 
         client.VerifyAll();
@@ -611,7 +652,7 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         var written = Encoding.UTF8.GetString(docFileStream.ToArray());
         Assert.Equal("query { hello }", written);
@@ -661,7 +702,7 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Downloading client from stage 'production' of API 'api-1'
             └── ✓ Downloaded the client from stage 'production'.
@@ -671,8 +712,6 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
               "format": "folder"
             }
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         var written = Encoding.UTF8.GetString(docFileStream.ToArray());
         Assert.Equal("query { hello }", written);
@@ -778,7 +817,7 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Downloading client from stage 'production' of API 'api-1'
             └── ✓ Downloaded the client from stage 'production'.
@@ -788,8 +827,6 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
               "format": "folder"
             }
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         var written = Encoding.UTF8.GetString(docFileStream.ToArray());
         Assert.Equal("query { hello }", written);
@@ -839,7 +876,7 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Downloading client from stage 'production' of API 'api-1'
             └── ✓ Downloaded the client from stage 'production'.
@@ -849,8 +886,6 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
               "format": "folder"
             }
             """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
 
         var written = Encoding.UTF8.GetString(docFileStream.ToArray());
         Assert.Equal("query { hello }", written);

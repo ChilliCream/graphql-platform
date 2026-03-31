@@ -230,7 +230,7 @@ public sealed class DeleteMcpFeatureCollectionCommandTests(NitroCommandFixture f
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
 
         apisClient.VerifyAll();
         mcpClient.VerifyAll();

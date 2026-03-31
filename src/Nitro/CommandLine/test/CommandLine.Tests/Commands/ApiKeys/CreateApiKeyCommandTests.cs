@@ -137,7 +137,7 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ICla
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
         apiKeysClient.VerifyAll();
     }
 
@@ -171,7 +171,7 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ICla
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccessful();
+        result.AssertSuccess();
         client.VerifyAll();
     }
 
@@ -775,6 +775,90 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ICla
             """
             The server rejected your request as unauthorized. Ensure your account or API key
             has the proper permissions for this action.
+            """);
+        Assert.Equal(1, result.ExitCode);
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Create_Should_PromptForName_When_InteractiveModeAndNameNotProvided()
+    {
+        // arrange
+        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
+        client.Setup(x => x.CreateApiKeyAsync(
+                "my-key",
+                "workspace-from-session",
+                "api-1",
+                null,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(
+                ApiKeyCommandTestHelper.CreateApiKeyResult("secret-123", "key-1", "my-key", "Workspace"));
+
+        var command = new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddSessionWithWorkspace()
+            .AddInteractionMode(InteractionMode.Interactive)
+            .AddArguments(
+                "api-key",
+                "create",
+                "--api-id",
+                "api-1")
+            .Start();
+
+        // act
+        command.Input("my-key");
+
+        var result = await command.RunToCompletionAsync();
+
+        // assert
+        result.AssertSuccess();
+
+        client.VerifyAll();
+    }
+
+    [Fact]
+    public async Task Create_Should_ReturnError_When_MutationReturnsNull()
+    {
+        // arrange
+        var payload = new Mock<ICreateApiKeyCommandMutation_CreateApiKey>();
+        payload.SetupGet(x => x.Result)
+            .Returns((ICreateApiKeyCommandMutation_CreateApiKey_Result?)null);
+        payload.SetupGet(x => x.Errors).Returns([]);
+
+        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
+        client.Setup(x => x.CreateApiKeyAsync(
+                "my-key",
+                "ws-1",
+                null,
+                null,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(payload.Object);
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(client.Object)
+            .AddApiKey()
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "api-key",
+                "create",
+                "--workspace-id",
+                "ws-1",
+                "--name",
+                "my-key")
+            .ExecuteAsync();
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Creating API key 'my-key'
+            └── ✕ Failed to create the API key.
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The GraphQL mutation completed without errors, but the server did not return the
+            expected data.
             """);
         Assert.Equal(1, result.ExitCode);
 

@@ -44,8 +44,6 @@ internal sealed class EditStagesCommand : Command
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        console.WriteOperationTitle();
-
         const string apiMessage = "For which API do you want to edit the stages?";
 
         var apiId = await parseResult.GetOrPromptForApiIdAsync(
@@ -397,16 +395,6 @@ file static class SelectableTableExtensions
                 return new InputAction.Break();
             }
         );
-    }
-}
-
-file static class ConsoleExtensions
-{
-    public static void WriteOperationTitle(this INitroConsole console)
-    {
-        console.WriteLine();
-        console.WriteLine("Update stages");
-        console.WriteLine();
     }
 }
 
