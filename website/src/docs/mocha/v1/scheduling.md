@@ -296,6 +296,8 @@ x.WhenCompleted()
 
 Both `ScheduledPublish` and `ScheduledSend` are available on `ISagaTransitionDescriptor` and `ISagaLifeCycleDescriptor`. The factory receives the current saga state and returns the message to schedule.
 
+For automatic saga timeouts that cancel themselves on completion, see [Timeouts](/docs/mocha/v1/sagas#timeouts) in the Sagas guide.
+
 See [Sagas](/docs/mocha/v1/sagas) for the full saga configuration guide.
 
 # API reference
