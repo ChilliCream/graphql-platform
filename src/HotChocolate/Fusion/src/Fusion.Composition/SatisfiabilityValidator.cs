@@ -69,10 +69,9 @@ internal sealed class SatisfiabilityValidator
                 _log.Write(
                     LogEntryBuilder.New()
                         .SetMessage(
-                            string.Format(
-                                SatisfiabilityValidator_MaxRecursionDepthReached,
-                                MaxRecursionDepth,
-                                objectType.Name))
+                            SatisfiabilityValidator_MaxRecursionDepthReached,
+                            MaxRecursionDepth,
+                            objectType.Name)
                         .SetCode(LogEntryCodes.Unsatisfiable)
                         .SetSeverity(LogSeverity.Warning)
                         .Build());
