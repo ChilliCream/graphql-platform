@@ -98,10 +98,39 @@ public class IntegrationTests
         Assert.Equal(0, storage.Count);
     }
 
-    [Fact(Skip = "Timeout(TimeSpan) auto-scheduling throws NotImplementedException")]
+    [Fact]
     public async Task Saga_Should_TimeoutWithCustomResponse()
     {
-        await Task.CompletedTask;
+        // arrange
+        var recorder = new MessageRecorder();
+        await using var provider = await CreateBusAsync(b =>
+        {
+            b.Services.AddSingleton(recorder);
+            b.AddEventHandler<TriggerEventRecorder>();
+            b.AddSaga<TimeoutWithResponseSaga>();
+        });
+
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var storage = provider.GetRequiredService<InMemorySagaStateStorage>();
+
+        // act - publish StartTimeoutEvent to start the saga
+        await bus.PublishAsync(new StartTimeoutEvent(), CancellationToken.None);
+
+        // wait for the saga to publish a TriggerEvent so we can observe it started
+        Assert.True(await recorder.WaitAsync(s_timeout), "Saga did not publish event within timeout");
+
+        var recorded = Assert.Single(recorder.Messages);
+        var sagaId = Assert.IsType<TriggerEvent>(recorded).CorrelationId!.Value;
+
+        // simulate timeout by sending SagaTimedOutEvent with the saga ID
+        await bus.SendAsync(new SagaTimedOutEvent(sagaId), CancellationToken.None);
+
+        // allow time for final state processing
+        await Task.Delay(500, default);
+
+        // assert - saga should be deleted from store after reaching final state
+        Assert.Equal(0, storage.Count);
     }
 
     [Fact(Skip = "OnAnyReply saga reply routing requires full reply pipeline investigation")]
@@ -184,6 +213,31 @@ public class IntegrationTests
     }
 
     /// <summary>
+    /// Timeout saga with Timeout() API: StartTimeoutEvent -> Active (publishes TriggerEvent) ->
+    /// SagaTimedOutEvent -> TimedOut (final, with custom response possible)
+    /// </summary>
+    public sealed class TimeoutWithResponseSaga : Saga<TimeoutState>
+    {
+        protected override void Configure(ISagaDescriptor<TimeoutState> descriptor)
+        {
+            descriptor.Timeout(TimeSpan.FromMinutes(30));
+
+            descriptor
+                .Initially()
+                .OnEvent<StartTimeoutEvent>()
+                .StateFactory(_ => new TimeoutState())
+                .Publish((_, state) => new TriggerEvent(state.Id))
+                .TransitionTo("Active");
+
+            descriptor.DuringAny().OnTimeout().TransitionTo(StateNames.TimedOut);
+
+            descriptor.During("Active").OnEvent<EndTimeoutEvent>().TransitionTo("Completed");
+
+            descriptor.Finally("Completed");
+        }
+    }
+
+    /// <summary>
     /// Request-response saga: StartRequestEvent -> AwaitingResponse (sends TriggerRequest) ->
     /// any reply -> Completed (final)
     /// </summary>
@@ -211,6 +265,8 @@ public class IntegrationTests
     public sealed class InitEvent;
 
     public sealed class StartTimeoutEvent;
+
+    public sealed class EndTimeoutEvent;
 
     public sealed class StartRequestEvent;
 
