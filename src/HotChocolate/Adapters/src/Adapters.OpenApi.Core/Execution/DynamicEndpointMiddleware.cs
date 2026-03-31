@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.IO.Pipelines;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
@@ -418,7 +419,7 @@ internal sealed class DynamicEndpointMiddleware(
                     return new IntValueNode(i);
                 }
 
-                if (value is string s && int.TryParse(s, out var intValue))
+                if (value is string s && int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out var intValue))
                 {
                     return new IntValueNode(intValue);
                 }
@@ -449,7 +450,14 @@ internal sealed class DynamicEndpointMiddleware(
                     return new FloatValueNode(d);
                 }
 
-                if (value is string s && double.TryParse(s, out var doubleValue))
+                if (value is string s
+                    && double.TryParse(
+                        s,
+                        NumberStyles.Float,
+                        CultureInfo.InvariantCulture,
+                        out var doubleValue)
+                    && !double.IsNaN(doubleValue)
+                    && !double.IsInfinity(doubleValue))
                 {
                     return new FloatValueNode(doubleValue);
                 }

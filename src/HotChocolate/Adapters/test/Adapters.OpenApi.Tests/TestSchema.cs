@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using HotChocolate.Authorization;
 using HotChocolate.Features;
@@ -86,6 +87,12 @@ public sealed class TestSchema
                 input.Uri,
                 input.Url,
                 input.Uuid);
+        }
+
+        public string SearchProducts(string? text, float? minPrice)
+        {
+            var formattedMinPrice = minPrice?.ToString(CultureInfo.InvariantCulture);
+            return $"Searched for: {text ?? "all"}, minPrice: {formattedMinPrice}";
         }
     }
 
