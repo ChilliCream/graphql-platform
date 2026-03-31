@@ -182,8 +182,8 @@ public sealed class SagaSchedulingTests
             Runtime = s_runtime
         };
 
-        context.Features.GetOrSet<MessageParsingFeature>().Message = message;
-        context.Features.GetOrSet<SagaFeature>().Store = _store;
+        context.Features.Configure<MessageParsingFeature>(f => f.Message = message);
+        context.Features.Configure<SagaFeature>(f => f.Store = _store);
 
         return context;
     }

@@ -129,7 +129,7 @@ public class DispatchSchedulingMiddlewareTests
         };
 
         // Set SkipScheduler flag
-        context.Features.GetOrSet<SchedulingMiddlewareFeature>().SkipScheduler = true;
+        context.Features.Configure<SchedulingMiddlewareFeature>(f => f.SkipScheduler = true);
 
         var nextCalled = false;
         DispatchDelegate next = _ =>
@@ -281,13 +281,19 @@ public class DispatchSchedulingMiddlewareTests
     {
         public ConcurrentBag<(MessageEnvelope Envelope, DateTimeOffset ScheduledTime)> Entries { get; } = [];
 
-        public ValueTask PersistAsync(
+        public ValueTask<string> PersistAsync(
             MessageEnvelope envelope,
             DateTimeOffset scheduledTime,
             CancellationToken cancellationToken)
         {
             Entries.Add((envelope, scheduledTime));
-            return ValueTask.CompletedTask;
+            var token = $"in-memory:{Guid.NewGuid()}";
+            return ValueTask.FromResult(token);
+        }
+
+        public ValueTask<bool> CancelAsync(string token, CancellationToken cancellationToken)
+        {
+            return ValueTask.FromResult(false);
         }
     }
 }

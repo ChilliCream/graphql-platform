@@ -23,6 +23,7 @@ public static class SchedulerCoreServiceCollectionExtensions
     {
         builder.Services.TryAddSingleton<ISchedulerSignal>(sp =>
             new MessageBusSchedulerSignal(sp.GetService<TimeProvider>() ?? TimeProvider.System));
+
         builder.ConfigureMessageBus(x => x.UseDispatch(DispatchSchedulingMiddleware.Create(), after: "Serialization"));
 
         return builder;
