@@ -21,6 +21,17 @@ internal static class MessageHeaders
     public static readonly ContextDataKey<string?> MessageKind = new("message-kind");
 
     /// <summary>
+    /// Defines header keys used by the retry infrastructure.
+    /// </summary>
+    public static class Retry
+    {
+        /// <summary>
+        /// The header key for tracking the number of delayed redelivery attempts.
+        /// </summary>
+        public static readonly ContextDataKey<int> DelayedRetryCount = new("delayed-retry-count");
+    }
+
+    /// <summary>
     /// Defines header keys for fault information attached to messages that failed processing.
     /// </summary>
     public static class Fault

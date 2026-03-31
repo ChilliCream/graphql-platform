@@ -220,6 +220,12 @@ public static class MiddlewareConfigurationExtensions
 
             configurations.Add(pipeline =>
             {
+                // Skip if a middleware with the same key is already registered.
+                if (configuration.Key is not null && pipeline.Exists(m => m.Key == configuration.Key))
+                {
+                    return;
+                }
+
                 var index = pipeline.FindIndex(m => m.Key == before);
                 if (index == -1)
                 {
