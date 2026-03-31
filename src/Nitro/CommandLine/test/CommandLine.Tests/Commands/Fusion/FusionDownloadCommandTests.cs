@@ -90,8 +90,8 @@ public sealed class FusionDownloadCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-
-            [    ] Failed to download the latest Fusion configuration.
+            Downloading latest Fusion configuration from stage 'prod' of API 'api-1'
+            └── ✓ Downloaded Fusion configuration from stage 'prod'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -127,7 +127,7 @@ public sealed class FusionDownloadCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Downloading latest Fusion configuration from stage 'prod' of API 'api-1'
-            └── ✓ Downloaded the latest Fusion configuration.
+            └── ✓ Downloaded Fusion configuration from stage 'prod'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -199,8 +199,8 @@ public sealed class FusionDownloadCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-
-            [    ] Failed to download the latest Fusion configuration.
+            Downloading latest Fusion configuration from stage 'prod' of API 'api-1'
+            └── ✓ Downloaded Fusion configuration from stage 'prod'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -236,7 +236,7 @@ public sealed class FusionDownloadCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Downloading latest Fusion configuration from stage 'prod' of API 'api-1'
-            └── ✓ Downloaded the latest Fusion configuration.
+            └── ✓ Downloaded Fusion configuration from stage 'prod'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);

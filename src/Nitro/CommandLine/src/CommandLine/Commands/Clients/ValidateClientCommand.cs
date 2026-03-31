@@ -127,7 +127,7 @@ internal sealed class ValidateClientCommand : Command
                         return ExitCodes.Error;
 
                     case IClientVersionValidationSuccess:
-                        activity.Success("Validated the client.");
+                        activity.Success($"Validated client against stage '{stage.EscapeMarkup()}'.");
 
                         resultHolder.SetResult(new ObjectResult(new ValidateClientResult
                         {

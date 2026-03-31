@@ -321,7 +321,7 @@ public sealed class FusionConfigurationPublishCancelCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Canceling publication
-            └── ✓ Canceled the publication.
+            └── ✓ Canceled publication for request 'req-1'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);

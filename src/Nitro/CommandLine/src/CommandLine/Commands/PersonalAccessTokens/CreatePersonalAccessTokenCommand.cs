@@ -82,7 +82,7 @@ internal sealed class CreatePersonalAccessTokenCommand : Command
                 throw MutationReturnedNoData();
             }
 
-            activity.Success("Created personal access token.");
+            activity.Success($"Created personal access token '{description.EscapeMarkup()}'.");
 
             resultHolder.SetResult(new ObjectResult(
                 new CreatePersonalAccessTokenCommandResult

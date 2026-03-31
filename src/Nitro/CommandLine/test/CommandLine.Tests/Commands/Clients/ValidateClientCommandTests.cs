@@ -577,7 +577,7 @@ public sealed class ValidateClientCommandTests
             ├── Validation request created (ID: request-1)
             ├── The client validation is in progress.
             ├── The client validation is in progress.
-            └── ✓ Validated the client.
+            └── ✓ Validated client against stage 'production'.
 
             {
               "requestId": "request-1",

@@ -580,7 +580,7 @@ public sealed class ValidateSchemaCommandTests
             ├── Validation request created (ID: request-1)
             ├── The schema validation is in progress.
             ├── The schema validation is in progress.
-            └── ✓ Validated the schema.
+            └── ✓ Validated schema against stage 'production'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);

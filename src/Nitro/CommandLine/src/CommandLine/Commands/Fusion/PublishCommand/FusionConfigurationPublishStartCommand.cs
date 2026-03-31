@@ -46,7 +46,7 @@ internal sealed class FusionConfigurationPublishStartCommand : Command
         {
             await fusionConfigurationClient.ClaimDeploymentSlotAsync(requestId, cancellationToken);
 
-            activity.Success("Started composition.");
+            activity.Success($"Started composition for request '{requestId.EscapeMarkup()}'.");
 
             return ExitCodes.Success;
         }

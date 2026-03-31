@@ -67,6 +67,8 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
             $"Uploading new MCP feature collection version '{tag.EscapeMarkup()}' for collection '{mcpFeatureCollectionId.EscapeMarkup()}'",
             "Failed to upload a new MCP feature collection version."))
         {
+            activity.Update($"Found {promptFiles.Length} prompt(s) and {toolFiles.Length} tool(s).");
+
             var data = await client.UploadMcpFeatureCollectionVersionAsync(
                 mcpFeatureCollectionId,
                 tag,

@@ -46,20 +46,10 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
             $"Validating MCP feature collection against stage '{stage.EscapeMarkup()}'",
             "Failed to validate the MCP feature collection."))
         {
-            // console.Log("Searching for MCP prompt definition files with the following patterns:");
-            // foreach (var promptPattern in promptPatterns)
-            // {
-            //     console.Log($"- {promptPattern}");
-            // }
-            //
-            // console.Log("Searching for MCP tool definition files with the following patterns:");
-            // foreach (var toolPattern in toolPatterns)
-            // {
-            //     console.Log($"- {toolPattern}");
-            // }
-
             var promptFiles = fileSystem.GlobMatch(promptPatterns, ["**/bin/**", "**/obj/**"]).ToArray();
             var toolFiles = fileSystem.GlobMatch(toolPatterns, ["**/bin/**", "**/obj/**"]).ToArray();
+
+            activity.Update($"Found {promptFiles.Length} prompt(s) and {toolFiles.Length} tool(s).");
 
             if (promptFiles.Length < 1 && toolFiles.Length < 1)
             {
@@ -144,7 +134,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
                         return ExitCodes.Error;
 
                     case IMcpFeatureCollectionVersionValidationSuccess:
-                        activity.Success("Validated the MCP feature collection.");
+                        activity.Success($"Validated MCP feature collection against stage '{stage.EscapeMarkup()}'.");
                         return ExitCodes.Success;
 
                     case IOperationInProgress:

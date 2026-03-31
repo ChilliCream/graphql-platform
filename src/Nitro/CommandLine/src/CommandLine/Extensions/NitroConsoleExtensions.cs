@@ -360,11 +360,6 @@ internal static class NitroConsoleExtensions
         console.Write(node);
     }
 
-    public static void Log(this INitroConsole console, string str)
-    {
-        console.MarkupLine("[grey]LOG: [/]" + str);
-    }
-
     public static void Title(this INitroConsole console, string str)
     {
         console.MarkupLineInterpolated($"[white bold]{str}:[/]");

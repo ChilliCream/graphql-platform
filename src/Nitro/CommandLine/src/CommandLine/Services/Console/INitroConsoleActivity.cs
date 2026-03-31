@@ -11,4 +11,6 @@ internal interface INitroConsoleActivity : IAsyncDisposable
     void Fail(string message);
 
     void Fail();
+
+    INitroConsoleActivity StartChildActivity(string title, string failureMessage);
 }

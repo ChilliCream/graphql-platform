@@ -198,7 +198,7 @@ internal sealed class FusionValidateCommand : Command
                 schemaStream,
                 ct);
 
-            // console.Log($"Validation request created [grey](ID: {requestId.EscapeMarkup()})[/]");
+            activity.Update($"Validation request created (ID: {requestId.EscapeMarkup()})");
 
             await foreach (var @event in fusionConfigurationClient
                 .SubscribeToSchemaVersionValidationUpdatedAsync(requestId, ct))
@@ -224,7 +224,7 @@ internal sealed class FusionValidateCommand : Command
 
                     case ISchemaVersionValidationSuccess:
                         isValid = true;
-                        activity.Success("Validated the Fusion configuration.");
+                        activity.Success($"Validated Fusion configuration against stage '{stageName.EscapeMarkup()}'.");
 
                         if (!console.IsHumanReadable)
                         {

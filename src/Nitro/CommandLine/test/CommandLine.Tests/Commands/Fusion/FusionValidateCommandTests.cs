@@ -645,9 +645,10 @@ public sealed class FusionValidateCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Validating Fusion configuration against stage 'production' of API 'api-1'
+            ├── Validation request created (ID: request-1)
             ├── Validating...
             ├── Validating...
-            └── ✓ Validated the Fusion configuration.
+            └── ✓ Validated Fusion configuration against stage 'production'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
@@ -688,8 +689,11 @@ public sealed class FusionValidateCommandTests
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-
-            [    ] Failed to validate the Fusion configuration.
+            Validating Fusion configuration against stage 'production' of API 'api-1'
+            ├── Validation request created (ID: request-1)
+            ├── Validating...
+            ├── Validating...
+            └── ✓ Validated Fusion configuration against stage 'production'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);

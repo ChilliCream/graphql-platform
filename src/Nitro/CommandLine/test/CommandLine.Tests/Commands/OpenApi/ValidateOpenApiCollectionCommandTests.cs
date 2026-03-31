@@ -626,7 +626,7 @@ public sealed class ValidateOpenApiCollectionCommandTests
             ├── Validation request created (ID: request-1)
             ├── Validating...
             ├── Validating...
-            └── ✓ Validated the OpenAPI collection.
+            └── ✓ Validated OpenAPI collection against stage 'production'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);

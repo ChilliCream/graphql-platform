@@ -321,7 +321,7 @@ public sealed class FusionConfigurationPublishStartCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Starting composition
-            └── ✓ Started composition.
+            └── ✓ Started composition for request 'req-1'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);

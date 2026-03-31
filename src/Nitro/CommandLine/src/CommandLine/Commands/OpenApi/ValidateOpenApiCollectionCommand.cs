@@ -50,13 +50,9 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
             $"Validating OpenAPI collection against stage '{stage.EscapeMarkup()}'",
             "Failed to validate the OpenAPI collection."))
         {
-            // console.Log("Searching for OpenAPI documents with the following patterns:");
-            // foreach (var pattern in patterns)
-            // {
-            //     console.Log($"- {pattern}");
-            // }
-
             var files = fileSystem.GlobMatch(patterns, ["**/bin/**", "**/obj/**"]).ToArray();
+
+            activity.Update($"Found {files.Length} document(s).");
 
             if (files.Length < 1)
             {
@@ -138,7 +134,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
                         return ExitCodes.Error;
 
                     case IOpenApiCollectionVersionValidationSuccess:
-                        activity.Success("Validated the OpenAPI collection.");
+                        activity.Success($"Validated OpenAPI collection against stage '{stage.EscapeMarkup()}'.");
                         return ExitCodes.Success;
 
                     case IOperationInProgress:

@@ -184,46 +184,53 @@ internal sealed class FusionPublishCommand : Command
         {
             newSourceSchemas = [];
 
-            foreach (var sourceSchemaVersion in sourceSchemaVersions)
+            await using (var downloadActivity = console.StartActivity(
+                "Downloading source schemas...",
+                "Failed to download source schemas."))
             {
-                console.Log(
-                    $"Downloading version '{sourceSchemaVersion.Version}' of source schema '{sourceSchemaVersion.Name}'...");
-
-                await using var sourceSchemaArchiveStream =
-                    await client.DownloadSourceSchemaArchiveAsync(
-                    apiId,
-                    sourceSchemaVersion.Name,
-                    sourceSchemaVersion.Version,
-                    cancellationToken);
-
-                if (sourceSchemaArchiveStream is null)
+                foreach (var sourceSchemaVersion in sourceSchemaVersions)
                 {
-                    throw new ExitException(
-                        $"Failed to download archive for source schema '{sourceSchemaVersion.Name}' version '{sourceSchemaVersion.Version}'.");
+                    downloadActivity.Update(
+                        $"Downloading '{sourceSchemaVersion.Name}' version '{sourceSchemaVersion.Version}'...");
+
+                    await using var sourceSchemaArchiveStream =
+                        await client.DownloadSourceSchemaArchiveAsync(
+                        apiId,
+                        sourceSchemaVersion.Name,
+                        sourceSchemaVersion.Version,
+                        cancellationToken);
+
+                    if (sourceSchemaArchiveStream is null)
+                    {
+                        throw new ExitException(
+                            $"Failed to download archive for source schema '{sourceSchemaVersion.Name}' version '{sourceSchemaVersion.Version}'.");
+                    }
+
+                    using var archive = FusionSourceSchemaArchive.Open(sourceSchemaArchiveStream);
+
+                    var settings = await archive.TryGetSettingsAsync(cancellationToken);
+
+                    if (settings is null)
+                    {
+                        throw new ExitException(
+                            $"Archive of source schema '{sourceSchemaVersion.Name}' does not contain source schema settings.");
+                    }
+
+                    var schema = await archive.TryGetSchemaAsync(cancellationToken);
+
+                    if (!schema.HasValue)
+                    {
+                        throw new ExitException(
+                            $"Archive of source schema '{sourceSchemaVersion.Name}' does not contain a GraphQL schema.");
+                    }
+
+                    var schemaName = sourceSchemaVersion.Name;
+                    var schemaText = Encoding.UTF8.GetString(schema.Value.Span);
+
+                    newSourceSchemas.Add(schemaName, (new SourceSchemaText(schemaName, schemaText), settings));
                 }
 
-                using var archive = FusionSourceSchemaArchive.Open(sourceSchemaArchiveStream);
-
-                var settings = await archive.TryGetSettingsAsync(cancellationToken);
-
-                if (settings is null)
-                {
-                    throw new ExitException(
-                        $"Archive of source schema '{sourceSchemaVersion.Name}' does not contain source schema settings.");
-                }
-
-                var schema = await archive.TryGetSchemaAsync(cancellationToken);
-
-                if (!schema.HasValue)
-                {
-                    throw new ExitException(
-                        $"Archive of source schema '{sourceSchemaVersion.Name}' does not contain a GraphQL schema.");
-                }
-
-                var schemaName = sourceSchemaVersion.Name;
-                var schemaText = Encoding.UTF8.GetString(schema.Value.Span);
-
-                newSourceSchemas.Add(schemaName, (new SourceSchemaText(schemaName, schemaText), settings));
+                downloadActivity.Success($"Downloaded {sourceSchemaVersions.Length} source schema(s).");
             }
         }
 

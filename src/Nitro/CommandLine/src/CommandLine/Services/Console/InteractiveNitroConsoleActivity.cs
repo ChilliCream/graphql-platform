@@ -1,39 +1,60 @@
-using ChilliCream.Nitro.CommandLine.Helpers;
-
 namespace ChilliCream.Nitro.CommandLine;
 
 internal sealed class InteractiveNitroConsoleActivity : INitroConsoleActivity
 {
-    private readonly TaskCompletionSource _completion =
-        new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private readonly ActivityTree _tree;
+    private readonly ActivityEntry _rootEntry;
     private readonly string _failureMessage;
-    private Task? _spinnerTask;
-    private StatusContext? _context;
+    private readonly Task _liveTask;
+    private readonly PeriodicTimer _refreshTimer;
     private bool _completed;
 
-    private InteractiveNitroConsoleActivity(string failureMessage)
+    private InteractiveNitroConsoleActivity(
+        ActivityTree tree,
+        ActivityEntry rootEntry,
+        string failureMessage,
+        Task liveTask,
+        PeriodicTimer refreshTimer)
     {
+        _tree = tree;
+        _rootEntry = rootEntry;
         _failureMessage = failureMessage;
+        _liveTask = liveTask;
+        _refreshTimer = refreshTimer;
     }
 
     public void Update(string message)
     {
-        _context?.Status(message);
+        _tree.AddChild(_rootEntry, message, ActivityState.Info);
     }
 
     public void Warning(string message)
     {
-        _context?.Status(Glyphs.ExclamationMark.Space() + message);
+        _tree.AddChild(_rootEntry, message, ActivityState.Warning);
     }
 
     public void Success(string message)
     {
-        Complete(message);
+        if (_completed)
+        {
+            return;
+        }
+
+        _tree.SetEntryTextAndState(_rootEntry, message, ActivityState.Completed);
+        _completed = true;
+        _refreshTimer.Dispose();
     }
 
     public void Fail(string message)
     {
-        Complete(message);
+        if (_completed)
+        {
+            return;
+        }
+
+        _tree.SetEntryTextAndState(_rootEntry, message, ActivityState.Failed);
+        _completed = true;
+        _refreshTimer.Dispose();
     }
 
     public void Fail()
@@ -41,71 +62,50 @@ internal sealed class InteractiveNitroConsoleActivity : INitroConsoleActivity
         Fail(_failureMessage);
     }
 
+    public INitroConsoleActivity StartChildActivity(string title, string failureMessage)
+    {
+        var childEntry = _tree.AddChild(_rootEntry, title, ActivityState.Active);
+        return new InteractiveNitroConsoleChildActivity(_tree, childEntry, failureMessage);
+    }
+
     public async ValueTask DisposeAsync()
     {
-        if (_completed)
+        if (!_completed)
         {
-            return;
+            Fail();
         }
 
-        _context?.Status(_failureMessage);
-        _completed = true;
-
-        _completion.TrySetResult();
-
-        if (_spinnerTask is { } spinnerTask)
-        {
-            _spinnerTask = null;
-            await spinnerTask;
-        }
-
-        _context = null;
+        await _liveTask;
     }
-
-    // TODO: This should be async
-    private void Complete(string? message)
-    {
-        if (_completed)
-        {
-            return;
-        }
-
-        if (!string.IsNullOrEmpty(message))
-        {
-            _context?.Status(message);
-        }
-
-        DisposeAsync().AsTask().GetAwaiter().GetResult();
-    }
-
-    private Task WaitForCompletionAsync() => _completion.Task;
-
-    private void SetContext(StatusContext context) => _context = context;
-
-    private void SetSpinnerTask(Task spinnerTask) => _spinnerTask = spinnerTask;
 
     public static INitroConsoleActivity Start(
         INitroConsole console,
         string title,
         string failureMessage)
     {
-        var activity = new InteractiveNitroConsoleActivity(failureMessage);
+        var tree = new ActivityTree();
+        var rootEntry = tree.AddRoot(title);
+        var refreshTimer = new PeriodicTimer(TimeSpan.FromMilliseconds(100));
 
-        var spinnerTask = console
-            .Status()
-            .Spinner(Spinner.Known.BouncingBar)
-            .SpinnerStyle(Style.Parse("green bold"))
-            .StartAsync(
-                title,
-                async context =>
+        var liveTask = console
+            .Live(tree)
+            .AutoClear(false)
+            .Overflow(VerticalOverflow.Visible)
+            .StartAsync(async ctx =>
+            {
+                while (await refreshTimer.WaitForNextTickAsync())
                 {
-                    activity.SetContext(context);
+                    ctx.Refresh();
+                }
 
-                    await activity.WaitForCompletionAsync();
-                });
+                ctx.Refresh();
+            });
 
-        activity.SetSpinnerTask(spinnerTask);
-
-        return activity;
+        return new InteractiveNitroConsoleActivity(
+            tree,
+            rootEntry,
+            failureMessage,
+            liveTask,
+            refreshTimer);
     }
 }

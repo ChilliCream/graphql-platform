@@ -149,7 +149,7 @@ internal sealed class ValidateSchemaCommand : Command
                         return ExitCodes.Error;
 
                     case ISchemaVersionValidationSuccess:
-                        activity.Success("Validated the schema.");
+                        activity.Success($"Validated schema against stage '{stage.EscapeMarkup()}'.");
 
                         if (!console.IsHumanReadable)
                         {

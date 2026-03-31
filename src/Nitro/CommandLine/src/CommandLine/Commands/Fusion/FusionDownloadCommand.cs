@@ -83,7 +83,7 @@ internal sealed class FusionDownloadCommand : Command
 
             await stream.CopyToAsync(fileStream, cancellationToken);
 
-            activity.Success("Downloaded the latest Fusion configuration.");
+            activity.Success($"Downloaded Fusion configuration from stage '{stageName.EscapeMarkup()}'.");
 
             if (!console.IsHumanReadable)
             {

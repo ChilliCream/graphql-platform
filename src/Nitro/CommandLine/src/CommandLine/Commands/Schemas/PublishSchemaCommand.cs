@@ -102,7 +102,7 @@ internal sealed class PublishSchemaCommand : Command
                 throw MutationReturnedNoData();
             }
 
-            // console.Log($"Publish request created [grey](ID: {requestId.EscapeMarkup()})[/]");
+            activity.Update($"Publish request created (ID: {requestId.EscapeMarkup()})");
 
             await foreach (var update in client.SubscribeToSchemaPublishAsync(requestId, ct))
             {

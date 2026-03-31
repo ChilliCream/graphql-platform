@@ -108,7 +108,7 @@ public sealed class CreatePersonalAccessTokenCommandTests
         result.StdOut.MatchInlineSnapshot(
             """
             Creating personal access token
-            └── ✓ Created personal access token.
+            └── ✓ Created personal access token 'my-token'.
 
             {
               "secret": "secret-123",

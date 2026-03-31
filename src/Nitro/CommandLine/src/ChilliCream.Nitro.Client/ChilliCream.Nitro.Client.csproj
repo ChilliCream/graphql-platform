@@ -3,12 +3,11 @@
   <PropertyGroup>
     <AssemblyName>ChilliCream.Nitro.Client</AssemblyName>
     <RootNamespace>ChilliCream.Nitro.Client</RootNamespace>
-    <IsPackable>true</IsPackable>
+    <IsPackable>false</IsPackable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- <ProjectReference Include="..\..\..\..\HotChocolate\Fusion\src\Fusion.Utilities\HotChocolate.Fusion.Utilities.csproj" /> -->
     <ProjectReference Include="..\..\..\..\StrawberryShake\Client\src\Core\StrawberryShake.Core.csproj" />
     <ProjectReference Include="..\..\..\..\StrawberryShake\Client\src\Transport.Http\StrawberryShake.Transport.Http.csproj" />
   </ItemGroup>

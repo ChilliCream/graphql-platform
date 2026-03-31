@@ -2,19 +2,22 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 
 namespace ChilliCream.Nitro.CommandLine;
 
-internal sealed class NitroConsoleActivity(INitroConsole console, string failureMessage)
+internal sealed class NitroConsoleChildActivity(
+    INitroConsole console,
+    string failureMessage,
+    string prefix)
     : INitroConsoleActivity
 {
     private bool _completed;
 
     public void Update(string message)
     {
-        console.MarkupLine("├── " + message);
+        console.MarkupLine(prefix + "├── " + message);
     }
 
     public void Warning(string message)
     {
-        console.MarkupLine("├── " + Glyphs.ExclamationMark.Space() + message);
+        console.MarkupLine(prefix + "├── " + Glyphs.ExclamationMark.Space() + message);
     }
 
     public void Success(string message)
@@ -34,13 +37,16 @@ internal sealed class NitroConsoleActivity(INitroConsole console, string failure
 
     public INitroConsoleActivity StartChildActivity(string title, string failureMessage)
     {
-        console.MarkupLine("├── " + title);
-        return new NitroConsoleChildActivity(console, failureMessage, "│   ");
+        console.MarkupLine(prefix + "├── " + title);
+        return new NitroConsoleChildActivity(console, failureMessage, prefix + "│   ");
     }
 
     public ValueTask DisposeAsync()
     {
-        Fail();
+        if (!_completed)
+        {
+            Fail();
+        }
 
         return default;
     }
@@ -52,18 +58,7 @@ internal sealed class NitroConsoleActivity(INitroConsole console, string failure
             return;
         }
 
-        console.MarkupLine("└── " + message);
-
+        console.MarkupLine(prefix + "└── " + message);
         _completed = true;
-    }
-
-    public static INitroConsoleActivity Start(
-        INitroConsole console,
-        string title,
-        string failureMessage)
-    {
-        console.MarkupLine(title);
-
-        return new NitroConsoleActivity(console, failureMessage);
     }
 }

@@ -46,7 +46,7 @@ internal sealed class FusionConfigurationPublishCancelCommand : Command
         {
             await fusionConfigurationClient.ReleaseDeploymentSlotAsync(requestId, cancellationToken);
 
-            activity.Success("Canceled the publication.");
+            activity.Success($"Canceled publication for request '{requestId.EscapeMarkup()}'.");
 
             return ExitCodes.Success;
         }

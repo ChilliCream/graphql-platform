@@ -102,6 +102,8 @@ internal sealed class PublishClientCommand : Command
                 throw MutationReturnedNoData();
             }
 
+            activity.Update($"Publish request created (ID: {requestId.EscapeMarkup()})");
+
             await foreach (var update in client.SubscribeToClientPublishAsync(requestId, ct))
             {
                 switch (update)

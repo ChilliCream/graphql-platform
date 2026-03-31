@@ -659,7 +659,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests
             ├── Validation request created (ID: request-1)
             ├── Validating...
             ├── Validating...
-            └── ✓ Validated the MCP feature collection.
+            └── ✓ Validated MCP feature collection against stage 'production'.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
