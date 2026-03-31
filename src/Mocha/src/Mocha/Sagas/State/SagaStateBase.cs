@@ -31,13 +31,14 @@ public class SagaStateBase(Guid id, string state)
     public List<SagaError> Errors { get; set; } = [];
 
     /// <summary>
+    /// Gets or sets the cancellation token for a scheduled timeout, used to cancel the timeout
+    /// when the saga completes or transitions before the timeout fires.
+    /// </summary>
+    public string? TimeoutToken { get; set; }
+
+    /// <summary>
     /// Gets or sets custom metadata associated with this saga instance.
     /// </summary>
     [JsonConverter(typeof(HeadersJsonConverter))]
     public IHeaders Metadata { get; set; } = new Headers();
-
-    /// <summary>
-    /// Gets or sets the list of scheduling cancellation tokens associated with this saga instance.
-    /// </summary>
-    public List<string>? ScheduleTokens { get; set; }
 }
