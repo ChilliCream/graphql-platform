@@ -18,16 +18,16 @@ internal sealed class LaunchCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling((services, parseResult, cancellationToken) =>
-        {
-            var console = services.GetRequiredService<INitroConsole>();
-            return ExecuteAsync(console);
-        });
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static Task<int> ExecuteAsync(
-        INitroConsole console)
+        ICommandServices services,
+        ParseResult parseResult,
+        CancellationToken cancellationToken)
     {
+        var console = services.GetRequiredService<INitroConsole>();
+
         SystemBrowser.Open(Constants.NitroWebUrl);
         console.OkLine($"[link={Constants.NitroWebUrl}]Nitro[/] is launched!");
 

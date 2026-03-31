@@ -16,24 +16,19 @@ internal sealed class FusionConfigurationPublishCancelCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
-        {
-            var console = services.GetRequiredService<INitroConsole>();
-            var fusionConfigurationClient = services.GetRequiredService<IFusionConfigurationClient>();
-            var sessionService = services.GetRequiredService<ISessionService>();
-            var fileSystem = services.GetRequiredService<IFileSystem>();
-            return await ExecuteAsync(parseResult, console, fusionConfigurationClient, sessionService, fileSystem, cancellationToken);
-        });
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
+        ICommandServices services,
         ParseResult parseResult,
-        INitroConsole console,
-        IFusionConfigurationClient fusionConfigurationClient,
-        ISessionService sessionService,
-        IFileSystem fileSystem,
         CancellationToken cancellationToken)
     {
+        var console = services.GetRequiredService<INitroConsole>();
+        var fusionConfigurationClient = services.GetRequiredService<IFusionConfigurationClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var fileSystem = services.GetRequiredService<IFileSystem>();
+
         parseResult.AssertHasAuthentication(sessionService);
 
         var requestId =

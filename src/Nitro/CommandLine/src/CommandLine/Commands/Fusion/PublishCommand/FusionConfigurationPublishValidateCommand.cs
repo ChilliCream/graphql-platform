@@ -18,22 +18,18 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
-        {
-            var console = services.GetRequiredService<INitroConsole>();
-            var fusionConfigurationClient = services.GetRequiredService<IFusionConfigurationClient>();
-            var fileSystem = services.GetRequiredService<IFileSystem>();
-            return await ExecuteAsync(parseResult, console, fusionConfigurationClient, fileSystem, cancellationToken);
-        });
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
+        ICommandServices services,
         ParseResult parseResult,
-        INitroConsole console,
-        IFusionConfigurationClient fusionConfigurationClient,
-        IFileSystem fileSystem,
         CancellationToken cancellationToken)
     {
+        var console = services.GetRequiredService<INitroConsole>();
+        var fusionConfigurationClient = services.GetRequiredService<IFusionConfigurationClient>();
+        var fileSystem = services.GetRequiredService<IFileSystem>();
+
         var requestId =
             parseResult.GetValue(Opt<OptionalRequestIdOption>.Instance) ??
             await FusionConfigurationPublishingState.GetRequestId(fileSystem, cancellationToken) ??

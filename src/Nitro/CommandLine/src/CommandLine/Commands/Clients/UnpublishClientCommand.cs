@@ -20,22 +20,18 @@ internal sealed class UnpublishClientCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
-        {
-            var console = services.GetRequiredService<INitroConsole>();
-            var client = services.GetRequiredService<IClientsClient>();
-            var sessionService = services.GetRequiredService<ISessionService>();
-            return await ExecuteAsync(parseResult, console, client, sessionService, cancellationToken);
-        });
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
+        ICommandServices services,
         ParseResult parseResult,
-        INitroConsole console,
-        IClientsClient client,
-        ISessionService sessionService,
         CancellationToken cancellationToken)
     {
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IClientsClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+
         parseResult.AssertHasAuthentication(sessionService);
 
         var tags = parseResult.GetValue(Opt<ClientTagsToUnpublishOption>.Instance)?.ToArray()!;

@@ -19,33 +19,22 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
-        {
-            var console = services.GetRequiredService<INitroConsole>();
-            var client = services.GetRequiredService<IOpenApiClient>();
-            var fileSystem = services.GetRequiredService<IFileSystem>();
-            return await ExecuteAsync(
-                console,
-                client,
-                fileSystem,
-                parseResult.GetValue(Opt<StageNameOption>.Instance)!,
-                parseResult.GetValue(Opt<OpenApiCollectionIdOption>.Instance)!,
-                parseResult.GetValue(Opt<OpenApiCollectionFilePatternOption>.Instance)!,
-                parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance),
-                cancellationToken);
-        });
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        INitroConsole console,
-        IOpenApiClient client,
-        IFileSystem fileSystem,
-        string stage,
-        string openApiCollectionId,
-        List<string> patterns,
-        string? sourceMetadataJson,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken ct)
     {
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IOpenApiClient>();
+        var fileSystem = services.GetRequiredService<IFileSystem>();
+
+        var stage = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
+        var openApiCollectionId = parseResult.GetValue(Opt<OpenApiCollectionIdOption>.Instance)!;
+        var patterns = parseResult.GetValue(Opt<OpenApiCollectionFilePatternOption>.Instance)!;
+        var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
         await using (var activity = console.StartActivity(

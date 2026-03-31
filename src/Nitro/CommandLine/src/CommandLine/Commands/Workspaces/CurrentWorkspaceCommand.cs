@@ -12,19 +12,17 @@ internal sealed class CurrentWorkspaceCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling((services, _, cancellationToken) =>
-        {
-            var console = services.GetRequiredService<INitroConsole>();
-            var sessionService = services.GetRequiredService<ISessionService>();
-            return ExecuteAsync(console, sessionService, cancellationToken);
-        });
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static Task<int> ExecuteAsync(
-        INitroConsole console,
-        ISessionService sessionService,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken cancellationToken)
     {
+        var console = services.GetRequiredService<INitroConsole>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+
         if (sessionService.Session?.Workspace?.Name is { } name)
         {
             console.OkLine($"Currently is {name.AsHighlight()} selected");

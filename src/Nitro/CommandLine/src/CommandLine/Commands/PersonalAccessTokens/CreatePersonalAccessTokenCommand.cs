@@ -22,24 +22,19 @@ internal sealed class CreatePersonalAccessTokenCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
-        {
-            var console = services.GetRequiredService<INitroConsole>();
-            var client = services.GetRequiredService<IPersonalAccessTokensClient>();
-            var sessionService = services.GetRequiredService<ISessionService>();
-            var resultHolder = services.GetRequiredService<IResultHolder>();
-            return await ExecuteAsync(parseResult, console, client, sessionService, resultHolder, cancellationToken);
-        });
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
+        ICommandServices services,
         ParseResult parseResult,
-        INitroConsole console,
-        IPersonalAccessTokensClient client,
-        ISessionService sessionService,
-        IResultHolder resultHolder,
         CancellationToken ct)
     {
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IPersonalAccessTokensClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
+
         parseResult.AssertHasAuthentication(sessionService);
 
         var description = await console

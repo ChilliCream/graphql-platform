@@ -22,20 +22,17 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
-        {
-            var console = services.GetRequiredService<INitroConsole>();
-            var client = services.GetRequiredService<IMcpClient>();
-            return await ExecuteAsync(parseResult, console, client, cancellationToken);
-        });
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
+        ICommandServices services,
         ParseResult parseResult,
-        INitroConsole console,
-        IMcpClient client,
         CancellationToken ct)
     {
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IMcpClient>();
+
         var tag = parseResult.GetValue(Opt<TagOption>.Instance)!;
         var stage = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
         var mcpFeatureCollectionId = parseResult.GetValue(Opt<McpFeatureCollectionIdOption>.Instance)!;

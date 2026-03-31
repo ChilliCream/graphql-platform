@@ -18,22 +18,18 @@ internal sealed class ListPersonalAccessTokenCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
-        {
-            var console = services.GetRequiredService<INitroConsole>();
-            var client = services.GetRequiredService<IPersonalAccessTokensClient>();
-            var resultHolder = services.GetRequiredService<IResultHolder>();
-            return await ExecuteAsync(parseResult, console, client, resultHolder, cancellationToken);
-        });
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
+        ICommandServices services,
         ParseResult parseResult,
-        INitroConsole console,
-        IPersonalAccessTokensClient client,
-        IResultHolder resultHolder,
         CancellationToken ct)
     {
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IPersonalAccessTokensClient>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
+
         if (console.IsInteractive)
         {
             return await RenderInteractiveAsync(parseResult, console, client, resultHolder, ct);

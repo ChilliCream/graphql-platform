@@ -21,24 +21,19 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
-        {
-            var console = services.GetRequiredService<INitroConsole>();
-            var client = services.GetRequiredService<IMcpClient>();
-            var fileSystem = services.GetRequiredService<IFileSystem>();
-            var sessionService = services.GetRequiredService<ISessionService>();
-            return await ExecuteAsync(parseResult, console, client, fileSystem, sessionService, cancellationToken);
-        });
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
+        ICommandServices services,
         ParseResult parseResult,
-        INitroConsole console,
-        IMcpClient client,
-        IFileSystem fileSystem,
-        ISessionService sessionService,
         CancellationToken cancellationToken)
     {
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IMcpClient>();
+        var fileSystem = services.GetRequiredService<IFileSystem>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+
         parseResult.AssertHasAuthentication(sessionService);
 
         var tag = parseResult.GetValue(Opt<TagOption>.Instance)!;

@@ -20,24 +20,19 @@ internal sealed class LoginCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
-        {
-            var console = services.GetRequiredService<INitroConsole>();
-            var workspacesClient = services.GetRequiredService<IWorkspacesClient>();
-            var sessionService = services.GetRequiredService<ISessionService>();
-            var clientContext = services.GetRequiredService<NitroClientContext>();
-            return await ExecuteAsync(parseResult, console, workspacesClient, sessionService, clientContext, cancellationToken);
-        });
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
+        ICommandServices services,
         ParseResult parseResult,
-        INitroConsole console,
-        IWorkspacesClient client,
-        ISessionService sessionService,
-        NitroClientContext clientContext,
         CancellationToken cancellationToken)
     {
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IWorkspacesClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var clientContext = services.GetRequiredService<NitroClientContext>();
+
         if (!console.IsInteractive)
         {
             throw new ExitException(

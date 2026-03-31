@@ -28,39 +28,22 @@ internal sealed class FusionSettingsSetCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
-        {
-            var console = services.GetRequiredService<INitroConsole>();
-            var fileSystem = services.GetRequiredService<IFileSystem>();
-            var resultHolder = services.GetRequiredService<IResultHolder>();
-
-            var settingName = parseResult.GetRequiredValue(Opt<FusionSettingsNameArgument>.Instance);
-            var settingValue = parseResult.GetRequiredValue(Opt<FusionSettingsValueArgument>.Instance);
-            var archiveFile = parseResult.GetRequiredValue(Opt<FusionArchiveFileOption>.Instance);
-            var environment = parseResult.GetValue(Opt<FusionEnvironmentOption>.Instance);
-
-            return await ExecuteAsync(
-                settingName,
-                settingValue,
-                archiveFile!,
-                environment,
-                console,
-                fileSystem,
-                resultHolder,
-                cancellationToken);
-        });
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        string settingName,
-        string settingValue,
-        string archiveFile,
-        string? environment,
-        INitroConsole console,
-        IFileSystem fileSystem,
-        IResultHolder resultHolder,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken cancellationToken)
     {
+        var console = services.GetRequiredService<INitroConsole>();
+        var fileSystem = services.GetRequiredService<IFileSystem>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
+
+        var settingName = parseResult.GetRequiredValue(Opt<FusionSettingsNameArgument>.Instance);
+        var settingValue = parseResult.GetRequiredValue(Opt<FusionSettingsValueArgument>.Instance);
+        var archiveFile = parseResult.GetRequiredValue(Opt<FusionArchiveFileOption>.Instance)!;
+        var environment = parseResult.GetValue(Opt<FusionEnvironmentOption>.Instance);
         if (!fileSystem.FileExists(archiveFile))
         {
             console.Error.WriteErrorLine($"File '{archiveFile}' does not exist.");

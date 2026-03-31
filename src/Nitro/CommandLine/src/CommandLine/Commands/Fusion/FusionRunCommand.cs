@@ -31,27 +31,19 @@ internal class FusionRunCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
-        {
-            var console = services.GetRequiredService<INitroConsole>();
-            var fileSystem = services.GetRequiredService<IFileSystem>();
-
-            var archiveFilePath = parseResult.GetValue(Opt<FusionRunArchiveArgument>.Instance)!;
-            var port = parseResult.GetValue(Opt<FusionRunPortOption>.Instance);
-
-            await ExecuteAsync(archiveFilePath, console, fileSystem, port, cancellationToken);
-
-            return ExitCodes.Success;
-        });
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
-    private static async Task ExecuteAsync(
-        string archiveFilePath,
-        INitroConsole console,
-        IFileSystem fileSystem,
-        int? port,
+    private static async Task<int> ExecuteAsync(
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken cancellationToken)
     {
+        var console = services.GetRequiredService<INitroConsole>();
+        var fileSystem = services.GetRequiredService<IFileSystem>();
+
+        var archiveFilePath = parseResult.GetValue(Opt<FusionRunArchiveArgument>.Instance)!;
+        var port = parseResult.GetValue(Opt<FusionRunPortOption>.Instance);
         if (!fileSystem.FileExists(archiveFilePath))
         {
             throw new ExitException($"Archive file '{archiveFilePath}' does not exist.");
@@ -128,6 +120,8 @@ internal class FusionRunCommand : Command
         });
 
         await host.RunAsync(cancellationToken);
+
+        return ExitCodes.Success;
     }
 
     private static int GetRandomUnusedPort()

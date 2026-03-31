@@ -23,24 +23,19 @@ internal sealed class SetApiSettingsApiCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
-        {
-            var console = services.GetRequiredService<INitroConsole>();
-            var client = services.GetRequiredService<IApisClient>();
-            var sessionService = services.GetRequiredService<ISessionService>();
-            var resultHolder = services.GetRequiredService<IResultHolder>();
-            return await ExecuteAsync(parseResult, console, client, sessionService, resultHolder, cancellationToken);
-        });
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
+        ICommandServices services,
         ParseResult parseResult,
-        INitroConsole console,
-        IApisClient client,
-        ISessionService sessionService,
-        IResultHolder resultHolder,
         CancellationToken ct)
     {
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IApisClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
+
         parseResult.AssertHasAuthentication(sessionService);
 
         var id = parseResult.GetValue(Opt<IdArgument>.Instance)!;

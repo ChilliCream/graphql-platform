@@ -20,22 +20,18 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
-        {
-            var console = services.GetRequiredService<INitroConsole>();
-            var client = services.GetRequiredService<IMcpClient>();
-            var fileSystem = services.GetRequiredService<IFileSystem>();
-            return await ExecuteAsync(parseResult, console, client, fileSystem, cancellationToken);
-        });
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
+        ICommandServices services,
         ParseResult parseResult,
-        INitroConsole console,
-        IMcpClient client,
-        IFileSystem fileSystem,
         CancellationToken ct)
     {
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IMcpClient>();
+        var fileSystem = services.GetRequiredService<IFileSystem>();
+
         var stage = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
         var mcpFeatureCollectionId = parseResult.GetValue(Opt<McpFeatureCollectionIdOption>.Instance)!;
         var promptPatterns = parseResult.GetValue(Opt<McpPromptFilePatternOption>.Instance)!;

@@ -26,28 +26,21 @@ internal sealed class UpdateMockCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
-        {
-            var console = services.GetRequiredService<INitroConsole>();
-            var apisClient = services.GetRequiredService<IApisClient>();
-            var client = services.GetRequiredService<IMocksClient>();
-            var fileSystem = services.GetRequiredService<IFileSystem>();
-            var sessionService = services.GetRequiredService<ISessionService>();
-            var resultHolder = services.GetRequiredService<IResultHolder>();
-            return await ExecuteAsync(parseResult, console, apisClient, client, fileSystem, sessionService, resultHolder, cancellationToken);
-        });
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
+        ICommandServices services,
         ParseResult parseResult,
-        INitroConsole console,
-        IApisClient apisClient,
-        IMocksClient client,
-        IFileSystem fileSystem,
-        ISessionService sessionService,
-        IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
+        var console = services.GetRequiredService<INitroConsole>();
+        var apisClient = services.GetRequiredService<IApisClient>();
+        var client = services.GetRequiredService<IMocksClient>();
+        var fileSystem = services.GetRequiredService<IFileSystem>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
+
         parseResult.AssertHasAuthentication(sessionService);
 
         var extensionFile = parseResult.GetValue(Opt<OptionalExtensionFileOption>.Instance);

@@ -21,33 +21,20 @@ internal sealed class ListOpenApiCollectionCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
-        {
-            var console = services.GetRequiredService<INitroConsole>();
-            var client = services.GetRequiredService<IOpenApiClient>();
-            var apisClient = services.GetRequiredService<IApisClient>();
-            var sessionService = services.GetRequiredService<ISessionService>();
-            var resultHolder = services.GetRequiredService<IResultHolder>();
-            return await ExecuteAsync(
-                parseResult,
-                console,
-                client,
-                apisClient,
-                sessionService,
-                resultHolder,
-                cancellationToken);
-        });
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
+        ICommandServices services,
         ParseResult parseResult,
-        INitroConsole console,
-        IOpenApiClient client,
-        IApisClient apisClient,
-        ISessionService sessionService,
-        IResultHolder resultHolder,
         CancellationToken ct)
     {
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IOpenApiClient>();
+        var apisClient = services.GetRequiredService<IApisClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
+
         if (console.IsInteractive)
         {
             return await RenderInteractiveAsync(parseResult, console, client, apisClient, sessionService, resultHolder, ct);

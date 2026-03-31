@@ -50,43 +50,24 @@ internal sealed class FusionValidateCommand : Command
             }
         });
 
-        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
-        {
-            var console = services.GetRequiredService<INitroConsole>();
-            var fusionConfigurationClient = services.GetRequiredService<IFusionConfigurationClient>();
-            var fileSystem = services.GetRequiredService<IFileSystem>();
-            var resultHolder = services.GetRequiredService<IResultHolder>();
-
-            var stageName = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
-            var apiId = parseResult.GetValue(Opt<ApiIdOption>.Instance)!;
-            var archiveFile = parseResult.GetValue(Opt<OptionalFusionArchiveFileOption>.Instance);
-            var sourceSchemaFiles =
-                parseResult.GetValue(Opt<OptionalSourceSchemaFileListOption>.Instance) ?? [];
-
-            return await ExecuteAsync(
-                stageName,
-                apiId,
-                archiveFile,
-                sourceSchemaFiles,
-                console,
-                fusionConfigurationClient,
-                fileSystem,
-                resultHolder,
-                cancellationToken);
-        });
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        string stageName,
-        string apiId,
-        string? archiveFile,
-        List<string> sourceSchemaFiles,
-        INitroConsole console,
-        IFusionConfigurationClient fusionConfigurationClient,
-        IFileSystem fileSystem,
-        IResultHolder resultHolder,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken ct)
     {
+        var console = services.GetRequiredService<INitroConsole>();
+        var fusionConfigurationClient = services.GetRequiredService<IFusionConfigurationClient>();
+        var fileSystem = services.GetRequiredService<IFileSystem>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
+
+        var stageName = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
+        var apiId = parseResult.GetValue(Opt<ApiIdOption>.Instance)!;
+        var archiveFile = parseResult.GetValue(Opt<OptionalFusionArchiveFileOption>.Instance);
+        var sourceSchemaFiles =
+            parseResult.GetValue(Opt<OptionalSourceSchemaFileListOption>.Instance) ?? [];
         var isValid = false;
 
         await using (var activity = console.StartActivity(

@@ -22,33 +22,20 @@ internal sealed class UploadClientCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
-        {
-            var console = services.GetRequiredService<INitroConsole>();
-            var client = services.GetRequiredService<IClientsClient>();
-            var fileSystem = services.GetRequiredService<IFileSystem>();
-            var sessionService = services.GetRequiredService<ISessionService>();
-            var resultHolder = services.GetRequiredService<IResultHolder>();
-            return await ExecuteAsync(
-                parseResult,
-                console,
-                client,
-                fileSystem,
-                sessionService,
-                resultHolder,
-                cancellationToken);
-        });
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
+        ICommandServices services,
         ParseResult parseResult,
-        INitroConsole console,
-        IClientsClient client,
-        IFileSystem fileSystem,
-        ISessionService sessionService,
-        IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IClientsClient>();
+        var fileSystem = services.GetRequiredService<IFileSystem>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
+
         parseResult.AssertHasAuthentication(sessionService);
 
         var tag = parseResult.GetValue(Opt<TagOption>.Instance)!;

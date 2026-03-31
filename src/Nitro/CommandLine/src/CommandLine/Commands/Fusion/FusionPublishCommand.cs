@@ -73,56 +73,31 @@ internal sealed class FusionPublishCommand : Command
             }
         });
 
-        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
-        {
-            var console = services.GetRequiredService<INitroConsole>();
-            var fusionConfigurationClient = services.GetRequiredService<IFusionConfigurationClient>();
-            var fileSystem = services.GetRequiredService<IFileSystem>();
-
-            var workingDirectory = parseResult.GetValue(Opt<WorkingDirectoryOption>.Instance)
-                ?? fileSystem.GetCurrentDirectory();
-            var sourceSchemaFiles =
-                parseResult.GetValue(Opt<OptionalSourceSchemaFileListOption>.Instance) ?? [];
-            var sourceSchemaIdentifiers =
-                parseResult.GetValue(Opt<OptionalSourceSchemaIdentifierListOption>.Instance) ?? [];
-            var archiveFile =
-                parseResult.GetValue(Opt<OptionalFusionArchiveFileOption>.Instance);
-            var stageName = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
-            var apiId = parseResult.GetValue(Opt<ApiIdOption>.Instance)!;
-            var tag = parseResult.GetValue(Opt<TagOption>.Instance)!;
-            var sourceMetadataJson =
-                parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
-
-            return await ExecuteAsync(
-                workingDirectory,
-                sourceSchemaFiles,
-                sourceSchemaIdentifiers,
-                archiveFile,
-                apiId,
-                stageName,
-                tag,
-                sourceMetadataJson,
-                console,
-                fileSystem,
-                fusionConfigurationClient,
-                cancellationToken);
-        });
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        string workingDirectory,
-        List<string> sourceSchemaFiles,
-        List<string> sourceSchemaIdentifiers,
-        string? archiveFile,
-        string apiId,
-        string stageName,
-        string tag,
-        string? sourceMetadataJson,
-        INitroConsole console,
-        IFileSystem fileSystem,
-        IFusionConfigurationClient client,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken cancellationToken)
     {
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IFusionConfigurationClient>();
+        var fileSystem = services.GetRequiredService<IFileSystem>();
+
+        var workingDirectory = parseResult.GetValue(Opt<WorkingDirectoryOption>.Instance)
+            ?? fileSystem.GetCurrentDirectory();
+        var sourceSchemaFiles =
+            parseResult.GetValue(Opt<OptionalSourceSchemaFileListOption>.Instance) ?? [];
+        var sourceSchemaIdentifiers =
+            parseResult.GetValue(Opt<OptionalSourceSchemaIdentifierListOption>.Instance) ?? [];
+        var archiveFile =
+            parseResult.GetValue(Opt<OptionalFusionArchiveFileOption>.Instance);
+        var stageName = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
+        var apiId = parseResult.GetValue(Opt<ApiIdOption>.Instance)!;
+        var tag = parseResult.GetValue(Opt<TagOption>.Instance)!;
+        var sourceMetadataJson =
+            parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
         if (archiveFile is not null)

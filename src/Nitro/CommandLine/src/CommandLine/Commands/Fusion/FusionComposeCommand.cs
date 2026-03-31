@@ -26,51 +26,28 @@ internal sealed class FusionComposeCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
-        {
-            var console = services.GetRequiredService<INitroConsole>();
-            var fileSystem = services.GetRequiredService<IFileSystem>();
-
-            var workingDirectory = parseResult.GetValue(Opt<WorkingDirectoryOption>.Instance)
-                ?? fileSystem.GetCurrentDirectory();
-            var sourceSchemaFiles = parseResult.GetValue(Opt<OptionalSourceSchemaFileListOption>.Instance)!;
-            var archiveFile = parseResult.GetValue(Opt<OptionalFusionArchiveFileOption>.Instance)!;
-            var environment = parseResult.GetValue(Opt<FusionEnvironmentOption>.Instance);
-            var enableGlobalIds = parseResult.GetValue(
-                Opt<EnableGlobalObjectIdentificationOption>.Instance);
-            var includeSatisfiabilityPaths = parseResult.GetValue(
-                Opt<IncludeSatisfiabilityPathsOption>.Instance);
-            var watchMode = parseResult.GetValue(Opt<WatchModeOption>.Instance);
-            var tagsToExclude = parseResult.GetValue(Opt<OptionalExcludeTagListOption>.Instance);
-
-            return await ExecuteAsync(
-                console,
-                fileSystem,
-                workingDirectory,
-                sourceSchemaFiles,
-                archiveFile,
-                environment,
-                enableGlobalIds,
-                includeSatisfiabilityPaths,
-                watchMode,
-                tagsToExclude,
-                cancellationToken);
-        });
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        INitroConsole console,
-        IFileSystem fileSystem,
-        string workingDirectory,
-        List<string> sourceSchemaFiles,
-        string? archiveFile,
-        string? environment,
-        bool? enableGlobalObjectIdentification,
-        bool? includeSatisfiabilityPaths,
-        bool watchMode,
-        List<string>? tagsToExclude,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken cancellationToken)
     {
+        var console = services.GetRequiredService<INitroConsole>();
+        var fileSystem = services.GetRequiredService<IFileSystem>();
+
+        var workingDirectory = parseResult.GetValue(Opt<WorkingDirectoryOption>.Instance)
+            ?? fileSystem.GetCurrentDirectory();
+        var sourceSchemaFiles = parseResult.GetValue(Opt<OptionalSourceSchemaFileListOption>.Instance)!;
+        var archiveFile = parseResult.GetValue(Opt<OptionalFusionArchiveFileOption>.Instance)!;
+        var environment = parseResult.GetValue(Opt<FusionEnvironmentOption>.Instance);
+        var enableGlobalObjectIdentification = parseResult.GetValue(
+            Opt<EnableGlobalObjectIdentificationOption>.Instance);
+        var includeSatisfiabilityPaths = parseResult.GetValue(
+            Opt<IncludeSatisfiabilityPathsOption>.Instance);
+        var watchMode = parseResult.GetValue(Opt<WatchModeOption>.Instance);
+        var tagsToExclude = parseResult.GetValue(Opt<OptionalExcludeTagListOption>.Instance);
         archiveFile ??= workingDirectory;
 
         if (fileSystem.DirectoryExists(archiveFile))

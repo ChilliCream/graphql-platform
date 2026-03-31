@@ -22,34 +22,23 @@ internal sealed class PublishOpenApiCollectionCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
-        {
-            var console = services.GetRequiredService<INitroConsole>();
-            var client = services.GetRequiredService<IOpenApiClient>();
-            return await ExecuteAsync(
-                console,
-                client,
-                parseResult.GetValue(Opt<TagOption>.Instance)!,
-                parseResult.GetValue(Opt<StageNameOption>.Instance)!,
-                parseResult.GetValue(Opt<OpenApiCollectionIdOption>.Instance)!,
-                parseResult.GetValue(Opt<ForceOption>.Instance),
-                parseResult.GetValue(Opt<OptionalWaitForApprovalOption>.Instance),
-                parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance),
-                cancellationToken);
-        });
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        INitroConsole console,
-        IOpenApiClient client,
-        string tag,
-        string stage,
-        string openApiCollectionId,
-        bool force,
-        bool waitForApproval,
-        string? sourceMetadataJson,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken ct)
     {
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IOpenApiClient>();
+
+        var tag = parseResult.GetValue(Opt<TagOption>.Instance)!;
+        var stage = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
+        var openApiCollectionId = parseResult.GetValue(Opt<OpenApiCollectionIdOption>.Instance)!;
+        var force = parseResult.GetValue(Opt<ForceOption>.Instance);
+        var waitForApproval = parseResult.GetValue(Opt<OptionalWaitForApprovalOption>.Instance);
+        var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
         await using (var activity = console.StartActivity(

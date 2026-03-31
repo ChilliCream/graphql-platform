@@ -17,14 +17,21 @@ internal sealed class SetDefaultWorkspaceCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
-        {
-            var console = services.GetRequiredService<INitroConsole>();
-            var client = services.GetRequiredService<IWorkspacesClient>();
-            var sessionService = services.GetRequiredService<ISessionService>();
-            parseResult.AssertHasAuthentication(sessionService);
-            return await ExecuteAsync(true, console, client, sessionService, cancellationToken);
-        });
+        this.SetActionWithExceptionHandling(ExecuteAsync);
+    }
+
+    private static async Task<int> ExecuteAsync(
+        ICommandServices services,
+        ParseResult parseResult,
+        CancellationToken cancellationToken)
+    {
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IWorkspacesClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+
+        parseResult.AssertHasAuthentication(sessionService);
+
+        return await ExecuteAsync(true, console, client, sessionService, cancellationToken);
     }
 
     public static async Task<int> ExecuteAsync(

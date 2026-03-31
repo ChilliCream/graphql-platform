@@ -24,36 +24,21 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
-        {
-            var console = services.GetRequiredService<INitroConsole>();
-            var fusionConfigurationClient = services.GetRequiredService<IFusionConfigurationClient>();
-            var configurationService = services.GetRequiredService<IConfigurationService>();
-            var sessionService = services.GetRequiredService<ISessionService>();
-            var fileSystem = services.GetRequiredService<IFileSystem>();
-            var resultHolder = services.GetRequiredService<IResultHolder>();
-            return await ExecuteAsync(
-                parseResult,
-                console,
-                fusionConfigurationClient,
-                configurationService,
-                sessionService,
-                fileSystem,
-                resultHolder,
-                cancellationToken);
-        });
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
+        ICommandServices services,
         ParseResult parseResult,
-        INitroConsole console,
-        IFusionConfigurationClient fusionConfigurationClient,
-        IConfigurationService configurationService,
-        ISessionService sessionService,
-        IFileSystem fileSystem,
-        IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
+        var console = services.GetRequiredService<INitroConsole>();
+        var fusionConfigurationClient = services.GetRequiredService<IFusionConfigurationClient>();
+        var configurationService = services.GetRequiredService<IConfigurationService>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var fileSystem = services.GetRequiredService<IFileSystem>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
+
         parseResult.AssertHasAuthentication(sessionService);
 
         var stageName = parseResult.GetValue(Opt<StageNameOption>.Instance)!;

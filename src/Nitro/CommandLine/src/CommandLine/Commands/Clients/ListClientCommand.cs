@@ -23,26 +23,20 @@ internal sealed class ListClientCommand : Command
         Subcommands.Add(new ListClientVersionsCommand());
         Subcommands.Add(new ListClientPublishedVersionsCommand());
 
-        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
-        {
-            var console = services.GetRequiredService<INitroConsole>();
-            var client = services.GetRequiredService<IClientsClient>();
-            var apisClient = services.GetRequiredService<IApisClient>();
-            var sessionService = services.GetRequiredService<ISessionService>();
-            var resultHolder = services.GetRequiredService<IResultHolder>();
-            return await ExecuteAsync(parseResult, console, client, apisClient, sessionService, resultHolder, cancellationToken);
-        });
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
+        ICommandServices services,
         ParseResult parseResult,
-        INitroConsole console,
-        IClientsClient client,
-        IApisClient apisClient,
-        ISessionService sessionService,
-        IResultHolder resultHolder,
         CancellationToken ct)
     {
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IClientsClient>();
+        var apisClient = services.GetRequiredService<IApisClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
+
         parseResult.AssertHasAuthentication(sessionService);
 
         if (console.IsInteractive)

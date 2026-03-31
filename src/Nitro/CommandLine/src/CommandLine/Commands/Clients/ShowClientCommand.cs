@@ -20,22 +20,18 @@ internal sealed class ShowClientCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
-        {
-            var client = services.GetRequiredService<IClientsClient>();
-            var sessionService = services.GetRequiredService<ISessionService>();
-            var resultHolder = services.GetRequiredService<IResultHolder>();
-            return await ExecuteAsync(parseResult, client, sessionService, resultHolder, cancellationToken);
-        });
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
+        ICommandServices services,
         ParseResult parseResult,
-        IClientsClient client,
-        ISessionService sessionService,
-        IResultHolder resultHolder,
         CancellationToken cancellationToken)
     {
+        var client = services.GetRequiredService<IClientsClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
+
         parseResult.AssertHasAuthentication(sessionService);
 
         var id = parseResult.GetValue(Opt<IdArgument>.Instance)!;

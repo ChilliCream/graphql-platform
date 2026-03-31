@@ -11,19 +11,17 @@ internal sealed class LogoutCommand : Command
 
         this.AddGlobalNitroOptions();
 
-        this.SetActionWithExceptionHandling(async (services, parseResult, cancellationToken) =>
-        {
-            var console = services.GetRequiredService<INitroConsole>();
-            var sessionService = services.GetRequiredService<ISessionService>();
-            return await ExecuteAsync(console, sessionService, cancellationToken);
-        });
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        INitroConsole console,
-        ISessionService sessionService,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken cancellationToken)
     {
+        var console = services.GetRequiredService<INitroConsole>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+
         await using (var activity = console.StartActivity("Logging out", "Failed to log out."))
         {
             await sessionService.LogoutAsync(cancellationToken);
