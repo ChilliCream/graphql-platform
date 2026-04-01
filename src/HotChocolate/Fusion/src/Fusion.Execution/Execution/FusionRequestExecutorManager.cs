@@ -359,21 +359,21 @@ internal sealed class FusionRequestExecutorManager
                 }
             }
 
-            if (capabilitiesElement.TryGetProperty("batching", out var variableBatching))
+            if (capabilitiesElement.TryGetProperty("batching", out var batchingElement))
             {
-                if (variableBatching.TryGetProperty("variableBatching", out var supported)
+                if (batchingElement.TryGetProperty("variableBatching", out var supported)
                     && !supported.GetBoolean())
                 {
                     capabilities &= ~SourceSchemaClientCapabilities.VariableBatching;
                 }
 
-                if (variableBatching.TryGetProperty("requestBatching", out supported)
+                if (batchingElement.TryGetProperty("requestBatching", out supported)
                     && !supported.GetBoolean())
                 {
                     capabilities &= ~SourceSchemaClientCapabilities.RequestBatching;
                 }
 
-                if (variableBatching.TryGetProperty("formats", out var formats))
+                if (batchingElement.TryGetProperty("formats", out var formats))
                 {
                     var builder = ImmutableArray.CreateBuilder<MediaTypeWithQualityHeaderValue>();
 
@@ -386,15 +386,15 @@ internal sealed class FusionRequestExecutorManager
                 }
             }
 
-            if (capabilitiesElement.TryGetProperty("subscriptions", out var requestBatching))
+            if (capabilitiesElement.TryGetProperty("subscriptions", out var subscriptionsElement))
             {
-                if (requestBatching.TryGetProperty("supported", out var supported)
+                if (subscriptionsElement.TryGetProperty("supported", out var supported)
                     && !supported.GetBoolean())
                 {
                     supportedOperations &= ~SupportedOperationType.Subscription;
                 }
 
-                if (requestBatching.TryGetProperty("formats", out var formats))
+                if (subscriptionsElement.TryGetProperty("formats", out var formats))
                 {
                     var builder = ImmutableArray.CreateBuilder<MediaTypeWithQualityHeaderValue>();
 
