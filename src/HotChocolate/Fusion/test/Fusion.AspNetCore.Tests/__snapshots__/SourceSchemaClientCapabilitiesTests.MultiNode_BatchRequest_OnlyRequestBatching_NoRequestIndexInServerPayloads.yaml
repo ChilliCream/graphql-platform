@@ -146,6 +146,62 @@ sourceSchemas:
         bookById(id: ID!): Book @lookup @internal
         authorById(id: ID!): Author @lookup @internal
       }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          kind: OperationBatch
+          items:
+            - document: |
+                query Op_1b3419da_2(
+                  $__fusion_1_id: ID!
+                ) {
+                  authorById(id: $__fusion_1_id) {
+                    b: name(postFix: "2")
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_1_id": "1"
+                }
+            - document: |
+                query Op_1b3419da_2(
+                  $__fusion_1_id: ID!
+                ) {
+                  authorById(id: $__fusion_1_id) {
+                    b: name(postFix: "2")
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_1_id": "2"
+                }
+            - document: |
+                query Op_1b3419da_3(
+                  $__fusion_2_id: ID!
+                ) {
+                  authorById(id: $__fusion_2_id) {
+                    a: name
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_2_id": "1"
+                }
+            - document: |
+                query Op_1b3419da_3(
+                  $__fusion_2_id: ID!
+                ) {
+                  authorById(id: $__fusion_2_id) {
+                    a: name
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_2_id": "2"
+                }
+        response:
+          statusCode: 500
+          contentType: text/plain; charset=utf-8
 operationPlan:
   operation:
     - document: |

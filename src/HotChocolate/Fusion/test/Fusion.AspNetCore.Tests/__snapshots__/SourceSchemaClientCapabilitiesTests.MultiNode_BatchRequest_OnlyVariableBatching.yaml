@@ -17,53 +17,23 @@ response:
       "data": {
         "books": [
           {
-            "a": null,
-            "b": null
+            "a": {
+              "a": "Author 1"
+            },
+            "b": {
+              "b": "Author 1 - 2"
+            }
           },
           {
-            "a": null,
-            "b": null
+            "a": {
+              "a": "Author 2"
+            },
+            "b": {
+              "b": "Author 2 - 2"
+            }
           }
         ]
-      },
-      "errors": [
-        {
-          "message": "Unexpected Execution Error",
-          "path": [
-            "books",
-            0,
-            "a",
-            "a"
-          ]
-        },
-        {
-          "message": "Unexpected Execution Error",
-          "path": [
-            "books",
-            0,
-            "b",
-            "b"
-          ]
-        },
-        {
-          "message": "Unexpected Execution Error",
-          "path": [
-            "books",
-            1,
-            "a",
-            "a"
-          ]
-        },
-        {
-          "message": "Unexpected Execution Error",
-          "path": [
-            "books",
-            1,
-            "b",
-            "b"
-          ]
-        }
-      ]
+      }
     }
 sourceSchemas:
   - name: a
@@ -146,6 +116,80 @@ sourceSchemas:
         bookById(id: ID!): Book @lookup @internal
         authorById(id: ID!): Author @lookup @internal
       }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          kind: OperationBatch
+          items:
+            - document: |
+                query Op_1b3419da_2(
+                  $__fusion_1_id: ID!
+                ) {
+                  authorById(id: $__fusion_1_id) {
+                    b: name(postFix: "2")
+                  }
+                }
+              variables: |
+                [
+                  {
+                    "__fusion_1_id": "1"
+                  },
+                  {
+                    "__fusion_1_id": "2"
+                  }
+                ]
+            - document: |
+                query Op_1b3419da_3(
+                  $__fusion_2_id: ID!
+                ) {
+                  authorById(id: $__fusion_2_id) {
+                    a: name
+                  }
+                }
+              variables: |
+                [
+                  {
+                    "__fusion_2_id": "1"
+                  },
+                  {
+                    "__fusion_2_id": "2"
+                  }
+                ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "a": "Author 1"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "a": "Author 2"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "b": "Author 1 - 2"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "b": "Author 2 - 2"
+                  }
+                }
+              }
 operationPlan:
   operation:
     - document: |

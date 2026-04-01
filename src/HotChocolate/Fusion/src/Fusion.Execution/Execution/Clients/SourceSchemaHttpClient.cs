@@ -290,7 +290,17 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
     {
         if (requiresFileUpload)
         {
-            var batchRequests = ImmutableArray.CreateBuilder<IOperationRequest>();
+            var capacity = originalRequests.Length;
+
+            foreach (var sourceRequest in originalRequests)
+            {
+                if (sourceRequest.Variables.Length > 1)
+                {
+                    capacity += sourceRequest.Variables.Length - 1;
+                }
+            }
+
+            var batchRequests = ImmutableArray.CreateBuilder<IOperationRequest>(capacity);
             var fileEntries = ImmutableArray.CreateBuilder<FileEntry>();
             var fileLookup = context.RequestContext.Features.GetRequired<IFileLookup>();
             buffer ??= new ChunkedArrayWriter();
@@ -351,7 +361,23 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         }
         else
         {
-            var batchRequests = ImmutableArray.CreateBuilder<IOperationRequest>();
+            var supportsVariableBatching =
+                _configuration.Capabilities.HasFlag(SourceSchemaClientCapabilities.VariableBatching);
+
+            var capacity = originalRequests.Length;
+
+            if (!supportsVariableBatching)
+            {
+                foreach (var sourceRequest in originalRequests)
+                {
+                    if (sourceRequest.Variables.Length > 1)
+                    {
+                        capacity += sourceRequest.Variables.Length - 1;
+                    }
+                }
+            }
+
+            var batchRequests = ImmutableArray.CreateBuilder<IOperationRequest>(capacity);
 
             foreach (var sourceRequest in originalRequests)
             {
@@ -362,7 +388,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                         break;
 
                     default:
-                        if (_configuration.Capabilities.HasFlag(SourceSchemaClientCapabilities.VariableBatching))
+                        if (supportsVariableBatching)
                         {
                             batchRequests.Add(CreateVariableBatchRequest(
                                 sourceRequest.OperationSourceText, sourceRequest));
