@@ -132,6 +132,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             ├── Found 1 document(s).
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
+            └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -209,6 +210,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             ├── Found 1 document(s).
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
+            └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -289,6 +291,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             ├── Found 1 document(s).
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
+            └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -367,6 +370,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             ├── Found 1 document(s).
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
+            └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -585,6 +589,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             ├── Validating
             │   ├── Validating...
             │   └── ✕ Validation failed.
+            └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -815,6 +820,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             │   └── ✓ Validation request created (ID: request-1).
             ├── Validating
             │   └── ✕ Validation failed.
+            └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """

@@ -137,6 +137,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
             Validating Fusion configuration against stage 'production' of API 'api-1'
             ├── Validating against stage
             │   └── ✕ Failed to validate against stage.
+            └── ✕ Failed to validate the Fusion configuration.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -215,6 +216,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
             Validating Fusion configuration against stage 'production' of API 'api-1'
             ├── Validating against stage
             │   └── ✕ Failed to validate against stage.
+            └── ✕ Failed to validate the Fusion configuration.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -295,6 +297,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
             Validating Fusion configuration against stage 'production' of API 'api-1'
             ├── Validating against stage
             │   └── ✕ Failed to validate against stage.
+            └── ✕ Failed to validate the Fusion configuration.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -371,6 +374,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
             Validating Fusion configuration against stage 'production' of API 'api-1'
             ├── Validating against stage
             │   └── ✕ Failed to validate against stage.
+            └── ✕ Failed to validate the Fusion configuration.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -587,6 +591,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
             │   ├── Validation request created (ID: request-1)
             │   ├── Validating...
             │   └── ✕ Failed to validate against stage.
+            └── ✕ Failed to validate the Fusion configuration.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -811,6 +816,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
             │   ├── Validation request created (ID: request-1)
             │   ├── ! Unknown server response. Consider updating the CLI.
             │   └── ✕ Failed to validate against stage.
+            └── ✕ Failed to validate the Fusion configuration.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(1, result.ExitCode);

@@ -102,6 +102,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
             Publishing new schema version 'v1' to stage 'production' of API 'api-1'
             ├── Starting publish request
             │   └── ✕ Failed to start publish request.
+            └── ✕ Failed to publish a new schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -176,6 +177,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
             Publishing new schema version 'v1' to stage 'production' of API 'api-1'
             ├── Starting publish request
             │   └── ✕ Failed to start publish request.
+            └── ✕ Failed to publish a new schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -253,6 +255,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
             Publishing new schema version 'v1' to stage 'production' of API 'api-1'
             ├── Starting publish request
             │   └── ✕ Failed to start publish request.
+            └── ✕ Failed to publish a new schema version.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -328,6 +331,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
             Publishing new schema version 'v1' to stage 'production' of API 'api-1'
             ├── Starting publish request
             │   └── ✕ Failed to start publish request.
+            └── ✕ Failed to publish a new schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -538,6 +542,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
             ├── Processing
             │   ├── Your request is being processed.
             │   └── ✕ Processing failed.
+            └── ✕ Failed to publish a new schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """

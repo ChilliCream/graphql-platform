@@ -102,6 +102,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             Validating client against stage 'production' of client 'client-1'
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
+            └── ✕ Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -180,6 +181,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             Validating client against stage 'production' of client 'client-1'
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
+            └── ✕ Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -260,6 +262,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             Validating client against stage 'production' of client 'client-1'
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
+            └── ✕ Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -336,6 +339,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             Validating client against stage 'production' of client 'client-1'
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
+            └── ✕ Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -560,6 +564,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             ├── Validating
             │   ├── Validating...
             │   └── ✕ Validation failed.
+            └── ✕ Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -772,6 +777,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             │   └── ✓ Validation request created (ID: request-1).
             ├── Validating
             │   └── ✕ Validation failed.
+            └── ✕ Failed to validate the client.
             ! There were errors on client my-client (ID: client-1)
             Validation failed for persisted queries.
             └── Query def456 is invalid.
@@ -830,6 +836,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             ├── Validating
             │   ├── Validating...
             │   └── ✕ Validation failed.
+            └── ✕ Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(
             """

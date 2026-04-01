@@ -37,12 +37,7 @@ internal sealed class NitroConsoleActivity(INitroConsole console, string failure
 
     public void FailAll()
     {
-        if (_completed)
-        {
-            return;
-        }
-
-        _completed = true;
+        Fail();
     }
 
     public INitroConsoleActivity StartChildActivity(string title, string failureMessage)

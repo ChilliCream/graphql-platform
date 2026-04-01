@@ -102,6 +102,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
             Validating schema against stage 'production' of API 'api-1'
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
+            └── ✕ Failed to validate the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -180,6 +181,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
             Validating schema against stage 'production' of API 'api-1'
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
+            └── ✕ Failed to validate the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -260,6 +262,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
             Validating schema against stage 'production' of API 'api-1'
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
+            └── ✕ Failed to validate the schema.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -337,6 +340,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
             Validating schema against stage 'production' of API 'api-1'
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
+            └── ✕ Failed to validate the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -556,6 +560,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
             ├── Validating
             │   ├── Validating...
             │   └── ✕ Validation failed.
+            └── ✕ Failed to validate the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -771,6 +776,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
             Validating schema against stage 'production' of API 'api-1'
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
+            └── ✕ Failed to validate the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
             """

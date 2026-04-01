@@ -213,6 +213,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests(NitroCommandFixt
         result.StdOut.MatchInlineSnapshot(
             """
             Requesting deployment slot for stage 'prod' of API 'api-1'
+            └── ✕ Failed to request a deployment slot.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -247,6 +248,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests(NitroCommandFixt
         result.StdOut.MatchInlineSnapshot(
             """
             Requesting deployment slot for stage 'prod' of API 'api-1'
+            └── ✕ Failed to request a deployment slot.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -388,6 +390,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests(NitroCommandFixt
         result.StdOut.MatchInlineSnapshot(
             """
             Requesting deployment slot for stage 'prod' of API 'api-1'
+            └── ✕ Failed to request a deployment slot.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -422,6 +425,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests(NitroCommandFixt
         result.StdOut.MatchInlineSnapshot(
             """
             Requesting deployment slot for stage 'prod' of API 'api-1'
+            └── ✕ Failed to request a deployment slot.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -456,6 +460,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests(NitroCommandFixt
         result.StdOut.MatchInlineSnapshot(
             """
             Requesting deployment slot for stage 'prod' of API 'api-1'
+            └── ✕ Failed to request a deployment slot.
             """);
         result.StdErr.MatchInlineSnapshot(
             """

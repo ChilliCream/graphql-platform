@@ -271,6 +271,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing Fusion configuration
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -312,6 +313,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing Fusion configuration
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -557,6 +559,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing Fusion configuration
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """

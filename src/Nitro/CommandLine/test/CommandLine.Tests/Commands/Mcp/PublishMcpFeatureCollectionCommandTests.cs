@@ -69,6 +69,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             Publishing new MCP feature collection version 'v1' to stage 'production'
             ├── Starting publish request
             │   └── ✕ Failed to start publish request.
+            └── ✕ Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -133,6 +134,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             Publishing new MCP feature collection version 'v1' to stage 'production'
             ├── Starting publish request
             │   └── ✕ Failed to start publish request.
+            └── ✕ Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -207,6 +209,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             Publishing new MCP feature collection version 'v1' to stage 'production'
             ├── Starting publish request
             │   └── ✕ Failed to start publish request.
+            └── ✕ Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -284,6 +287,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             Publishing new MCP feature collection version 'v1' to stage 'production'
             ├── Starting publish request
             │   └── ✕ Failed to start publish request.
+            └── ✕ Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -359,6 +363,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             Publishing new MCP feature collection version 'v1' to stage 'production'
             ├── Starting publish request
             │   └── ✕ Failed to start publish request.
+            └── ✕ Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -566,6 +571,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             ├── Processing
             │   ├── Processing...
             │   └── ✕ Processing failed.
+            └── ✕ Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -1047,6 +1053,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             ├── Processing
             │   ├── Processing...
             │   └── ✕ Processing failed.
+            └── ✕ Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -1098,6 +1105,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             ├── Processing
             │   ├── Processing...
             │   └── ✕ Processing failed.
+            └── ✕ Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -1150,6 +1158,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             ├── Processing
             │   ├── Processing...
             │   └── ✕ Processing failed.
+            └── ✕ Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """

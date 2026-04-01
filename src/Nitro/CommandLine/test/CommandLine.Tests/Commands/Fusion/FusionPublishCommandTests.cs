@@ -34,10 +34,10 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : ICl
               To take control over the deployment orchestration use sub-commands like 'begin'.
               If you don't specify --archive and instead use --source-schema or --source-schema-file, a Fusion v2 composition will be performed internally.
               The orchestration sub-commands can be used for both Fusion v1 and v2.
-            
+
             Usage:
               nitro fusion publish [command] [options]
-            
+
             Options:
               --api-id <api-id> (REQUIRED)                   The ID of the API [env: NITRO_API_ID]
               --tag <tag> (REQUIRED)                         The tag of the schema version to deploy [env: NITRO_TAG]
@@ -50,7 +50,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : ICl
               --api-key <api-key>                            The API key used for authentication [env: NITRO_API_KEY]
               --output <json>                                The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                 Show help and usage information
-            
+
             Commands:
               begin     Begin a configuration publish. This command will request a deployment slot.
               start     Start a Fusion configuration publish.
@@ -82,38 +82,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : ICl
             .ExecuteAsync();
 
         // assert
-        var output1 = result.StdOut.Replace(result.ExecutableName, "nitro");
-        output1.MatchInlineSnapshot(
-            """
-            Description:
-              Publish a Fusion archive to Nitro.
-              To take control over the deployment orchestration use sub-commands like 'begin'.
-              If you don't specify --archive and instead use --source-schema or --source-schema-file, a Fusion v2 composition will be performed internally.
-              The orchestration sub-commands can be used for both Fusion v1 and v2.
-            
-            Usage:
-              nitro fusion publish [command] [options]
-            
-            Options:
-              --api-id <api-id> (REQUIRED)                   The ID of the API [env: NITRO_API_ID]
-              --tag <tag> (REQUIRED)                         The tag of the schema version to deploy [env: NITRO_TAG]
-              --stage <stage> (REQUIRED)                     The name of the stage [env: NITRO_STAGE]
-              -s, --source-schema <source-schema>            One or more source schemas that should be included in the composition. Source schemas can either be just a name ('example') or a name and a version ('example@1.0.0'). If no version is specified the value of the '--tag' option is taken as the source schema version.
-              -f, --source-schema-file <source-schema-file>  One or more paths to a source schema file (.graphqls) or directory containing a source schema file
-              -a, --archive, --configuration <archive>       The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
-              -w, --working-directory <working-directory>    Set the working directory for the command
-              --cloud-url <cloud-url>                        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                            The API key used for authentication [env: NITRO_API_KEY]
-              --output <json>                                The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help                                 Show help and usage information
-            
-            Commands:
-              begin     Begin a configuration publish. This command will request a deployment slot.
-              start     Start a Fusion configuration publish.
-              validate  Validate a Fusion configuration against the schema and clients.
-              cancel    Cancel a Fusion configuration publish.
-              commit    Commit a Fusion configuration publish.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             You need to specify one of: '--source-schema', '--source-schema-file', or '--archive'.
@@ -147,38 +115,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : ICl
             .ExecuteAsync();
 
         // assert
-        var output2 = result.StdOut.Replace(result.ExecutableName, "nitro");
-        output2.MatchInlineSnapshot(
-            """
-            Description:
-              Publish a Fusion archive to Nitro.
-              To take control over the deployment orchestration use sub-commands like 'begin'.
-              If you don't specify --archive and instead use --source-schema or --source-schema-file, a Fusion v2 composition will be performed internally.
-              The orchestration sub-commands can be used for both Fusion v1 and v2.
-            
-            Usage:
-              nitro fusion publish [command] [options]
-            
-            Options:
-              --api-id <api-id> (REQUIRED)                   The ID of the API [env: NITRO_API_ID]
-              --tag <tag> (REQUIRED)                         The tag of the schema version to deploy [env: NITRO_TAG]
-              --stage <stage> (REQUIRED)                     The name of the stage [env: NITRO_STAGE]
-              -s, --source-schema <source-schema>            One or more source schemas that should be included in the composition. Source schemas can either be just a name ('example') or a name and a version ('example@1.0.0'). If no version is specified the value of the '--tag' option is taken as the source schema version.
-              -f, --source-schema-file <source-schema-file>  One or more paths to a source schema file (.graphqls) or directory containing a source schema file
-              -a, --archive, --configuration <archive>       The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
-              -w, --working-directory <working-directory>    Set the working directory for the command
-              --cloud-url <cloud-url>                        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                            The API key used for authentication [env: NITRO_API_KEY]
-              --output <json>                                The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help                                 Show help and usage information
-            
-            Commands:
-              begin     Begin a configuration publish. This command will request a deployment slot.
-              start     Start a Fusion configuration publish.
-              validate  Validate a Fusion configuration against the schema and clients.
-              cancel    Cancel a Fusion configuration publish.
-              commit    Commit a Fusion configuration publish.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             You can only specify one of: '--source-schema', '--source-schema-file', or '--archive'.
@@ -255,6 +191,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : ICl
             Publishing Fusion configuration to stage 'production' of API 'api-1'
             ├── Requesting deployment slot
             │   └── ✕ Failed to request a deployment slot.
+            └── ✕ Failed to publish Fusion configuration.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -335,6 +272,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : ICl
             Publishing Fusion configuration to stage 'production' of API 'api-1'
             ├── Requesting deployment slot
             │   └── ✕ Failed to request a deployment slot.
+            └── ✕ Failed to publish Fusion configuration.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -580,6 +518,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : ICl
             │   └── ✓ Claimed deployment slot.
             ├── Uploading configuration to 'production'
             │   └── ✕ Failed to upload the new configuration.
+            └── ✕ Failed to publish Fusion configuration.
             """);
         result.StdErr.MatchInlineSnapshot(
             """

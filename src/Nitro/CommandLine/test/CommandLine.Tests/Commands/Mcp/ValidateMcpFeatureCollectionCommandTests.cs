@@ -139,6 +139,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             ├── Found 1 prompt(s) and 1 tool(s).
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
+            └── ✕ Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -220,6 +221,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             ├── Found 1 prompt(s) and 1 tool(s).
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
+            └── ✕ Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -304,6 +306,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             ├── Found 1 prompt(s) and 1 tool(s).
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
+            └── ✕ Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -386,6 +389,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             ├── Found 1 prompt(s) and 1 tool(s).
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
+            └── ✕ Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -614,6 +618,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             ├── Validating
             │   ├── Validating...
             │   └── ✕ Validation failed.
+            └── ✕ Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -821,6 +826,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             ├── Validating
             │   ├── Validating...
             │   └── ✕ Validation failed.
+            └── ✕ Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -879,6 +885,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             ├── Validating
             │   ├── Validating...
             │   └── ✕ Validation failed.
+            └── ✕ Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """

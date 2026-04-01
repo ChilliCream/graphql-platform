@@ -102,6 +102,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
             ├── Starting publish request
             │   └── ✕ Failed to start publish request.
+            └── ✕ Failed to publish a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -176,6 +177,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
             ├── Starting publish request
             │   └── ✕ Failed to start publish request.
+            └── ✕ Failed to publish a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -253,6 +255,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
             ├── Starting publish request
             │   └── ✕ Failed to start publish request.
+            └── ✕ Failed to publish a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -327,6 +330,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
             ├── Starting publish request
             │   └── ✕ Failed to start publish request.
+            └── ✕ Failed to publish a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -542,6 +546,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             ├── Processing
             │   ├── Your request is being processed.
             │   └── ✕ Processing failed.
+            └── ✕ Failed to publish a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -980,6 +985,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
             │   └── ✕ Processing failed.
+            └── ✕ Failed to publish a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -1058,6 +1064,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
             │   └── ✕ Processing failed.
+            └── ✕ Failed to publish a new client version.
             ! There were errors on client my-client (ID: client-1)
             Validation failed for persisted queries.
             └── Query abc123 is invalid.
