@@ -48,7 +48,7 @@ public class SourceSchemaHttpClientConfiguration : ISourceSchemaClientConfigurat
         string name,
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
-        SourceSchemaClientCapabilities? capabilities = null,
+        SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.All,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
@@ -111,7 +111,7 @@ public class SourceSchemaHttpClientConfiguration : ISourceSchemaClientConfigurat
         string httpClientName,
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
-        SourceSchemaClientCapabilities? capabilities = null,
+        SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.All,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
@@ -127,7 +127,7 @@ public class SourceSchemaHttpClientConfiguration : ISourceSchemaClientConfigurat
         HttpClientName = httpClientName;
         BaseAddress = baseAddress;
         SupportedOperations = supportedOperations;
-        Capabilities = capabilities ?? SourceSchemaClientCapabilities.All;
+        Capabilities = capabilities;
 
         DefaultAcceptHeaderValue = defaultAcceptHeaderValues is null
             ? AcceptContentTypes.DefaultHeader
