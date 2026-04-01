@@ -1502,15 +1502,6 @@ namespace HotChocolate.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Satisfiability validation reached the maximum recursion depth ({0}) while visiting type &apos;{1}&apos;. Validation of deeply nested fields may be incomplete..
-        /// </summary>
-        internal static string SatisfiabilityValidator_MaxRecursionDepthReached {
-            get {
-                return ResourceManager.GetString("SatisfiabilityValidator_MaxRecursionDepthReached", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Type &apos;{0}&apos; implements the &apos;Node&apos; interface, but no source schema provides a non-internal &apos;Query.node&lt;Node&gt;&apos; lookup field for this type..
         /// </summary>
         internal static string SatisfiabilityValidator_NodeTypeHasNoNodeLookup {
