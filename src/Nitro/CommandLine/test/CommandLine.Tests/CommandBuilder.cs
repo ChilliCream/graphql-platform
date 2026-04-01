@@ -152,9 +152,11 @@ internal sealed class CommandBuilder
 
         var testConsole = new TestConsole();
         testConsole.Profile.Out = new AnsiConsoleOutput(stdOutWriter);
+        testConsole.Profile.Width = int.MaxValue;
 
         var errorConsole = new TestConsole();
         errorConsole.Profile.Out = new AnsiConsoleOutput(stdErrWriter);
+        errorConsole.Profile.Width = int.MaxValue;
 
         var console = new NitroConsole(testConsole, errorConsole);
 
