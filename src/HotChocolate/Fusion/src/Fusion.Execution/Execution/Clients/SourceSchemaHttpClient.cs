@@ -27,6 +27,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 
     private readonly GraphQLHttpClient _client;
     private readonly SourceSchemaHttpClientConfiguration _configuration;
+    private readonly bool _supportsVariableBatching;
     private bool _disposed;
 
     /// <summary>
@@ -44,7 +45,11 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         _client = client;
         _configuration = configuration;
 
-        Capabilities = configuration.Capabilities;
+        var capabilities = configuration.Capabilities;
+
+        Capabilities = capabilities;
+
+        _supportsVariableBatching = capabilities.HasFlag(SourceSchemaClientCapabilities.VariableBatching);
     }
 
     /// <inheritdoc />
@@ -72,6 +77,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             return new Response(
                 context,
                 _configuration,
+                _supportsVariableBatching,
                 request.Node,
                 request.OperationType,
                 httpRequest.Uri ?? s_unknownUri,
@@ -106,7 +112,11 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 
         try
         {
-            var httpRequest = CreateHttpBatchRequest(context, requests, requiresFileUpload, ref buffer);
+            var httpRequest = CreateHttpBatchRequest(
+                context,
+                requests,
+                requiresFileUpload,
+                ref buffer);
             ConfigureCallbacks(httpRequest, context, requests[0].Node);
 
             var results = ExecuteBatchStreamAsync(requests, httpRequest, cancellationToken);
@@ -133,71 +143,119 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var httpResponse = await _client.SendAsync(httpRequest, cancellationToken).ConfigureAwait(false);
+        bool? didFirstResultHaveRequestIndex = null;
+        var currentRequestIndex = 0;
+        var currentVariableIndex = 0;
 
         try
         {
             await foreach (var result in httpResponse.ReadAsResultStreamAsync().WithCancellation(cancellationToken))
             {
-                var requestIndex = ResolveRequestIndex(requests, result);
+                // Check if the first result has a requestIndex.
+                // If it does we can assume all others will have one as well and we know we need to check for it.
+                // If it doesn't we can assume there won't be one and we can just simple counters.
+                didFirstResultHaveRequestIndex ??= result.Root.TryGetProperty(RequestIndex, out _);
 
-                if (requestIndex == -1)
+                // If we don't support variable batching, requests with multiple variables
+                // might have been flattened to multiple requests.
+                if (!_supportsVariableBatching)
                 {
-                    for (var i = 0; i < requests.Length; i++)
-                    {
-                        var req = requests[i];
+                    int requestIndex, variableIndex;
 
-                        if (!TryGetResultPath(req, variableIndex: 0, out var p, out var ap))
+                    if (didFirstResultHaveRequestIndex.Value)
+                    {
+                        if (!result.Root.TryGetProperty(RequestIndex, out var flatRequestIndexElem))
                         {
-                            continue;
+                            throw new InvalidOperationException(
+                                "Expected requestIndex in batch response but it was missing.");
                         }
 
+                        ResolveFlattenedIndex(requests, flatRequestIndexElem.GetInt32(), out requestIndex, out variableIndex);
+                    }
+                    else
+                    {
+                        requestIndex = currentRequestIndex;
+                        variableIndex = currentVariableIndex;
+
+                        if (++currentVariableIndex >= Math.Max(1, requests[currentRequestIndex].Variables.Length))
+                        {
+                            currentRequestIndex++;
+                            currentVariableIndex = 0;
+                        }
+                    }
+
+                    if (TryGetResultPath(requests[requestIndex], variableIndex, out var p, out var ap))
+                    {
                         var ssr = ap.IsDefaultOrEmpty
                             ? new SourceSchemaResult(p, result)
                             : new SourceSchemaResult(p, result, additionalPaths: ap);
 
-                        yield return new BatchStreamResult(i, ssr);
+                        yield return new BatchStreamResult(requestIndex, ssr);
                     }
-
-                    continue;
                 }
-
-                var request = requests[requestIndex];
-                var variableIndex = ResolveVariableIndex(request, result);
-
-                if (variableIndex == -1)
+                else
                 {
-                    for (var vi = 0; vi < request.Variables.Length; vi++)
+                    var requestIndex = ResolveRequestIndex(requests, result);
+
+                    if (requestIndex == -1)
                     {
-                        if (!TryGetResultPath(request, vi, out var vp, out var vap))
+                        for (var i = 0; i < requests.Length; i++)
                         {
-                            continue;
+                            var req = requests[i];
+
+                            if (!TryGetResultPath(req, variableIndex: 0, out var p, out var ap))
+                            {
+                                continue;
+                            }
+
+                            var ssr = ap.IsDefaultOrEmpty
+                                ? new SourceSchemaResult(p, result)
+                                : new SourceSchemaResult(p, result, additionalPaths: ap);
+
+                            yield return new BatchStreamResult(i, ssr);
                         }
 
-                        var vssr = vap.IsDefaultOrEmpty
-                            ? new SourceSchemaResult(vp, result)
-                            : new SourceSchemaResult(vp, result, additionalPaths: vap);
-
-                        yield return new BatchStreamResult(requestIndex, vssr);
+                        continue;
                     }
 
-                    continue;
+                    var request = requests[requestIndex];
+                    var variableIndex = ResolveVariableIndex(request, result);
+
+                    if (variableIndex == -1)
+                    {
+                        for (var vi = 0; vi < request.Variables.Length; vi++)
+                        {
+                            if (!TryGetResultPath(request, vi, out var vp, out var vap))
+                            {
+                                continue;
+                            }
+
+                            var vssr = vap.IsDefaultOrEmpty
+                                ? new SourceSchemaResult(vp, result)
+                                : new SourceSchemaResult(vp, result, additionalPaths: vap);
+
+                            yield return new BatchStreamResult(requestIndex, vssr);
+                        }
+
+                        continue;
+                    }
+
+                    if (!TryGetResultPath(request, variableIndex, out var path, out var additionalPaths))
+                    {
+                        result.Dispose();
+                        throw new InvalidOperationException(
+                            string.Format(
+                                FusionExecutionResources.SourceSchemaHttpClient_InvalidVariableIndex,
+                                variableIndex,
+                                request.Node.Id));
+                    }
+
+                    var sourceSchemaResult = additionalPaths.IsDefaultOrEmpty
+                        ? new SourceSchemaResult(path, result)
+                        : new SourceSchemaResult(path, result, additionalPaths: additionalPaths);
+
+                    yield return new BatchStreamResult(requestIndex, sourceSchemaResult);
                 }
-
-                if (!TryGetResultPath(request, variableIndex, out var path, out var additionalPaths))
-                {
-                    result.Dispose();
-                    throw new InvalidOperationException(
-                        string.Format(
-                            FusionExecutionResources.SourceSchemaHttpClient_InvalidVariableIndex,
-                            variableIndex,
-                            request.Node.Id));
-                }
-
-                var sourceSchemaResult = additionalPaths.IsDefaultOrEmpty
-                    ? new SourceSchemaResult(path, result)
-                    : new SourceSchemaResult(path, result, additionalPaths: additionalPaths);
-
-                yield return new BatchStreamResult(requestIndex, sourceSchemaResult);
             }
         }
         finally
@@ -242,8 +300,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             case 0:
                 httpRequest = new GraphQLHttpRequest(CreateSingleRequest(context, originalRequest, ref buffer))
                 {
-                    Uri = _configuration.BaseAddress,
-                    AcceptHeaderValue = defaultAcceptHeader
+                    Uri = _configuration.BaseAddress, AcceptHeaderValue = defaultAcceptHeader
                 };
                 break;
 
@@ -257,24 +314,26 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 break;
 
             default:
-                if (!originalRequest.RequiresFileUpload
-                    && _configuration.Capabilities.HasFlag(SourceSchemaClientCapabilities.VariableBatching))
+                if (!originalRequest.RequiresFileUpload && _supportsVariableBatching)
                 {
-                    httpRequest = new GraphQLHttpRequest(CreateVariableBatchRequest(operationSourceText, originalRequest))
-                    {
-                        Uri = _configuration.BaseAddress,
-                        AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue
-                    };
+                    httpRequest =
+                        new GraphQLHttpRequest(CreateVariableBatchRequest(operationSourceText, originalRequest))
+                        {
+                            Uri = _configuration.BaseAddress,
+                            AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue
+                        };
                 }
                 else
                 {
-                    httpRequest = new GraphQLHttpRequest(CreateOperationBatchRequest(context, originalRequest, ref buffer))
-                    {
-                        Uri = _configuration.BaseAddress,
-                        AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue,
-                        EnableFileUploads = originalRequest.RequiresFileUpload
-                    };
+                    httpRequest =
+                        new GraphQLHttpRequest(CreateOperationBatchRequest(context, originalRequest, ref buffer))
+                        {
+                            Uri = _configuration.BaseAddress,
+                            AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue,
+                            EnableFileUploads = originalRequest.RequiresFileUpload
+                        };
                 }
+
                 break;
         }
 
@@ -346,6 +405,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                                     $"{i}.variables"));
                             i++;
                         }
+
                         break;
                 }
             }
@@ -361,12 +421,9 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         }
         else
         {
-            var supportsVariableBatching =
-                _configuration.Capabilities.HasFlag(SourceSchemaClientCapabilities.VariableBatching);
-
             var capacity = originalRequests.Length;
 
-            if (!supportsVariableBatching)
+            if (!_supportsVariableBatching)
             {
                 foreach (var sourceRequest in originalRequests)
                 {
@@ -388,7 +445,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                         break;
 
                     default:
-                        if (supportsVariableBatching)
+                        if (_supportsVariableBatching)
                         {
                             batchRequests.Add(CreateVariableBatchRequest(
                                 sourceRequest.OperationSourceText, sourceRequest));
@@ -406,6 +463,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                                     extensions: JsonSegment.Empty));
                             }
                         }
+
                         break;
                 }
             }
@@ -581,6 +639,32 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         throw ThrowHelper.VariableIndexOutOfRange(variableIndex);
     }
 
+    private static void ResolveFlattenedIndex(
+        ImmutableArray<SourceSchemaClientRequest> requests,
+        int flattenedIndex,
+        out int requestIndex,
+        out int variableIndex)
+    {
+        var remaining = flattenedIndex;
+
+        for (var i = 0; i < requests.Length; i++)
+        {
+            var varCount = Math.Max(1, requests[i].Variables.Length);
+
+            if (remaining < varCount)
+            {
+                requestIndex = i;
+                variableIndex = remaining;
+                return;
+            }
+
+            remaining -= varCount;
+        }
+
+        throw new InvalidOperationException(
+            $"Flattened index {flattenedIndex} is out of range.");
+    }
+
     private static bool TryGetResultPath(
         SourceSchemaClientRequest request,
         int variableIndex,
@@ -672,6 +756,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
     private sealed class Response(
         OperationPlanContext context,
         SourceSchemaHttpClientConfiguration configuration,
+        bool supportsVariableBatching,
         ExecutionNode node,
         OperationType operation,
         Uri uri,
@@ -737,7 +822,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                     {
                         SourceSchemaResult? errorResult = null;
 
-                        if (configuration.Capabilities.HasFlag(SourceSchemaClientCapabilities.VariableBatching))
+                        if (supportsVariableBatching)
                         {
                             await foreach (var result in response.ReadAsResultStreamAsync()
                                 .WithCancellation(cancellationToken))
