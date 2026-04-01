@@ -132,7 +132,6 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             ├── Found 1 document(s).
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
-            └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -210,12 +209,10 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             ├── Found 1 document(s).
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
-            └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -251,8 +248,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -293,7 +289,6 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             ├── Found 1 document(s).
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
-            └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -372,7 +367,6 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             ├── Found 1 document(s).
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
-            └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -591,7 +585,6 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             ├── Validating
             │   ├── Validating...
             │   └── ✕ Validation failed.
-            └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -774,8 +767,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Failed to parse --source-metadata: 'b' is an invalid start of a property name.
-            Expected a '"'. Path: $ | LineNumber: 0 | BytePositionInLine: 1.
+            Failed to parse --source-metadata: 'b' is an invalid start of a property name. Expected a '"'. Path: $ | LineNumber: 0 | BytePositionInLine: 1.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -823,12 +815,10 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             │   └── ✓ Validation request created (ID: request-1).
             ├── Validating
             │   └── ✕ Validation failed.
-            └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server received an invalid archive. This indicates a bug in the tooling.
-            Please notify ChilliCream.
+            The server received an invalid archive. This indicates a bug in the tooling. Please notify ChilliCream.
             Error received: Archive is corrupted.
             OpenAPI collection validation failed.
             """);

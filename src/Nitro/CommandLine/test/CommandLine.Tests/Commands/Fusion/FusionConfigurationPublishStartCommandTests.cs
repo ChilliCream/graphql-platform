@@ -57,8 +57,7 @@ public sealed class FusionConfigurationPublishStartCommandTests(NitroCommandFixt
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run
-            'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
             """);
     }
 
@@ -87,8 +86,7 @@ public sealed class FusionConfigurationPublishStartCommandTests(NitroCommandFixt
         // assert
         result.AssertError(
             """
-            No request ID was provided and no request ID was found in the cache. Please
-            provide a request ID.
+            No request ID was provided and no request ID was found in the cache. Please provide a request ID.
             """);
 
         fileSystem.VerifyAll();
@@ -215,8 +213,7 @@ public sealed class FusionConfigurationPublishStartCommandTests(NitroCommandFixt
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -247,8 +244,7 @@ public sealed class FusionConfigurationPublishStartCommandTests(NitroCommandFixt
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 

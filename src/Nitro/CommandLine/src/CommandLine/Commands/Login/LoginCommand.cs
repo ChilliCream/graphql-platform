@@ -1,7 +1,6 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces;
-using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
@@ -43,7 +42,7 @@ internal sealed class LoginCommand : Command
 
         url ??= cloudUrl;
 
-        Session? session = null;
+        Session? session;
         await using (var activity = console.StartActivity("Logging in via browser", "Failed to log in."))
         {
             activity.Update($"Browser opened at {url.EscapeMarkup()}. Continue login there.");

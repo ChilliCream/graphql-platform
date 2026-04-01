@@ -69,8 +69,7 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : ICla
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run
-            'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
             """);
     }
 
@@ -270,8 +269,7 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : ICla
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server received an invalid archive. This indicates a bug in the tooling.
-            Please notify ChilliCream.Error received: The archive is invalid.
+            The server received an invalid archive. This indicates a bug in the tooling. Please notify ChilliCream.Error received: The archive is invalid.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -644,8 +642,7 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : ICla
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -680,8 +677,7 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : ICla
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -716,9 +712,7 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : ICla
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The server returned a 413 (Request Entity Too Large) HTTP status code. If you
-            are running a self-hosted instance, check your ingress controller body-size
-            limits, reverse proxy settings, or load balancer request size limits.
+            The server returned a 413 (Request Entity Too Large) HTTP status code. If you are running a self-hosted instance, check your ingress controller body-size limits, reverse proxy settings, or load balancer request size limits.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -756,9 +750,7 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : ICla
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server returned a 413 (Request Entity Too Large) HTTP status code. If you
-            are running a self-hosted instance, check your ingress controller body-size
-            limits, reverse proxy settings, or load balancer request size limits.
+            The server returned a 413 (Request Entity Too Large) HTTP status code. If you are running a self-hosted instance, check your ingress controller body-size limits, reverse proxy settings, or load balancer request size limits.
             """);
         Assert.Equal(1, result.ExitCode);
 

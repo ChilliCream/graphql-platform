@@ -62,8 +62,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run
-            'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
             """);
     }
 
@@ -94,8 +93,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
         // assert
         result.AssertError(
             """
-            No request ID was provided and no request ID was found in the cache. Please
-            provide a request ID.
+            No request ID was provided and no request ID was found in the cache. Please provide a request ID.
             """);
 
         fileSystem.VerifyAll();
@@ -202,8 +200,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -237,8 +234,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -275,7 +271,6 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing Fusion configuration
-            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -317,7 +312,6 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing Fusion configuration
-            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -563,7 +557,6 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing Fusion configuration
-            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """

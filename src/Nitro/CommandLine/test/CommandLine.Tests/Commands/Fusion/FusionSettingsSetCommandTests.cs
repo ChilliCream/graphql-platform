@@ -150,8 +150,7 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
         Assert.Empty(result.StdOut);
         result.StdErr.MatchInlineSnapshot(
             """
-            Expected one of the following values for setting 'cache-control-merge-behavior':
-            ignore, include, include-private
+            Expected one of the following values for setting 'cache-control-merge-behavior': ignore, include, include-private
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -181,8 +180,7 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
         Assert.Empty(result.StdOut);
         result.StdErr.MatchInlineSnapshot(
             """
-            Expected one of the following values for setting 'tag-merge-behavior': ignore,
-            include, include-private
+            Expected one of the following values for setting 'tag-merge-behavior': ignore, include, include-private
             """);
         Assert.Equal(1, result.ExitCode);
     }

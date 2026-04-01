@@ -58,8 +58,7 @@ public sealed class DeleteOpenApiCollectionCommandTests(NitroCommandFixture fixt
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run
-            'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
             """);
     }
 
@@ -269,8 +268,7 @@ public sealed class DeleteOpenApiCollectionCommandTests(NitroCommandFixture fixt
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The GraphQL mutation completed without errors, but the server did not return the
-            expected data.
+            The GraphQL mutation completed without errors, but the server did not return the expected data.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -462,8 +460,7 @@ public sealed class DeleteOpenApiCollectionCommandTests(NitroCommandFixture fixt
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -500,8 +497,7 @@ public sealed class DeleteOpenApiCollectionCommandTests(NitroCommandFixture fixt
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 

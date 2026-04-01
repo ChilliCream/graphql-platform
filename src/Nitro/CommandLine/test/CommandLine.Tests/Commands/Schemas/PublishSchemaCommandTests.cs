@@ -69,8 +69,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run
-            'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
             """);
     }
 
@@ -103,7 +102,6 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
             Publishing new schema version 'v1' to stage 'production' of API 'api-1'
             ├── Starting publish request
             │   └── ✕ Failed to start publish request.
-            └── ✕ Failed to publish a new schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -178,12 +176,10 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
             Publishing new schema version 'v1' to stage 'production' of API 'api-1'
             ├── Starting publish request
             │   └── ✕ Failed to start publish request.
-            └── ✕ Failed to publish a new schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -218,8 +214,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -258,7 +253,6 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
             Publishing new schema version 'v1' to stage 'production' of API 'api-1'
             ├── Starting publish request
             │   └── ✕ Failed to start publish request.
-            └── ✕ Failed to publish a new schema version.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -334,12 +328,10 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
             Publishing new schema version 'v1' to stage 'production' of API 'api-1'
             ├── Starting publish request
             │   └── ✕ Failed to start publish request.
-            └── ✕ Failed to publish a new schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The GraphQL mutation completed without errors, but the server did not return the
-            expected data.
+            The GraphQL mutation completed without errors, but the server did not return the expected data.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -379,8 +371,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The GraphQL mutation completed without errors, but the server did not return the
-            expected data.
+            The GraphQL mutation completed without errors, but the server did not return the expected data.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -547,7 +538,6 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
             ├── Processing
             │   ├── Your request is being processed.
             │   └── ✕ Processing failed.
-            └── ✕ Failed to publish a new schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -827,8 +817,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
-            │   ├── Your request is waiting for approval. Check Nitro to approve the
-            request.
+            │   ├── Your request is waiting for approval. Check Nitro to approve the request.
             │   ├── Your request has been approved.
             │   ├── Your request is being processed.
             │   └── ✓ Published successfully.
@@ -957,8 +946,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Failed to parse --source-metadata: 'b' is an invalid start of a property name.
-            Expected a '"'. Path: $ | LineNumber: 0 | BytePositionInLine: 1.
+            Failed to parse --source-metadata: 'b' is an invalid start of a property name. Expected a '"'. Path: $ | LineNumber: 0 | BytePositionInLine: 1.
             """);
         Assert.Equal(1, result.ExitCode);
     }

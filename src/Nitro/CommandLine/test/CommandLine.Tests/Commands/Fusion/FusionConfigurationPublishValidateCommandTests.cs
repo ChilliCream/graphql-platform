@@ -136,8 +136,7 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -165,8 +164,7 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -372,8 +370,7 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Your request is in the queued state. Try to run `fusion-configuration publish
-            start` once the request is ready
+            Your request is in the queued state. Try to run `fusion-configuration publish start` once the request is ready
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -494,8 +491,7 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Your request is ready for the composition. Run `fusion-configuration publish
-            start`
+            Your request is ready for the composition. Run `fusion-configuration publish start`
             """);
         Assert.Equal(1, result.ExitCode);
 

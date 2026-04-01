@@ -135,11 +135,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
         result.StdOut.MatchInlineSnapshot(
             """
             Validating Fusion configuration against stage 'production' of API 'api-1'
-            ├── Loading schema from archive
-            │   └── ✓ Loaded schema.
             ├── Validating against stage
             │   └── ✕ Failed to validate against stage.
-            └── ✕ Failed to validate the Fusion configuration.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -216,16 +213,12 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
         result.StdOut.MatchInlineSnapshot(
             """
             Validating Fusion configuration against stage 'production' of API 'api-1'
-            ├── Loading schema from archive
-            │   └── ✓ Loaded schema.
             ├── Validating against stage
             │   └── ✕ Failed to validate against stage.
-            └── ✕ Failed to validate the Fusion configuration.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -262,8 +255,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -301,11 +293,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
         result.StdOut.MatchInlineSnapshot(
             """
             Validating Fusion configuration against stage 'production' of API 'api-1'
-            ├── Loading schema from archive
-            │   └── ✓ Loaded schema.
             ├── Validating against stage
             │   └── ✕ Failed to validate against stage.
-            └── ✕ Failed to validate the Fusion configuration.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -380,11 +369,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
         result.StdOut.MatchInlineSnapshot(
             """
             Validating Fusion configuration against stage 'production' of API 'api-1'
-            ├── Loading schema from archive
-            │   └── ✓ Loaded schema.
             ├── Validating against stage
             │   └── ✕ Failed to validate against stage.
-            └── ✕ Failed to validate the Fusion configuration.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -470,8 +456,6 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
         result.AssertSuccess(
             """
             Validating Fusion configuration against stage 'production' of API 'api-1'
-            ├── Loading schema from archive
-            │   └── ✓ Loaded schema.
             ├── Validating against stage
             │   ├── Validation request created (ID: request-1)
             │   ├── Validating...
@@ -553,8 +537,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
         result.AssertSuccess(
             """
             {
-              "requestId": "request-1",
-              "status": "success"
+              "isValid": true
             }
             """);
 
@@ -600,18 +583,15 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
         result.StdOut.MatchInlineSnapshot(
             """
             Validating Fusion configuration against stage 'production' of API 'api-1'
-            ├── Loading schema from archive
-            │   └── ✓ Loaded schema.
             ├── Validating against stage
             │   ├── Validation request created (ID: request-1)
             │   ├── Validating...
             │   └── ✕ Failed to validate against stage.
-            └── ✕ Failed to validate the Fusion configuration.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
             Something went wrong during validation.
-            Schema validation failed.
+            Fusion configuration validation failed.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -659,7 +639,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
         result.StdErr.MatchInlineSnapshot(
             """
             Something went wrong during validation.
-            Schema validation failed.
+            Fusion configuration validation failed.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -827,13 +807,10 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
         result.StdOut.MatchInlineSnapshot(
             """
             Validating Fusion configuration against stage 'production' of API 'api-1'
-            ├── Loading schema from archive
-            │   └── ✓ Loaded schema.
             ├── Validating against stage
             │   ├── Validation request created (ID: request-1)
             │   ├── ! Unknown server response. Consider updating the CLI.
             │   └── ✕ Failed to validate against stage.
-            └── ✕ Failed to validate the Fusion configuration.
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(1, result.ExitCode);

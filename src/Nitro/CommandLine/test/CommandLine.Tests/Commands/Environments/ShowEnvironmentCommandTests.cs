@@ -55,8 +55,7 @@ public sealed class ShowEnvironmentCommandTests(NitroCommandFixture fixture) : I
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run
-            'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
             """);
     }
 
@@ -184,8 +183,7 @@ public sealed class ShowEnvironmentCommandTests(NitroCommandFixture fixture) : I
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
 
         client.VerifyAll();

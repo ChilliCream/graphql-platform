@@ -255,7 +255,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : ICl
             Publishing Fusion configuration to stage 'production' of API 'api-1'
             ├── Requesting deployment slot
             │   └── ✕ Failed to request a deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -336,12 +335,10 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : ICl
             Publishing Fusion configuration to stage 'production' of API 'api-1'
             ├── Requesting deployment slot
             │   └── ✕ Failed to request a deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -379,8 +376,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : ICl
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -584,7 +580,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : ICl
             │   └── ✓ Claimed deployment slot.
             ├── Uploading configuration to 'production'
             │   └── ✕ Failed to upload the new configuration.
-            └── ✕ Failed to publish Fusion configuration.
             """);
         result.StdErr.MatchInlineSnapshot(
             """

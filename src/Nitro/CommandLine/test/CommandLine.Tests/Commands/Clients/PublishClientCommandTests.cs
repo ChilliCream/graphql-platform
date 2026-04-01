@@ -69,8 +69,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run
-            'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
             """);
     }
 
@@ -103,7 +102,6 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
             ├── Starting publish request
             │   └── ✕ Failed to start publish request.
-            └── ✕ Failed to publish a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -178,12 +176,10 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
             ├── Starting publish request
             │   └── ✕ Failed to start publish request.
-            └── ✕ Failed to publish a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -218,8 +214,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -258,7 +253,6 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
             ├── Starting publish request
             │   └── ✕ Failed to start publish request.
-            └── ✕ Failed to publish a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -333,12 +327,10 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             Publishing new client version 'v1.0' to stage 'production' of client 'client-1'
             ├── Starting publish request
             │   └── ✕ Failed to start publish request.
-            └── ✕ Failed to publish a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The GraphQL mutation completed without errors, but the server did not return the
-            expected data.
+            The GraphQL mutation completed without errors, but the server did not return the expected data.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -378,8 +370,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The GraphQL mutation completed without errors, but the server did not return the
-            expected data.
+            The GraphQL mutation completed without errors, but the server did not return the expected data.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -551,7 +542,6 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             ├── Processing
             │   ├── Your request is being processed.
             │   └── ✕ Processing failed.
-            └── ✕ Failed to publish a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -846,8 +836,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
-            │   ├── Your request is waiting for approval. Check Nitro to approve the
-            request.
+            │   ├── Your request is waiting for approval. Check Nitro to approve the request.
             │   ├── Your request has been approved.
             │   ├── Your request is being processed.
             │   └── ✓ Published successfully.
@@ -991,7 +980,6 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
             │   └── ✕ Processing failed.
-            └── ✕ Failed to publish a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -1073,8 +1061,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             ! There were errors on client my-client (ID: client-1)
             Validation failed for persisted queries.
             └── Query abc123 is invalid.
-                └── Field 'foo' does not exist. 
-            └── ✕ Failed to publish a new client version.
+                └── Field 'foo' does not exist.
             """);
         result.StdErr.MatchInlineSnapshot(
             """

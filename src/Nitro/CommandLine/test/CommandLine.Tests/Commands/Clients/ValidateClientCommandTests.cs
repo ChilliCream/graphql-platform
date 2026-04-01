@@ -67,8 +67,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run
-            'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
             """);
     }
 
@@ -103,7 +102,6 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             Validating client against stage 'production' of client 'client-1'
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
-            └── ✕ Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -182,12 +180,10 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             Validating client against stage 'production' of client 'client-1'
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
-            └── ✕ Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -224,8 +220,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -265,7 +260,6 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             Validating client against stage 'production' of client 'client-1'
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
-            └── ✕ Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -342,7 +336,6 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             Validating client against stage 'production' of client 'client-1'
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
-            └── ✕ Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -567,7 +560,6 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             ├── Validating
             │   ├── Validating...
             │   └── ✕ Validation failed.
-            └── ✕ Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -783,8 +775,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             ! There were errors on client my-client (ID: client-1)
             Validation failed for persisted queries.
             └── Query def456 is invalid.
-                └── Field 'bar' does not exist. 
-            └── ✕ Failed to validate the client.
+                └── Field 'bar' does not exist.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -839,7 +830,6 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             ├── Validating
             │   ├── Validating...
             │   └── ✕ Validation failed.
-            └── ✕ Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -874,8 +864,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Failed to parse --source-metadata: 'b' is an invalid start of a property name.
-            Expected a '"'. Path: $ | LineNumber: 0 | BytePositionInLine: 1.
+            Failed to parse --source-metadata: 'b' is an invalid start of a property name. Expected a '"'. Path: $ | LineNumber: 0 | BytePositionInLine: 1.
             """);
         Assert.Equal(1, result.ExitCode);
     }

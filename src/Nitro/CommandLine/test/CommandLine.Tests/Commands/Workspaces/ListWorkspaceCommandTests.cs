@@ -311,8 +311,7 @@ public sealed class ListWorkspaceCommandTests(NitroCommandFixture fixture) : ICl
         // assert
         result.AssertError(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
 
         client.VerifyAll();

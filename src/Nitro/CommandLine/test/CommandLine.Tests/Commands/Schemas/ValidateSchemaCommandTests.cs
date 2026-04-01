@@ -67,8 +67,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run
-            'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
             """);
     }
 
@@ -103,7 +102,6 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
             Validating schema against stage 'production' of API 'api-1'
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
-            └── ✕ Failed to validate the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -182,12 +180,10 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
             Validating schema against stage 'production' of API 'api-1'
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
-            └── ✕ Failed to validate the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -224,8 +220,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key
-            has the proper permissions for this action.
+            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -265,7 +260,6 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
             Validating schema against stage 'production' of API 'api-1'
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
-            └── ✕ Failed to validate the schema.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
@@ -343,12 +337,10 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
             Validating schema against stage 'production' of API 'api-1'
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
-            └── ✕ Failed to validate the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The GraphQL mutation completed without errors, but the server did not return the
-            expected data.
+            The GraphQL mutation completed without errors, but the server did not return the expected data.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -389,8 +381,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The GraphQL mutation completed without errors, but the server did not return the
-            expected data.
+            The GraphQL mutation completed without errors, but the server did not return the expected data.
             """);
         Assert.Equal(1, result.ExitCode);
 
@@ -565,7 +556,6 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
             ├── Validating
             │   ├── Validating...
             │   └── ✕ Validation failed.
-            └── ✕ Failed to validate the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -710,8 +700,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
             ├── Starting validation request
             │   └── ✓ Validation request created (ID: request-1).
             ├── Validating
-            │   ├── ! Warning: Received an unknown server response. Ensure your CLI is on 
-            the latest version.
+            │   ├── ! Warning: Received an unknown server response. Ensure your CLI is on the latest version.
             │   └── ✕ Validation failed.
             └── ✕ Failed to validate the schema.
             """);
@@ -747,8 +736,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Failed to parse --source-metadata: 'b' is an invalid start of a property name.
-            Expected a '"'. Path: $ | LineNumber: 0 | BytePositionInLine: 1.
+            Failed to parse --source-metadata: 'b' is an invalid start of a property name. Expected a '"'. Path: $ | LineNumber: 0 | BytePositionInLine: 1.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -783,7 +771,6 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
             Validating schema against stage 'production' of API 'api-1'
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
-            └── ✕ Failed to validate the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
