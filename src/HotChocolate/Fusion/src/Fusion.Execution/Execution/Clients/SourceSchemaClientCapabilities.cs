@@ -20,5 +20,7 @@ public enum SourceSchemaClientCapabilities
     /// The client supports request batching, where multiple independent GraphQL
     /// operations are sent as an array in a single HTTP request.
     /// </summary>
-    RequestBatching = 1 << 2
+    RequestBatching = 1 << 2,
+
+    All = VariableBatching | RequestBatching
 }
