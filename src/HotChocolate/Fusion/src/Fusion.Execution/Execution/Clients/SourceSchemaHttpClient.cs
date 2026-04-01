@@ -351,19 +351,36 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         }
         else
         {
-            var batchRequests = ImmutableArray.CreateBuilder<IOperationRequest>(originalRequests.Length);
+            var batchRequests = ImmutableArray.CreateBuilder<IOperationRequest>();
 
             foreach (var sourceRequest in originalRequests)
             {
-                var body = CreateRequestBody(context, sourceRequest, ref buffer);
-                if (body is IOperationRequest operationRequest)
+                switch (sourceRequest.Variables.Length)
                 {
-                    batchRequests.Add(operationRequest);
-                }
-                else
-                {
-                    throw new InvalidOperationException(
-                        $"The request body type '{body.GetType().Name}' cannot be included in an operation batch.");
+                    case 0 or 1:
+                        batchRequests.Add(CreateSingleRequest(context, sourceRequest, ref buffer));
+                        break;
+
+                    default:
+                        if (_configuration.Capabilities.HasFlag(SourceSchemaClientCapabilities.VariableBatching))
+                        {
+                            batchRequests.Add(CreateVariableBatchRequest(
+                                sourceRequest.OperationSourceText, sourceRequest));
+                        }
+                        else
+                        {
+                            for (var j = 0; j < sourceRequest.Variables.Length; j++)
+                            {
+                                batchRequests.Add(new OperationRequest(
+                                    sourceRequest.OperationSourceText,
+                                    id: null,
+                                    operationName: null,
+                                    onError: null,
+                                    variables: sourceRequest.Variables[j],
+                                    extensions: JsonSegment.Empty));
+                            }
+                        }
+                        break;
                 }
             }
 
@@ -374,18 +391,6 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 OperationKind = originalRequests[0].OperationType
             };
         }
-    }
-
-    private static IRequestBody CreateRequestBody(
-        OperationPlanContext context,
-        SourceSchemaClientRequest originalRequest,
-        ref ChunkedArrayWriter? writer)
-    {
-        return originalRequest.Variables.Length switch
-        {
-            0 or 1 => CreateSingleRequest(context, originalRequest, ref writer),
-            _ => CreateVariableBatchRequest(originalRequest.OperationSourceText, originalRequest)
-        };
     }
 
     private static OperationRequest CreateSingleRequest(

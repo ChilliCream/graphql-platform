@@ -1,4 +1,4 @@
-title: BatchRequest_OnlyRequestBatching_NoRequestIndexInServerPayloads
+title: SingleNode_BatchRequest_OnlyVariableBatching
 request:
   document: |
     {
@@ -16,12 +16,6 @@ response:
           },
           {
             "rating": "2"
-          },
-          {
-            "rating": "3"
-          },
-          {
-            "rating": "4"
           }
         ]
       }
@@ -68,12 +62,6 @@ sourceSchemas:
                     },
                     {
                       "id": "2"
-                    },
-                    {
-                      "id": "3"
-                    },
-                    {
-                      "id": "4"
                     }
                   ]
                 }
@@ -85,7 +73,7 @@ sourceSchemas:
       }
 
       type Author {
-        name: String!
+        name(postFix: String): String!
         id: ID!
       }
 
@@ -101,58 +89,25 @@ sourceSchemas:
     interactions:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
-          kind: OperationBatch
-          items:
-            - document: |
-                query Op_490e9345_2(
-                  $__fusion_1_id: ID!
-                ) {
-                  bookById(id: $__fusion_1_id) {
-                    rating
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_1_id": "1"
-                }
-            - document: |
-                query Op_490e9345_2(
-                  $__fusion_1_id: ID!
-                ) {
-                  bookById(id: $__fusion_1_id) {
-                    rating
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_1_id": "2"
-                }
-            - document: |
-                query Op_490e9345_2(
-                  $__fusion_1_id: ID!
-                ) {
-                  bookById(id: $__fusion_1_id) {
-                    rating
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_1_id": "3"
-                }
-            - document: |
-                query Op_490e9345_2(
-                  $__fusion_1_id: ID!
-                ) {
-                  bookById(id: $__fusion_1_id) {
-                    rating
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_1_id": "4"
-                }
+          document: |
+            query Op_490e9345_2(
+              $__fusion_1_id: ID!
+            ) {
+              bookById(id: $__fusion_1_id) {
+                rating
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "1"
+              },
+              {
+                "__fusion_1_id": "2"
+              }
+            ]
         response:
-          contentType: text/event-stream; charset=utf-8
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -167,22 +122,6 @@ sourceSchemas:
                 "data": {
                   "bookById": {
                     "rating": "2"
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "bookById": {
-                    "rating": "3"
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "bookById": {
-                    "rating": "4"
                   }
                 }
               }

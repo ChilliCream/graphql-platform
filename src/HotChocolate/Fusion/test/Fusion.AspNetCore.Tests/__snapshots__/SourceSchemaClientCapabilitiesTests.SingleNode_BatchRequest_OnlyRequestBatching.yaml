@@ -1,4 +1,4 @@
-title: BatchRequest_OnlyRequestBatching
+title: SingleNode_BatchRequest_OnlyRequestBatching
 request:
   document: |
     {
@@ -16,12 +16,6 @@ response:
           },
           {
             "rating": "2"
-          },
-          {
-            "rating": "3"
-          },
-          {
-            "rating": "4"
           }
         ]
       }
@@ -68,12 +62,6 @@ sourceSchemas:
                     },
                     {
                       "id": "2"
-                    },
-                    {
-                      "id": "3"
-                    },
-                    {
-                      "id": "4"
                     }
                   ]
                 }
@@ -85,7 +73,7 @@ sourceSchemas:
       }
 
       type Author {
-        name: String!
+        name(postFix: String): String!
         id: ID!
       }
 
@@ -127,30 +115,6 @@ sourceSchemas:
                 {
                   "__fusion_1_id": "2"
                 }
-            - document: |
-                query Op_490e9345_2(
-                  $__fusion_1_id: ID!
-                ) {
-                  bookById(id: $__fusion_1_id) {
-                    rating
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_1_id": "3"
-                }
-            - document: |
-                query Op_490e9345_2(
-                  $__fusion_1_id: ID!
-                ) {
-                  bookById(id: $__fusion_1_id) {
-                    rating
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_1_id": "4"
-                }
         response:
           contentType: application/jsonl; charset=utf-8
           results:
@@ -167,22 +131,6 @@ sourceSchemas:
                 "data": {
                   "bookById": {
                     "rating": "2"
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "bookById": {
-                    "rating": "3"
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "bookById": {
-                    "rating": "4"
                   }
                 }
               }

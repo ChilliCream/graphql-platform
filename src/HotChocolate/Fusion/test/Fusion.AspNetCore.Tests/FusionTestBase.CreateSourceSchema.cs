@@ -26,7 +26,7 @@ public abstract partial class FusionTestBase
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
-        Func<HttpRequestMessage, HttpResponseMessage>? mockHttpResponse = null)
+        Func<HttpRequestMessage, Task<HttpResponseMessage>>? mockHttpResponse = null)
     {
         configureApplication ??=
             app =>
@@ -73,7 +73,7 @@ public abstract partial class FusionTestBase
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
-        Func<HttpRequestMessage, HttpResponseMessage>? mockHttpResponse = null)
+        Func<HttpRequestMessage, Task<HttpResponseMessage>>? mockHttpResponse = null)
     {
         return _testServerSession.CreateServer(services =>
             {

@@ -286,7 +286,7 @@ public abstract partial class FusionTestBase : IDisposable
 
         public HttpClient? HttpClient { get; set; }
 
-        public Func<HttpRequestMessage, HttpResponseMessage>? MockHttpResponse { get; set; }
+        public Func<HttpRequestMessage, Task<HttpResponseMessage>>? MockHttpResponse { get; set; }
 
         public SourceSchemaClientCapabilities? Capabilities { get; set; }
 
@@ -378,12 +378,12 @@ public abstract partial class FusionTestBase : IDisposable
         }
 
         private class MockResponseHandler(
-            Func<HttpRequestMessage, HttpResponseMessage> handler) : HttpMessageHandler
+            Func<HttpRequestMessage, Task<HttpResponseMessage>> handler) : HttpMessageHandler
         {
             protected override Task<HttpResponseMessage> SendAsync(
                 HttpRequestMessage request,
                 CancellationToken cancellationToken)
-                => Task.FromResult(handler(request));
+                => handler(request);
         }
     }
 
