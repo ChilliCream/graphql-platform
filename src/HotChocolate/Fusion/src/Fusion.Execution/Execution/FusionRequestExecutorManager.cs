@@ -373,12 +373,6 @@ internal sealed class FusionRequestExecutorManager
                     capabilities |= SourceSchemaClientCapabilities.RequestBatching;
                 }
 
-                if (!variableBatching.TryGetProperty("apolloRequestBatching", out supported)
-                    || supported.GetBoolean())
-                {
-                    capabilities |= SourceSchemaClientCapabilities.ApolloRequestBatching;
-                }
-
                 if (variableBatching.TryGetProperty("formats", out var formats))
                 {
                     var builder = ImmutableArray.CreateBuilder<MediaTypeWithQualityHeaderValue>();

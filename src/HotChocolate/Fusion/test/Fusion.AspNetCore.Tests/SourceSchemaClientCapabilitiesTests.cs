@@ -10,13 +10,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;
 
-// TODO: MultiNode_BatchRequest_OnlyRequestBatching_* is failing, since the reading in SourceSchemaHttpClient is wrong.
+// Note: We do not currently handle the case that Variable Batching is supported, but Request Batching isn't.
 public class SourceSchemaClientCapabilitiesTests : FusionTestBase
 {
-    #region Single Node Request
+    #region Singular Request
 
     [Fact]
-    public async Task SingleNode_Request_CustomAcceptHeader()
+    public async Task SingularRequest_CustomAcceptHeader()
     {
         // arrange
         using var server1 = CreateSourceSchema(
@@ -51,10 +51,10 @@ public class SourceSchemaClientCapabilitiesTests : FusionTestBase
 
     #endregion
 
-    #region Single Node Batch Request
+    #region Batch Request
 
     [Fact]
-    public async Task SingleNode_BatchRequest_CustomAcceptHeader()
+    public async Task BatchRequest_CustomAcceptHeader()
     {
         // arrange
         using var server1 = CreateSourceSchema(
@@ -93,7 +93,7 @@ public class SourceSchemaClientCapabilitiesTests : FusionTestBase
     }
 
     [Fact]
-    public async Task SingleNode_BatchRequest_OnlyVariableBatching()
+    public async Task BatchRequest_OnlyVariableBatching()
     {
         // arrange
         using var server1 = CreateSourceSchema(
@@ -132,7 +132,7 @@ public class SourceSchemaClientCapabilitiesTests : FusionTestBase
     }
 
     [Fact]
-    public async Task SingleNode_BatchRequest_OnlyRequestBatching()
+    public async Task BatchRequest_OnlyRequestBatching()
     {
         // arrange
         using var server1 = CreateSourceSchema(
@@ -172,7 +172,7 @@ public class SourceSchemaClientCapabilitiesTests : FusionTestBase
 
     // This tests the response of HotChocolate < 15 servers
     [Fact]
-    public async Task SingleNode_BatchRequest_OnlyRequestBatching_NoRequestIndexInServerPayloads()
+    public async Task BatchRequest_OnlyRequestBatching_ServerReturnsNoRequestIndices()
     {
         // arrange
         using var server1 = CreateSourceSchema(
@@ -237,12 +237,76 @@ public class SourceSchemaClientCapabilitiesTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
+    // This tests the response of non-HotChocolate servers
+    [Fact]
+    public async Task BatchRequest_OnlyRequestBatching_ServerReturnsJsonArray()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            b => b.AddQueryType<SourceSchema2.Query>(),
+            capabilities: SourceSchemaClientCapabilities.RequestBatching,
+            mockHttpResponse: async request =>
+            {
+                var response = new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(
+                        """
+                        [
+                          {"data":{"bookById":{"rating":"1"}}},
+                          {"data":{"bookById":{"rating":"2"}}}
+                        ]
+                        """,
+                        Encoding.UTF8,
+                        "application/json")
+                };
+
+                return await ReturnHttpResponse(
+                    request,
+                    "application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8",
+                    """
+                    [{"query":"query Op_490e9345_2(\n  $__fusion_1_id: ID!\n) {\n  bookById(id: $__fusion_1_id) {\n    rating\n  }\n}","variables":{"__fusion_1_id":"1"}},{"query":"query Op_490e9345_2(\n  $__fusion_1_id: ID!\n) {\n  bookById(id: $__fusion_1_id) {\n    rating\n  }\n}","variables":{"__fusion_1_id":"2"}}]
+                    """,
+                    response
+                );
+            });
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              books {
+                rating
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
     #endregion
 
-    #region Multi Node Batch
+    #region OperationBatch Batch Request
 
     [Fact]
-    public async Task MultiNode_BatchRequest_CustomAcceptHeader()
+    public async Task OperationBatch_BatchRequest_CustomAcceptHeader()
     {
         // arrange
         using var server1 = CreateSourceSchema(
@@ -286,7 +350,7 @@ public class SourceSchemaClientCapabilitiesTests : FusionTestBase
     }
 
     [Fact]
-    public async Task MultiNode_BatchRequest_OnlyVariableBatching()
+    public async Task OperationBatch_BatchRequest_OnlyVariableBatching()
     {
         // arrange
         using var server1 = CreateSourceSchema(
@@ -330,7 +394,7 @@ public class SourceSchemaClientCapabilitiesTests : FusionTestBase
     }
 
     [Fact]
-    public async Task MultiNode_BatchRequest_OnlyRequestBatching()
+    public async Task OperationBatch_BatchRequest_OnlyRequestBatching()
     {
         // arrange
         using var server1 = CreateSourceSchema(
@@ -375,7 +439,7 @@ public class SourceSchemaClientCapabilitiesTests : FusionTestBase
 
     // This tests the response of HotChocolate < 15 servers
     [Fact]
-    public async Task MultiNode_BatchRequest_OnlyRequestBatching_NoRequestIndexInServerPayloads()
+    public async Task OperationBatch_BatchRequest_OnlyRequestBatching_ServerReturnsNoRequestIndices()
     {
         // arrange
         using var server1 = CreateSourceSchema(
@@ -396,7 +460,13 @@ public class SourceSchemaClientCapabilitiesTests : FusionTestBase
                         data: {"data":{"authorById":{"b":"Author 1 - 2"}}}
 
                         event: next
-                        data: {"data":{"authorById":{"b":"Author 1 - 2"}}}
+                        data: {"data":{"authorById":{"b":"Author 2 - 2"}}}
+
+                        event: next
+                        data: {"data":{"authorById":{"a":"Author 1"}}}
+
+                        event: next
+                        data: {"data":{"authorById":{"a":"Author 2"}}}
 
                         event: complete
                         """,
@@ -408,7 +478,77 @@ public class SourceSchemaClientCapabilitiesTests : FusionTestBase
                     request,
                     "application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8",
                     """
-                    [{"query":"query Op_1b3419da_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    b: name(postFix: \"2\")\n  }\n}","variables":[{"__fusion_1_id":"1"},{"__fusion_1_id":"2"},{"__fusion_1_id":"3"},{"__fusion_1_id":"4"}]},{"query":"query Op_1b3419da_3(\n  $__fusion_2_id: ID!\n) {\n  authorById(id: $__fusion_2_id) {\n    a: name\n  }\n}","variables":[{"__fusion_2_id":"1"},{"__fusion_2_id":"2"},{"__fusion_2_id":"3"},{"__fusion_2_id":"4"}]}]
+                    [{"query":"query Op_1b3419da_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    b: name(postFix: \"2\")\n  }\n}","variables":{"__fusion_1_id":"1"}},{"query":"query Op_1b3419da_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    b: name(postFix: \"2\")\n  }\n}","variables":{"__fusion_1_id":"2"}},{"query":"query Op_1b3419da_3(\n  $__fusion_2_id: ID!\n) {\n  authorById(id: $__fusion_2_id) {\n    a: name\n  }\n}","variables":{"__fusion_2_id":"1"}},{"query":"query Op_1b3419da_3(\n  $__fusion_2_id: ID!\n) {\n  authorById(id: $__fusion_2_id) {\n    a: name\n  }\n}","variables":{"__fusion_2_id":"2"}}]
+                    """,
+                    response);
+            });
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              books {
+                a: author {
+                  a: name
+                }
+                b: author {
+                  b: name(postFix: "2")
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    // This tests the response of non-HotChocolate servers
+    [Fact]
+    public async Task OperationBatch_BatchRequest_OnlyRequestBatching_ServerReturnsJsonArray()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            b => b.AddQueryType<SourceSchema2.Query>(),
+            capabilities: SourceSchemaClientCapabilities.RequestBatching,
+            mockHttpResponse: async request =>
+            {
+                var response = new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(
+                        """
+                        [
+                          {"data":{"authorById":{"b":"Author 1 - 2"}}},
+                          {"data":{"authorById":{"b":"Author 2 - 2"}}},
+                          {"data":{"authorById":{"a":"Author 1"}}},
+                          {"data":{"authorById":{"a":"Author 2"}}}
+                        ]
+                        """,
+                        Encoding.UTF8,
+                        "application/json")
+                };
+
+                return await ReturnHttpResponse(
+                    request,
+                    "application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8",
+                    """
+                    [{"query":"query Op_1b3419da_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    b: name(postFix: \"2\")\n  }\n}","variables":{"__fusion_1_id":"1"}},{"query":"query Op_1b3419da_2(\n  $__fusion_1_id: ID!\n) {\n  authorById(id: $__fusion_1_id) {\n    b: name(postFix: \"2\")\n  }\n}","variables":{"__fusion_1_id":"2"}},{"query":"query Op_1b3419da_3(\n  $__fusion_2_id: ID!\n) {\n  authorById(id: $__fusion_2_id) {\n    a: name\n  }\n}","variables":{"__fusion_2_id":"1"}},{"query":"query Op_1b3419da_3(\n  $__fusion_2_id: ID!\n) {\n  authorById(id: $__fusion_2_id) {\n    a: name\n  }\n}","variables":{"__fusion_2_id":"2"}}]
                     """,
                     response);
             });

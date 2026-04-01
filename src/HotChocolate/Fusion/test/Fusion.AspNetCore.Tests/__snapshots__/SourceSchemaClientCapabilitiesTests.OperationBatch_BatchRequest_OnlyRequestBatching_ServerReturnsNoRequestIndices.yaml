@@ -1,4 +1,4 @@
-title: MultiNode_BatchRequest_OnlyRequestBatching
+title: OperationBatch_BatchRequest_OnlyRequestBatching_ServerReturnsNoRequestIndices
 request:
   document: |
     {
@@ -18,7 +18,7 @@ response:
         "books": [
           {
             "a": {
-              "a": null
+              "a": "Author 1"
             },
             "b": {
               "b": "Author 1 - 2"
@@ -26,25 +26,14 @@ response:
           },
           {
             "a": {
-              "a": null
+              "a": "Author 2"
             },
             "b": {
-              "b": "Author 1 - 2"
+              "b": "Author 2 - 2"
             }
           }
         ]
-      },
-      "errors": [
-        {
-          "message": "Unexpected Execution Error",
-          "path": [
-            "books",
-            0,
-            "b",
-            "b"
-          ]
-        }
-      ]
+      }
     }
 sourceSchemas:
   - name: a
@@ -181,7 +170,7 @@ sourceSchemas:
                   "__fusion_2_id": "2"
                 }
         response:
-          contentType: application/jsonl; charset=utf-8
+          contentType: text/event-stream; charset=utf-8
           results:
             - |
               {
@@ -195,14 +184,6 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "b": "Author 1 - 2"
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
                     "b": "Author 2 - 2"
                   }
                 }
@@ -211,7 +192,15 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "b": "Author 2 - 2"
+                    "a": "Author 1"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "a": "Author 2"
                   }
                 }
               }

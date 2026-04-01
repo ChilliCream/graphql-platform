@@ -1,4 +1,4 @@
-title: MultiNode_BatchRequest_OnlyRequestBatching_NoRequestIndexInServerPayloads
+title: OperationBatch_BatchRequest_OnlyRequestBatching_ServerReturnsJsonArray
 request:
   document: |
     {
@@ -17,53 +17,23 @@ response:
       "data": {
         "books": [
           {
-            "a": null,
-            "b": null
+            "a": {
+              "a": "Author 1"
+            },
+            "b": {
+              "b": "Author 1 - 2"
+            }
           },
           {
-            "a": null,
-            "b": null
+            "a": {
+              "a": "Author 2"
+            },
+            "b": {
+              "b": "Author 2 - 2"
+            }
           }
         ]
-      },
-      "errors": [
-        {
-          "message": "Unexpected Execution Error",
-          "path": [
-            "books",
-            0,
-            "a",
-            "a"
-          ]
-        },
-        {
-          "message": "Unexpected Execution Error",
-          "path": [
-            "books",
-            0,
-            "b",
-            "b"
-          ]
-        },
-        {
-          "message": "Unexpected Execution Error",
-          "path": [
-            "books",
-            1,
-            "a",
-            "a"
-          ]
-        },
-        {
-          "message": "Unexpected Execution Error",
-          "path": [
-            "books",
-            1,
-            "b",
-            "b"
-          ]
-        }
-      ]
+      }
     }
 sourceSchemas:
   - name: a
@@ -200,8 +170,40 @@ sourceSchemas:
                   "__fusion_2_id": "2"
                 }
         response:
-          statusCode: 500
-          contentType: text/plain; charset=utf-8
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "b": "Author 1 - 2"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "b": "Author 2 - 2"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "a": "Author 1"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "a": "Author 2"
+                  }
+                }
+              }
 operationPlan:
   operation:
     - document: |

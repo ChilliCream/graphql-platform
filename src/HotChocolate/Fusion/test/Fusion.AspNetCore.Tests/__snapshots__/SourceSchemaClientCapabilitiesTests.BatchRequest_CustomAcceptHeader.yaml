@@ -1,4 +1,4 @@
-title: SingleNode_BatchRequest_OnlyRequestBatching
+title: BatchRequest_CustomAcceptHeader
 request:
   document: |
     {
@@ -88,33 +88,24 @@ sourceSchemas:
       }
     interactions:
       - request:
-          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
-          kind: OperationBatch
-          items:
-            - document: |
-                query Op_490e9345_2(
-                  $__fusion_1_id: ID!
-                ) {
-                  bookById(id: $__fusion_1_id) {
-                    rating
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_1_id": "1"
-                }
-            - document: |
-                query Op_490e9345_2(
-                  $__fusion_1_id: ID!
-                ) {
-                  bookById(id: $__fusion_1_id) {
-                    rating
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_1_id": "2"
-                }
+          accept: application/jsonl
+          document: |
+            query Op_490e9345_2(
+              $__fusion_1_id: ID!
+            ) {
+              bookById(id: $__fusion_1_id) {
+                rating
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "1"
+              },
+              {
+                "__fusion_1_id": "2"
+              }
+            ]
         response:
           contentType: application/jsonl; charset=utf-8
           results:

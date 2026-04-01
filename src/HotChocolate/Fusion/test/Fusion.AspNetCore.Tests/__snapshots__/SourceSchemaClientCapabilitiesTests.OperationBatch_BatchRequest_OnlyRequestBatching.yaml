@@ -1,4 +1,4 @@
-title: MultiNode_BatchRequest_CustomAcceptHeader
+title: OperationBatch_BatchRequest_OnlyRequestBatching
 request:
   document: |
     {
@@ -118,7 +118,7 @@ sourceSchemas:
       }
     interactions:
       - request:
-          accept: application/jsonl
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           kind: OperationBatch
           items:
             - document: |
@@ -130,14 +130,21 @@ sourceSchemas:
                   }
                 }
               variables: |
-                [
-                  {
-                    "__fusion_1_id": "1"
-                  },
-                  {
-                    "__fusion_1_id": "2"
+                {
+                  "__fusion_1_id": "1"
+                }
+            - document: |
+                query Op_1b3419da_2(
+                  $__fusion_1_id: ID!
+                ) {
+                  authorById(id: $__fusion_1_id) {
+                    b: name(postFix: "2")
                   }
-                ]
+                }
+              variables: |
+                {
+                  "__fusion_1_id": "2"
+                }
             - document: |
                 query Op_1b3419da_3(
                   $__fusion_2_id: ID!
@@ -147,33 +154,24 @@ sourceSchemas:
                   }
                 }
               variables: |
-                [
-                  {
-                    "__fusion_2_id": "1"
-                  },
-                  {
-                    "__fusion_2_id": "2"
+                {
+                  "__fusion_2_id": "1"
+                }
+            - document: |
+                query Op_1b3419da_3(
+                  $__fusion_2_id: ID!
+                ) {
+                  authorById(id: $__fusion_2_id) {
+                    a: name
                   }
-                ]
+                }
+              variables: |
+                {
+                  "__fusion_2_id": "2"
+                }
         response:
           contentType: application/jsonl; charset=utf-8
           results:
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "a": "Author 1"
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "a": "Author 2"
-                  }
-                }
-              }
             - |
               {
                 "data": {
@@ -187,6 +185,22 @@ sourceSchemas:
                 "data": {
                   "authorById": {
                     "b": "Author 2 - 2"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "a": "Author 1"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "a": "Author 2"
                   }
                 }
               }

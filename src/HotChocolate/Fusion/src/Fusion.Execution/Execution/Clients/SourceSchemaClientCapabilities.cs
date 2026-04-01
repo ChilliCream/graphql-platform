@@ -20,12 +20,5 @@ public enum SourceSchemaClientCapabilities
     /// The client supports request batching, where multiple independent GraphQL
     /// operations are sent as an array in a single HTTP request.
     /// </summary>
-    RequestBatching = 1 << 2,
-
-    /// <summary>
-    /// The client supports the Apollo-style request batching format, where multiple independent GraphQL
-    /// operations are sent as an array in a single HTTP request.
-    /// The server returns an in-order JSON array of responses.
-    /// </summary>
-    ApolloRequestBatching = 1 << 3
+    RequestBatching = 1 << 2
 }

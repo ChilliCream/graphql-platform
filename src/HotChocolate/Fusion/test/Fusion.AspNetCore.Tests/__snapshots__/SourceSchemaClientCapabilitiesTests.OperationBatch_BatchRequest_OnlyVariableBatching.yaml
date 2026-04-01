@@ -1,4 +1,4 @@
-title: MultiNode_BatchRequest_OnlyVariableBatching
+title: OperationBatch_BatchRequest_OnlyVariableBatching
 request:
   document: |
     {

@@ -1,4 +1,4 @@
-title: SingleNode_BatchRequest_OnlyVariableBatching
+title: BatchRequest_OnlyRequestBatching_ServerReturnsJsonArray
 request:
   document: |
     {
@@ -89,25 +89,34 @@ sourceSchemas:
     interactions:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
-          document: |
-            query Op_490e9345_2(
-              $__fusion_1_id: ID!
-            ) {
-              bookById(id: $__fusion_1_id) {
-                rating
-              }
-            }
-          variables: |
-            [
-              {
-                "__fusion_1_id": "1"
-              },
-              {
-                "__fusion_1_id": "2"
-              }
-            ]
+          kind: OperationBatch
+          items:
+            - document: |
+                query Op_490e9345_2(
+                  $__fusion_1_id: ID!
+                ) {
+                  bookById(id: $__fusion_1_id) {
+                    rating
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_1_id": "1"
+                }
+            - document: |
+                query Op_490e9345_2(
+                  $__fusion_1_id: ID!
+                ) {
+                  bookById(id: $__fusion_1_id) {
+                    rating
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_1_id": "2"
+                }
         response:
-          contentType: application/jsonl; charset=utf-8
+          contentType: application/json; charset=utf-8
           results:
             - |
               {

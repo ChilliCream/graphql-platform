@@ -1,4 +1,4 @@
-title: SingleNode_BatchRequest_OnlyRequestBatching_NoRequestIndexInServerPayloads
+title: BatchRequest_OnlyRequestBatching
 request:
   document: |
     {
@@ -116,7 +116,7 @@ sourceSchemas:
                   "__fusion_1_id": "2"
                 }
         response:
-          contentType: text/event-stream; charset=utf-8
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {

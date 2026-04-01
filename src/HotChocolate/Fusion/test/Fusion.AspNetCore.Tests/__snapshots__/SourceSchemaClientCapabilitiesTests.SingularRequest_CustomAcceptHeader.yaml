@@ -1,4 +1,4 @@
-title: SingleNode_Request_CustomAcceptHeader
+title: SingularRequest_CustomAcceptHeader
 request:
   document: |
     {
