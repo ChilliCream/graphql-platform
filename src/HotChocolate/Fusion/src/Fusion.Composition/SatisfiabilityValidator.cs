@@ -60,7 +60,7 @@ internal sealed class SatisfiabilityValidator
                 continue;
             }
 
-            VisitObjectType(work.ObjectType, work.Path, worklist);
+            VisitObjectType(work.ObjectType, work.Path, worklist, visited);
         }
 
         return _log.HasErrors
@@ -71,7 +71,8 @@ internal sealed class SatisfiabilityValidator
     private void VisitObjectType(
         MutableObjectTypeDefinition objectType,
         PathNode? path,
-        Queue<WorkItem> worklist)
+        Queue<WorkItem> worklist,
+        HashSet<(MutableObjectTypeDefinition, string?)> visited)
     {
         foreach (var field in objectType.Fields)
         {
@@ -99,7 +100,7 @@ internal sealed class SatisfiabilityValidator
                 continue;
             }
 
-            VisitOutputField(field, objectType, path, worklist);
+            VisitOutputField(field, objectType, path, worklist, visited);
         }
     }
 
@@ -107,7 +108,8 @@ internal sealed class SatisfiabilityValidator
         MutableOutputFieldDefinition field,
         MutableObjectTypeDefinition type,
         PathNode? path,
-        Queue<WorkItem> worklist)
+        Queue<WorkItem> worklist,
+        HashSet<(MutableObjectTypeDefinition, string?)> visited)
     {
         var previousSchemaName = path?.Item.SchemaName;
         var schemaNames = field.GetSchemaNames(first: previousSchemaName);
@@ -192,7 +194,10 @@ internal sealed class SatisfiabilityValidator
 
                 foreach (var possibleType in possibleTypes)
                 {
-                    worklist.Enqueue(new WorkItem(possibleType, fieldPath));
+                    if (!visited.Contains((possibleType, schemaName)))
+                    {
+                        worklist.Enqueue(new WorkItem(possibleType, fieldPath));
+                    }
                 }
             }
 
