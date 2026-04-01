@@ -24,14 +24,14 @@ public sealed class UploadSchemaCommandTests(NitroCommandFixture fixture) : ICla
             """
             Description:
               Upload a new schema version.
-
+            
             Usage:
               nitro schema upload [options]
-
+            
             Options:
+              --api-id <api-id> (REQUIRED)            The ID of the API [env: NITRO_API_ID]
               --tag <tag> (REQUIRED)                  The tag of the schema version to deploy [env: NITRO_TAG]
               --schema-file <schema-file> (REQUIRED)  The path to the graphql file with the schema definition [env: NITRO_SCHEMA_FILE]
-              --api-id <api-id> (REQUIRED)            The ID of the API [env: NITRO_API_ID]
               --cloud-url <cloud-url>                 The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
               --api-key <api-key>                     The API key used for authentication [env: NITRO_API_KEY]
               --output <json>                         The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]

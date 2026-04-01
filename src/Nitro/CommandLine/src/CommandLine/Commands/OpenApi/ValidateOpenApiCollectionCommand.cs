@@ -37,17 +37,17 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
         var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        await using (var activity = console.StartActivity(
+        await using (var rootActivity = console.StartActivity(
             $"Validating OpenAPI collection against stage '{stage.EscapeMarkup()}'",
             "Failed to validate the OpenAPI collection."))
         {
             var files = fileSystem.GlobMatch(patterns, ["**/bin/**", "**/obj/**"]).ToArray();
 
-            activity.Update($"Found {files.Length} document(s).");
+            rootActivity.Update($"Found {files.Length} document(s).");
 
             if (files.Length < 1)
             {
-                activity.Fail();
+                rootActivity.Fail();
                 throw new ExitException("Could not find any OpenAPI documents with the provided pattern.");
             }
 
@@ -57,89 +57,103 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
                     files,
                     ct);
 
-            var validationRequest = await client.StartOpenApiCollectionValidationAsync(
-                openApiCollectionId,
-                stage,
-                archiveStream,
-                source,
-                ct);
+            string requestId;
 
-            if (validationRequest.Errors?.Count > 0)
+            await using (var child = rootActivity.StartChildActivity(
+                "Starting validation request",
+                "Failed to start the validation request."))
             {
-                activity.Fail();
+                var validationRequest = await client.StartOpenApiCollectionValidationAsync(
+                    openApiCollectionId,
+                    stage,
+                    archiveStream,
+                    source,
+                    ct);
 
-                foreach (var error in validationRequest.Errors)
+                if (validationRequest.Errors?.Count > 0)
                 {
-                    var errorMessage = error switch
+                    child.Fail();
+
+                    foreach (var error in validationRequest.Errors)
                     {
-                        IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors_UnauthorizedOperation err => err.Message,
-                        IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors_StageNotFoundError err => err.Message,
-                        IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors_OpenApiCollectionNotFoundError err => err.Message,
-                        IError err => "Unexpected mutation error: " + err.Message,
-                        _ => "Unexpected mutation error."
-                    };
-
-                    console.Error.WriteErrorLine(errorMessage);
-                }
-
-                return ExitCodes.Error;
-            }
-
-            if (validationRequest.Id is not { } requestId)
-            {
-                throw new ExitException("Could not create validation request!");
-            }
-
-            activity.Update($"Validation request created (ID: {requestId.EscapeMarkup()})");
-
-            await foreach (var update in client.SubscribeToOpenApiCollectionValidationAsync(requestId, ct))
-            {
-                switch (update)
-                {
-                    case IOpenApiCollectionVersionValidationFailed { Errors: var errors }:
-                        activity.Fail();
-
-                        foreach (var error in errors)
+                        var errorMessage = error switch
                         {
-                            switch (error)
-                            {
-                                case IUnexpectedProcessingError e:
-                                    console.Error.WriteErrorLine(e.Message);
-                                    break;
-                                case IProcessingTimeoutError e:
-                                    console.Error.WriteErrorLine(e.Message);
-                                    break;
-                                case IOpenApiCollectionValidationError e:
-                                    console.PrintOpenApiCollectionValidationErrors(e);
-                                    break;
-                                case IOpenApiCollectionValidationArchiveError e:
-                                    console.Error.WriteErrorLine(ErrorMessages.InvalidArchive(e.Message));
-                                    break;
-                                case IError e:
-                                    console.Error.WriteErrorLine("Unexpected error: " + e.Message);
-                                    break;
-                            }
-                        }
+                            IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors_UnauthorizedOperation err => err.Message,
+                            IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors_StageNotFoundError err => err.Message,
+                            IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors_OpenApiCollectionNotFoundError err => err.Message,
+                            IError err => "Unexpected mutation error: " + err.Message,
+                            _ => "Unexpected mutation error."
+                        };
 
-                        console.Error.WriteErrorLine("OpenAPI collection validation failed.");
-                        return ExitCodes.Error;
+                        console.Error.WriteErrorLine(errorMessage);
+                    }
 
-                    case IOpenApiCollectionVersionValidationSuccess:
-                        activity.Success($"Validated OpenAPI collection against stage '{stage.EscapeMarkup()}'.");
-                        return ExitCodes.Success;
-
-                    case IOperationInProgress:
-                    case IValidationInProgress:
-                        activity.Update("Validating...");
-                        break;
-
-                    default:
-                        activity.Warning("Unknown server response. Consider updating the CLI.");
-                        break;
+                    return ExitCodes.Error;
                 }
+
+                if (validationRequest.Id is not { } id)
+                {
+                    throw new ExitException("Could not create validation request!");
+                }
+
+                requestId = id;
+                child.Success($"Validation request created (ID: {requestId.EscapeMarkup()}).");
             }
 
-            activity.Fail();
+            await using (var child = rootActivity.StartChildActivity(
+                "Validating",
+                "Validation failed."))
+            {
+                await foreach (var update in client.SubscribeToOpenApiCollectionValidationAsync(requestId, ct))
+                {
+                    switch (update)
+                    {
+                        case IOpenApiCollectionVersionValidationFailed { Errors: var errors }:
+                            child.Fail();
+
+                            foreach (var error in errors)
+                            {
+                                switch (error)
+                                {
+                                    case IUnexpectedProcessingError e:
+                                        console.Error.WriteErrorLine(e.Message);
+                                        break;
+                                    case IProcessingTimeoutError e:
+                                        console.Error.WriteErrorLine(e.Message);
+                                        break;
+                                    case IOpenApiCollectionValidationError e:
+                                        console.PrintOpenApiCollectionValidationErrors(e);
+                                        break;
+                                    case IOpenApiCollectionValidationArchiveError e:
+                                        console.Error.WriteErrorLine(ErrorMessages.InvalidArchive(e.Message));
+                                        break;
+                                    case IError e:
+                                        console.Error.WriteErrorLine("Unexpected error: " + e.Message);
+                                        break;
+                                }
+                            }
+
+                            console.Error.WriteErrorLine("OpenAPI collection validation failed.");
+                            return ExitCodes.Error;
+
+                        case IOpenApiCollectionVersionValidationSuccess:
+                            child.Success("Validation passed.");
+                            rootActivity.Success($"Validated OpenAPI collection against stage '{stage.EscapeMarkup()}'.");
+                            return ExitCodes.Success;
+
+                        case IOperationInProgress:
+                        case IValidationInProgress:
+                            child.Update("Validating...");
+                            break;
+
+                        default:
+                            child.Warning("Unknown server response. Consider updating the CLI.");
+                            break;
+                    }
+                }
+
+                child.Fail();
+            }
         }
 
         return ExitCodes.Error;

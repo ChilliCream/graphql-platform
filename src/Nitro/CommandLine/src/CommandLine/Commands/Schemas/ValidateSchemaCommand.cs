@@ -45,125 +45,139 @@ internal sealed class ValidateSchemaCommand : Command
 
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        await using (var activity = console.StartActivity(
+        await using (var rootActivity = console.StartActivity(
             $"Validating schema against stage '{stage.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'",
             "Failed to validate the schema."))
         {
-            await using var stream = fileSystem.OpenReadStream(schemaFilePath);
+            string requestId;
 
-            var validationRequest = await client.StartSchemaValidationAsync(
-                apiId,
-                stage,
-                stream,
-                source,
-                ct);
-
-            if (validationRequest.Errors?.Count > 0)
+            await using (var child = rootActivity.StartChildActivity(
+                "Starting validation request",
+                "Failed to start the validation request."))
             {
-                activity.Fail();
+                await using var stream = fileSystem.OpenReadStream(schemaFilePath);
 
-                foreach (var error in validationRequest.Errors)
+                var validationRequest = await client.StartSchemaValidationAsync(
+                    apiId,
+                    stage,
+                    stream,
+                    source,
+                    ct);
+
+                if (validationRequest.Errors?.Count > 0)
                 {
-                    var errorMessage = error switch
+                    child.Fail();
+
+                    foreach (var error in validationRequest.Errors)
                     {
-                        IValidateSchemaVersion_ValidateSchema_Errors_UnauthorizedOperation err => err.Message,
-                        IValidateSchemaVersion_ValidateSchema_Errors_ApiNotFoundError err => err.Message,
-                        IValidateSchemaVersion_ValidateSchema_Errors_StageNotFoundError err => err.Message,
-                        IValidateSchemaVersion_ValidateSchema_Errors_SchemaNotFoundError err => err.Message,
-                        IError err => "Unexpected mutation error: " + err.Message,
-                        _ => "Unexpected mutation error."
-                    };
+                        var errorMessage = error switch
+                        {
+                            IValidateSchemaVersion_ValidateSchema_Errors_UnauthorizedOperation err => err.Message,
+                            IValidateSchemaVersion_ValidateSchema_Errors_ApiNotFoundError err => err.Message,
+                            IValidateSchemaVersion_ValidateSchema_Errors_StageNotFoundError err => err.Message,
+                            IValidateSchemaVersion_ValidateSchema_Errors_SchemaNotFoundError err => err.Message,
+                            IError err => "Unexpected mutation error: " + err.Message,
+                            _ => "Unexpected mutation error."
+                        };
 
-                    console.Error.WriteErrorLine(errorMessage);
+                        console.Error.WriteErrorLine(errorMessage);
+                    }
+
+                    return ExitCodes.Error;
                 }
 
-                return ExitCodes.Error;
-            }
-
-            if (validationRequest.Id is not { } requestId)
-            {
-                throw MutationReturnedNoData();
-            }
-
-            activity.Update($"Validation request created (ID: {requestId.EscapeMarkup()})");
-
-            await foreach (var update in client.SubscribeToSchemaValidationAsync(requestId, ct))
-            {
-                switch (update)
+                if (validationRequest.Id is not { } id)
                 {
-                    case ISchemaVersionValidationFailed { Errors: var schemaErrors }:
-                        activity.Fail();
-
-                        foreach (var error in schemaErrors)
-                        {
-                            switch (error)
-                            {
-                                case ISchemaVersionChangeViolationError e:
-                                    console.PrintSchemaVersionChangeViolations(e);
-                                    break;
-                                case ISchemaChangeViolationError e:
-                                    console.PrintSchemaChangeViolations(e);
-                                    break;
-                                case IInvalidGraphQLSchemaError e:
-                                    console.PrintGraphQLSchemaErrors(e);
-                                    break;
-                                case IPersistedQueryValidationError e:
-                                    console.PrintPersistedQueryValidationErrors(e);
-                                    break;
-                                case IOpenApiCollectionValidationError e:
-                                    console.PrintOpenApiCollectionValidationErrors(e);
-                                    break;
-                                case IMcpFeatureCollectionValidationError e:
-                                    console.PrintMcpFeatureCollectionValidationErrors(e);
-                                    break;
-                                case IOperationsAreNotAllowedError e:
-                                    console.Error.WriteErrorLine(e.Message);
-                                    break;
-                                case ISchemaVersionSyntaxError e:
-                                    console.Error.WriteErrorLine(e.Message);
-                                    break;
-                                case IProcessingTimeoutError e:
-                                    console.Error.WriteErrorLine(e.Message);
-                                    break;
-                                case IUnexpectedProcessingError e:
-                                    console.Error.WriteErrorLine(e.Message);
-                                    break;
-                                case IError e:
-                                    console.Error.WriteErrorLine("Unexpected error: " + e.Message);
-                                    break;
-                            }
-                        }
-
-                        console.Error.WriteErrorLine("Schema validation failed.");
-                        return ExitCodes.Error;
-
-                    case ISchemaVersionValidationSuccess:
-                        activity.Success($"Validated schema against stage '{stage.EscapeMarkup()}'.");
-
-                        if (!console.IsHumanReadable)
-                        {
-                            resultHolder.SetResult(new ObjectResult(new ValidateSchemaResult
-                            {
-                                RequestId = requestId,
-                                Status = "success"
-                            }));
-                        }
-
-                        return ExitCodes.Success;
-
-                    case IOperationInProgress:
-                    case IValidationInProgress:
-                        activity.Update("The schema validation is in progress.");
-                        break;
-
-                    default:
-                        activity.Update(
-                            "Warning: Received an unknown server response. Ensure your CLI is on the latest version.");
-                        break;
+                    throw MutationReturnedNoData();
                 }
+
+                requestId = id;
+                child.Success($"Validation request created (ID: {requestId.EscapeMarkup()}).");
             }
 
-            activity.Fail();
+            await using (var child = rootActivity.StartChildActivity(
+                "Validating",
+                "Validation failed."))
+            {
+                await foreach (var update in client.SubscribeToSchemaValidationAsync(requestId, ct))
+                {
+                    switch (update)
+                    {
+                        case ISchemaVersionValidationFailed { Errors: var schemaErrors }:
+                            child.Fail();
+
+                            foreach (var error in schemaErrors)
+                            {
+                                switch (error)
+                                {
+                                    case ISchemaVersionChangeViolationError e:
+                                        console.PrintSchemaVersionChangeViolations(e);
+                                        break;
+                                    case ISchemaChangeViolationError e:
+                                        console.PrintSchemaChangeViolations(e);
+                                        break;
+                                    case IInvalidGraphQLSchemaError e:
+                                        console.PrintGraphQLSchemaErrors(e);
+                                        break;
+                                    case IPersistedQueryValidationError e:
+                                        console.PrintPersistedQueryValidationErrors(e);
+                                        break;
+                                    case IOpenApiCollectionValidationError e:
+                                        console.PrintOpenApiCollectionValidationErrors(e);
+                                        break;
+                                    case IMcpFeatureCollectionValidationError e:
+                                        console.PrintMcpFeatureCollectionValidationErrors(e);
+                                        break;
+                                    case IOperationsAreNotAllowedError e:
+                                        console.Error.WriteErrorLine(e.Message);
+                                        break;
+                                    case ISchemaVersionSyntaxError e:
+                                        console.Error.WriteErrorLine(e.Message);
+                                        break;
+                                    case IProcessingTimeoutError e:
+                                        console.Error.WriteErrorLine(e.Message);
+                                        break;
+                                    case IUnexpectedProcessingError e:
+                                        console.Error.WriteErrorLine(e.Message);
+                                        break;
+                                    case IError e:
+                                        console.Error.WriteErrorLine("Unexpected error: " + e.Message);
+                                        break;
+                                }
+                            }
+
+                            console.Error.WriteErrorLine("Schema validation failed.");
+                            return ExitCodes.Error;
+
+                        case ISchemaVersionValidationSuccess:
+                            child.Success("Validation passed.");
+                            rootActivity.Success($"Validated schema against stage '{stage.EscapeMarkup()}'.");
+
+                            if (!console.IsHumanReadable)
+                            {
+                                resultHolder.SetResult(new ObjectResult(new ValidateSchemaResult
+                                {
+                                    RequestId = requestId,
+                                    Status = "success"
+                                }));
+                            }
+
+                            return ExitCodes.Success;
+
+                        case IOperationInProgress:
+                        case IValidationInProgress:
+                            child.Update("Validating...");
+                            break;
+
+                        default:
+                            child.Warning(
+                                "Warning: Received an unknown server response. Ensure your CLI is on the latest version.");
+                            break;
+                    }
+                }
+
+                child.Fail();
+            }
         }
 
         return ExitCodes.Error;

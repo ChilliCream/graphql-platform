@@ -28,13 +28,13 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             """
             Description:
               Validate an OpenAPI collection version.
-
+            
             Usage:
               nitro openapi validate [options]
-
+            
             Options:
-              --stage <stage> (REQUIRED)                                  The name of the stage [env: NITRO_STAGE]
               --openapi-collection-id <openapi-collection-id> (REQUIRED)  The ID of the OpenAPI collection [env: NITRO_OPENAPI_COLLECTION_ID]
+              --stage <stage> (REQUIRED)                                  The name of the stage [env: NITRO_STAGE]
               -p, --pattern <pattern> (REQUIRED)                          One or more glob patterns for selecting OpenAPI document files
               --cloud-url <cloud-url>                                     The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
               --api-key <api-key>                                         The API key used for authentication [env: NITRO_API_KEY]
@@ -130,6 +130,8 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             """
             Validating OpenAPI collection against stage 'production'
             ├── Found 1 document(s).
+            ├── Starting validation request
+            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -206,6 +208,8 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             """
             Validating OpenAPI collection against stage 'production'
             ├── Found 1 document(s).
+            ├── Starting validation request
+            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -287,6 +291,8 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             """
             Validating OpenAPI collection against stage 'production'
             ├── Found 1 document(s).
+            ├── Starting validation request
+            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
@@ -364,6 +370,8 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             """
             Validating OpenAPI collection against stage 'production'
             ├── Found 1 document(s).
+            ├── Starting validation request
+            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -451,9 +459,12 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             """
             Validating OpenAPI collection against stage 'production'
             ├── Found 1 document(s).
-            ├── Validation request created (ID: request-1)
-            ├── Validating...
-            ├── Validating...
+            ├── Starting validation request
+            │   └── ✓ Validation request created (ID: request-1).
+            ├── Validating
+            │   ├── Validating...
+            │   ├── Validating...
+            │   └── ✓ Validation passed.
             └── ✓ Validated OpenAPI collection against stage 'production'.
             """);
 
@@ -575,8 +586,11 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             """
             Validating OpenAPI collection against stage 'production'
             ├── Found 1 document(s).
-            ├── Validation request created (ID: request-1)
-            ├── Validating...
+            ├── Starting validation request
+            │   └── ✓ Validation request created (ID: request-1).
+            ├── Validating
+            │   ├── Validating...
+            │   └── ✕ Validation failed.
             └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -670,8 +684,11 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             """
             Validating OpenAPI collection against stage 'production'
             ├── Found 1 document(s).
-            ├── Validation request created (ID: request-1)
-            ├── Validating...
+            ├── Starting validation request
+            │   └── ✓ Validation request created (ID: request-1).
+            ├── Validating
+            │   ├── Validating...
+            │   └── ✕ Validation failed.
             └── ✕ Failed to validate the OpenAPI collection.
             """);
         Assert.Empty(result.StdErr);
@@ -718,8 +735,11 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             """
             Validating OpenAPI collection against stage 'production'
             ├── Found 1 document(s).
-            ├── Validation request created (ID: request-1)
-            ├── ! Unknown server response. Consider updating the CLI.
+            ├── Starting validation request
+            │   └── ✓ Validation request created (ID: request-1).
+            ├── Validating
+            │   ├── ! Unknown server response. Consider updating the CLI.
+            │   └── ✕ Validation failed.
             └── ✕ Failed to validate the OpenAPI collection.
             """);
         Assert.Empty(result.StdErr);
@@ -799,7 +819,10 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             """
             Validating OpenAPI collection against stage 'production'
             ├── Found 1 document(s).
-            ├── Validation request created (ID: request-1)
+            ├── Starting validation request
+            │   └── ✓ Validation request created (ID: request-1).
+            ├── Validating
+            │   └── ✕ Validation failed.
             └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(

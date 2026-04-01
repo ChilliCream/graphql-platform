@@ -29,13 +29,13 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             """
             Description:
               Validate a client version.
-
+            
             Usage:
               nitro client validate [options]
-
+            
             Options:
-              --stage <stage> (REQUIRED)                      The name of the stage [env: NITRO_STAGE]
               --client-id <client-id> (REQUIRED)              The ID of the client [env: NITRO_CLIENT_ID]
+              --stage <stage> (REQUIRED)                      The name of the stage [env: NITRO_STAGE]
               --operations-file <operations-file> (REQUIRED)  The path to the json file with the operations [env: NITRO_OPERATIONS_FILE]
               --cloud-url <cloud-url>                         The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
               --api-key <api-key>                             The API key used for authentication [env: NITRO_API_KEY]
@@ -101,6 +101,8 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
         result.StdOut.MatchInlineSnapshot(
             """
             Validating client against stage 'production' of client 'client-1'
+            ├── Starting validation request
+            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -178,6 +180,8 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
         result.StdOut.MatchInlineSnapshot(
             """
             Validating client against stage 'production' of client 'client-1'
+            ├── Starting validation request
+            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -259,6 +263,8 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
         result.StdOut.MatchInlineSnapshot(
             """
             Validating client against stage 'production' of client 'client-1'
+            ├── Starting validation request
+            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
@@ -334,6 +340,8 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
         result.StdOut.MatchInlineSnapshot(
             """
             Validating client against stage 'production' of client 'client-1'
+            ├── Starting validation request
+            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -420,11 +428,14 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
         result.AssertSuccess(
             """
             Validating client against stage 'production' of client 'client-1'
-            ├── Validation request created (ID: request-1)
-            ├── The client validation is in progress.
-            ├── The client validation is in progress.
+            ├── Starting validation request
+            │   └── ✓ Validation request created (ID: request-1).
+            ├── Validating
+            │   ├── Validating...
+            │   ├── Validating...
+            │   └── ✓ Validation passed.
             └── ✓ Validated client against stage 'production'.
-
+            
             {
               "requestId": "request-1",
               "status": "success"
@@ -551,8 +562,11 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
         result.StdOut.MatchInlineSnapshot(
             """
             Validating client against stage 'production' of client 'client-1'
-            ├── Validation request created (ID: request-1)
-            ├── The client validation is in progress.
+            ├── Starting validation request
+            │   └── ✓ Validation request created (ID: request-1).
+            ├── Validating
+            │   ├── Validating...
+            │   └── ✕ Validation failed.
             └── ✕ Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -645,8 +659,11 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
         result.StdOut.MatchInlineSnapshot(
             """
             Validating client against stage 'production' of client 'client-1'
-            ├── Validation request created (ID: request-1)
-            ├── The client validation is in progress.
+            ├── Starting validation request
+            │   └── ✓ Validation request created (ID: request-1).
+            ├── Validating
+            │   ├── Validating...
+            │   └── ✕ Validation failed.
             └── ✕ Failed to validate the client.
             """);
         Assert.Empty(result.StdErr);
@@ -759,12 +776,15 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
         result.StdOut.MatchInlineSnapshot(
             """
             Validating client against stage 'production' of client 'client-1'
-            ├── Validation request created (ID: request-1)
-            └── ✕ Failed to validate the client.
+            ├── Starting validation request
+            │   └── ✓ Validation request created (ID: request-1).
+            ├── Validating
+            │   └── ✕ Validation failed.
             ! There were errors on client my-client (ID: client-1)
             Validation failed for persisted queries.
             └── Query def456 is invalid.
-                └── Field 'bar' does not exist.
+                └── Field 'bar' does not exist. 
+            └── ✕ Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -814,8 +834,11 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
         result.StdOut.MatchInlineSnapshot(
             """
             Validating client against stage 'production' of client 'client-1'
-            ├── Validation request created (ID: request-1)
-            ├── The client validation is in progress.
+            ├── Starting validation request
+            │   └── ✓ Validation request created (ID: request-1).
+            ├── Validating
+            │   ├── Validating...
+            │   └── ✕ Validation failed.
             └── ✕ Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(

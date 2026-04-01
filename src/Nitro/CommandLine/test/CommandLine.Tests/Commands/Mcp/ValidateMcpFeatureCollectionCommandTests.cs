@@ -28,13 +28,13 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             """
             Description:
               Validate an MCP feature collection version.
-
+            
             Usage:
               nitro mcp validate [options]
-
+            
             Options:
-              --stage <stage> (REQUIRED)                                          The name of the stage [env: NITRO_STAGE]
               --mcp-feature-collection-id <mcp-feature-collection-id> (REQUIRED)  The ID of the MCP Feature Collection [env: NITRO_MCP_FEATURE_COLLECTION_ID]
+              --stage <stage> (REQUIRED)                                          The name of the stage [env: NITRO_STAGE]
               -p, --prompt-pattern <prompt-pattern>                               One or more file patterns to locate MCP prompt definition files (*.json)
               -t, --tool-pattern <tool-pattern>                                   One or more file patterns to locate MCP tool definition files (*.graphql)
               --cloud-url <cloud-url>                                             The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
@@ -137,6 +137,8 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             """
             Validating MCP feature collection against stage 'production'
             ├── Found 1 prompt(s) and 1 tool(s).
+            ├── Starting validation request
+            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -217,6 +219,8 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             """
             Validating MCP feature collection against stage 'production'
             ├── Found 1 prompt(s) and 1 tool(s).
+            ├── Starting validation request
+            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -302,6 +306,8 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             """
             Validating MCP feature collection against stage 'production'
             ├── Found 1 prompt(s) and 1 tool(s).
+            ├── Starting validation request
+            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
@@ -383,6 +389,8 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             """
             Validating MCP feature collection against stage 'production'
             ├── Found 1 prompt(s) and 1 tool(s).
+            ├── Starting validation request
+            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -474,9 +482,12 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             """
             Validating MCP feature collection against stage 'production'
             ├── Found 1 prompt(s) and 1 tool(s).
-            ├── Validation request created (ID: request-1)
-            ├── Validating...
-            ├── Validating...
+            ├── Starting validation request
+            │   └── ✓ Validation request created (ID: request-1).
+            ├── Validating
+            │   ├── Validating...
+            │   ├── Validating...
+            │   └── ✓ Validation passed.
             └── ✓ Validated MCP feature collection against stage 'production'.
             """);
 
@@ -604,8 +615,11 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             """
             Validating MCP feature collection against stage 'production'
             ├── Found 1 prompt(s) and 1 tool(s).
-            ├── Validation request created (ID: request-1)
-            ├── Validating...
+            ├── Starting validation request
+            │   └── ✓ Validation request created (ID: request-1).
+            ├── Validating
+            │   ├── Validating...
+            │   └── ✕ Validation failed.
             └── ✕ Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -703,8 +717,11 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             """
             Validating MCP feature collection against stage 'production'
             ├── Found 1 prompt(s) and 1 tool(s).
-            ├── Validation request created (ID: request-1)
-            ├── Validating...
+            ├── Starting validation request
+            │   └── ✓ Validation request created (ID: request-1).
+            ├── Validating
+            │   ├── Validating...
+            │   └── ✕ Validation failed.
             └── ✕ Failed to validate the MCP feature collection.
             """);
         Assert.Empty(result.StdErr);
@@ -753,8 +770,11 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             """
             Validating MCP feature collection against stage 'production'
             ├── Found 1 prompt(s) and 1 tool(s).
-            ├── Validation request created (ID: request-1)
-            ├── ! Unknown server response. Consider updating the CLI.
+            ├── Starting validation request
+            │   └── ✓ Validation request created (ID: request-1).
+            ├── Validating
+            │   ├── ! Unknown server response. Consider updating the CLI.
+            │   └── ✕ Validation failed.
             └── ✕ Failed to validate the MCP feature collection.
             """);
         Assert.Empty(result.StdErr);
@@ -803,8 +823,11 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             """
             Validating MCP feature collection against stage 'production'
             ├── Found 1 prompt(s) and 1 tool(s).
-            ├── Validation request created (ID: request-1)
-            ├── Validating...
+            ├── Starting validation request
+            │   └── ✓ Validation request created (ID: request-1).
+            ├── Validating
+            │   ├── Validating...
+            │   └── ✕ Validation failed.
             └── ✕ Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -859,8 +882,11 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             """
             Validating MCP feature collection against stage 'production'
             ├── Found 1 prompt(s) and 1 tool(s).
-            ├── Validation request created (ID: request-1)
-            ├── Validating...
+            ├── Starting validation request
+            │   └── ✓ Validation request created (ID: request-1).
+            ├── Validating
+            │   ├── Validating...
+            │   └── ✕ Validation failed.
             └── ✕ Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(

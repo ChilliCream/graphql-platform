@@ -47,144 +47,158 @@ internal sealed class PublishClientCommand : Command
 
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        await using (var activity = console.StartActivity(
+        await using (var rootActivity = console.StartActivity(
             $"Publishing new client version '{tag.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}' of client '{clientId.EscapeMarkup()}'",
             "Failed to publish a new client version."))
         {
             if (force)
             {
-                activity.Warning("Force push is enabled.");
+                rootActivity.Warning("Force push is enabled.");
             }
 
-            var publishRequest = await client.StartClientPublishAsync(
-                clientId,
-                stage,
-                tag,
-                force,
-                waitForApproval,
-                source,
-                ct);
+            string requestId;
 
-            if (publishRequest.Errors?.Count > 0)
+            await using (var child = rootActivity.StartChildActivity(
+                "Starting publish request",
+                "Failed to start publish request."))
             {
-                activity.Fail();
+                var publishRequest = await client.StartClientPublishAsync(
+                    clientId,
+                    stage,
+                    tag,
+                    force,
+                    waitForApproval,
+                    source,
+                    ct);
 
-                foreach (var error in publishRequest.Errors)
+                if (publishRequest.Errors?.Count > 0)
                 {
-                    var errorMessage = error switch
-                    {
-                        IPublishClientVersion_PublishClient_Errors_UnauthorizedOperation err => err.Message,
-                        IPublishClientVersion_PublishClient_Errors_ClientNotFoundError err => err.Message,
-                        IPublishClientVersion_PublishClient_Errors_StageNotFoundError err => err.Message,
-                        IPublishClientVersion_PublishClient_Errors_ClientVersionNotFoundError err => err.Message,
-                        IPublishClientVersion_PublishClient_Errors_InvalidSourceMetadataInputError err => err.Message,
-                        IError err => "Unexpected mutation error: " + err.Message,
-                        _ => "Unexpected mutation error."
-                    };
+                    child.Fail();
 
-                    console.Error.WriteErrorLine(errorMessage);
+                    foreach (var error in publishRequest.Errors)
+                    {
+                        var errorMessage = error switch
+                        {
+                            IPublishClientVersion_PublishClient_Errors_UnauthorizedOperation err => err.Message,
+                            IPublishClientVersion_PublishClient_Errors_ClientNotFoundError err => err.Message,
+                            IPublishClientVersion_PublishClient_Errors_StageNotFoundError err => err.Message,
+                            IPublishClientVersion_PublishClient_Errors_ClientVersionNotFoundError err => err.Message,
+                            IPublishClientVersion_PublishClient_Errors_InvalidSourceMetadataInputError err => err.Message,
+                            IError err => "Unexpected mutation error: " + err.Message,
+                            _ => "Unexpected mutation error."
+                        };
+
+                        console.Error.WriteErrorLine(errorMessage);
+                    }
+
+                    return ExitCodes.Error;
                 }
 
-                return ExitCodes.Error;
-            }
-
-            if (publishRequest.Id is not { } requestId)
-            {
-                throw MutationReturnedNoData();
-            }
-
-            activity.Update($"Publish request created (ID: {requestId.EscapeMarkup()})");
-
-            await foreach (var update in client.SubscribeToClientPublishAsync(requestId, ct))
-            {
-                switch (update)
+                if (publishRequest.Id is not { } id)
                 {
-                    case IProcessingTaskIsQueued v:
-                        activity.Update(
-                            $"Your request is queued. The current position in the queue is {v.QueuePosition}.");
-                        break;
+                    throw MutationReturnedNoData();
+                }
 
-                    case IClientVersionPublishFailed { Errors: var errors }:
-                        activity.Fail();
+                requestId = id;
+                child.Success($"Publish request created (ID: {requestId.EscapeMarkup()}).");
+            }
 
-                        foreach (var error in errors)
-                        {
-                            switch (error)
-                            {
-                                case IConcurrentOperationError e:
-                                    console.Error.WriteErrorLine(e.Message);
-                                    break;
-                                case IPersistedQueryValidationError e:
-                                    console.PrintPersistedQueryValidationErrors(e);
-                                    break;
-                                case IProcessingTimeoutError e:
-                                    console.Error.WriteErrorLine(e.Message);
-                                    break;
-                                case IUnexpectedProcessingError e:
-                                    console.Error.WriteErrorLine(e.Message);
-                                    break;
-                                case IError e:
-                                    console.Error.WriteErrorLine("Unexpected error: " + e.Message);
-                                    break;
-                            }
-                        }
+            await using (var child = rootActivity.StartChildActivity(
+                "Processing",
+                "Processing failed."))
+            {
+                await foreach (var update in client.SubscribeToClientPublishAsync(requestId, ct))
+                {
+                    switch (update)
+                    {
+                        case IProcessingTaskIsQueued v:
+                            child.Update(
+                                $"Your request is queued. The current position in the queue is {v.QueuePosition}.");
+                            break;
 
-                        console.Error.WriteErrorLine("Client publish failed.");
-                        return ExitCodes.Error;
+                        case IClientVersionPublishFailed { Errors: var errors }:
+                            child.Fail();
 
-                    case IClientVersionPublishSuccess:
-                        activity.Success($"Published new client version '{tag.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}'.");
-
-                        resultHolder.SetResult(new ObjectResult(new PublishClientResult
-                        {
-                            Stage = stage,
-                            Status = "success"
-                        }));
-
-                        return ExitCodes.Success;
-
-                    case IProcessingTaskIsReady:
-                        console.Success("Your request is ready for the committing.");
-                        break;
-
-                    case IOperationInProgress:
-                        activity.Update("The committing of your request is in progress.");
-                        break;
-
-                    case IWaitForApproval waitForApprovalEvent:
-                        if (waitForApprovalEvent.Deployment is
-                            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_ClientDeployment deployment)
-                        {
-                            foreach (var error in deployment.Errors)
+                            foreach (var error in errors)
                             {
                                 switch (error)
                                 {
+                                    case IConcurrentOperationError e:
+                                        console.Error.WriteErrorLine(e.Message);
+                                        break;
                                     case IPersistedQueryValidationError e:
                                         console.PrintPersistedQueryValidationErrors(e);
+                                        break;
+                                    case IProcessingTimeoutError e:
+                                        console.Error.WriteErrorLine(e.Message);
+                                        break;
+                                    case IUnexpectedProcessingError e:
+                                        console.Error.WriteErrorLine(e.Message);
                                         break;
                                     case IError e:
                                         console.Error.WriteErrorLine("Unexpected error: " + e.Message);
                                         break;
                                 }
                             }
-                        }
 
-                        activity.Update(
-                            "The committing of your request is waiting for approval. Check Nitro to approve the request.");
-                        break;
+                            console.Error.WriteErrorLine("Client publish failed.");
+                            return ExitCodes.Error;
 
-                    case IProcessingTaskApproved:
-                        activity.Update("The committing of your request is approved.");
-                        break;
+                        case IClientVersionPublishSuccess:
+                            child.Success("Published successfully.");
+                            rootActivity.Success($"Published new client version '{tag.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}'.");
 
-                    default:
-                        activity.Update(
-                            "Warning: Received an unknown server response. Ensure your CLI is on the latest version.");
-                        break;
+                            resultHolder.SetResult(new ObjectResult(new PublishClientResult
+                            {
+                                Stage = stage,
+                                Status = "success"
+                            }));
+
+                            return ExitCodes.Success;
+
+                        case IProcessingTaskIsReady:
+                            child.Update("Your request is ready for processing.");
+                            break;
+
+                        case IOperationInProgress:
+                            child.Update("Your request is being processed.");
+                            break;
+
+                        case IWaitForApproval waitForApprovalEvent:
+                            if (waitForApprovalEvent.Deployment is
+                                IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_ClientDeployment deployment)
+                            {
+                                foreach (var error in deployment.Errors)
+                                {
+                                    switch (error)
+                                    {
+                                        case IPersistedQueryValidationError e:
+                                            console.PrintPersistedQueryValidationErrors(e);
+                                            break;
+                                        case IError e:
+                                            console.Error.WriteErrorLine("Unexpected error: " + e.Message);
+                                            break;
+                                    }
+                                }
+                            }
+
+                            child.Update(
+                                "Your request is waiting for approval. Check Nitro to approve the request.");
+                            break;
+
+                        case IProcessingTaskApproved:
+                            child.Update("Your request has been approved.");
+                            break;
+
+                        default:
+                            child.Warning(
+                                "Unknown server response. Ensure your CLI is on the latest version.");
+                            break;
+                    }
                 }
-            }
 
-            activity.Fail();
+                child.Fail();
+            }
         }
 
         return ExitCodes.Error;

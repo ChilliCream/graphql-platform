@@ -10,6 +10,7 @@ using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using HotChocolate.Fusion;
+using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.SourceSchema.Packaging;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
@@ -235,43 +236,56 @@ internal sealed class FusionPublishCommand : Command
         string requestId = null!;
         try
         {
-            await using (var beginActivity = console.StartActivity(
-                "Requesting deployment slot...",
-                "Failed to request a deployment slot."))
+            await using (var root = console.StartActivity(
+                $"Publishing Fusion configuration to stage '{stageName}' of API '{apiId.EscapeMarkup()}'",
+                "Failed to publish Fusion configuration."))
             {
-                requestId = await FusionPublishHelpers.RequestDeploymentSlotAsync(
-                    apiId,
-                    stageName,
-                    tag,
-                    subgraphId: null,
-                    subgraphName: null,
-                    sourceSchemaVersions: null,
-                    waitForApproval: false,
-                    source,
-                    beginActivity,
-                    console,
-                    client,
-                    cancellationToken);
-            }
+                await using (var beginChild = root.StartChildActivity(
+                    "Requesting deployment slot",
+                    "Failed to request a deployment slot."))
+                {
+                    requestId = await FusionPublishHelpers.RequestDeploymentSlotAsync(
+                        apiId,
+                        stageName,
+                        tag,
+                        subgraphId: null,
+                        subgraphName: null,
+                        sourceSchemaVersions: null,
+                        waitForApproval: false,
+                        source,
+                        beginChild,
+                        console,
+                        client,
+                        cancellationToken);
 
-            await using (var _ = console.StartActivity(
-                "Claiming deployment slot...",
-                "Failed to claim the deployment slot."))
-            {
-                await client.ClaimDeploymentSlotAsync(requestId, cancellationToken);
-            }
+                    beginChild.Success("Deployment slot ready.");
+                }
 
-            await using (var commitActivity = console.StartActivity(
-                $"Uploading new configuration to '{stageName}'...",
-                "Failed to upload the new configuration."))
-            {
-                await FusionPublishHelpers.UploadFusionArchiveAsync(
-                    requestId,
-                    archiveStream,
-                    commitActivity,
-                    console,
-                    client,
-                    cancellationToken);
+                await using (var claimChild = root.StartChildActivity(
+                    "Claiming deployment slot",
+                    "Failed to claim the deployment slot."))
+                {
+                    await client.ClaimDeploymentSlotAsync(requestId, cancellationToken);
+
+                    claimChild.Success("Claimed deployment slot.");
+                }
+
+                await using (var uploadChild = root.StartChildActivity(
+                    $"Uploading configuration to '{stageName}'",
+                    "Failed to upload the new configuration."))
+                {
+                    await FusionPublishHelpers.UploadFusionArchiveAsync(
+                        requestId,
+                        archiveStream,
+                        uploadChild,
+                        console,
+                        client,
+                        cancellationToken);
+
+                    uploadChild.Success("Uploaded configuration.");
+                }
+
+                root.Success($"Published configuration to '{stageName}'.");
             }
         }
         catch (NitroClientException)
@@ -306,74 +320,145 @@ internal sealed class FusionPublishCommand : Command
         IFusionConfigurationClient client,
         CancellationToken cancellationToken)
     {
+        CompositionLog? failedLog = null;
         string requestId = null!;
+
         try
         {
-            // begin
-            await using (var beginActivity = console.StartActivity(
-                "Requesting deployment slot...",
-                "Failed to request a deployment slot."))
+            await using (var root = console.StartActivity(
+                $"Publishing Fusion configuration to stage '{stageName}' of API '{apiId.EscapeMarkup()}'",
+                "Failed to publish Fusion configuration."))
             {
-                requestId = await RequestDeploymentSlotAsync(beginActivity);
-            }
-
-            // start
-            await using (var _ = console.StartActivity(
-                "Claiming deployment slot...",
-                "Failed to claim the deployment slot."))
-            {
-                await ClaimDeploymentSlotAsync();
-            }
-
-            // download
-            Stream? existingArchiveStream;
-            await using (var _ = console.StartActivity(
-                $"Downloading existing configuration from '{stageName}'...",
-                "Failed to download the existing Fusion configuration."))
-            {
-                existingArchiveStream = await DownloadConfigurationAsync();
-            }
-
-            // compose
-            bool success;
-            await using Stream archiveStream = new MemoryStream();
-            await using (var _ = console.StartActivity(
-                "Composing new configuration...",
-                "Failed to compose a new Fusion configuration."))
-            {
-                success = await FusionPublishHelpers.ComposeAsync(
-                    archiveStream,
-                    existingArchiveStream,
-                    stageName,
-                    newSourceSchemas,
-                    compositionSettings,
-                    console,
-                    cancellationToken);
-
-                if (success)
+                // begin
+                await using (var beginChild = root.StartChildActivity(
+                    "Requesting deployment slot",
+                    "Failed to request a deployment slot."))
                 {
-                    console.Success("Composed new configuration.");
+                    requestId = await FusionPublishHelpers.RequestDeploymentSlotAsync(
+                        apiId,
+                        stageName,
+                        tag,
+                        subgraphId: null,
+                        subgraphName: null,
+                        sourceSchemaVersions,
+                        waitForApproval: false,
+                        source,
+                        beginChild,
+                        console,
+                        client,
+                        cancellationToken);
+
+                    beginChild.Success("Deployment slot ready.");
                 }
-                else
+
+                // start
+                await using (var claimChild = root.StartChildActivity(
+                    "Claiming deployment slot",
+                    "Failed to claim the deployment slot."))
                 {
-                    console.Error.WriteErrorLine("Failed to compose new configuration.");
+                    await client.ClaimDeploymentSlotAsync(requestId, cancellationToken);
+
+                    claimChild.Success("Claimed deployment slot.");
                 }
+
+                // download
+                Stream? existingArchiveStream;
+                await using (var downloadChild = root.StartChildActivity(
+                    $"Downloading existing configuration from '{stageName}'",
+                    "Failed to download the existing Fusion configuration."))
+                {
+                    try
+                    {
+                        existingArchiveStream = await client.DownloadLatestFusionArchiveAsync(
+                            apiId,
+                            stageName,
+                            WellKnownVersions.LatestGatewayFormatVersion.ToString(),
+                            cancellationToken);
+                    }
+                    catch (HttpRequestException ex) when (ex.StatusCode is HttpStatusCode.BadRequest)
+                    {
+                        existingArchiveStream = await client.DownloadLatestLegacyFusionArchiveAsync(
+                            apiId,
+                            stageName,
+                            cancellationToken);
+                    }
+
+                    if (existingArchiveStream is null)
+                    {
+                        downloadChild.Warning($"There is no existing configuration on '{stageName}'.");
+                    }
+                    else
+                    {
+                        downloadChild.Success($"Downloaded existing configuration from '{stageName}'.");
+                    }
+                }
+
+                // compose
+                bool success;
+                await using Stream archiveStream = new MemoryStream();
+                await using (var composeChild = root.StartChildActivity(
+                    "Composing new configuration",
+                    "Failed to compose new configuration."))
+                {
+                    var composeResult = await FusionPublishHelpers.ComposeAsync(
+                        archiveStream,
+                        existingArchiveStream,
+                        stageName,
+                        newSourceSchemas,
+                        compositionSettings,
+                        cancellationToken);
+
+                    success = composeResult.Success;
+
+                    if (success)
+                    {
+                        composeChild.Success("Composed new configuration.");
+                    }
+                    else
+                    {
+                        if (!composeResult.Log.IsEmpty)
+                        {
+                            failedLog = composeResult.Log;
+                        }
+
+                        console.Error.WriteErrorLine("Failed to compose new configuration.");
+                    }
+                }
+
+                if (!success)
+                {
+                    await client.ReleaseDeploymentSlotAsync(requestId, CancellationToken.None);
+
+                    return ExitCodes.Error;
+                }
+
+                // commit
+                await using (var uploadChild = root.StartChildActivity(
+                    $"Uploading configuration to '{stageName}'",
+                    "Failed to upload the new configuration."))
+                {
+                    var uploaded = await FusionPublishHelpers.UploadFusionArchiveAsync(
+                        requestId,
+                        archiveStream,
+                        uploadChild,
+                        console,
+                        client,
+                        cancellationToken);
+
+                    if (!uploaded)
+                    {
+                        throw new ExitException("Configuration failed to upload.");
+                    }
+
+                    uploadChild.Success($"Uploaded new configuration '{tag}' to '{stageName}'.");
+                }
+
+                root.Success($"Published configuration '{tag}' to '{stageName}'.");
             }
 
-            if (!success)
+            if (failedLog is { IsEmpty: false } log)
             {
-                // cancel
-                await client.ReleaseDeploymentSlotAsync(requestId, CancellationToken.None);
-
-                return ExitCodes.Error;
-            }
-
-            // commit
-            await using (var commitActivity = console.StartActivity(
-                $"Uploading new configuration to '{stageName}'...",
-                "Failed to upload the new configuration."))
-            {
-                await UploadConfigurationAsync(archiveStream, commitActivity);
+                FusionComposeCommand.WriteCompositionLog(log, console.Out, false);
             }
         }
         catch (NitroClientException)
@@ -393,79 +478,6 @@ internal sealed class FusionPublishCommand : Command
         }
 
         return ExitCodes.Success;
-
-        Task<string> RequestDeploymentSlotAsync(INitroConsoleActivity activity)
-        {
-            return FusionPublishHelpers.RequestDeploymentSlotAsync(
-                apiId,
-                stageName,
-                tag,
-                subgraphId: null,
-                subgraphName: null,
-                sourceSchemaVersions,
-                waitForApproval: false,
-                source,
-                activity,
-                console,
-                client,
-                cancellationToken);
-        }
-
-        async Task ClaimDeploymentSlotAsync()
-        {
-            await client.ClaimDeploymentSlotAsync(requestId, cancellationToken);
-
-            console.Success("Claimed deployment slot.");
-        }
-
-        async Task<Stream?> DownloadConfigurationAsync()
-        {
-            Stream? stream;
-            try
-            {
-                stream = await client.DownloadLatestFusionArchiveAsync(
-                    apiId,
-                    stageName,
-                    WellKnownVersions.LatestGatewayFormatVersion.ToString(),
-                    cancellationToken);
-            }
-            catch (HttpRequestException ex) when (ex.StatusCode is HttpStatusCode.BadRequest)
-            {
-                stream = await client.DownloadLatestLegacyFusionArchiveAsync(
-                    apiId,
-                    stageName,
-                    cancellationToken);
-            }
-
-            if (stream is null)
-            {
-                console.WarningLine($"There is no existing configuration on '{stageName}'.");
-            }
-            else
-            {
-                console.Success($"Downloaded an existing configuration from '{stageName}'.");
-            }
-
-            return stream;
-        }
-
-        async Task UploadConfigurationAsync(Stream stream, INitroConsoleActivity activity)
-        {
-            var success = await FusionPublishHelpers.UploadFusionArchiveAsync(
-                requestId,
-                stream,
-                activity,
-                console,
-                client,
-                cancellationToken);
-
-            if (!success)
-            {
-                throw new ExitException("Configuration failed to upload.");
-            }
-
-            console.Success($"Uploaded new configuration '{tag}' to '{stageName}'.");
-        }
     }
 
     private static SourceSchemaVersion ParseSourceSchemaVersion(string input, string tag)

@@ -103,13 +103,22 @@ internal sealed class FusionSettingsSetCommand : Command
 
         environment ??= Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
 
-        var success = await FusionPublishHelpers.ComposeAsync(
+        var composeResult = await FusionPublishHelpers.ComposeAsync(
             archive,
             environment,
             [],
             compositionSettings,
-            console,
             cancellationToken);
+
+        var success = composeResult.Success;
+
+        if (!composeResult.Log.IsEmpty)
+        {
+            FusionComposeCommand.WriteCompositionLog(
+                composeResult.Log,
+                console.Out,
+                false);
+        }
 
         if (success && !console.IsHumanReadable)
         {

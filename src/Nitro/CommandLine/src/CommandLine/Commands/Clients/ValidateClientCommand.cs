@@ -44,101 +44,115 @@ internal sealed class ValidateClientCommand : Command
 
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        await using (var activity = console.StartActivity(
+        await using (var rootActivity = console.StartActivity(
             $"Validating client against stage '{stage.EscapeMarkup()}' of client '{clientId.EscapeMarkup()}'",
             "Failed to validate the client."))
         {
-            await using var stream = fileSystem.OpenReadStream(operationsFilePath);
+            string requestId;
 
-            var validationRequest = await client.StartClientValidationAsync(
-                clientId,
-                stage,
-                stream,
-                source,
-                ct);
-
-            if (validationRequest.Errors?.Count > 0)
+            await using (var child = rootActivity.StartChildActivity(
+                "Starting validation request",
+                "Failed to start the validation request."))
             {
-                activity.Fail();
+                await using var stream = fileSystem.OpenReadStream(operationsFilePath);
 
-                foreach (var error in validationRequest.Errors)
+                var validationRequest = await client.StartClientValidationAsync(
+                    clientId,
+                    stage,
+                    stream,
+                    source,
+                    ct);
+
+                if (validationRequest.Errors?.Count > 0)
                 {
-                    var errorMessage = error switch
+                    child.Fail();
+
+                    foreach (var error in validationRequest.Errors)
                     {
-                        IValidateClientVersion_ValidateClient_Errors_UnauthorizedOperation err => err.Message,
-                        IValidateClientVersion_ValidateClient_Errors_ClientNotFoundError err => err.Message,
-                        IValidateClientVersion_ValidateClient_Errors_StageNotFoundError err => err.Message,
-                        IValidateClientVersion_ValidateClient_Errors_InvalidSourceMetadataInputError err => err.Message,
-                        IError err => "Unexpected mutation error: " + err.Message,
-                        _ => "Unexpected mutation error."
-                    };
+                        var errorMessage = error switch
+                        {
+                            IValidateClientVersion_ValidateClient_Errors_UnauthorizedOperation err => err.Message,
+                            IValidateClientVersion_ValidateClient_Errors_ClientNotFoundError err => err.Message,
+                            IValidateClientVersion_ValidateClient_Errors_StageNotFoundError err => err.Message,
+                            IValidateClientVersion_ValidateClient_Errors_InvalidSourceMetadataInputError err => err.Message,
+                            IError err => "Unexpected mutation error: " + err.Message,
+                            _ => "Unexpected mutation error."
+                        };
 
-                    console.Error.WriteErrorLine(errorMessage);
+                        console.Error.WriteErrorLine(errorMessage);
+                    }
+
+                    return ExitCodes.Error;
                 }
 
-                return ExitCodes.Error;
-            }
-
-            if (validationRequest.Id is not { } requestId)
-            {
-                throw new ExitException("Could not create client validation request.");
-            }
-
-            activity.Update($"Validation request created (ID: {requestId.EscapeMarkup()})");
-
-            await foreach (var update in client.SubscribeToClientValidationAsync(requestId, ct))
-            {
-                switch (update)
+                if (validationRequest.Id is not { } id)
                 {
-                    case IClientVersionValidationFailed { Errors: var errors }:
-                        activity.Fail();
-
-                        foreach (var error in errors)
-                        {
-                            switch (error)
-                            {
-                                case IPersistedQueryValidationError e:
-                                    console.PrintPersistedQueryValidationErrors(e);
-                                    break;
-                                case IProcessingTimeoutError e:
-                                    console.Error.WriteErrorLine(e.Message);
-                                    break;
-                                case IUnexpectedProcessingError e:
-                                    console.Error.WriteErrorLine(e.Message);
-                                    break;
-                                case IError e:
-                                    console.Error.WriteErrorLine("Unexpected error: " + e.Message);
-                                    break;
-                            }
-                        }
-
-                        console.Error.WriteErrorLine("Client validation failed.");
-                        return ExitCodes.Error;
-
-                    case IClientVersionValidationSuccess:
-                        activity.Success($"Validated client against stage '{stage.EscapeMarkup()}'.");
-
-                        resultHolder.SetResult(new ObjectResult(new ValidateClientResult
-                        {
-                            RequestId = requestId,
-                            Status = "success"
-                        }));
-
-                        return ExitCodes.Success;
-
-                    case IOperationInProgress:
-                    case IValidationInProgress:
-                        activity.Update("The client validation is in progress.");
-                        break;
-
-                    default:
-                        activity.Update(
-                            "Warning: Received an unknown server response. Ensure your CLI is on the latest version.");
-                        break;
+                    throw new ExitException("Could not create client validation request.");
                 }
+
+                requestId = id;
+                child.Success($"Validation request created (ID: {requestId.EscapeMarkup()}).");
             }
 
-            activity.Fail();
+            await using (var child = rootActivity.StartChildActivity(
+                "Validating",
+                "Validation failed."))
+            {
+                await foreach (var update in client.SubscribeToClientValidationAsync(requestId, ct))
+                {
+                    switch (update)
+                    {
+                        case IClientVersionValidationFailed { Errors: var errors }:
+                            child.Fail();
+
+                            foreach (var error in errors)
+                            {
+                                switch (error)
+                                {
+                                    case IPersistedQueryValidationError e:
+                                        console.PrintPersistedQueryValidationErrors(e);
+                                        break;
+                                    case IProcessingTimeoutError e:
+                                        console.Error.WriteErrorLine(e.Message);
+                                        break;
+                                    case IUnexpectedProcessingError e:
+                                        console.Error.WriteErrorLine(e.Message);
+                                        break;
+                                    case IError e:
+                                        console.Error.WriteErrorLine("Unexpected error: " + e.Message);
+                                        break;
+                                }
+                            }
+
+                            console.Error.WriteErrorLine("Client validation failed.");
+                            return ExitCodes.Error;
+
+                        case IClientVersionValidationSuccess:
+                            child.Success("Validation passed.");
+                            rootActivity.Success($"Validated client against stage '{stage.EscapeMarkup()}'.");
+
+                            resultHolder.SetResult(new ObjectResult(new ValidateClientResult
+                            {
+                                RequestId = requestId,
+                                Status = "success"
+                            }));
+
+                            return ExitCodes.Success;
+
+                        case IOperationInProgress:
+                        case IValidationInProgress:
+                            child.Update("Validating...");
+                            break;
+
+                        default:
+                            child.Warning(
+                                "Warning: Received an unknown server response. Ensure your CLI is on the latest version.");
+                            break;
+                    }
+                }
+
+                child.Fail();
+            }
         }
 
         return ExitCodes.Error;

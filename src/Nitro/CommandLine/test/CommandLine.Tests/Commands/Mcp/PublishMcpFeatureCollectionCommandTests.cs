@@ -29,14 +29,14 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             """
             Description:
               Publish an MCP feature collection version to a stage.
-
+            
             Usage:
               nitro mcp publish [options]
-
+            
             Options:
+              --mcp-feature-collection-id <mcp-feature-collection-id> (REQUIRED)  The ID of the MCP Feature Collection [env: NITRO_MCP_FEATURE_COLLECTION_ID]
               --tag <tag> (REQUIRED)                                              The tag of the schema version to deploy [env: NITRO_TAG]
               --stage <stage> (REQUIRED)                                          The name of the stage [env: NITRO_STAGE]
-              --mcp-feature-collection-id <mcp-feature-collection-id> (REQUIRED)  The ID of the MCP Feature Collection [env: NITRO_MCP_FEATURE_COLLECTION_ID]
               --force                                                             Skip confirmation prompts for deletes and overwrites
               --wait-for-approval                                                 Wait for the deployment to be approved before completing [env: NITRO_WAIT_FOR_APPROVAL]
               --cloud-url <cloud-url>                                             The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
@@ -67,6 +67,8 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new MCP feature collection version 'v1' to stage 'production'
+            ├── Starting publish request
+            │   └── ✕ Failed to start publish request.
             └── ✕ Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -130,6 +132,8 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new MCP feature collection version 'v1' to stage 'production'
+            ├── Starting publish request
+            │   └── ✕ Failed to start publish request.
             └── ✕ Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -203,6 +207,8 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new MCP feature collection version 'v1' to stage 'production'
+            ├── Starting publish request
+            │   └── ✕ Failed to start publish request.
             └── ✕ Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -281,6 +287,8 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new MCP feature collection version 'v1' to stage 'production'
+            ├── Starting publish request
+            │   └── ✕ Failed to start publish request.
             └── ✕ Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
@@ -355,6 +363,8 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new MCP feature collection version 'v1' to stage 'production'
+            ├── Starting publish request
+            │   └── ✕ Failed to start publish request.
             └── ✕ Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -440,7 +450,11 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         result.AssertSuccess(
             """
             Publishing new MCP feature collection version 'v1' to stage 'production'
-            ├── Processing...
+            ├── Starting publish request
+            │   └── ✓ Publish request created (ID: request-1).
+            ├── Processing
+            │   ├── Processing...
+            │   └── ✓ Published successfully.
             └── ✓ Published new MCP feature collection version 'v1' to stage 'production'.
             """);
 
@@ -556,7 +570,11 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new MCP feature collection version 'v1' to stage 'production'
-            ├── Processing...
+            ├── Starting publish request
+            │   └── ✓ Publish request created (ID: request-1).
+            ├── Processing
+            │   ├── Processing...
+            │   └── ✕ Processing failed.
             └── ✕ Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -647,7 +665,11 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new MCP feature collection version 'v1' to stage 'production'
-            ├── Processing...
+            ├── Starting publish request
+            │   └── ✓ Publish request created (ID: request-1).
+            ├── Processing
+            │   ├── Processing...
+            │   └── ✕ Processing failed.
             └── ✕ Failed to publish a new MCP feature collection version.
             """);
         Assert.Empty(result.StdErr);
@@ -689,8 +711,12 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         result.AssertSuccess(
             """
             Publishing new MCP feature collection version 'v1' to stage 'production'
-            ├── Queued at position 3.
-            ├── Processing...
+            ├── Starting publish request
+            │   └── ✓ Publish request created (ID: request-1).
+            ├── Processing
+            │   ├── Queued at position 3.
+            │   ├── Processing...
+            │   └── ✓ Published successfully.
             └── ✓ Published new MCP feature collection version 'v1' to stage 'production'.
             """);
 
@@ -730,8 +756,12 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         result.AssertSuccess(
             """
             Publishing new MCP feature collection version 'v1' to stage 'production'
-            ├── Ready.
-            ├── Processing...
+            ├── Starting publish request
+            │   └── ✓ Publish request created (ID: request-1).
+            ├── Processing
+            │   ├── Ready.
+            │   ├── Processing...
+            │   └── ✓ Published successfully.
             └── ✓ Published new MCP feature collection version 'v1' to stage 'production'.
             """);
 
@@ -771,8 +801,12 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         result.AssertSuccess(
             """
             Publishing new MCP feature collection version 'v1' to stage 'production'
-            ├── Approved. Processing...
-            ├── Processing...
+            ├── Starting publish request
+            │   └── ✓ Publish request created (ID: request-1).
+            ├── Processing
+            │   ├── Approved. Processing...
+            │   ├── Processing...
+            │   └── ✓ Published successfully.
             └── ✓ Published new MCP feature collection version 'v1' to stage 'production'.
             """);
 
@@ -818,9 +852,13 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         result.AssertSuccess(
             """
             Publishing new MCP feature collection version 'v1' to stage 'production'
-            ├── Waiting for approval. Approve in Nitro to continue.
-            ├── Approved. Processing...
-            ├── Processing...
+            ├── Starting publish request
+            │   └── ✓ Publish request created (ID: request-1).
+            ├── Processing
+            │   ├── Waiting for approval. Approve in Nitro to continue.
+            │   ├── Approved. Processing...
+            │   ├── Processing...
+            │   └── ✓ Published successfully.
             └── ✓ Published new MCP feature collection version 'v1' to stage 'production'.
             """);
 
@@ -863,7 +901,11 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new MCP feature collection version 'v1' to stage 'production'
-            ├── ! Unknown server response. Consider updating the CLI.
+            ├── Starting publish request
+            │   └── ✓ Publish request created (ID: request-1).
+            ├── Processing
+            │   ├── ! Unknown server response. Consider updating the CLI.
+            │   └── ✕ Processing failed.
             └── ✕ Failed to publish a new MCP feature collection version.
             """);
         Assert.Empty(result.StdErr);
@@ -907,7 +949,11 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             """
             Publishing new MCP feature collection version 'v1' to stage 'production'
             ├── ! Force push is enabled.
-            ├── Processing...
+            ├── Starting publish request
+            │   └── ✓ Publish request created (ID: request-1).
+            ├── Processing
+            │   ├── Processing...
+            │   └── ✓ Published successfully.
             └── ✓ Published new MCP feature collection version 'v1' to stage 'production'.
             """);
 
@@ -955,9 +1001,13 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         result.AssertSuccess(
             """
             Publishing new MCP feature collection version 'v1' to stage 'production'
-            ├── Waiting for approval. Approve in Nitro to continue.
-            ├── Approved. Processing...
-            ├── Processing...
+            ├── Starting publish request
+            │   └── ✓ Publish request created (ID: request-1).
+            ├── Processing
+            │   ├── Waiting for approval. Approve in Nitro to continue.
+            │   ├── Approved. Processing...
+            │   ├── Processing...
+            │   └── ✓ Published successfully.
             └── ✓ Published new MCP feature collection version 'v1' to stage 'production'.
             """);
 
@@ -1002,7 +1052,11 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new MCP feature collection version 'v1' to stage 'production'
-            ├── Processing...
+            ├── Starting publish request
+            │   └── ✓ Publish request created (ID: request-1).
+            ├── Processing
+            │   ├── Processing...
+            │   └── ✕ Processing failed.
             └── ✕ Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -1050,7 +1104,11 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new MCP feature collection version 'v1' to stage 'production'
-            ├── Processing...
+            ├── Starting publish request
+            │   └── ✓ Publish request created (ID: request-1).
+            ├── Processing
+            │   ├── Processing...
+            │   └── ✕ Processing failed.
             └── ✕ Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -1099,7 +1157,11 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new MCP feature collection version 'v1' to stage 'production'
-            ├── Processing...
+            ├── Starting publish request
+            │   └── ✓ Publish request created (ID: request-1).
+            ├── Processing
+            │   ├── Processing...
+            │   └── ✕ Processing failed.
             └── ✕ Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(

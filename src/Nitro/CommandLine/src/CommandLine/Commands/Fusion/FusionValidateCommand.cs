@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 #endif
 using System.IO.Compression;
 using System.Net;
+using System.Text.Json;
 using ChilliCream.Nitro.CommandLine.FusionCompatibility;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
@@ -10,6 +11,7 @@ using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Results;
 using HotChocolate.Fusion;
+using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Packaging;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
@@ -69,6 +71,7 @@ internal sealed class FusionValidateCommand : Command
         var sourceSchemaFiles =
             parseResult.GetValue(Opt<OptionalSourceSchemaFileListOption>.Instance) ?? [];
         var isValid = false;
+        CompositionLog? failedLog = null;
 
         await using (var activity = console.StartActivity(
             $"Validating Fusion configuration against stage '{stageName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'",
@@ -84,54 +87,91 @@ internal sealed class FusionValidateCommand : Command
             }
         }
 
+        if (failedLog is { IsEmpty: false })
+        {
+            FusionComposeCommand.WriteCompositionLog(failedLog, console.Out, false);
+        }
+
         return isValid ? ExitCodes.Success : ExitCodes.Error;
 
         async Task ValidateWithSourceSchemaFiles(INitroConsoleActivity activity)
         {
-            var newSourceSchemas = await FusionComposeCommand.ReadSourceSchemasAsync(
-                fileSystem,
-                sourceSchemaFiles,
-                ct);
+            Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas;
+            await using (var child = activity.StartChildActivity(
+                "Reading source schemas",
+                "Failed to read source schemas."))
+            {
+                newSourceSchemas = await FusionComposeCommand.ReadSourceSchemasAsync(
+                    fileSystem,
+                    sourceSchemaFiles,
+                    ct);
+
+                child.Success($"Read {newSourceSchemas.Count} source schema(s).");
+            }
 
             var archiveStream = new MemoryStream();
             // TODO: Needs to handle old and new archive
             Stream? existingArchiveStream;
-            try
+            await using (var child = activity.StartChildActivity(
+                "Downloading existing configuration",
+                "Failed to download existing configuration."))
             {
-                existingArchiveStream = await fusionConfigurationClient.DownloadLatestFusionArchiveAsync(
-                    apiId,
-                    stageName,
-                    WellKnownVersions.LatestGatewayFormatVersion.ToString(),
-                    ct);
-            }
-            catch (HttpRequestException ex) when (ex.StatusCode is HttpStatusCode.BadRequest)
-            {
-                existingArchiveStream = await fusionConfigurationClient
-                    .DownloadLatestLegacyFusionArchiveAsync(
-                    apiId,
-                    stageName,
-                    ct);
+                try
+                {
+                    existingArchiveStream = await fusionConfigurationClient.DownloadLatestFusionArchiveAsync(
+                        apiId,
+                        stageName,
+                        WellKnownVersions.LatestGatewayFormatVersion.ToString(),
+                        ct);
+                }
+                catch (HttpRequestException ex) when (ex.StatusCode is HttpStatusCode.BadRequest)
+                {
+                    existingArchiveStream = await fusionConfigurationClient
+                        .DownloadLatestLegacyFusionArchiveAsync(
+                        apiId,
+                        stageName,
+                        ct);
+                }
+
+                child.Success("Downloaded existing configuration.");
             }
 
-            var result = await FusionPublishHelpers.ComposeAsync(
-                archiveStream,
-                existingArchiveStream,
-                stageName,
-                newSourceSchemas,
-                compositionSettings: null,
-                console,
-                ct);
-
-            if (!result)
+            await using (var child = activity.StartChildActivity(
+                "Composing configuration",
+                "Failed to compose configuration."))
             {
-                isValid = false;
-                return;
+                var composeResult = await FusionPublishHelpers.ComposeAsync(
+                    archiveStream,
+                    existingArchiveStream,
+                    stageName,
+                    newSourceSchemas,
+                    compositionSettings: null,
+                    ct);
+
+                if (!composeResult.Success)
+                {
+                    failedLog = composeResult.Log;
+                    isValid = false;
+                    return;
+                }
+
+                child.Success("Composed configuration.");
             }
 
             using var archive = FusionArchive.Open(archiveStream);
             await using var schemaStream = await LoadSchemaFile(archive, ct);
 
-            await ValidateSchemaAsync(activity, schemaStream);
+            await using (var child = activity.StartChildActivity(
+                "Validating against stage",
+                "Failed to validate against stage."))
+            {
+                await ValidateSchemaAsync(child, schemaStream);
+            }
+
+            if (isValid)
+            {
+                activity.Success("Fusion configuration is valid.");
+            }
         }
 
         async Task ValidateWithArchive(INitroConsoleActivity activity)
@@ -141,26 +181,43 @@ internal sealed class FusionValidateCommand : Command
             Stream schemaStream;
             IDisposable disposableArchive;
 
-            if (IsFarFormat(stream))
+            await using (var child = activity.StartChildActivity(
+                "Loading schema from archive",
+                "Failed to load schema from archive."))
             {
-                var archive = FusionArchive.Open(stream, leaveOpen: true);
+                if (IsFarFormat(stream))
+                {
+                    var archive = FusionArchive.Open(stream, leaveOpen: true);
 
-                schemaStream = await LoadSchemaFile(archive, ct);
+                    schemaStream = await LoadSchemaFile(archive, ct);
 
-                disposableArchive = archive;
-            }
-            else
-            {
-                var package = FusionGraphPackage.Open(stream, FileAccess.Read);
+                    disposableArchive = archive;
+                }
+                else
+                {
+                    var package = FusionGraphPackage.Open(stream, FileAccess.Read);
 
-                schemaStream = await LoadSchemaFile(package, ct);
+                    schemaStream = await LoadSchemaFile(package, ct);
 
-                disposableArchive = package;
+                    disposableArchive = package;
+                }
+
+                child.Success("Loaded schema.");
             }
 
             try
             {
-                await ValidateSchemaAsync(activity, schemaStream);
+                await using (var child = activity.StartChildActivity(
+                    "Validating against stage",
+                    "Failed to validate against stage."))
+                {
+                    await ValidateSchemaAsync(child, schemaStream);
+                }
+
+                if (isValid)
+                {
+                    activity.Success("Fusion configuration is valid.");
+                }
             }
             finally
             {
@@ -206,7 +263,7 @@ internal sealed class FusionValidateCommand : Command
 
                     case ISchemaVersionValidationSuccess:
                         isValid = true;
-                        activity.Success($"Validated Fusion configuration against stage '{stageName.EscapeMarkup()}'.");
+                        activity.Success("Validation passed.");
 
                         if (!console.IsHumanReadable)
                         {

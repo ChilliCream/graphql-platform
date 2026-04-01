@@ -24,13 +24,13 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
             """
             Description:
               Upload a new MCP feature collection version.
-
+            
             Usage:
               nitro mcp upload [options]
-
+            
             Options:
-              --tag <tag> (REQUIRED)                                              The tag of the schema version to deploy [env: NITRO_TAG]
               --mcp-feature-collection-id <mcp-feature-collection-id> (REQUIRED)  The ID of the MCP Feature Collection [env: NITRO_MCP_FEATURE_COLLECTION_ID]
+              --tag <tag> (REQUIRED)                                              The tag of the schema version to deploy [env: NITRO_TAG]
               -p, --prompt-pattern <prompt-pattern>                               One or more file patterns to locate MCP prompt definition files (*.json)
               -t, --tool-pattern <tool-pattern>                                   One or more file patterns to locate MCP tool definition files (*.graphql)
               --cloud-url <cloud-url>                                             The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
@@ -83,8 +83,8 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Option '--tag' is required.
             Option '--mcp-feature-collection-id' is required.
+            Option '--tag' is required.
             """);
         Assert.Equal(1, result.ExitCode);
     }

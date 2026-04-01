@@ -235,13 +235,12 @@ internal static class FusionPublishHelpers
         return committed;
     }
 
-    public static async Task<bool> ComposeAsync(
+    public static async Task<(bool Success, CompositionLog Log)> ComposeAsync(
         Stream archiveStream,
         Stream? existingArchiveStream,
         string environment,
         Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas,
         CompositionSettings? compositionSettings,
-        INitroConsole console,
         CancellationToken cancellationToken)
     {
         FusionArchive archive;
@@ -268,7 +267,6 @@ internal static class FusionPublishHelpers
             environment,
             newSourceSchemas,
             compositionSettings,
-            console,
             cancellationToken);
 
         archiveStream.Seek(0, SeekOrigin.Begin);
@@ -276,12 +274,11 @@ internal static class FusionPublishHelpers
         return result;
     }
 
-    public static async Task<bool> ComposeAsync(
+    public static async Task<(bool Success, CompositionLog Log)> ComposeAsync(
         FusionArchive archive,
         string environment,
         Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas,
         CompositionSettings? compositionSettings,
-        INitroConsole console,
         CancellationToken cancellationToken)
     {
         var compositionLog = new CompositionLog();
@@ -294,21 +291,21 @@ internal static class FusionPublishHelpers
             compositionSettings,
             cancellationToken);
 
-        FusionComposeCommand.WriteCompositionLog(
-            compositionLog,
-            console.Out,
-            false);
-
         if (result.IsFailure)
         {
             foreach (var error in result.Errors)
             {
-                console.WriteLine(error.Message);
+                compositionLog.Write(
+                    LogEntryBuilder.New()
+                        .SetMessage(error.Message)
+                        .SetCode("COMPOSITION_INFRASTRUCTURE_ERROR")
+                        .SetSeverity(LogSeverity.Error)
+                        .Build());
             }
 
-            return false;
+            return (false, compositionLog);
         }
 
-        return true;
+        return (true, compositionLog);
     }
 }

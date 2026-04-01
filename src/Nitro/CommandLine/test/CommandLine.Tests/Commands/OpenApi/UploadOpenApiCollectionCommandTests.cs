@@ -24,13 +24,13 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
             """
             Description:
               Upload a new OpenAPI collection version.
-
+            
             Usage:
               nitro openapi upload [options]
-
+            
             Options:
-              --tag <tag> (REQUIRED)                                      The tag of the schema version to deploy [env: NITRO_TAG]
               --openapi-collection-id <openapi-collection-id> (REQUIRED)  The ID of the OpenAPI collection [env: NITRO_OPENAPI_COLLECTION_ID]
+              --tag <tag> (REQUIRED)                                      The tag of the schema version to deploy [env: NITRO_TAG]
               -p, --pattern <pattern> (REQUIRED)                          One or more glob patterns for selecting OpenAPI document files
               --cloud-url <cloud-url>                                     The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
               --api-key <api-key>                                         The API key used for authentication [env: NITRO_API_KEY]
@@ -84,8 +84,8 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Option '--tag' is required.
             Option '--openapi-collection-id' is required.
+            Option '--tag' is required.
             Option '--pattern' is required.
             """);
         Assert.Equal(1, result.ExitCode);

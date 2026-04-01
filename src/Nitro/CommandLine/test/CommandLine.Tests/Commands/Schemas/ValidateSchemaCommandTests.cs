@@ -29,13 +29,13 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
             """
             Description:
               Validate a schema against a stage.
-
+            
             Usage:
               nitro schema validate [options]
-
+            
             Options:
-              --stage <stage> (REQUIRED)              The name of the stage [env: NITRO_STAGE]
               --api-id <api-id> (REQUIRED)            The ID of the API [env: NITRO_API_ID]
+              --stage <stage> (REQUIRED)              The name of the stage [env: NITRO_STAGE]
               --schema-file <schema-file> (REQUIRED)  The path to the graphql file with the schema definition [env: NITRO_SCHEMA_FILE]
               --cloud-url <cloud-url>                 The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
               --api-key <api-key>                     The API key used for authentication [env: NITRO_API_KEY]
@@ -101,6 +101,8 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
         result.StdOut.MatchInlineSnapshot(
             """
             Validating schema against stage 'production' of API 'api-1'
+            ├── Starting validation request
+            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -178,6 +180,8 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
         result.StdOut.MatchInlineSnapshot(
             """
             Validating schema against stage 'production' of API 'api-1'
+            ├── Starting validation request
+            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -259,6 +263,8 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
         result.StdOut.MatchInlineSnapshot(
             """
             Validating schema against stage 'production' of API 'api-1'
+            ├── Starting validation request
+            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the schema.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
@@ -335,6 +341,8 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
         result.StdOut.MatchInlineSnapshot(
             """
             Validating schema against stage 'production' of API 'api-1'
+            ├── Starting validation request
+            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -423,9 +431,12 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
         result.AssertSuccess(
             """
             Validating schema against stage 'production' of API 'api-1'
-            ├── Validation request created (ID: request-1)
-            ├── The schema validation is in progress.
-            ├── The schema validation is in progress.
+            ├── Starting validation request
+            │   └── ✓ Validation request created (ID: request-1).
+            ├── Validating
+            │   ├── Validating...
+            │   ├── Validating...
+            │   └── ✓ Validation passed.
             └── ✓ Validated schema against stage 'production'.
             """);
 
@@ -549,8 +560,11 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
         result.StdOut.MatchInlineSnapshot(
             """
             Validating schema against stage 'production' of API 'api-1'
-            ├── Validation request created (ID: request-1)
-            ├── The schema validation is in progress.
+            ├── Starting validation request
+            │   └── ✓ Validation request created (ID: request-1).
+            ├── Validating
+            │   ├── Validating...
+            │   └── ✕ Validation failed.
             └── ✕ Failed to validate the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -643,8 +657,11 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
         result.StdOut.MatchInlineSnapshot(
             """
             Validating schema against stage 'production' of API 'api-1'
-            ├── Validation request created (ID: request-1)
-            ├── The schema validation is in progress.
+            ├── Starting validation request
+            │   └── ✓ Validation request created (ID: request-1).
+            ├── Validating
+            │   ├── Validating...
+            │   └── ✕ Validation failed.
             └── ✕ Failed to validate the schema.
             """);
         Assert.Empty(result.StdErr);
@@ -690,9 +707,12 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
         result.StdOut.MatchInlineSnapshot(
             """
             Validating schema against stage 'production' of API 'api-1'
-            ├── Validation request created (ID: request-1)
-            ├── Warning: Received an unknown server response. Ensure your CLI is on the
-            latest version.
+            ├── Starting validation request
+            │   └── ✓ Validation request created (ID: request-1).
+            ├── Validating
+            │   ├── ! Warning: Received an unknown server response. Ensure your CLI is on 
+            the latest version.
+            │   └── ✕ Validation failed.
             └── ✕ Failed to validate the schema.
             """);
         Assert.Empty(result.StdErr);
@@ -761,6 +781,8 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : IC
         result.StdOut.MatchInlineSnapshot(
             """
             Validating schema against stage 'production' of API 'api-1'
+            ├── Starting validation request
+            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the schema.
             """);
         result.StdErr.MatchInlineSnapshot(

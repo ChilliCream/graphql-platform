@@ -24,14 +24,14 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
             """
             Description:
               Upload a new client version.
-
+            
             Usage:
               nitro client upload [options]
-
+            
             Options:
+              --client-id <client-id> (REQUIRED)              The ID of the client [env: NITRO_CLIENT_ID]
               --tag <tag> (REQUIRED)                          The tag of the schema version to deploy [env: NITRO_TAG]
               --operations-file <operations-file> (REQUIRED)  The path to the json file with the operations [env: NITRO_OPERATIONS_FILE]
-              --client-id <client-id> (REQUIRED)              The ID of the client [env: NITRO_CLIENT_ID]
               --cloud-url <cloud-url>                         The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
               --api-key <api-key>                             The API key used for authentication [env: NITRO_API_KEY]
               --output <json>                                 The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
