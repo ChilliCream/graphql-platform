@@ -127,9 +127,7 @@ public class SourceSchemaHttpClientConfiguration : ISourceSchemaClientConfigurat
         HttpClientName = httpClientName;
         BaseAddress = baseAddress;
         SupportedOperations = supportedOperations;
-        Capabilities = capabilities
-            ?? SourceSchemaClientCapabilities.VariableBatching
-                | SourceSchemaClientCapabilities.RequestBatching;
+        Capabilities = capabilities ?? SourceSchemaClientCapabilities.All;
 
         DefaultAcceptHeaderValue = defaultAcceptHeaderValues is null
             ? AcceptContentTypes.DefaultHeader
