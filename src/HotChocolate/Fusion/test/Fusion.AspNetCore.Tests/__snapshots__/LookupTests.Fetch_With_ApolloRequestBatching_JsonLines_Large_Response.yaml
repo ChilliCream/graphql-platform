@@ -1,4 +1,4 @@
-title: Fetch_With_Request_Batching_SSE_Large_Response
+title: Fetch_With_ApolloRequestBatching_JsonLines_Large_Response
 request:
   document: |
     {
@@ -63,6 +63,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_0e997261_1 {
               books {
@@ -116,6 +117,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8
           kind: OperationBatch
           items:
             - document: |
@@ -143,7 +145,7 @@ sourceSchemas:
                   "__fusion_1_id": "2"
                 }
         response:
-          contentType: text/event-stream; charset=utf-8
+          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {

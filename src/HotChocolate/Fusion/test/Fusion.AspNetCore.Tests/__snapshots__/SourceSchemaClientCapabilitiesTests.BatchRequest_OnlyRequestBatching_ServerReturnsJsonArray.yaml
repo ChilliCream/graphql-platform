@@ -1,12 +1,9 @@
-title: Fetch_With_Request_Batching_JsonLines
+title: BatchRequest_OnlyRequestBatching_ServerReturnsJsonArray
 request:
   document: |
     {
       books {
-        author {
-          id
-          name
-        }
+        rating
       }
     }
 response:
@@ -15,28 +12,10 @@ response:
       "data": {
         "books": [
           {
-            "author": {
-              "id": "1",
-              "name": "Author 1"
-            }
+            "rating": "1"
           },
           {
-            "author": {
-              "id": "2",
-              "name": "Author 2"
-            }
-          },
-          {
-            "author": {
-              "id": "2",
-              "name": "Author 2"
-            }
-          },
-          {
-            "author": {
-              "id": "2",
-              "name": "Author 2"
-            }
+            "rating": "2"
           }
         ]
       }
@@ -48,27 +27,28 @@ sourceSchemas:
         query: Query
       }
 
-      type Author @key(fields: "id") {
+      type Author {
         id: ID!
       }
 
       type Book {
+        author: Author
         id: ID!
         title: String!
-        author: Author! @shareable
       }
 
       type Query {
         books: [Book!]!
+        bookById(id: ID!): Book @lookup @internal
+        authorById(id: ID!): Author @lookup @internal
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_fb4f667e_1 {
+            query Op_490e9345_1 {
               books {
-                author {
-                  id
-                }
+                id
               }
             }
         response:
@@ -78,24 +58,10 @@ sourceSchemas:
                 "data": {
                   "books": [
                     {
-                      "author": {
-                        "id": "1"
-                      }
+                      "id": "1"
                     },
                     {
-                      "author": {
-                        "id": "2"
-                      }
-                    },
-                    {
-                      "author": {
-                        "id": "2"
-                      }
-                    },
-                    {
-                      "author": {
-                        "id": "2"
-                      }
+                      "id": "2"
                     }
                   ]
                 }
@@ -107,23 +73,30 @@ sourceSchemas:
       }
 
       type Author {
-        name(large: Boolean! = false): String!
+        name(postFix: String): String!
+        id: ID!
+      }
+
+      type Book {
+        rating: String!
         id: ID!
       }
 
       type Query {
+        bookById(id: ID!): Book @lookup @internal
         authorById(id: ID!): Author @lookup @internal
       }
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           kind: OperationBatch
           items:
             - document: |
-                query Op_fb4f667e_2(
+                query Op_490e9345_2(
                   $__fusion_1_id: ID!
                 ) {
-                  authorById(id: $__fusion_1_id) {
-                    name
+                  bookById(id: $__fusion_1_id) {
+                    rating
                   }
                 }
               variables: |
@@ -131,11 +104,11 @@ sourceSchemas:
                   "__fusion_1_id": "1"
                 }
             - document: |
-                query Op_fb4f667e_2(
+                query Op_490e9345_2(
                   $__fusion_1_id: ID!
                 ) {
-                  authorById(id: $__fusion_1_id) {
-                    name
+                  bookById(id: $__fusion_1_id) {
+                    rating
                   }
                 }
               variables: |
@@ -143,21 +116,21 @@ sourceSchemas:
                   "__fusion_1_id": "2"
                 }
         response:
-          contentType: application/jsonl; charset=utf-8
+          contentType: application/json; charset=utf-8
           results:
             - |
               {
                 "data": {
-                  "authorById": {
-                    "name": "Author 1"
+                  "bookById": {
+                    "rating": "1"
                   }
                 }
               }
             - |
               {
                 "data": {
-                  "authorById": {
-                    "name": "Author 2"
+                  "bookById": {
+                    "rating": "2"
                   }
                 }
               }
@@ -166,14 +139,11 @@ operationPlan:
     - document: |
         {
           books {
-            author {
-              id
-              id @fusion__requirement
-              name
-            }
+            rating
+            id @fusion__requirement
           }
         }
-      hash: fb4f667e3d4167a23589ae9f3b3f9182
+      hash: 490e934563f9d79a50edbb76c6b9b5cc
       searchSpace: 1
       expandedNodes: 2
   nodes:
@@ -181,26 +151,24 @@ operationPlan:
       type: Operation
       schema: a
       operation: |
-        query Op_fb4f667e_1 {
+        query Op_490e9345_1 {
           books {
-            author {
-              id
-            }
+            id
           }
         }
     - id: 2
       type: Operation
       schema: b
       operation: |
-        query Op_fb4f667e_2(
+        query Op_490e9345_2(
           $__fusion_1_id: ID!
         ) {
-          authorById(id: $__fusion_1_id) {
-            name
+          bookById(id: $__fusion_1_id) {
+            rating
           }
         }
-      source: $.authorById
-      target: $.books.author
+      source: $.bookById
+      target: $.books
       requirements:
         - name: __fusion_1_id
           selectionMap: >-

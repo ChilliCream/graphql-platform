@@ -20,12 +20,13 @@ public abstract partial class FusionTestBase
         Action<IServiceCollection>? configureServices = null,
         Action<IApplicationBuilder>? configureApplication = null,
         Action<HttpClient>? configureHttpClient = null,
-        SourceSchemaHttpClientBatchingMode batchingMode =
-            SourceSchemaHttpClientBatchingMode.VariableBatching
-                | SourceSchemaHttpClientBatchingMode.RequestBatching,
-        ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         bool isOffline = false,
-        bool isTimingOut = false)
+        bool isTimingOut = false,
+        SourceSchemaClientCapabilities? capabilities = null,
+        ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
+        ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
+        ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
+        Func<HttpRequestMessage, Task<HttpResponseMessage>>? mockHttpResponse = null)
     {
         configureApplication ??=
             app =>
@@ -51,8 +52,11 @@ public abstract partial class FusionTestBase
                     opt.IsOffline = isOffline;
                     opt.IsTimingOut = isTimingOut;
                     opt.ConfigureHttpClient = configureHttpClient;
-                    opt.BatchingMode = batchingMode;
+                    opt.MockHttpResponse = mockHttpResponse;
+                    opt.Capabilities = capabilities;
+                    opt.DefaultAcceptHeaderValues = defaultAcceptHeaderValues;
                     opt.BatchingAcceptHeaderValues = batchingAcceptHeaderValues;
+                    opt.SubscriptionAcceptHeaderValues = subscriptionAcceptHeaderValues;
                 });
             },
             configureApplication);
@@ -63,12 +67,13 @@ public abstract partial class FusionTestBase
         string schemaText,
         bool isOffline = false,
         bool isTimingOut = false,
-        SourceSchemaHttpClientBatchingMode batchingMode =
-            SourceSchemaHttpClientBatchingMode.VariableBatching
-                | SourceSchemaHttpClientBatchingMode.RequestBatching,
-        ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         Action<HttpClient>? configureHttpClient = null,
-        HttpClient? httpClient = null)
+        HttpClient? httpClient = null,
+        SourceSchemaClientCapabilities? capabilities = null,
+        ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
+        ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
+        ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
+        Func<HttpRequestMessage, Task<HttpResponseMessage>>? mockHttpResponse = null)
     {
         return _testServerSession.CreateServer(services =>
             {
@@ -89,8 +94,11 @@ public abstract partial class FusionTestBase
                     opt.IsTimingOut = isTimingOut;
                     opt.ConfigureHttpClient = configureHttpClient;
                     opt.HttpClient = httpClient;
-                    opt.BatchingMode = batchingMode;
+                    opt.MockHttpResponse = mockHttpResponse;
+                    opt.Capabilities = capabilities;
+                    opt.DefaultAcceptHeaderValues = defaultAcceptHeaderValues;
                     opt.BatchingAcceptHeaderValues = batchingAcceptHeaderValues;
+                    opt.SubscriptionAcceptHeaderValues = subscriptionAcceptHeaderValues;
                 });
             },
             app =>

@@ -66,6 +66,7 @@ sourceSchemas:
       scalar Any @serializeAs(type: [STRING, BOOLEAN, INT, FLOAT, OBJECT, LIST]) @specifiedBy(url: "https://scalars.graphql.org/chillicream/any.html")
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_224615af_1 {
               objectWithLists
