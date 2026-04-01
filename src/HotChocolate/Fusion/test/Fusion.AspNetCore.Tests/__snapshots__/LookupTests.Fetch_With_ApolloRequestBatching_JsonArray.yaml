@@ -1,4 +1,4 @@
-title: Fetch_With_Request_Batching_JsonLines
+title: Fetch_With_ApolloRequestBatching_JsonArray
 request:
   document: |
     {
@@ -17,7 +17,7 @@ response:
           {
             "author": {
               "id": "1",
-              "name": "Author 1"
+              "name": "Author 2"
             }
           },
           {
@@ -63,6 +63,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_fb4f667e_1 {
               books {
@@ -107,15 +108,16 @@ sourceSchemas:
       }
 
       type Author {
-        name(large: Boolean! = false): String!
         id: ID!
+        name: String!
       }
 
       type Query {
-        authorById(id: ID!): Author @lookup @internal
+        authorById(id: ID!): Author @lookup
       }
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           kind: OperationBatch
           items:
             - document: |
@@ -143,13 +145,37 @@ sourceSchemas:
                   "__fusion_1_id": "2"
                 }
         response:
-          contentType: application/jsonl; charset=utf-8
+          contentType: application/json; charset=utf-8
           results:
             - |
               {
                 "data": {
                   "authorById": {
                     "name": "Author 1"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "name": "Author 2"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "name": "Author 2"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "name": "Author 2"
                   }
                 }
               }

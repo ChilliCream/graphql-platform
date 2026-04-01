@@ -72,6 +72,7 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_d8c31e9a_1 {
               interface {
@@ -143,6 +144,7 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_d8c31e9a_2 {
               interface {

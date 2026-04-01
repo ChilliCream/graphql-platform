@@ -86,41 +86,32 @@ public abstract partial class FusionTestBase
     {
         foreach (var result in results)
         {
-            try
+            if (result.Extensions.ValueKind is JsonValueKind.Object
+                && result.Extensions.TryGetProperty("fusion", out var fusionProperty)
+                && fusionProperty.TryGetProperty("operationPlan", out var operationPlanProperty))
             {
-                if (result.Extensions.ValueKind is JsonValueKind.Object
-                    && result.Extensions.TryGetProperty("fusion", out var fusionProperty)
-                    && fusionProperty.TryGetProperty("operationPlan", out var operationPlanProperty))
-                {
-                    var manager = gateway.Services.GetRequiredService<FusionRequestExecutorManager>();
-                    var executor = await manager.GetExecutorAsync();
-                    var operationCompiler = executor.Schema.Services.GetRequiredService<OperationCompiler>();
-                    var parser = new JsonOperationPlanParser(operationCompiler);
+                var manager = gateway.Services.GetRequiredService<FusionRequestExecutorManager>();
+                var executor = await manager.GetExecutorAsync();
+                var operationCompiler = executor.Schema.Services.GetRequiredService<OperationCompiler>();
+                var parser = new JsonOperationPlanParser(operationCompiler);
 
-                    var buffer = new PooledArrayWriter();
-                    await using var jsonWriter = new Utf8JsonWriter(buffer);
+                var buffer = new PooledArrayWriter();
+                await using var jsonWriter = new Utf8JsonWriter(buffer);
 
-                    operationPlanProperty.WriteTo(jsonWriter);
-                    await jsonWriter.FlushAsync();
+                operationPlanProperty.WriteTo(jsonWriter);
+                await jsonWriter.FlushAsync();
 
-                    var plan = parser.Parse(buffer.WrittenMemory);
+                var plan = parser.Parse(buffer.WrittenMemory);
 
-                    var operationPlanFormatter = new YamlOperationPlanFormatter();
-                    var formattedOperationPlan = operationPlanFormatter.Format(plan);
+                var operationPlanFormatter = new YamlOperationPlanFormatter();
+                var formattedOperationPlan = operationPlanFormatter.Format(plan);
 
-                    writer.WriteLine("operationPlan:");
-                    writer.Indent();
-                    WriteMultilineString(writer, formattedOperationPlan);
-                    writer.Unindent();
+                writer.WriteLine("operationPlan:");
+                writer.Indent();
+                WriteMultilineString(writer, formattedOperationPlan);
+                writer.Unindent();
 
-                    break;
-                }
-            }
-            catch
-            {
-                // For some reason
-                // CancellationTests.Request_Is_Running_Into_Execution_Timeout_While_Http_Request_In_Node_Is_Still_Ongoing
-                // runs into an issue here
+                break;
             }
         }
     }
@@ -236,6 +227,11 @@ public abstract partial class FusionTestBase
                 writer.WriteLine("- request:");
                 writer.Indent();
                 writer.Indent();
+
+                if (!string.IsNullOrEmpty(request.Accept))
+                {
+                    writer.WriteLine("accept: {0}", request.Accept);
+                }
 
                 if (request.ContentType.MediaType?.StartsWith("multipart/", StringComparison.OrdinalIgnoreCase) == true)
                 {
