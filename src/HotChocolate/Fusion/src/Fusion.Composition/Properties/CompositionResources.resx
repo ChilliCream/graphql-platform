@@ -495,9 +495,6 @@
   <data name="SatisfiabilityValidator_CycleDetected" xml:space="preserve">
     <value>Cycle detected: {0} -&gt; {1}.</value>
   </data>
-  <data name="SatisfiabilityValidator_MaxRecursionDepthReached" xml:space="preserve">
-    <value>Satisfiability validation reached the maximum recursion depth ({0}) while visiting type '{1}'. Validation of deeply nested fields may be incomplete.</value>
-  </data>
   <data name="SatisfiabilityValidator_NodeTypeHasNoNodeLookup" xml:space="preserve">
     <value>Type '{0}' implements the 'Node' interface, but no source schema provides a non-internal 'Query.node&lt;Node&gt;' lookup field for this type.</value>
   </data>
