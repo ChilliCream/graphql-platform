@@ -286,6 +286,8 @@ public abstract partial class FusionTestBase : IDisposable
 
         public HttpClient? HttpClient { get; set; }
 
+        public Func<HttpRequestMessage, HttpResponseMessage>? MockHttpResponse { get; set; }
+
         public SourceSchemaClientCapabilities? Capabilities { get; set; }
 
         public ImmutableArray<MediaTypeWithQualityHeaderValue>? DefaultAcceptHeaderValues { get; set; }
@@ -331,6 +333,10 @@ public abstract partial class FusionTestBase : IDisposable
                 {
                     client = new HttpClient(new TimeoutHandler());
                 }
+                else if (registration.Options.MockHttpResponse is { } mockHandler)
+                {
+                    client = new HttpClient(new MockResponseHandler(mockHandler));
+                }
                 else if (registration.Options.HttpClient is { } httpClient)
                 {
                     return httpClient;
@@ -369,6 +375,15 @@ public abstract partial class FusionTestBase : IDisposable
 
                 return new HttpResponseMessage(HttpStatusCode.OK);
             }
+        }
+
+        private class MockResponseHandler(
+            Func<HttpRequestMessage, HttpResponseMessage> handler) : HttpMessageHandler
+        {
+            protected override Task<HttpResponseMessage> SendAsync(
+                HttpRequestMessage request,
+                CancellationToken cancellationToken)
+                => Task.FromResult(handler(request));
         }
     }
 

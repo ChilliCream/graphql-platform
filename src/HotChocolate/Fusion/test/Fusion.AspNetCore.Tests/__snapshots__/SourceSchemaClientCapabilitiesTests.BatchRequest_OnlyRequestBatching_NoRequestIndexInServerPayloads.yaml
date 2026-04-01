@@ -1,0 +1,229 @@
+title: BatchRequest_OnlyRequestBatching_NoRequestIndexInServerPayloads
+request:
+  document: |
+    {
+      books {
+        rating
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "books": [
+          {
+            "rating": "1"
+          },
+          {
+            "rating": "2"
+          },
+          {
+            "rating": "3"
+          },
+          {
+            "rating": "4"
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author {
+        id: ID!
+      }
+
+      type Book {
+        author: Author
+        id: ID!
+        title: String!
+      }
+
+      type Query {
+        books: [Book!]!
+        bookById(id: ID!): Book @lookup @internal
+        authorById(id: ID!): Author @lookup @internal
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_490e9345_1 {
+              books {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "books": [
+                    {
+                      "id": "1"
+                    },
+                    {
+                      "id": "2"
+                    },
+                    {
+                      "id": "3"
+                    },
+                    {
+                      "id": "4"
+                    }
+                  ]
+                }
+              }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author {
+        name: String!
+        id: ID!
+      }
+
+      type Book {
+        rating: String!
+        id: ID!
+      }
+
+      type Query {
+        bookById(id: ID!): Book @lookup @internal
+        authorById(id: ID!): Author @lookup @internal
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          kind: OperationBatch
+          items:
+            - document: |
+                query Op_490e9345_2(
+                  $__fusion_1_id: ID!
+                ) {
+                  bookById(id: $__fusion_1_id) {
+                    rating
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_1_id": "1"
+                }
+            - document: |
+                query Op_490e9345_2(
+                  $__fusion_1_id: ID!
+                ) {
+                  bookById(id: $__fusion_1_id) {
+                    rating
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_1_id": "2"
+                }
+            - document: |
+                query Op_490e9345_2(
+                  $__fusion_1_id: ID!
+                ) {
+                  bookById(id: $__fusion_1_id) {
+                    rating
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_1_id": "3"
+                }
+            - document: |
+                query Op_490e9345_2(
+                  $__fusion_1_id: ID!
+                ) {
+                  bookById(id: $__fusion_1_id) {
+                    rating
+                  }
+                }
+              variables: |
+                {
+                  "__fusion_1_id": "4"
+                }
+        response:
+          contentType: text/event-stream; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "bookById": {
+                    "rating": "1"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "bookById": {
+                    "rating": "2"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "bookById": {
+                    "rating": "3"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "bookById": {
+                    "rating": "4"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          books {
+            rating
+            id @fusion__requirement
+          }
+        }
+      hash: 490e934563f9d79a50edbb76c6b9b5cc
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: a
+      operation: |
+        query Op_490e9345_1 {
+          books {
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: b
+      operation: |
+        query Op_490e9345_2(
+          $__fusion_1_id: ID!
+        ) {
+          bookById(id: $__fusion_1_id) {
+            rating
+          }
+        }
+      source: $.bookById
+      target: $.books
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

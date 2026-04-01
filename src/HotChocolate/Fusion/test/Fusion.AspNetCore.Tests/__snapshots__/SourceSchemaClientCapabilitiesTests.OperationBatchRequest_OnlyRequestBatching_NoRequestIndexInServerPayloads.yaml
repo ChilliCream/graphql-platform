@@ -1,0 +1,357 @@
+title: OperationBatchRequest_OnlyRequestBatching_NoRequestIndexInServerPayloads
+request:
+  document: |
+    {
+      books {
+        a: author {
+          a: name
+        }
+        b: author {
+          b: name
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "books": [
+          {
+            "a": null,
+            "b": null
+          },
+          {
+            "a": {
+              "a": null
+            },
+            "b": {
+              "b": null
+            }
+          },
+          {
+            "a": {
+              "a": null
+            },
+            "b": {
+              "b": null
+            }
+          },
+          {
+            "a": {
+              "a": null
+            },
+            "b": {
+              "b": null
+            }
+          }
+        ]
+      },
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "books",
+            0,
+            "a",
+            "a"
+          ]
+        },
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "books",
+            0,
+            "b",
+            "b"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author {
+        id: ID!
+      }
+
+      type Book {
+        author: Author
+        id: ID!
+        title: String!
+      }
+
+      type Query {
+        books: [Book!]!
+        bookById(id: ID!): Book @lookup @internal
+        authorById(id: ID!): Author @lookup @internal
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_438caae6_1 {
+              books {
+                a: author {
+                  id
+                }
+                b: author {
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "books": [
+                    {
+                      "a": {
+                        "id": "1"
+                      },
+                      "b": {
+                        "id": "1"
+                      }
+                    },
+                    {
+                      "a": {
+                        "id": "2"
+                      },
+                      "b": {
+                        "id": "2"
+                      }
+                    },
+                    {
+                      "a": {
+                        "id": "3"
+                      },
+                      "b": {
+                        "id": "3"
+                      }
+                    },
+                    {
+                      "a": {
+                        "id": "4"
+                      },
+                      "b": {
+                        "id": "4"
+                      }
+                    }
+                  ]
+                }
+              }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author {
+        name: String!
+        id: ID!
+      }
+
+      type Book {
+        rating: String!
+        id: ID!
+      }
+
+      type Query {
+        bookById(id: ID!): Book @lookup @internal
+        authorById(id: ID!): Author @lookup @internal
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          kind: OperationBatch
+          items:
+            - document: |
+                query Op_438caae6_2(
+                  $__fusion_1_id: ID!
+                ) {
+                  authorById(id: $__fusion_1_id) {
+                    b: name
+                  }
+                }
+              variables: |
+                [
+                  {
+                    "__fusion_1_id": "1"
+                  },
+                  {
+                    "__fusion_1_id": "2"
+                  },
+                  {
+                    "__fusion_1_id": "3"
+                  },
+                  {
+                    "__fusion_1_id": "4"
+                  }
+                ]
+            - document: |
+                query Op_438caae6_3(
+                  $__fusion_2_id: ID!
+                ) {
+                  authorById(id: $__fusion_2_id) {
+                    a: name
+                  }
+                }
+              variables: |
+                [
+                  {
+                    "__fusion_2_id": "1"
+                  },
+                  {
+                    "__fusion_2_id": "2"
+                  },
+                  {
+                    "__fusion_2_id": "3"
+                  },
+                  {
+                    "__fusion_2_id": "4"
+                  }
+                ]
+        response:
+          contentType: text/event-stream; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "bookById": {
+                    "rating": "1"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "bookById": {
+                    "rating": "1"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "bookById": {
+                    "rating": "2"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "bookById": {
+                    "rating": "2"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "bookById": {
+                    "rating": "3"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "bookById": {
+                    "rating": "3"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "bookById": {
+                    "rating": "4"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "bookById": {
+                    "rating": "4"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          books {
+            a: author {
+              a: name
+              id @fusion__requirement
+            }
+            b: author {
+              b: name
+              id @fusion__requirement
+            }
+          }
+        }
+      hash: 438caae6f2bc97e0e430725aaac93641
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: a
+      operation: |
+        query Op_438caae6_1 {
+          books {
+            a: author {
+              id
+            }
+            b: author {
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: b
+      operation: |
+        query Op_438caae6_2(
+          $__fusion_1_id: ID!
+        ) {
+          authorById(id: $__fusion_1_id) {
+            b: name
+          }
+        }
+      source: $.authorById
+      target: $.books.b
+      batchingGroupId: 2
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: b
+      operation: |
+        query Op_438caae6_3(
+          $__fusion_2_id: ID!
+        ) {
+          authorById(id: $__fusion_2_id) {
+            a: name
+          }
+        }
+      source: $.authorById
+      target: $.books.a
+      batchingGroupId: 2
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

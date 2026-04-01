@@ -25,7 +25,8 @@ public abstract partial class FusionTestBase
         SourceSchemaClientCapabilities? capabilities = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
-        ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null)
+        ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
+        Func<HttpRequestMessage, HttpResponseMessage>? mockHttpResponse = null)
     {
         configureApplication ??=
             app =>
@@ -51,6 +52,7 @@ public abstract partial class FusionTestBase
                     opt.IsOffline = isOffline;
                     opt.IsTimingOut = isTimingOut;
                     opt.ConfigureHttpClient = configureHttpClient;
+                    opt.MockHttpResponse = mockHttpResponse;
                     opt.Capabilities = capabilities;
                     opt.DefaultAcceptHeaderValues = defaultAcceptHeaderValues;
                     opt.BatchingAcceptHeaderValues = batchingAcceptHeaderValues;
@@ -70,7 +72,8 @@ public abstract partial class FusionTestBase
         SourceSchemaClientCapabilities? capabilities = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
-        ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null)
+        ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
+        Func<HttpRequestMessage, HttpResponseMessage>? mockHttpResponse = null)
     {
         return _testServerSession.CreateServer(services =>
             {
@@ -91,6 +94,7 @@ public abstract partial class FusionTestBase
                     opt.IsTimingOut = isTimingOut;
                     opt.ConfigureHttpClient = configureHttpClient;
                     opt.HttpClient = httpClient;
+                    opt.MockHttpResponse = mockHttpResponse;
                     opt.Capabilities = capabilities;
                     opt.DefaultAcceptHeaderValues = defaultAcceptHeaderValues;
                     opt.BatchingAcceptHeaderValues = batchingAcceptHeaderValues;

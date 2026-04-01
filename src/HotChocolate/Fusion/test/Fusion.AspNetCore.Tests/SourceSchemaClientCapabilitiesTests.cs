@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types.Composite;
@@ -8,10 +9,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion;
 
+// TODO: OperationBatchRequest_OnlyRequestBatching_NoRequestIndexInServerPayloads this does still do variable batching
 public class SourceSchemaClientCapabilitiesTests : FusionTestBase
 {
     [Fact]
-    public async Task Test()
+    public async Task BatchRequest_OnlyRequestBatching()
     {
         // arrange
         using var server1 = CreateSourceSchema(
@@ -20,17 +22,14 @@ public class SourceSchemaClientCapabilitiesTests : FusionTestBase
 
         using var server2 = CreateSourceSchema(
             "b",
-            b => b.AddQueryType<SourceSchema2.Query>());
+            b => b.AddQueryType<SourceSchema2.Query>(),
+            capabilities: SourceSchemaClientCapabilities.RequestBatching);
 
         using var gateway = await CreateCompositeSchemaAsync(
             [
                 ("a", server1),
                 ("b", server2)
-            ],
-            gatewaySettings:
-                """
-
-                """);
+            ]);
 
         // act
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -39,9 +38,198 @@ public class SourceSchemaClientCapabilitiesTests : FusionTestBase
             """
             {
               books {
-                author {
-                  id
-                  name
+                rating
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task OperationBatchRequest_OnlyRequestBatching()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            b => b.AddQueryType<SourceSchema2.Query>(),
+            capabilities: SourceSchemaClientCapabilities.RequestBatching);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              books {
+                a: author {
+                  a: name
+                }
+                b: author {
+                  b: name
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    // This tests the response of HotChocolate < 15 servers
+    [Fact]
+    public async Task BatchRequest_OnlyRequestBatching_NoRequestIndexInServerPayloads()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            b => b.AddQueryType<SourceSchema2.Query>(),
+            capabilities: SourceSchemaClientCapabilities.RequestBatching,
+            mockHttpResponse: request =>
+            {
+                // TODO: Assert incoming request. mockHttpResponse should be async
+                var accept = request.Headers.Accept.ToString();
+                if (!accept.Contains("text/event-stream"))
+                {
+                    throw new InvalidOperationException("");
+                }
+
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(
+                        """
+                        event: next
+                        data: {"data":{"bookById":{"rating":"1"}}}
+
+                        event: next
+                        data: {"data":{"bookById":{"rating":"2"}}}
+
+                        event: next
+                        data: {"data":{"bookById":{"rating":"3"}}}
+
+                        event: next
+                        data: {"data":{"bookById":{"rating":"4"}}}
+
+                        event: complete
+                        """,
+                        Encoding.UTF8,
+                        "text/event-stream")
+                };
+            });
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              books {
+                rating
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    // This tests the response of HotChocolate < 15 servers
+    [Fact]
+    public async Task OperationBatchRequest_OnlyRequestBatching_NoRequestIndexInServerPayloads()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "a",
+            b => b.AddQueryType<SourceSchema1.Query>());
+
+        using var server2 = CreateSourceSchema(
+            "b",
+            b => b.AddQueryType<SourceSchema2.Query>(),
+            capabilities: SourceSchemaClientCapabilities.RequestBatching,
+            mockHttpResponse: request =>
+            {
+                // TODO: Assert incoming request. mockHttpResponse should be async
+                var accept = request.Headers.Accept.ToString();
+                if (!accept.Contains("text/event-stream"))
+                {
+                    throw new InvalidOperationException("");
+                }
+
+                // TODO: How to properly do this
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(
+                        """
+                        event: next
+                        data: {"data":{"bookById":{"rating":"1"}}}
+
+                        event: next
+                        data: {"data":{"bookById":{"rating":"2"}}}
+
+                        event: next
+                        data: {"data":{"bookById":{"rating":"3"}}}
+
+                        event: next
+                        data: {"data":{"bookById":{"rating":"4"}}}
+
+                        event: complete
+                        """,
+                        Encoding.UTF8,
+                        "text/event-stream")
+                };
+            });
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("a", server1),
+            ("b", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              books {
+                a: author {
+                  a: name
+                }
+                b: author {
+                  b: name
                 }
               }
             }
@@ -552,96 +740,35 @@ public class SourceSchemaClientCapabilitiesTests : FusionTestBase
         return stringBuilder.ToString();
     }
 
-    private sealed class MockHttpMessageHandler(string responseContent) : HttpMessageHandler
-    {
-        protected override Task<HttpResponseMessage> SendAsync(
-            HttpRequestMessage request,
-            CancellationToken cancellationToken)
-        {
-            var response = new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent(responseContent, Encoding.UTF8, "application/json")
-            };
-            return Task.FromResult(response);
-        }
-    }
-
-    public static class NestedLookups
-    {
-        public static class SourceSchema1
-        {
-            public record Book([property: ID] int Id, string Title, [property: Shareable] Author Author);
-
-            [EntityKey("id")]
-            public record Author([property: ID] int Id);
-
-            public class Query
-            {
-                private readonly OrderedDictionary<int, Book> _books =
-                    new()
-                    {
-                        [1] = new Book(1, "C# in Depth", new Author(1)),
-                        [2] = new Book(2, "The Lord of the Rings", new Author(2)),
-                        [3] = new Book(3, "The Hobbit", new Author(2)),
-                        [4] = new Book(4, "The Silmarillion", new Author(2))
-                    };
-
-                public IEnumerable<Book> GetBooks()
-                    => _books.Values;
-            }
-        }
-
-        public static class SourceSchema2
-        {
-            public record Author([property: ID] int Id, string Name);
-
-            public class Query
-            {
-                [Internal] public InternalLookups Lookups { get; } = new();
-            }
-
-            [Internal]
-            public class InternalLookups
-            {
-                private readonly OrderedDictionary<int, Author> _authors = new()
-                {
-                    [1] = new Author(1, "Jon Skeet"), [2] = new Author(2, "JRR Tolkien")
-                };
-
-                [Lookup]
-                public Author GetAuthorById([ID] int id)
-                    => _authors[id];
-            }
-
-            public record Book([property: ID] int Id, [property: Shareable] Author Author)
-            {
-                public string IdAndTitle([Require] string title)
-                    => $"{Id} - {title}";
-            }
-        }
-    }
-
     public static class SourceSchema1
     {
-        public record Book([property: ID] int Id, string Title, [property: Shareable] Author Author);
-
-        [EntityKey("id")]
-        public record Author([property: ID] int Id);
-
         public class Query
         {
             private readonly OrderedDictionary<int, Book> _books =
                 new()
                 {
-                    [1] = new Book(1, "C# in Depth", new Author(1)),
-                    [2] = new Book(2, "The Lord of the Rings", new Author(2)),
-                    [3] = new Book(3, "The Hobbit", new Author(2)),
-                    [4] = new Book(4, "The Silmarillion", new Author(2))
+                    [1] = new Book(1, "C# in Depth"),
+                    [2] = new Book(2, "The Lord of the Rings"),
+                    [3] = new Book(3, "The Hobbit"),
+                    [4] = new Book(4, "The Silmarillion")
                 };
 
             public IEnumerable<Book> GetBooks()
                 => _books.Values;
+
+            [Lookup, Internal]
+            public Book? GetBookById([ID] int id) => _books.GetValueOrDefault(id);
+
+            [Lookup, Internal]
+            public Author? GetAuthorById([ID] int id) => null;
         }
+
+        public record Book([property: ID] int Id, string Title)
+        {
+            public Author? GetAuthor() => new Author(Id);
+        };
+
+        public record Author([property: ID] int Id);
     }
 
     public static class SourceSchema2
@@ -649,23 +776,20 @@ public class SourceSchemaClientCapabilitiesTests : FusionTestBase
         public class Query
         {
             [Lookup, Internal]
-            public Author? GetAuthorById([ID] int id)
-                => new(id);
+            public Book? GetBookById([ID] int id) => new(id);
+
+            [Lookup, Internal]
+            public Author? GetAuthorById([ID] int id) => new(id);
+        }
+
+        public record Book([property: ID] int Id)
+        {
+            public string GetRating() => Id.ToString();
         }
 
         public record Author([property: ID] int Id)
         {
-            public string GetName(bool large = false)
-            {
-                var name = "Author " + Id;
-
-                if (large)
-                {
-                    return name + " " + GenerateRandomString(128);
-                }
-
-                return name;
-            }
+            public string GetName() => "Author " + Id;
         }
     }
 }
