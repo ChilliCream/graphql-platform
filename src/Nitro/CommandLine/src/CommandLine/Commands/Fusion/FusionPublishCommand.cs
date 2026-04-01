@@ -385,7 +385,7 @@ internal sealed class FusionPublishCommand : Command
 
                     if (existingArchiveStream is null)
                     {
-                        downloadChild.Warning($"There is no existing configuration on '{stageName}'.");
+                        downloadChild.Update($"There is no existing configuration on '{stageName}'.", ActivityUpdateKind.Warning);
                     }
                     else
                     {

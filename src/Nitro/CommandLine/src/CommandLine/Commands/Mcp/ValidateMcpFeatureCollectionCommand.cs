@@ -79,7 +79,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
 
                 if (validationRequest.Errors?.Count > 0)
                 {
-                    child.Fail();
+                    child.FailAll();
 
                     foreach (var error in validationRequest.Errors)
                     {
@@ -116,7 +116,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
                     switch (update)
                     {
                         case IMcpFeatureCollectionVersionValidationFailed { Errors: var errors }:
-                            child.Fail();
+                            child.FailAll();
 
                             foreach (var error in errors)
                             {
@@ -154,7 +154,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
                             break;
 
                         default:
-                            child.Warning("Unknown server response. Consider updating the CLI.");
+                            child.Update("Unknown server response. Consider updating the CLI.", ActivityUpdateKind.Warning);
                             break;
                     }
                 }

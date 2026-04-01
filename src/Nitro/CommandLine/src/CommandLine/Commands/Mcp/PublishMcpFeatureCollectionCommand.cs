@@ -48,7 +48,7 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
         {
             if (force)
             {
-                rootActivity.Warning("Force push is enabled.");
+                rootActivity.Update("Force push is enabled.", ActivityUpdateKind.Warning);
             }
 
             string requestId;
@@ -68,7 +68,7 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
 
                 if (publishRequest.Errors?.Count > 0)
                 {
-                    child.Fail();
+                    child.FailAll();
 
                     foreach (var error in publishRequest.Errors)
                     {
@@ -110,7 +110,7 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
                             break;
 
                         case IMcpFeatureCollectionVersionPublishFailed { Errors: var errors }:
-                            child.Fail();
+                            child.FailAll();
 
                             foreach (var error in errors)
                             {
@@ -175,7 +175,7 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
                             break;
 
                         default:
-                            child.Warning("Unknown server response. Consider updating the CLI.");
+                            child.Update("Unknown server response. Consider updating the CLI.", ActivityUpdateKind.Warning);
                             break;
                     }
                 }

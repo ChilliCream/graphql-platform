@@ -54,7 +54,7 @@ internal sealed class PublishSchemaCommand : Command
         {
             if (force)
             {
-                rootActivity.Warning("Force push is enabled.");
+                rootActivity.Update("Force push is enabled.", ActivityUpdateKind.Warning);
             }
 
             string requestId;
@@ -74,7 +74,7 @@ internal sealed class PublishSchemaCommand : Command
 
                 if (publishRequest.Errors?.Count > 0)
                 {
-                    child.Fail();
+                    child.FailAll();
 
                     foreach (var error in publishRequest.Errors)
                     {
@@ -117,7 +117,7 @@ internal sealed class PublishSchemaCommand : Command
                             break;
 
                         case ISchemaVersionPublishFailed { Errors: var schemaErrors }:
-                            child.Fail();
+                            child.FailAll();
 
                             foreach (var error in schemaErrors)
                             {
@@ -233,8 +233,8 @@ internal sealed class PublishSchemaCommand : Command
                             break;
 
                         default:
-                            child.Warning(
-                                "Unknown server response. Ensure your CLI is on the latest version.");
+                            child.Update(
+                                "Unknown server response. Ensure your CLI is on the latest version.", ActivityUpdateKind.Warning);
                             break;
                     }
                 }

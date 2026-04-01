@@ -66,7 +66,7 @@ internal sealed class ValidateSchemaCommand : Command
 
                 if (validationRequest.Errors?.Count > 0)
                 {
-                    child.Fail();
+                    child.FailAll();
 
                     foreach (var error in validationRequest.Errors)
                     {
@@ -104,7 +104,7 @@ internal sealed class ValidateSchemaCommand : Command
                     switch (update)
                     {
                         case ISchemaVersionValidationFailed { Errors: var schemaErrors }:
-                            child.Fail();
+                            child.FailAll();
 
                             foreach (var error in schemaErrors)
                             {
@@ -112,9 +112,6 @@ internal sealed class ValidateSchemaCommand : Command
                                 {
                                     case ISchemaVersionChangeViolationError e:
                                         console.PrintSchemaVersionChangeViolations(e);
-                                        break;
-                                    case ISchemaChangeViolationError e:
-                                        console.PrintSchemaChangeViolations(e);
                                         break;
                                     case IInvalidGraphQLSchemaError e:
                                         console.PrintGraphQLSchemaErrors(e);
@@ -139,9 +136,6 @@ internal sealed class ValidateSchemaCommand : Command
                                         break;
                                     case IUnexpectedProcessingError e:
                                         console.Error.WriteErrorLine(e.Message);
-                                        break;
-                                    case IError e:
-                                        console.Error.WriteErrorLine("Unexpected error: " + e.Message);
                                         break;
                                 }
                             }
@@ -170,8 +164,8 @@ internal sealed class ValidateSchemaCommand : Command
                             break;
 
                         default:
-                            child.Warning(
-                                "Warning: Received an unknown server response. Ensure your CLI is on the latest version.");
+                            child.Update(
+                                "Warning: Received an unknown server response. Ensure your CLI is on the latest version.", ActivityUpdateKind.Warning);
                             break;
                     }
                 }

@@ -38,7 +38,7 @@ internal static class FusionPublishHelpers
 
         if (deploymentSlotRequest.Errors?.Count > 0)
         {
-            activity.Fail();
+            activity.FailAll();
 
             foreach (var error in deploymentSlotRequest.Errors)
             {
@@ -84,7 +84,7 @@ internal static class FusionPublishHelpers
 
                 case IFusionConfigurationPublishingFailed v:
                     await subscriptionCancellation.CancelAsync();
-                    activity.Fail();
+                    activity.FailAll();
 
                     foreach (var error in v.Errors)
                     {
@@ -105,7 +105,7 @@ internal static class FusionPublishHelpers
 
                 case IFusionConfigurationPublishingSuccess:
                     await subscriptionCancellation.CancelAsync();
-                    activity.Warning("Already published.");
+                    activity.Update("Already published.", ActivityUpdateKind.Warning);
                     break;
 
                 case IProcessingTaskIsReady:
@@ -124,7 +124,7 @@ internal static class FusionPublishHelpers
                     break;
 
                 default:
-                    activity.Warning("Unknown server response. Consider updating the CLI.");
+                    activity.Update("Unknown server response. Consider updating the CLI.", ActivityUpdateKind.Warning);
                     break;
             }
         }
@@ -144,7 +144,7 @@ internal static class FusionPublishHelpers
 
         if (commitResult.Errors?.Count > 0)
         {
-            activity.Fail();
+            activity.FailAll();
 
             foreach (var error in commitResult.Errors)
             {
@@ -175,7 +175,7 @@ internal static class FusionPublishHelpers
                     break;
 
                 case IFusionConfigurationPublishingFailed v:
-                    activity.Fail();
+                    activity.FailAll();
 
                     foreach (var error in v.Errors)
                     {
@@ -227,7 +227,7 @@ internal static class FusionPublishHelpers
                     break;
 
                 default:
-                    activity.Warning("Unknown server response. Consider updating the CLI.");
+                    activity.Update("Unknown server response. Consider updating the CLI.", ActivityUpdateKind.Warning);
                     break;
             }
         }

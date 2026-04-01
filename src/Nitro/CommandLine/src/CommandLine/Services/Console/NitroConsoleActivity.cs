@@ -7,14 +7,17 @@ internal sealed class NitroConsoleActivity(INitroConsole console, string failure
 {
     private bool _completed;
 
-    public void Update(string message)
+    public void Update(string message, ActivityUpdateKind kind = ActivityUpdateKind.Regular)
     {
-        console.MarkupLine("├── " + message);
+        var prefix = kind == ActivityUpdateKind.Warning
+            ? "├── " + Glyphs.ExclamationMark.Space()
+            : "├── ";
+        console.MarkupLine(prefix + message);
     }
 
     public void Warning(string message)
     {
-        console.MarkupLine("├── " + Glyphs.ExclamationMark.Space() + message);
+        Complete(Glyphs.ExclamationMark.Space() + message);
     }
 
     public void Success(string message)
@@ -32,10 +35,20 @@ internal sealed class NitroConsoleActivity(INitroConsole console, string failure
         Fail(failureMessage);
     }
 
+    public void FailAll()
+    {
+        if (_completed)
+        {
+            return;
+        }
+
+        _completed = true;
+    }
+
     public INitroConsoleActivity StartChildActivity(string title, string failureMessage)
     {
         console.MarkupLine("├── " + title);
-        return new NitroConsoleChildActivity(console, failureMessage, "│   ");
+        return new NitroConsoleChildActivity(console, failureMessage, "│   ", this);
     }
 
     public ValueTask DisposeAsync()

@@ -65,7 +65,7 @@ internal sealed class ValidateClientCommand : Command
 
                 if (validationRequest.Errors?.Count > 0)
                 {
-                    child.Fail();
+                    child.FailAll();
 
                     foreach (var error in validationRequest.Errors)
                     {
@@ -103,7 +103,7 @@ internal sealed class ValidateClientCommand : Command
                     switch (update)
                     {
                         case IClientVersionValidationFailed { Errors: var errors }:
-                            child.Fail();
+                            child.FailAll();
 
                             foreach (var error in errors)
                             {
@@ -145,8 +145,8 @@ internal sealed class ValidateClientCommand : Command
                             break;
 
                         default:
-                            child.Warning(
-                                "Warning: Received an unknown server response. Ensure your CLI is on the latest version.");
+                            child.Update(
+                                "Warning: Received an unknown server response. Ensure your CLI is on the latest version.", ActivityUpdateKind.Warning);
                             break;
                     }
                 }

@@ -10,7 +10,7 @@ internal sealed class ActivityTree : Renderable
     private readonly object _lock = new();
 #endif
     private readonly List<ActivityEntry> _rootEntries = [];
-    private readonly Spinner _spinner = Spinner.Known.BouncingBar;
+    private readonly Spinner _spinner = Spinner.Known.Default;
 
     public ActivityEntry AddRoot(string text)
     {
@@ -105,7 +105,7 @@ internal sealed class ActivityTree : Renderable
                 var frame = _spinner.Frames[
                     (int)(entry.Elapsed.TotalMilliseconds / _spinner.Interval.TotalMilliseconds)
                     % _spinner.Frames.Count];
-                segments.Add(new Segment(frame, new Style(Color.Green, decoration: Decoration.Bold)));
+                segments.Add(new Segment(frame, new Style(Color.DeepPink1_1, decoration: Decoration.Bold)));
                 segments.Add(new Segment(" "));
                 break;
 

@@ -5,19 +5,23 @@ namespace ChilliCream.Nitro.CommandLine;
 internal sealed class NitroConsoleChildActivity(
     INitroConsole console,
     string failureMessage,
-    string prefix)
+    string prefix,
+    INitroConsoleActivity parent)
     : INitroConsoleActivity
 {
     private bool _completed;
 
-    public void Update(string message)
+    public void Update(string message, ActivityUpdateKind kind = ActivityUpdateKind.Regular)
     {
-        console.MarkupLine(prefix + "├── " + message);
+        var linePrefix = kind == ActivityUpdateKind.Warning
+            ? prefix + "├── " + Glyphs.ExclamationMark.Space()
+            : prefix + "├── ";
+        console.MarkupLine(linePrefix + message);
     }
 
     public void Warning(string message)
     {
-        console.MarkupLine(prefix + "├── " + Glyphs.ExclamationMark.Space() + message);
+        Complete(Glyphs.ExclamationMark.Space() + message);
     }
 
     public void Success(string message)
@@ -35,17 +39,23 @@ internal sealed class NitroConsoleChildActivity(
         Fail(failureMessage);
     }
 
+    public void FailAll()
+    {
+        Fail();
+        parent.FailAll();
+    }
+
     public INitroConsoleActivity StartChildActivity(string title, string failureMessage)
     {
         console.MarkupLine(prefix + "├── " + title);
-        return new NitroConsoleChildActivity(console, failureMessage, prefix + "│   ");
+        return new NitroConsoleChildActivity(console, failureMessage, prefix + "│   ", this);
     }
 
     public ValueTask DisposeAsync()
     {
         if (!_completed)
         {
-            Fail();
+            FailAll();
         }
 
         return default;

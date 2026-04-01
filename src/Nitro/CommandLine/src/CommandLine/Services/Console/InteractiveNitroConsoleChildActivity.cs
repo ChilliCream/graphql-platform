@@ -1,30 +1,38 @@
 namespace ChilliCream.Nitro.CommandLine;
 
-internal sealed class InteractiveNitroConsoleChildActivity : INitroConsoleActivity
+internal sealed class InteractiveNitroConsoleChildActivity(
+    ActivityTree tree,
+    ActivityEntry entry,
+    string failureMessage,
+    INitroConsoleActivity parent)
+    : INitroConsoleActivity
 {
-    private readonly ActivityTree _tree;
-    private readonly ActivityEntry _entry;
-    private readonly string _failureMessage;
     private bool _completed;
 
-    public InteractiveNitroConsoleChildActivity(
-        ActivityTree tree,
-        ActivityEntry entry,
-        string failureMessage)
+    public void Update(string message, ActivityUpdateKind kind = ActivityUpdateKind.Regular)
     {
-        _tree = tree;
-        _entry = entry;
-        _failureMessage = failureMessage;
-    }
-
-    public void Update(string message)
-    {
-        _tree.AddChild(_entry, message, ActivityState.Info);
+        var state = kind == ActivityUpdateKind.Warning ? ActivityState.Warning : ActivityState.Info;
+        tree.AddChild(entry, message, state);
     }
 
     public void Warning(string message)
     {
-        _tree.AddChild(_entry, message, ActivityState.Warning);
+        if (_completed)
+        {
+            return;
+        }
+
+        if (entry.Children.Count > 0)
+        {
+            tree.SetEntryState(entry, ActivityState.Warning);
+            tree.AddChild(entry, message, ActivityState.Warning);
+        }
+        else
+        {
+            tree.SetEntryTextAndState(entry, message, ActivityState.Warning);
+        }
+
+        _completed = true;
     }
 
     public void Success(string message)
@@ -34,7 +42,16 @@ internal sealed class InteractiveNitroConsoleChildActivity : INitroConsoleActivi
             return;
         }
 
-        _tree.SetEntryTextAndState(_entry, message, ActivityState.Completed);
+        if (entry.Children.Count > 0)
+        {
+            tree.SetEntryState(entry, ActivityState.Completed);
+            tree.AddChild(entry, message, ActivityState.Completed);
+        }
+        else
+        {
+            tree.SetEntryTextAndState(entry, message, ActivityState.Completed);
+        }
+
         _completed = true;
     }
 
@@ -45,26 +62,41 @@ internal sealed class InteractiveNitroConsoleChildActivity : INitroConsoleActivi
             return;
         }
 
-        _tree.SetEntryTextAndState(_entry, message, ActivityState.Failed);
+        if (entry.Children.Count > 0)
+        {
+            tree.SetEntryState(entry, ActivityState.Failed);
+            tree.AddChild(entry, message, ActivityState.Failed);
+        }
+        else
+        {
+            tree.SetEntryTextAndState(entry, message, ActivityState.Failed);
+        }
+
         _completed = true;
     }
 
     public void Fail()
     {
-        Fail(_failureMessage);
+        Fail(failureMessage);
+    }
+
+    public void FailAll()
+    {
+        Fail();
+        parent.FailAll();
     }
 
     public INitroConsoleActivity StartChildActivity(string title, string failureMessage)
     {
-        var childEntry = _tree.AddChild(_entry, title, ActivityState.Active);
-        return new InteractiveNitroConsoleChildActivity(_tree, childEntry, failureMessage);
+        var childEntry = tree.AddChild(entry, title, ActivityState.Active);
+        return new InteractiveNitroConsoleChildActivity(tree, childEntry, failureMessage, this);
     }
 
     public ValueTask DisposeAsync()
     {
         if (!_completed)
         {
-            Fail();
+            FailAll();
         }
 
         return default;

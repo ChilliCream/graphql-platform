@@ -23,14 +23,23 @@ internal sealed class InteractiveNitroConsoleActivity : INitroConsoleActivity
         _refreshTimer = refreshTimer;
     }
 
-    public void Update(string message)
+    public void Update(string message, ActivityUpdateKind kind = ActivityUpdateKind.Regular)
     {
-        _tree.AddChild(_rootEntry, message, ActivityState.Info);
+        var state = kind == ActivityUpdateKind.Warning ? ActivityState.Warning : ActivityState.Info;
+        _tree.AddChild(_rootEntry, message, state);
     }
 
     public void Warning(string message)
     {
+        if (_completed)
+        {
+            return;
+        }
+
+        _tree.SetEntryState(_rootEntry, ActivityState.Warning);
         _tree.AddChild(_rootEntry, message, ActivityState.Warning);
+        _completed = true;
+        _refreshTimer.Dispose();
     }
 
     public void Success(string message)
@@ -40,7 +49,8 @@ internal sealed class InteractiveNitroConsoleActivity : INitroConsoleActivity
             return;
         }
 
-        _tree.SetEntryTextAndState(_rootEntry, message, ActivityState.Completed);
+        _tree.SetEntryState(_rootEntry, ActivityState.Completed);
+        _tree.AddChild(_rootEntry, message, ActivityState.Completed);
         _completed = true;
         _refreshTimer.Dispose();
     }
@@ -52,7 +62,8 @@ internal sealed class InteractiveNitroConsoleActivity : INitroConsoleActivity
             return;
         }
 
-        _tree.SetEntryTextAndState(_rootEntry, message, ActivityState.Failed);
+        _tree.SetEntryState(_rootEntry, ActivityState.Failed);
+        _tree.AddChild(_rootEntry, message, ActivityState.Failed);
         _completed = true;
         _refreshTimer.Dispose();
     }
@@ -62,10 +73,27 @@ internal sealed class InteractiveNitroConsoleActivity : INitroConsoleActivity
         Fail(_failureMessage);
     }
 
+    public void FailAll()
+    {
+        FailSilent();
+    }
+
     public INitroConsoleActivity StartChildActivity(string title, string failureMessage)
     {
         var childEntry = _tree.AddChild(_rootEntry, title, ActivityState.Active);
-        return new InteractiveNitroConsoleChildActivity(_tree, childEntry, failureMessage);
+        return new InteractiveNitroConsoleChildActivity(_tree, childEntry, failureMessage, this);
+    }
+
+    private void FailSilent()
+    {
+        if (_completed)
+        {
+            return;
+        }
+
+        _tree.SetEntryState(_rootEntry, ActivityState.Failed);
+        _completed = true;
+        _refreshTimer.Dispose();
     }
 
     public async ValueTask DisposeAsync()

@@ -123,7 +123,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
                         break;
 
                     default:
-                        activity.Warning("Unknown server response. Consider updating the CLI.");
+                        activity.Update("Unknown server response. Consider updating the CLI.", ActivityUpdateKind.Warning);
                         break;
                 }
             }
