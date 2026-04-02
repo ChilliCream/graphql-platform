@@ -464,7 +464,7 @@ The middleware (key: `"EntityFrameworkTransaction"`):
 4. Commits the transaction on success
 5. Rolls back on any exception
 
-Your command handlers are responsible for calling `SaveChangesAsync` to persist their changes. The middleware handles the transaction lifecycle — your handlers do not need to call `BeginTransactionAsync`, `CommitAsync`, or `RollbackAsync`.
+Your command handlers are responsible for calling `SaveChangesAsync` to persist their changes. The middleware handles the transaction lifecycle - your handlers do not need to call `BeginTransactionAsync`, `CommitAsync`, or `RollbackAsync`.
 
 ## Customizing transaction scope
 
