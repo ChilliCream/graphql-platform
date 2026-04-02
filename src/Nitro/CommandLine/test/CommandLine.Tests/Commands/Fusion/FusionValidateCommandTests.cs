@@ -31,7 +31,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
         result.AssertHelpOutput(
             """
             Description:
-              Validate the composed GraphQL schema of a Fusion configuration against a stage.
+              Validate a Fusion configuration against a stage.
 
             Usage:
               nitro fusion validate [options]
@@ -81,7 +81,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            You can only specify one of: '--source-schema-file' or '--archive'.
+            The options '--source-schema-file' and '--archive' are mutually exclusive.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -108,7 +108,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : IC
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            You need to specify one of: '--source-schema-file' or '--archive'.
+            Missing one of the required options '--source-schema-file' or '--archive'.
             """);
         Assert.Equal(1, result.ExitCode);
     }

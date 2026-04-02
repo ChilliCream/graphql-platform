@@ -110,7 +110,6 @@ internal static class FusionPublishHelpers
 
                 case IProcessingTaskIsReady:
                     await subscriptionCancellation.CancelAsync();
-                    activity.Update("Deployment slot ready.");
                     break;
 
                 case IFusionConfigurationValidationFailed:
@@ -218,7 +217,26 @@ internal static class FusionPublishHelpers
                     activity.Update("Processing...");
                     break;
 
-                case IWaitForApproval:
+                case IWaitForApproval waitForApprovalEvent:
+                    if (waitForApprovalEvent.Deployment is IFusionConfigurationDeployment deployment)
+                    {
+                        // TODO:
+                        // ...SchemaChangeViolationError
+                        //     ...InvalidGraphQLSchemaError
+                        //     ...PersistedQueryValidationError
+                        //     ...OpenApiCollectionValidationError
+                        //     ...McpFeatureCollectionValidationError
+                        foreach (var error in deployment.Errors)
+                        {
+                            switch (error)
+                            {
+                                case IOpenApiCollectionValidationError e:
+                                    console.PrintOpenApiCollectionValidationErrors(e);
+                                    break;
+                            }
+                        }
+                    }
+
                     activity.Update("Waiting for approval. Approve in Nitro to continue.");
                     break;
 

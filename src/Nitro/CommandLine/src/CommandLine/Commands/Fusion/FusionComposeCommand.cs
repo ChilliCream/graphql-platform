@@ -45,6 +45,7 @@ internal sealed class FusionComposeCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
+        var environmentVariables = services.GetRequiredService<IEnvironmentVariableProvider>();
 
         var workingDirectory = parseResult.GetValue(Opt<WorkingDirectoryOption>.Instance)
             ?? fileSystem.GetCurrentDirectory();
@@ -91,6 +92,7 @@ internal sealed class FusionComposeCommand : Command
             return await WatchComposeAsync(
                 console,
                 fileSystem,
+                environmentVariables,
                 workingDirectory,
                 sourceSchemaFiles,
                 archiveFile,
@@ -104,6 +106,7 @@ internal sealed class FusionComposeCommand : Command
         return await ComposeAsync(
             console,
             fileSystem,
+            environmentVariables,
             sourceSchemaFiles,
             archiveFile,
             environment,
@@ -128,6 +131,7 @@ internal sealed class FusionComposeCommand : Command
     private static async Task<int> WatchComposeAsync(
         INitroConsole console,
         IFileSystem fileSystem,
+        IEnvironmentVariableProvider environmentVariables,
         string workingDirectory,
         List<string> sourceSchemaFiles,
         string archiveFile,
@@ -143,6 +147,7 @@ internal sealed class FusionComposeCommand : Command
         await ComposeAsync(
             console,
             fileSystem,
+            environmentVariables,
             sourceSchemaFiles,
             archiveFile,
             environment,
@@ -179,6 +184,7 @@ internal sealed class FusionComposeCommand : Command
             compositionChannel.Reader,
             console,
             fileSystem,
+            environmentVariables,
             sourceSchemaFiles,
             archiveFile,
             environment,
@@ -308,6 +314,7 @@ internal sealed class FusionComposeCommand : Command
         ChannelReader<string> reader,
         INitroConsole console,
         IFileSystem fileSystem,
+        IEnvironmentVariableProvider environmentVariables,
         List<string> sourceSchemaFiles,
         string archiveFile,
         string? environment,
@@ -342,6 +349,7 @@ internal sealed class FusionComposeCommand : Command
                 await ComposeAsync(
                     console,
                     fileSystem,
+                    environmentVariables,
                     sourceSchemaFiles,
                     archiveFile,
                     environment,
@@ -387,6 +395,7 @@ internal sealed class FusionComposeCommand : Command
     private static async Task<int> ComposeAsync(
         INitroConsole console,
         IFileSystem fileSystem,
+        IEnvironmentVariableProvider environmentVariables,
         List<string> sourceSchemaFiles,
         string archiveFile,
         string? environment,
@@ -397,7 +406,7 @@ internal sealed class FusionComposeCommand : Command
             ? FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update)
             : FusionArchive.Create(archiveFile);
 
-        environment ??= Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+        environment ??= environmentVariables.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
 
         try
         {

@@ -316,7 +316,6 @@ public sealed class FusionConfigurationPublishBeginCommandTests(NitroCommandFixt
             """
             Requesting deployment slot for stage 'prod' of API 'api-1'
             ├── Request ID: request-123
-            ├── Deployment slot ready.
             └── ✕ Failed to request a deployment slot.
 
             {
@@ -512,7 +511,6 @@ public sealed class FusionConfigurationPublishBeginCommandTests(NitroCommandFixt
             Requesting deployment slot for stage 'prod' of API 'api-1'
             ├── Request ID: request-123
             ├── Queued at position 3.
-            ├── Deployment slot ready.
             └── ✕ Failed to request a deployment slot.
 
             {

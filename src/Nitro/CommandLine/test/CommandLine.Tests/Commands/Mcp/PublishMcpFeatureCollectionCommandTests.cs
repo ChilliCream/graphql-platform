@@ -29,10 +29,10 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             """
             Description:
               Publish an MCP feature collection version to a stage.
-            
+
             Usage:
               nitro mcp publish [options]
-            
+
             Options:
               --mcp-feature-collection-id <mcp-feature-collection-id> (REQUIRED)  The ID of the MCP Feature Collection [env: NITRO_MCP_FEATURE_COLLECTION_ID]
               --tag <tag> (REQUIRED)                                              The tag of the schema version to deploy [env: NITRO_TAG]
@@ -50,6 +50,37 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
                 --stage "dev" \
                 --tag "v1"
             """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ForceAndWaitForApproval_ReturnsError(InteractionMode mode)
+    {
+        // arrange & act
+        var result = await new CommandBuilder(fixture)
+            .AddApiKey()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "mcp",
+                "publish",
+                "--mcp-feature-collection-id",
+                DefaultMcpFeatureCollectionId,
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--force",
+                "--wait-for-approval")
+            .ExecuteAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The '--force' and '--wait-for-approval' options are mutually exclusive.
+            """);
+        Assert.Equal(1, result.ExitCode);
     }
 
     [Fact]

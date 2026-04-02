@@ -12,6 +12,7 @@ using ChilliCream.Nitro.Client.PersonalAccessTokens;
 using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.Client.Workspaces;
+using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,12 +27,15 @@ internal sealed class CommandBuilder
 {
     private readonly NitroCommandFixture? _fixture;
     private readonly Mock<ISessionService> _sessionServiceMock = new();
+    private readonly Mock<IEnvironmentVariableProvider> _environmentVariableProviderMock = new();
     private readonly IServiceCollection _services = new ServiceCollection();
     private readonly List<string> _arguments = [];
     private InteractionMode? _interactionMode;
     private Session? _session;
 
     public Mock<ISessionService> SessionServiceMock => _sessionServiceMock;
+
+    public Mock<IEnvironmentVariableProvider> EnvironmentVariableProviderMock => _environmentVariableProviderMock;
 
     public CommandBuilder()
     {
@@ -42,6 +46,7 @@ internal sealed class CommandBuilder
             sp => sp.GetRequiredService<NitroClientContext>());
 
         _services.Replace(ServiceDescriptor.Singleton(_sessionServiceMock.Object));
+        _services.Replace(ServiceDescriptor.Singleton(_environmentVariableProviderMock.Object));
 
         AddMockedNitroClients(_services);
 
@@ -158,7 +163,7 @@ internal sealed class CommandBuilder
         errorConsole.Profile.Out = new AnsiConsoleOutput(stdErrWriter);
         errorConsole.Profile.Width = 10_000;
 
-        var console = new NitroConsole(testConsole, errorConsole);
+        var console = new NitroConsole(testConsole, errorConsole, _environmentVariableProviderMock.Object);
 
         _services.AddSingleton<INitroConsole>(console);
 

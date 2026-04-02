@@ -29,10 +29,10 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
             """
             Description:
               Publish a schema version to a stage.
-            
+
             Usage:
               nitro schema publish [options]
-            
+
             Options:
               --api-id <api-id> (REQUIRED)  The ID of the API [env: NITRO_API_ID]
               --tag <tag> (REQUIRED)        The tag of the schema version to deploy [env: NITRO_TAG]
@@ -50,6 +50,37 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : ICl
                 --tag "v1" \
                 --stage "dev"
             """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ForceAndWaitForApproval_ReturnsError(InteractionMode mode)
+    {
+        // arrange & act
+        var result = await new CommandBuilder(fixture)
+            .AddApiKey()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "schema",
+                "publish",
+                "--api-id",
+                DefaultApiId,
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--force",
+                "--wait-for-approval")
+            .ExecuteAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The '--force' and '--wait-for-approval' options are mutually exclusive.
+            """);
+        Assert.Equal(1, result.ExitCode);
     }
 
     [Theory]

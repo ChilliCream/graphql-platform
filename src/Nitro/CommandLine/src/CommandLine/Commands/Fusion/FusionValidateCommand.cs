@@ -24,7 +24,7 @@ internal sealed class FusionValidateCommand : Command
 {
     public FusionValidateCommand() : base("validate")
     {
-        Description = "Validate the composed GraphQL schema of a Fusion configuration against a stage.";
+        Description = "Validate a Fusion configuration against a stage.";
 
         Options.Add(Opt<ApiIdOption>.Instance);
         Options.Add(Opt<StageNameOption>.Instance);
@@ -43,12 +43,12 @@ internal sealed class FusionValidateCommand : Command
             if (exclusiveOptionsCount > 1)
             {
                 result.AddError(
-                    $"You can only specify one of: '{OptionalSourceSchemaFileListOption.OptionName}' or '{FusionArchiveFileOption.OptionName}'.");
+                    $"The options '{OptionalSourceSchemaFileListOption.OptionName}' and '{FusionArchiveFileOption.OptionName}' are mutually exclusive.");
             }
             else if (exclusiveOptionsCount < 1)
             {
                 result.AddError(
-                    $"You need to specify one of: '{OptionalSourceSchemaFileListOption.OptionName}' or '{FusionArchiveFileOption.OptionName}'.");
+                    $"Missing one of the required options '{OptionalSourceSchemaFileListOption.OptionName}' or '{FusionArchiveFileOption.OptionName}'.");
             }
         });
 

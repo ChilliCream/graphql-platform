@@ -1,5 +1,6 @@
 
 using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 #if !NET9_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
@@ -37,7 +38,11 @@ public static class Program
         });
 
         services
-            .AddSingleton<INitroConsole>(new NitroConsole(AnsiConsole.Console, errorConsole));
+            .AddSingleton<INitroConsole>(sp =>
+                new NitroConsole(
+                    AnsiConsole.Console,
+                    errorConsole,
+                    sp.GetRequiredService<IEnvironmentVariableProvider>()));
 
         await using var provider = services.BuildServiceProvider();
 

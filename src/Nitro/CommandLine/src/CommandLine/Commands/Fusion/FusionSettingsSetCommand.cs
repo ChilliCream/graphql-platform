@@ -45,6 +45,7 @@ internal sealed class FusionSettingsSetCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
+        var environmentVariables = services.GetRequiredService<IEnvironmentVariableProvider>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var settingName = parseResult.GetRequiredValue(Opt<FusionSettingsNameArgument>.Instance);
@@ -108,7 +109,7 @@ internal sealed class FusionSettingsSetCommand : Command
 
         using var archive = FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update);
 
-        environment ??= Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+        environment ??= environmentVariables.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
 
         var composeResult = await FusionPublishHelpers.ComposeAsync(
             archive,

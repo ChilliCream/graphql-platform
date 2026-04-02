@@ -22,6 +22,18 @@ internal sealed class PublishSchemaCommand : Command
         Options.Add(Opt<OptionalWaitForApprovalOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
+        Validators.Add(result =>
+        {
+            var forceResult = result.GetResult(Opt<ForceOption>.Instance);
+            var waitResult = result.GetResult(Opt<OptionalWaitForApprovalOption>.Instance);
+
+            if (forceResult is { Implicit: false } && waitResult is { Implicit: false })
+            {
+                result.AddError(
+                    "The '--force' and '--wait-for-approval' options are mutually exclusive.");
+            }
+        });
+
         this.AddGlobalNitroOptions();
 
         this.AddExamples(
@@ -134,9 +146,6 @@ internal sealed class PublishSchemaCommand : Command
                                     case ISchemaVersionChangeViolationError e:
                                         console.PrintSchemaVersionChangeViolations(e);
                                         break;
-                                    case ISchemaChangeViolationError e:
-                                        console.PrintSchemaChangeViolations(e);
-                                        break;
                                     case IInvalidGraphQLSchemaError e:
                                         console.PrintGraphQLSchemaErrors(e);
                                         break;
@@ -197,13 +206,18 @@ internal sealed class PublishSchemaCommand : Command
                             break;
 
                         case IWaitForApproval waitForApprovalEvent:
-                            if (waitForApprovalEvent.Deployment is
-                                IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Deployment_SchemaDeployment deployment)
+                            if (waitForApprovalEvent.Deployment is ISchemaDeployment deployment)
                             {
                                 foreach (var error in deployment.Errors)
                                 {
                                     switch (error)
                                     {
+                                        case IOperationsAreNotAllowedError e:
+                                            console.Error.WriteErrorLine(e.Message);
+                                            break;
+                                        case ISchemaVersionSyntaxError e:
+                                            console.Error.WriteErrorLine(e.Message);
+                                            break;
                                         case ISchemaChangeViolationError e:
                                             console.PrintSchemaChangeViolations(e);
                                             break;
@@ -218,15 +232,6 @@ internal sealed class PublishSchemaCommand : Command
                                             break;
                                         case IMcpFeatureCollectionValidationError e:
                                             console.PrintMcpFeatureCollectionValidationErrors(e);
-                                            break;
-                                        case IOperationsAreNotAllowedError e:
-                                            console.Error.WriteErrorLine(e.Message);
-                                            break;
-                                        case ISchemaVersionSyntaxError e:
-                                            console.Error.WriteErrorLine(e.Message);
-                                            break;
-                                        case IError e:
-                                            console.Error.WriteErrorLine("Unexpected error: " + e.Message);
                                             break;
                                     }
                                 }

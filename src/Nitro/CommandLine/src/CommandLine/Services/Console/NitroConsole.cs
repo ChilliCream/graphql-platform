@@ -1,3 +1,4 @@
+using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using Spectre.Console.Rendering;
 
@@ -5,7 +6,8 @@ namespace ChilliCream.Nitro.CommandLine;
 
 internal sealed class NitroConsole(
     IAnsiConsole console,
-    IAnsiConsole errorConsole)
+    IAnsiConsole errorConsole,
+    IEnvironmentVariableProvider environmentVariables)
     : INitroConsole
 {
     private OutputFormat? _outputFormat;
@@ -70,9 +72,9 @@ internal sealed class NitroConsole(
 
     public RenderPipeline Pipeline => console.Pipeline;
 
-    private static bool IsNonInteractiveEnvironment()
+    private bool IsNonInteractiveEnvironment()
     {
-        var value = Environment.GetEnvironmentVariable("NITRO_NON_INTERACTIVE");
+        var value = environmentVariables.GetEnvironmentVariable("NITRO_NON_INTERACTIVE");
         return value is "1" or "true";
     }
 }

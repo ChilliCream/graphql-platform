@@ -21,6 +21,18 @@ internal sealed class PublishClientCommand : Command
         Options.Add(Opt<OptionalWaitForApprovalOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
+        Validators.Add(result =>
+        {
+            var forceResult = result.GetResult(Opt<ForceOption>.Instance);
+            var waitResult = result.GetResult(Opt<OptionalWaitForApprovalOption>.Instance);
+
+            if (forceResult is { Implicit: false } && waitResult is { Implicit: false })
+            {
+                result.AddError(
+                    "The '--force' and '--wait-for-approval' options are mutually exclusive.");
+            }
+        });
+
         this.AddGlobalNitroOptions();
 
         this.AddExamples(
@@ -173,8 +185,7 @@ internal sealed class PublishClientCommand : Command
                             break;
 
                         case IWaitForApproval waitForApprovalEvent:
-                            if (waitForApprovalEvent.Deployment is
-                                IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_ClientDeployment deployment)
+                            if (waitForApprovalEvent.Deployment is IClientDeployment deployment)
                             {
                                 foreach (var error in deployment.Errors)
                                 {
@@ -182,9 +193,6 @@ internal sealed class PublishClientCommand : Command
                                     {
                                         case IPersistedQueryValidationError e:
                                             console.PrintPersistedQueryValidationErrors(e);
-                                            break;
-                                        case IError e:
-                                            console.Error.WriteErrorLine("Unexpected error: " + e.Message);
                                             break;
                                     }
                                 }

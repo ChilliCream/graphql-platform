@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
@@ -16,6 +15,8 @@ internal static class RootCommandExtensions
         InvocationConfiguration? invocationConfiguration,
         CancellationToken cancellationToken)
     {
+        CommandExecutionContext.Services.Value = new CommandServices(services);
+
         var console = services.GetRequiredService<INitroConsole>();
 
         // Parse command
@@ -40,7 +41,6 @@ internal static class RootCommandExtensions
         ConfigureClientContext(context, parseResult, session);
 
         // Execute command
-        CommandExecutionContext.Services.Value = new CommandServices(services);
         var exitCode = await parseResult.InvokeAsync(invocationConfiguration, cancellationToken);
 
         // Print result

@@ -29,10 +29,10 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             """
             Description:
               Publish an OpenAPI collection version to a stage.
-            
+
             Usage:
               nitro openapi publish [options]
-            
+
             Options:
               --openapi-collection-id <openapi-collection-id> (REQUIRED)  The ID of the OpenAPI collection [env: NITRO_OPENAPI_COLLECTION_ID]
               --tag <tag> (REQUIRED)                                      The tag of the schema version to deploy [env: NITRO_TAG]
@@ -50,6 +50,37 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
                 --stage "dev" \
                 --tag "v1"
             """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ForceAndWaitForApproval_ReturnsError(InteractionMode mode)
+    {
+        // arrange & act
+        var result = await new CommandBuilder(fixture)
+            .AddApiKey()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "openapi",
+                "publish",
+                "--openapi-collection-id",
+                DefaultOpenApiCollectionId,
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--force",
+                "--wait-for-approval")
+            .ExecuteAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The '--force' and '--wait-for-approval' options are mutually exclusive.
+            """);
+        Assert.Equal(1, result.ExitCode);
     }
 
     [Fact]

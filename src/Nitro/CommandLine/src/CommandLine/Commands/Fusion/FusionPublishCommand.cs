@@ -25,15 +25,7 @@ internal sealed class FusionPublishCommand : Command
 {
     public FusionPublishCommand() : base("publish")
     {
-        Description = "Publish a Fusion archive to Nitro."
-            + Environment.NewLine
-            + "To take control over the deployment orchestration use sub-commands like 'begin'."
-            + Environment.NewLine
-            + $"If you don't specify {FusionArchiveFileOption.OptionName} and instead use "
-            + $"{OptionalSourceSchemaIdentifierListOption.OptionName} or {OptionalSourceSchemaFileListOption.OptionName}, "
-            + "a Fusion v2 composition will be performed internally."
-            + Environment.NewLine
-            + "The orchestration sub-commands can be used for both Fusion v1 and v2.";
+        Description = "Publish a Fusion configuration to a stage.";
 
         Subcommands.Add(new FusionConfigurationPublishBeginCommand());
         Subcommands.Add(new FusionConfigurationPublishStartCommand());
@@ -47,6 +39,7 @@ internal sealed class FusionPublishCommand : Command
         Options.Add(Opt<OptionalSourceSchemaIdentifierListOption>.Instance);
         Options.Add(Opt<OptionalSourceSchemaFileListOption>.Instance);
         Options.Add(Opt<OptionalFusionArchiveFileOption>.Instance);
+        Options.Add(Opt<OptionalWaitForApprovalOption>.Instance);
         Options.Add(Opt<WorkingDirectoryOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
@@ -64,13 +57,13 @@ internal sealed class FusionPublishCommand : Command
             if (exclusiveOptionsCount > 1)
             {
                 result.AddError(
-                    $"You can only specify one of: '{OptionalSourceSchemaIdentifierListOption.OptionName}', "
-                    + $"'{OptionalSourceSchemaFileListOption.OptionName}', or '{FusionArchiveFileOption.OptionName}'.");
+                    $"The options '{OptionalSourceSchemaIdentifierListOption.OptionName}', "
+                    + $"'{OptionalSourceSchemaFileListOption.OptionName}', and '{FusionArchiveFileOption.OptionName}' are mutually exclusive.");
             }
             else if (exclusiveOptionsCount < 1)
             {
                 result.AddError(
-                    $"You need to specify one of: '{OptionalSourceSchemaIdentifierListOption.OptionName}', "
+                    $"Missing one of the required options '{OptionalSourceSchemaIdentifierListOption.OptionName}', "
                     + $"'{OptionalSourceSchemaFileListOption.OptionName}', or '{FusionArchiveFileOption.OptionName}'.");
             }
         });
@@ -105,6 +98,7 @@ internal sealed class FusionPublishCommand : Command
             parseResult.GetValue(Opt<OptionalSourceSchemaIdentifierListOption>.Instance) ?? [];
         var archiveFile =
             parseResult.GetValue(Opt<OptionalFusionArchiveFileOption>.Instance);
+        var waitForApproval = parseResult.GetValue(Opt<OptionalWaitForApprovalOption>.Instance);
         var stageName = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
         var apiId = parseResult.GetValue(Opt<ApiIdOption>.Instance)!;
         var tag = parseResult.GetValue(Opt<TagOption>.Instance)!;
@@ -124,6 +118,7 @@ internal sealed class FusionPublishCommand : Command
                 stageName,
                 tag,
                 archiveFile,
+                waitForApproval,
                 source,
                 console,
                 fileSystem,
@@ -223,9 +218,9 @@ internal sealed class FusionPublishCommand : Command
             newSourceSchemas,
             sourceSchemaVersions,
             compositionSettings: null,
+            waitForApproval,
             source,
             console,
-            fileSystem,
             client,
             cancellationToken);
     }
@@ -235,6 +230,7 @@ internal sealed class FusionPublishCommand : Command
         string stageName,
         string tag,
         string archiveFilePath,
+        bool waitForApproval,
         SourceMetadata? source,
         INitroConsole console,
         IFileSystem fileSystem,
@@ -261,7 +257,7 @@ internal sealed class FusionPublishCommand : Command
                         subgraphId: null,
                         subgraphName: null,
                         sourceSchemaVersions: null,
-                        waitForApproval: false,
+                        waitForApproval,
                         source,
                         beginChild,
                         console,
@@ -324,9 +320,9 @@ internal sealed class FusionPublishCommand : Command
         Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas,
         SourceSchemaVersion[] sourceSchemaVersions,
         CompositionSettings? compositionSettings,
+        bool waitForApproval,
         SourceMetadata? source,
         INitroConsole console,
-        IFileSystem fileSystem,
         IFusionConfigurationClient client,
         CancellationToken cancellationToken)
     {
@@ -351,7 +347,7 @@ internal sealed class FusionPublishCommand : Command
                         subgraphId: null,
                         subgraphName: null,
                         sourceSchemaVersions,
-                        waitForApproval: false,
+                        waitForApproval,
                         source,
                         beginChild,
                         console,
@@ -377,21 +373,11 @@ internal sealed class FusionPublishCommand : Command
                     $"Downloading existing configuration from '{stageName}'",
                     "Failed to download the existing Fusion configuration."))
                 {
-                    try
-                    {
-                        existingArchiveStream = await client.DownloadLatestFusionArchiveAsync(
-                            apiId,
-                            stageName,
-                            WellKnownVersions.LatestGatewayFormatVersion.ToString(),
-                            cancellationToken);
-                    }
-                    catch (HttpRequestException ex) when (ex.StatusCode is HttpStatusCode.BadRequest)
-                    {
-                        existingArchiveStream = await client.DownloadLatestLegacyFusionArchiveAsync(
-                            apiId,
-                            stageName,
-                            cancellationToken);
-                    }
+                    existingArchiveStream = await client.DownloadLatestFusionArchiveAsync(
+                        apiId,
+                        stageName,
+                        WellKnownVersions.LatestGatewayFormatVersion.ToString(),
+                        cancellationToken);
 
                     if (existingArchiveStream is null)
                     {

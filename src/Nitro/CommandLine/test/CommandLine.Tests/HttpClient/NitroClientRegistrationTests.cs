@@ -12,6 +12,7 @@ using ChilliCream.Nitro.Client.PersonalAccessTokens;
 using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.Client.Workspaces;
+using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,85 +24,6 @@ namespace ChilliCream.Nitro.CommandLine.Tests.HttpClient;
 
 public class NitroClientRegistrationTests
 {
-    private static async Task<ServiceProvider> BuildAndExecuteAsync(
-        string[] args,
-        Session? session = null)
-    {
-        var services = new ServiceCollection();
-        services.AddNitroServices();
-
-        var sessionMock = new Mock<ISessionService>();
-        sessionMock
-            .Setup(x => x.LoadSessionAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(session);
-        sessionMock.SetupGet(x => x.Session).Returns(session);
-        services.Replace(ServiceDescriptor.Singleton(sessionMock.Object));
-
-        services
-            .AddSingleton<IApisClient>(Mock.Of<IApisClient>())
-            .AddSingleton<IApiKeysClient>(Mock.Of<IApiKeysClient>())
-            .AddSingleton<IClientsClient>(Mock.Of<IClientsClient>())
-            .AddSingleton<IEnvironmentsClient>(Mock.Of<IEnvironmentsClient>())
-            .AddSingleton<IFusionConfigurationClient>(Mock.Of<IFusionConfigurationClient>())
-            .AddSingleton<IMcpClient>(Mock.Of<IMcpClient>())
-            .AddSingleton<IMocksClient>(Mock.Of<IMocksClient>())
-            .AddSingleton<IOpenApiClient>(Mock.Of<IOpenApiClient>())
-            .AddSingleton<IPersonalAccessTokensClient>(Mock.Of<IPersonalAccessTokensClient>())
-            .AddSingleton<ISchemasClient>(Mock.Of<ISchemasClient>())
-            .AddSingleton<IStagesClient>(Mock.Of<IStagesClient>())
-            .AddSingleton<IWorkspacesClient>(Mock.Of<IWorkspacesClient>());
-
-        services.AddSingleton<NitroClientContext>();
-        services.AddSingleton<INitroClientContextProvider>(
-            sp => sp.GetRequiredService<NitroClientContext>());
-        services.AddNitroClients();
-
-        var testConsole = new TestConsole();
-        var errorConsole = new TestConsole();
-        services.AddSingleton<INitroConsole>(
-            new NitroConsole(testConsole, errorConsole));
-
-        var provider = services.BuildServiceProvider();
-        var rootCommand = new NitroRootCommand();
-
-        var probeCommand = new Command("__probe");
-        probeCommand.AddGlobalNitroOptions();
-        probeCommand.SetAction((_, _) => Task.FromResult(0));
-        rootCommand.Add(probeCommand);
-
-        var invocationConfig = new InvocationConfiguration
-        {
-            Output = TextWriter.Null,
-            Error = TextWriter.Null
-        };
-
-        await rootCommand.ExecuteAsync(
-            ["__probe", ..args], provider, invocationConfig, CancellationToken.None);
-
-        return provider;
-    }
-
-    private static System.Net.Http.HttpClient CreateApiClient(ServiceProvider provider)
-    {
-        var factory = provider.GetRequiredService<IHttpClientFactory>();
-        return factory.CreateClient(ApiClient.ClientName);
-    }
-
-    private static Session CreateSessionWithTokens(
-        string apiUrl = "api.chillicream.com",
-        string accessToken = "test-access-token")
-    {
-        return new Session(
-            "session-1",
-            "subject-1",
-            "tenant-1",
-            "https://id.chillicream.com",
-            apiUrl,
-            "user@chillicream.com",
-            new Tokens(accessToken, "id-token", "refresh-token", DateTimeOffset.UtcNow.AddHours(1)),
-            workspace: null);
-    }
-
     [Fact]
     public async Task ExecuteAsync_Should_ConfigureApiKeyAuth_When_ApiKeyOptionProvided()
     {
@@ -196,5 +118,84 @@ public class NitroClientRegistrationTests
 
         // Act & Assert
         Assert.Throws<InvalidOperationException>(() => CreateApiClient(provider));
+    }
+
+    private static async Task<ServiceProvider> BuildAndExecuteAsync(
+        string[] args,
+        Session? session = null)
+    {
+        var services = new ServiceCollection();
+        services.AddNitroServices();
+
+        var sessionMock = new Mock<ISessionService>();
+        sessionMock
+            .Setup(x => x.LoadSessionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
+        sessionMock.SetupGet(x => x.Session).Returns(session);
+        services.Replace(ServiceDescriptor.Singleton(sessionMock.Object));
+
+        services
+            .AddSingleton<IApisClient>(Mock.Of<IApisClient>())
+            .AddSingleton<IApiKeysClient>(Mock.Of<IApiKeysClient>())
+            .AddSingleton<IClientsClient>(Mock.Of<IClientsClient>())
+            .AddSingleton<IEnvironmentsClient>(Mock.Of<IEnvironmentsClient>())
+            .AddSingleton<IFusionConfigurationClient>(Mock.Of<IFusionConfigurationClient>())
+            .AddSingleton<IMcpClient>(Mock.Of<IMcpClient>())
+            .AddSingleton<IMocksClient>(Mock.Of<IMocksClient>())
+            .AddSingleton<IOpenApiClient>(Mock.Of<IOpenApiClient>())
+            .AddSingleton<IPersonalAccessTokensClient>(Mock.Of<IPersonalAccessTokensClient>())
+            .AddSingleton<ISchemasClient>(Mock.Of<ISchemasClient>())
+            .AddSingleton<IStagesClient>(Mock.Of<IStagesClient>())
+            .AddSingleton<IWorkspacesClient>(Mock.Of<IWorkspacesClient>());
+
+        services.AddSingleton<NitroClientContext>();
+        services.AddSingleton<INitroClientContextProvider>(
+            sp => sp.GetRequiredService<NitroClientContext>());
+        services.AddNitroClients();
+
+        var testConsole = new TestConsole();
+        var errorConsole = new TestConsole();
+        services.AddSingleton<INitroConsole>(
+            new NitroConsole(testConsole, errorConsole, new EnvironmentVariableProvider()));
+
+        var provider = services.BuildServiceProvider();
+        var rootCommand = new NitroRootCommand();
+
+        var probeCommand = new Command("__probe");
+        probeCommand.AddGlobalNitroOptions();
+        probeCommand.SetAction((_, _) => Task.FromResult(0));
+        rootCommand.Add(probeCommand);
+
+        var invocationConfig = new InvocationConfiguration
+        {
+            Output = TextWriter.Null,
+            Error = TextWriter.Null
+        };
+
+        await rootCommand.ExecuteAsync(
+            ["__probe", ..args], provider, invocationConfig, CancellationToken.None);
+
+        return provider;
+    }
+
+    private static System.Net.Http.HttpClient CreateApiClient(ServiceProvider provider)
+    {
+        var factory = provider.GetRequiredService<IHttpClientFactory>();
+        return factory.CreateClient(ApiClient.ClientName);
+    }
+
+    private static Session CreateSessionWithTokens(
+        string apiUrl = "api.chillicream.com",
+        string accessToken = "test-access-token")
+    {
+        return new Session(
+            "session-1",
+            "subject-1",
+            "tenant-1",
+            "https://id.chillicream.com",
+            apiUrl,
+            "user@chillicream.com",
+            new Tokens(accessToken, "id-token", "refresh-token", DateTimeOffset.UtcNow.AddHours(1)),
+            workspace: null);
     }
 }

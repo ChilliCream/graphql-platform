@@ -29,10 +29,10 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             """
             Description:
               Publish a client version to a stage.
-            
+
             Usage:
               nitro client publish [options]
-            
+
             Options:
               --client-id <client-id> (REQUIRED)  The ID of the client [env: NITRO_CLIENT_ID]
               --tag <tag> (REQUIRED)              The tag of the schema version to deploy [env: NITRO_TAG]
@@ -50,6 +50,37 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
                 --tag "v1" \
                 --stage "dev"
             """);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ForceAndWaitForApproval_ReturnsError(InteractionMode mode)
+    {
+        // arrange & act
+        var result = await new CommandBuilder(fixture)
+            .AddApiKey()
+            .AddInteractionMode(mode)
+            .AddArguments(
+                "client",
+                "publish",
+                "--client-id",
+                DefaultClientId,
+                "--tag",
+                DefaultTag,
+                "--stage",
+                DefaultStage,
+                "--force",
+                "--wait-for-approval")
+            .ExecuteAsync();
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The '--force' and '--wait-for-approval' options are mutually exclusive.
+            """);
+        Assert.Equal(1, result.ExitCode);
     }
 
     [Theory]
@@ -695,7 +726,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             │   ├── Your request is being processed.
             │   └── ✓ Published successfully.
             └── ✓ Published new client version 'v1.0' to stage 'production'.
-            
+
             {
               "stage": "production",
               "status": "success"
@@ -745,7 +776,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             │   ├── Your request is being processed.
             │   └── ✓ Published successfully.
             └── ✓ Published new client version 'v1.0' to stage 'production'.
-            
+
             {
               "stage": "production",
               "status": "success"
@@ -852,7 +883,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             │   ├── Your request is being processed.
             │   └── ✓ Published successfully.
             └── ✓ Published new client version 'v1.0' to stage 'production'.
-            
+
             {
               "stage": "production",
               "status": "success"
@@ -940,7 +971,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             ├── Processing
             │   └── ✓ Published successfully.
             └── ✓ Published new client version 'v1.0' to stage 'production'.
-            
+
             {
               "stage": "production",
               "status": "success"
@@ -1123,7 +1154,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             ├── Processing
             │   └── ✓ Published successfully.
             └── ✓ Published new client version 'v1.0' to stage 'production'.
-            
+
             {
               "stage": "production",
               "status": "success"

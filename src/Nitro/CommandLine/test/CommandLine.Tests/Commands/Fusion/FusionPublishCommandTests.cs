@@ -29,10 +29,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : ICl
         result.AssertHelpOutput(
             """
             Description:
-              Publish a Fusion archive to Nitro.
-              To take control over the deployment orchestration use sub-commands like 'begin'.
-              If you don't specify --archive and instead use --source-schema or --source-schema-file, a Fusion v2 composition will be performed internally.
-              The orchestration sub-commands can be used for both Fusion v1 and v2.
+              Publish a Fusion configuration to a stage.
 
             Usage:
               nitro fusion publish [command] [options]
@@ -44,6 +41,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : ICl
               -s, --source-schema <source-schema>            One or more source schemas that should be included in the composition. Source schemas can either be just a name ('example') or a name and a version ('example@1.0.0'). If no version is specified the value of the '--tag' option is taken as the source schema version.
               -f, --source-schema-file <source-schema-file>  One or more paths to a source schema file (.graphqls) or directory containing a source schema file
               -a, --archive, --configuration <archive>       The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
+              --wait-for-approval                            Wait for the deployment to be approved before completing [env: NITRO_WAIT_FOR_APPROVAL]
               -w, --working-directory <working-directory>    Set the working directory for the command
               --cloud-url <cloud-url>                        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
               --api-key <api-key>                            The API key used for authentication [env: NITRO_API_KEY]
@@ -91,7 +89,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : ICl
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            You need to specify one of: '--source-schema', '--source-schema-file', or '--archive'.
+            Missing one of the required options '--source-schema', '--source-schema-file', or '--archive'.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -124,7 +122,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : ICl
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            You can only specify one of: '--source-schema', '--source-schema-file', or '--archive'.
+            The options '--source-schema', '--source-schema-file', and '--archive' are mutually exclusive.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -361,7 +359,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : ICl
             Publishing Fusion configuration to stage 'production' of API 'api-1'
             ├── Requesting deployment slot
             │   ├── Request ID: request-123
-            │   ├── Deployment slot ready.
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -411,7 +408,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : ICl
             ├── Requesting deployment slot
             │   ├── Request ID: request-123
             │   ├── Queued at position 3.
-            │   ├── Deployment slot ready.
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -457,7 +453,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : ICl
             Publishing Fusion configuration to stage 'production' of API 'api-1'
             ├── Requesting deployment slot
             │   ├── Request ID: request-123
-            │   ├── Deployment slot ready.
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -519,7 +514,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : ICl
             Publishing Fusion configuration to stage 'production' of API 'api-1'
             ├── Requesting deployment slot
             │   ├── Request ID: request-123
-            │   ├── Deployment slot ready.
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
