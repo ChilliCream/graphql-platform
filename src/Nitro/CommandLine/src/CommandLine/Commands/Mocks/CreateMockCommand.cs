@@ -24,6 +24,16 @@ internal sealed class CreateMockCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples(
+            """
+            mock create \
+              --schema "./schema.graphqls" \
+              --url "https://example.com/graphql" \
+              --extension "./extension.graphql" \
+              --name "my-mock" \
+              --api-id "<api-id>"
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

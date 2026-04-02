@@ -25,6 +25,9 @@ public sealed class LogoutCommandTests(NitroCommandFixture fixture) : IClassFixt
 
             Options:
               -?, -h, --help  Show help and usage information
+
+            Example:
+              nitro logout
             """);
     }
 

@@ -31,6 +31,14 @@ internal sealed class FusionUploadCommand : Command
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
         this.AddGlobalNitroOptions();
 
+        this.AddExamples(
+            """
+            fusion upload \
+              --api-id "<api-id>" \
+              --tag "v1" \
+              --source-schema-file ./products/schema.graphqls
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

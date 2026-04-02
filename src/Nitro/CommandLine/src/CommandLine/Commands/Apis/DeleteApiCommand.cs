@@ -21,6 +21,8 @@ internal sealed class DeleteApiCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples("api delete \"<api-id>\"");
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

@@ -50,6 +50,12 @@ public sealed class FusionConfigurationPublishBeginCommandTests(NitroCommandFixt
               --api-key <api-key>           The API key used for authentication [env: NITRO_API_KEY]
               --output <json>               The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                Show help and usage information
+
+            Example:
+              nitro fusion publish begin \
+                --api-id "<api-id>" \
+                --tag "v1" \
+                --stage "dev"
             """);
     }
 

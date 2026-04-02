@@ -23,6 +23,14 @@ internal sealed class PublishClientCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples(
+            """
+            client publish \
+              --client-id "<client-id>" \
+              --tag "v1" \
+              --stage "dev"
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

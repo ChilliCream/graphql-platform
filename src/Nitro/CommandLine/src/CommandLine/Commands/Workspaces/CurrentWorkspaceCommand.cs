@@ -12,6 +12,8 @@ internal sealed class CurrentWorkspaceCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples("workspace current");
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

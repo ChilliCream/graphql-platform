@@ -23,6 +23,8 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples("openapi delete \"<openapi-collection-id>\"");
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

@@ -40,17 +40,59 @@ public sealed class FusionMigrateCommandTests(NitroCommandFixture fixture) : ICl
               --api-key <api-key>                          The API key used for authentication [env: NITRO_API_KEY]
               --output <json>                              The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                               Show help and usage information
+
+            Example:
+              nitro fusion migrate subgraph-config
             """);
     }
 
-    [Theory]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task MissingRequiredOptions_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task MissingRequiredOptions_ReturnsError_NonInteractive()
     {
         // arrange & act
         var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "fusion",
+                "migrate")
+            .ExecuteAsync();
+
+        // assert
+        var output = result.StdOut.Replace(result.ExecutableName, "nitro");
+        output.MatchInlineSnapshot(
+            """
+            Description:
+              Migrate Fusion configuration files.
+
+            Usage:
+              nitro fusion migrate <TARGET> [options]
+
+            Arguments:
+              <subgraph-config>  The migration target
+
+            Options:
+              -w, --working-directory <working-directory>  Set the working directory for the command
+              --cloud-url <cloud-url>                      The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>                          The API key used for authentication [env: NITRO_API_KEY]
+              --output <json>                              The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                               Show help and usage information
+
+            Example:
+              nitro fusion migrate subgraph-config
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Required argument missing for command: 'migrate'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task MissingRequiredOptions_ReturnsError_JsonOutput()
+    {
+        // arrange & act
+        var result = await new CommandBuilder(fixture)
+            .AddInteractionMode(InteractionMode.JsonOutput)
             .AddArguments(
                 "fusion",
                 "migrate")

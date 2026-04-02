@@ -52,6 +52,15 @@ internal sealed class FusionValidateCommand : Command
             }
         });
 
+        this.AddExamples(
+            """
+            fusion validate \
+              --api-id "<api-id>" \
+              --stage "dev" \
+              --source-schema-file ./products/schema.graphqls \
+              --source-schema-file ./reviews/schema.graphqls
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

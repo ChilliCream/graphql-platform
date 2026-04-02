@@ -23,6 +23,13 @@ internal sealed class SetApiSettingsApiCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples(
+            """
+            api set-settings "<api-id>" \
+              --treat-dangerous-as-breaking \
+              --allow-breaking-schema-changes
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

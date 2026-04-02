@@ -21,6 +21,8 @@ internal sealed class DeleteApiKeyCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples("api-key delete \"<api-key-id>\"");
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

@@ -17,6 +17,8 @@ internal sealed class LoginCommand : Command
         Options.Add(Opt<IdentityCloudUrlOption>.Instance);
         Arguments.Add(Opt<IdentityCloudUrlArgument>.Instance);
 
+        this.AddExamples("login");
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

@@ -23,6 +23,8 @@ internal sealed class DeleteClientCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples("client delete \"<client-id>\"");
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

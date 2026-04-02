@@ -20,6 +20,14 @@ internal sealed class UnpublishClientCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples(
+            """
+            client unpublish \
+              --client-id "<client-id>" \
+              --stage "dev" \
+              --tag "v1"
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

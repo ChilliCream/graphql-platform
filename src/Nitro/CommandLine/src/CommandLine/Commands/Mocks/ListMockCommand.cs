@@ -20,6 +20,8 @@ internal sealed class ListMockCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples("mock list --api-id \"<api-id>\"");
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

@@ -18,6 +18,8 @@ internal sealed class ListPersonalAccessTokenCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples("pat list");
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

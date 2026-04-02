@@ -21,6 +21,8 @@ internal sealed class CreateEnvironmentCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples("environment create --name \"dev\"");
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

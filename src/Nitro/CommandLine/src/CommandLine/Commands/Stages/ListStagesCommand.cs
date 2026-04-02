@@ -20,6 +20,8 @@ internal sealed class ListStagesCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples("stage list --api-id \"<api-id>\"");
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

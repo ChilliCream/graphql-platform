@@ -19,6 +19,8 @@ internal sealed class ListApiCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples("api list");
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

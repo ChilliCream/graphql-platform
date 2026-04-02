@@ -20,6 +20,14 @@ internal sealed class DownloadSchemaCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples(
+            """
+            schema download \
+              --api-id "<api-id>" \
+              --stage "dev" \
+              --file ./schema.graphqls
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

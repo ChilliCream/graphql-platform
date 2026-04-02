@@ -21,6 +21,14 @@ internal sealed class ValidateClientCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples(
+            """
+            client validate \
+              --client-id "<client-id>" \
+              --stage "dev" \
+              --operations-file ./operations.json
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

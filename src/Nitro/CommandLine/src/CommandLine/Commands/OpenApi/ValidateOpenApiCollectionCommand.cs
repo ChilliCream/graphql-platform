@@ -19,6 +19,14 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples(
+            """
+            openapi validate \
+              --openapi-collection-id "<collection-id>" \
+              --stage "dev" \
+              --pattern "./**/*.graphql"
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

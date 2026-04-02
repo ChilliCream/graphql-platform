@@ -20,6 +20,8 @@ internal sealed class ShowClientCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples("client show \"<client-id>\"");
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

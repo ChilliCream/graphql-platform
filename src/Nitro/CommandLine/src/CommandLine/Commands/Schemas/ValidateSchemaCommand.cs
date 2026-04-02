@@ -22,6 +22,14 @@ internal sealed class ValidateSchemaCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples(
+            """
+            schema validate \
+              --api-id "<api-id>" \
+              --stage "dev" \
+              --schema-file ./schema.graphqls
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

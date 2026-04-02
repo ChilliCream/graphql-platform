@@ -43,6 +43,12 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
               --api-key <api-key>                 The API key used for authentication [env: NITRO_API_KEY]
               --output <json>                     The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                      Show help and usage information
+
+            Example:
+              nitro client publish \
+                --client-id "<client-id>" \
+                --tag "v1" \
+                --stage "dev"
             """);
     }
 

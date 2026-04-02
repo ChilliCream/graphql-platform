@@ -35,6 +35,12 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : IC
               --api-key <api-key>           The API key used for authentication [env: NITRO_API_KEY]
               --output <json>               The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                Show help and usage information
+
+            Example:
+              nitro fusion download \
+                --api-id "<api-id>" \
+                --stage "dev" \
+                --output-file ./gateway.far
             """);
     }
 

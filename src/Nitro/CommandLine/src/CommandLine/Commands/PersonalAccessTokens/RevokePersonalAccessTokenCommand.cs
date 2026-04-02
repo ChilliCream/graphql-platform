@@ -21,6 +21,8 @@ internal sealed class RevokePersonalAccessTokenCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples("pat revoke \"<pat-id>\"");
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

@@ -23,6 +23,13 @@ internal sealed class CreateApiKeyCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples(
+            """
+            api-key create \
+              --name "my-api-key" \
+              --api-id "<api-id>"
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

@@ -21,6 +21,15 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples(
+            """
+            mcp upload \
+              --mcp-feature-collection-id "<collection-id>" \
+              --tag "v1" \
+              --prompt-pattern "./prompts/**/*.json" \
+              --tool-pattern "./tools/**/*.graphql"
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

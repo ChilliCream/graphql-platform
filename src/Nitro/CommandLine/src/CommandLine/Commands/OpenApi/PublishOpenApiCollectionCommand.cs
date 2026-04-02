@@ -22,6 +22,14 @@ internal sealed class PublishOpenApiCollectionCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples(
+            """
+            openapi publish \
+              --openapi-collection-id "<collection-id>" \
+              --stage "dev" \
+              --tag "v1"
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

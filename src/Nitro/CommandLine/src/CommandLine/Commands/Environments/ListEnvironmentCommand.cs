@@ -19,6 +19,8 @@ internal sealed class ListEnvironmentCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples("environment list");
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

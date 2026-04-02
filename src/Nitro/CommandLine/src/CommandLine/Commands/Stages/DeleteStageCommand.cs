@@ -22,6 +22,13 @@ internal sealed class DeleteStageCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples(
+            """
+            stage delete \
+              --stage "dev" \
+              --api-id "<api-id>"
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

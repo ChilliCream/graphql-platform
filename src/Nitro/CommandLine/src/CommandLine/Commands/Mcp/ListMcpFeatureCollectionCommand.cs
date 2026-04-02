@@ -20,6 +20,8 @@ internal sealed class ListMcpFeatureCollectionCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples("mcp list --api-id \"<api-id>\"");
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

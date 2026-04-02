@@ -20,6 +20,8 @@ internal sealed class ListClientCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples("client list --api-id \"<api-id>\"");
+
         Subcommands.Add(new ListClientVersionsCommand());
         Subcommands.Add(new ListClientPublishedVersionsCommand());
 

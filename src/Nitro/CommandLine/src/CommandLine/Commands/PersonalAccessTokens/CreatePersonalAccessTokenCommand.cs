@@ -22,6 +22,13 @@ internal sealed class CreatePersonalAccessTokenCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples(
+            """
+            pat create \
+              --description "CI/CD token" \
+              --expires "30"
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

@@ -16,6 +16,8 @@ internal sealed class FusionConfigurationPublishStartCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples("fusion publish start");
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

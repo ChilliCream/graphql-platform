@@ -18,6 +18,8 @@ internal sealed class FusionConfigurationPublishCommitCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples("fusion publish commit --archive ./gateway.far");
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

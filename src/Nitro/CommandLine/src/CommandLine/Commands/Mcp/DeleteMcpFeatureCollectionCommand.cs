@@ -23,6 +23,8 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples("mcp delete \"<mcp-feature-collection-id>\"");
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

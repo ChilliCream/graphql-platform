@@ -16,6 +16,8 @@ internal sealed class FusionMigrateCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples("fusion migrate subgraph-config");
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

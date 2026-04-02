@@ -75,6 +75,16 @@ internal sealed class FusionPublishCommand : Command
             }
         });
 
+        this.AddExamples(
+            """
+            fusion publish \
+              --api-id "<api-id>" \
+              --stage "dev" \
+              --tag "v1" \
+              --source-schema products \
+              --source-schema reviews
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

@@ -22,6 +22,13 @@ internal sealed class CreateClientCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples(
+            """
+            client create \
+              --name "my-client" \
+              --api-id "<api-id>"
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

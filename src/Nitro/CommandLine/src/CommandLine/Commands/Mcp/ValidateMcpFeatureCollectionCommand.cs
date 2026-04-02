@@ -20,6 +20,15 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples(
+            """
+            mcp validate \
+              --mcp-feature-collection-id "<collection-id>" \
+              --stage "dev" \
+              --prompt-pattern "./prompts/**/*.json" \
+              --tool-pattern "./tools/**/*.graphql"
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

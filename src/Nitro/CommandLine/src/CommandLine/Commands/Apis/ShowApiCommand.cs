@@ -20,6 +20,8 @@ internal sealed class ShowApiCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples("api show \"<api-id>\"");
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

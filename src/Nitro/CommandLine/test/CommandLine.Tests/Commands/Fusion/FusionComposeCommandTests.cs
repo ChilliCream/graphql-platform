@@ -49,6 +49,13 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture) : ICl
               --api-key <api-key>                            The API key used for authentication [env: NITRO_API_KEY]
               --output <json>                                The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                 Show help and usage information
+
+            Example:
+              nitro fusion compose \
+                --source-schema-file ./products/schema.graphqls \
+                --source-schema-file ./reviews/schema.graphqls \
+                --archive ./gateway.far \
+                --env "dev"
             """);
     }
 

@@ -24,6 +24,14 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples(
+            """
+            fusion publish begin \
+              --api-id "<api-id>" \
+              --tag "v1" \
+              --stage "dev"
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

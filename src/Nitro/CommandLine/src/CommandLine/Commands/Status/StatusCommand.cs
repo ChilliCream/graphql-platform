@@ -9,6 +9,8 @@ internal sealed class StatusCommand : Command
     {
         Description = "Display the current session status.";
 
+        this.AddExamples("status");
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

@@ -28,6 +28,13 @@ internal sealed class EditStagesCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples(
+            """
+            stage edit \
+              --configuration "[{\"name\":\"dev\",\"displayName\":\"Dev\",\"conditions\":[]}]" \
+              --api-id "<api-id>"
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

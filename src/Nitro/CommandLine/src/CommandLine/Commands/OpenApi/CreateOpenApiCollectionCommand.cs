@@ -22,6 +22,13 @@ internal sealed class CreateOpenApiCollectionCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples(
+            """
+            openapi create \
+              --name "my-collection" \
+              --api-id "<api-id>"
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

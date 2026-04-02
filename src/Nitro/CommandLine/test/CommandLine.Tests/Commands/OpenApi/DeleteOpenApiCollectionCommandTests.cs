@@ -36,6 +36,9 @@ public sealed class DeleteOpenApiCollectionCommandTests(NitroCommandFixture fixt
               --api-key <api-key>      The API key used for authentication [env: NITRO_API_KEY]
               --output <json>          The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help           Show help and usage information
+
+            Example:
+              nitro openapi delete "<openapi-collection-id>"
             """);
     }
 

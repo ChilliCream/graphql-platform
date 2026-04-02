@@ -3,7 +3,6 @@ using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using Moq;
-using static ChilliCream.Nitro.CommandLine.Tests.TestHelpers;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
@@ -57,6 +56,14 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : ICl
               validate  Validate a Fusion configuration against the schema and clients.
               cancel    Cancel a Fusion configuration publish.
               commit    Commit a Fusion configuration publish.
+
+            Example:
+              nitro fusion publish \
+                --api-id "<api-id>" \
+                --stage "dev" \
+                --tag "v1" \
+                --source-schema products \
+                --source-schema reviews
             """);
     }
 

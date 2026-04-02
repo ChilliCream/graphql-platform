@@ -16,6 +16,8 @@ internal sealed class FusionConfigurationPublishCancelCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples("fusion publish cancel");
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

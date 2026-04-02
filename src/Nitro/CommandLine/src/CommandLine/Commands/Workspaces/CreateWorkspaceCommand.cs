@@ -22,6 +22,8 @@ internal sealed class CreateWorkspaceCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples("workspace create --name \"my-workspace\"");
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

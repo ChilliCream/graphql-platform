@@ -21,6 +21,8 @@ internal sealed class ListClientPublishedVersionsCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples("client list published-versions --client-id \"<client-id>\"");
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

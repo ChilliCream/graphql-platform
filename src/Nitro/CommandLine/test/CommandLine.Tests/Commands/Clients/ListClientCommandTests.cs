@@ -38,6 +38,9 @@ public sealed class ListClientCommandTests(NitroCommandFixture fixture) : IClass
             Commands:
                             versions            List all versions of a client.
                             published-versions  List all published versions of a client.
+
+            Example:
+              nitro client list --api-id "<api-id>"
             """);
     }
 

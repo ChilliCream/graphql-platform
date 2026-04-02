@@ -20,6 +20,8 @@ internal sealed class ShowEnvironmentCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples("environment show \"<environment-id>\"");
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

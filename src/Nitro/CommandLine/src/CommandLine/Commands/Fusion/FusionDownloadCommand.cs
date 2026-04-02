@@ -26,6 +26,14 @@ internal sealed class FusionDownloadCommand : Command
         Options.Add(Opt<OptionalOutputFileOption>.Instance);
         this.AddGlobalNitroOptions();
 
+        this.AddExamples(
+            """
+            fusion download \
+              --api-id "<api-id>" \
+              --stage "dev" \
+              --output-file ./gateway.far
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

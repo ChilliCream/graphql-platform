@@ -32,6 +32,9 @@ public sealed class LoginCommandTests(NitroCommandFixture fixture) : IClassFixtu
             Options:
               --cloud-url <cloud-url>  The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: identity.chillicream.com]
               -?, -h, --help           Show help and usage information
+
+            Example:
+              nitro login
             """);
     }
 

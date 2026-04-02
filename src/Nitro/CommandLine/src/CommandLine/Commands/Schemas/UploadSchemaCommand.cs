@@ -22,6 +22,14 @@ internal sealed class UploadSchemaCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples(
+            """
+            schema upload \
+              --api-id "<api-id>" \
+              --tag "v1" \
+              --schema-file ./schema.graphqls
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

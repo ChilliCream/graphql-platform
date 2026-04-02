@@ -22,6 +22,14 @@ internal sealed class DownloadClientCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples(
+            """
+            client download \
+              --api-id "<api-id>" \
+              --stage "dev" \
+              --path ./operations.json
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

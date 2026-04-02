@@ -25,6 +25,9 @@ public sealed class StatusCommandTests(NitroCommandFixture fixture) : IClassFixt
 
             Options:
               -?, -h, --help  Show help and usage information
+
+            Example:
+              nitro status
             """);
     }
 

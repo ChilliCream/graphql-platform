@@ -22,6 +22,13 @@ internal sealed class CreateMcpFeatureCollectionCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples(
+            """
+            mcp create \
+              --name "my-collection" \
+              --api-id "<api-id>"
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

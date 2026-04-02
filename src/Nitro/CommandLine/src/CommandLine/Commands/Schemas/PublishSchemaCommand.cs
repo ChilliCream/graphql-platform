@@ -24,6 +24,14 @@ internal sealed class PublishSchemaCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples(
+            """
+            schema publish \
+              --api-id "<api-id>" \
+              --tag "v1" \
+              --stage "dev"
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

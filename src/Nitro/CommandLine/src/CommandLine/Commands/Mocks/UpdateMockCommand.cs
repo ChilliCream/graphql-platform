@@ -26,6 +26,13 @@ internal sealed class UpdateMockCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples(
+            """
+            mock update "<mock-schema-id>" \
+              --extension "./extension.graphql" \
+              --schema "./schema.graphqls"
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

@@ -18,6 +18,8 @@ internal sealed class ListWorkspaceCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples("workspace list");
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

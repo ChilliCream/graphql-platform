@@ -21,6 +21,8 @@ internal sealed class ListOpenApiCollectionCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples("openapi list --api-id \"<api-id>\"");
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

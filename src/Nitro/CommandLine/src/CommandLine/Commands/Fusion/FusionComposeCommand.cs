@@ -26,6 +26,15 @@ internal sealed class FusionComposeCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples(
+            """
+            fusion compose \
+              --source-schema-file ./products/schema.graphqls \
+              --source-schema-file ./reviews/schema.graphqls \
+              --archive ./gateway.far \
+              --env "dev"
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

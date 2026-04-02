@@ -20,6 +20,8 @@ internal sealed class SetDefaultWorkspaceCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples("workspace set-default");
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

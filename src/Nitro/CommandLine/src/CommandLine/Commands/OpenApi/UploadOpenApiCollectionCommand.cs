@@ -20,6 +20,14 @@ internal sealed class UploadOpenApiCollectionCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples(
+            """
+            openapi upload \
+              --openapi-collection-id "<collection-id>" \
+              --tag "v1" \
+              --pattern "./**/*.graphql"
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

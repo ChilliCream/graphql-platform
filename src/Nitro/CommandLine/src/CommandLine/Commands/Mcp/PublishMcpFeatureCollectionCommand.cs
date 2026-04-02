@@ -22,6 +22,14 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples(
+            """
+            mcp publish \
+              --mcp-feature-collection-id "<collection-id>" \
+              --stage "dev" \
+              --tag "v1"
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

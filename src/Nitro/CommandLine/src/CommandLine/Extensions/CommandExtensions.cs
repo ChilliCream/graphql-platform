@@ -3,6 +3,7 @@ using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
+using static ChilliCream.Nitro.CommandLine.Helpers.CommandExamples;
 
 namespace ChilliCream.Nitro.CommandLine;
 
@@ -70,6 +71,12 @@ internal static class CommandExtensions
             return ExitCodes.Error;
         });
 
+        return command;
+    }
+
+    public static Command AddExamples(this Command command, params string[] examples)
+    {
+        CommandExamples.AddExamples(command, examples);
         return command;
     }
 

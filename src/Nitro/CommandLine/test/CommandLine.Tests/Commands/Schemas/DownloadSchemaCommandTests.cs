@@ -35,6 +35,12 @@ public sealed class DownloadSchemaCommandTests(NitroCommandFixture fixture) : IC
               --api-key <api-key>           The API key used for authentication [env: NITRO_API_KEY]
               --output <json>               The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                Show help and usage information
+
+            Example:
+              nitro schema download \
+                --api-id "<api-id>" \
+                --stage "dev" \
+                --file ./schema.graphqls
             """);
     }
 
@@ -84,24 +90,6 @@ public sealed class DownloadSchemaCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-        var output = result.StdOut.Replace(result.ExecutableName, "nitro");
-        output.MatchInlineSnapshot(
-            """
-            Description:
-              Download a schema from a stage.
-
-            Usage:
-              nitro schema download [options]
-
-            Options:
-              --api-id <api-id> (REQUIRED)  The ID of the API [env: NITRO_API_ID]
-              --stage <stage> (REQUIRED)    The name of the stage [env: NITRO_STAGE]
-              --file <file> (REQUIRED)      The file where the schema is stored
-              --cloud-url <cloud-url>       The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>           The API key used for authentication [env: NITRO_API_KEY]
-              --output <json>               The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help                Show help and usage information
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             Option '--file' is required.

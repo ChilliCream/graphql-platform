@@ -40,17 +40,68 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
               --api-key <api-key>                                  The API key used for authentication [env: NITRO_API_KEY]
               --output <json>                                      The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                                       Show help and usage information
+
+            Example:
+              nitro fusion settings set global-object-identification "true" \
+                --archive ./gateway.far \
+                --env "dev"
             """);
     }
 
-    [Theory]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task MissingRequiredOptions_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task MissingRequiredOptions_ReturnsError_NonInteractive()
     {
         // arrange & act
         var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
+            .AddInteractionMode(InteractionMode.NonInteractive)
+            .AddArguments(
+                "fusion",
+                "settings",
+                "set",
+                "cache-control-merge-behavior",
+                "ignore")
+            .ExecuteAsync();
+
+        // assert
+        var output = result.StdOut.Replace(result.ExecutableName, "nitro");
+        output.MatchInlineSnapshot(
+            """
+            Description:
+              Set a Fusion composition setting in a Fusion archive.
+
+            Usage:
+              nitro fusion settings set <SETTING_NAME> <SETTING_VALUE> [options]
+
+            Arguments:
+              <cache-control-merge-behavior|exclude-by-tag|global-object-identification|tag-merge-behavior>  The name of the setting to change
+              <SETTING_VALUE>                                                                                The value to set
+
+            Options:
+              -a, --archive, --configuration <archive> (REQUIRED)  The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
+              -e, --env, --environment <environment>               The name of the environment used for value substitution in the schema-settings.json files
+              --cloud-url <cloud-url>                              The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
+              --api-key <api-key>                                  The API key used for authentication [env: NITRO_API_KEY]
+              --output <json>                                      The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
+              -?, -h, --help                                       Show help and usage information
+
+            Example:
+              nitro fusion settings set global-object-identification "true" \
+                --archive ./gateway.far \
+                --env "dev"
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Option '--archive' is required.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task MissingRequiredOptions_ReturnsError_JsonOutput()
+    {
+        // arrange & act
+        var result = await new CommandBuilder(fixture)
+            .AddInteractionMode(InteractionMode.JsonOutput)
             .AddArguments(
                 "fusion",
                 "settings",

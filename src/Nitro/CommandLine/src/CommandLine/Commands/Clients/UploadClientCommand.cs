@@ -22,6 +22,14 @@ internal sealed class UploadClientCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples(
+            """
+            client upload \
+              --client-id "<client-id>" \
+              --tag "v1" \
+              --operations-file ./operations.json
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

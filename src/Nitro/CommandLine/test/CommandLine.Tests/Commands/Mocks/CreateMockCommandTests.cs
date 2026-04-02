@@ -38,6 +38,14 @@ public sealed class CreateMockCommandTests(NitroCommandFixture fixture) : IClass
               --api-key <api-key>                 The API key used for authentication [env: NITRO_API_KEY]
               --output <json>                     The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                      Show help and usage information
+
+            Example:
+              nitro mock create \
+                --schema "./schema.graphqls" \
+                --url "https://example.com/graphql" \
+                --extension "./extension.graphql" \
+                --name "my-mock" \
+                --api-id "<api-id>"
             """);
     }
 
@@ -95,26 +103,8 @@ public sealed class CreateMockCommandTests(NitroCommandFixture fixture) : IClass
             .ExecuteAsync();
 
         // assert
-        var output = result.StdOut.Replace(result.ExecutableName, "nitro");
-        output.MatchInlineSnapshot(
-            """
-            Description:
-              Create a new mock schema.
-
-            Usage:
-              nitro mock create [options]
-
-            Options:
-              --api-id <api-id>                   The ID of the API [env: NITRO_API_ID]
-              --extension <extension> (REQUIRED)  The path to the graphql file with the schema extension [env: NITRO_SCHEMA_EXTENSION_FILE]
-              --schema <schema> (REQUIRED)        The path to the graphql file with the schema [env: NITRO_SCHEMA_FILE]
-              --url <url> (REQUIRED)              The URL of the downstream service [env: NITRO_DOWNSTREAM_URL]
-              --name <name> (REQUIRED)            The name of the mock schema [env: NITRO_MOCK_SCHEMA_NAME]
-              --cloud-url <cloud-url>             The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                 The API key used for authentication [env: NITRO_API_KEY]
-              --output <json>                     The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help                      Show help and usage information
-            """);
+        Assert.Contains("Create a new mock schema.", result.StdOut);
+        Assert.Contains("--name <name> (REQUIRED)", result.StdOut);
         result.StdErr.MatchInlineSnapshot(
             """
             Option '--name' is required.

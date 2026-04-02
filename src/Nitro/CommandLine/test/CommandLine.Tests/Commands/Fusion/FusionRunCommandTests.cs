@@ -32,6 +32,9 @@ public sealed class FusionRunCommandTests(NitroCommandFixture fixture) : IClassF
             Options:
               -p, --port <port>  The port the gateway will listen on
               -?, -h, --help     Show help and usage information
+
+            Example:
+              nitro fusion run ./gateway.far --port 5000
             """);
     }
 

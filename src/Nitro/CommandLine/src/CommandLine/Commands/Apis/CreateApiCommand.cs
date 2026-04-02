@@ -24,6 +24,11 @@ internal sealed class CreateApiCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples(
+            """
+            api create --name "my-api"
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

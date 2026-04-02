@@ -20,6 +20,8 @@ internal sealed class ShowWorkspaceCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples("workspace show \"<workspace-id>\"");
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 

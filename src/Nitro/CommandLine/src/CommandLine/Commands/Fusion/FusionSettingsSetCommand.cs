@@ -28,6 +28,13 @@ internal sealed class FusionSettingsSetCommand : Command
 
         this.AddGlobalNitroOptions();
 
+        this.AddExamples(
+            """
+            fusion settings set global-object-identification "true" \
+              --archive ./gateway.far \
+              --env "dev"
+            """);
+
         this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
