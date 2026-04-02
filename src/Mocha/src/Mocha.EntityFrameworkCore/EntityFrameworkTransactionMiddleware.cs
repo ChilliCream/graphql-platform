@@ -7,7 +7,8 @@ namespace Mocha.EntityFrameworkCore;
 
 /// <summary>
 /// Mediator middleware that wraps command handling in a database transaction.
-/// Commits on success and rolls back on failure.
+/// Commits on success and rolls back on failure. Handlers are responsible for
+/// calling <see cref="DbContext.SaveChangesAsync(CancellationToken)"/> themselves.
 /// Queries and notifications are excluded by default but can be opted in via
 /// <see cref="MediatorEntityFrameworkOptions.ShouldCreateTransaction"/>.
 /// </summary>
@@ -37,7 +38,6 @@ internal sealed class EntityFrameworkTransactionMiddleware(
                 {
                     await next(context);
 
-                    await dbContext.SaveChangesAsync(ct);
                     await transaction.CommitAsync(ct);
                 }
                 catch
@@ -57,7 +57,6 @@ internal sealed class EntityFrameworkTransactionMiddleware(
             {
                 await next(context);
 
-                await dbContext.SaveChangesAsync(context.CancellationToken);
                 await transaction.CommitAsync(context.CancellationToken);
             }
             catch
