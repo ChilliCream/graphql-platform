@@ -6,7 +6,9 @@ using HotChocolate.Buffers;
 
 namespace HotChocolate.Transport.Http;
 
-internal class SseReader(HttpResponseMessage message) : IAsyncEnumerable<OperationResult>
+internal class SseReader(
+    HttpResponseMessage message,
+    CancellationToken requestCancellationToken = default) : IAsyncEnumerable<OperationResult>
 {
     private static readonly StreamPipeReaderOptions s_options = new(
         pool: MemoryPool<byte>.Shared,
@@ -18,7 +20,9 @@ internal class SseReader(HttpResponseMessage message) : IAsyncEnumerable<Operati
     public async IAsyncEnumerator<OperationResult> GetAsyncEnumerator(
         CancellationToken cancellationToken = default)
     {
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(
+            requestCancellationToken,
+            cancellationToken);
         await using var stream = await message.Content.ReadAsStreamAsync(cts.Token);
         using var eventBuffer = new PooledArrayWriter();
         var reader = PipeReader.Create(stream, s_options);
