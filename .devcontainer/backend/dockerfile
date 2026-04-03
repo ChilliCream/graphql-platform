@@ -40,7 +40,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - \
     && apt-get install -y nodejs
 
 # Install Yarn, update npm, and install Codex CLI
-RUN npm install -g yarn npm@11.12.0 @openai/codex
+RUN npm install -g yarn npm@11.12.0 @openai/codex @github/copilot
 
 # Install Claude Code (as vscode user so it installs to their home directory)
 RUN su - vscode -c "curl -fsSL https://claude.ai/install.sh | bash"
