@@ -206,140 +206,23 @@ internal static class NitroConsoleExtensions
 
     internal static void PrintPersistedQueryValidationErrors(this INitroConsole console, IPersistedQueryValidationError error)
     {
-        console.WarningLine(
-            $"There were errors on client {error.Client?.Name.AsHighlight()} [dim](ID: {error.Client?.Id})[/]");
-
-        console.WriteLine(error.Message);
-
         var node = new Tree("");
-        foreach (var query in error.Queries)
-        {
-            var publishingInfo = query.DeployedTags.Count > 0
-                ? $" [dim](Deployed tags: {string.Join(",", query.DeployedTags)})[/]"
-                : "";
-
-            var queryNode = node.AddNode(
-                $"[red]{query.Message.EscapeMarkup().Replace(query.Hash, $"[bold]{query.Hash}[/]{publishingInfo}")}[/]");
-
-            foreach (var err in query.Errors)
-            {
-                var errorLocation = string.Empty;
-                if (err.Locations is { Count: > 0 } locations)
-                {
-                    errorLocation = $"[grey]({locations[0].Line}:{locations[0].Column})[/]";
-                }
-
-                queryNode.AddNode($"{err.Message.EscapeMarkup()} {errorLocation}");
-            }
-        }
-
+        node.AddPersistedQueryValidationErrors(error);
         console.Write(node);
     }
 
     internal static void PrintOpenApiCollectionValidationErrors(this INitroConsole console, IOpenApiCollectionValidationError error)
     {
-        foreach (var collectionError in error.Collections)
-        {
-            var openApiCollection = collectionError.OpenApiCollection;
-
-            console.WarningLine(
-                $"There were errors in the OpenAPI collection '{openApiCollection?.Name.AsHighlight()}' [dim](ID: {openApiCollection?.Id})[/]");
-
-            var node = new Tree("");
-            foreach (var entity in collectionError.Entities)
-            {
-                var entityNode = node.AddNode(GetEntityNodeHeading(entity));
-
-                foreach (var entityError in entity.Errors)
-                {
-                    if (entityError is IOpenApiCollectionValidationDocumentError documentError)
-                    {
-                        var errorLocation = string.Empty;
-                        if (documentError.Locations is { Count: > 0 } locations)
-                        {
-                            errorLocation = $"[grey]({locations[0].Line}:{locations[0].Column})[/]";
-                        }
-
-                        entityNode.AddNode($"{documentError.Message.EscapeMarkup()} {errorLocation}");
-                    }
-                    else if (entityError is IOpenApiCollectionValidationEntityValidationError entityValidationError)
-                    {
-                        entityNode.AddNode(entityValidationError.Message.EscapeMarkup());
-                    }
-                    else
-                    {
-                        entityNode.AddNode("Unknown error type");
-                    }
-                }
-            }
-
-            console.Write(node);
-        }
-
-        static string GetEntityNodeHeading(IOpenApiCollectionValidationEntity entity)
-        {
-            var heading = entity switch
-            {
-                IOpenApiCollectionValidationEndpoint endpoint => $"Endpoint '{endpoint.HttpMethod} {endpoint.Route}'",
-                IOpenApiCollectionValidationModel model => $"Model '{model.Name}'",
-                _ => "Unknown entity type"
-            };
-
-            return $"[red]{heading}[/]";
-        }
+        var tree = new Tree("");
+        tree.AddOpenApiCollectionValidationErrors(error);
+        console.Write(tree);
     }
 
     internal static void PrintMcpFeatureCollectionValidationErrors(this INitroConsole console, IMcpFeatureCollectionValidationError error)
     {
-        foreach (var collectionError in error.Collections)
-        {
-            var mcpFeatureCollection = collectionError.McpFeatureCollection;
-
-            console.WarningLine(
-                $"There were errors in the MCP Feature Collection '{mcpFeatureCollection?.Name.AsHighlight()}' [dim](ID: {mcpFeatureCollection?.Id})[/]");
-
-            var node = new Tree("");
-            foreach (var entity in collectionError.Entities)
-            {
-                var entityNode = node.AddNode(GetEntityNodeHeading(entity));
-
-                foreach (var entityError in entity.Errors)
-                {
-                    if (entityError is IMcpFeatureCollectionValidationDocumentError documentError)
-                    {
-                        var errorLocation = string.Empty;
-                        if (documentError.Locations is { Count: > 0 } locations)
-                        {
-                            errorLocation = $"[grey]({locations[0].Line}:{locations[0].Column})[/]";
-                        }
-
-                        entityNode.AddNode($"{documentError.Message.EscapeMarkup()} {errorLocation}");
-                    }
-                    else if (entityError is IMcpFeatureCollectionValidationEntityValidationError entityValidationError)
-                    {
-                        entityNode.AddNode(entityValidationError.Message.EscapeMarkup());
-                    }
-                    else
-                    {
-                        entityNode.AddNode("Unknown error type");
-                    }
-                }
-            }
-
-            console.Write(node);
-        }
-
-        static string GetEntityNodeHeading(IMcpFeatureCollectionValidationEntity entity)
-        {
-            var heading = entity switch
-            {
-                IMcpFeatureCollectionValidationPrompt prompt => $"Prompt '{prompt.Name}'",
-                IMcpFeatureCollectionValidationTool tool => $"Tool '{tool.Name}'",
-                _ => "Unknown entity type"
-            };
-
-            return $"[red]{heading}[/]";
-        }
+        var tree = new Tree("");
+        tree.AddMcpFeatureCollectionValidationErrors(error);
+        console.Write(tree);
     }
 
     internal static void PrintGraphQLSchemaErrors(
@@ -352,11 +235,7 @@ internal static class NitroConsoleExtensions
         console.WriteLine(error.Message);
 
         var node = new Tree("");
-        foreach (var query in error.Errors)
-        {
-            node.AddNode($"[red]{query.Message.EscapeMarkup()}[/] [grey]{query.Code}[/]");
-        }
-
+        node.AddGraphQLSchemaErrors(error);
         console.Write(node);
     }
 

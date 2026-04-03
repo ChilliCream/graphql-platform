@@ -37,35 +37,11 @@ internal sealed class FusionPublishCommand : Command
         Options.Add(Opt<OptionalSourceSchemaIdentifierListOption>.Instance);
         Options.Add(Opt<OptionalSourceSchemaFileListOption>.Instance);
         Options.Add(Opt<OptionalFusionArchiveFileOption>.Instance);
-        Options.Add(Opt<OptionalForceOption>.Instance);
         Options.Add(Opt<OptionalWaitForApprovalOption>.Instance);
         Options.Add(Opt<WorkingDirectoryOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
         this.AddGlobalNitroOptions();
-
-        Validators.Add(result =>
-        {
-            var exclusiveOptionsCount = new[]
-            {
-                result.GetValue(Opt<OptionalSourceSchemaFileListOption>.Instance) is { Count: > 0 },
-                result.GetValue(Opt<OptionalSourceSchemaIdentifierListOption>.Instance) is { Count: > 0 },
-                result.GetValue(Opt<OptionalFusionArchiveFileOption>.Instance) is not null
-            }.Count(x => x);
-
-            if (exclusiveOptionsCount > 1)
-            {
-                result.AddError(
-                    $"The options '{OptionalSourceSchemaIdentifierListOption.OptionName}', "
-                    + $"'{OptionalSourceSchemaFileListOption.OptionName}', and '{FusionArchiveFileOption.OptionName}' are mutually exclusive.");
-            }
-            else if (exclusiveOptionsCount < 1)
-            {
-                result.AddError(
-                    $"Missing one of the required options '{OptionalSourceSchemaIdentifierListOption.OptionName}', "
-                    + $"'{OptionalSourceSchemaFileListOption.OptionName}', or '{FusionArchiveFileOption.OptionName}'.");
-            }
-        });
 
         this.AddExamples(
             """
@@ -101,13 +77,32 @@ internal sealed class FusionPublishCommand : Command
         var archiveFile =
             parseResult.GetValue(Opt<OptionalFusionArchiveFileOption>.Instance);
         var waitForApproval = parseResult.GetValue(Opt<OptionalWaitForApprovalOption>.Instance);
-        var force = parseResult.GetValue(Opt<OptionalForceOption>.Instance);
         var stageName = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
         var apiId = parseResult.GetRequiredValue(Opt<ApiIdOption>.Instance);
         var tag = parseResult.GetRequiredValue(Opt<TagOption>.Instance);
         var sourceMetadataJson =
             parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
+
+        var exclusiveOptionsCount = new[]
+        {
+            sourceSchemaFiles is { Count: > 0 },
+            sourceSchemaIdentifiers is { Count: > 0 },
+            archiveFile is not null
+        }.Count(x => x);
+
+        if (exclusiveOptionsCount > 1)
+        {
+            throw new ExitException(
+                $"The options '{OptionalSourceSchemaIdentifierListOption.OptionName}', "
+                + $"'{OptionalSourceSchemaFileListOption.OptionName}', and '{FusionArchiveFileOption.OptionName}' are mutually exclusive.");
+        }
+        else if (exclusiveOptionsCount < 1)
+        {
+            throw new ExitException(
+                $"Missing one of the required options '{OptionalSourceSchemaIdentifierListOption.OptionName}', "
+                + $"'{OptionalSourceSchemaFileListOption.OptionName}', or '{FusionArchiveFileOption.OptionName}'.");
+        }
 
         if (archiveFile is not null)
         {
@@ -342,35 +337,43 @@ internal sealed class FusionPublishCommand : Command
                                  "Claiming deployment slot",
                                  "Failed to claim the deployment slot."))
                 {
-                    await client.ClaimDeploymentSlotAsync(requestId, cancellationToken);
+                    await FusionPublishHelpers.ClaimDeploymentSlotAsync(
+                        requestId,
+                        claimDeploymentSlotActivity,
+                        console,
+                        client,
+                        cancellationToken);
 
                     claimDeploymentSlotActivity.Success("Claimed deployment slot.");
                 }
 
                 await using var archiveStream = await prepareArchive();
 
-                bool isValidArchive;
-
-                await using (var validationActivity = activity.StartChildActivity(
-                                 $"Validating configuration against '{stageName}'",
-                                 "Failed to validate the new configuration."))
+                // We only do validation if --wait-for-approval is set
+                if (waitForApproval)
                 {
-                    isValidArchive = await FusionPublishHelpers.ValidateFusionConfigurationAsync(
+                    // Since validation would consume the archive stream, we clone it here.
+                    await using var clonedArchiveStream = new MemoryStream();
+                    await archiveStream.CopyToAsync(clonedArchiveStream, cancellationToken);
+                    clonedArchiveStream.Position = 0;
+                    archiveStream.Position = 0;
+
+                    await using var validationActivity = activity.StartChildActivity(
+                        $"Validating configuration against '{stageName}'",
+                        "Failed to validate the new configuration.");
+
+                    var isValidArchive = await FusionPublishHelpers.ValidateFusionConfigurationAsync(
                         requestId,
-                        archiveStream,
+                        clonedArchiveStream,
                         validationActivity,
                         console,
                         client,
                         cancellationToken);
 
-                    // TODO: Should respect isValidArchive
-                    validationActivity.Success("Validated configuration.");
-                }
-
-                // TODO: How does --wait-for-approval come into play here?
-                if (!isValidArchive && !force)
-                {
-                    throw new ExitException("TODO");
+                    if (isValidArchive)
+                    {
+                        validationActivity.Success("Validated configuration.");
+                    }
                 }
 
                 bool uploaded;
@@ -387,8 +390,10 @@ internal sealed class FusionPublishCommand : Command
                         client,
                         cancellationToken);
 
-                    // TODO: Should respect uploaded
-                    uploadActivity.Success("Uploaded configuration.");
+                    if (uploaded)
+                    {
+                        uploadActivity.Success("Uploaded configuration.");
+                    }
                 }
 
                 if (uploaded)
@@ -405,6 +410,8 @@ internal sealed class FusionPublishCommand : Command
                 if (!string.IsNullOrEmpty(requestId))
                 {
                     await client.ReleaseDeploymentSlotAsync(requestId, CancellationToken.None);
+
+                    // TODO: Handle errors
                 }
 
                 throw;

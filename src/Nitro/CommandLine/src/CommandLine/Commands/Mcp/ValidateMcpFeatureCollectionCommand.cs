@@ -88,7 +88,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
 
                 if (validationRequest.Errors?.Count > 0)
                 {
-                    child.FailAll();
+                    await child.FailAllAsync();
 
                     foreach (var error in validationRequest.Errors)
                     {
@@ -98,8 +98,8 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
                             IInvalidSourceMetadataInputError err => err.Message,
                             IStageNotFoundError err => err.Message,
                             IMcpFeatureCollectionNotFoundError err => err.Message,
-                            IError err => "Unexpected mutation error: " + err.Message,
-                            _ => "Unexpected mutation error."
+                            IError err => ErrorMessages.UnexpectedMutationError(err),
+                            _ => ErrorMessages.UnexpectedMutationError()
                         };
 
                         console.Error.WriteErrorLine(errorMessage);
@@ -126,7 +126,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
                     switch (update)
                     {
                         case IMcpFeatureCollectionVersionValidationFailed { Errors: var errors }:
-                            child.FailAll();
+                            await child.FailAllAsync();
 
                             foreach (var error in errors)
                             {

@@ -1,3 +1,5 @@
+using Spectre.Console.Rendering;
+
 namespace ChilliCream.Nitro.CommandLine;
 
 internal interface INitroConsoleActivity : IAsyncDisposable
@@ -12,7 +14,9 @@ internal interface INitroConsoleActivity : IAsyncDisposable
 
     void Fail();
 
-    void FailAll();
+    void Fail(IRenderable details);
+
+    ValueTask FailAllAsync();
 
     INitroConsoleActivity StartChildActivity(string title, string failureMessage);
 }

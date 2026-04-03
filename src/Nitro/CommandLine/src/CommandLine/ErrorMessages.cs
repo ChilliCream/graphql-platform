@@ -1,3 +1,5 @@
+using ChilliCream.Nitro.Client;
+
 namespace ChilliCream.Nitro.CommandLine;
 
 internal static class ErrorMessages
@@ -9,4 +11,10 @@ internal static class ErrorMessages
             + Environment.NewLine
             + "Error received: "
             + message;
+
+    public static string UnexpectedMutationError()
+        => "Unexpected mutation error.";
+
+    public static string UnexpectedMutationError(IError error)
+        => $"Unexpected mutation error': {error.Message}";
 }

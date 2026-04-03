@@ -199,14 +199,15 @@ file static class ClientExtensions
 
                 foreach (var error in data.Errors)
                 {
+                    // TODO: Use PrintStagePublishedDependencies here
                     var errorMessage = error switch
                     {
                         IApiNotFoundError err => err.Message,
                         IStageNotFoundError err => err.Message,
                         IStagesHavePublishedDependenciesError err => err.Message,
                         IStageValidationError err => err.Message,
-                        IError err => "Unexpected mutation error: " + err.Message,
-                        _ => "Unexpected mutation error."
+                        IError err => ErrorMessages.UnexpectedMutationError(err),
+                        _ => ErrorMessages.UnexpectedMutationError()
                     };
 
                     console.Error.WriteErrorLine(errorMessage);

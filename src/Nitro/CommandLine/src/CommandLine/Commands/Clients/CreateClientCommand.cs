@@ -71,8 +71,8 @@ internal sealed class CreateClientCommand : Command
                     {
                         ICreateClientCommandMutation_CreateClient_Errors_ApiNotFoundError err => err.Message,
                         ICreateClientCommandMutation_CreateClient_Errors_UnauthorizedOperation err => err.Message,
-                        IError err => "Unexpected mutation error: " + err.Message,
-                        _ => "Unexpected mutation error."
+                        IError err => ErrorMessages.UnexpectedMutationError(err),
+                        _ => ErrorMessages.UnexpectedMutationError()
                     };
 
                     console.Error.WriteErrorLine(errorMessage);

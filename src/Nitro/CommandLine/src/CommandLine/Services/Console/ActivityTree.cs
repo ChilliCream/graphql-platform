@@ -55,6 +55,14 @@ internal sealed class ActivityTree : Renderable
         }
     }
 
+    public void SetEntryDetails(ActivityEntry entry, IRenderable details)
+    {
+        lock (_lock)
+        {
+            entry.Details = details;
+        }
+    }
+
     protected override IEnumerable<Segment> Render(RenderOptions options, int maxWidth)
     {
         lock (_lock)
@@ -63,7 +71,7 @@ internal sealed class ActivityTree : Renderable
 
             foreach (var root in _rootEntries)
             {
-                RenderEntry(segments, root, prefix: "", connector: "");
+                RenderEntry(segments, root, prefix: "", connector: "", options, maxWidth);
             }
 
             return segments;
@@ -74,7 +82,9 @@ internal sealed class ActivityTree : Renderable
         List<Segment> segments,
         ActivityEntry entry,
         string prefix,
-        string connector)
+        string connector,
+        RenderOptions options,
+        int maxWidth)
     {
         segments.Add(new Segment(prefix));
         segments.Add(new Segment(connector));
@@ -87,13 +97,64 @@ internal sealed class ActivityTree : Renderable
         for (var i = 0; i < entry.Children.Count; i++)
         {
             var child = entry.Children[i];
-            var isLast = i == entry.Children.Count - 1;
+            var isLast = i == entry.Children.Count - 1 && entry.Details is null;
             var childConnector = isLast ? "└── " : "├── ";
             var childPrefix = prefix + (connector.Length > 0
                 ? (connector == "└── " ? "    " : "│   ")
                 : "");
 
-            RenderEntry(segments, child, childPrefix, childConnector);
+            RenderEntry(segments, child, childPrefix, childConnector, options, maxWidth);
+        }
+
+        if (entry.Details is not null)
+        {
+            var detailsPrefix = prefix + (connector.Length > 0
+                ? (connector == "└── " ? "    " : "│   ")
+                : "");
+
+            RenderDetails(segments, entry.Details, detailsPrefix, options, maxWidth);
+        }
+    }
+
+    private static void RenderDetails(
+        List<Segment> segments,
+        IRenderable details,
+        string prefix,
+        RenderOptions options,
+        int maxWidth)
+    {
+        var availableWidth = maxWidth - prefix.Length;
+
+        if (availableWidth <= 0)
+        {
+            return;
+        }
+
+        var detailSegments = details.Render(options, availableWidth);
+        var atLineStart = true;
+
+        foreach (var segment in detailSegments)
+        {
+            if (segment.IsLineBreak)
+            {
+                segments.Add(Segment.LineBreak);
+                atLineStart = true;
+            }
+            else
+            {
+                if (atLineStart)
+                {
+                    segments.Add(new Segment(prefix));
+                    atLineStart = false;
+                }
+
+                segments.Add(segment);
+            }
+        }
+
+        if (!atLineStart)
+        {
+            segments.Add(Segment.LineBreak);
         }
     }
 

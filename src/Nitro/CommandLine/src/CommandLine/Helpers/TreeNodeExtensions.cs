@@ -4,6 +4,158 @@ namespace ChilliCream.Nitro.CommandLine.Helpers;
 
 internal static class TreeNodeExtensions
 {
+    public static IHasTreeNodes AddSchemaVersionChangeViolations(
+        this IHasTreeNodes node,
+        ISchemaVersionChangeViolationError error)
+    {
+        return node.AddSchemaChanges(error.Changes.OfType<ISchemaChange>());
+    }
+
+    public static IHasTreeNodes AddGraphQLSchemaErrors(
+        this IHasTreeNodes node,
+        IInvalidGraphQLSchemaError error)
+    {
+        foreach (var query in error.Errors)
+        {
+            node.AddNode($"[red]{query.Message.EscapeMarkup()}[/] [grey]{query.Code}[/]");
+        }
+
+        return node;
+    }
+
+    public static IHasTreeNodes AddPersistedQueryValidationErrors(
+        this IHasTreeNodes node,
+        IPersistedQueryValidationError error)
+    {
+        var client = error.Client;
+        var clientNode = node.AddNode($"Client '{client?.Name.EscapeMarkup()}' (ID: {client?.Id})");
+
+        foreach (var operation in error.Queries)
+        {
+            var publishingInfo = operation.DeployedTags.Count > 0
+                ? $" (Deployed tags: {string.Join(",", operation.DeployedTags)})"
+                : "";
+
+            var operationNode = clientNode.AddNode($"Operation '{operation.Hash}'{publishingInfo}");
+
+            foreach (var err in operation.Errors)
+            {
+                var errorLocation = string.Empty;
+                if (err.Locations is { Count: > 0 } locations)
+                {
+                    errorLocation = $"({locations[0].Line}:{locations[0].Column})";
+                }
+
+                operationNode.AddNode($"{err.Message.EscapeMarkup()} {errorLocation}");
+            }
+        }
+
+        return node;
+    }
+
+    public static IHasTreeNodes AddOpenApiCollectionValidationErrors(
+        this IHasTreeNodes node,
+        IOpenApiCollectionValidationError error)
+    {
+        foreach (var collectionError in error.Collections)
+        {
+            var openApiCollection = collectionError.OpenApiCollection;
+            var collectionNode = node.AddNode(
+                $"OpenAPI collection '{openApiCollection?.Name.EscapeMarkup()}' (ID: {openApiCollection?.Id})");
+
+            foreach (var entity in collectionError.Entities)
+            {
+                var entityNode = collectionNode.AddNode(GetOpenApiEntityNodeHeading(entity));
+
+                foreach (var entityError in entity.Errors)
+                {
+                    if (entityError is IOpenApiCollectionValidationDocumentError documentError)
+                    {
+                        var errorLocation = string.Empty;
+                        if (documentError.Locations is { Count: > 0 } locations)
+                        {
+                            errorLocation = $"({locations[0].Line}:{locations[0].Column})";
+                        }
+
+                        entityNode.AddNode($"{documentError.Message.EscapeMarkup()} {errorLocation}");
+                    }
+                    else if (entityError is IOpenApiCollectionValidationEntityValidationError entityValidationError)
+                    {
+                        entityNode.AddNode(entityValidationError.Message.EscapeMarkup());
+                    }
+                    else
+                    {
+                        // TODO: Improve
+                        entityNode.AddNode("Unknown error type");
+                    }
+                }
+            }
+        }
+
+        return node;
+
+        static string GetOpenApiEntityNodeHeading(IOpenApiCollectionValidationEntity entity)
+        {
+            return entity switch
+            {
+                IOpenApiCollectionValidationEndpoint endpoint => $"Endpoint '{endpoint.HttpMethod} {endpoint.Route}'",
+                IOpenApiCollectionValidationModel model => $"Model '{model.Name}'",
+                _ => "Unknown entity type"
+            };
+        }
+    }
+
+    public static IHasTreeNodes AddMcpFeatureCollectionValidationErrors(
+        this IHasTreeNodes node,
+        IMcpFeatureCollectionValidationError error)
+    {
+        foreach (var collectionError in error.Collections)
+        {
+            var mcpFeatureCollection = collectionError.McpFeatureCollection;
+            var collectionNode = node.AddNode(
+                $"MCP Feature Collection '{mcpFeatureCollection?.Name.EscapeMarkup()}' (ID: {mcpFeatureCollection?.Id})");
+
+            foreach (var entity in collectionError.Entities)
+            {
+                var entityNode = collectionNode.AddNode(GetMcpEntityNodeHeading(entity));
+
+                foreach (var entityError in entity.Errors)
+                {
+                    if (entityError is IMcpFeatureCollectionValidationDocumentError documentError)
+                    {
+                        var errorLocation = string.Empty;
+                        if (documentError.Locations is { Count: > 0 } locations)
+                        {
+                            errorLocation = $"({locations[0].Line}:{locations[0].Column})";
+                        }
+
+                        entityNode.AddNode($"{documentError.Message.EscapeMarkup()} {errorLocation}");
+                    }
+                    else if (entityError is IMcpFeatureCollectionValidationEntityValidationError entityValidationError)
+                    {
+                        entityNode.AddNode(entityValidationError.Message.EscapeMarkup());
+                    }
+                    else
+                    {
+                        entityNode.AddNode("Unknown error type");
+                    }
+                }
+            }
+        }
+
+        return node;
+
+        static string GetMcpEntityNodeHeading(IMcpFeatureCollectionValidationEntity entity)
+        {
+            return entity switch
+            {
+                IMcpFeatureCollectionValidationPrompt prompt => $"Prompt '{prompt.Name}'",
+                IMcpFeatureCollectionValidationTool tool => $"Tool '{tool.Name}'",
+                _ => "Unknown entity type"
+            };
+        }
+    }
+
     public static IHasTreeNodes AddSchemaChanges(
         this IHasTreeNodes node,
         IEnumerable<ISchemaChange> changes)

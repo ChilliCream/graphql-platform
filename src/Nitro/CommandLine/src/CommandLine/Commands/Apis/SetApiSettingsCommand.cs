@@ -81,8 +81,8 @@ internal sealed class SetApiSettingsApiCommand : Command
                 {
                     ISetApiSettingsCommandMutation_UpdateApiSettings_Errors_ApiNotFoundError err => err.Message,
                     ISetApiSettingsCommandMutation_UpdateApiSettings_Errors_UnauthorizedOperation err => err.Message,
-                    IError err => "Unexpected mutation error: " + err.Message,
-                    _ => "Unexpected mutation error."
+                    IError err => ErrorMessages.UnexpectedMutationError(err),
+                    _ => ErrorMessages.UnexpectedMutationError()
                 };
 
                 console.Error.WriteErrorLine(errorMessage);

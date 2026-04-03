@@ -71,8 +71,8 @@ internal sealed class CreatePersonalAccessTokenCommand : Command
                     var errorMessage = error switch
                     {
                         IUnauthorizedOperation err => err.Message,
-                        IError err => "Unexpected mutation error: " + err.Message,
-                        _ => "Unexpected mutation error."
+                        IError err => ErrorMessages.UnexpectedMutationError(err),
+                        _ => ErrorMessages.UnexpectedMutationError()
                     };
 
                     console.Error.WriteErrorLine(errorMessage);

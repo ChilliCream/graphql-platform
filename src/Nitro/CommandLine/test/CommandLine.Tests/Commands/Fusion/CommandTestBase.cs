@@ -14,7 +14,7 @@ public abstract class CommandTestBase
     private readonly List<Stream> _files = [];
     private readonly Mock<IFileSystem> _fileSystemMock = new();
     private readonly Mock<IEnvironmentVariableProvider> _environmentVariableProviderMock = new();
-    protected readonly Mock<IFusionConfigurationClient> FusionConfigurationClientMock = new();
+    protected readonly Mock<IFusionConfigurationClient> FusionConfigurationClientMock = new(MockBehavior.Strict);
 
     protected CommandTestBase(NitroCommandFixture fixture)
     {

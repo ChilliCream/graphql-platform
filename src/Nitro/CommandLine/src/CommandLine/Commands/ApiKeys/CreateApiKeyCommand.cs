@@ -108,7 +108,7 @@ internal sealed class CreateApiKeyCommand : Command
                         IPersonalWorkspaceNotSupportedError err => err.Message,
                         IRoleNotFoundError err => err.Message,
                         IValidationError err => err.Message,
-                        IError err => "Unexpected mutation error: " + err.Message,
+                        IError err => ErrorMessages.UnexpectedMutationError(err),
                         _ => "Unexpected mutation error"
                     };
 

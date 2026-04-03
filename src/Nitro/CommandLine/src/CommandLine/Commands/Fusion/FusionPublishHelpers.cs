@@ -1,7 +1,7 @@
 using System.Text.Json;
-using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
+using ChilliCream.Nitro.CommandLine.Helpers;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Packaging;
@@ -38,7 +38,7 @@ internal static class FusionPublishHelpers
 
         if (deploymentSlotRequest.Errors?.Count > 0)
         {
-            activity.FailAll();
+            await activity.FailAllAsync();
 
             foreach (var error in deploymentSlotRequest.Errors)
             {
@@ -50,12 +50,14 @@ internal static class FusionPublishHelpers
                     IStageNotFoundError err => err.Message,
                     ISubgraphInvalidError err => err.Message,
                     IInvalidProcessingStateTransitionError err => err.Message,
-                    IError err => "Unexpected mutation error: " + err.Message,
-                    _ => "Unexpected mutation error."
+                    IError err => ErrorMessages.UnexpectedMutationError(err),
+                    _ => ErrorMessages.UnexpectedMutationError()
                 };
 
-                throw new ExitException(errorMessage);
+                console.Error.WriteErrorLine(errorMessage);
             }
+
+            throw new ExitException();
         }
 
         var requestId = deploymentSlotRequest.RequestId;
@@ -65,8 +67,7 @@ internal static class FusionPublishHelpers
             throw MutationReturnedNoData();
         }
 
-        // TODO: Challenge this
-        activity.Update($"Request ID: {requestId.EscapeMarkup()}");
+        // activity.Update($"Request ID: {requestId.EscapeMarkup()}");
 
         using var subscriptionCancellation =
             CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -84,7 +85,7 @@ internal static class FusionPublishHelpers
 
                 case IFusionConfigurationPublishingFailed v:
                     await subscriptionCancellation.CancelAsync();
-                    activity.FailAll();
+                    await activity.FailAllAsync();
 
                     foreach (var error in v.Errors)
                     {
@@ -110,7 +111,8 @@ internal static class FusionPublishHelpers
 
                 case IProcessingTaskIsReady:
                     await subscriptionCancellation.CancelAsync();
-                    break;
+
+                    return requestId;
 
                 case IFusionConfigurationValidationFailed:
                 case IFusionConfigurationValidationSuccess:
@@ -128,7 +130,38 @@ internal static class FusionPublishHelpers
             }
         }
 
-        return requestId;
+        throw new ExitException("TODO");
+    }
+
+    public static async Task ClaimDeploymentSlotAsync(
+        string requestId,
+        INitroConsoleActivity activity,
+        INitroConsole console,
+        IFusionConfigurationClient client,
+        CancellationToken cancellationToken)
+    {
+        var result = await client.ClaimDeploymentSlotAsync(requestId, cancellationToken);
+
+        if (result.Errors?.Count > 0)
+        {
+            await activity.FailAllAsync();
+
+            foreach (var error in result.Errors)
+            {
+                var errorMessage = error switch
+                {
+                    IUnauthorizedOperation err => err.Message,
+                    IFusionConfigurationRequestNotFoundError err => err.Message,
+                    IInvalidProcessingStateTransitionError err => err.Message,
+                    IError err => ErrorMessages.UnexpectedMutationError(err),
+                    _ => ErrorMessages.UnexpectedMutationError()
+                };
+
+                console.Error.WriteErrorLine(errorMessage);
+            }
+
+            throw new ExitException();
+        }
     }
 
     public static async Task<bool> UploadFusionConfigurationAsync(
@@ -143,7 +176,7 @@ internal static class FusionPublishHelpers
 
         if (commitResult.Errors?.Count > 0)
         {
-            activity.FailAll();
+            await activity.FailAllAsync();
 
             foreach (var error in commitResult.Errors)
             {
@@ -152,14 +185,14 @@ internal static class FusionPublishHelpers
                     IUnauthorizedOperation err => err.Message,
                     IFusionConfigurationRequestNotFoundError err => err.Message,
                     IInvalidProcessingStateTransitionError err => err.Message,
-                    IError err => "Unexpected mutation error: " + err.Message,
-                    _ => "Unexpected mutation error."
+                    IError err => ErrorMessages.UnexpectedMutationError(err),
+                    _ => ErrorMessages.UnexpectedMutationError()
                 };
 
                 console.Error.WriteErrorLine(errorMessage);
             }
 
-            throw Exit("Failed to commit Fusion archive.");
+            throw new ExitException();
         }
 
         var committed = false;
@@ -174,7 +207,7 @@ internal static class FusionPublishHelpers
                     break;
 
                 case IFusionConfigurationPublishingFailed v:
-                    activity.FailAll();
+                    await activity.FailAllAsync();
 
                     foreach (var error in v.Errors)
                     {
@@ -277,14 +310,14 @@ internal static class FusionPublishHelpers
                     IUnauthorizedOperation err => err.Message,
                     IFusionConfigurationRequestNotFoundError err => err.Message,
                     IInvalidProcessingStateTransitionError err => err.Message,
-                    IError err => "Unexpected mutation error: " + err.Message,
-                    _ => "Unexpected mutation error."
+                    IError err => ErrorMessages.UnexpectedMutationError(err),
+                    _ => ErrorMessages.UnexpectedMutationError()
                 };
 
                 console.Error.WriteErrorLine(errorMessage);
             }
 
-            return false;
+            throw new ExitException();
         }
 
         await foreach (var @event in client
@@ -306,29 +339,38 @@ internal static class FusionPublishHelpers
                     throw Exit(
                         "Your request is ready for the composition. Run `fusion-configuration publish start`");
 
-                case IFusionConfigurationValidationFailed failed:
-                    activity.Fail();
+                case IFusionConfigurationValidationFailed {Errors: var errors}:
+                    var errorTree = new Tree("");
 
-                    // TODO:
-                    // ...SchemaChangeViolationError
-                    //     ...InvalidGraphQLSchemaError
-                    //     ...PersistedQueryValidationError
-                    //     ...OpenApiCollectionValidationError
-                    //     ...McpFeatureCollectionValidationError
-                    foreach (var error in failed.Errors)
+                    foreach (var error in errors)
                     {
-                        console.Error.WriteErrorLine(error switch
+                        switch (error)
                         {
-                            IUnexpectedProcessingError e => e.Message,
-                            _ => "Unexpected error."
-                        });
+                            case ISchemaVersionChangeViolationError e:
+                                errorTree.AddSchemaVersionChangeViolations(e);
+                                break;
+                            case IInvalidGraphQLSchemaError e:
+                                errorTree.AddGraphQLSchemaErrors(e);
+                                break;
+                            case IPersistedQueryValidationError e:
+                                errorTree.AddPersistedQueryValidationErrors(e);
+                                break;
+                            case IOpenApiCollectionValidationError e:
+                                errorTree.AddOpenApiCollectionValidationErrors(e);
+                                break;
+                            case IMcpFeatureCollectionValidationError e:
+                                errorTree.AddMcpFeatureCollectionValidationErrors(e);
+                                break;
+                            case IUnexpectedProcessingError e:
+                                errorTree.AddNode($"[red]{e.Message.EscapeMarkup()}[/]");
+                                break;
+                        }
                     }
 
-                    console.Error.WriteErrorLine("The validation failed.");
+                    activity.Fail(errorTree);
                     return false;
 
                 case IFusionConfigurationValidationSuccess:
-                    activity.Success("Validated the Fusion configuration.");
                     return true;
 
                 case IOperationInProgress:

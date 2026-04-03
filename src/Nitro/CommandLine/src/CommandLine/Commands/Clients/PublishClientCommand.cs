@@ -93,7 +93,7 @@ internal sealed class PublishClientCommand : Command
 
                 if (publishRequest.Errors?.Count > 0)
                 {
-                    child.FailAll();
+                    await child.FailAllAsync();
 
                     foreach (var error in publishRequest.Errors)
                     {
@@ -104,8 +104,8 @@ internal sealed class PublishClientCommand : Command
                             IPublishClientVersion_PublishClient_Errors_StageNotFoundError err => err.Message,
                             IPublishClientVersion_PublishClient_Errors_ClientVersionNotFoundError err => err.Message,
                             IPublishClientVersion_PublishClient_Errors_InvalidSourceMetadataInputError err => err.Message,
-                            IError err => "Unexpected mutation error: " + err.Message,
-                            _ => "Unexpected mutation error."
+                            IError err => ErrorMessages.UnexpectedMutationError(err),
+                            _ => ErrorMessages.UnexpectedMutationError()
                         };
 
                         console.Error.WriteErrorLine(errorMessage);
@@ -137,7 +137,7 @@ internal sealed class PublishClientCommand : Command
                             break;
 
                         case IClientVersionPublishFailed { Errors: var errors }:
-                            child.FailAll();
+                            await child.FailAllAsync();
 
                             foreach (var error in errors)
                             {

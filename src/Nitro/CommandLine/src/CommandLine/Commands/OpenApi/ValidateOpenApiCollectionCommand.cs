@@ -80,7 +80,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
 
                 if (validationRequest.Errors?.Count > 0)
                 {
-                    child.FailAll();
+                    await child.FailAllAsync();
 
                     foreach (var error in validationRequest.Errors)
                     {
@@ -90,8 +90,8 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
                             IInvalidSourceMetadataInputError err => err.Message,
                             IStageNotFoundError err => err.Message,
                             IOpenApiCollectionNotFoundError err => err.Message,
-                            IError err => "Unexpected mutation error: " + err.Message,
-                            _ => "Unexpected mutation error."
+                            IError err => ErrorMessages.UnexpectedMutationError(err),
+                            _ => ErrorMessages.UnexpectedMutationError()
                         };
 
                         console.Error.WriteErrorLine(errorMessage);
@@ -118,7 +118,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
                     switch (update)
                     {
                         case IOpenApiCollectionVersionValidationFailed { Errors: var errors }:
-                            child.FailAll();
+                            await child.FailAllAsync();
 
                             foreach (var error in errors)
                             {

@@ -89,8 +89,8 @@ internal sealed class UploadOpenApiCollectionCommand : Command
                         IDuplicatedTagError err => err.Message,
                         IConcurrentOperationError err => err.Message,
                         IInvalidOpenApiCollectionArchiveError err => ErrorMessages.InvalidArchive(err.Message),
-                        IError err => "Unexpected mutation error: " + err.Message,
-                        _ => "Unexpected mutation error."
+                        IError err => ErrorMessages.UnexpectedMutationError(err),
+                        _ => ErrorMessages.UnexpectedMutationError()
                     };
 
                     console.Error.WriteErrorLine(errorMessage);

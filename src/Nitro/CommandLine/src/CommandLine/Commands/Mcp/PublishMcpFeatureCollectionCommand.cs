@@ -87,7 +87,7 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
 
                 if (publishRequest.Errors?.Count > 0)
                 {
-                    child.FailAll();
+                    await child.FailAllAsync();
 
                     foreach (var error in publishRequest.Errors)
                     {
@@ -98,8 +98,8 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
                             IStageNotFoundError err => err.Message,
                             IMcpFeatureCollectionNotFoundError err => err.Message,
                             IMcpFeatureCollectionVersionNotFoundError err => err.Message,
-                            IError err => "Unexpected mutation error: " + err.Message,
-                            _ => "Unexpected mutation error."
+                            IError err => ErrorMessages.UnexpectedMutationError(err),
+                            _ => ErrorMessages.UnexpectedMutationError()
                         };
 
                         console.Error.WriteErrorLine(errorMessage);
@@ -130,7 +130,7 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
                             break;
 
                         case IMcpFeatureCollectionVersionPublishFailed { Errors: var errors }:
-                            child.FailAll();
+                            await child.FailAllAsync();
 
                             foreach (var error in errors)
                             {

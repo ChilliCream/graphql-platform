@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Spectre.Console.Rendering;
 
 namespace ChilliCream.Nitro.CommandLine;
 
@@ -18,6 +19,8 @@ internal sealed class ActivityEntry
     public ActivityState State { get; set; }
 
     public IReadOnlyList<ActivityEntry> Children => _children;
+
+    public IRenderable? Details { get; set; }
 
     public TimeSpan Elapsed => _stopwatch.Elapsed;
 

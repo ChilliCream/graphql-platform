@@ -42,6 +42,17 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Comma
             .Returns(async () => await CreateSourceSchemaArchiveStreamAsync());
     }
 
+    protected void SetupMissingSourceSchemaDownload()
+    {
+        FusionConfigurationClientMock
+            .Setup(x => x.DownloadSourceSchemaArchiveAsync(
+                ApiId,
+                SourceSchema,
+                Tag,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => null);
+    }
+
     protected void SetupArchiveFile()
     {
         var stream = new MemoryStream();
@@ -57,6 +68,7 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Comma
     }
 
     protected void SetupRequestDeploymentSlotMutation(
+        bool waitForApproval = false,
         params IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish_Errors[] errors)
     {
         FusionConfigurationClientMock
@@ -67,7 +79,7 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Comma
                 null,
                 null,
                 It.IsAny<SourceSchemaVersion[]>(),
-                false,
+                waitForApproval,
                 null,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => CreateRequestDeploymentSlotPayload(errors));
@@ -92,6 +104,16 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Comma
                 RequestId,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => CreateClaimDeploymentSlotPayload(errors));
+    }
+
+    protected void SetupReleaseDeploymentSlotMutation(
+        params ICancelFusionConfigurationPublish_CancelFusionConfigurationComposition_Errors[] errors)
+    {
+        FusionConfigurationClientMock
+            .Setup(x => x.ReleaseDeploymentSlotAsync(
+                RequestId,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => CreateReleaseDeploymentSlotPayload(errors));
     }
 
     protected void SetupFusionConfigurationDownload()
@@ -263,6 +285,17 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Comma
             IStartFusionConfigurationPublish_StartFusionConfigurationComposition_Errors[] errors)
     {
         var payload = new Mock<IStartFusionConfigurationPublish_StartFusionConfigurationComposition>(MockBehavior.Strict);
+
+        payload.SetupGet(x => x.Errors)
+            .Returns(errors.Length > 0 ? errors : null);
+
+        return payload.Object;
+    }
+
+    private ICancelFusionConfigurationPublish_CancelFusionConfigurationComposition CreateReleaseDeploymentSlotPayload(
+        ICancelFusionConfigurationPublish_CancelFusionConfigurationComposition_Errors[] errors)
+    {
+        var payload = new Mock<ICancelFusionConfigurationPublish_CancelFusionConfigurationComposition>(MockBehavior.Strict);
 
         payload.SetupGet(x => x.Errors)
             .Returns(errors.Length > 0 ? errors : null);

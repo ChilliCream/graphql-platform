@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.CommandLine.Helpers;
+using Spectre.Console.Rendering;
 
 namespace ChilliCream.Nitro.CommandLine;
 
@@ -30,14 +31,27 @@ internal sealed class NitroConsoleActivity(INitroConsole console, string failure
         Complete(Glyphs.Cross.Space() + message);
     }
 
+    public void Fail(IRenderable details)
+    {
+        if (_completed)
+        {
+            return;
+        }
+
+        console.MarkupLine("└── " + Glyphs.Cross.Space() + failureMessage);
+        console.Write(details);
+        _completed = true;
+    }
+
     public void Fail()
     {
         Fail(failureMessage);
     }
 
-    public void FailAll()
+    public ValueTask FailAllAsync()
     {
         Fail();
+        return default;
     }
 
     public INitroConsoleActivity StartChildActivity(string title, string failureMessage)

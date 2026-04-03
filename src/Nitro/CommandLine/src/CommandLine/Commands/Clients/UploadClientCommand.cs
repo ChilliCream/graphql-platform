@@ -81,8 +81,8 @@ internal sealed class UploadClientCommand : Command
                         IUploadClient_UploadClient_Errors_ConcurrentOperationError err => err.Message,
                         IUploadClient_UploadClient_Errors_InvalidPersistedQueryError err => err.Message,
                         IUploadClient_UploadClient_Errors_InvalidSourceMetadataInputError err => err.Message,
-                        IError err => "Unexpected mutation error: " + err.Message,
-                        _ => "Unexpected mutation error."
+                        IError err => ErrorMessages.UnexpectedMutationError(err),
+                        _ => ErrorMessages.UnexpectedMutationError()
                     };
 
                     console.Error.WriteErrorLine(errorMessage);

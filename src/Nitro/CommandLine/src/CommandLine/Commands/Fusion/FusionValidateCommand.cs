@@ -34,26 +34,6 @@ internal sealed class FusionValidateCommand : Command
         Options.Add(Opt<OptionalSourceSchemaFileListOption>.Instance);
         this.AddGlobalNitroOptions();
 
-        Validators.Add(result =>
-        {
-            var exclusiveOptionsCount = new[]
-            {
-                result.GetValue(Opt<OptionalSourceSchemaFileListOption>.Instance) is { Count: > 0 },
-                result.GetValue(Opt<OptionalFusionArchiveFileOption>.Instance) is not null
-            }.Count(x => x);
-
-            if (exclusiveOptionsCount > 1)
-            {
-                result.AddError(
-                    $"The options '{OptionalSourceSchemaFileListOption.OptionName}' and '{FusionArchiveFileOption.OptionName}' are mutually exclusive.");
-            }
-            else if (exclusiveOptionsCount < 1)
-            {
-                result.AddError(
-                    $"Missing one of the required options '{OptionalSourceSchemaFileListOption.OptionName}' or '{FusionArchiveFileOption.OptionName}'.");
-            }
-        });
-
         this.AddExamples(
             """
             fusion validate \
@@ -84,6 +64,24 @@ internal sealed class FusionValidateCommand : Command
         var archiveFile = parseResult.GetValue(Opt<OptionalFusionArchiveFileOption>.Instance);
         var sourceSchemaFiles =
             parseResult.GetValue(Opt<OptionalSourceSchemaFileListOption>.Instance) ?? [];
+
+        var exclusiveOptionsCount = new[]
+        {
+            sourceSchemaFiles is { Count: > 0 },
+            archiveFile is not null
+        }.Count(x => x);
+
+        if (exclusiveOptionsCount > 1)
+        {
+            throw new ExitException(
+                $"The options '{OptionalSourceSchemaFileListOption.OptionName}' and '{FusionArchiveFileOption.OptionName}' are mutually exclusive.");
+        }
+        else if (exclusiveOptionsCount < 1)
+        {
+            throw new ExitException(
+                $"Missing one of the required options '{OptionalSourceSchemaFileListOption.OptionName}' or '{FusionArchiveFileOption.OptionName}'.");
+        }
+
         var isValid = false;
         CompositionLog? failedLog = null;
 
@@ -251,7 +249,7 @@ internal sealed class FusionValidateCommand : Command
                 switch (@event)
                 {
                     case ISchemaVersionValidationFailed { Errors: var schemaErrors}:
-                        activity.FailAll();
+                        await activity.FailAllAsync();
 
                         foreach (var error in schemaErrors)
                         {
@@ -334,7 +332,7 @@ internal sealed class FusionValidateCommand : Command
 
         if (result.Errors?.Count > 0)
         {
-            activity.FailAll();
+            await activity.FailAllAsync();
 
             foreach (var error in result.Errors)
             {
@@ -344,8 +342,8 @@ internal sealed class FusionValidateCommand : Command
                     IValidateSchemaVersion_ValidateSchema_Errors_ApiNotFoundError err => err.Message,
                     IValidateSchemaVersion_ValidateSchema_Errors_StageNotFoundError err => err.Message,
                     IValidateSchemaVersion_ValidateSchema_Errors_SchemaNotFoundError err => err.Message,
-                    IError err => "Unexpected mutation error: " + err.Message,
-                    _ => "Unexpected mutation error."
+                    IError err => ErrorMessages.UnexpectedMutationError(err),
+                    _ => ErrorMessages.UnexpectedMutationError()
                 };
 
                 console.Error.WriteErrorLine(errorMessage);

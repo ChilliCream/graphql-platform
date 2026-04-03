@@ -1,3 +1,5 @@
+using Spectre.Console.Rendering;
+
 namespace ChilliCream.Nitro.CommandLine;
 
 internal sealed class InteractiveNitroConsoleChildActivity(
@@ -75,15 +77,39 @@ internal sealed class InteractiveNitroConsoleChildActivity(
         _completed = true;
     }
 
+    public void Fail(IRenderable details)
+    {
+        if (_completed)
+        {
+            return;
+        }
+
+        ActivityEntry failEntry;
+
+        if (entry.Children.Count > 0)
+        {
+            tree.SetEntryState(entry, ActivityState.Failed);
+            failEntry = tree.AddChild(entry, failureMessage, ActivityState.Failed);
+        }
+        else
+        {
+            tree.SetEntryTextAndState(entry, failureMessage, ActivityState.Failed);
+            failEntry = entry;
+        }
+
+        tree.SetEntryDetails(failEntry, details);
+        _completed = true;
+    }
+
     public void Fail()
     {
         Fail(failureMessage);
     }
 
-    public void FailAll()
+    public async ValueTask FailAllAsync()
     {
         Fail();
-        parent.FailAll();
+        await parent.FailAllAsync();
     }
 
     public INitroConsoleActivity StartChildActivity(string title, string failureMessage)
@@ -92,13 +118,11 @@ internal sealed class InteractiveNitroConsoleChildActivity(
         return new InteractiveNitroConsoleChildActivity(tree, childEntry, failureMessage, this);
     }
 
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         if (!_completed)
         {
-            FailAll();
+            await FailAllAsync();
         }
-
-        return default;
     }
 }

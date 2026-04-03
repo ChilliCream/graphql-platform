@@ -73,7 +73,7 @@ internal sealed class ValidateSchemaCommand : Command
 
                 if (validationRequest.Errors?.Count > 0)
                 {
-                    child.FailAll();
+                    await child.FailAllAsync();
 
                     foreach (var error in validationRequest.Errors)
                     {
@@ -84,8 +84,8 @@ internal sealed class ValidateSchemaCommand : Command
                             IApiNotFoundError err => err.Message,
                             IStageNotFoundError err => err.Message,
                             ISchemaNotFoundError err => err.Message,
-                            IError err => "Unexpected mutation error: " + err.Message,
-                            _ => "Unexpected mutation error."
+                            IError err => ErrorMessages.UnexpectedMutationError(err),
+                            _ => ErrorMessages.UnexpectedMutationError()
                         };
 
                         console.Error.WriteErrorLine(errorMessage);
@@ -112,7 +112,7 @@ internal sealed class ValidateSchemaCommand : Command
                     switch (update)
                     {
                         case ISchemaVersionValidationFailed { Errors: var schemaErrors }:
-                            child.FailAll();
+                            await child.FailAllAsync();
 
                             foreach (var error in schemaErrors)
                             {

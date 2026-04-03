@@ -98,8 +98,8 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
                         IConcurrentOperationError err => err.Message,
                         IInvalidMcpFeatureCollectionArchiveError err =>
                             ErrorMessages.InvalidArchive(err.Message),
-                        IError err => "Unexpected mutation error: " + err.Message,
-                        _ => "Unexpected mutation error."
+                        IError err => ErrorMessages.UnexpectedMutationError(err),
+                        _ => ErrorMessages.UnexpectedMutationError()
                     };
 
                     console.Error.WriteErrorLine(errorMessage);

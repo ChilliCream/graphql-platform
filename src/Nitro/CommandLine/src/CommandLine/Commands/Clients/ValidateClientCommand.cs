@@ -72,7 +72,7 @@ internal sealed class ValidateClientCommand : Command
 
                 if (validationRequest.Errors?.Count > 0)
                 {
-                    child.FailAll();
+                    await child.FailAllAsync();
 
                     foreach (var error in validationRequest.Errors)
                     {
@@ -82,8 +82,8 @@ internal sealed class ValidateClientCommand : Command
                             IValidateClientVersion_ValidateClient_Errors_ClientNotFoundError err => err.Message,
                             IValidateClientVersion_ValidateClient_Errors_StageNotFoundError err => err.Message,
                             IValidateClientVersion_ValidateClient_Errors_InvalidSourceMetadataInputError err => err.Message,
-                            IError err => "Unexpected mutation error: " + err.Message,
-                            _ => "Unexpected mutation error."
+                            IError err => ErrorMessages.UnexpectedMutationError(err),
+                            _ => ErrorMessages.UnexpectedMutationError()
                         };
 
                         console.Error.WriteErrorLine(errorMessage);
@@ -110,7 +110,7 @@ internal sealed class ValidateClientCommand : Command
                     switch (update)
                     {
                         case IClientVersionValidationFailed { Errors: var errors }:
-                            child.FailAll();
+                            await child.FailAllAsync();
 
                             foreach (var error in errors)
                             {
