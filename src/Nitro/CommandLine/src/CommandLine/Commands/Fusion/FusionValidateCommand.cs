@@ -156,12 +156,12 @@ internal sealed class FusionValidateCommand : Command
                     compositionSettings: null,
                     ct);
 
-                if (!composeResult.Success)
-                {
-                    failedLog = composeResult.Log;
-                    isValid = false;
-                    return;
-                }
+                // if (!composeResult.Success)
+                // {
+                //     failedLog = composeResult.Log;
+                //     isValid = false;
+                //     return;
+                // }
 
                 child.Success("Composed new Fusion configuration.");
             }

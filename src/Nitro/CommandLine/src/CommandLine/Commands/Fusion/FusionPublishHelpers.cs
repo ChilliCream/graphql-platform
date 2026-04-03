@@ -5,6 +5,8 @@ using ChilliCream.Nitro.CommandLine.Helpers;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Packaging;
+using HotChocolate.Fusion.Results;
+using HotChocolate.Types.Mutable;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
@@ -396,7 +398,7 @@ internal static class FusionPublishHelpers
         return false;
     }
 
-    public static async Task<(bool Success, CompositionLog Log)> ComposeAsync(
+    public static async Task<(CompositionResult<MutableSchemaDefinition>, CompositionLog)> ComposeAsync(
         Stream archiveStream,
         Stream? existingArchiveStream,
         string environment,
@@ -423,25 +425,6 @@ internal static class FusionPublishHelpers
             archive = FusionArchive.Create(archiveStream, leaveOpen: true);
         }
 
-        var result = await ComposeAsync(
-            archive,
-            environment,
-            newSourceSchemas,
-            compositionSettings,
-            cancellationToken);
-
-        archiveStream.Seek(0, SeekOrigin.Begin);
-
-        return result;
-    }
-
-    public static async Task<(bool Success, CompositionLog Log)> ComposeAsync(
-        FusionArchive archive,
-        string environment,
-        Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas,
-        CompositionSettings? compositionSettings,
-        CancellationToken cancellationToken)
-    {
         var compositionLog = new CompositionLog();
 
         var result = await CompositionHelper.ComposeAsync(
@@ -452,21 +435,8 @@ internal static class FusionPublishHelpers
             compositionSettings,
             cancellationToken);
 
-        if (result.IsFailure)
-        {
-            foreach (var error in result.Errors)
-            {
-                compositionLog.Write(
-                    LogEntryBuilder.New()
-                        .SetMessage(error.Message)
-                        .SetCode("COMPOSITION_INFRASTRUCTURE_ERROR")
-                        .SetSeverity(LogSeverity.Error)
-                        .Build());
-            }
+        archiveStream.Seek(0, SeekOrigin.Begin);
 
-            return (false, compositionLog);
-        }
-
-        return (true, compositionLog);
+        return (result, compositionLog);
     }
 }

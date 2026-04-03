@@ -7,8 +7,6 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 // - Test validation errors being returned
 // - Test publish failing
 // - Test WaitForApproval
-// - Test force
-// - Test without force
 // - Test release failing after error
 // - Test releasing failing after error
 // - Test with composition succeeding / failing for source schema (file)
@@ -352,8 +350,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             $"""
-            {expectedErrorMessage}
-            """);
+             {expectedErrorMessage}
+             """);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing Fusion configuration to stage 'dev' of API 'api-1'
@@ -512,8 +510,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             $"""
-            {expectedErrorMessage}
-            """);
+             {expectedErrorMessage}
+             """);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing Fusion configuration to stage 'dev' of API 'api-1'
@@ -692,9 +690,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             Stage,
             "--tag",
             Tag,
+            "--force",
             "--archive",
-            ArchiveFile,
-            "--force");
+            ArchiveFile);
 
         // assert
         result.AssertSuccess(
@@ -801,7 +799,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            TODO: Missing
+            Failed to publish the new configuration.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
@@ -853,8 +851,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             $"""
-            {expectedErrorMessage}
-            """);
+             {expectedErrorMessage}
+             """);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing Fusion configuration to stage 'dev' of API 'api-1'
@@ -989,7 +987,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Downloading existing configuration from 'dev'
-            │   └── ! There is no existing configuration on 'dev'.
+            │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
@@ -1034,7 +1032,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Downloading existing configuration from 'dev'
-            │   └── ! There is no existing configuration on 'dev'.
+            │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
@@ -1043,6 +1041,693 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
             """);
+    }
+
+    [Theory]
+    [MemberData(nameof(GetRequestDeploymentSlotErrors))]
+    public async Task WithSourceSchemaFile_RequestDeploymentSlotHasErrors_ReturnsError(
+        IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish_Errors error,
+        string expectedErrorMessage)
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupRequestDeploymentSlotMutation(waitForApproval: false, error);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            $"""
+             {expectedErrorMessage}
+             """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   └── ✕ Failed to request a deployment slot.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_RequestDeploymentSlotThrows_ReturnsError()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupRequestDeploymentSlotMutationException();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error: Something unexpected happened.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   └── ✕ Failed to request a deployment slot.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [MemberData(nameof(GetClaimDeploymentSlotErrors))]
+    public async Task WithSourceSchemaFile_ClaimDeploymentSlotHasError_ReturnsError(
+        IStartFusionConfigurationPublish_StartFusionConfigurationComposition_Errors error,
+        string expectedErrorMessage)
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation(error);
+        SetupReleaseDeploymentSlotMutation();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            $"""
+             {expectedErrorMessage}
+             """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✕ Failed to claim the deployment slot.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_ClaimDeploymentSlotThrows_ReturnsError()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutationException();
+        SetupReleaseDeploymentSlotMutation();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error: Something unexpected happened.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✕ Failed to claim the deployment slot.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_CompositionErrors_ReturnsError()
+    {
+        // arrange
+        SetupSourceSchemaFileWithInvalidSchema();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupReleaseDeploymentSlotMutation();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Source schema validation failed.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✕ Failed to compose new configuration.
+            └── ✕ Failed to publish Fusion configuration.
+
+            ## Composition log
+
+            ❌ [ERR] The @require directive on argument 'Query.field(arg:)' in schema 'products' contains invalid syntax in the 'field' argument. (REQUIRE_INVALID_SYNTAX)
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [MemberData(nameof(GetValidationErrors))]
+    public async Task WithSourceSchemaFile_ValidationHasErrors_ReturnsError(
+        IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition_Errors error,
+        string expectedErrorMessage)
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation(error);
+        SetupReleaseDeploymentSlotMutation();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            $"""
+             {expectedErrorMessage}
+             """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   └── ✕ Failed to validate the new configuration.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_ValidationThrows_ReturnsError()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutationException();
+        SetupReleaseDeploymentSlotMutation();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error: Something unexpected happened.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   └── ✕ Failed to validate the new configuration.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_BreakingChanges_ReturnsError()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription(
+            CreateValidationInProgressEvent(),
+            CreateValidationFailedEventWithErrors());
+        SetupReleaseDeploymentSlotMutation();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile);
+        ;
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Failed to validate configuration.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   └── ✕ Failed to validate the new configuration.
+            │       ├── Field 'Query.foo' has no type. SCHEMA_ERROR
+            │       ├── Client 'test-client' (ID: client-1)
+            │       │   └── Operation 'abc123'
+            │       ├── OpenAPI collection 'petstore' (ID: collection-1)
+            │       │   └── Endpoint 'GET /pets'
+            │       │       └── Invalid schema. (10:5)
+            │       ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
+            │       │   └── Tool 'test-tool'
+            │       │       └── Invalid MCP schema. (5:3)
+            │       └── An unexpected error occurred.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_BreakingChanges_Force_ReturnsSuccess()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription(
+            CreateValidationInProgressEvent(),
+            CreateValidationFailedEventWithErrors());
+        SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--force",
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── ! Force push is enabled.
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   └── ✕ Failed to validate the new configuration.
+            │       ├── Field 'Query.foo' has no type. SCHEMA_ERROR
+            │       ├── Client 'test-client' (ID: client-1)
+            │       │   └── Operation 'abc123'
+            │       ├── OpenAPI collection 'petstore' (ID: collection-1)
+            │       │   └── Endpoint 'GET /pets'
+            │       │       └── Invalid schema. (10:5)
+            │       ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
+            │       │   └── Tool 'test-tool'
+            │       │       └── Invalid MCP schema. (5:3)
+            │       └── An unexpected error occurred.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_WaitForApproval_NoBreakingChanges_ReturnsSuccess()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupRequestDeploymentSlotMutation(waitForApproval: true);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupReleaseDeploymentSlotMutation();
+        SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--wait-for-approval",
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_WaitForApproval_BreakingChanges_Approved_ReturnsSuccess()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupRequestDeploymentSlotMutation(waitForApproval: true);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription(
+            CreateWaitForApprovalEventWithErrors(),
+            CreateProcessingTaskApprovedEvent(),
+            CreatePublishingSuccessEvent());
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--wait-for-approval",
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Uploading configuration to 'dev'
+            │   └── ✕ Failed to upload the new configuration.
+            │       └── OpenAPI collection 'petstore' (ID: collection-1)
+            │           └── Endpoint 'GET /pets'
+            │               └── Invalid schema. (10:5)
+            │   ├── 🕐 Waiting for approval. Approve in Nitro to continue.
+            │   ├── Approved. Processing...
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_WaitForApproval_BreakingChanges_NotApproved_ReturnsError()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupRequestDeploymentSlotMutation(waitForApproval: true);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupReleaseDeploymentSlotMutation();
+        SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription(
+            CreateWaitForApprovalEventWithErrors(),
+            CreatePublishingFailedEvent());
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--wait-for-approval",
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Failed to publish the new configuration.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Uploading configuration to 'dev'
+            │   └── ✕ Failed to upload the new configuration.
+            │       └── OpenAPI collection 'petstore' (ID: collection-1)
+            │           └── Endpoint 'GET /pets'
+            │               └── Invalid schema. (10:5)
+            │   ├── 🕐 Waiting for approval. Approve in Nitro to continue.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [MemberData(nameof(GetUploadErrors))]
+    public async Task WithSourceSchemaFile_UploadHasErrors_ReturnsError(
+        ICommitFusionConfigurationPublish_CommitFusionConfigurationPublish_Errors error,
+        string expectedErrorMessage)
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        SetupFusionConfigurationUploadMutation(error);
+        SetupReleaseDeploymentSlotMutation();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            $"""
+             {expectedErrorMessage}
+             """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   └── ✓ Validated configuration.
+            ├── Uploading configuration to 'dev'
+            │   └── ✕ Failed to upload the new configuration.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_UploadThrows_ReturnsError()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        SetupFusionConfigurationUploadMutationException();
+        SetupReleaseDeploymentSlotMutation();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error: Something unexpected happened.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   └── ✓ Validated configuration.
+            ├── Uploading configuration to 'dev'
+            │   └── ✕ Failed to upload the new configuration.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
     }
 
     #endregion
@@ -1155,7 +1840,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Downloading existing configuration from 'dev'
-            │   └── ! There is no existing configuration on 'dev'.
+            │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
@@ -1202,7 +1887,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Downloading existing configuration from 'dev'
-            │   └── ! There is no existing configuration on 'dev'.
+            │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
@@ -1211,6 +1896,721 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
             """);
+    }
+
+    [Theory]
+    [MemberData(nameof(GetRequestDeploymentSlotErrors))]
+    public async Task WithSourceSchema_RequestDeploymentSlotHasErrors_ReturnsError(
+        IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish_Errors error,
+        string expectedErrorMessage)
+    {
+        // arrange
+        SetupSourceSchemaDownload();
+        SetupRequestDeploymentSlotMutation(waitForApproval: false, error);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            $"""
+             {expectedErrorMessage}
+             """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Requesting deployment slot
+            │   └── ✕ Failed to request a deployment slot.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithSourceSchema_RequestDeploymentSlotThrows_ReturnsError()
+    {
+        // arrange
+        SetupSourceSchemaDownload();
+        SetupRequestDeploymentSlotMutationException();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error: Something unexpected happened.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Requesting deployment slot
+            │   └── ✕ Failed to request a deployment slot.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [MemberData(nameof(GetClaimDeploymentSlotErrors))]
+    public async Task WithSourceSchema_ClaimDeploymentSlotHasError_ReturnsError(
+        IStartFusionConfigurationPublish_StartFusionConfigurationComposition_Errors error,
+        string expectedErrorMessage)
+    {
+        // arrange
+        SetupSourceSchemaDownload();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation(error);
+        SetupReleaseDeploymentSlotMutation();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            $"""
+             {expectedErrorMessage}
+             """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✕ Failed to claim the deployment slot.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithSourceSchema_ClaimDeploymentSlotThrows_ReturnsError()
+    {
+        // arrange
+        SetupSourceSchemaDownload();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutationException();
+        SetupReleaseDeploymentSlotMutation();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error: Something unexpected happened.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✕ Failed to claim the deployment slot.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithSourceSchema_CompositionErrors_ReturnsError()
+    {
+        // arrange
+        SetupSourceSchemaDownloadWithInvalidSchema();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupReleaseDeploymentSlotMutation();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Source schema validation failed.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✕ Failed to compose new configuration.
+            └── ✕ Failed to publish Fusion configuration.
+
+            ## Composition log
+
+            ❌ [ERR] The @require directive on argument 'Query.field(arg:)' in schema 'products' contains invalid syntax in the 'field' argument. (REQUIRE_INVALID_SYNTAX)
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [MemberData(nameof(GetValidationErrors))]
+    public async Task WithSourceSchema_ValidationHasErrors_ReturnsError(
+        IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition_Errors error,
+        string expectedErrorMessage)
+    {
+        // arrange
+        SetupSourceSchemaDownload();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation(error);
+        SetupReleaseDeploymentSlotMutation();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            $"""
+             {expectedErrorMessage}
+             """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   └── ✕ Failed to validate the new configuration.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithSourceSchema_ValidationThrows_ReturnsError()
+    {
+        // arrange
+        SetupSourceSchemaDownload();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutationException();
+        SetupReleaseDeploymentSlotMutation();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema);
+        ;
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error: Something unexpected happened.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   └── ✕ Failed to validate the new configuration.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithSourceSchema_BreakingChanges_ReturnsError()
+    {
+        // arrange
+        SetupSourceSchemaDownload();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription(
+            CreateValidationInProgressEvent(),
+            CreateValidationFailedEventWithErrors());
+        SetupReleaseDeploymentSlotMutation();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Failed to validate configuration.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   └── ✕ Failed to validate the new configuration.
+            │       ├── Field 'Query.foo' has no type. SCHEMA_ERROR
+            │       ├── Client 'test-client' (ID: client-1)
+            │       │   └── Operation 'abc123'
+            │       ├── OpenAPI collection 'petstore' (ID: collection-1)
+            │       │   └── Endpoint 'GET /pets'
+            │       │       └── Invalid schema. (10:5)
+            │       ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
+            │       │   └── Tool 'test-tool'
+            │       │       └── Invalid MCP schema. (5:3)
+            │       └── An unexpected error occurred.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithSourceSchema_BreakingChanges_Force_ReturnsSuccess()
+    {
+        // arrange
+        SetupSourceSchemaDownload();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription(
+            CreateValidationInProgressEvent(),
+            CreateValidationFailedEventWithErrors());
+        SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--force",
+            "--source-schema",
+            SourceSchema);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── ! Force push is enabled.
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   └── ✕ Failed to validate the new configuration.
+            │       ├── Field 'Query.foo' has no type. SCHEMA_ERROR
+            │       ├── Client 'test-client' (ID: client-1)
+            │       │   └── Operation 'abc123'
+            │       ├── OpenAPI collection 'petstore' (ID: collection-1)
+            │       │   └── Endpoint 'GET /pets'
+            │       │       └── Invalid schema. (10:5)
+            │       ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
+            │       │   └── Tool 'test-tool'
+            │       │       └── Invalid MCP schema. (5:3)
+            │       └── An unexpected error occurred.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+    }
+
+    [Fact]
+    public async Task WithSourceSchema_WaitForApproval_NoBreakingChanges_ReturnsSuccess()
+    {
+        // arrange
+        SetupSourceSchemaDownload();
+        SetupRequestDeploymentSlotMutation(waitForApproval: true);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupReleaseDeploymentSlotMutation();
+        SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--wait-for-approval",
+            "--source-schema",
+            SourceSchema);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+    }
+
+    [Fact]
+    public async Task WithSourceSchema_WaitForApproval_BreakingChanges_Approved_ReturnsSuccess()
+    {
+        // arrange
+        SetupSourceSchemaDownload();
+        SetupRequestDeploymentSlotMutation(waitForApproval: true);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription(
+            CreateWaitForApprovalEventWithErrors(),
+            CreateProcessingTaskApprovedEvent(),
+            CreatePublishingSuccessEvent());
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--wait-for-approval",
+            "--source-schema",
+            SourceSchema);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Uploading configuration to 'dev'
+            │   └── ✕ Failed to upload the new configuration.
+            │       └── OpenAPI collection 'petstore' (ID: collection-1)
+            │           └── Endpoint 'GET /pets'
+            │               └── Invalid schema. (10:5)
+            │   ├── 🕐 Waiting for approval. Approve in Nitro to continue.
+            │   ├── Approved. Processing...
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+    }
+
+    [Fact]
+    public async Task WithSourceSchema_WaitForApproval_BreakingChanges_NotApproved_ReturnsError()
+    {
+        // arrange
+        SetupSourceSchemaDownload();
+        SetupRequestDeploymentSlotMutation(waitForApproval: true);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupReleaseDeploymentSlotMutation();
+        SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription(
+            CreateWaitForApprovalEventWithErrors(),
+            CreatePublishingFailedEvent());
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--wait-for-approval",
+            "--source-schema",
+            SourceSchema);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Failed to publish the new configuration.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Uploading configuration to 'dev'
+            │   └── ✕ Failed to upload the new configuration.
+            │       └── OpenAPI collection 'petstore' (ID: collection-1)
+            │           └── Endpoint 'GET /pets'
+            │               └── Invalid schema. (10:5)
+            │   ├── 🕐 Waiting for approval. Approve in Nitro to continue.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [MemberData(nameof(GetUploadErrors))]
+    public async Task WithSourceSchema_UploadHasErrors_ReturnsError(
+        ICommitFusionConfigurationPublish_CommitFusionConfigurationPublish_Errors error,
+        string expectedErrorMessage)
+    {
+        // arrange
+        SetupSourceSchemaDownload();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        SetupFusionConfigurationUploadMutation(error);
+        SetupReleaseDeploymentSlotMutation();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            $"""
+             {expectedErrorMessage}
+             """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   └── ✓ Validated configuration.
+            ├── Uploading configuration to 'dev'
+            │   └── ✕ Failed to upload the new configuration.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithSourceSchema_UploadThrows_ReturnsError()
+    {
+        // arrange
+        SetupSourceSchemaDownload();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        SetupFusionConfigurationUploadMutationException();
+        SetupReleaseDeploymentSlotMutation();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error: Something unexpected happened.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   └── ✓ Validated configuration.
+            ├── Uploading configuration to 'dev'
+            │   └── ✕ Failed to upload the new configuration.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
     }
 
     #endregion

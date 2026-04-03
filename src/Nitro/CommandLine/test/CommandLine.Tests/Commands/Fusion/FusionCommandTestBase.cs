@@ -25,6 +25,12 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Comma
           field: String!
         }
         """;
+    private const string InvalidSourceSchemaText =
+        """
+        type Query {
+          field(arg: String @require(field: "non-existent")): String
+        }
+        """;
     private const string SourceSchemaSettings =
         $$"""
         {
@@ -40,7 +46,18 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Comma
                 SourceSchema,
                 Tag,
                 It.IsAny<CancellationToken>()))
-            .Returns(async () => await CreateSourceSchemaArchiveStreamAsync());
+            .Returns(async () => await CreateSourceSchemaArchiveStreamAsync(SourceSchemaText));
+    }
+
+    protected void SetupSourceSchemaDownloadWithInvalidSchema()
+    {
+        FusionConfigurationClientMock
+            .Setup(x => x.DownloadSourceSchemaArchiveAsync(
+                ApiId,
+                SourceSchema,
+                Tag,
+                It.IsAny<CancellationToken>()))
+            .Returns(async () => await CreateSourceSchemaArchiveStreamAsync(InvalidSourceSchemaText));
     }
 
     protected void SetupMissingSourceSchemaDownload()
@@ -61,9 +78,16 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Comma
         SetupFile(ArchiveFile, stream);
     }
 
-    protected void SetupSourceSchemaFile()
+    protected void SetupSourceSchemaFileWithInvalidSchema()
     {
-        SetupFile(SourceSchemaFile, SourceSchemaText);
+        SetupSourceSchemaFile(InvalidSourceSchemaText);
+    }
+
+    protected void SetupSourceSchemaFile(string? schemaText = null)
+    {
+        schemaText ??= SourceSchemaText;
+
+        SetupFile(SourceSchemaFile, schemaText);
 
         SetupFile(SourceSchemaSettingsFile, SourceSchemaSettings);
     }
@@ -527,10 +551,11 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Comma
         return new MemoryStream();
     }
 
-    private async Task<Stream> CreateSourceSchemaArchiveStreamAsync()
+    private async Task<Stream> CreateSourceSchemaArchiveStreamAsync(
+        string schema)
     {
         return await FusionSourceSchemaArchiveHelper.CreateArchiveStreamAsync(
-            Encoding.UTF8.GetBytes(SourceSchemaText),
+            Encoding.UTF8.GetBytes(schema),
             JsonDocument.Parse(SourceSchemaSettings));
     }
 

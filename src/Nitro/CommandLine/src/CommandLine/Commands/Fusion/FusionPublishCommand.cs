@@ -179,42 +179,7 @@ internal sealed class FusionPublishCommand : Command
             return await ExecutePublishAsync(
                 activity,
                 sourceSchemaVersions: null,
-                prepareArchive: async () =>
-                {
-                    // download
-                    var existingArchiveStream = await DownloadExistingFusionConfigurationAsync(activity);
-
-                    // compose
-                    await using var composeActivity = activity.StartChildActivity(
-                        "Composing new configuration",
-                        "Failed to compose new configuration.");
-
-                    var archiveStream = new MemoryStream();
-                    var (success, compositionLog) = await FusionPublishHelpers.ComposeAsync(
-                        archiveStream,
-                        existingArchiveStream,
-                        stageName,
-                        newSourceSchemas,
-                        null,
-                        cancellationToken);
-
-                    // TODO: Output composition log
-                    if (success)
-                    {
-                        composeActivity.Success("Composed new configuration.");
-                    }
-                    // else
-                    // {
-                    //     if (!composeResult.Log.IsEmpty)
-                    //     {
-                    //         failedLog = composeResult.Log;
-                    //     }
-                    //
-                    //     console.Error.WriteErrorLine("Failed to compose new configuration.");
-                    // }
-
-                    return archiveStream;
-                });
+                prepareArchive: () => ComposeAsync(activity, newSourceSchemas));
         }
 
         async Task<int> PublishFusionConfigurationWithSourceSchemasAsync()
@@ -279,42 +244,56 @@ internal sealed class FusionPublishCommand : Command
             return await ExecutePublishAsync(
                 activity,
                 sourceSchemaVersions,
-                prepareArchive: async () =>
+                prepareArchive: () => ComposeAsync(activity, newSourceSchemas));
+        }
+
+        async Task<Stream> ComposeAsync(
+            INitroConsoleActivity activity,
+            Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas)
+        {
+            // download
+            var existingArchiveStream = await DownloadExistingFusionConfigurationAsync(activity);
+
+            // compose
+            await using var composeActivity = activity.StartChildActivity(
+                "Composing new configuration",
+                "Failed to compose new configuration.");
+
+            var archiveStream = new MemoryStream();
+            var (result, compositionLog) = await FusionPublishHelpers.ComposeAsync(
+                archiveStream,
+                existingArchiveStream,
+                stageName,
+                newSourceSchemas,
+                null,
+                cancellationToken);
+
+            if (result.IsSuccess)
+            {
+                composeActivity.Success("Composed new configuration.");
+            }
+            else
+            {
+                await composeActivity.FailAllAsync();
+
+                console.WriteLine();
+                console.WriteLine("## Composition log");
+                console.WriteLine();
+
+                FusionComposeCommand.WriteCompositionLog(
+                    compositionLog,
+                    console.Out,
+                    false);
+
+                foreach (var error in result.Errors)
                 {
-                    // download
-                    var existingArchiveStream = await DownloadExistingFusionConfigurationAsync(activity);
+                    console.Error.WriteErrorLine(error.Message);
+                }
 
-                    // compose
-                    await using var composeActivity = activity.StartChildActivity(
-                        "Composing new configuration",
-                        "Failed to compose new configuration.");
+                throw new ExitException();
+            }
 
-                    var archiveStream = new MemoryStream();
-                    var (success, compositionLog) = await FusionPublishHelpers.ComposeAsync(
-                        archiveStream,
-                        existingArchiveStream,
-                        stageName,
-                        newSourceSchemas,
-                        null,
-                        cancellationToken);
-
-                    // TODO: Output composition log
-                    if (success)
-                    {
-                        composeActivity.Success("Composed new configuration.");
-                    }
-                    // else
-                    // {
-                    //     if (!composeResult.Log.IsEmpty)
-                    //     {
-                    //         failedLog = composeResult.Log;
-                    //     }
-                    //
-                    //     console.Error.WriteErrorLine("Failed to compose new configuration.");
-                    // }
-
-                    return archiveStream;
-                });
+            return archiveStream;
         }
 
         async Task<int> ExecutePublishAsync(
