@@ -23,7 +23,8 @@ internal class SseReader(
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(
             requestCancellationToken,
             cancellationToken);
-        await using var stream = await message.Content.ReadAsStreamAsync(cts.Token);
+        await using var stream =
+            await message.Content.ReadAsStreamAsync(cts.Token).ConfigureAwait(false);
         using var eventBuffer = new PooledArrayWriter();
         var reader = PipeReader.Create(stream, s_options);
 
