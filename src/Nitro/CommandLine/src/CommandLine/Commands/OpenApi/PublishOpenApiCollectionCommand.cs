@@ -93,10 +93,11 @@ internal sealed class PublishOpenApiCollectionCommand : Command
                     {
                         var errorMessage = error switch
                         {
-                            IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors_UnauthorizedOperation err => err.Message,
-                            IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors_StageNotFoundError err => err.Message,
-                            IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors_OpenApiCollectionNotFoundError err => err.Message,
-                            IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors_OpenApiCollectionVersionNotFoundError err => err.Message,
+                            IUnauthorizedOperation err => err.Message,
+                            IInvalidSourceMetadataInputError err => err.Message,
+                            IStageNotFoundError err => err.Message,
+                            IOpenApiCollectionNotFoundError err => err.Message,
+                            IOpenApiCollectionVersionNotFoundError err => err.Message,
                             IError err => "Unexpected mutation error: " + err.Message,
                             _ => "Unexpected mutation error."
                         };

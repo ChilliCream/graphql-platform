@@ -5,6 +5,7 @@ mutation BeginFusionConfigurationPublish(
     requestId
     errors {
       ...UnauthorizedOperation
+      ...InvalidSourceMetadataInputError
       ...StageNotFoundError
       ...ApiNotFoundError
       ...SubgraphInvalidError

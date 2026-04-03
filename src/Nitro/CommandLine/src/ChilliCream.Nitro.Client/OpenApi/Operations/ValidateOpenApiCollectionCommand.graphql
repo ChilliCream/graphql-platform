@@ -5,6 +5,7 @@ mutation ValidateOpenApiCollectionCommandMutation(
     id
     errors {
       ...UnauthorizedOperation
+      ...InvalidSourceMetadataInputError
       ...StageNotFoundError
       ...OpenApiCollectionNotFoundError
       ...Error

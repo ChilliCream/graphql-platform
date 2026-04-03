@@ -100,10 +100,11 @@ internal sealed class PublishSchemaCommand : Command
                     {
                         var errorMessage = error switch
                         {
-                            IPublishSchemaVersion_PublishSchema_Errors_UnauthorizedOperation err => err.Message,
-                            IPublishSchemaVersion_PublishSchema_Errors_ApiNotFoundError err => err.Message,
-                            IPublishSchemaVersion_PublishSchema_Errors_StageNotFoundError err => err.Message,
-                            IPublishSchemaVersion_PublishSchema_Errors_SchemaNotFoundError err => err.Message,
+                            IUnauthorizedOperation err => err.Message,
+                            IInvalidSourceMetadataInputError err => err.Message,
+                            IApiNotFoundError err => err.Message,
+                            IStageNotFoundError err => err.Message,
+                            ISchemaNotFoundError err => err.Message,
                             IError err => "Unexpected mutation error: " + err.Message,
                             _ => "Unexpected mutation error."
                         };

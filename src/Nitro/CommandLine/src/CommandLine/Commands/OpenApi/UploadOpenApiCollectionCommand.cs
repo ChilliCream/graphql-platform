@@ -85,6 +85,7 @@ internal sealed class UploadOpenApiCollectionCommand : Command
                     {
                         IOpenApiCollectionNotFoundError err => err.Message,
                         IUnauthorizedOperation err => err.Message,
+                        IUploadOpenApiCollectionCommandMutation_UploadOpenApiCollection_Errors_InvalidSourceMetadataInputError err => err.Message,
                         IDuplicatedTagError err => err.Message,
                         IConcurrentOperationError err => err.Message,
                         IInvalidOpenApiCollectionArchiveError err => ErrorMessages.InvalidArchive(err.Message),

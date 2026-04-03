@@ -3,6 +3,7 @@ mutation publishSchemaVersion($input: PublishSchemaInput!) {
     id
     errors {
       ...UnauthorizedOperation
+      ...InvalidSourceMetadataInputError
       ...ApiNotFoundError
       ...StageNotFoundError
       ...SchemaNotFoundError

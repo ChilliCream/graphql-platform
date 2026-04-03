@@ -5,13 +5,13 @@
 If you change any `*.graphql` files, regenerate the GraphQL client:
 
 ```bash
-dotnet graphql generate
+dotnet run --framework net10.0 --project ../../../../StrawberryShake/Tooling/src/dotnet-graphql/dotnet-graphql.csproj generate
 ```
 
 Before merging your changes, you also need to regenerate the persisted operations.
 
 ```bash
-dotnet graphql generate --relayFormat -q persisted
+dotnet run --framework net10.0 --project ../../../../StrawberryShake/Tooling/src/dotnet-graphql/dotnet-graphql.csproj generate --relayFormat -q persisted
 ```
 
 These operations are published to the Management API during the packages release.

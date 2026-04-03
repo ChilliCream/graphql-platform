@@ -1,3 +1,5 @@
+using ChilliCream.Nitro.Client;
+
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
 public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : FusionCommandTestBase(fixture)
@@ -245,6 +247,350 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
     }
 
+    [Fact]
+    public async Task WithArchive_WithEnvVars_ReturnsSuccess()
+    {
+        // arrange
+        SetupEnvironmentVariable(EnvironmentVariables.ApiId, ApiId);
+        SetupEnvironmentVariable(EnvironmentVariables.Stage, Stage);
+        SetupEnvironmentVariable(EnvironmentVariables.Tag, Tag);
+        SetupEnvironmentVariable(EnvironmentVariables.FusionConfigFile, ArchiveFile);
+
+        SetupArchiveFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync("fusion", "publish");
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   ├── Request ID: request-id
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ! There is no existing configuration on 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   └── ✓ Validated the Fusion configuration.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+    }
+
+    [Theory]
+    [MemberData(nameof(GetRequestDeploymentSlotErrors))]
+    public async Task WithArchive_RequestDeploymentSlotHasErrors_ReturnsError(
+        IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish_Errors error,
+        string expectedErrorMessage)
+    {
+        // arrange
+        SetupArchiveFile();
+        SetupRequestDeploymentSlotMutation(error);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--archive",
+            ArchiveFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            $"""
+            {expectedErrorMessage}
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   └── ✕ Failed to request a deployment slot.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithArchive_RequestDeploymentSlotThrows_ReturnsError()
+    {
+        // arrange
+        SetupArchiveFile();
+        SetupRequestDeploymentSlotMutationException();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--archive",
+            ArchiveFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error: Something unexpected happened.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   └── ✕ Failed to request a deployment slot.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithArchive_ClaimDeploymentSlotThrows_ReturnsError()
+    {
+        // arrange
+        SetupArchiveFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutationException();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--archive",
+            ArchiveFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error: Something unexpected happened.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   ├── Request ID: request-id
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✕ Failed to claim the deployment slot.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [MemberData(nameof(GetValidationErrors))]
+    public async Task WithArchive_ValidationHasErrors_ReturnsError(
+        IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition_Errors error,
+        string expectedErrorMessage)
+    {
+        // arrange
+        SetupArchiveFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationValidationMutation(error);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--archive",
+            ArchiveFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            $"""
+            {expectedErrorMessage}
+            TODO
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   ├── Request ID: request-id
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Validating configuration against 'dev'
+            │   └── ✕ Failed to validate the new configuration.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithArchive_ValidationThrows_ReturnsError()
+    {
+        // arrange
+        SetupArchiveFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationValidationMutationException();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--archive",
+            ArchiveFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error: Something unexpected happened.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   ├── Request ID: request-id
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Validating configuration against 'dev'
+            │   └── ✕ Failed to validate the new configuration.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [MemberData(nameof(GetUploadErrors))]
+    public async Task WithArchive_UploadHasErrors_ReturnsError(
+        ICommitFusionConfigurationPublish_CommitFusionConfigurationPublish_Errors error,
+        string expectedErrorMessage)
+    {
+        // arrange
+        SetupArchiveFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        SetupFusionConfigurationUploadMutation(error);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--archive",
+            ArchiveFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            $"""
+            {expectedErrorMessage}
+            Failed to commit Fusion archive.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   ├── Request ID: request-id
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Validating configuration against 'dev'
+            │   └── ✓ Validated the Fusion configuration.
+            ├── Uploading configuration to 'dev'
+            │   └── ✕ Failed to upload the new configuration.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithArchive_UploadThrows_ReturnsError()
+    {
+        // arrange
+        SetupArchiveFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        SetupFusionConfigurationUploadMutationException();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--archive",
+            ArchiveFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error: Something unexpected happened.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   ├── Request ID: request-id
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Validating configuration against 'dev'
+            │   └── ✓ Validated the Fusion configuration.
+            ├── Uploading configuration to 'dev'
+            │   └── ✕ Failed to upload the new configuration.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
     #endregion
 
     #region Source Schema File
@@ -304,6 +650,52 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             Stage,
             "--tag",
             Tag,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   ├── Request ID: request-id
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ! There is no existing configuration on 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   └── ✓ Validated the Fusion configuration.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_WithEnvVars_ReturnsSuccess()
+    {
+        // arrange
+        SetupEnvironmentVariable(EnvironmentVariables.ApiId, ApiId);
+        SetupEnvironmentVariable(EnvironmentVariables.Stage, Stage);
+        SetupEnvironmentVariable(EnvironmentVariables.Tag, Tag);
+
+        SetupSourceSchemaFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
             "--source-schema-file",
             SourceSchemaFile);
 
@@ -398,7 +790,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         Assert.Equal(1, result.ExitCode);
     }
 
-    // TODO: Assert archive validate/upload contains source schema
     [Fact]
     public async Task WithSourceSchema_ReturnsSuccess()
     {
@@ -449,7 +840,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
     }
 
-    // TODO: Assert archive validate/upload contains source schema
     [Fact]
     public async Task WithSourceSchema_WithEnvVars_ReturnsSuccess()
     {
@@ -1076,4 +1466,38 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
 //
 //     await Task.CompletedTask;
 // }
+
+    #region Theory Data
+
+    public static TheoryData<
+        IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish_Errors,
+        string> GetRequestDeploymentSlotErrors() => new()
+    {
+        { CreateRequestDeploymentSlotUnauthorizedError(), "Unauthorized." },
+        { CreateRequestDeploymentSlotApiNotFoundError(), $"API '{ApiId}' was not found." },
+        { CreateRequestDeploymentSlotStageNotFoundError(), $"Stage '{Stage}' was not found." },
+        { CreateRequestDeploymentSlotSubgraphInvalidError(), "Subgraph is invalid." },
+        { CreateRequestDeploymentSlotInvalidStateTransitionError(), "Invalid processing state transition." },
+        { CreateRequestDeploymentSlotInvalidSourceMetadataError(), "Invalid source metadata input." }
+    };
+
+    public static TheoryData<
+        IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition_Errors,
+        string> GetValidationErrors() => new()
+    {
+        { CreateValidationUnauthorizedError(), "Unauthorized." },
+        { CreateValidationRequestNotFoundError(), "Fusion configuration request was not found." },
+        { CreateValidationInvalidStateTransitionError(), "Invalid processing state transition." }
+    };
+
+    public static TheoryData<
+        ICommitFusionConfigurationPublish_CommitFusionConfigurationPublish_Errors,
+        string> GetUploadErrors() => new()
+    {
+        { CreateUploadUnauthorizedError(), "Unauthorized." },
+        { CreateUploadRequestNotFoundError(), "Fusion configuration request was not found." },
+        { CreateUploadInvalidStateTransitionError(), "Invalid processing state transition." }
+    };
+
+    #endregion
 }

@@ -99,6 +99,7 @@ internal sealed class FusionUploadCommand : Command
                     var errorMessage = error switch
                     {
                         IUnauthorizedOperation err => err.Message,
+                        IInvalidSourceMetadataInputError err => err.Message,
                         IDuplicatedTagError err => err.Message,
                         IConcurrentOperationError err => err.Message,
                         IInvalidFusionSourceSchemaArchiveError err =>

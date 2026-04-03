@@ -3,6 +3,7 @@ mutation PublishMcpFeatureCollectionCommandMutation($input: PublishMcpFeatureCol
     id
     errors {
       ...UnauthorizedOperation
+      ...InvalidSourceMetadataInputError
       ...StageNotFoundError
       ...McpFeatureCollectionNotFoundError
       ...McpFeatureCollectionVersionNotFoundError

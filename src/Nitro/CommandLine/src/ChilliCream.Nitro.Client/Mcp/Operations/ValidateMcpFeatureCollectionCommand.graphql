@@ -5,6 +5,7 @@ mutation ValidateMcpFeatureCollectionCommandMutation(
     id
     errors {
       ...UnauthorizedOperation
+      ...InvalidSourceMetadataInputError
       ...StageNotFoundError
       ...McpFeatureCollectionNotFoundError
       ...Error

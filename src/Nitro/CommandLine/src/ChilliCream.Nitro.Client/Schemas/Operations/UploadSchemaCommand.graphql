@@ -5,6 +5,7 @@ mutation uploadSchema($input: UploadSchemaInput!) {
     }
     errors {
       ...UnauthorizedOperation
+      ...InvalidSourceMetadataInputError
       ...DuplicatedTagError
       ...ConcurrentOperationError
       ...ApiNotFoundError

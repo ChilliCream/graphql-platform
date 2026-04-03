@@ -94,9 +94,10 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
                     {
                         var errorMessage = error switch
                         {
-                            IValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection_Errors_UnauthorizedOperation err => err.Message,
-                            IValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection_Errors_StageNotFoundError err => err.Message,
-                            IValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection_Errors_McpFeatureCollectionNotFoundError err => err.Message,
+                            IUnauthorizedOperation err => err.Message,
+                            IInvalidSourceMetadataInputError err => err.Message,
+                            IStageNotFoundError err => err.Message,
+                            IMcpFeatureCollectionNotFoundError err => err.Message,
                             IError err => "Unexpected mutation error: " + err.Message,
                             _ => "Unexpected mutation error."
                         };

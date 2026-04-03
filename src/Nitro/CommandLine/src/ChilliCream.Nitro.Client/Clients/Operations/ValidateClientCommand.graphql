@@ -3,6 +3,7 @@ mutation validateClientVersion($input: ValidateClientInput!) {
     id
     errors {
       ...UnauthorizedOperation
+      ...InvalidSourceMetadataInputError
       ...StageNotFoundError
       ...ClientNotFoundError
       ...Error

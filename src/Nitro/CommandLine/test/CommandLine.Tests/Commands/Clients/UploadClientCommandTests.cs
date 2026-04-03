@@ -742,6 +742,7 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
         yield return
         [
             new UploadClient_UploadClient_Errors_InvalidSourceMetadataInputError(
+                "InvalidSourceMetadataInputError",
                 "Invalid source metadata."),
             """
             Invalid source metadata.

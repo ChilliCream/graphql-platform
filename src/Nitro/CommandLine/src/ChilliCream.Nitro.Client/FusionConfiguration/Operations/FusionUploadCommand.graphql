@@ -5,6 +5,7 @@ mutation uploadFusionSubgraph($input: UploadFusionSubgraphInput!) {
     }
     errors {
       ...UnauthorizedOperation
+      ...InvalidSourceMetadataInputError
       ...DuplicatedTagError
       ...ConcurrentOperationError
       ...InvalidFusionSourceSchemaArchiveError

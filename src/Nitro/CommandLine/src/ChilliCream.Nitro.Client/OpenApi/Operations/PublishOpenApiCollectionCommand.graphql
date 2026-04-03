@@ -3,6 +3,7 @@ mutation PublishOpenApiCollectionCommandMutation($input: PublishOpenApiCollectio
     id
     errors {
       ...UnauthorizedOperation
+      ...InvalidSourceMetadataInputError
       ...StageNotFoundError
       ...OpenApiCollectionNotFoundError
       ...OpenApiCollectionVersionNotFoundError

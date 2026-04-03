@@ -93,6 +93,7 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
                     {
                         IMcpFeatureCollectionNotFoundError err => err.Message,
                         IUnauthorizedOperation err => err.Message,
+                        IInvalidSourceMetadataInputError err => err.Message,
                         IDuplicatedTagError err => err.Message,
                         IConcurrentOperationError err => err.Message,
                         IInvalidMcpFeatureCollectionArchiveError err =>

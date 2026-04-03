@@ -5,6 +5,7 @@ mutation uploadClient($input: UploadClientInput!) {
     }
     errors {
       ...UnauthorizedOperation
+      ...InvalidSourceMetadataInputError
       ...ClientNotFoundError
       ...DuplicatedTagError
       ...ConcurrentOperationError

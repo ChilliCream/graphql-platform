@@ -56,7 +56,8 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Comma
         SetupFile(SourceSchemaSettingsFile, SourceSchemaSettings);
     }
 
-    protected void SetupRequestDeploymentSlotMutation()
+    protected void SetupRequestDeploymentSlotMutation(
+        params IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish_Errors[] errors)
     {
         FusionConfigurationClientMock
             .Setup(x => x.RequestDeploymentSlotAsync(
@@ -69,7 +70,7 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Comma
                 false,
                 null,
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateRequestDeploymentSlotPayload);
+            .ReturnsAsync(() => CreateRequestDeploymentSlotPayload(errors));
     }
 
     protected void SetupRequestDeploymentSlotSubscription(
@@ -83,13 +84,14 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Comma
         SetupPublishingTaskSubscription(events);
     }
 
-    protected void SetupClaimDeploymentSlotMutation()
+    protected void SetupClaimDeploymentSlotMutation(
+        params IStartFusionConfigurationPublish_StartFusionConfigurationComposition_Errors[] errors)
     {
         FusionConfigurationClientMock
             .Setup(x => x.ClaimDeploymentSlotAsync(
                 RequestId,
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateClaimDeploymentSlotPayload);
+            .ReturnsAsync(() => CreateClaimDeploymentSlotPayload(errors));
     }
 
     protected void SetupFusionConfigurationDownload()
@@ -103,7 +105,8 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Comma
             .Returns(async () => await CreateFusionAsyncStreamAsync());
     }
 
-    protected void SetupFusionConfigurationValidationMutation()
+    protected void SetupFusionConfigurationValidationMutation(
+        params IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition_Errors[] errors)
     {
         FusionConfigurationClientMock
             .Setup(x => x.ValidateFusionConfigurationPublishAsync(
@@ -111,7 +114,7 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Comma
                 // TODO: This needs to be properly asserted
                 It.IsAny<Stream>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateValidateFusionConfigurationPublishPayload);
+            .ReturnsAsync(() => CreateValidateFusionConfigurationPublishPayload(errors));
     }
 
     protected void SetupFusionConfigurationValidationSubscription(
@@ -125,7 +128,8 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Comma
         SetupPublishingTaskSubscription(events);
     }
 
-    protected void SetupFusionConfigurationUploadMutation()
+    protected void SetupFusionConfigurationUploadMutation(
+        params ICommitFusionConfigurationPublish_CommitFusionConfigurationPublish_Errors[] errors)
     {
         FusionConfigurationClientMock
             .Setup(x => x.CommitFusionArchiveAsync(
@@ -133,7 +137,7 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Comma
                 // TODO: This needs to be properly asserted
                 It.IsAny<Stream>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CraeteCommitFusionArchivePayload);
+            .ReturnsAsync(() => CreateCommitFusionArchivePayload(errors));
     }
 
     protected void SetupSourceSchemaDownloadException()
@@ -240,24 +244,28 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Comma
             JsonDocument.Parse(SourceSchemaSettings));
     }
 
-    private static IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish CreateRequestDeploymentSlotPayload()
+    private static IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish
+        CreateRequestDeploymentSlotPayload(
+            IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish_Errors[] errors)
     {
         var payload = new Mock<IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish>(MockBehavior.Strict);
 
         payload.SetupGet(x => x.RequestId).Returns(RequestId);
 
         payload.SetupGet(x => x.Errors)
-            .Returns((IReadOnlyList<IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish_Errors>?)null);
+            .Returns(errors.Length > 0 ? errors : null);
 
         return payload.Object;
     }
 
-    private static IStartFusionConfigurationPublish_StartFusionConfigurationComposition CreateClaimDeploymentSlotPayload()
+    private static IStartFusionConfigurationPublish_StartFusionConfigurationComposition
+        CreateClaimDeploymentSlotPayload(
+            IStartFusionConfigurationPublish_StartFusionConfigurationComposition_Errors[] errors)
     {
         var payload = new Mock<IStartFusionConfigurationPublish_StartFusionConfigurationComposition>(MockBehavior.Strict);
 
         payload.SetupGet(x => x.Errors)
-            .Returns((IReadOnlyList<IStartFusionConfigurationPublish_StartFusionConfigurationComposition_Errors>?)null);
+            .Returns(errors.Length > 0 ? errors : null);
 
         return payload.Object;
     }
@@ -277,23 +285,165 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Comma
         return new Mock<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_FusionConfigurationPublishingSuccess>(MockBehavior.Strict).Object;
     }
 
-    private IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition CreateValidateFusionConfigurationPublishPayload()
+    private static IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition
+        CreateValidateFusionConfigurationPublishPayload(
+            IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition_Errors[] errors)
     {
         var payload = new Mock<IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition>(MockBehavior.Strict);
 
         payload.SetupGet(x => x.Errors)
-            .Returns((IReadOnlyList<IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition_Errors>?)null);
+            .Returns(errors.Length > 0 ? errors : null);
 
         return payload.Object;
     }
 
-    private ICommitFusionConfigurationPublish_CommitFusionConfigurationPublish CraeteCommitFusionArchivePayload()
+    private static ICommitFusionConfigurationPublish_CommitFusionConfigurationPublish
+        CreateCommitFusionArchivePayload(
+            ICommitFusionConfigurationPublish_CommitFusionConfigurationPublish_Errors[] errors)
     {
         var payload = new Mock<ICommitFusionConfigurationPublish_CommitFusionConfigurationPublish>(MockBehavior.Strict);
 
         payload.SetupGet(x => x.Errors)
-            .Returns((IReadOnlyList<ICommitFusionConfigurationPublish_CommitFusionConfigurationPublish_Errors>?)null);
+            .Returns(errors.Length > 0 ? errors : null);
 
         return payload.Object;
     }
+
+    #region Error Factories — RequestDeploymentSlot (Begin)
+
+    protected static IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish_Errors
+        CreateRequestDeploymentSlotUnauthorizedError(string message = "Unauthorized.")
+    {
+        var mock = new Mock<IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish_Errors_UnauthorizedOperation>(MockBehavior.Strict);
+        mock.SetupGet(x => x.Message).Returns(message);
+        return mock.Object;
+    }
+
+    protected static IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish_Errors
+        CreateRequestDeploymentSlotApiNotFoundError(string apiId = ApiId)
+    {
+        var mock = new Mock<IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish_Errors_ApiNotFoundError>(MockBehavior.Strict);
+        mock.SetupGet(x => x.Message).Returns($"API '{apiId}' was not found.");
+        mock.SetupGet(x => x.ApiId).Returns(apiId);
+        return mock.Object;
+    }
+
+    protected static IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish_Errors
+        CreateRequestDeploymentSlotStageNotFoundError(string name = Stage)
+    {
+        var mock = new Mock<IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish_Errors_StageNotFoundError>(MockBehavior.Strict);
+        mock.SetupGet(x => x.Message).Returns($"Stage '{name}' was not found.");
+        mock.SetupGet(x => x.Name).Returns(name);
+        return mock.Object;
+    }
+
+    protected static IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish_Errors
+        CreateRequestDeploymentSlotSubgraphInvalidError(string message = "Subgraph is invalid.")
+    {
+        var mock = new Mock<IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish_Errors_SubgraphInvalidError>(MockBehavior.Strict);
+        mock.SetupGet(x => x.Message).Returns(message);
+        return mock.Object;
+    }
+
+    protected static IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish_Errors
+        CreateRequestDeploymentSlotInvalidStateTransitionError(string message = "Invalid processing state transition.")
+    {
+        var mock = new Mock<IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish_Errors_InvalidProcessingStateTransitionError>(MockBehavior.Strict);
+        mock.SetupGet(x => x.Message).Returns(message);
+        return mock.Object;
+    }
+
+    protected static IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish_Errors
+        CreateRequestDeploymentSlotInvalidSourceMetadataError(string message = "Invalid source metadata input.")
+    {
+        var mock = new Mock<IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish_Errors_InvalidSourceMetadataInputError>(MockBehavior.Strict);
+        mock.SetupGet(x => x.Message).Returns(message);
+        return mock.Object;
+    }
+
+    #endregion
+
+    #region Error Factories — ClaimDeploymentSlot (Start)
+
+    protected static IStartFusionConfigurationPublish_StartFusionConfigurationComposition_Errors
+        CreateClaimDeploymentSlotUnauthorizedError(string message = "Unauthorized.")
+    {
+        var mock = new Mock<IStartFusionConfigurationPublish_StartFusionConfigurationComposition_Errors_UnauthorizedOperation>(MockBehavior.Strict);
+        mock.SetupGet(x => x.Message).Returns(message);
+        return mock.Object;
+    }
+
+    protected static IStartFusionConfigurationPublish_StartFusionConfigurationComposition_Errors
+        CreateClaimDeploymentSlotRequestNotFoundError(string message = "Fusion configuration request was not found.")
+    {
+        var mock = new Mock<IStartFusionConfigurationPublish_StartFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError>(MockBehavior.Strict);
+        mock.SetupGet(x => x.Message).Returns(message);
+        return mock.Object;
+    }
+
+    protected static IStartFusionConfigurationPublish_StartFusionConfigurationComposition_Errors
+        CreateClaimDeploymentSlotInvalidStateTransitionError(string message = "Invalid processing state transition.")
+    {
+        var mock = new Mock<IStartFusionConfigurationPublish_StartFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError>(MockBehavior.Strict);
+        mock.SetupGet(x => x.Message).Returns(message);
+        return mock.Object;
+    }
+
+    #endregion
+
+    #region Error Factories — ValidateFusionConfiguration
+
+    protected static IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition_Errors
+        CreateValidationUnauthorizedError(string message = "Unauthorized.")
+    {
+        var mock = new Mock<IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition_Errors_UnauthorizedOperation>(MockBehavior.Strict);
+        mock.SetupGet(x => x.Message).Returns(message);
+        return mock.Object;
+    }
+
+    protected static IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition_Errors
+        CreateValidationRequestNotFoundError(string message = "Fusion configuration request was not found.")
+    {
+        var mock = new Mock<IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError>(MockBehavior.Strict);
+        mock.SetupGet(x => x.Message).Returns(message);
+        return mock.Object;
+    }
+
+    protected static IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition_Errors
+        CreateValidationInvalidStateTransitionError(string message = "Invalid processing state transition.")
+    {
+        var mock = new Mock<IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError>(MockBehavior.Strict);
+        mock.SetupGet(x => x.Message).Returns(message);
+        return mock.Object;
+    }
+
+    #endregion
+
+    #region Error Factories — CommitFusionArchive (Upload)
+
+    protected static ICommitFusionConfigurationPublish_CommitFusionConfigurationPublish_Errors
+        CreateUploadUnauthorizedError(string message = "Unauthorized.")
+    {
+        var mock = new Mock<ICommitFusionConfigurationPublish_CommitFusionConfigurationPublish_Errors_UnauthorizedOperation>(MockBehavior.Strict);
+        mock.SetupGet(x => x.Message).Returns(message);
+        return mock.Object;
+    }
+
+    protected static ICommitFusionConfigurationPublish_CommitFusionConfigurationPublish_Errors
+        CreateUploadRequestNotFoundError(string message = "Fusion configuration request was not found.")
+    {
+        var mock = new Mock<ICommitFusionConfigurationPublish_CommitFusionConfigurationPublish_Errors_FusionConfigurationRequestNotFoundError>(MockBehavior.Strict);
+        mock.SetupGet(x => x.Message).Returns(message);
+        return mock.Object;
+    }
+
+    protected static ICommitFusionConfigurationPublish_CommitFusionConfigurationPublish_Errors
+        CreateUploadInvalidStateTransitionError(string message = "Invalid processing state transition.")
+    {
+        var mock = new Mock<ICommitFusionConfigurationPublish_CommitFusionConfigurationPublish_Errors_InvalidProcessingStateTransitionError>(MockBehavior.Strict);
+        mock.SetupGet(x => x.Message).Returns(message);
+        return mock.Object;
+    }
+
+    #endregion
 }

@@ -86,9 +86,10 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
                     {
                         var errorMessage = error switch
                         {
-                            IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors_UnauthorizedOperation err => err.Message,
-                            IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors_StageNotFoundError err => err.Message,
-                            IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors_OpenApiCollectionNotFoundError err => err.Message,
+                            IUnauthorizedOperation err => err.Message,
+                            IInvalidSourceMetadataInputError err => err.Message,
+                            IStageNotFoundError err => err.Message,
+                            IOpenApiCollectionNotFoundError err => err.Message,
                             IError err => "Unexpected mutation error: " + err.Message,
                             _ => "Unexpected mutation error."
                         };

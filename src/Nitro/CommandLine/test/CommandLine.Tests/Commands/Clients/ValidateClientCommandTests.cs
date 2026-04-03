@@ -1032,6 +1032,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
         yield return
         [
             new ValidateClientVersion_ValidateClient_Errors_InvalidSourceMetadataInputError(
+                "InvalidSourceMetadataInputError",
                 "Invalid source metadata."),
             """
             Invalid source metadata.

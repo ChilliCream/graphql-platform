@@ -75,10 +75,11 @@ internal sealed class UploadSchemaCommand : Command
                 {
                     var errorMessage = error switch
                     {
-                        IUploadSchema_UploadSchema_Errors_UnauthorizedOperation err => err.Message,
-                        IUploadSchema_UploadSchema_Errors_DuplicatedTagError err => err.Message,
-                        IUploadSchema_UploadSchema_Errors_ConcurrentOperationError err => err.Message,
-                        IUploadSchema_UploadSchema_Errors_ApiNotFoundError err => err.Message,
+                        IUnauthorizedOperation err => err.Message,
+                        IInvalidSourceMetadataInputError err => err.Message,
+                        IDuplicatedTagError err => err.Message,
+                        IConcurrentOperationError err => err.Message,
+                        IApiNotFoundError err => err.Message,
                         IError err => "Unexpected mutation error: " + err.Message,
                         _ => "Unexpected mutation error."
                     };

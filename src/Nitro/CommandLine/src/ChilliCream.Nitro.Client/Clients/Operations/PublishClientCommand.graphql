@@ -3,6 +3,7 @@ mutation publishClientVersion($input: PublishClientInput!) {
     id
     errors {
       ...UnauthorizedOperation
+      ...InvalidSourceMetadataInputError
       ...StageNotFoundError
       ...ClientNotFoundError
       ...ClientVersionNotFoundError

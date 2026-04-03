@@ -1337,6 +1337,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
         yield return
         [
             new PublishClientVersion_PublishClient_Errors_InvalidSourceMetadataInputError(
+                "InvalidSourceMetadataInputError",
                 "Invalid source metadata."),
             """
             Invalid source metadata.

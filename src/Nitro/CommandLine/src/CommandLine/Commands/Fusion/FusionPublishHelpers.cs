@@ -45,6 +45,7 @@ internal static class FusionPublishHelpers
                 var errorMessage = error switch
                 {
                     IUnauthorizedOperation err => err.Message,
+                    IInvalidSourceMetadataInputError err => err.Message,
                     IApiNotFoundError err => err.Message,
                     IStageNotFoundError err => err.Message,
                     ISubgraphInvalidError err => err.Message,
@@ -53,19 +54,18 @@ internal static class FusionPublishHelpers
                     _ => "Unexpected mutation error."
                 };
 
-                console.Error.WriteErrorLine(errorMessage);
+                throw new ExitException(errorMessage);
             }
-
-            throw Exit("Failed to request deployment slot.");
         }
 
         var requestId = deploymentSlotRequest.RequestId;
 
         if (string.IsNullOrEmpty(requestId))
         {
-            throw Exit("Failed to request deployment slot.");
+            throw MutationReturnedNoData();
         }
 
+        // TODO: Challenge this
         activity.Update($"Request ID: {requestId.EscapeMarkup()}");
 
         using var subscriptionCancellation =

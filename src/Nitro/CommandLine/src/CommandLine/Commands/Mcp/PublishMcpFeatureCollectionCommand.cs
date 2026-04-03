@@ -2,7 +2,6 @@ using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Mcp;
 using ChilliCream.Nitro.CommandLine.Commands.Mcp.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mcp;
@@ -94,10 +93,11 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
                     {
                         var errorMessage = error switch
                         {
-                            IPublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_UnauthorizedOperation err => err.Message,
-                            IPublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_StageNotFoundError err => err.Message,
-                            IPublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_McpFeatureCollectionNotFoundError err => err.Message,
-                            IPublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_McpFeatureCollectionVersionNotFoundError err => err.Message,
+                            IUnauthorizedOperation err => err.Message,
+                            IPublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_InvalidSourceMetadataInputError err => err.Message,
+                            IStageNotFoundError err => err.Message,
+                            IMcpFeatureCollectionNotFoundError err => err.Message,
+                            IMcpFeatureCollectionVersionNotFoundError err => err.Message,
                             IError err => "Unexpected mutation error: " + err.Message,
                             _ => "Unexpected mutation error."
                         };

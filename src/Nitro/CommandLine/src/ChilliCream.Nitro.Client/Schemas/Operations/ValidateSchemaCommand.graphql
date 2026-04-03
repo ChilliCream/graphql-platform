@@ -3,6 +3,7 @@ mutation validateSchemaVersion($input: ValidateSchemaInput!) {
     id
     errors {
       ...UnauthorizedOperation
+      ...InvalidSourceMetadataInputError
       ...ApiNotFoundError
       ...StageNotFoundError
       ...SchemaNotFoundError

@@ -44,6 +44,12 @@ fragment UnauthorizedOperation on UnauthorizedOperation {
   ...Error
 }
 
+fragment InvalidSourceMetadataInputError on InvalidSourceMetadataInputError {
+  __typename
+  message
+  ...Error
+}
+
 fragment DuplicatedTagError on DuplicatedTagError {
   __typename
   message
