@@ -18,7 +18,8 @@ public static class SagaDescriptorExtensions
         TimeSpan timeout)
         where TState : SagaStateBase
     {
-        // TODO for this we need scheduling
-        throw new NotImplementedException();
+        descriptor.Extend().Configuration.Timeout = timeout;
+
+        return descriptor.Finally(StateNames.TimedOut);
     }
 }

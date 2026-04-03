@@ -56,6 +56,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             subscription Op_a6fc02fc_1 {
               onBookCreated {
@@ -105,6 +106,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_a6fc02fc_2(
               $__fusion_1_id: Int!

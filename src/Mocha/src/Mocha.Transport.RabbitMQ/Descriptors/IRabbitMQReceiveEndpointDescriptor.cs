@@ -9,6 +9,12 @@ public interface IRabbitMQReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.Handler{THandler}" />
     new IRabbitMQReceiveEndpointDescriptor Handler<THandler>() where THandler : class, IHandler;
 
+    /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.Handler(Type)" />
+    new IRabbitMQReceiveEndpointDescriptor Handler(Type handlerType);
+
+    /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.Consumer(Type)" />
+    new IRabbitMQReceiveEndpointDescriptor Consumer(Type consumerType);
+
     /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.Consumer{TConsumer}" />
     new IRabbitMQReceiveEndpointDescriptor Consumer<TConsumer>() where TConsumer : class, IConsumer;
 

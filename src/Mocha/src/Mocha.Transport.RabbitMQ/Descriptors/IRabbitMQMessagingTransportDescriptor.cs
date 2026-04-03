@@ -101,4 +101,12 @@ public interface IRabbitMQMessagingTransportDescriptor
         ReceiveMiddlewareConfiguration configuration,
         string? before = null,
         string? after = null);
+
+    /// <summary>Claims a handler for this transport, creating a convention-named endpoint.</summary>
+    IMessagingTransportHandlerDescriptor<IRabbitMQReceiveEndpointDescriptor> Handler<THandler>()
+        where THandler : class, IHandler;
+
+    /// <summary>Claims a consumer for this transport, creating a convention-named endpoint.</summary>
+    IMessagingTransportConsumerDescriptor<IRabbitMQReceiveEndpointDescriptor> Consumer<TConsumer>()
+        where TConsumer : class, IConsumer;
 }

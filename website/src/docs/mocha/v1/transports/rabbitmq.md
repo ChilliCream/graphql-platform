@@ -390,7 +390,29 @@ transport.DeclareBinding("platform-events", "my-queue"); // auto-provisioned (de
 
 # Prefetch and concurrency
 
-Customize queue names, prefetch counts, and handler assignments on receive endpoints:
+Use `transport.Handler<T>()` to claim a handler and configure prefetch and concurrency on its convention-named endpoint:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEventHandler<OrderPlacedEventHandler>()
+    .AddRabbitMQ(transport =>
+    {
+        transport.Handler<OrderPlacedEventHandler>()
+            .ConfigureEndpoint(e => e.MaxPrefetch(50).MaxConcurrency(10));
+    });
+```
+
+This keeps the convention-derived endpoint name while tuning the consumer settings. `ConfigureEndpoint()` can be called multiple times - actions compose in declaration order:
+
+```csharp
+transport.Handler<OrderPlacedEventHandler>()
+    .ConfigureEndpoint(e => e.MaxPrefetch(50))
+    .ConfigureEndpoint(e => e.MaxConcurrency(10))
+    .ConfigureEndpoint(e => e.FaultEndpoint("order-errors"));
+```
+
+For full control over the endpoint name and queue, use explicit binding with `Endpoint("name")`:
 
 ```csharp
 builder.Services

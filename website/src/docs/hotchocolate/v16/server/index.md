@@ -16,6 +16,12 @@ Hot Chocolate implements the GraphQL over HTTP specification. In v16, the defaul
 
 [Learn more about the HTTP transport](/docs/hotchocolate/v16/server/http-transport)
 
+# Cache Control
+
+Cache control lets your GraphQL server emit `Cache-Control` and `Vary` response headers that CDNs, reverse proxies, and browsers can use for HTTP caching decisions.
+
+[Learn more about cache control](/docs/hotchocolate/v16/server/cache-control)
+
 # Interceptors
 
 Interceptors let you intercept GraphQL requests before execution. There are interceptors for both HTTP requests and WebSocket sessions.

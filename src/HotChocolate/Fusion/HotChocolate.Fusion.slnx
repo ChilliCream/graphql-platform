@@ -6,7 +6,7 @@
     <Project Path="src/Fusion.Aspire/HotChocolate.Fusion.Aspire.csproj" />
     <Project Path="src/Fusion.AspNetCore/HotChocolate.Fusion.AspNetCore.csproj" />
     <Project Path="src/Fusion.Composition/HotChocolate.Fusion.Composition.csproj" />
-    <Project Path="src/Fusion.Composition.ApolloFederation/HotChocolate.Fusion.Composition.ApolloFederation.csproj" />
+    <Project Path="src/Fusion.Caching/HotChocolate.Fusion.Caching.csproj" />
     <Project Path="src/Fusion.Diagnostics/HotChocolate.Fusion.Diagnostics.csproj" />
     <Project Path="src/Fusion.Execution.Types/HotChocolate.Fusion.Execution.Types.csproj" />
     <Project Path="src/Fusion.Execution/HotChocolate.Fusion.Execution.csproj" />
@@ -20,7 +20,7 @@
   <Folder Name="/test/">
     <Project Path="test/Fusion.AspNetCore.Tests/HotChocolate.Fusion.AspNetCore.Tests.csproj" />
     <Project Path="test/Fusion.Composition.Tests/HotChocolate.Fusion.Composition.Tests.csproj" />
-    <Project Path="test/Fusion.Composition.ApolloFederation.Tests/HotChocolate.Fusion.Composition.ApolloFederation.Tests.csproj" />
+    <Project Path="test/Fusion.Caching.Tests/HotChocolate.Fusion.Caching.Tests.csproj" />
     <Project Path="test/Fusion.Diagnostics.Tests/HotChocolate.Fusion.Diagnostics.Tests.csproj" />
     <Project Path="test/Fusion.EventSources.Tests/HotChocolate.Fusion.EventSources.Tests.csproj" />
     <Project Path="test/Fusion.Execution.Tests/HotChocolate.Fusion.Execution.Tests.csproj" />

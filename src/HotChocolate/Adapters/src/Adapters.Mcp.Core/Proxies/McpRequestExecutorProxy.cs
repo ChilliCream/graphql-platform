@@ -49,10 +49,7 @@ internal sealed class McpRequestExecutorProxy(
                 oldExecutor.Schema.Services.GetRequiredService<ConcurrentDictionary<string, McpServer>>());
         }
 
-        var session =
-            new McpExecutorSession(
-                newExecutor.Schema.Services.GetRequiredService<StreamableHttpHandler>(),
-                newExecutor.Schema.Services.GetRequiredService<SseHandler>());
+        var session = new McpExecutorSession(newExecutor.Schema.Services.GetRequiredService<StreamableHttpHandler>());
 
         newExecutor.Features.Set(session);
         _session = session;

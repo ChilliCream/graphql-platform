@@ -6,7 +6,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Mocha.Abstractions\Mocha.Abstractions.csproj" />
     <ProjectReference Include="..\Mocha\Mocha.csproj" />
-    <ProjectReference Include="..\Mocha.Scheduling\Mocha.Scheduling.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Npgsql" />

@@ -29,11 +29,17 @@ internal class CacheControlDirectiveMerger(DirectiveMergeBehavior mergeBehavior)
         MutableDirectiveDefinition directiveDefinition,
         MutableSchemaDefinition mergedSchema)
     {
+        var scopeArgType = (MutableEnumTypeDefinition)directiveDefinition.Arguments["scope"].Type;
+
         if (MergeBehavior is DirectiveMergeBehavior.IncludePrivate)
         {
-            var scopeArgType = (MutableEnumTypeDefinition)directiveDefinition.Arguments["scope"].Type;
             scopeArgType.Name = $"fusion__{scopeArgType.Name}";
             mergedSchema.Types.Add(scopeArgType);
+        }
+        else if (mergedSchema.Types.TryGetType<MutableEnumTypeDefinition>(
+            WellKnownTypeNames.CacheControlScope, out var existingScopeType))
+        {
+            directiveDefinition.Arguments["scope"].Type = existingScopeType;
         }
 
         base.MergeDirectiveDefinition(directiveDefinition, mergedSchema);

@@ -1,24 +1,26 @@
 ---
 title: "Scheduling"
-description: "Schedule messages for future delivery in Mocha using absolute times or relative delays, with durable Postgres persistence or in-memory scheduling for development."
+description: "Schedule messages for future delivery in Mocha using absolute times or relative delays, with durable Postgres persistence or in-memory scheduling for development. Cancel scheduled messages before they are dispatched."
 ---
 
 # Scheduling
 
-Sometimes a message should not be delivered right now. A welcome email goes out 30 minutes after signup. A payment retry fires 24 hours after the first failure. A saga timeout triggers if no response arrives within 5 minutes. Scheduling lets you hand a message to the bus with a future delivery time, and the infrastructure takes care of the rest.
+Sometimes a message should not be delivered right now. A welcome email goes out 30 minutes after signup. A payment retry fires 24 hours after the first failure. A saga timeout triggers if no response arrives within 5 minutes. Scheduling lets you hand a message to the bus with a future delivery time, and the infrastructure takes care of the rest. If plans change, you can cancel a scheduled message before it is dispatched.
 
 ```csharp
-await bus.SchedulePublishAsync(
+var result = await bus.SchedulePublishAsync(
     new SendWelcomeEmail { UserId = userId },
     DateTimeOffset.UtcNow.AddMinutes(30),
     cancellationToken);
+
+// result.Token can be used to cancel the message later
 ```
 
-The call returns immediately. The message is persisted and delivered when the scheduled time arrives.
+The call returns immediately with a `SchedulingResult`. The message is persisted and delivered when the scheduled time arrives. If you need to revoke the message before delivery, pass the token to `CancelScheduledMessageAsync`.
 
 # Schedule a message
 
-Mocha provides convenience extension methods on `IMessageBus` for scheduling with an absolute `DateTimeOffset`.
+Mocha provides scheduling methods on `IMessageBus` for scheduling with an absolute `DateTimeOffset`.
 
 ## Schedule with an absolute time
 
@@ -28,21 +30,48 @@ Use a `DateTimeOffset` when you know the exact delivery time:
 var scheduledTime = DateTimeOffset.UtcNow.AddHours(24);
 
 // Schedule a publish (fan-out to all subscribers)
-await bus.SchedulePublishAsync(
+var publishResult = await bus.SchedulePublishAsync(
     new PaymentRetryEvent { OrderId = orderId },
     scheduledTime,
     cancellationToken);
 
 // Schedule a send (directed to a single handler)
-await bus.ScheduleSendAsync(
+var sendResult = await bus.ScheduleSendAsync(
     new CleanupExpiredSessionsCommand { CutoffTime = cutoff },
     scheduledTime,
     cancellationToken);
 ```
 
-# Schedule with options
+Both methods return a `SchedulingResult` with a `Token` you can use for cancellation and an `IsCancellable` flag that tells you whether cancellation is supported by the current scheduling infrastructure.
 
-The convenience methods are wrappers around `PublishOptions` and `SendOptions`. If you need to combine scheduling with other options like expiration or custom headers, set `ScheduledTime` directly on the options struct:
+## Schedule with options
+
+The scheduling methods also accept an options overload. If you need to combine scheduling with other options like expiration or custom headers, pass a `PublishOptions` or `SendOptions` struct:
+
+```csharp
+var result = await bus.SchedulePublishAsync(
+    new PaymentRetryEvent { OrderId = orderId },
+    DateTimeOffset.UtcNow.AddHours(24),
+    new PublishOptions
+    {
+        ExpirationTime = DateTimeOffset.UtcNow.AddHours(48),
+        Headers = new Dictionary<string, object?> { ["priority"] = "high" }
+    },
+    cancellationToken);
+```
+
+```csharp
+var result = await bus.ScheduleSendAsync(
+    new RetryPaymentCommand { PaymentId = paymentId },
+    DateTimeOffset.UtcNow.AddMinutes(30),
+    new SendOptions
+    {
+        ExpirationTime = DateTimeOffset.UtcNow.AddHours(1)
+    },
+    cancellationToken);
+```
+
+You can also set `ScheduledTime` directly on options when calling `PublishAsync` or `SendAsync`. This approach does not return a `SchedulingResult`, so you cannot cancel the message later:
 
 ```csharp
 await bus.PublishAsync(
@@ -51,23 +80,98 @@ await bus.PublishAsync(
     {
         ScheduledTime = DateTimeOffset.UtcNow.AddHours(24),
         ExpirationTime = DateTimeOffset.UtcNow.AddHours(48),
-        Headers = new Dictionary<string, object?> { ["priority"] = "high" }
     },
     cancellationToken);
 ```
+
+# Cancel a scheduled message
+
+When a scheduled message is no longer needed, cancel it before the scheduled time arrives. The `SchedulingResult` returned by `SchedulePublishAsync` and `ScheduleSendAsync` contains the token you need.
 
 ```csharp
-await bus.SendAsync(
-    new RetryPaymentCommand { PaymentId = paymentId },
-    new SendOptions
-    {
-        ScheduledTime = DateTimeOffset.UtcNow.AddMinutes(30),
-        ExpirationTime = DateTimeOffset.UtcNow.AddHours(1)
-    },
+// Schedule a payment reminder
+var result = await bus.SchedulePublishAsync(
+    new PaymentReminderEvent { OrderId = orderId },
+    DateTimeOffset.UtcNow.AddHours(24),
+    cancellationToken);
+
+// Customer pays before the reminder fires - cancel it
+var cancelled = await bus.CancelScheduledMessageAsync(
+    result.Token!,
     cancellationToken);
 ```
 
-This gives full control over the dispatch options while still routing through the scheduling middleware.
+`CancelScheduledMessageAsync` returns `true` if the message was successfully cancelled and `false` otherwise.
+
+## When cancellation returns false
+
+A `false` return does not necessarily mean something went wrong. It means the message is no longer in the store:
+
+- **Already dispatched.** The scheduled time passed and the message was delivered. The cancellation window has closed.
+- **Already cancelled.** A previous call already removed the message. Cancelling twice is safe - the second call returns `false`.
+- **Token not found.** The token does not match any message in the store.
+
+## SchedulingResult
+
+Every call to `SchedulePublishAsync` or `ScheduleSendAsync` returns a `SchedulingResult`:
+
+```csharp
+var result = await bus.SchedulePublishAsync(message, scheduledTime, cancellationToken);
+
+if (result.IsCancellable)
+{
+    // Store the token so you can cancel later
+    await SaveTokenAsync(result.Token!);
+}
+```
+
+| Property        | Type             | Description                                                                               |
+| --------------- | ---------------- | ----------------------------------------------------------------------------------------- |
+| `Token`         | `string?`        | An opaque token for cancelling this message, or `null` if cancellation is not supported.  |
+| `ScheduledTime` | `DateTimeOffset` | The time at which the message is scheduled for delivery.                                  |
+| `IsCancellable` | `bool`           | `true` when the scheduling infrastructure supports cancellation and a token was assigned. |
+
+`IsCancellable` is `true` when a store-based scheduling provider (like Postgres) is registered. If no store is registered, the message is still scheduled (through the transport's native scheduling), but cancellation is not available.
+
+## Real-world example: cancellable reminder
+
+A common pattern is scheduling a reminder that should be revoked when the user completes the expected action.
+
+```csharp
+public class OrderService(IMessageBus bus, IOrderRepository orders)
+{
+    public async Task PlaceOrderAsync(Order order, CancellationToken ct)
+    {
+        await orders.SaveAsync(order, ct);
+
+        // Remind the customer to pay in 24 hours
+        var result = await bus.SchedulePublishAsync(
+            new PaymentReminderEvent { OrderId = order.Id },
+            DateTimeOffset.UtcNow.AddHours(24),
+            ct);
+
+        // Persist the token so we can cancel later
+        if (result.IsCancellable)
+        {
+            order.ReminderToken = result.Token;
+            await orders.SaveAsync(order, ct);
+        }
+    }
+
+    public async Task ConfirmPaymentAsync(Guid orderId, CancellationToken ct)
+    {
+        var order = await orders.GetAsync(orderId, ct);
+
+        // Payment received - cancel the reminder
+        if (order.ReminderToken is not null)
+        {
+            await bus.CancelScheduledMessageAsync(order.ReminderToken, ct);
+            order.ReminderToken = null;
+            await orders.SaveAsync(order, ct);
+        }
+    }
+}
+```
 
 # Set up store-based scheduling for RabbitMQ
 
@@ -104,17 +208,14 @@ builder.Services
     .AddPostgres(connectionString);
 ```
 
-| Call                             | Purpose                                                                                                  |
-| -------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| `UsePostgresScheduling()`        | Registers the background worker, scheduled message store, dispatch middleware, and EF Core interceptors. |
-| `AddPostgresScheduledMessages()` | Adds the `ScheduledMessage` entity configuration to the EF Core model.                                   |
+| Call                             | Purpose                                                                                                                     |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `UsePostgresScheduling()`        | Registers everything needed for durable scheduling with Postgres, including the background worker and EF Core interceptors. |
+| `AddPostgresScheduledMessages()` | Adds the `ScheduledMessage` entity configuration to the EF Core model.                                                      |
 
-`UsePostgresScheduling()` wires up the full pipeline:
+`UsePostgresScheduling()` sets up everything needed to persist scheduled messages in Postgres and dispatch them at the right time. Outgoing messages with a `ScheduledTime` are intercepted and written to the `scheduled_messages` table instead of being sent to the transport. A background worker continuously polls for due messages and dispatches them through the bus. EF Core interceptors signal the worker when `SaveChanges` or a transaction commit occurs, enabling low-latency wake-up.
 
-- A **dispatch middleware** that intercepts outgoing messages with a `ScheduledTime` and persists them to the store instead of sending them to the transport.
-- An **`IScheduledMessageStore`** implementation that writes scheduled message rows using direct Npgsql inserts within the current EF Core transaction.
-- A **background worker** that continuously polls for due messages and dispatches them through the bus.
-- **EF Core interceptors** that signal the scheduler when `SaveChanges` or a transaction commit occurs, enabling low-latency wake-up.
+When `UsePostgresScheduling()` is configured, `SchedulePublishAsync` and `ScheduleSendAsync` return cancellable results with tokens you can pass to `CancelScheduledMessageAsync`.
 
 **4. Create the database migration.**
 
@@ -127,19 +228,19 @@ dotnet ef database update
 
 # Transport scheduling behavior
 
-Each transport handles scheduling differently. The dispatch scheduling middleware adapts automatically based on what the transport supports.
+Each transport handles scheduling differently. Mocha adapts automatically based on what the transport supports.
 
-| Transport  | Scheduling type                       | Durability                   | Setup required                            |
-| ---------- | ------------------------------------- | ---------------------------- | ----------------------------------------- |
-| InMemory   | Native (in-process scheduler)         | Non-durable, lost on restart | None                                      |
-| PostgreSQL | Native (scheduled_time column)        | Durable, survives restarts   | None                                      |
-| RabbitMQ   | Store-based (via Postgres middleware) | Durable with Postgres store  | `UsePostgresScheduling()` + EF Core model |
+| Transport  | Scheduling type                       | Durability                   | Cancellation support                 | Setup required                            |
+| ---------- | ------------------------------------- | ---------------------------- | ------------------------------------ | ----------------------------------------- |
+| InMemory   | Native (in-process scheduler)         | Non-durable, lost on restart | No                                   | None                                      |
+| PostgreSQL | Native (scheduled_time column)        | Durable, survives restarts   | No                                   | None                                      |
+| RabbitMQ   | Store-based (via Postgres middleware) | Durable with Postgres store  | Yes (with `UsePostgresScheduling()`) | `UsePostgresScheduling()` + EF Core model |
 
-**InMemory:** The transport schedules messages natively using an internal scheduler. Messages scheduled for a time in the past are delivered immediately. Scheduled messages are lost if the process restarts.
+**InMemory:** The transport schedules messages natively using an internal scheduler. Messages scheduled for a time in the past are delivered immediately. Scheduled messages are lost if the process restarts. Cancellation is not supported.
 
-**PostgreSQL:** The transport handles scheduling natively. When you set `ScheduledTime`, the transport writes a `scheduled_time` column alongside the message. Messages are only delivered to consumers after the scheduled time has passed. No additional setup is required beyond the standard [PostgreSQL transport configuration](/docs/mocha/v1/transports/postgres).
+**PostgreSQL:** The transport handles scheduling natively. When you set `ScheduledTime`, the transport writes a `scheduled_time` column alongside the message. Messages are only delivered to consumers after the scheduled time has passed. No additional setup is required beyond the standard [PostgreSQL transport configuration](/docs/mocha/v1/transports/postgres). Cancellation is not supported with native scheduling.
 
-**RabbitMQ:** RabbitMQ does not support native message scheduling. To enable scheduling, register `UsePostgresScheduling()` with an EF Core DbContext. The dispatch middleware intercepts scheduled messages before they reach the RabbitMQ transport and persists them to a Postgres `scheduled_messages` table. A background worker dispatches them at the scheduled time, routing through the RabbitMQ transport.
+**RabbitMQ:** RabbitMQ does not support native message scheduling. To enable scheduling, register `UsePostgresScheduling()` with an EF Core DbContext. Scheduled messages are intercepted before they reach the RabbitMQ transport and persisted to a Postgres `scheduled_messages` table. A background worker dispatches them at the scheduled time, routing through the RabbitMQ transport. Cancellation is fully supported - the `SchedulingResult` contains a token you can use with `CancelScheduledMessageAsync`.
 
 ## Retry behavior
 
@@ -151,7 +252,7 @@ When multiple instances of your service are running, each scheduled message is p
 
 ## Outbox integration
 
-When both the transactional outbox and scheduling are configured, scheduled messages participate in the transaction correctly. The scheduling middleware runs in the dispatch pipeline before the outbox middleware. Messages with a `ScheduledTime` are intercepted by the scheduler and never reach the outbox. Messages dispatched by the background worker skip both the scheduler and the outbox, going directly to the transport. See [Reliability](/docs/mocha/v1/reliability) for outbox configuration.
+When both the transactional outbox and scheduling are configured, scheduled messages participate in the transaction correctly. Messages with a `ScheduledTime` are intercepted by the scheduler and never reach the outbox. Messages dispatched by the background worker skip both the scheduler and the outbox, going directly to the transport. See [Reliability](/docs/mocha/v1/reliability) for outbox configuration.
 
 # Schedule messages in sagas
 
@@ -195,18 +296,29 @@ x.WhenCompleted()
 
 Both `ScheduledPublish` and `ScheduledSend` are available on `ISagaTransitionDescriptor` and `ISagaLifeCycleDescriptor`. The factory receives the current saga state and returns the message to schedule.
 
+For automatic saga timeouts that cancel themselves on completion, see [Timeouts](/docs/mocha/v1/sagas#timeouts) in the Sagas guide.
+
 See [Sagas](/docs/mocha/v1/sagas) for the full saga configuration guide.
 
 # API reference
 
-## Extension methods on `IMessageBus`
+## Scheduling methods on `IMessageBus`
 
-| Method                    | Parameters                                                           | Description                                           |
-| ------------------------- | -------------------------------------------------------------------- | ----------------------------------------------------- |
-| `SchedulePublishAsync<T>` | `T message, DateTimeOffset scheduledTime, CancellationToken ct`      | Publishes a message for delivery at an absolute time. |
-| `ScheduleSendAsync`       | `object message, DateTimeOffset scheduledTime, CancellationToken ct` | Sends a message for delivery at an absolute time.     |
+| Method                        | Parameters                                                                                | Returns                       | Description                                                                                                               |
+| ----------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `SchedulePublishAsync<T>`     | `T message, DateTimeOffset scheduledTime, CancellationToken ct`                           | `ValueTask<SchedulingResult>` | Publishes a message for delivery at an absolute time.                                                                     |
+| `SchedulePublishAsync<T>`     | `T message, DateTimeOffset scheduledTime, PublishOptions options, CancellationToken ct`   | `ValueTask<SchedulingResult>` | Publishes a message with scheduling and publish options.                                                                  |
+| `ScheduleSendAsync`           | `object message, DateTimeOffset scheduledTime, CancellationToken ct`                      | `ValueTask<SchedulingResult>` | Sends a message for delivery at an absolute time.                                                                         |
+| `ScheduleSendAsync`           | `object message, DateTimeOffset scheduledTime, SendOptions options, CancellationToken ct` | `ValueTask<SchedulingResult>` | Sends a message with scheduling and send options.                                                                         |
+| `CancelScheduledMessageAsync` | `string token, CancellationToken ct`                                                      | `ValueTask<bool>`             | Cancels a scheduled message. Returns `true` if cancelled, `false` if already dispatched, already cancelled, or not found. |
 
-All methods return `ValueTask` and complete when the message has been handed to the scheduling infrastructure.
+## `SchedulingResult`
+
+| Property        | Type             | Description                                                                               |
+| --------------- | ---------------- | ----------------------------------------------------------------------------------------- |
+| `Token`         | `string?`        | An opaque token for cancelling this message, or `null` if cancellation is not supported.  |
+| `ScheduledTime` | `DateTimeOffset` | The time at which the message is scheduled for delivery.                                  |
+| `IsCancellable` | `bool`           | `true` when the scheduling infrastructure supports cancellation and a token was assigned. |
 
 ## Scheduling properties on options
 
@@ -244,9 +356,9 @@ All methods return `ValueTask` and complete when the message has been handed to 
 
 ## Scheduling service registration
 
-| Method                    | Description                                                                                                 |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `UsePostgresScheduling()` | Registers the Postgres scheduling pipeline: store, dispatcher, background worker, and EF Core interceptors. |
+| Method                    | Description                                                                                             |
+| ------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `UsePostgresScheduling()` | Registers the Postgres scheduling pipeline: message store, background worker, and EF Core interceptors. |
 
 # Troubleshooting
 
@@ -270,6 +382,12 @@ WHERE times_sent >= max_attempts;
 
 **Multiple service instances dispatch the same message.**
 This does not happen. The dispatcher uses row-level locking to ensure each message is processed by exactly one instance.
+
+**Cancellation returns false even though I have a valid token.**
+The message was already dispatched before the cancellation request reached the store. Once the background worker picks up a message and delivers it, the row is deleted and cancellation is no longer possible. If you need a wider cancellation window, schedule messages further in the future or check `SchedulingResult.IsCancellable` to confirm the infrastructure supports cancellation.
+
+**`SchedulingResult.IsCancellable` is false.**
+No store-based scheduling provider is registered. Cancellation requires a provider like `UsePostgresScheduling()` that persists messages to a store. Transports with native scheduling (InMemory, PostgreSQL) do not support cancellation. If you need cancellation support, configure `UsePostgresScheduling()` with an EF Core DbContext.
 
 # Next steps
 
