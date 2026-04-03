@@ -209,6 +209,7 @@ internal static class FusionPublishHelpers
                 case IFusionConfigurationPublishingFailed v:
                     await activity.FailAllAsync();
 
+                    // TODO: Improve this
                     foreach (var error in v.Errors)
                     {
                         switch (error)
@@ -223,8 +224,7 @@ internal static class FusionPublishHelpers
                         }
                     }
 
-                    console.Error.WriteErrorLine("The commit has failed.");
-                    throw Exit("The commit has failed.");
+                    throw new ExitException("Failed to publish the new configuration.");
 
                 case IFusionConfigurationPublishingSuccess:
                     committed = true;
@@ -253,24 +253,31 @@ internal static class FusionPublishHelpers
                 case IWaitForApproval waitForApprovalEvent:
                     if (waitForApprovalEvent.Deployment is IFusionConfigurationDeployment deployment)
                     {
-                        // TODO:
-                        // ...SchemaChangeViolationError
-                        //     ...InvalidGraphQLSchemaError
-                        //     ...PersistedQueryValidationError
-                        //     ...OpenApiCollectionValidationError
-                        //     ...McpFeatureCollectionValidationError
+                        var errorTree = new Tree("");
+
                         foreach (var error in deployment.Errors)
                         {
                             switch (error)
                             {
+                                case IInvalidGraphQLSchemaError e:
+                                    errorTree.AddGraphQLSchemaErrors(e);
+                                    break;
+                                case IPersistedQueryValidationError e:
+                                    errorTree.AddPersistedQueryValidationErrors(e);
+                                    break;
                                 case IOpenApiCollectionValidationError e:
-                                    console.PrintOpenApiCollectionValidationErrors(e);
+                                    errorTree.AddOpenApiCollectionValidationErrors(e);
+                                    break;
+                                case IMcpFeatureCollectionValidationError e:
+                                    errorTree.AddMcpFeatureCollectionValidationErrors(e);
                                     break;
                             }
                         }
+
+                        activity.Fail(errorTree);
                     }
 
-                    activity.Update("Waiting for approval. Approve in Nitro to continue.");
+                    activity.Update("Waiting for approval. Approve in Nitro to continue.", ActivityUpdateKind.Waiting);
                     break;
 
                 case IProcessingTaskApproved:
@@ -377,7 +384,7 @@ internal static class FusionPublishHelpers
                 case IValidationInProgress:
                 case IWaitForApproval:
                 case IProcessingTaskApproved:
-                    activity.Update("Validating...");
+                    // activity.Update("Validating...");
                     break;
 
                 default:

@@ -3,12 +3,10 @@ using System.Diagnostics.CodeAnalysis;
 #endif
 
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
-using HotChocolate.Fusion;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
@@ -58,76 +56,58 @@ internal sealed class FusionDownloadCommand : Command
         var version = parseResult.GetRequiredValue(Opt<OptionalFusionArchiveVersionOption>.Instance);
         var outputFile = parseResult.GetValue(Opt<OptionalOutputFileOption>.Instance);
 
+        var archiveFormat = version.Major == 1 ? ArchiveFormats.Fgp : ArchiveFormats.Far;
+
         if (string.IsNullOrEmpty(outputFile))
         {
-            var extension = version.Major == 1 ? "fgp" : "far";
-
-            outputFile = Path.Combine(fileSystem.GetCurrentDirectory(), "gateway." + extension);
+            outputFile = Path.Combine(fileSystem.GetCurrentDirectory(), "gateway." + archiveFormat);
         }
         else
         {
+            if (!Path.IsPathRooted(outputFile))
+            {
+                outputFile = Path.Combine(fileSystem.GetCurrentDirectory(), outputFile);
+            }
+
             var extension = Path.GetExtension(outputFile);
             var wantsToDownloadFgp = extension.Equals(".fgp", StringComparison.OrdinalIgnoreCase);
 
             if (wantsToDownloadFgp && version.Major > 1)
             {
-                throw new ExitException("");
+                throw new ExitException("TODO");
             }
 
             if (!wantsToDownloadFgp && version.Major == 1)
             {
-                throw new ExitException("");
+                throw new ExitException("TODO");
             }
         }
 
         var isFgp = version.Major == 1;
 
-        await using (var activity = console.StartActivity(
-            $"Downloading latest Fusion configuration from stage '{stageName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'",
-            "Failed to download the latest Fusion configuration."))
+        await using var stream = await fusionConfigurationClient.DownloadLatestFusionArchiveAsync(
+            apiId,
+            stageName,
+            isFgp ? "1.0.0" : version.ToString(),
+            archiveFormat,
+            cancellationToken);
+
+        if (stream is null)
         {
-            // TODO: We can probably get rid of this split?
-            await using var stream = isFgp
-                ? await fusionConfigurationClient.DownloadLatestLegacyFusionArchiveAsync(
-                    apiId,
-                    stageName,
-                    cancellationToken)
-                : await fusionConfigurationClient.DownloadLatestFusionArchiveAsync(
-                    apiId,
-                    stageName,
-                    version.ToString(),
-                    cancellationToken);
-
-            if (stream is null)
-            {
-                throw new ExitException("The API with the given ID does not exist or does not have a download URL.");
-            }
-
-            if (fileSystem.FileExists(outputFile))
-            {
-                fileSystem.DeleteFile(outputFile);
-            }
-
-            await using var fileStream = fileSystem.CreateFile(outputFile);
-
-            await stream.CopyToAsync(fileStream, cancellationToken);
-
-            activity.Success($"Downloaded Fusion configuration from stage '{stageName.EscapeMarkup()}'.");
-
-            if (!console.IsHumanReadable)
-            {
-                resultHolder.SetResult(new ObjectResult(new FusionDownloadResult
-                {
-                    File = outputFile
-                }));
-            }
-
-            return ExitCodes.Success;
+            throw new ExitException("The API with the given ID does not exist or does not have a download URL.");
         }
-    }
 
-    public class FusionDownloadResult
-    {
-        public required string File { get; init; }
+        if (fileSystem.FileExists(outputFile))
+        {
+            fileSystem.DeleteFile(outputFile);
+        }
+
+        await using var fileStream = fileSystem.CreateFile(outputFile);
+
+        await stream.CopyToAsync(fileStream, cancellationToken);
+
+        console.WriteLine($"Downloaded Fusion configuration to '{outputFile.EscapeMarkup()}'.");
+
+        return ExitCodes.Success;
     }
 }

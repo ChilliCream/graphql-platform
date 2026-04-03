@@ -14,10 +14,14 @@ internal sealed class NitroConsoleChildActivity(
 
     public void Update(string message, ActivityUpdateKind kind = ActivityUpdateKind.Regular)
     {
-        var linePrefix = kind == ActivityUpdateKind.Warning
-            ? prefix + "├── " + Glyphs.ExclamationMark.Space()
-            : prefix + "├── ";
-        console.MarkupLine(linePrefix + message);
+        var glyph = kind switch
+        {
+            ActivityUpdateKind.Warning => Glyphs.ExclamationMark.Space(),
+            ActivityUpdateKind.Waiting => Glyphs.Clock.Space(),
+            ActivityUpdateKind.Success => Glyphs.Check.Space(),
+            _ => ""
+        };
+        console.MarkupLine(prefix + "├── " + glyph + message);
     }
 
     public void Warning(string message)
@@ -43,7 +47,7 @@ internal sealed class NitroConsoleChildActivity(
         }
 
         console.MarkupLine(prefix + "└── " + Glyphs.Cross.Space() + failureMessage);
-        console.Write(details);
+        WriteIndented(details, prefix + "    ");
         _completed = true;
     }
 
@@ -81,5 +85,26 @@ internal sealed class NitroConsoleChildActivity(
 
         console.MarkupLine(prefix + "└── " + message);
         _completed = true;
+    }
+
+    private void WriteIndented(IRenderable renderable, string linePrefix)
+    {
+        var writer = new StringWriter();
+        var tempConsole = AnsiConsole.Create(new AnsiConsoleSettings
+        {
+            Ansi = AnsiSupport.No,
+            Out = new AnsiConsoleOutput(writer)
+        });
+        tempConsole.Write(renderable);
+
+        var output = writer.ToString();
+        foreach (var line in output.TrimEnd().Split('\n'))
+        {
+            var trimmed = line.TrimEnd('\r');
+            if (trimmed.Length > 0)
+            {
+                console.MarkupLine(linePrefix + trimmed.EscapeMarkup());
+            }
+        }
     }
 }

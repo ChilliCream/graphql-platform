@@ -37,6 +37,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               -s, --source-schema <source-schema>            One or more source schemas that should be included in the composition. Source schemas can either be just a name ('example') or a name and a version ('example@1.0.0'). If no version is specified the value of the '--tag' option is taken as the source schema version.
               -f, --source-schema-file <source-schema-file>  One or more paths to a source schema file (.graphqls) or directory containing a source schema file
               -a, --archive, --configuration <archive>       The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
+              --force                                        Skip confirmation prompts for deletes and overwrites
               --wait-for-approval                            Wait for the deployment to be approved before completing [env: NITRO_WAIT_FOR_APPROVAL]
               -w, --working-directory <working-directory>    Set the working directory for the command
               --cloud-url <cloud-url>                        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
@@ -122,7 +123,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task NoArchiveOrSourceSchemaFileOrSourceSchema_ReturnsError(InteractionMode mode)
+    public async Task No_Archive_Or_SourceSchemaFile_Or_SourceSchema_ReturnsError(InteractionMode mode)
     {
         // arrange
         SetupInteractionMode(mode);
@@ -150,7 +151,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task MultipleExclusiveOptions_ReturnsError(InteractionMode mode)
+    public async Task Archive_And_SourceSchemaFile_And_SourceSchema_ReturnsError(InteractionMode mode)
     {
         // arrange
         SetupInteractionMode(mode);
@@ -176,6 +177,38 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         result.StdErr.MatchInlineSnapshot(
             """
             The options '--source-schema', '--source-schema-file', and '--archive' are mutually exclusive.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task WaitForApproval_And_Force_ReturnsError(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema,
+            "--wait-for-approval",
+            "--force");
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The '--force' and '--wait-for-approval' options are mutually exclusive.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -222,6 +255,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotMutation();
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
         SetupFusionConfigurationUploadMutation();
         SetupFusionConfigurationUploadSubscription();
 
@@ -246,6 +281,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
+            ├── Validating configuration against 'dev'
+            │   └── ✓ Validated configuration.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
@@ -265,6 +302,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotMutation();
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
         SetupFusionConfigurationUploadMutation();
         SetupFusionConfigurationUploadSubscription();
 
@@ -279,6 +318,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
+            ├── Validating configuration against 'dev'
+            │   └── ✓ Validated configuration.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
@@ -443,13 +484,13 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
 
     [Theory]
     [MemberData(nameof(GetValidationErrors))]
-    public async Task WithArchive_WaitForApproval_ValidationHasErrors_ReturnsError(
+    public async Task WithArchive_ValidationHasErrors_ReturnsError(
         IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition_Errors error,
         string expectedErrorMessage)
     {
         // arrange
         SetupArchiveFile();
-        SetupRequestDeploymentSlotMutation(waitForApproval: true);
+        SetupRequestDeploymentSlotMutation();
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupFusionConfigurationValidationMutation(error);
@@ -465,7 +506,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             Stage,
             "--tag",
             Tag,
-            "--wait-for-approval",
             "--archive",
             ArchiveFile);
 
@@ -489,11 +529,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     }
 
     [Fact]
-    public async Task WithArchive_WaitForApproval_ValidationThrows_ReturnsError()
+    public async Task WithArchive_ValidationThrows_ReturnsError()
     {
         // arrange
         SetupArchiveFile();
-        SetupRequestDeploymentSlotMutation(waitForApproval: true);
+        SetupRequestDeploymentSlotMutation();
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupFusionConfigurationValidationMutationException();
@@ -509,7 +549,6 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             Stage,
             "--tag",
             Tag,
-            "--wait-for-approval",
             "--archive",
             ArchiveFile);
 
@@ -532,6 +571,256 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         Assert.Equal(1, result.ExitCode);
     }
 
+    [Fact]
+    public async Task WithArchive_WaitForApproval_NoBreakingChanges_ReturnsSuccess()
+    {
+        // arrange
+        SetupArchiveFile();
+        SetupRequestDeploymentSlotMutation(waitForApproval: true);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupReleaseDeploymentSlotMutation();
+        SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--wait-for-approval",
+            "--archive",
+            ArchiveFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+    }
+
+    [Fact]
+    public async Task WithArchive_BreakingChanges_ReturnsError()
+    {
+        // arrange
+        SetupArchiveFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription(
+            CreateValidationInProgressEvent(),
+            CreateValidationFailedEventWithErrors());
+        SetupReleaseDeploymentSlotMutation();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--archive",
+            ArchiveFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Failed to validate configuration.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Validating configuration against 'dev'
+            │   └── ✕ Failed to validate the new configuration.
+            │       ├── Field 'Query.foo' has no type. SCHEMA_ERROR
+            │       ├── Client 'test-client' (ID: client-1)
+            │       │   └── Operation 'abc123'
+            │       ├── OpenAPI collection 'petstore' (ID: collection-1)
+            │       │   └── Endpoint 'GET /pets'
+            │       │       └── Invalid schema. (10:5)
+            │       ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
+            │       │   └── Tool 'test-tool'
+            │       │       └── Invalid MCP schema. (5:3)
+            │       └── An unexpected error occurred.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithArchive_BreakingChanges_Force_ReturnsSuccess()
+    {
+        // arrange
+        SetupArchiveFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription(
+            CreateValidationInProgressEvent(),
+            CreateValidationFailedEventWithErrors());
+        SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--archive",
+            ArchiveFile,
+            "--force");
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── ! Force push is enabled.
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Validating configuration against 'dev'
+            │   └── ✕ Failed to validate the new configuration.
+            │       ├── Field 'Query.foo' has no type. SCHEMA_ERROR
+            │       ├── Client 'test-client' (ID: client-1)
+            │       │   └── Operation 'abc123'
+            │       ├── OpenAPI collection 'petstore' (ID: collection-1)
+            │       │   └── Endpoint 'GET /pets'
+            │       │       └── Invalid schema. (10:5)
+            │       ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
+            │       │   └── Tool 'test-tool'
+            │       │       └── Invalid MCP schema. (5:3)
+            │       └── An unexpected error occurred.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+    }
+
+    [Fact]
+    public async Task WithArchive_WaitForApproval_BreakingChanges_Approved_ReturnsSuccess()
+    {
+        // arrange
+        SetupArchiveFile();
+        SetupRequestDeploymentSlotMutation(waitForApproval: true);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription(
+            CreateWaitForApprovalEventWithErrors(),
+            CreateProcessingTaskApprovedEvent(),
+            CreatePublishingSuccessEvent());
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--wait-for-approval",
+            "--archive",
+            ArchiveFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Uploading configuration to 'dev'
+            │   └── ✕ Failed to upload the new configuration.
+            │       └── OpenAPI collection 'petstore' (ID: collection-1)
+            │           └── Endpoint 'GET /pets'
+            │               └── Invalid schema. (10:5)
+            │   ├── 🕐 Waiting for approval. Approve in Nitro to continue.
+            │   ├── Approved. Processing...
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+    }
+
+    [Fact]
+    public async Task WithArchive_WaitForApproval_BreakingChanges_NotApproved_ReturnsError()
+    {
+        // arrange
+        SetupArchiveFile();
+        SetupRequestDeploymentSlotMutation(waitForApproval: true);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupReleaseDeploymentSlotMutation();
+        SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription(
+            CreateWaitForApprovalEventWithErrors(),
+            CreatePublishingFailedEvent());
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--wait-for-approval",
+            "--archive",
+            ArchiveFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            TODO: Missing
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Uploading configuration to 'dev'
+            │   └── ✕ Failed to upload the new configuration.
+            │       └── OpenAPI collection 'petstore' (ID: collection-1)
+            │           └── Endpoint 'GET /pets'
+            │               └── Invalid schema. (10:5)
+            │   ├── 🕐 Waiting for approval. Approve in Nitro to continue.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
     [Theory]
     [MemberData(nameof(GetUploadErrors))]
     public async Task WithArchive_UploadHasErrors_ReturnsError(
@@ -543,6 +832,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotMutation();
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
         SetupFusionConfigurationUploadMutation(error);
         SetupReleaseDeploymentSlotMutation();
 
@@ -571,6 +862,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
+            ├── Validating configuration against 'dev'
+            │   └── ✓ Validated configuration.
             ├── Uploading configuration to 'dev'
             │   └── ✕ Failed to upload the new configuration.
             └── ✕ Failed to publish Fusion configuration.
@@ -586,6 +879,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotMutation();
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
         SetupFusionConfigurationUploadMutationException();
         SetupReleaseDeploymentSlotMutation();
 
@@ -614,6 +909,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
+            ├── Validating configuration against 'dev'
+            │   └── ✓ Validated configuration.
             ├── Uploading configuration to 'dev'
             │   └── ✕ Failed to upload the new configuration.
             └── ✕ Failed to publish Fusion configuration.
@@ -665,6 +962,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
         SetupFusionConfigurationUploadMutation();
         SetupFusionConfigurationUploadSubscription();
 
@@ -693,6 +992,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ! There is no existing configuration on 'dev'.
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   └── ✓ Validated configuration.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
@@ -712,6 +1013,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
         SetupFusionConfigurationUploadMutation();
         SetupFusionConfigurationUploadSubscription();
 
@@ -734,6 +1037,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ! There is no existing configuration on 'dev'.
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   └── ✓ Validated configuration.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
@@ -821,6 +1126,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
         SetupFusionConfigurationUploadMutation();
         SetupFusionConfigurationUploadSubscription();
 
@@ -851,6 +1158,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ! There is no existing configuration on 'dev'.
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   └── ✓ Validated configuration.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
@@ -870,6 +1179,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
         SetupFusionConfigurationUploadMutation();
         SetupFusionConfigurationUploadSubscription();
 
@@ -894,6 +1205,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ! There is no existing configuration on 'dev'.
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   └── ✓ Validated configuration.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.

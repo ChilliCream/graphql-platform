@@ -125,20 +125,7 @@ internal sealed class FusionUploadCommand : Command
 
             activity.Success($"Uploaded new source schema version '{tag.EscapeMarkup()}'.");
 
-            if (!console.IsHumanReadable)
-            {
-                resultHolder.SetResult(new ObjectResult(new FusionUploadResult
-                {
-                    Tag = tag
-                }));
-            }
-
             return ExitCodes.Success;
         }
-    }
-
-    public class FusionUploadResult
-    {
-        public required string Tag { get; init; }
     }
 }

@@ -97,23 +97,7 @@ internal sealed class UploadSchemaCommand : Command
 
             activity.Success($"Uploaded new schema version '{tag.EscapeMarkup()}'.");
 
-            if (!console.IsHumanReadable)
-            {
-                resultHolder.SetResult(new ObjectResult(new UploadSchemaResult
-                {
-                    SchemaVersionId = data.SchemaVersion.Id,
-                    Tag = tag
-                }));
-            }
-
             return ExitCodes.Success;
         }
-    }
-
-    public class UploadSchemaResult
-    {
-        public required string SchemaVersionId { get; init; }
-
-        public required string Tag { get; init; }
     }
 }

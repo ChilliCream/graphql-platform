@@ -131,6 +131,7 @@ internal sealed class FusionValidateCommand : Command
                     apiId,
                     stageName,
                     WellKnownVersions.LatestGatewayFormatVersion.ToString(),
+                    ArchiveFormats.Far,
                     ct);
 
                 if (existingArchiveStream is null)
@@ -294,11 +295,6 @@ internal sealed class FusionValidateCommand : Command
                         isValid = true;
                         activity.Success("Validation passed.");
 
-                        if (!console.IsHumanReadable)
-                        {
-                            resultHolder.SetResult(new ObjectResult(new FusionValidateResult(isValid)));
-                        }
-
                         return;
 
                     case IOperationInProgress:
@@ -401,6 +397,4 @@ internal sealed class FusionValidateCommand : Command
             return false;
         }
     }
-
-    public record FusionValidateResult(bool IsValid);
 }

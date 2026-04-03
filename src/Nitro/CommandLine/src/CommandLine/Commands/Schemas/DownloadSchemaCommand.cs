@@ -41,7 +41,6 @@ internal sealed class DownloadSchemaCommand : Command
         var client = services.GetRequiredService<ISchemasClient>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
         var sessionService = services.GetRequiredService<ISessionService>();
-        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         parseResult.AssertHasAuthentication(sessionService);
 
@@ -71,20 +70,7 @@ internal sealed class DownloadSchemaCommand : Command
 
             activity.Success($"Downloaded the schema from stage '{stageName.EscapeMarkup()}'.");
 
-            if (!console.IsHumanReadable)
-            {
-                resultHolder.SetResult(new ObjectResult(new DownloadSchemaResult
-                {
-                    File = schemaFilePath
-                }));
-            }
-
             return ExitCodes.Success;
         }
-    }
-
-    public class DownloadSchemaResult
-    {
-        public required string File { get; init; }
     }
 }

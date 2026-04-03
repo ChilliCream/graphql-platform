@@ -155,15 +155,6 @@ internal sealed class ValidateSchemaCommand : Command
                             child.Success("Validation passed.");
                             rootActivity.Success($"Validated schema against stage '{stage.EscapeMarkup()}'.");
 
-                            if (!console.IsHumanReadable)
-                            {
-                                resultHolder.SetResult(new ObjectResult(new ValidateSchemaResult
-                                {
-                                    RequestId = requestId,
-                                    Status = "success"
-                                }));
-                            }
-
                             return ExitCodes.Success;
 
                         case IOperationInProgress:
@@ -183,12 +174,5 @@ internal sealed class ValidateSchemaCommand : Command
         }
 
         return ExitCodes.Error;
-    }
-
-    public class ValidateSchemaResult
-    {
-        public required string RequestId { get; init; }
-
-        public required string Status { get; init; }
     }
 }

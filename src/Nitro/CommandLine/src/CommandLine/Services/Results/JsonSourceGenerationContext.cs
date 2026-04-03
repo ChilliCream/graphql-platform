@@ -5,14 +5,12 @@ using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Clients;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Environments.Components;
-using ChilliCream.Nitro.CommandLine.Commands.Fusion;
 using ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
 using ChilliCream.Nitro.CommandLine.Commands.Mcp.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Mocks.Components;
 using ChilliCream.Nitro.CommandLine.Commands.OpenApi.Components;
 using ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens;
 using ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens.Components;
-using ChilliCream.Nitro.CommandLine.Commands.Schemas;
 using ChilliCream.Nitro.CommandLine.Commands.Stages.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces.Components;
 
@@ -44,16 +42,4 @@ namespace ChilliCream.Nitro.CommandLine.Results;
 [JsonSerializable(typeof(PaginatedListResult<OpenApiCollectionDetailPrompt.OpenApiCollectionDetailPromptResult>))]
 [JsonSerializable(typeof(McpFeatureCollectionDetailPrompt.McpFeatureCollectionDetailPromptResult))]
 [JsonSerializable(typeof(PaginatedListResult<McpFeatureCollectionDetailPrompt.McpFeatureCollectionDetailPromptResult>))]
-[JsonSerializable(typeof(DownloadClientCommand.DownloadClientResult))]
-[JsonSerializable(typeof(UploadClientCommand.UploadClientResult))]
-[JsonSerializable(typeof(ValidateClientCommand.ValidateClientResult))]
-[JsonSerializable(typeof(PublishClientCommand.PublishClientResult))]
-[JsonSerializable(typeof(DownloadSchemaCommand.DownloadSchemaResult))]
-[JsonSerializable(typeof(UploadSchemaCommand.UploadSchemaResult))]
-[JsonSerializable(typeof(ValidateSchemaCommand.ValidateSchemaResult))]
-[JsonSerializable(typeof(PublishSchemaCommand.PublishSchemaResult))]
-[JsonSerializable(typeof(FusionDownloadCommand.FusionDownloadResult))]
-[JsonSerializable(typeof(FusionUploadCommand.FusionUploadResult))]
-[JsonSerializable(typeof(FusionValidateCommand.FusionValidateResult))]
-[JsonSerializable(typeof(FusionSettingsSetCommand.FusionSettingsSetResult))]
 internal partial class JsonSourceGenerationContext : JsonSerializerContext;

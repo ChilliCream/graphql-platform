@@ -187,15 +187,6 @@ internal sealed class PublishSchemaCommand : Command
                             child.Success("Published successfully.");
                             rootActivity.Success($"Published new schema version '{tag.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}'.");
 
-                            if (!console.IsHumanReadable)
-                            {
-                                resultHolder.SetResult(new ObjectResult(new PublishSchemaResult
-                                {
-                                    Stage = stage,
-                                    Status = "success"
-                                }));
-                            }
-
                             return ExitCodes.Success;
 
                         case IProcessingTaskIsReady:
@@ -258,12 +249,5 @@ internal sealed class PublishSchemaCommand : Command
         }
 
         return ExitCodes.Error;
-    }
-
-    public class PublishSchemaResult
-    {
-        public required string Stage { get; init; }
-
-        public required string Status { get; init; }
     }
 }

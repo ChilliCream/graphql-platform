@@ -6,5 +6,6 @@ internal enum ActivityState
     Completed,
     Failed,
     Warning,
+    Waiting,
     Info
 }

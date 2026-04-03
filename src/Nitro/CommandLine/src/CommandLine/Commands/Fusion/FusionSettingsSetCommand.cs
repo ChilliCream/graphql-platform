@@ -129,15 +129,6 @@ internal sealed class FusionSettingsSetCommand : Command
                 false);
         }
 
-        if (success && !console.IsHumanReadable)
-        {
-            resultHolder.SetResult(new ObjectResult(new FusionSettingsSetResult
-            {
-                Setting = settingName,
-                Value = settingValue
-            }));
-        }
-
         return success ? ExitCodes.Success : ExitCodes.Error;
     }
 
@@ -168,12 +159,5 @@ internal sealed class FusionSettingsSetCommand : Command
             Include,
             IncludePrivate
         ];
-    }
-
-    public class FusionSettingsSetResult
-    {
-        public required string Setting { get; init; }
-
-        public required string Value { get; init; }
     }
 }

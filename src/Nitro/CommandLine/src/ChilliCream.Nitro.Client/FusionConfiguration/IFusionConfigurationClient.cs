@@ -209,25 +209,7 @@ public interface IFusionConfigurationClient
         string apiId,
         string stageName,
         string archiveVersion,
-        CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Downloads the latest legacy Fusion v1 archive (.fgp) for the specified stage.
-    /// </summary>
-    /// <returns>The archive stream, or <c>null</c> if no archive exists.</returns>
-    /// <remarks>The caller owns and must dispose the returned stream.</remarks>
-    /// <exception cref="NitroClientAuthorizationException">
-    /// The request was rejected because the current credentials do not grant access.
-    /// </exception>
-    /// <exception cref="NitroClientHttpRequestException">
-    /// The server returned an HTTP error without a GraphQL response body.
-    /// </exception>
-    /// <exception cref="OperationCanceledException">
-    /// The operation was canceled.
-    /// </exception>
-    Task<Stream?> DownloadLatestLegacyFusionArchiveAsync(
-        string apiId,
-        string stageName,
+        string archiveFormat,
         CancellationToken cancellationToken);
 
     /// <summary>

@@ -37,11 +37,24 @@ internal sealed class FusionPublishCommand : Command
         Options.Add(Opt<OptionalSourceSchemaIdentifierListOption>.Instance);
         Options.Add(Opt<OptionalSourceSchemaFileListOption>.Instance);
         Options.Add(Opt<OptionalFusionArchiveFileOption>.Instance);
+        Options.Add(Opt<OptionalForceOption>.Instance);
         Options.Add(Opt<OptionalWaitForApprovalOption>.Instance);
         Options.Add(Opt<WorkingDirectoryOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
         this.AddGlobalNitroOptions();
+
+        Validators.Add(result =>
+        {
+            var forceResult = result.GetResult(Opt<OptionalForceOption>.Instance);
+            var waitResult = result.GetResult(Opt<OptionalWaitForApprovalOption>.Instance);
+
+            if (forceResult is { Implicit: false } && waitResult is { Implicit: false })
+            {
+                result.AddError(
+                    "The '--force' and '--wait-for-approval' options are mutually exclusive.");
+            }
+        });
 
         this.AddExamples(
             """
@@ -76,6 +89,7 @@ internal sealed class FusionPublishCommand : Command
             parseResult.GetValue(Opt<OptionalSourceSchemaIdentifierListOption>.Instance) ?? [];
         var archiveFile =
             parseResult.GetValue(Opt<OptionalFusionArchiveFileOption>.Instance);
+        var force = parseResult.GetValue(Opt<OptionalForceOption>.Instance);
         var waitForApproval = parseResult.GetValue(Opt<OptionalWaitForApprovalOption>.Instance);
         var stageName = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
         var apiId = parseResult.GetRequiredValue(Opt<ApiIdOption>.Instance);
@@ -129,7 +143,7 @@ internal sealed class FusionPublishCommand : Command
                 throw new ExitException($"Archive file '{archiveFile}' does not exist.");
             }
 
-            await using var activity = StartPublishActivity(console, stageName, apiId);
+            await using var activity = StartPublishActivity(console, stageName, apiId, force);
             await using var archiveStream = fileSystem.OpenReadStream(archiveFile);
 
             return await ExecutePublishAsync(
@@ -155,7 +169,7 @@ internal sealed class FusionPublishCommand : Command
                 }
             }
 
-            await using var activity = StartPublishActivity(console, stageName, apiId);
+            await using var activity = StartPublishActivity(console, stageName, apiId, force);
 
             var newSourceSchemas = await FusionComposeCommand.ReadSourceSchemasAsync(
                 fileSystem,
@@ -209,7 +223,7 @@ internal sealed class FusionPublishCommand : Command
                 .Select(i => ParseSourceSchemaVersion(i, tag))
                 .ToArray();
 
-            await using var activity = StartPublishActivity(console, stageName, apiId);
+            await using var activity = StartPublishActivity(console, stageName, apiId, force);
 
             var newSourceSchemas = new Dictionary<string, (SourceSchemaText, JsonDocument)>();
 
@@ -349,8 +363,9 @@ internal sealed class FusionPublishCommand : Command
 
                 await using var archiveStream = await prepareArchive();
 
-                // We only do validation if --wait-for-approval is set
-                if (waitForApproval)
+                // We only do validation if --wait-for-approval is not set.
+                // If --wait-for-approval is set the validation will be done automatically during the publish step.
+                if (!waitForApproval)
                 {
                     // Since validation would consume the archive stream, we clone it here.
                     await using var clonedArchiveStream = new MemoryStream();
@@ -373,6 +388,10 @@ internal sealed class FusionPublishCommand : Command
                     if (isValidArchive)
                     {
                         validationActivity.Success("Validated configuration.");
+                    }
+                    else if (!force)
+                    {
+                        throw new ExitException("Failed to validate configuration.");
                     }
                 }
 
@@ -428,6 +447,7 @@ internal sealed class FusionPublishCommand : Command
                 apiId,
                 stageName,
                 WellKnownVersions.LatestGatewayFormatVersion.ToString(),
+                ArchiveFormats.Far,
                 cancellationToken);
 
             if (existingArchiveStream is null)
@@ -446,11 +466,19 @@ internal sealed class FusionPublishCommand : Command
     private static INitroConsoleActivity StartPublishActivity(
         INitroConsole console,
         string stageName,
-        string apiId)
+        string apiId,
+        bool force)
     {
-        return console.StartActivity(
+        var activity = console.StartActivity(
             $"Publishing Fusion configuration to stage '{stageName}' of API '{apiId.EscapeMarkup()}'",
             "Failed to publish Fusion configuration.");
+
+        if (force)
+        {
+            activity.Update("Force push is enabled.", ActivityUpdateKind.Warning);
+        }
+
+        return activity;
     }
 
     private static SourceSchemaVersion ParseSourceSchemaVersion(string input, string tag)

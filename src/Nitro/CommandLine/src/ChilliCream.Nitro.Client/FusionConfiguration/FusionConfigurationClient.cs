@@ -182,23 +182,6 @@ internal sealed class FusionConfigurationClient(
         return OperationResultHelper.EnsureData(result).UploadFusionSubgraph;
     }
 
-    public Task<Stream?> DownloadLatestFusionArchiveAsync(
-        string apiId,
-        string stageName,
-        string archiveVersion,
-        CancellationToken cancellationToken)
-        => DownloadLatestConfigurationAsync(
-            CreateDownloadLatestFusionArchiveRequest(apiId, stageName, archiveVersion),
-            cancellationToken);
-
-    public Task<Stream?> DownloadLatestLegacyFusionArchiveAsync(
-        string apiId,
-        string stageName,
-        CancellationToken cancellationToken)
-        => DownloadLatestConfigurationAsync(
-            CreateDownloadLatestLegacyFusionArchiveRequest(apiId, stageName),
-            cancellationToken);
-
     public async Task<Stream?> DownloadSourceSchemaArchiveAsync(
         string apiId,
         string sourceSchemaName,
@@ -230,10 +213,15 @@ internal sealed class FusionConfigurationClient(
         return memoryStream;
     }
 
-    private async Task<Stream?> DownloadLatestConfigurationAsync(
-        HttpRequestMessage request,
+    public async Task<Stream?> DownloadLatestFusionArchiveAsync(
+        string apiId,
+        string stageName,
+        string archiveVersion,
+        string archiveFormat,
         CancellationToken cancellationToken)
     {
+        var request = CreateDownloadLatestFusionArchiveRequest(apiId, stageName, archiveVersion, archiveFormat);
+
         using var httpClient = httpClientFactory.CreateClient(ApiClient.ClientName);
         using var response = await httpClient.SendAsync(request, cancellationToken);
 
@@ -261,27 +249,17 @@ internal sealed class FusionConfigurationClient(
     private static HttpRequestMessage CreateDownloadLatestFusionArchiveRequest(
         string apiId,
         string stageName,
-        string archiveVersion)
+        string archiveVersion,
+        string archiveFormat)
     {
         var escapedApiId = Uri.EscapeDataString(apiId);
         var escapedStageName = Uri.EscapeDataString(stageName);
 
         var requestUri = $"/api/v1/apis/{escapedApiId}/fusion/configurations/latest/download"
             + $"?stage={escapedStageName}"
-            + "&format=far"
+            + $"&format={archiveFormat}"
             + $"&fusionVersion={Uri.EscapeDataString(archiveVersion)}";
 
-        return new HttpRequestMessage(HttpMethod.Get, requestUri);
-    }
-
-    private static HttpRequestMessage CreateDownloadLatestLegacyFusionArchiveRequest(
-        string apiId,
-        string stageName)
-    {
-        var escapedApiId = Uri.EscapeDataString(apiId);
-        var escapedStageName = Uri.EscapeDataString(stageName);
-        var requestUri =
-            $"/api/v1/apis/{escapedApiId}/fusion/configurations/latest/download?stage={escapedStageName}";
         return new HttpRequestMessage(HttpMethod.Get, requestUri);
     }
 
