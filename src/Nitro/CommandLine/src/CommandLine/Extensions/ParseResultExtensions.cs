@@ -3,7 +3,7 @@ using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Sessions;
 
@@ -41,7 +41,7 @@ internal static class ParseResultExtensions
         INitroConsole console,
         CancellationToken cancellationToken)
     {
-        var forceOption = parseResult.GetValue(Opt<ForceOption>.Instance);
+        var forceOption = parseResult.GetValue(Opt<OptionalForceOption>.Instance);
 
         // TODO: How to do this. Maybe getResult?
         // if (forceOption is not null)

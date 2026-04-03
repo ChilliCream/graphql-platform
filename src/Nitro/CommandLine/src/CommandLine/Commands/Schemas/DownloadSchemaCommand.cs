@@ -1,8 +1,9 @@
 using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Results;
+using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
@@ -44,9 +45,9 @@ internal sealed class DownloadSchemaCommand : Command
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        var apiId = parseResult.GetValue(Opt<ApiIdOption>.Instance)!;
-        var stageName = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
-        var schemaFilePath = parseResult.GetValue(Opt<FileNameOption>.Instance)!;
+        var apiId = parseResult.GetRequiredValue(Opt<ApiIdOption>.Instance);
+        var stageName = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
+        var schemaFilePath = parseResult.GetRequiredValue(Opt<FileNameOption>.Instance);
 
         await using (var activity = console.StartActivity($"Downloading schema from stage '{stageName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'", "Failed to download the schema."))
         {

@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CommandLine.Options;
+namespace ChilliCream.Nitro.CommandLine;
 
 internal class ApiIdOption : Option<string>
 {
@@ -8,7 +8,7 @@ internal class ApiIdOption : Option<string>
     {
         Description = "The ID of the API";
         Required = true;
-        this.DefaultFromEnvironmentValue("API_ID");
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.ApiId);
         this.NonEmptyStringsOnly();
     }
 }

@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CommandLine.Options;
+namespace ChilliCream.Nitro.CommandLine;
 
 internal sealed class ApiKeyNameOption : Option<string>
 {
@@ -6,6 +6,6 @@ internal sealed class ApiKeyNameOption : Option<string>
     {
         Description = "The name of the API key (for later reference)";
         Required = false;
-        this.DefaultFromEnvironmentValue("API_KEY_NAME");
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.ApiKeyName);
     }
 }

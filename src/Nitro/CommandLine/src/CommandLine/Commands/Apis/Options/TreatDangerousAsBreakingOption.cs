@@ -1,4 +1,4 @@
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Apis.Options;
 
@@ -8,6 +8,6 @@ internal sealed class TreatDangerousAsBreakingOption : Option<bool?>
     {
         Description = "Treat dangerous changes as breaking";
         Required = false;
-        this.DefaultFromEnvironmentValue("TREAT_DANGEROUS_AS_BREAKING");
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.TreatDangerousAsBreaking);
     }
 }

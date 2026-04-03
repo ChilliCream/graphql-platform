@@ -3,7 +3,7 @@ using ChilliCream.Nitro.CommandLine.Arguments;
 using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
@@ -36,7 +36,7 @@ internal sealed class ShowClientCommand : Command
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        var id = parseResult.GetValue(Opt<IdArgument>.Instance)!;
+        var id = parseResult.GetRequiredValue(Opt<IdArgument>.Instance);
 
         var model = await client.GetClientAsync(id, cancellationToken);
 

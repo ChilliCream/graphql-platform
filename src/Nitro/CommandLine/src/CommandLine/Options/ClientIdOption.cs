@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CommandLine.Options;
+namespace ChilliCream.Nitro.CommandLine;
 
 internal class ClientIdOption : Option<string>
 {
@@ -6,7 +6,7 @@ internal class ClientIdOption : Option<string>
     {
         Description = "The ID of the client";
         Required = true;
-        this.DefaultFromEnvironmentValue("CLIENT_ID");
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.ClientId);
         this.NonEmptyStringsOnly();
     }
 }

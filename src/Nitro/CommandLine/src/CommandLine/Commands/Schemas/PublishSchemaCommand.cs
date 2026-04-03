@@ -1,7 +1,7 @@
 using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
@@ -18,13 +18,13 @@ internal sealed class PublishSchemaCommand : Command
         Options.Add(Opt<ApiIdOption>.Instance);
         Options.Add(Opt<TagOption>.Instance);
         Options.Add(Opt<StageNameOption>.Instance);
-        Options.Add(Opt<ForceOption>.Instance);
+        Options.Add(Opt<OptionalForceOption>.Instance);
         Options.Add(Opt<OptionalWaitForApprovalOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
         Validators.Add(result =>
         {
-            var forceResult = result.GetResult(Opt<ForceOption>.Instance);
+            var forceResult = result.GetResult(Opt<OptionalForceOption>.Instance);
             var waitResult = result.GetResult(Opt<OptionalWaitForApprovalOption>.Instance);
 
             if (forceResult is { Implicit: false } && waitResult is { Implicit: false })
@@ -59,10 +59,10 @@ internal sealed class PublishSchemaCommand : Command
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        var tag = parseResult.GetValue(Opt<TagOption>.Instance)!;
-        var stage = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
-        var apiId = parseResult.GetValue(Opt<ApiIdOption>.Instance)!;
-        var force = parseResult.GetValue(Opt<ForceOption>.Instance);
+        var tag = parseResult.GetRequiredValue(Opt<TagOption>.Instance);
+        var stage = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
+        var apiId = parseResult.GetRequiredValue(Opt<ApiIdOption>.Instance);
+        var force = parseResult.GetValue(Opt<OptionalForceOption>.Instance);
         var waitForApproval = parseResult.GetValue(Opt<OptionalWaitForApprovalOption>.Instance);
         var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
 

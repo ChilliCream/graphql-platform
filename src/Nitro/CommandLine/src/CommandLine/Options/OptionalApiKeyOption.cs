@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CommandLine.Options;
+namespace ChilliCream.Nitro.CommandLine;
 
 internal sealed class OptionalApiKeyOption : Option<string>
 {
@@ -8,6 +8,6 @@ internal sealed class OptionalApiKeyOption : Option<string>
     {
         Description = "The API key used for authentication";
         Required = false;
-        this.DefaultFromEnvironmentValue("API_KEY");
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.ApiKey);
     }
 }

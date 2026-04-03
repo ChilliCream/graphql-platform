@@ -1,4 +1,4 @@
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Apis.Options;
 
@@ -9,6 +9,6 @@ internal sealed class ApiKindOption : Option<string>
         Description = "The kind of the API";
         Required = false;
         this.AcceptOnlyFromAmong("collection", "service", "gateway");
-        this.DefaultFromEnvironmentValue("API_KIND");
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.ApiKind);
     }
 }

@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CommandLine.Options;
+namespace ChilliCream.Nitro.CommandLine;
 
 internal sealed class RequestIdOption : Option<string>
 {
@@ -6,7 +6,7 @@ internal sealed class RequestIdOption : Option<string>
     {
         Description = "The ID of a request";
         Required = true;
-        this.DefaultFromEnvironmentValue("REQUEST_ID");
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.RequestId);
         this.NonEmptyStringsOnly();
     }
 }

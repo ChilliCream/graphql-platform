@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CommandLine.Options;
+namespace ChilliCream.Nitro.CommandLine;
 
 internal sealed class OptionalOutputFileOption : Option<string>
 {
@@ -6,7 +6,7 @@ internal sealed class OptionalOutputFileOption : Option<string>
     {
         Description = "The file path to write the output to";
         Required = false;
-        this.DefaultFromEnvironmentValue("OUTPUT_FILE");
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.OutputFile);
         this.LegalFilePathsOnly();
     }
 }

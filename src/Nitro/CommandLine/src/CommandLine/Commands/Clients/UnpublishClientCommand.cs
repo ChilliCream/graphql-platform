@@ -2,7 +2,6 @@ using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Options;
-using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.Helpers.Placeholders;
 
@@ -42,9 +41,9 @@ internal sealed class UnpublishClientCommand : Command
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        var tags = parseResult.GetValue(Opt<ClientTagsToUnpublishOption>.Instance)?.ToArray()!;
-        var stage = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
-        var clientId = parseResult.GetValue(Opt<ClientIdOption>.Instance)!;
+        var tags = parseResult.GetRequiredValue(Opt<ClientTagsToUnpublishOption>.Instance).ToArray();
+        var stage = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
+        var clientId = parseResult.GetRequiredValue(Opt<ClientIdOption>.Instance);
 
         await using (var activity = console.StartActivity(
             $"Unpublishing client '{clientId.EscapeMarkup()}' from stage '{stage.EscapeMarkup()}'",

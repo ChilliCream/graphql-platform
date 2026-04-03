@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CommandLine.Options;
+namespace ChilliCream.Nitro.CommandLine;
 
 public sealed class OptionalSourceSchemaFileListOption : Option<List<string>>
 {

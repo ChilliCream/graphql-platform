@@ -2,7 +2,7 @@ using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Mcp;
 using ChilliCream.Nitro.CommandLine.Commands.Mcp.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mcp;
@@ -16,13 +16,13 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
         Options.Add(Opt<McpFeatureCollectionIdOption>.Instance);
         Options.Add(Opt<TagOption>.Instance);
         Options.Add(Opt<StageNameOption>.Instance);
-        Options.Add(Opt<ForceOption>.Instance);
+        Options.Add(Opt<OptionalForceOption>.Instance);
         Options.Add(Opt<OptionalWaitForApprovalOption>.Instance);
         Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
         Validators.Add(result =>
         {
-            var forceResult = result.GetResult(Opt<ForceOption>.Instance);
+            var forceResult = result.GetResult(Opt<OptionalForceOption>.Instance);
             var waitResult = result.GetResult(Opt<OptionalWaitForApprovalOption>.Instance);
 
             if (forceResult is { Implicit: false } && waitResult is { Implicit: false })
@@ -53,10 +53,10 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var client = services.GetRequiredService<IMcpClient>();
 
-        var tag = parseResult.GetValue(Opt<TagOption>.Instance)!;
-        var stage = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
-        var mcpFeatureCollectionId = parseResult.GetValue(Opt<McpFeatureCollectionIdOption>.Instance)!;
-        var force = parseResult.GetValue(Opt<ForceOption>.Instance);
+        var tag = parseResult.GetRequiredValue(Opt<TagOption>.Instance);
+        var stage = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
+        var mcpFeatureCollectionId = parseResult.GetRequiredValue(Opt<McpFeatureCollectionIdOption>.Instance);
+        var force = parseResult.GetValue(Opt<OptionalForceOption>.Instance);
         var waitForApproval = parseResult.GetValue(Opt<OptionalWaitForApprovalOption>.Instance);
         var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
 

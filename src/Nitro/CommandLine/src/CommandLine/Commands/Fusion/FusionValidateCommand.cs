@@ -6,10 +6,12 @@ using System.Net;
 using System.Text.Json;
 using ChilliCream.Nitro.CommandLine.FusionCompatibility;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Results;
+using ChilliCream.Nitro.CommandLine.Services;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Packaging;
@@ -72,10 +74,13 @@ internal sealed class FusionValidateCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var fusionConfigurationClient = services.GetRequiredService<IFusionConfigurationClient>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
+        var sessionService = services.GetRequiredService<ISessionService>();
         var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        var stageName = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
-        var apiId = parseResult.GetValue(Opt<ApiIdOption>.Instance)!;
+        parseResult.AssertHasAuthentication(sessionService);
+
+        var stageName = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
+        var apiId = parseResult.GetRequiredValue(Opt<ApiIdOption>.Instance);
         var archiveFile = parseResult.GetValue(Opt<OptionalFusionArchiveFileOption>.Instance);
         var sourceSchemaFiles =
             parseResult.GetValue(Opt<OptionalSourceSchemaFileListOption>.Instance) ?? [];

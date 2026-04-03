@@ -1,4 +1,4 @@
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Clients.Options;
 
@@ -9,6 +9,6 @@ internal sealed class ClientTagsToUnpublishOption : Option<IEnumerable<string>>
         Description = "One or more client version tags to unpublish";
         Required = true;
         AllowMultipleArgumentsPerToken = true;
-        this.DefaultFromEnvironmentValue("TAG");
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.Tag);
     }
 }

@@ -1,7 +1,8 @@
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.Client.FusionConfiguration;
+using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
@@ -42,7 +43,7 @@ internal sealed class FusionConfigurationPublishCommitCommand : Command
                 "No request ID was provided and no request ID was found in the cache. Please provide a request ID.");
 
         var archiveFile =
-            parseResult.GetValue(Opt<FusionArchiveFileOption>.Instance)!;
+            parseResult.GetRequiredValue(Opt<FusionArchiveFileOption>.Instance);
 
         var committed = false;
 
@@ -51,7 +52,7 @@ internal sealed class FusionConfigurationPublishCommitCommand : Command
             "Failed to publish a new Fusion configuration version."))
         {
             await using var stream = fileSystem.OpenReadStream(archiveFile);
-            committed = await FusionPublishHelpers.UploadFusionArchiveAsync(
+            committed = await FusionPublishHelpers.UploadFusionConfigurationAsync(
                 requestId,
                 stream,
                 activity,

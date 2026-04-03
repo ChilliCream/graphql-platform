@@ -3,9 +3,10 @@ using System.Diagnostics.CodeAnalysis;
 #endif
 
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Results;
+using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using HotChocolate.Fusion;
 
@@ -23,7 +24,9 @@ internal sealed class FusionDownloadCommand : Command
 
         Options.Add(Opt<ApiIdOption>.Instance);
         Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<OptionalFusionArchiveVersionOption>.Instance);
         Options.Add(Opt<OptionalOutputFileOption>.Instance);
+
         this.AddGlobalNitroOptions();
 
         this.AddExamples(
@@ -50,18 +53,40 @@ internal sealed class FusionDownloadCommand : Command
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        var stageName = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
-        var apiId = parseResult.GetValue(Opt<ApiIdOption>.Instance)!;
-        var outputFile =
-            parseResult.GetValue(Opt<OptionalOutputFileOption>.Instance) ??
-            Path.Combine(Environment.CurrentDirectory, "gateway.far");
+        var stageName = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
+        var apiId = parseResult.GetRequiredValue(Opt<ApiIdOption>.Instance);
+        var version = parseResult.GetRequiredValue(Opt<OptionalFusionArchiveVersionOption>.Instance);
+        var outputFile = parseResult.GetValue(Opt<OptionalOutputFileOption>.Instance);
 
-        var isFgp = Path.GetExtension(outputFile).Equals(".fgp", StringComparison.OrdinalIgnoreCase);
+        if (string.IsNullOrEmpty(outputFile))
+        {
+            var extension = version.Major == 1 ? "fgp" : "far";
+
+            outputFile = Path.Combine(fileSystem.GetCurrentDirectory(), "gateway." + extension);
+        }
+        else
+        {
+            var extension = Path.GetExtension(outputFile);
+            var wantsToDownloadFgp = extension.Equals(".fgp", StringComparison.OrdinalIgnoreCase);
+
+            if (wantsToDownloadFgp && version.Major > 1)
+            {
+                throw new ExitException("");
+            }
+
+            if (!wantsToDownloadFgp && version.Major == 1)
+            {
+                throw new ExitException("");
+            }
+        }
+
+        var isFgp = version.Major == 1;
 
         await using (var activity = console.StartActivity(
             $"Downloading latest Fusion configuration from stage '{stageName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'",
             "Failed to download the latest Fusion configuration."))
         {
+            // TODO: We can probably get rid of this split?
             await using var stream = isFgp
                 ? await fusionConfigurationClient.DownloadLatestLegacyFusionArchiveAsync(
                     apiId,
@@ -70,7 +95,7 @@ internal sealed class FusionDownloadCommand : Command
                 : await fusionConfigurationClient.DownloadLatestFusionArchiveAsync(
                     apiId,
                     stageName,
-                    WellKnownVersions.LatestGatewayFormatVersion.ToString(),
+                    version.ToString(),
                     cancellationToken);
 
             if (stream is null)

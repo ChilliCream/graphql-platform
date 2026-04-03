@@ -2,7 +2,8 @@ using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Mcp;
 using ChilliCream.Nitro.CommandLine.Commands.Mcp.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
+using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mcp;
@@ -45,10 +46,10 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        var tag = parseResult.GetValue(Opt<TagOption>.Instance)!;
-        var promptPatterns = parseResult.GetValue(Opt<McpPromptFilePatternOption>.Instance)!;
-        var toolPatterns = parseResult.GetValue(Opt<McpToolFilePatternOption>.Instance)!;
-        var mcpFeatureCollectionId = parseResult.GetValue(Opt<McpFeatureCollectionIdOption>.Instance)!;
+        var tag = parseResult.GetRequiredValue(Opt<TagOption>.Instance);
+        var promptPatterns = parseResult.GetRequiredValue(Opt<McpPromptFilePatternOption>.Instance);
+        var toolPatterns = parseResult.GetRequiredValue(Opt<McpToolFilePatternOption>.Instance);
+        var mcpFeatureCollectionId = parseResult.GetRequiredValue(Opt<McpFeatureCollectionIdOption>.Instance);
         var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
 
         var source = SourceMetadataParser.Parse(sourceMetadataJson);

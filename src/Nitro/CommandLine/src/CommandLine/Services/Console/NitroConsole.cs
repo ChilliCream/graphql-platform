@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
+using ChilliCream.Nitro.CommandLine.Services;
 using Spectre.Console.Rendering;
 
 namespace ChilliCream.Nitro.CommandLine;

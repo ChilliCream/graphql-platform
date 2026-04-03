@@ -2,7 +2,8 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Channels;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
+using ChilliCream.Nitro.CommandLine.Services;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Packaging;
@@ -49,8 +50,8 @@ internal sealed class FusionComposeCommand : Command
 
         var workingDirectory = parseResult.GetValue(Opt<WorkingDirectoryOption>.Instance)
             ?? fileSystem.GetCurrentDirectory();
-        var sourceSchemaFiles = parseResult.GetValue(Opt<OptionalSourceSchemaFileListOption>.Instance)!;
-        var archiveFile = parseResult.GetValue(Opt<OptionalFusionArchiveFileOption>.Instance)!;
+        var sourceSchemaFiles = parseResult.GetRequiredValue(Opt<OptionalSourceSchemaFileListOption>.Instance);
+        var archiveFile = parseResult.GetRequiredValue(Opt<OptionalFusionArchiveFileOption>.Instance);
         var environment = parseResult.GetValue(Opt<FusionEnvironmentOption>.Instance);
         var enableGlobalObjectIdentification = parseResult.GetValue(
             Opt<EnableGlobalObjectIdentificationOption>.Instance);

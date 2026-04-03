@@ -3,8 +3,9 @@ using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Mocks;
 using ChilliCream.Nitro.CommandLine.Commands.Mocks.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Results;
+using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
@@ -52,13 +53,13 @@ internal sealed class CreateMockCommand : Command
         parseResult.AssertHasAuthentication(sessionService);
 
         var extensionFile =
-            parseResult.GetValue(Opt<ExtensionFileOption>.Instance)!;
+            parseResult.GetRequiredValue(Opt<ExtensionFileOption>.Instance);
         var baseSchemaFile =
-            parseResult.GetValue(Opt<BaseSchemaFileOption>.Instance)!;
+            parseResult.GetRequiredValue(Opt<BaseSchemaFileOption>.Instance);
         var downstreamUrl =
-            parseResult.GetValue(Opt<DownstreamUrlOption>.Instance)!;
+            parseResult.GetRequiredValue(Opt<DownstreamUrlOption>.Instance);
         var mockSchemaName =
-            parseResult.GetValue(Opt<MockSchemaNameOption>.Instance)!;
+            parseResult.GetRequiredValue(Opt<MockSchemaNameOption>.Instance);
 
         var apiId = await console.GetOrPromptForApiIdAsync(
             "For which API do you want to create a mock schema?",

@@ -3,7 +3,7 @@ using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.ApiKeys;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
@@ -17,7 +17,7 @@ internal sealed class DeleteApiKeyCommand : Command
         Description = "Delete an API key by ID.";
 
         Arguments.Add(Opt<IdArgument>.Instance);
-        Options.Add(Opt<ForceOption>.Instance);
+        Options.Add(Opt<OptionalForceOption>.Instance);
 
         this.AddGlobalNitroOptions();
 
@@ -39,7 +39,7 @@ internal sealed class DeleteApiKeyCommand : Command
         parseResult.AssertHasAuthentication(sessionService);
 
         var keyId = parseResult.GetValue(Opt<IdArgument>.Instance) ?? throw Exit("An API key ID is required.");
-        var force = parseResult.GetValue(Opt<ForceOption>.Instance);
+        var force = parseResult.GetValue(Opt<OptionalForceOption>.Instance);
 
         if (!force)
         {

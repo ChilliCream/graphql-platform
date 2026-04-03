@@ -1,9 +1,8 @@
 using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
+using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
@@ -46,9 +45,9 @@ internal sealed class ValidateSchemaCommand : Command
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        var stage = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
-        var apiId = parseResult.GetValue(Opt<ApiIdOption>.Instance)!;
-        var schemaFilePath = parseResult.GetValue(Opt<SchemaFileOption>.Instance)!;
+        var stage = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
+        var apiId = parseResult.GetRequiredValue(Opt<ApiIdOption>.Instance);
+        var schemaFilePath = parseResult.GetRequiredValue(Opt<SchemaFileOption>.Instance);
         var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
 
         var source = SourceMetadataParser.Parse(sourceMetadataJson);

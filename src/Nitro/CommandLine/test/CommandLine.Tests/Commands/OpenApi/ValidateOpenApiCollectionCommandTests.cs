@@ -1,6 +1,7 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.OpenApi;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Services;
 using Moq;
 using static ChilliCream.Nitro.CommandLine.Tests.TestHelpers;
 

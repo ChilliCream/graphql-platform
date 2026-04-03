@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CommandLine.Options;
+namespace ChilliCream.Nitro.CommandLine;
 
 internal sealed class OptionalSubgraphNameOption : Option<string>
 {
@@ -7,6 +7,6 @@ internal sealed class OptionalSubgraphNameOption : Option<string>
         Description = "The name of the subgraph";
         Required = false;
         Hidden = true;
-        this.DefaultFromEnvironmentValue("SUBGRAPH_NAME");
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.SubgraphName);
     }
 }

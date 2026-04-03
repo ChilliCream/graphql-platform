@@ -2,7 +2,8 @@ using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.OpenApi;
 using ChilliCream.Nitro.CommandLine.Commands.OpenApi.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
+using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi;
@@ -43,9 +44,9 @@ internal sealed class UploadOpenApiCollectionCommand : Command
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        var tag = parseResult.GetValue(Opt<TagOption>.Instance)!;
-        var patterns = parseResult.GetValue(Opt<OpenApiCollectionFilePatternOption>.Instance)!;
-        var openApiCollectionId = parseResult.GetValue(Opt<OpenApiCollectionIdOption>.Instance)!;
+        var tag = parseResult.GetRequiredValue(Opt<TagOption>.Instance);
+        var patterns = parseResult.GetRequiredValue(Opt<OpenApiCollectionFilePatternOption>.Instance);
+        var openApiCollectionId = parseResult.GetRequiredValue(Opt<OpenApiCollectionIdOption>.Instance);
         var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
 
         var source = SourceMetadataParser.Parse(sourceMetadataJson);

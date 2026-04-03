@@ -1,4 +1,4 @@
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Apis.Options;
 
@@ -8,6 +8,6 @@ internal sealed class ApiNameOption : Option<string>
     {
         Description = "The name of the API";
         Required = false;
-        this.DefaultFromEnvironmentValue("API_NAME");
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.ApiName);
     }
 }

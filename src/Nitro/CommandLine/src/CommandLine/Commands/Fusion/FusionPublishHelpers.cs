@@ -72,9 +72,9 @@ internal static class FusionPublishHelpers
             CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
         await foreach (var @event in client
-            .SubscribeToFusionConfigurationPublishingTaskChangedAsync(
-                requestId,
-                subscriptionCancellation.Token))
+                           .SubscribeToFusionConfigurationPublishingTaskChangedAsync(
+                               requestId,
+                               subscriptionCancellation.Token))
         {
             switch (@event)
             {
@@ -131,7 +131,7 @@ internal static class FusionPublishHelpers
         return requestId;
     }
 
-    public static async Task<bool> UploadFusionArchiveAsync(
+    public static async Task<bool> UploadFusionConfigurationAsync(
         string requestId,
         Stream stream,
         INitroConsoleActivity activity,
@@ -165,7 +165,7 @@ internal static class FusionPublishHelpers
         var committed = false;
 
         await foreach (var @event in client
-            .SubscribeToFusionConfigurationPublishingTaskChangedAsync(requestId, cancellationToken))
+                           .SubscribeToFusionConfigurationPublishingTaskChangedAsync(requestId, cancellationToken))
         {
             switch (@event)
             {
@@ -251,6 +251,100 @@ internal static class FusionPublishHelpers
         }
 
         return committed;
+    }
+
+    public static async Task<bool> ValidateFusionConfigurationAsync(
+        string requestId,
+        Stream stream,
+        INitroConsoleActivity activity,
+        INitroConsole console,
+        IFusionConfigurationClient client,
+        CancellationToken cancellationToken)
+    {
+        var result = await client.ValidateFusionConfigurationPublishAsync(
+            requestId,
+            stream,
+            cancellationToken);
+
+        if (result.Errors?.Count > 0)
+        {
+            activity.Fail();
+
+            foreach (var error in result.Errors)
+            {
+                var errorMessage = error switch
+                {
+                    IUnauthorizedOperation err => err.Message,
+                    IFusionConfigurationRequestNotFoundError err => err.Message,
+                    IInvalidProcessingStateTransitionError err => err.Message,
+                    IError err => "Unexpected mutation error: " + err.Message,
+                    _ => "Unexpected mutation error."
+                };
+
+                console.Error.WriteErrorLine(errorMessage);
+            }
+
+            return false;
+        }
+
+        await foreach (var @event in client
+                           .SubscribeToFusionConfigurationPublishingTaskChangedAsync(requestId, cancellationToken))
+        {
+            switch (@event)
+            {
+                case IProcessingTaskIsQueued:
+                    throw Exit(
+                        "Your request is in the queued state. Try to run `fusion-configuration publish start` once the request is ready ");
+
+                case IFusionConfigurationPublishingFailed:
+                    throw Exit("Your request has already failed");
+
+                case IFusionConfigurationPublishingSuccess:
+                    throw Exit("You request is already published");
+
+                case IProcessingTaskIsReady:
+                    throw Exit(
+                        "Your request is ready for the composition. Run `fusion-configuration publish start`");
+
+                case IFusionConfigurationValidationFailed failed:
+                    activity.Fail();
+
+                    // TODO:
+                    // ...SchemaChangeViolationError
+                    //     ...InvalidGraphQLSchemaError
+                    //     ...PersistedQueryValidationError
+                    //     ...OpenApiCollectionValidationError
+                    //     ...McpFeatureCollectionValidationError
+                    foreach (var error in failed.Errors)
+                    {
+                        console.Error.WriteErrorLine(error switch
+                        {
+                            IUnexpectedProcessingError e => e.Message,
+                            _ => "Unexpected error."
+                        });
+                    }
+
+                    console.Error.WriteErrorLine("The validation failed.");
+                    return false;
+
+                case IFusionConfigurationValidationSuccess:
+                    activity.Success("Validated the Fusion configuration.");
+                    return true;
+
+                case IOperationInProgress:
+                case IValidationInProgress:
+                case IWaitForApproval:
+                case IProcessingTaskApproved:
+                    activity.Update("Validating...");
+                    break;
+
+                default:
+                    activity.Update("Unknown server response. Consider updating the CLI.", ActivityUpdateKind.Warning);
+                    break;
+            }
+        }
+
+        return false;
     }
 
     public static async Task<(bool Success, CompositionLog Log)> ComposeAsync(

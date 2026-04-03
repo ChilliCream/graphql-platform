@@ -222,7 +222,7 @@ internal sealed record CommandContext(
     }
 }
 
-internal sealed record CommandResult(
+public sealed record CommandResult(
     int ExitCode,
     string StdOut,
     string StdErr,

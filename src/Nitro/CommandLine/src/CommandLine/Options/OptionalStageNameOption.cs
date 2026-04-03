@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CommandLine.Options;
+namespace ChilliCream.Nitro.CommandLine;
 
 internal sealed class OptionalStageNameOption : Option<string>
 {
@@ -6,7 +6,7 @@ internal sealed class OptionalStageNameOption : Option<string>
     {
         Description = "The name of the stage";
         Required = true;
-        this.DefaultFromEnvironmentValue("STAGE");
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.Stage);
         this.NonEmptyStringsOnly();
     }
 }

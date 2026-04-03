@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CommandLine.Options;
+namespace ChilliCream.Nitro.CommandLine;
 
 internal class ExpiresOption : Option<int>
 {
@@ -6,6 +6,6 @@ internal class ExpiresOption : Option<int>
     {
         Description = "The expiration time of the personal access token in days";
         Required = false;
-        this.DefaultFromEnvironmentValue("EXPIRES", defaultValue: 180);
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.Expires, defaultValue: 180);
     }
 }

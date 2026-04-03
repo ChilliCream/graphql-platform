@@ -49,8 +49,15 @@
     <PackageReference Include="Spectre.Console.Json" />
     <PackageReference Include="System.CommandLine" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
-    <PackageReference Include="System.Linq.Async" />
     <PackageReference Include="System.Reactive" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <PackageReference Include="System.Linq.Async" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
+    <PackageReference Include="System.Linq.Async" />
   </ItemGroup>
 
 </Project>

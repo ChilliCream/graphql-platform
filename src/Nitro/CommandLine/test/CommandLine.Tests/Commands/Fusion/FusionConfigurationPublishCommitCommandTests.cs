@@ -1,6 +1,7 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Services;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;

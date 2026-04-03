@@ -1,4 +1,4 @@
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens.Options;
 
@@ -8,7 +8,7 @@ internal class PersonalAccessTokenDescriptionOption : Option<string>
     {
         Description = "The description of the personal access token";
         Required = false;
-        this.DefaultFromEnvironmentValue("DESCRIPTION");
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.Description);
     }
 }
 

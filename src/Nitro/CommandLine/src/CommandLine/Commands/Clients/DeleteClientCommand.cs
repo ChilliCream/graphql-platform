@@ -5,7 +5,7 @@ using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
@@ -19,7 +19,7 @@ internal sealed class DeleteClientCommand : Command
         Description = "Delete a client.";
 
         Arguments.Add(Opt<OptionalIdArgument>.Instance);
-        Options.Add(Opt<ForceOption>.Instance);
+        Options.Add(Opt<OptionalForceOption>.Instance);
 
         this.AddGlobalNitroOptions();
 
@@ -76,7 +76,7 @@ internal sealed class DeleteClientCommand : Command
             console.OkQuestion(clientMessage, clientId);
         }
 
-        var force = parseResult.GetValue(Opt<ForceOption>.Instance);
+        var force = parseResult.GetValue(Opt<OptionalForceOption>.Instance);
         if (!force)
         {
             var confirmed = await console.ConfirmAsync(

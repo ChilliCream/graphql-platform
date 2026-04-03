@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CommandLine.Options;
+namespace ChilliCream.Nitro.CommandLine;
 
 internal class OptionalWorkspaceIdOption : Option<string>
 {
@@ -8,6 +8,6 @@ internal class OptionalWorkspaceIdOption : Option<string>
     {
         Description = "The ID of the workspace";
         Required = false;
-        this.DefaultFromEnvironmentValue("WORKSPACE_ID");
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.WorkspaceId);
     }
 }

@@ -5,7 +5,7 @@ using ChilliCream.Nitro.Client.OpenApi;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
 using ChilliCream.Nitro.CommandLine.Commands.OpenApi.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
@@ -19,7 +19,7 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
         Description = "Delete an OpenAPI collection.";
 
         Arguments.Add(Opt<OptionalIdArgument>.Instance);
-        Options.Add(Opt<ForceOption>.Instance);
+        Options.Add(Opt<OptionalForceOption>.Instance);
 
         this.AddGlobalNitroOptions();
 
@@ -70,7 +70,7 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
             openApiCollectionId = selectedOpenApiCollection.Id;
         }
 
-        var force = parseResult.GetValue(Opt<ForceOption>.Instance);
+        var force = parseResult.GetValue(Opt<OptionalForceOption>.Instance);
         if (!force)
         {
             var confirmed = await console.ConfirmAsync(

@@ -7,7 +7,8 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using ChilliCream.Nitro.CommandLine.Arguments;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
+using ChilliCream.Nitro.CommandLine.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
@@ -42,7 +43,7 @@ internal class FusionRunCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
 
-        var archiveFilePath = parseResult.GetValue(Opt<FusionRunArchiveArgument>.Instance)!;
+        var archiveFilePath = parseResult.GetRequiredValue(Opt<FusionRunArchiveArgument>.Instance);
         var port = parseResult.GetValue(Opt<FusionRunPortOption>.Instance);
         if (!fileSystem.FileExists(archiveFilePath))
         {

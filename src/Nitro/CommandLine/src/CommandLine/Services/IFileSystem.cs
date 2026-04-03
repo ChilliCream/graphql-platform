@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CommandLine.Helpers;
+namespace ChilliCream.Nitro.CommandLine.Services;
 
 internal interface IFileSystem
 {

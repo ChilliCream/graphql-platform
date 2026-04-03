@@ -1,4 +1,4 @@
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mcp.Options;
 
@@ -8,6 +8,6 @@ internal sealed class McpFeatureCollectionNameOption : Option<string>
     {
         Description = "The name of the MCP Feature Collection";
         Required = false;
-        this.DefaultFromEnvironmentValue("MCP_FEATURE_COLLECTION_NAME");
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.McpFeatureCollectionName);
     }
 }

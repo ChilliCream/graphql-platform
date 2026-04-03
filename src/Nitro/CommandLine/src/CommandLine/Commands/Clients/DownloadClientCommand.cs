@@ -1,8 +1,9 @@
 using System.Text.Json;
 using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Results;
+using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Configuration;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
@@ -46,10 +47,10 @@ internal sealed class DownloadClientCommand : Command
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        var apiId = parseResult.GetValue(Opt<ApiIdOption>.Instance)!;
-        var stageName = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
-        var output = parseResult.GetValue(Opt<FileSystemOutputOptions>.Instance)!;
-        var format = parseResult.GetValue(Opt<ClientFormatOption>.Instance)!;
+        var apiId = parseResult.GetRequiredValue(Opt<ApiIdOption>.Instance);
+        var stageName = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
+        var output = parseResult.GetRequiredValue(Opt<FileSystemOutputOptions>.Instance);
+        var format = parseResult.GetRequiredValue(Opt<ClientFormatOption>.Instance);
 
         await using (var activity = console.StartActivity(
             $"Downloading client from stage '{stageName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'",

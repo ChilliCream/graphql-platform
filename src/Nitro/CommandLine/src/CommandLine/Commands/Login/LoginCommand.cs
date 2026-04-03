@@ -1,7 +1,7 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces;
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
@@ -39,7 +39,7 @@ internal sealed class LoginCommand : Command
                 + $"Use '{OptionalApiKeyOption.OptionName}' to authenticate command invocations in non-interactive environments.");
         }
 
-        var cloudUrl = parseResult.GetValue(Opt<IdentityCloudUrlOption>.Instance)!;
+        var cloudUrl = parseResult.GetRequiredValue(Opt<IdentityCloudUrlOption>.Instance);
         var url = parseResult.GetValue(Opt<IdentityCloudUrlArgument>.Instance);
 
         url ??= cloudUrl;

@@ -1,9 +1,7 @@
 using System.Net;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
-using static ChilliCream.Nitro.CommandLine.Helpers.CommandExamples;
 
 namespace ChilliCream.Nitro.CommandLine;
 
@@ -57,7 +55,7 @@ internal static class CommandExtensions
             catch (NitroClientException exception)
             {
                 console.Error.WriteErrorLine(
-                    $"There was an unexpected error: {exception.Message}");
+                    $"There was an unexpected client error: {exception.Message}");
             }
             catch (Exception ex) when (ex is OperationCanceledException or TaskCanceledException)
             {
@@ -65,7 +63,7 @@ internal static class CommandExtensions
             }
             catch (Exception exception)
             {
-                console.Error.WriteErrorLine(exception.Message);
+                console.Error.WriteErrorLine($"There was an unexpected error: {exception.Message}");
             }
 
             return ExitCodes.Error;

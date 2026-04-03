@@ -3,7 +3,7 @@ using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
@@ -17,7 +17,7 @@ internal sealed class DeleteApiCommand : Command
         Description = "Delete an API by ID.";
 
         Arguments.Add(Opt<IdArgument>.Instance);
-        Options.Add(Opt<ForceOption>.Instance);
+        Options.Add(Opt<OptionalForceOption>.Instance);
 
         this.AddGlobalNitroOptions();
 
@@ -38,7 +38,7 @@ internal sealed class DeleteApiCommand : Command
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        var apiId = parseResult.GetValue(Opt<IdArgument>.Instance)!;
+        var apiId = parseResult.GetRequiredValue(Opt<IdArgument>.Instance);
 
         var apiResult = await client.GetApiForDeleteAsync(apiId, cancellationToken);
         if (apiResult is not IDeleteApiCommandQuery_Node_Api { Name: { } apiName })
@@ -46,7 +46,7 @@ internal sealed class DeleteApiCommand : Command
             throw Exit($"The API with ID '{apiId}' was not found.");
         }
 
-        var force = parseResult.GetValue(Opt<ForceOption>.Instance);
+        var force = parseResult.GetValue(Opt<OptionalForceOption>.Instance);
         if (!force)
         {
             var confirmed = await console.ConfirmAsync(

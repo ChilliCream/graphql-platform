@@ -1,8 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
 using ChilliCream.Nitro.CommandLine.Arguments;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Results;
+using ChilliCream.Nitro.CommandLine.Services;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Options;
 using HotChocolate.Fusion.Packaging;
@@ -50,7 +51,7 @@ internal sealed class FusionSettingsSetCommand : Command
 
         var settingName = parseResult.GetRequiredValue(Opt<FusionSettingsNameArgument>.Instance);
         var settingValue = parseResult.GetRequiredValue(Opt<FusionSettingsValueArgument>.Instance);
-        var archiveFile = parseResult.GetRequiredValue(Opt<FusionArchiveFileOption>.Instance)!;
+        var archiveFile = parseResult.GetRequiredValue(Opt<FusionArchiveFileOption>.Instance);
         var environment = parseResult.GetValue(Opt<FusionEnvironmentOption>.Instance);
         if (!fileSystem.FileExists(archiveFile))
         {

@@ -1,7 +1,8 @@
+using ChilliCream.Nitro.CommandLine.Helpers;
 using Microsoft.Extensions.FileSystemGlobbing;
 using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 
-namespace ChilliCream.Nitro.CommandLine.Helpers;
+namespace ChilliCream.Nitro.CommandLine.Services;
 
 internal sealed class FileSystem : IFileSystem
 {

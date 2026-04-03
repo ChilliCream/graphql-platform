@@ -1,4 +1,4 @@
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Clients.Options;
 
@@ -8,6 +8,6 @@ internal sealed class ClientNameOption : Option<string>
     {
         Description = "The name of the client";
         Required = false;
-        this.DefaultFromEnvironmentValue("CLIENT_NAME");
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.ClientName);
     }
 }

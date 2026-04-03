@@ -1,4 +1,4 @@
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Apis.Options;
 
@@ -8,6 +8,6 @@ internal sealed class AllowBreakingSchemaChangesOption : Option<bool?>
     {
         Description = "Allow breaking schema changes when no client breaks";
         Required = false;
-        this.DefaultFromEnvironmentValue("ALLOW_BREAKING_SCHEMA_CHANGES");
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.AllowBreakingSchemaChanges);
     }
 }

@@ -4,7 +4,7 @@ using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.CommandLine.Commands.Stages.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Configuration;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;

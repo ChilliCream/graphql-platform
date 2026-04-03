@@ -1,6 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Helpers;
 
-namespace ChilliCream.Nitro.CommandLine.Options;
+namespace ChilliCream.Nitro.CommandLine;
 
 internal sealed class IdentityCloudUrlOption : Option<string>
 {
@@ -9,7 +9,7 @@ internal sealed class IdentityCloudUrlOption : Option<string>
         Description = "The URL of the Nitro backend (only needed for self-hosted or dedicated deployments)";
         Required = false;
         this.DefaultFromEnvironmentValue(
-            "CLOUD_URL",
+            EnvironmentVariables.CloudUrl,
             defaultValue: OidcConfiguration.IdentityUrl["https://".Length..]);
     }
 }

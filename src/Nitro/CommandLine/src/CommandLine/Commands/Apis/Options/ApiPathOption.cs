@@ -1,4 +1,4 @@
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Apis.Options;
 
@@ -8,6 +8,6 @@ internal sealed class ApiPathOption : Option<string>
     {
         Description = "The path to the API";
         Required = false;
-        this.DefaultFromEnvironmentValue("API_PATH");
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.ApiPath);
     }
 }

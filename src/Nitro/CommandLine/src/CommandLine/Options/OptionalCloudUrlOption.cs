@@ -1,6 +1,6 @@
 using ChilliCream.Nitro.CommandLine.Helpers;
 
-namespace ChilliCream.Nitro.CommandLine.Options;
+namespace ChilliCream.Nitro.CommandLine;
 
 internal sealed class OptionalCloudUrlOption : Option<string>
 {
@@ -8,6 +8,6 @@ internal sealed class OptionalCloudUrlOption : Option<string>
     {
         Description = "The URL of the Nitro backend (only needed for self-hosted or dedicated deployments)";
         Required = false;
-        this.DefaultFromEnvironmentValue("CLOUD_URL", defaultValue: Constants.ApiUrl["https://".Length..]);
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.CloudUrl, defaultValue: Constants.ApiUrl["https://".Length..]);
     }
 }

@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CommandLine.Options;
+namespace ChilliCream.Nitro.CommandLine;
 
 internal sealed class OptionalCursorOption : Option<string?>
 {
@@ -6,6 +6,6 @@ internal sealed class OptionalCursorOption : Option<string?>
     {
         Description = "The pagination cursor to resume from";
         Required = false;
-        this.DefaultFromEnvironmentValue("CURSOR");
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.Cursor);
     }
 }

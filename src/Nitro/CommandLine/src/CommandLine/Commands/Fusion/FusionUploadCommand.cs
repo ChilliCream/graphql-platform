@@ -4,9 +4,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Results;
+using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using HotChocolate.Fusion.SourceSchema.Packaging;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
@@ -57,9 +58,9 @@ internal sealed class FusionUploadCommand : Command
 
         var workingDirectory = parseResult.GetValue(Opt<WorkingDirectoryOption>.Instance)
             ?? fileSystem.GetCurrentDirectory();
-        var sourceSchemaFile = parseResult.GetValue(Opt<SourceSchemaFileOption>.Instance)!;
-        var apiId = parseResult.GetValue(Opt<ApiIdOption>.Instance)!;
-        var tag = parseResult.GetValue(Opt<TagOption>.Instance)!;
+        var sourceSchemaFile = parseResult.GetRequiredValue(Opt<SourceSchemaFileOption>.Instance);
+        var apiId = parseResult.GetRequiredValue(Opt<ApiIdOption>.Instance);
+        var tag = parseResult.GetRequiredValue(Opt<TagOption>.Instance);
         var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
@@ -77,19 +78,10 @@ internal sealed class FusionUploadCommand : Command
             $"Uploading new source schema version '{tag.EscapeMarkup()}' to API '{apiId.EscapeMarkup()}'",
             "Failed to upload a new source schema version."))
         {
-            await using var archiveStream = new MemoryStream();
-            var archive = FusionSourceSchemaArchive.Create(archiveStream, leaveOpen: true);
-
-            await archive.SetArchiveMetadataAsync(new ArchiveMetadata(), cancellationToken);
-            await archive.SetSchemaAsync(
+            await using var archiveStream = await FusionSourceSchemaArchiveHelper.CreateArchiveStreamAsync(
                 Encoding.UTF8.GetBytes(sourceText.SourceText),
+                settings,
                 cancellationToken);
-            await archive.SetSettingsAsync(settings, cancellationToken);
-
-            await archive.CommitAsync(cancellationToken);
-            archive.Dispose();
-
-            archiveStream.Position = 0;
 
             var result = await fusionConfigurationClient.UploadFusionSubgraphAsync(
                 apiId,

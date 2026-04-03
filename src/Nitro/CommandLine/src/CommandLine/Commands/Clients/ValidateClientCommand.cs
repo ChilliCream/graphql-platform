@@ -1,9 +1,8 @@
 using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
-using ChilliCream.Nitro.CommandLine.Services.Configuration;
+using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
@@ -45,9 +44,9 @@ internal sealed class ValidateClientCommand : Command
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        var stage = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
-        var clientId = parseResult.GetValue(Opt<ClientIdOption>.Instance)!;
-        var operationsFilePath = parseResult.GetValue(Opt<OperationsFileOption>.Instance)!;
+        var stage = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
+        var clientId = parseResult.GetRequiredValue(Opt<ClientIdOption>.Instance);
+        var operationsFilePath = parseResult.GetRequiredValue(Opt<OperationsFileOption>.Instance);
         var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
 
         var source = SourceMetadataParser.Parse(sourceMetadataJson);

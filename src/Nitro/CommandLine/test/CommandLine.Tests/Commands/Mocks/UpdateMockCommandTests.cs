@@ -2,6 +2,7 @@ using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Mocks;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Services;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Mocks;

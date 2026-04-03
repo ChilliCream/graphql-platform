@@ -1,10 +1,12 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Services;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
+// TODO: Needs test with --version parameter
 public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
 {
     [Fact]
@@ -23,13 +25,14 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : IC
             """
             Description:
               Download the most recent gateway configuration.
-            
+
             Usage:
               nitro fusion download [options]
-            
+
             Options:
               --api-id <api-id> (REQUIRED)  The ID of the API [env: NITRO_API_ID]
               --stage <stage> (REQUIRED)    The name of the stage [env: NITRO_STAGE]
+              --version <version>           The version of the archive to download [default: 2.0.0]
               --output-file <output-file>   The file path to write the output to [env: NITRO_OUTPUT_FILE]
               --cloud-url <cloud-url>       The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
               --api-key <api-key>           The API key used for authentication [env: NITRO_API_KEY]

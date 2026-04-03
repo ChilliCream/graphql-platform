@@ -1,4 +1,4 @@
-namespace ChilliCream.Nitro.CommandLine.Options;
+namespace ChilliCream.Nitro.CommandLine;
 
 internal sealed class TagOption : Option<string>
 {
@@ -8,7 +8,7 @@ internal sealed class TagOption : Option<string>
     {
         Description = "The tag of the schema version to deploy";
         Required = true;
-        this.DefaultFromEnvironmentValue("TAG");
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.Tag);
         this.NonEmptyStringsOnly();
     }
 }

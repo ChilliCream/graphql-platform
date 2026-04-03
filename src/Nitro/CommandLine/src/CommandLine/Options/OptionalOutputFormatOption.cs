@@ -1,4 +1,4 @@
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
 
 namespace ChilliCream.Nitro.CommandLine.Results;
 
@@ -15,6 +15,6 @@ internal sealed class OptionalOutputFormatOption : Option<OutputFormat?>
        AcceptOnlyFromAmong("json");
         // HelpName = "json";
 
-        this.DefaultFromEnvironmentValue("OUTPUT_FORMAT");
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.OutputFormat);
     }
 }

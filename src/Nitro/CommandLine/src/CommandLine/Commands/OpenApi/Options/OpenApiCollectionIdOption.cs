@@ -1,4 +1,4 @@
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi.Options;
 
@@ -8,7 +8,7 @@ internal sealed class OpenApiCollectionIdOption : Option<string>
     {
         Description = "The ID of the OpenAPI collection";
         Required = true;
-        this.DefaultFromEnvironmentValue("OPENAPI_COLLECTION_ID");
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.OpenApiCollectionId);
         this.NonEmptyStringsOnly();
     }
 }

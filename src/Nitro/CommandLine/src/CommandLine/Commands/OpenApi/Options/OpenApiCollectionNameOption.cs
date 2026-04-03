@@ -1,4 +1,4 @@
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi.Options;
 
@@ -8,6 +8,6 @@ internal sealed class OpenApiCollectionNameOption : Option<string>
     {
         Description = "The name of the OpenAPI collection";
         Required = false;
-        this.DefaultFromEnvironmentValue("OPENAPI_COLLECTION_NAME");
+        this.DefaultFromEnvironmentValue(EnvironmentVariables.OpenApiCollectionName);
     }
 }

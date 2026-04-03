@@ -3,7 +3,7 @@ using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.CommandLine.Commands.Stages.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
@@ -18,7 +18,7 @@ internal sealed class DeleteStageCommand : Command
 
         Options.Add(Opt<OptionalApiIdOption>.Instance);
         Options.Add(Opt<StageNameOption>.Instance);
-        Options.Add(Opt<ForceOption>.Instance);
+        Options.Add(Opt<OptionalForceOption>.Instance);
 
         this.AddGlobalNitroOptions();
 
@@ -53,7 +53,7 @@ internal sealed class DeleteStageCommand : Command
             sessionService,
             cancellationToken);
 
-        var stageName = parseResult.GetValue(Opt<StageNameOption>.Instance)!;
+        var stageName = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
 
         var shouldDelete = await parseResult.ConfirmWhenNotForced(
             $"Do you really want to force delete stage {stageName.AsHighlight()}",
