@@ -713,7 +713,7 @@ public class GraphQLHttpClientTests : ServerTestBase
         var canceled = false;
         try
         {
-            await foreach (var result in subscriptionResponse.ReadAsResultStreamAsync().WithCancellation(cts.Token))
+            await foreach (var result in subscriptionResponse.ReadAsResultStreamAsync(cts.Token))
             {
                 result.MatchInlineSnapshot(
                     """

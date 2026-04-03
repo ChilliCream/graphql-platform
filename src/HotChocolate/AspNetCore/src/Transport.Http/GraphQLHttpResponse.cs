@@ -165,7 +165,7 @@ public sealed class GraphQLHttpResponse : IDisposable
 
         if (contentType?.MediaType.EqualsOrdinal(ContentType.EventStream) ?? false)
         {
-            return new SseReader(_message);
+            return new SseReader(_message, cancellationToken);
         }
 
         // The server supports the newer graphql-response+json media type and users are free
