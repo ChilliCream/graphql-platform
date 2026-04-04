@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
 using ChilliCream.Nitro.Client;
@@ -9,16 +10,13 @@ using Moq.Language;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
-public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : CommandTestBase(fixture)
+public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : SchemaCommandTestBase(fixture)
 {
-    protected const string ApiId = "api-1";
-    protected const string Stage = "dev";
     protected const string Tag = "v1";
     protected const string ArchiveFile = "fusion.far";
     protected const string SourceSchemaFile = "products/schema.graphqls";
     protected const string SourceSchemaSettingsFile = "products/schema-settings.json";
     protected const string SourceSchema = "products";
-    protected const string RequestId = "request-id";
     private const string SourceSchemaText =
         """
         type Query {
@@ -74,6 +72,37 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Comma
     protected void SetupArchiveFile()
     {
         var stream = new MemoryStream();
+
+        SetupFile(ArchiveFile, stream);
+    }
+
+    // TODO: Change this
+    protected void SetupValidateArchiveFile()
+    {
+        var stream = new MemoryStream();
+
+        using (var zip = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: true))
+        {
+            var metadataEntry = zip.CreateEntry("archive-metadata.json");
+            using (var writer = new StreamWriter(metadataEntry.Open()))
+            {
+                writer.Write("""{"formatVersion":"1.0.0","supportedGatewayFormats":["1.0"],"sourceSchemas":[]}""");
+            }
+
+            var schemaEntry = zip.CreateEntry("gateway/1.0/gateway.graphqls");
+            using (var writer = new StreamWriter(schemaEntry.Open()))
+            {
+                writer.Write("type Query { hello: String }");
+            }
+
+            var settingsEntry = zip.CreateEntry("gateway/1.0/gateway-settings.json");
+            using (var writer = new StreamWriter(settingsEntry.Open()))
+            {
+                writer.Write("{}");
+            }
+        }
+
+        stream.Position = 0;
 
         SetupFile(ArchiveFile, stream);
     }
@@ -757,4 +786,5 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Comma
     }
 
     #endregion
+
 }

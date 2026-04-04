@@ -164,7 +164,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
                             break;
 
                         default:
-                            child.Update("Unknown server response. Consider updating the CLI.", ActivityUpdateKind.Warning);
+                            child.Update(ErrorMessages.UnknownServerResponse, ActivityUpdateKind.Warning);
                             break;
                     }
                 }

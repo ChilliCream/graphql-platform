@@ -127,7 +127,7 @@ internal static class FusionPublishHelpers
                     break;
 
                 default:
-                    activity.Update("Unknown server response. Consider updating the CLI.", ActivityUpdateKind.Warning);
+                    activity.Update(ErrorMessages.UnknownServerResponse, ActivityUpdateKind.Warning);
                     break;
             }
         }
@@ -287,7 +287,7 @@ internal static class FusionPublishHelpers
                     break;
 
                 default:
-                    activity.Update("Unknown server response. Consider updating the CLI.", ActivityUpdateKind.Warning);
+                    activity.Update(ErrorMessages.UnknownServerResponse, ActivityUpdateKind.Warning);
                     break;
             }
         }
@@ -390,7 +390,7 @@ internal static class FusionPublishHelpers
                     break;
 
                 default:
-                    activity.Update("Unknown server response. Consider updating the CLI.", ActivityUpdateKind.Warning);
+                    activity.Update(ErrorMessages.UnknownServerResponse, ActivityUpdateKind.Warning);
                     break;
             }
         }

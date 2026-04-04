@@ -82,156 +82,164 @@ internal sealed class FusionValidateCommand : Command
                 $"Missing one of the required options '{OptionalSourceSchemaFileListOption.OptionName}' or '{FusionArchiveFileOption.OptionName}'.");
         }
 
-        var isValid = false;
-        CompositionLog? failedLog = null;
-
-        await using (var activity = console.StartActivity(
-                         $"Validating Fusion configuration against stage '{stageName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'",
-                         "Failed to validate the Fusion configuration."))
+        if (archiveFile is not null)
         {
-            if (archiveFile is not null)
-            {
-                await ValidateWithArchive(activity);
-            }
-            else
-            {
-                await ValidateWithSourceSchemaFiles(activity);
-            }
+            return await ValidateWithArchive();
+        }
+        else
+        {
+            return await ValidateWithSourceSchemaFiles();
         }
 
-        if (failedLog is { IsEmpty: false })
+        async Task<int> ValidateWithArchive()
         {
-            FusionComposeCommand.WriteCompositionLog(failedLog, console.Out, false);
+            if (!Path.IsPathRooted(archiveFile))
+            {
+                archiveFile = Path.Combine(fileSystem.GetCurrentDirectory(), archiveFile);
+            }
+
+            if (!fileSystem.FileExists(archiveFile))
+            {
+                throw new ExitException($"Archive file '{archiveFile}' does not exist.");
+            }
+
+            await using var archiveStream = fileSystem.OpenReadStream(archiveFile);
+            await using var activity = StartActivity();
+
+            return await ValidateAsync(activity, archiveStream);
         }
 
-        return isValid ? ExitCodes.Success : ExitCodes.Error;
-
-        async Task ValidateWithSourceSchemaFiles(INitroConsoleActivity activity)
+        async Task<int> ValidateWithSourceSchemaFiles()
         {
-            Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas;
-            await using (var child = activity.StartChildActivity(
-                             "Reading source schema file(s)",
-                             "Failed to read source schema file(s)."))
+            for (var i = 0; i < sourceSchemaFiles.Count; i++)
             {
-                newSourceSchemas = await FusionComposeCommand.ReadSourceSchemasAsync(
+                var sourceSchemaFile = sourceSchemaFiles[i];
+
+                if (!Path.IsPathRooted(sourceSchemaFile))
+                {
+                    sourceSchemaFiles[i] = sourceSchemaFile = Path.Combine(fileSystem.GetCurrentDirectory(), sourceSchemaFile);
+                }
+
+                if (!fileSystem.FileExists(sourceSchemaFile))
+                {
+                    throw new ExitException($"Source schema file '{sourceSchemaFile}' does not exist.");
+                }
+            }
+
+            await using (var activity = StartActivity())
+            {
+                var newSourceSchemas = await FusionComposeCommand.ReadSourceSchemasAsync(
                     fileSystem,
                     sourceSchemaFiles,
                     ct);
 
-                child.Success($"Read {newSourceSchemas.Count} source schema file(s).");
-            }
-
-            var archiveStream = new MemoryStream();
-            Stream? existingArchiveStream;
-            await using (var child = activity.StartChildActivity(
-                             "Downloading existing Fusion configuration",
-                             "Failed to download existing Fusion configuration."))
-            {
-                existingArchiveStream = await fusionConfigurationClient.DownloadLatestFusionArchiveAsync(
-                    apiId,
-                    stageName,
-                    WellKnownVersions.LatestGatewayFormatVersion.ToString(),
-                    ArchiveFormats.Far,
-                    ct);
-
-                if (existingArchiveStream is null)
+                await using var archiveStream = new MemoryStream();
+                Stream? existingArchiveStream;
+                await using (var downloadActivity = activity.StartChildActivity(
+                                 "Downloading existing Fusion configuration",
+                                 "Failed to download existing Fusion configuration."))
                 {
-                    child.Warning("No existing Fusion configuration.");
-                }
-                else
-                {
-                    child.Success("Downloaded existing Fusion configuration.");
-                }
-            }
+                    existingArchiveStream = await fusionConfigurationClient.DownloadLatestFusionArchiveAsync(
+                        apiId,
+                        stageName,
+                        WellKnownVersions.LatestGatewayFormatVersion.ToString(),
+                        ArchiveFormats.Far,
+                        ct);
 
-            await using (var child = activity.StartChildActivity(
-                             "Composing new Fusion configuration",
-                             "Failed to compose new Fusion configuration."))
-            {
-                var composeResult = await FusionPublishHelpers.ComposeAsync(
-                    archiveStream,
-                    existingArchiveStream,
-                    stageName,
-                    newSourceSchemas,
-                    compositionSettings: null,
-                    ct);
-
-                // if (!composeResult.Success)
-                // {
-                //     failedLog = composeResult.Log;
-                //     isValid = false;
-                //     return;
-                // }
-
-                child.Success("Composed new Fusion configuration.");
-            }
-
-            using var archive = FusionArchive.Open(archiveStream);
-            await using var schemaStream = await LoadSchemaFile(archive, ct);
-
-            await using (var child = activity.StartChildActivity(
-                             "Validating against stage",
-                             "Failed to validate against stage."))
-            {
-                await ValidateSchemaAsync(child, schemaStream);
-            }
-
-            if (isValid)
-            {
-                activity.Success("Fusion configuration is valid.");
-            }
-        }
-
-        async Task ValidateWithArchive(INitroConsoleActivity activity)
-        {
-            Stream? schemaStream = null;
-            IDisposable? disposableArchive = null;
-
-            try
-            {
-                await using (var child = activity.StartChildActivity(
-                                 "Validating against stage",
-                                 "Failed to validate against stage."))
-                {
-                    await using var stream = fileSystem.OpenReadStream(archiveFile);
-
-                    if (IsFarFormat(stream))
+                    if (existingArchiveStream is null)
                     {
-                        var archive = FusionArchive.Open(stream, leaveOpen: true);
-
-                        schemaStream = await LoadSchemaFile(archive, ct);
-
-                        disposableArchive = archive;
+                        downloadActivity.Warning($"There is no existing configuration on '{stageName}'.");
                     }
                     else
                     {
-                        var package = FusionGraphPackage.Open(stream, FileAccess.Read);
-
-                        schemaStream = await LoadSchemaFile(package, ct);
-
-                        disposableArchive = package;
+                        downloadActivity.Success($"Downloaded existing configuration from '{stageName}'.");
                     }
-
-                    await ValidateSchemaAsync(child, schemaStream);
                 }
 
-                if (isValid)
+                await using (var composeActivity = activity.StartChildActivity(
+                                 "Composing new Fusion configuration",
+                                 "Failed to compose new Fusion configuration."))
                 {
-                    activity.Success("Fusion configuration is valid.");
-                }
-            }
-            finally
-            {
-                if (schemaStream is not null)
-                {
-                    await schemaStream.DisposeAsync();
+                    var (result, compositionLog) = await FusionPublishHelpers.ComposeAsync(
+                        archiveStream,
+                        existingArchiveStream,
+                        stageName,
+                        newSourceSchemas,
+                        compositionSettings: null,
+                        ct);
+
+                    if (result.IsSuccess)
+                    {
+                        composeActivity.Success("Composed new configuration.");
+                    }
+                    else
+                    {
+                        await composeActivity.FailAllAsync();
+
+                        console.WriteLine();
+                        console.WriteLine("## Composition log");
+                        console.WriteLine();
+
+                        FusionComposeCommand.WriteCompositionLog(
+                            compositionLog,
+                            console.Out,
+                            false);
+
+                        foreach (var error in result.Errors)
+                        {
+                            console.Error.WriteErrorLine(error.Message);
+                        }
+
+                        throw new ExitException();
+                    }
                 }
 
-                disposableArchive?.Dispose();
+                return await ValidateAsync(activity, archiveStream);
             }
         }
 
-        async Task ValidateSchemaAsync(INitroConsoleActivity activity, Stream schemaStream)
+        async Task<int> ValidateAsync(INitroConsoleActivity activity, Stream archiveStream)
+        {
+            IDisposable disposableArchive;
+            Stream schemaStream;
+
+            if (IsFarFormat(archiveStream))
+            {
+                var archive = FusionArchive.Open(archiveStream, leaveOpen: true);
+
+                schemaStream = await LoadSchemaFile(archive, ct);
+
+                disposableArchive = archive;
+            }
+            else
+            {
+                var package = FusionGraphPackage.Open(archiveStream, FileAccess.Read);
+
+                schemaStream = await LoadSchemaFile(package, ct);
+
+                disposableArchive = package;
+            }
+
+            try
+            {
+                var isValid = await ValidateSchemaAsync(activity, schemaStream);
+
+                return isValid ? ExitCodes.Success : ExitCodes.Error;
+            }
+            finally
+            {
+                disposableArchive.Dispose();
+            }
+        }
+
+        INitroConsoleActivity StartActivity()
+        {
+            return console.StartActivity(
+                $"Validating Fusion configuration against stage '{stageName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'",
+                "Failed to validate the Fusion configuration.");
+        }
+
+        async Task<bool> ValidateSchemaAsync(INitroConsoleActivity activity, Stream schemaStream)
         {
             var requestId = await StartSchemaValidationAsync(
                 activity,
@@ -250,52 +258,53 @@ internal sealed class FusionValidateCommand : Command
                 switch (@event)
                 {
                     case ISchemaVersionValidationFailed { Errors: var schemaErrors}:
-                        await activity.FailAllAsync();
+                        var errorTree = new Tree("");
 
                         foreach (var error in schemaErrors)
                         {
                             switch (error)
                             {
                                 case ISchemaVersionChangeViolationError e:
-                                    console.PrintSchemaVersionChangeViolations(e);
+                                    // TODO
                                     break;
                                 case IInvalidGraphQLSchemaError e:
-                                    console.PrintGraphQLSchemaErrors(e);
+                                    errorTree.AddGraphQLSchemaErrors(e);
                                     break;
                                 case IPersistedQueryValidationError e:
-                                    console.PrintPersistedQueryValidationErrors(e);
+                                    errorTree.AddPersistedQueryValidationErrors(e);
                                     break;
                                 case IOpenApiCollectionValidationError e:
-                                    console.PrintOpenApiCollectionValidationErrors(e);
+                                    errorTree.AddOpenApiCollectionValidationErrors(e);
                                     break;
                                 case IMcpFeatureCollectionValidationError e:
-                                    console.PrintMcpFeatureCollectionValidationErrors(e);
+                                    errorTree.AddMcpFeatureCollectionValidationErrors(e);
                                     break;
                                 case IOperationsAreNotAllowedError e:
-                                    console.Error.WriteErrorLine(e.Message);
+                                    // console.Error.WriteErrorLine(e.Message);
                                     break;
                                 case ISchemaVersionSyntaxError e:
-                                    console.Error.WriteErrorLine(e.Message);
+                                    // console.Error.WriteErrorLine(e.Message);
                                     break;
                                 case IProcessingTimeoutError e:
-                                    console.Error.WriteErrorLine(e.Message);
+                                    // console.Error.WriteErrorLine(e.Message);
                                     break;
                                 case IUnexpectedProcessingError e:
-                                    console.Error.WriteErrorLine(e.Message);
+                                    // console.Error.WriteErrorLine(e.Message);
                                     break;
                             }
                         }
 
+                        activity.Fail(errorTree);
+                        await activity.FailAllAsync();
+
                         console.Error.WriteErrorLine("Fusion configuration validation failed.");
 
-                        isValid = false;
-                        return;
-
+                        return false;
+                    
                     case ISchemaVersionValidationSuccess:
-                        isValid = true;
                         activity.Success("Validation passed.");
 
-                        return;
+                        return true;
 
                     case IOperationInProgress:
                     case IValidationInProgress:
@@ -303,11 +312,12 @@ internal sealed class FusionValidateCommand : Command
                         break;
 
                     default:
-                        activity.Update("Unknown server response. Consider updating the CLI.",
-                            ActivityUpdateKind.Warning);
+                        activity.Update(ErrorMessages.UnknownServerResponse, ActivityUpdateKind.Warning);
                         break;
                 }
             }
+
+            return false;
         }
     }
 

@@ -17,4 +17,7 @@ internal static class ErrorMessages
 
     public static string UnexpectedMutationError(IError error)
         => $"Unexpected mutation error': {error.Message}";
+
+    public const string UnknownServerResponse =
+        "Unknown server response. Consider updating the CLI.";
 }
