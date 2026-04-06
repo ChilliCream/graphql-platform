@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Mocha.Mediator;
 
 /// <summary>
@@ -58,6 +60,7 @@ public static class MediatorMiddlewareFactoryContextExtensions
     public static bool IsResponseAssignableTo(this MediatorMiddlewareFactoryContext context, Type type)
         => context.ResponseType is not null && type.IsAssignableFrom(context.ResponseType);
 
+    [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "Metadata read on statically-referenced types is AOT-safe.")]
     private static bool HasGenericInterface(Type type, Type openGeneric)
     {
         foreach (var @interface in type.GetInterfaces())

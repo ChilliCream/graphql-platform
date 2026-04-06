@@ -4,7 +4,7 @@ using System.Text.Json.Serialization.Metadata;
 
 namespace Mocha;
 
-internal sealed class JsonMessageSerializer(JsonTypeInfo typeInfo) : IMessageSerializer
+public sealed class JsonMessageSerializer(JsonTypeInfo typeInfo) : IMessageSerializer
 {
     public MessageContentType ContentType => MessageContentType.Json;
 

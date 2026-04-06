@@ -20,5 +20,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="$(OutputPath)\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="buildTransitive\Mocha.Analyzers.props" Pack="true" PackagePath="buildTransitive" Visible="false" />
   </ItemGroup>
 </Project>

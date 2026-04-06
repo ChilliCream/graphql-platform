@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Mocha.Mediator;
@@ -53,7 +54,9 @@ public static class MediatorHostBuilderExtensions
     /// Registers a custom <see cref="MediatorDiagnosticEventListener"/> implementation
     /// into the mediator's internal services.
     /// </summary>
-    public static IMediatorHostBuilder AddDiagnosticEventListener<T>(this IMediatorHostBuilder builder)
+    public static IMediatorHostBuilder AddDiagnosticEventListener<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
+        this IMediatorHostBuilder builder)
         where T : class, IMediatorDiagnosticEventListener
     {
         ArgumentNullException.ThrowIfNull(builder);

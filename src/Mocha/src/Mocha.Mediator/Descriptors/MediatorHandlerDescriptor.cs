@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Mocha.Mediator;
 
 /// <summary>
@@ -35,12 +37,15 @@ public class MediatorHandlerDescriptor
     {
         if (Configuration.MessageType is null)
         {
+#pragma warning disable IL2026 // Reflection fallback only used for manual (non-generated) handler registration
             DetectHandler(Configuration.HandlerType!);
+#pragma warning restore IL2026
         }
 
         return Configuration;
     }
 
+    [RequiresUnreferencedCode("Handler detection uses reflection. Use source-generated AddHandlerConfiguration for AOT compatibility.")]
     private void DetectHandler(Type handlerType)
     {
         var found = false;

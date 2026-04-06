@@ -28,14 +28,21 @@ public sealed class MediatorGenerator : IIncrementalGenerator
         new MediatorModuleInspector()
     ];
 
+    private static readonly ISyntaxInspector[] s_callSiteInspectors =
+    [
+        new CallSiteMessageTypeInspector()
+    ];
+
     private static readonly ISyntaxGenerator[] s_generators =
     [
         new DependencyInjectionGenerator()
     ];
 
     private static readonly Dictionary<SyntaxKind, ImmutableArray<ISyntaxInspector>> s_inspectorLookup;
+    private static readonly Dictionary<SyntaxKind, ImmutableArray<ISyntaxInspector>> s_callSiteInspectorLookup;
 
     private static readonly Func<SyntaxNode, bool> s_predicate;
+    private static readonly Func<SyntaxNode, bool> s_callSitePredicate;
 
     static MediatorGenerator()
     {
@@ -65,6 +72,34 @@ public sealed class MediatorGenerator : IIncrementalGenerator
         {
             s_inspectorLookup[kvp.Key] = kvp.Value.ToImmutableArray();
         }
+
+        // Build call-site filter + inspector lookup.
+        var callSiteFilterBuilder = new SyntaxFilterBuilder();
+        var callSiteInspectorLookup = new Dictionary<SyntaxKind, List<ISyntaxInspector>>();
+
+        foreach (var inspector in s_callSiteInspectors)
+        {
+            callSiteFilterBuilder.AddRange(inspector.Filters);
+
+            foreach (var supportedKind in inspector.SupportedKinds)
+            {
+                if (!callSiteInspectorLookup.TryGetValue(supportedKind, out var inspectors))
+                {
+                    inspectors = [];
+                    callSiteInspectorLookup[supportedKind] = inspectors;
+                }
+
+                inspectors.Add(inspector);
+            }
+        }
+
+        s_callSitePredicate = callSiteFilterBuilder.Build();
+        s_callSiteInspectorLookup = new Dictionary<SyntaxKind, ImmutableArray<ISyntaxInspector>>();
+
+        foreach (var kvp in callSiteInspectorLookup)
+        {
+            s_callSiteInspectorLookup[kvp.Key] = kvp.Value.ToImmutableArray();
+        }
     }
 
     /// <inheritdoc />
@@ -80,11 +115,21 @@ public sealed class MediatorGenerator : IIncrementalGenerator
             .Collect()
             .WithTrackingName("MochaCollectedInfos");
 
+        var callSiteInfos = context
+            .SyntaxProvider.CreateSyntaxProvider(
+                predicate: static (s, _) => s_callSitePredicate(s),
+                transform: static (ctx, ct) => TransformCallSite(ctx.Node, ctx.SemanticModel, ct))
+            .WhereNotNull()
+            .WithComparer(EqualityComparer<SyntaxInfo>.Default)
+            .WithTrackingName("MochaMediatorCallSiteInfos")
+            .Collect()
+            .WithTrackingName("MochaMediatorCollectedCallSiteInfos");
+
         var assemblyName = context.CompilationProvider.Select(static (c, _) => c.AssemblyName ?? "Unknown");
 
         context.RegisterSourceOutput(
-            assemblyName.Combine(syntaxInfos),
-            static (context, source) => Execute(context, source.Left, source.Right));
+            assemblyName.Combine(syntaxInfos).Combine(callSiteInfos),
+            static (context, source) => Execute(context, source.Left.Left, source.Left.Right, source.Right));
     }
 
     private static SyntaxInfo? Transform(
@@ -110,10 +155,34 @@ public sealed class MediatorGenerator : IIncrementalGenerator
         return null;
     }
 
+    private static SyntaxInfo? TransformCallSite(
+        SyntaxNode node,
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken)
+    {
+        if (!s_callSiteInspectorLookup.TryGetValue(node.Kind(), out var inspectors))
+        {
+            return null;
+        }
+
+        var knownTypeSymbols = KnownTypeSymbols.GetOrCreate(semanticModel.Compilation);
+
+        foreach (var inspector in inspectors)
+        {
+            if (inspector.TryHandle(knownTypeSymbols, node, semanticModel, cancellationToken, out var syntaxInfo))
+            {
+                return syntaxInfo;
+            }
+        }
+
+        return null;
+    }
+
     private static void Execute(
         SourceProductionContext context,
         string assemblyName,
-        ImmutableArray<SyntaxInfo> syntaxInfos)
+        ImmutableArray<SyntaxInfo> syntaxInfos,
+        ImmutableArray<SyntaxInfo> callSiteInfos)
     {
         var sourceFiles = PooledObjects.GetStringDictionary();
         var moduleInfo = GetModuleInfo(syntaxInfos, ModuleNameHelper.CreateModuleName(assemblyName));
@@ -135,6 +204,9 @@ public sealed class MediatorGenerator : IIncrementalGenerator
 
             // Validate message types vs handlers (MO0001, MO0002)
             ValidateMessageHandlerPairing(context, syntaxInfos);
+
+            // Validate call-site types vs handlers (MO0020)
+            ValidateCallSiteNoHandler(context, syntaxInfos, callSiteInfos);
 
             foreach (var generator in s_generators)
             {
@@ -239,13 +311,55 @@ public sealed class MediatorGenerator : IIncrementalGenerator
         }
     }
 
+    private static void ValidateCallSiteNoHandler(
+        SourceProductionContext context,
+        ImmutableArray<SyntaxInfo> syntaxInfos,
+        ImmutableArray<SyntaxInfo> callSiteInfos)
+    {
+        if (callSiteInfos.Length == 0)
+        {
+            return;
+        }
+
+        // Build a set of handler message type names from discovered handlers.
+        var handlerMessageTypes = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var info in syntaxInfos)
+        {
+            if (info is HandlerInfo { Diagnostics.Count: 0 } handler)
+            {
+                handlerMessageTypes.Add(handler.MessageTypeName);
+            }
+        }
+
+        // Check each call-site for MediatorSend or MediatorQuery — not MediatorPublish.
+        foreach (var info in callSiteInfos)
+        {
+            if (info is CallSiteMessageTypeInfo
+                {
+                    Kind: CallSiteKind.MediatorSend or CallSiteKind.MediatorQuery
+                } callSite
+                && !handlerMessageTypes.Contains(callSite.MessageTypeName))
+            {
+                var location = ReconstructLocation(callSite.Location);
+                context.ReportDiagnostic(
+                    Diagnostic.Create(
+                        Errors.CallSiteNoHandler,
+                        location,
+                        callSite.MessageTypeName,
+                        callSite.Kind.ToString()));
+            }
+        }
+    }
+
     private static readonly Dictionary<string, DiagnosticDescriptor> s_descriptorLookup = new()
     {
         [Errors.MissingHandler.Id] = Errors.MissingHandler,
         [Errors.DuplicateHandler.Id] = Errors.DuplicateHandler,
         [Errors.AbstractHandler.Id] = Errors.AbstractHandler,
         [Errors.OpenGenericMessageType.Id] = Errors.OpenGenericMessageType,
-        [Errors.MultipleHandlerInterfaces.Id] = Errors.MultipleHandlerInterfaces
+        [Errors.MultipleHandlerInterfaces.Id] = Errors.MultipleHandlerInterfaces,
+        [Errors.CallSiteNoHandler.Id] = Errors.CallSiteNoHandler
     };
 
     private static Diagnostic ReconstructDiagnostic(DiagnosticInfo info)

@@ -32,8 +32,28 @@ public sealed class DependencyInjectionFileBuilder : FileBuilderBase
         Writer.IncreaseIndent();
     }
 
-    public void WriteBeginRegistrationMethod()
+    /// <summary>
+    /// Writes the opening of the registration extension method, including the
+    /// <c>[MediatorModuleInfo]</c> attribute with the message types array.
+    /// </summary>
+    /// <param name="messageTypeNames">
+    /// The fully qualified message type names to include in the attribute, or <see langword="null"/> to omit the attribute.
+    /// </param>
+    public void WriteBeginRegistrationMethod(IReadOnlyList<string>? messageTypeNames = null)
     {
+        if (messageTypeNames is { Count: > 0 })
+        {
+            Writer.WriteIndentedLine("[global::Mocha.Mediator.MediatorModuleInfo(MessageTypes = new global::System.Type[]");
+            Writer.WriteIndentedLine("{");
+            Writer.IncreaseIndent();
+            foreach (var typeName in messageTypeNames)
+            {
+                Writer.WriteIndentedLine("typeof({0}),", typeName);
+            }
+            Writer.DecreaseIndent();
+            Writer.WriteIndentedLine("})]");
+        }
+
         Writer.WriteIndentedLine("public static global::Mocha.Mediator.IMediatorHostBuilder {0}(", _methodName);
         Writer.IncreaseIndent();
         Writer.WriteIndentedLine("this global::Mocha.Mediator.IMediatorHostBuilder builder)");

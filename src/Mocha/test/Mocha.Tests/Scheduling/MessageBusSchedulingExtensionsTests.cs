@@ -47,10 +47,10 @@ public class MessageBusSchedulingTests
         public List<(object Message, DateTimeOffset ScheduledTime)> ScheduledSendMessages { get; } = [];
         public List<(object Message, DateTimeOffset ScheduledTime)> ScheduledPublishMessages { get; } = [];
 
-        public ValueTask SendAsync(object message, CancellationToken cancellationToken) =>
+        public ValueTask SendAsync<T>(T message, CancellationToken cancellationToken) =>
             ValueTask.CompletedTask;
 
-        public ValueTask SendAsync(object message, SendOptions options, CancellationToken cancellationToken) =>
+        public ValueTask SendAsync<T>(T message, SendOptions options, CancellationToken cancellationToken) =>
             ValueTask.CompletedTask;
 
         public ValueTask PublishAsync<T>(T message, CancellationToken cancellationToken) =>
@@ -101,22 +101,22 @@ public class MessageBusSchedulingTests
             return ValueTask.FromResult(new SchedulingResult { ScheduledTime = scheduledTime });
         }
 
-        public ValueTask<SchedulingResult> ScheduleSendAsync(
-            object message,
+        public ValueTask<SchedulingResult> ScheduleSendAsync<T>(
+            T message,
             DateTimeOffset scheduledTime,
             CancellationToken cancellationToken)
         {
-            ScheduledSendMessages.Add((message, scheduledTime));
+            ScheduledSendMessages.Add((message!, scheduledTime));
             return ValueTask.FromResult(new SchedulingResult { ScheduledTime = scheduledTime });
         }
 
-        public ValueTask<SchedulingResult> ScheduleSendAsync(
-            object message,
+        public ValueTask<SchedulingResult> ScheduleSendAsync<T>(
+            T message,
             DateTimeOffset scheduledTime,
             SendOptions options,
             CancellationToken cancellationToken)
         {
-            ScheduledSendMessages.Add((message, scheduledTime));
+            ScheduledSendMessages.Add((message!, scheduledTime));
             return ValueTask.FromResult(new SchedulingResult { ScheduledTime = scheduledTime });
         }
 

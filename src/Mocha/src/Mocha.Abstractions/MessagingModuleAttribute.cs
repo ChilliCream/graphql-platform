@@ -23,4 +23,10 @@ public sealed class MessagingModuleAttribute : Attribute
     /// Gets the module name.
     /// </summary>
     public string Name { get; }
+
+    /// <summary>
+    /// Gets or sets the <see cref="System.Text.Json.Serialization.JsonSerializerContext"/>
+    /// type to use for AOT-compatible JSON serialization of messages and saga state.
+    /// </summary>
+    public Type? JsonContext { get; set; }
 }

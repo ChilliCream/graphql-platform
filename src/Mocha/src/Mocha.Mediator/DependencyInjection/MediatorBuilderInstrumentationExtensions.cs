@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -24,7 +25,9 @@ public static class MediatorBuilderInstrumentationExtensions
     /// <summary>
     /// Registers a custom <see cref="IMediatorDiagnosticEventListener"/> implementation.
     /// </summary>
-    public static IMediatorBuilder AddDiagnosticEventListener<T>(this IMediatorBuilder builder)
+    public static IMediatorBuilder AddDiagnosticEventListener<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
+        this IMediatorBuilder builder)
         where T : class, IMediatorDiagnosticEventListener
     {
         ArgumentNullException.ThrowIfNull(builder);

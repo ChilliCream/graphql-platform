@@ -79,9 +79,10 @@ public sealed class DefaultMessageBus(
     /// <summary>
     /// Sends a message to a single consumer endpoint using default send options.
     /// </summary>
+    /// <typeparam name="T">The type of the message to send.</typeparam>
     /// <param name="message">The message instance to send. Must not be <see langword="null"/>.</param>
     /// <param name="cancellationToken">A token to cancel the send operation.</param>
-    public ValueTask SendAsync(object message, CancellationToken cancellationToken)
+    public ValueTask SendAsync<T>(T message, CancellationToken cancellationToken)
     {
         return SendAsync(message, SendOptions.Default, cancellationToken);
     }
@@ -94,12 +95,13 @@ public sealed class DefaultMessageBus(
     /// address; otherwise the runtime's router resolves the endpoint by message type. Reply and fault
     /// addresses from the options are propagated to the dispatch context.
     /// </remarks>
+    /// <typeparam name="T">The type of the message to send.</typeparam>
     /// <param name="message">The message instance to send. Must not be <see langword="null"/>.</param>
     /// <param name="options">Options controlling the target endpoint, headers, reply/fault addresses, and expiration.</param>
     /// <param name="cancellationToken">A token to cancel the send operation.</param>
-    public async ValueTask SendAsync(object message, SendOptions options, CancellationToken cancellationToken)
+    public async ValueTask SendAsync<T>(T message, SendOptions options, CancellationToken cancellationToken)
     {
-        var messageType = runtime.GetMessageType(message.GetType());
+        var messageType = runtime.GetMessageType(message!.GetType());
         var endpoint = options.Endpoint is { } address
             ? runtime.GetDispatchEndpoint(address)
             : runtime.GetSendEndpoint(messageType);
@@ -350,8 +352,8 @@ public sealed class DefaultMessageBus(
     /// <summary>
     /// Sends a message scheduled for delivery at the specified time using default options.
     /// </summary>
-    public async ValueTask<SchedulingResult> ScheduleSendAsync(
-        object message,
+    public async ValueTask<SchedulingResult> ScheduleSendAsync<T>(
+        T message,
         DateTimeOffset scheduledTime,
         CancellationToken cancellationToken)
     {
@@ -361,13 +363,13 @@ public sealed class DefaultMessageBus(
     /// <summary>
     /// Sends a message scheduled for delivery at the specified time with additional options.
     /// </summary>
-    public async ValueTask<SchedulingResult> ScheduleSendAsync(
-        object message,
+    public async ValueTask<SchedulingResult> ScheduleSendAsync<T>(
+        T message,
         DateTimeOffset scheduledTime,
         SendOptions options,
         CancellationToken cancellationToken)
     {
-        var messageType = runtime.GetMessageType(message.GetType());
+        var messageType = runtime.GetMessageType(message!.GetType());
         var endpoint = options.Endpoint is { } address
             ? runtime.GetDispatchEndpoint(address)
             : runtime.GetSendEndpoint(messageType);

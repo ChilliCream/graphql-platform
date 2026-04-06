@@ -11,3 +11,7 @@ MO0011 | Messaging | Error | Request type has multiple handlers
 MO0012 | Messaging | Info | Open generic messaging handler cannot be auto-registered
 MO0013 | Messaging | Warning | Messaging handler is abstract
 MO0014 | Messaging | Error | Saga must have a public parameterless constructor
+MO0015 | Messaging | Error | Missing JsonSerializerContext for AOT
+MO0016 | Messaging | Error | Missing JsonSerializable attribute
+MO0018 | Messaging | Warning | Type not in JsonSerializerContext
+MO0020 | Mediator | Warning | Command/query sent but no handler found

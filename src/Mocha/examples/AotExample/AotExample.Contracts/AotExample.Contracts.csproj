@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>AotExample.Contracts</RootNamespace>
+    <!-- Message types live here without handlers; handlers are in service projects -->
+    <NoWarn>$(NoWarn);MO0001</NoWarn>
+  </PropertyGroup>
+  <Import Project="..\..\..\src\Mocha.Analyzers\buildTransitive\Mocha.Analyzers.props" />
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Mocha\Mocha.csproj" />
+    <ProjectReference Include="..\..\..\src\Mocha.Mediator.Abstractions\Mocha.Mediator.Abstractions.csproj" />
+    <ProjectReference
+      Include="..\..\..\src\Mocha.Analyzers\Mocha.Analyzers.csproj"
+      OutputItemType="Analyzer"
+      ReferenceOutputAssembly="false"
+    />
+  </ItemGroup>
+</Project>

@@ -41,16 +41,131 @@ public sealed class MessagingDependencyInjectionFileBuilder : FileBuilderBase
     }
 
     /// <summary>
-    /// Writes the opening of the registration extension method.
+    /// Writes the opening of the registration extension method, including the
+    /// <c>[MessagingModuleInfo]</c> attribute with the message types array.
     /// </summary>
-    public void WriteBeginRegistrationMethod()
+    /// <param name="messageTypeNames">
+    /// The fully qualified message type names to include in the attribute, or <see langword="null"/> to omit the attribute.
+    /// </param>
+    public void WriteBeginRegistrationMethod(IReadOnlyList<string>? messageTypeNames = null)
     {
+        if (messageTypeNames is { Count: > 0 })
+        {
+            Writer.WriteIndentedLine("[global::Mocha.MessagingModuleInfo(MessageTypes = new global::System.Type[]");
+            Writer.WriteIndentedLine("{");
+            Writer.IncreaseIndent();
+            foreach (var typeName in messageTypeNames)
+            {
+                Writer.WriteIndentedLine("typeof({0}),", typeName);
+            }
+            Writer.DecreaseIndent();
+            Writer.WriteIndentedLine("})]");
+        }
+
         Writer.WriteIndentedLine("public static global::Mocha.IMessageBusHostBuilder {0}(", _methodName);
         Writer.IncreaseIndent();
         Writer.WriteIndentedLine("this global::Mocha.IMessageBusHostBuilder builder)");
         Writer.DecreaseIndent();
         Writer.WriteIndentedLine("{");
         Writer.IncreaseIndent();
+    }
+
+    /// <summary>
+    /// Writes the strict mode configuration that requires explicit message type registration.
+    /// </summary>
+    public void WriteStrictModeConfiguration()
+    {
+        Writer.WriteIndentedLine("global::Mocha.MessageBusHostBuilderExtensions.ModifyOptions(");
+        Writer.IncreaseIndent();
+        Writer.WriteIndentedLine("builder,");
+        Writer.WriteIndentedLine("static o => o.RequireExplicitMessageTypes = true);");
+        Writer.DecreaseIndent();
+    }
+
+    /// <summary>
+    /// Writes the registration of a <c>JsonSerializerContext</c> as a type info resolver.
+    /// </summary>
+    /// <param name="jsonContextTypeName">The fully qualified type name of the JsonSerializerContext.</param>
+    public void WriteJsonTypeInfoResolverRegistration(string jsonContextTypeName)
+    {
+        Writer.WriteIndentedLine(
+            "global::Mocha.MessageBusHostBuilderExtensions.AddJsonTypeInfoResolver(");
+        Writer.IncreaseIndent();
+        Writer.WriteIndentedLine("builder,");
+        Writer.WriteIndentedLine("{0}.Default);", jsonContextTypeName);
+        Writer.DecreaseIndent();
+    }
+
+    /// <summary>
+    /// Writes a message configuration registration with a pre-built JSON serializer.
+    /// </summary>
+    /// <param name="messageTypeName">The fully qualified message type name.</param>
+    /// <param name="jsonContextTypeName">The fully qualified type name of the JsonSerializerContext.</param>
+    /// <param name="enclosedTypes">
+    /// The pre-computed enclosed types sorted by specificity, or <see langword="null"/> to omit.
+    /// </param>
+    public void WriteMessageConfiguration(
+        string messageTypeName,
+        string jsonContextTypeName,
+        List<string>? enclosedTypes = null)
+    {
+        Writer.WriteIndentedLine(
+            "global::Mocha.MessageBusHostBuilderExtensions.AddMessageConfiguration(");
+        Writer.IncreaseIndent();
+        Writer.WriteIndentedLine("builder,");
+        Writer.WriteIndentedLine("new global::Mocha.MessagingMessageConfiguration");
+        Writer.WriteIndentedLine("{");
+        Writer.IncreaseIndent();
+        Writer.WriteIndentedLine("MessageType = typeof({0}),", messageTypeName);
+        Writer.WriteIndentedLine("Serializer = new global::Mocha.JsonMessageSerializer(");
+        Writer.IncreaseIndent();
+        Writer.WriteIndentedLine("{0}.Default.GetTypeInfo(typeof({1}))!),", jsonContextTypeName, messageTypeName);
+        Writer.DecreaseIndent();
+
+        if (enclosedTypes is { Count: > 0 })
+        {
+            Writer.WriteIndentedLine("EnclosedTypes = new global::System.Type[]");
+            Writer.WriteIndentedLine("{");
+            Writer.IncreaseIndent();
+            foreach (var typeName in enclosedTypes)
+            {
+                Writer.WriteIndentedLine("typeof({0}),", typeName);
+            }
+            Writer.DecreaseIndent();
+            Writer.WriteIndentedLine("},");
+        }
+
+        Writer.DecreaseIndent();
+        Writer.WriteIndentedLine("});");
+        Writer.DecreaseIndent();
+    }
+
+    /// <summary>
+    /// Writes a saga configuration registration with a pre-built JSON state serializer.
+    /// </summary>
+    /// <param name="sagaTypeName">The fully qualified saga type name.</param>
+    /// <param name="stateTypeName">The fully qualified saga state type name.</param>
+    /// <param name="jsonContextTypeName">The fully qualified type name of the JsonSerializerContext.</param>
+    public void WriteSagaConfiguration(string sagaTypeName, string stateTypeName, string jsonContextTypeName)
+    {
+        Writer.WriteIndentedLine(
+            "global::Mocha.MessageBusHostBuilderExtensions.AddSagaConfiguration<");
+        Writer.IncreaseIndent();
+        Writer.WriteIndentedLine("{0}>(", sagaTypeName);
+        Writer.DecreaseIndent();
+        Writer.IncreaseIndent();
+        Writer.WriteIndentedLine("builder,");
+        Writer.WriteIndentedLine("new global::Mocha.MessagingSagaConfiguration");
+        Writer.WriteIndentedLine("{");
+        Writer.IncreaseIndent();
+        Writer.WriteIndentedLine("SagaType = typeof({0}),", sagaTypeName);
+        Writer.WriteIndentedLine("StateSerializer = new global::Mocha.JsonSagaStateSerializer(");
+        Writer.IncreaseIndent();
+        Writer.WriteIndentedLine("{0}.Default.GetTypeInfo(typeof({1}))!),", jsonContextTypeName, stateTypeName);
+        Writer.DecreaseIndent();
+        Writer.DecreaseIndent();
+        Writer.WriteIndentedLine("});");
+        Writer.DecreaseIndent();
     }
 
     /// <summary>

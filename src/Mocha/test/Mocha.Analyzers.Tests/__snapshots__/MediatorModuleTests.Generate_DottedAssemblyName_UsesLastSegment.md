@@ -11,6 +11,10 @@ namespace Microsoft.Extensions.DependencyInjection
     [global::System.CodeDom.Compiler.GeneratedCode("Mocha.Analyzers", "1.0.0")]
     public static class OrderingMediatorBuilderExtensions
     {
+        [global::Mocha.Mediator.MediatorModuleInfo(MessageTypes = new global::System.Type[]
+        {
+            typeof(global::TestApp.PingCommand),
+        })]
         public static global::Mocha.Mediator.IMediatorHostBuilder AddOrdering(
             this global::Mocha.Mediator.IMediatorHostBuilder builder)
         {

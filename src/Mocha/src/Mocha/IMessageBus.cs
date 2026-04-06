@@ -27,19 +27,21 @@ public interface IMessageBus
     /// <summary>
     /// Sends a message to a single receiver determined by the message type's routing configuration.
     /// </summary>
+    /// <typeparam name="T">The type of the message to send.</typeparam>
     /// <param name="message">The message instance to send.</param>
     /// <param name="cancellationToken">A token to cancel the send operation.</param>
     /// <returns>A task that completes when the message has been handed off to the transport.</returns>
-    ValueTask SendAsync(object message, CancellationToken cancellationToken);
+    ValueTask SendAsync<T>(T message, CancellationToken cancellationToken);
 
     /// <summary>
     /// Sends a message to a single receiver with additional send options.
     /// </summary>
+    /// <typeparam name="T">The type of the message to send.</typeparam>
     /// <param name="message">The message instance to send.</param>
     /// <param name="options">Options controlling send behavior such as headers and expiration.</param>
     /// <param name="cancellationToken">A token to cancel the send operation.</param>
     /// <returns>A task that completes when the message has been handed off to the transport.</returns>
-    ValueTask SendAsync(object message, SendOptions options, CancellationToken cancellationToken);
+    ValueTask SendAsync<T>(T message, SendOptions options, CancellationToken cancellationToken);
 
     /// <summary>
     /// Sends a request message and waits for a typed response from the handler.
@@ -126,25 +128,27 @@ public interface IMessageBus
     /// <summary>
     /// Sends a message scheduled for delivery at the specified time.
     /// </summary>
+    /// <typeparam name="T">The type of the message to send.</typeparam>
     /// <param name="message">The message instance to send.</param>
     /// <param name="scheduledTime">The absolute time at which the message should be delivered.</param>
     /// <param name="cancellationToken">A token to cancel the send operation.</param>
     /// <returns>A scheduling result containing the cancellation token and metadata.</returns>
-    ValueTask<SchedulingResult> ScheduleSendAsync(
-        object message,
+    ValueTask<SchedulingResult> ScheduleSendAsync<T>(
+        T message,
         DateTimeOffset scheduledTime,
         CancellationToken cancellationToken);
 
     /// <summary>
     /// Sends a message scheduled for delivery at the specified time with additional options.
     /// </summary>
+    /// <typeparam name="T">The type of the message to send.</typeparam>
     /// <param name="message">The message instance to send.</param>
     /// <param name="scheduledTime">The absolute time at which the message should be delivered.</param>
     /// <param name="options">Options controlling send behavior such as headers and expiration.</param>
     /// <param name="cancellationToken">A token to cancel the send operation.</param>
     /// <returns>A scheduling result containing the cancellation token and metadata.</returns>
-    ValueTask<SchedulingResult> ScheduleSendAsync(
-        object message,
+    ValueTask<SchedulingResult> ScheduleSendAsync<T>(
+        T message,
         DateTimeOffset scheduledTime,
         SendOptions options,
         CancellationToken cancellationToken);

@@ -6,7 +6,10 @@ namespace Mocha;
 /// Thread-safe implementation of <see cref="IMessageTypeRegistry"/> that stores and resolves message type metadata by CLR type and identity string.
 /// </summary>
 /// <param name="serializerRegistry">The serializer registry used to resolve serializers for message types.</param>
-public sealed class MessageTypeRegistry(IMessageSerializerRegistry serializerRegistry) : IMessageTypeRegistry
+/// <param name="options">The messaging options controlling strict registration mode.</param>
+public sealed class MessageTypeRegistry(
+    IMessageSerializerRegistry serializerRegistry,
+    IReadOnlyMessagingOptions options) : IMessageTypeRegistry
 {
     public IMessageSerializerRegistry Serializers => serializerRegistry;
 
@@ -54,6 +57,14 @@ public sealed class MessageTypeRegistry(IMessageSerializerRegistry serializerReg
         if (messageType is not null)
         {
             return messageType;
+        }
+
+        if (options.RequireExplicitMessageTypes)
+        {
+            throw new InvalidOperationException(
+                $"Message type '{type.Name}' was not registered at startup. "
+                + "Register it via the source generator or AddMessageConfiguration(). "
+                + "Set RequireExplicitMessageTypes = false to allow runtime type registration.");
         }
 
         lock (_lock)

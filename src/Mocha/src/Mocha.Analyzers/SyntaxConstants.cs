@@ -95,4 +95,41 @@ public static class SyntaxConstants
     /// Gets the metadata name for the <c>MessagingModuleAttribute</c> class.
     /// </summary>
     public const string MessagingModuleAttribute = "Mocha.MessagingModuleAttribute";
+
+    /// <summary>
+    /// Gets the named property name for the <c>JsonContext</c> property
+    /// on <c>MessagingModuleAttribute</c>.
+    /// </summary>
+    public const string JsonContextProperty = "JsonContext";
+
+    /// <summary>
+    /// Gets the metadata name for the <c>MessagingModuleInfoAttribute</c> class.
+    /// </summary>
+    public const string MessagingModuleInfoAttribute = "Mocha.MessagingModuleInfoAttribute";
+
+    /// <summary>
+    /// Gets the metadata name for the <c>MediatorModuleInfoAttribute</c> class.
+    /// </summary>
+    public const string MediatorModuleInfoAttribute = "Mocha.Mediator.MediatorModuleInfoAttribute";
+
+    /// <summary>
+    /// Gets the named property name for the <c>MessageTypes</c> property
+    /// on <c>MessagingModuleInfoAttribute</c> and <c>MediatorModuleInfoAttribute</c>.
+    /// </summary>
+    public const string MessageTypesProperty = "MessageTypes";
+
+    /// <summary>
+    /// Gets the metadata name for the <c>IMessageBus</c> interface.
+    /// </summary>
+    public const string IMessageBus = "Mocha.IMessageBus";
+
+    /// <summary>
+    /// Gets the metadata name for the <c>ISender</c> interface (Mediator).
+    /// </summary>
+    public const string ISender = "Mocha.Mediator.ISender";
+
+    /// <summary>
+    /// Gets the metadata name for the <c>IPublisher</c> interface (Mediator).
+    /// </summary>
+    public const string IPublisher = "Mocha.Mediator.IPublisher";
 }
