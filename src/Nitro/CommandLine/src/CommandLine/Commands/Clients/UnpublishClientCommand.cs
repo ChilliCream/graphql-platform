@@ -45,51 +45,49 @@ internal sealed class UnpublishClientCommand : Command
         var stage = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
         var clientId = parseResult.GetRequiredValue(Opt<ClientIdOption>.Instance);
 
-        await using (var activity = console.StartActivity(
+        await using var activity = console.StartActivity(
             $"Unpublishing client '{clientId.EscapeMarkup()}' from stage '{stage.EscapeMarkup()}'",
-            "Failed to unpublish the client."))
+            "Failed to unpublish the client.");
+
+        foreach (var tag in tags)
         {
-            foreach (var tag in tags)
+            await using var unpublishActivity = activity.StartChildActivity(
+                $"Unpublishing tag '{tag.EscapeMarkup()}'",
+                "Failed to unpublish tag.");
+
+            var result = await client.UnpublishClientVersionAsync(
+                clientId,
+                stage,
+                tag,
+                cancellationToken);
+
+            if (result.Errors?.Count > 0)
             {
-                activity.Update($"Unpublishing {tag.EscapeMarkup()}...");
+                await unpublishActivity.FailAllAsync();
 
-                var result = await client.UnpublishClientVersionAsync(
-                    clientId,
-                    stage,
-                    tag,
-                    cancellationToken);
-
-                if (result.Errors?.Count > 0)
+                foreach (var error in result.Errors)
                 {
-                    activity.Fail();
-
-                    foreach (var error in result.Errors)
+                    var errorMessage = error switch
                     {
-                        var errorMessage = error switch
-                        {
-                            IConcurrentOperationError err => err.Message,
-                            IStageNotFoundError err => err.Message,
-                            IClientVersionNotFoundError err => err.Message,
-                            IUnauthorizedOperation err => err.Message,
-                            IClientNotFoundError err => err.Message,
-                            IError err => ErrorMessages.UnexpectedMutationError(err),
-                            _ => ErrorMessages.UnexpectedMutationError()
-                        };
+                        IConcurrentOperationError err => err.Message,
+                        IStageNotFoundError err => err.Message,
+                        IClientVersionNotFoundError err => err.Message,
+                        IUnauthorizedOperation err => err.Message,
+                        IClientNotFoundError err => err.Message,
+                        IError err => ErrorMessages.UnexpectedMutationError(err),
+                        _ => ErrorMessages.UnexpectedMutationError()
+                    };
 
-                        console.Error.WriteErrorLine(errorMessage);
-                    }
-
-                    return ExitCodes.Error;
+                    console.Error.WriteErrorLine(errorMessage);
                 }
 
-                var clientName = result.ClientVersion?.Client?.Name ?? NotFound;
-
-                console.Success(
-                    $"Unpublished [bold]{clientName.EscapeMarkup()}:{tag.EscapeMarkup()}[/] from {stage.EscapeMarkup()} ");
+                throw new ExitException();
             }
 
-            activity.Success($"Unpublished client '{clientId.EscapeMarkup()}' from stage '{stage.EscapeMarkup()}'.");
+            unpublishActivity.Success($"Unpublished tag '{tag.EscapeMarkup()}'.");
         }
+
+        activity.Success($"Unpublished client '{clientId.EscapeMarkup()}' from stage '{stage.EscapeMarkup()}'.");
 
         return ExitCodes.Success;
     }

@@ -85,8 +85,7 @@ internal sealed class DeleteClientCommand : Command
 
             if (!confirmed)
             {
-                console.OkLine("Aborted.");
-                return ExitCodes.Success;
+                throw Exit("The client was not deleted.");
             }
         }
 

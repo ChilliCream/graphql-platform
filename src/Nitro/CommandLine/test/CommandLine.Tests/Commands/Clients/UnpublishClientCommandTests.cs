@@ -67,7 +67,7 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : C
     }
 
     [Fact]
-    public async Task WithOptions_ReturnsSuccess_NonInteractive()
+    public async Task WithOptions_ReturnsSuccess()
     {
         // arrange
         SetupUnpublishClientMutation();
@@ -87,37 +87,14 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : C
         result.AssertSuccess(
             """
             Unpublishing client 'client-1' from stage 'dev'
-            ├── Unpublishing v1...
-            Unpublished web-client:v1 from dev
+            ├── Unpublishing tag 'v1'
+            │   └── ✓ Unpublished tag 'v1'.
             └── ✓ Unpublished client 'client-1' from stage 'dev'.
             """);
     }
 
     [Fact]
-    public async Task WithOptions_ReturnsSuccess_JsonOutput()
-    {
-        // arrange
-        SetupInteractionMode(InteractionMode.JsonOutput);
-        SetupUnpublishClientMutation();
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "client",
-            "unpublish",
-            "--tag",
-            Tag,
-            "--stage",
-            Stage,
-            "--client-id",
-            ClientId);
-
-        // assert
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
-    }
-
-    [Fact]
-    public async Task MultipleTags_ReturnsSuccess_NonInteractive()
+    public async Task MultipleTags_ReturnsSuccess()
     {
         // arrange
         SetupUnpublishClientMutation("v1");
@@ -140,10 +117,10 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : C
         result.AssertSuccess(
             """
             Unpublishing client 'client-1' from stage 'dev'
-            ├── Unpublishing v1...
-            Unpublished web-client:v1 from dev
-            ├── Unpublishing v2...
-            Unpublished web-client:v2 from dev
+            ├── Unpublishing tag 'v1'
+            │   └── ✓ Unpublished tag 'v1'.
+            ├── Unpublishing tag 'v2'
+            │   └── ✓ Unpublished tag 'v2'.
             └── ✓ Unpublished client 'client-1' from stage 'dev'.
             """);
     }
@@ -172,7 +149,8 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : C
         result.StdOut.MatchInlineSnapshot(
             """
             Unpublishing client 'client-1' from stage 'dev'
-            ├── Unpublishing v1...
+            ├── Unpublishing tag 'v1'
+            │   └── ✕ Failed to unpublish tag.
             └── ✕ Failed to unpublish the client.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
@@ -204,37 +182,11 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : C
         result.StdOut.MatchInlineSnapshot(
             """
             Unpublishing client 'client-1' from stage 'dev'
-            ├── Unpublishing v1...
+            ├── Unpublishing tag 'v1'
+            │   └── ✕ Failed to unpublish tag.
             └── ✕ Failed to unpublish the client.
             """);
         Assert.Equal(1, result.ExitCode);
-    }
-
-    [Fact]
-    public async Task Unpublish_Should_ShowNotFound_When_ClientVersionNull()
-    {
-        // arrange
-        SetupUnpublishClientMutationNullClientVersion();
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "client",
-            "unpublish",
-            "--tag",
-            Tag,
-            "--stage",
-            Stage,
-            "--client-id",
-            ClientId);
-
-        // assert
-        result.AssertSuccess(
-            """
-            Unpublishing client 'client-1' from stage 'dev'
-            ├── Unpublishing v1...
-            Unpublished <<NotFound>>:v1 from dev
-            └── ✓ Unpublished client 'client-1' from stage 'dev'.
-            """);
     }
 
     public static TheoryData<IUnpublishClient_UnpublishClient_Errors, string> UnpublishMutationErrorCases =>

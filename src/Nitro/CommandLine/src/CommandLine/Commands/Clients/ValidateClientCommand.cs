@@ -126,8 +126,7 @@ internal sealed class ValidateClientCommand : Command
                                 switch (error)
                                 {
                                     case IPersistedQueryValidationError e:
-                                        var node = errorTree.AddNode("The following operations had errors");
-                                        node.AddPersistedQueryValidationErrors(e);
+                                        errorTree.AddPersistedQueryValidationErrors(e);
                                         break;
                                     case IProcessingTimeoutError e:
                                         errorTree.AddErrorMessage(e.Message);

@@ -26,7 +26,7 @@ internal sealed class CurrentWorkspaceCommand : Command
 
         if (sessionService.Session?.Workspace?.Name is { } name)
         {
-            console.OkLine($"Currently is {name.AsHighlight()} selected");
+            console.WriteLine($"The current workspace is: {name.AsHighlight()}");
             return Task.FromResult(ExitCodes.Success);
         }
 

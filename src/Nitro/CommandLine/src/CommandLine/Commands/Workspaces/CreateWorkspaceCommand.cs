@@ -1,6 +1,5 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Workspaces;
-using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
@@ -42,17 +41,12 @@ internal sealed class CreateWorkspaceCommand : Command
         var name = await console
             .PromptAsync("Name", defaultValue: null, parseResult, Opt<WorkspaceNameOption>.Instance, ct);
 
-        var asDefault = false;
-        var session = sessionService.Session;
-
-        if (console.IsInteractive && session is not null)
-        {
-            asDefault = await parseResult.OptionOrConfirmAsync(
-                "Set as default workspace",
+        var asDefault = await console
+            .ConfirmAsync(
+                parseResult,
                 Opt<SetAsDefaultWorkspaceOption>.Instance,
-                console,
+                "Set as default workspace?",
                 ct);
-        }
 
         await using (var activity = console.StartActivity(
             $"Creating workspace '{name.EscapeMarkup()}'",
@@ -95,7 +89,7 @@ internal sealed class CreateWorkspaceCommand : Command
 
                 await sessionService.SelectWorkspaceAsync(workspace, ct);
 
-                console.OkLine($"{workspaceDetail.Name.AsHighlight()} set as default workspace");
+                console.WriteLine($"{workspaceDetail.Name.EscapeMarkup()} set as default workspace");
             }
 
             return ExitCodes.Success;

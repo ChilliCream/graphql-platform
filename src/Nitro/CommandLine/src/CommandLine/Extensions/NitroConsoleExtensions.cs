@@ -189,7 +189,7 @@ internal static class NitroConsoleExtensions
 
     public static void Success(this INitroConsole console, string message)
     {
-        console.MarkupLine($"[green bold]{message}[/]");
+        console.MarkupLine($"[green]{message}[/]");
     }
 
     public static void OkLine(this INitroConsole console, string message)

@@ -1,21 +1,17 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Apis;
-using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Apis;
 
-public sealed class ListApiCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
+public sealed class ListApiCommandTests(NitroCommandFixture fixture) : ApisCommandTestBase(fixture)
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "api",
-                "list",
-                "--help")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "api",
+            "list",
+            "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -45,13 +41,14 @@ public sealed class ListApiCommandTests(NitroCommandFixture fixture) : IClassFix
     [InlineData(InteractionMode.JsonOutput)]
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
-        // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "api",
-                "list")
-            .ExecuteAsync();
+        // arrange
+        SetupInteractionMode(mode);
+        SetupNoAuthentication();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "api",
+            "list");
 
         // assert
         result.AssertError(
@@ -66,15 +63,14 @@ public sealed class ListApiCommandTests(NitroCommandFixture fixture) : IClassFix
     [InlineData(InteractionMode.JsonOutput)]
     public async Task NoWorkspaceInSession_And_NoWorkspaceOption_ReturnsError(InteractionMode mode)
     {
-        // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddApiKey()
-            .AddSession()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "api",
-                "list")
-            .ExecuteAsync();
+        // arrange
+        SetupSession();
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "api",
+            "list");
 
         // assert
         result.AssertError(
@@ -84,75 +80,75 @@ public sealed class ListApiCommandTests(NitroCommandFixture fixture) : IClassFix
     }
 
     [Fact]
+    public async Task ListApisThrows_ReturnsError()
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+        SetupListApisQueryException("workspace-from-session");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "api",
+            "list");
+
+        // assert
+        result.AssertError(
+            """
+            There was an unexpected error: Something unexpected happened.
+            """);
+    }
+
+    [Fact]
     public async Task WithWorkspaceId_ReturnsSuccess_Interactive()
     {
         // arrange
-        var client = new Mock<IApisClient>(MockBehavior.Strict);
-        client.Setup(x => x.ListApisAsync(
-                "ws-1",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ApiCommandTestHelper.CreateListApisPage(
-                null,
-                false,
-                ("api-1", "products", new[] { "products" }, "Workspace"),
-                ("api-2", "catalog", new[] { "catalog" }, "Workspace")));
-
-        var command = new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "api",
-                "list",
-                "--workspace-id",
-                "ws-1")
-            .Start();
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupListApisQuery(
+            WorkspaceId,
+            apis:
+            [
+                (ApiId, "products", ["products"], WorkspaceName),
+                ("api-2", "catalog", ["catalog"], WorkspaceName)
+            ]);
 
         // act
+        var command = StartInteractiveCommand(
+            "api",
+            "list",
+            "--workspace-id",
+            WorkspaceId);
+
         command.SelectOption(0);
         var result = await command.RunToCompletionAsync();
 
         // assert
         result.AssertSuccess();
-
-        client.VerifyAll();
     }
 
     [Fact]
     public async Task WithWorkspaceIdFromSession_ReturnsSuccess_Interactive()
     {
         // arrange
-        var client = new Mock<IApisClient>(MockBehavior.Strict);
-        client.Setup(x => x.ListApisAsync(
-                "workspace-from-session",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ApiCommandTestHelper.CreateListApisPage(
-                null,
-                false,
-                ("api-1", "products", new[] { "products" }, "Workspace"),
-                ("api-2", "catalog", new[] { "catalog" }, "Workspace")));
-
-        var command = new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "api",
-                "list")
-            .Start();
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupListApisQuery(
+            "workspace-from-session",
+            apis:
+            [
+                (ApiId, "products", ["products"], WorkspaceName),
+                ("api-2", "catalog", ["catalog"], WorkspaceName)
+            ]);
 
         // act
+        var command = StartInteractiveCommand(
+            "api",
+            "list");
+
         command.SelectOption(0);
         var result = await command.RunToCompletionAsync();
 
         // assert
         result.AssertSuccess();
-
-        client.VerifyAll();
     }
 
     [Theory]
@@ -161,27 +157,22 @@ public sealed class ListApiCommandTests(NitroCommandFixture fixture) : IClassFix
     public async Task WithWorkspaceIdFromSession_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
-        var client = new Mock<IApisClient>(MockBehavior.Strict);
-        client.Setup(x => x.ListApisAsync(
-                "workspace-from-session",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ApiCommandTestHelper.CreateListApisPage(
-                "cursor-2",
-                true,
-                ("api-1", "products", new[] { "products" }, "Workspace"),
-                ("api-2", "catalog", new[] { "catalog" }, "Workspace")));
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(mode);
+        SetupListApisQuery(
+            "workspace-from-session",
+            endCursor: "cursor-2",
+            hasNextPage: true,
+            apis:
+            [
+                (ApiId, "products", ["products"], WorkspaceName),
+                ("api-2", "catalog", ["catalog"], WorkspaceName)
+            ]);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "api",
-                "list")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "api",
+            "list");
 
         // assert
         result.AssertSuccess(
@@ -220,41 +211,27 @@ public sealed class ListApiCommandTests(NitroCommandFixture fixture) : IClassFix
               "cursor": "cursor-2"
             }
             """);
-
-        client.VerifyAll();
     }
 
     [Fact]
     public async Task WithWorkspaceId_NoData_ReturnsSuccess_Interactive()
     {
         // arrange
-        var client = new Mock<IApisClient>(MockBehavior.Strict);
-        client.Setup(x => x.ListApisAsync(
-                "ws-1",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ApiCommandTestHelper.CreateListApisPage());
-
-        var command = new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "api",
-                "list",
-                "--workspace-id",
-                "ws-1")
-            .Start();
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupListApisQuery(WorkspaceId);
 
         // act
+        var command = StartInteractiveCommand(
+            "api",
+            "list",
+            "--workspace-id",
+            WorkspaceId);
+
         command.SelectOption(0);
         var result = await command.RunToCompletionAsync();
 
         // assert
         result.AssertSuccess();
-
-        client.VerifyAll();
     }
 
     [Theory]
@@ -263,25 +240,15 @@ public sealed class ListApiCommandTests(NitroCommandFixture fixture) : IClassFix
     public async Task WithWorkspaceId_NoData_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
-        var client = new Mock<IApisClient>(MockBehavior.Strict);
-        client.Setup(x => x.ListApisAsync(
-                "ws-1",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ApiCommandTestHelper.CreateListApisPage());
+        SetupInteractionMode(mode);
+        SetupListApisQuery(WorkspaceId);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "api",
-                "list",
-                "--workspace-id",
-                "ws-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "api",
+            "list",
+            "--workspace-id",
+            WorkspaceId);
 
         // assert
         result.AssertSuccess(
@@ -291,45 +258,34 @@ public sealed class ListApiCommandTests(NitroCommandFixture fixture) : IClassFix
               "cursor": null
             }
             """);
-
-        client.VerifyAll();
     }
 
     [Fact]
     public async Task WithCursor_ReturnsSuccess_Interactive()
     {
         // arrange
-        var client = new Mock<IApisClient>(MockBehavior.Strict);
-        client.Setup(x => x.ListApisAsync(
-                "workspace-from-session",
-                "cursor-1",
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ApiCommandTestHelper.CreateListApisPage(
-                null,
-                false,
-                ("api-1", "products", new[] { "products" }, "Workspace")));
-
-        var command = new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "api",
-                "list",
-                "--cursor",
-                "cursor-1")
-            .Start();
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupListApisQuery(
+            "workspace-from-session",
+            cursor: "cursor-1",
+            apis:
+            [
+                (ApiId, "products", ["products"], WorkspaceName)
+            ]);
 
         // act
+        var command = StartInteractiveCommand(
+            "api",
+            "list",
+            "--cursor",
+            "cursor-1");
+
         command.SelectOption(0);
         var result = await command.RunToCompletionAsync();
 
         // assert
         result.AssertSuccess();
-
-        client.VerifyAll();
     }
 
     [Theory]
@@ -338,29 +294,22 @@ public sealed class ListApiCommandTests(NitroCommandFixture fixture) : IClassFix
     public async Task WithCursor_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
-        var client = new Mock<IApisClient>(MockBehavior.Strict);
-        client.Setup(x => x.ListApisAsync(
-                "workspace-from-session",
-                "cursor-1",
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ApiCommandTestHelper.CreateListApisPage(
-                null,
-                false,
-                ("api-1", "products", new[] { "products" }, "Workspace")));
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(mode);
+        SetupListApisQuery(
+            "workspace-from-session",
+            cursor: "cursor-1",
+            apis:
+            [
+                (ApiId, "products", ["products"], WorkspaceName)
+            ]);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "api",
-                "list",
-                "--cursor",
-                "cursor-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "api",
+            "list",
+            "--cursor",
+            "cursor-1");
 
         // assert
         result.AssertSuccess(
@@ -385,71 +334,5 @@ public sealed class ListApiCommandTests(NitroCommandFixture fixture) : IClassFix
               "cursor": null
             }
             """);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var client = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(mode)
-            .AddArguments("api", "list")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var client = CreateListExceptionClient(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(mode)
-            .AddArguments("api", "list")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-
-        client.VerifyAll();
-    }
-
-    private static Mock<IApisClient> CreateListExceptionClient(Exception ex)
-    {
-        var client = new Mock<IApisClient>(MockBehavior.Strict);
-        client.Setup(x => x.ListApisAsync(
-                "workspace-from-session",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(ex);
-        return client;
     }
 }

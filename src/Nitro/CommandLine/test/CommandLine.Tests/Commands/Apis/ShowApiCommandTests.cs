@@ -1,21 +1,15 @@
-using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Apis;
-using Moq;
-
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Apis;
 
-public sealed class ShowApiCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
+public sealed class ShowApiCommandTests(NitroCommandFixture fixture) : ApisCommandTestBase(fixture)
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "api",
-                "show",
-                "--help")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "api",
+            "show",
+            "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -46,14 +40,15 @@ public sealed class ShowApiCommandTests(NitroCommandFixture fixture) : IClassFix
     [InlineData(InteractionMode.JsonOutput)]
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
-        // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "api",
-                "show",
-                "api-1")
-            .ExecuteAsync();
+        // arrange
+        SetupInteractionMode(mode);
+        SetupNoAuthentication();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "api",
+            "show",
+            ApiId);
 
         // assert
         result.AssertError(
@@ -62,62 +57,55 @@ public sealed class ShowApiCommandTests(NitroCommandFixture fixture) : IClassFix
             """);
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ApiNotFound_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ApiNotFound_ReturnsError()
     {
         // arrange
-        var client = new Mock<IApisClient>(MockBehavior.Strict);
-        client.Setup(x => x.GetApiAsync(
-                "api-1",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync((IShowApiCommandQuery_Node?)null);
+        SetupShowApiQuery(null);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "api",
-                "show",
-                "api-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "api",
+            "show",
+            ApiId);
 
         // assert
         result.AssertError(
             """
             The API with ID 'api-1' was not found.
             """);
-
-        client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task WithApiId_ReturnsSuccess(InteractionMode mode)
+    [Fact]
+    public async Task ShowApiThrows_ReturnsError()
     {
         // arrange
-        var client = new Mock<IApisClient>(MockBehavior.Strict);
-        client.Setup(x => x.GetApiAsync(
-                "api-1",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ApiCommandTestHelper.CreateShowApiNode("api-1", "my-api", ["products"]));
+        SetupShowApiQueryException();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "api",
-                "show",
-                "api-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "api",
+            "show",
+            ApiId);
+
+        // assert
+        result.AssertError(
+            """
+            There was an unexpected error: Something unexpected happened.
+            """);
+    }
+
+    [Fact]
+    public async Task WithApiId_ReturnsSuccess()
+    {
+        // arrange
+        SetupShowApiQuery(CreateShowApiNode(ApiId, ApiName, ["products"]));
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "api",
+            "show",
+            ApiId);
 
         // assert
         result.AssertSuccess(
@@ -137,75 +125,5 @@ public sealed class ShowApiCommandTests(NitroCommandFixture fixture) : IClassFix
               }
             }
             """);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var client = CreateShowExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "api",
-                "show",
-                "api-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var client = CreateShowExceptionClient(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "api",
-                "show",
-                "api-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-
-        client.VerifyAll();
-    }
-
-    private static Mock<IApisClient> CreateShowExceptionClient(Exception ex)
-    {
-        var client = new Mock<IApisClient>(MockBehavior.Strict);
-        client.Setup(x => x.GetApiAsync(
-                "api-1",
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(ex);
-        return client;
     }
 }

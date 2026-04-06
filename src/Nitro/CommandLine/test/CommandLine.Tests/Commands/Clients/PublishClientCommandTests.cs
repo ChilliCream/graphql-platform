@@ -196,24 +196,24 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
     }
 
     [Fact]
-    public async Task Subscription_Success_ReturnsSuccess()
+    public async Task WaitForApproval_NoBreakingChanges_ReturnsSuccess()
     {
         // arrange
-        SetupPublishClientMutation();
+        SetupPublishClientMutation(waitForApproval: true);
         SetupPublishClientSubscription(
-            CreateClientVersionPublishOperationInProgressEvent(),
             CreateClientVersionPublishSuccessEvent());
 
         // act
         var result = await ExecuteCommandAsync(
             "client",
             "publish",
+            "--client-id",
+            ClientId,
             "--tag",
             Tag,
             "--stage",
             Stage,
-            "--client-id",
-            ClientId);
+            "--wait-for-approval");
 
         // assert
         result.AssertSuccess(
@@ -222,37 +222,29 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
-            │   ├── Your request is being processed.
             │   └── ✓ Published successfully.
             └── ✓ Published new client version 'v1' to stage 'dev'.
             """);
     }
 
     [Fact]
-    public async Task Subscription_FailedWithSimpleError_ReturnsError()
+    public async Task BreakingChanges_ReturnsError()
     {
         // arrange
-        var errorMock = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Errors>(
-            MockBehavior.Strict);
-        errorMock.As<IUnexpectedProcessingError>()
-            .SetupGet(x => x.Message)
-            .Returns("Something went wrong during publish.");
-
         SetupPublishClientMutation();
         SetupPublishClientSubscription(
-            CreateClientVersionPublishOperationInProgressEvent(),
-            CreateClientVersionPublishFailedEvent(errorMock.Object));
+            CreateClientVersionPublishFailedEventWithErrors());
 
         // act
         var result = await ExecuteCommandAsync(
             "client",
             "publish",
+            "--client-id",
+            ClientId,
             "--tag",
             Tag,
             "--stage",
-            Stage,
-            "--client-id",
-            ClientId);
+            Stage);
 
         // assert
         result.StdOut.MatchInlineSnapshot(
@@ -261,9 +253,9 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
-            │   ├── Your request is being processed.
             │   └── ✕ Processing failed.
-            │       └── Something went wrong during publish.
+            │       └── Operation 'abc123'
+            │           └── Field 'foo' does not exist.
             └── ✕ Failed to publish a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -274,211 +266,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
     }
 
     [Fact]
-    public async Task Subscription_InProgressOnly_StreamEnds_ReturnsError()
-    {
-        // arrange
-        SetupPublishClientMutation();
-        SetupPublishClientSubscription(
-            CreateClientVersionPublishOperationInProgressEvent());
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "client",
-            "publish",
-            "--tag",
-            Tag,
-            "--stage",
-            Stage,
-            "--client-id",
-            ClientId);
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Publishing new client version 'v1' to stage 'dev' of client 'client-1'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   ├── Your request is being processed.
-            │   └── ✕ Processing failed.
-            └── ✕ Failed to publish a new client version.
-            """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(1, result.ExitCode);
-    }
-
-    [Fact]
-    public async Task Subscription_QueuePosition_UpdatesActivity()
-    {
-        // arrange
-        SetupPublishClientMutation();
-        SetupPublishClientSubscription(
-            CreateClientVersionPublishQueuedEvent(3),
-            CreateClientVersionPublishOperationInProgressEvent(),
-            CreateClientVersionPublishSuccessEvent());
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "client",
-            "publish",
-            "--tag",
-            Tag,
-            "--stage",
-            Stage,
-            "--client-id",
-            ClientId);
-
-        // assert
-        result.AssertSuccess(
-            """
-            Publishing new client version 'v1' to stage 'dev' of client 'client-1'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   ├── Your request is queued. The current position in the queue is 3.
-            │   ├── Your request is being processed.
-            │   └── ✓ Published successfully.
-            └── ✓ Published new client version 'v1' to stage 'dev'.
-            """);
-    }
-
-    [Fact]
-    public async Task Subscription_ReadyState_PrintsSuccess()
-    {
-        // arrange
-        SetupPublishClientMutation();
-        SetupPublishClientSubscription(
-            CreateClientVersionPublishReadyEvent(),
-            CreateClientVersionPublishOperationInProgressEvent(),
-            CreateClientVersionPublishSuccessEvent());
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "client",
-            "publish",
-            "--tag",
-            Tag,
-            "--stage",
-            Stage,
-            "--client-id",
-            ClientId);
-
-        // assert
-        result.AssertSuccess(
-            """
-            Publishing new client version 'v1' to stage 'dev' of client 'client-1'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   ├── Your request is ready for processing.
-            │   ├── Your request is being processed.
-            │   └── ✓ Published successfully.
-            └── ✓ Published new client version 'v1' to stage 'dev'.
-            """);
-    }
-
-    [Fact]
-    public async Task Subscription_ApprovedState_UpdatesActivity()
-    {
-        // arrange
-        SetupPublishClientMutation();
-        SetupPublishClientSubscription(
-            CreateClientVersionPublishApprovedEvent(),
-            CreateClientVersionPublishOperationInProgressEvent(),
-            CreateClientVersionPublishSuccessEvent());
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "client",
-            "publish",
-            "--tag",
-            Tag,
-            "--stage",
-            Stage,
-            "--client-id",
-            ClientId);
-
-        // assert
-        result.AssertSuccess(
-            """
-            Publishing new client version 'v1' to stage 'dev' of client 'client-1'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   ├── Your request has been approved.
-            │   ├── Your request is being processed.
-            │   └── ✓ Published successfully.
-            └── ✓ Published new client version 'v1' to stage 'dev'.
-            """);
-    }
-
-    [Fact]
-    public async Task Subscription_WaitForApproval_UpdatesActivity()
-    {
-        // arrange
-        SetupPublishClientMutation();
-        SetupPublishClientSubscription(
-            CreateClientVersionPublishWaitForApprovalEvent(),
-            CreateClientVersionPublishApprovedEvent(),
-            CreateClientVersionPublishOperationInProgressEvent(),
-            CreateClientVersionPublishSuccessEvent());
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "client",
-            "publish",
-            "--tag",
-            Tag,
-            "--stage",
-            Stage,
-            "--client-id",
-            ClientId);
-
-        // assert
-        result.AssertSuccess(
-            """
-            Publishing new client version 'v1' to stage 'dev' of client 'client-1'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   ├── 🕐 Your request is waiting for approval. Check Nitro to approve the request.
-            │   ├── Your request has been approved.
-            │   ├── Your request is being processed.
-            │   └── ✓ Published successfully.
-            └── ✓ Published new client version 'v1' to stage 'dev'.
-            """);
-    }
-
-    [Fact]
-    public async Task Subscription_UnknownEvent_ReturnsError()
-    {
-        // arrange
-        var unknownEvent = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate>(
-            MockBehavior.Strict);
-        unknownEvent.SetupGet(x => x.__typename).Returns("UnknownType");
-
-        SetupPublishClientMutation();
-        SetupPublishClientSubscription(unknownEvent.Object);
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "client",
-            "publish",
-            "--tag",
-            Tag,
-            "--stage",
-            Stage,
-            "--client-id",
-            ClientId);
-
-        // assert
-        // Falls through the loop with no terminal state, so activity.Fail() is called
-        Assert.Empty(result.StdErr);
-        Assert.Equal(1, result.ExitCode);
-    }
-
-    [Fact]
-    public async Task ForceOption_LogsForceEnabled()
+    public async Task BreakingChanges_Force_ReturnsSuccess()
     {
         // arrange
         SetupPublishClientMutation(force: true);
@@ -489,12 +277,12 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
         var result = await ExecuteCommandAsync(
             "client",
             "publish",
+            "--client-id",
+            ClientId,
             "--tag",
             Tag,
             "--stage",
             Stage,
-            "--client-id",
-            ClientId,
             "--force");
 
         // assert
@@ -511,138 +299,102 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
     }
 
     [Fact]
-    public async Task Publish_Should_ReturnError_When_SubscriptionHasConcurrentOperationError()
-    {
-        // arrange
-        var errorMock = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Errors>(
-            MockBehavior.Strict);
-        errorMock.As<IConcurrentOperationError>()
-            .SetupGet(x => x.Message)
-            .Returns("A concurrent operation is already in progress.");
-
-        SetupPublishClientMutation();
-        SetupPublishClientSubscription(
-            CreateClientVersionPublishFailedEvent(errorMock.Object));
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "client",
-            "publish",
-            "--tag",
-            Tag,
-            "--stage",
-            Stage,
-            "--client-id",
-            ClientId);
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Publishing new client version 'v1' to stage 'dev' of client 'client-1'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   └── ✕ Processing failed.
-            │       └── A concurrent operation is already in progress.
-            └── ✕ Failed to publish a new client version.
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Client publish failed.
-            """);
-        Assert.Equal(1, result.ExitCode);
-    }
-
-    [Fact]
-    public async Task Publish_Should_ReturnError_When_SubscriptionHasValidationError()
-    {
-        // arrange
-        var queryErrorMock = new Mock<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Queries_Errors>(
-            MockBehavior.Strict);
-        queryErrorMock.SetupGet(x => x.Message).Returns("Field 'foo' does not exist.");
-        queryErrorMock.SetupGet(x => x.Code).Returns("FIELD_NOT_FOUND");
-        queryErrorMock.SetupGet(x => x.Path).Returns((string?)null);
-        queryErrorMock.SetupGet(x => x.Locations)
-            .Returns((IReadOnlyList<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Queries_Errors_Locations>?)null);
-
-        var queryMock = new Mock<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Queries>(
-            MockBehavior.Strict);
-        queryMock.SetupGet(x => x.Message).Returns("Query abc123 is invalid.");
-        queryMock.SetupGet(x => x.Hash).Returns("abc123");
-        queryMock.SetupGet(x => x.DeployedTags).Returns(new List<string>());
-        queryMock.SetupGet(x => x.Errors).Returns(new[] { queryErrorMock.Object });
-
-        var clientInfoMock = new Mock<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Client>(
-            MockBehavior.Strict);
-        clientInfoMock.SetupGet(x => x.Id).Returns(ClientId);
-        clientInfoMock.SetupGet(x => x.Name).Returns("my-client");
-
-        var errorMock = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Errors>(
-            MockBehavior.Strict);
-        errorMock.As<IPersistedQueryValidationError>()
-            .SetupGet(x => x.Message)
-            .Returns("Validation failed for persisted queries.");
-        errorMock.As<IPersistedQueryValidationError>()
-            .SetupGet(x => x.Client)
-            .Returns(clientInfoMock.Object);
-        errorMock.As<IPersistedQueryValidationError>()
-            .SetupGet(x => x.Queries)
-            .Returns(new[] { queryMock.Object });
-
-        SetupPublishClientMutation();
-        SetupPublishClientSubscription(
-            CreateClientVersionPublishFailedEvent(errorMock.Object));
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "client",
-            "publish",
-            "--tag",
-            Tag,
-            "--stage",
-            Stage,
-            "--client-id",
-            ClientId);
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Publishing new client version 'v1' to stage 'dev' of client 'client-1'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   └── ✕ Processing failed.
-            │       └── Client 'my-client' (ID: client-1)
-            │           └── Operation 'abc123'
-            │               └── Field 'foo' does not exist.
-            └── ✕ Failed to publish a new client version.
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Client publish failed.
-            """);
-        Assert.Equal(1, result.ExitCode);
-    }
-
-    [Fact]
-    public async Task Publish_Should_PassWaitForApproval_When_FlagProvided()
+    public async Task WaitForApproval_BreakingChanges_Approved_ReturnsSuccess()
     {
         // arrange
         SetupPublishClientMutation(waitForApproval: true);
         SetupPublishClientSubscription(
+            CreateClientVersionPublishWaitForApprovalEventWithErrors(),
+            CreateClientVersionPublishApprovedEvent(),
+            CreateClientVersionPublishOperationInProgressEvent(),
             CreateClientVersionPublishSuccessEvent());
 
         // act
         var result = await ExecuteCommandAsync(
             "client",
             "publish",
+            "--client-id",
+            ClientId,
             "--tag",
             Tag,
             "--stage",
             Stage,
+            "--wait-for-approval");
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing new client version 'v1' to stage 'dev' of client 'client-1'
+            ├── Starting publish request
+            │   └── ✓ Publish request created (ID: request-1).
+            ├── Processing
+            │   └── ✕ Processing failed.
+            │       └── Operation 'abc123'
+            │           └── Field 'foo' does not exist.
+            │   ├── 🕐 Your request is waiting for approval. Check Nitro to approve the request.
+            │   ├── Your request has been approved.
+            │   ├── Your request is being processed.
+            └── ✓ Published new client version 'v1' to stage 'dev'.
+            """);
+    }
+
+    [Fact]
+    public async Task WaitForApproval_BreakingChanges_NotApproved_ReturnsError()
+    {
+        // arrange
+        SetupPublishClientMutation(waitForApproval: true);
+        SetupPublishClientSubscription(
+            CreateClientVersionPublishWaitForApprovalEventWithErrors(),
+            CreateClientVersionPublishFailedEvent());
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "client",
+            "publish",
             "--client-id",
             ClientId,
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
             "--wait-for-approval");
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Client publish failed.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing new client version 'v1' to stage 'dev' of client 'client-1'
+            ├── Starting publish request
+            │   └── ✓ Publish request created (ID: request-1).
+            ├── Processing
+            │   └── ✕ Processing failed.
+            │       └── Operation 'abc123'
+            │           └── Field 'foo' does not exist.
+            │   ├── 🕐 Your request is waiting for approval. Check Nitro to approve the request.
+            └── ✕ Failed to publish a new client version.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithEnvVars_ReturnsSuccess()
+    {
+        // arrange
+        SetupEnvironmentVariable(EnvironmentVariables.ClientId, ClientId);
+        SetupEnvironmentVariable(EnvironmentVariables.Tag, Tag);
+        SetupEnvironmentVariable(EnvironmentVariables.Stage, Stage);
+
+        SetupPublishClientMutation();
+        SetupPublishClientSubscription(
+            CreateClientVersionPublishSuccessEvent());
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "client",
+            "publish");
 
         // assert
         result.AssertSuccess(

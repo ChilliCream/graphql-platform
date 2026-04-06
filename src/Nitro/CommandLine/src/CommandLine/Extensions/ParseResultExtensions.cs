@@ -1,9 +1,5 @@
 using ChilliCream.Nitro.Client.Apis;
-using ChilliCream.Nitro.Client.Clients;
-using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
-using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
-using ChilliCream.Nitro.CommandLine.Helpers;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Sessions;
 
@@ -34,24 +30,6 @@ internal static class ParseResultExtensions
             ?? throw ThrowHelper.NoDefaultWorkspace();
     }
 
-    public static async Task<bool> OptionOrConfirmAsync(
-        this ParseResult parseResult,
-        string question,
-        Option<bool?> option,
-        INitroConsole console,
-        CancellationToken cancellationToken)
-    {
-        var value = parseResult.GetValue(option);
-
-        if (value is not null)
-        {
-            return value.Value;
-        }
-
-        return await new ConfirmationPrompt(question.AsQuestion())
-            .ShowAsync(console, cancellationToken);
-    }
-
     public static async Task<string> GetOrPromptForApiIdAsync(
         this ParseResult parseResult,
         string message,
@@ -75,35 +53,5 @@ internal static class ParseResultExtensions
         console.OkQuestion(message, apiId);
 
         return apiId;
-    }
-
-    public static async Task<string> GetOrPromptForClientId(
-        this ParseResult parseResult,
-        INitroConsole console,
-        IClientsClient client,
-        IApisClient apisClient,
-        ISessionService sessionService,
-        CancellationToken cancellationToken)
-    {
-        var clientId = parseResult.GetValue(Opt<OptionalClientIdOption>.Instance);
-
-        if (clientId is null)
-        {
-            var apiId = await parseResult.GetOrPromptForApiIdAsync(
-                "For which API do you want to list client versions?",
-                console,
-                apisClient,
-                sessionService,
-                cancellationToken);
-
-            var selectedClient = await SelectClientPrompt
-                .New(client, apiId)
-                .Title("Select a client from the list below.")
-                .RenderAsync(console, cancellationToken) ?? throw ThrowHelper.NoClientSelected();
-
-            clientId = selectedClient.Id;
-        }
-
-        return clientId;
     }
 }

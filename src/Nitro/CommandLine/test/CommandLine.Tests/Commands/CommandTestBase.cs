@@ -6,6 +6,7 @@ using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.Client.Mcp;
 using ChilliCream.Nitro.Client.OpenApi;
+using ChilliCream.Nitro.Client.PersonalAccessTokens;
 using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.CommandLine.Services;
 using Moq;
@@ -31,6 +32,7 @@ public abstract class CommandTestBase
     protected readonly Mock<IOpenApiClient> OpenApiClientMock = new(MockBehavior.Strict);
     protected readonly Mock<IMcpClient> McpClientMock = new(MockBehavior.Strict);
     protected readonly Mock<IApiKeysClient> ApiKeysClientMock = new(MockBehavior.Strict);
+    protected readonly Mock<IPersonalAccessTokensClient> PersonalAccessTokensClientMock = new(MockBehavior.Strict);
     private InteractionMode _interactionMode = InteractionMode.NonInteractive;
     private bool _authenticated = true;
     private bool _useSession;
@@ -93,7 +95,8 @@ public abstract class CommandTestBase
             .AddService(ApisClientMock.Object)
             .AddService(OpenApiClientMock.Object)
             .AddService(McpClientMock.Object)
-            .AddService(ApiKeysClientMock.Object);
+            .AddService(ApiKeysClientMock.Object)
+            .AddService(PersonalAccessTokensClientMock.Object);
 
         if (_authenticated)
         {
@@ -255,5 +258,6 @@ public abstract class CommandTestBase
         OpenApiClientMock.VerifyAll();
         McpClientMock.VerifyAll();
         ApiKeysClientMock.VerifyAll();
+        PersonalAccessTokensClientMock.VerifyAll();
     }
 }
