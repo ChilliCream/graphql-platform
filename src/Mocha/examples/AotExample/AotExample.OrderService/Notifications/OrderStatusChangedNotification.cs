@@ -1,6 +1,6 @@
 using Mocha.Mediator;
 
-namespace AotExample.Contracts.Notifications;
+namespace AotExample.OrderService.Notifications;
 
 public sealed class OrderStatusChangedNotification : INotification
 {

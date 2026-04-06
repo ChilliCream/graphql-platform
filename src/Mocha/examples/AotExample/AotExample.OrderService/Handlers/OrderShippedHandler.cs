@@ -1,5 +1,5 @@
 using AotExample.Contracts.Events;
-using AotExample.Contracts.Notifications;
+using AotExample.OrderService.Notifications;
 using Mocha;
 using Mocha.Mediator;
 

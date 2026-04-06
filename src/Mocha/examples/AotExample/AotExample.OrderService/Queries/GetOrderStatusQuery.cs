@@ -1,6 +1,6 @@
 using Mocha.Mediator;
 
-namespace AotExample.Contracts.Queries;
+namespace AotExample.OrderService.Queries;
 
 public sealed class GetOrderStatusQuery : IQuery<GetOrderStatusResponse>
 {

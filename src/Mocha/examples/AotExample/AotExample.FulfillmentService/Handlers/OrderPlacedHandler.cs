@@ -4,14 +4,10 @@ using Mocha;
 
 namespace AotExample.FulfillmentService.Handlers;
 
-public sealed class OrderPlacedHandler(
-    IMessageBus messageBus,
-    ILogger<OrderPlacedHandler> logger)
+public sealed class OrderPlacedHandler(IMessageBus messageBus, ILogger<OrderPlacedHandler> logger)
     : IEventHandler<OrderPlacedEvent>
 {
-    public async ValueTask HandleAsync(
-        OrderPlacedEvent message,
-        CancellationToken cancellationToken)
+    public async ValueTask HandleAsync(OrderPlacedEvent message, CancellationToken cancellationToken)
     {
         logger.LogInformation(
             "Received order {OrderId}: {Quantity}x {ProductName}",
@@ -21,11 +17,7 @@ public sealed class OrderPlacedHandler(
 
         // Check inventory with OrderService via bus request/response
         var inventory = await messageBus.RequestAsync(
-            new CheckInventoryRequest
-            {
-                ProductName = message.ProductName,
-                Quantity = message.Quantity
-            },
+            new CheckInventoryRequest { ProductName = message.ProductName, Quantity = message.Quantity },
             cancellationToken);
 
         if (!inventory.IsAvailable)
@@ -49,9 +41,6 @@ public sealed class OrderPlacedHandler(
             },
             cancellationToken);
 
-        logger.LogInformation(
-            "Order {OrderId} fulfilled — tracking {TrackingNumber}",
-            message.OrderId,
-            trackingNumber);
+        logger.LogInformation("Order {OrderId} fulfilled — tracking {TrackingNumber}", message.OrderId, trackingNumber);
     }
 }

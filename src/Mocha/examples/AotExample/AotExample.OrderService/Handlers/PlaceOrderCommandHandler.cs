@@ -1,4 +1,4 @@
-using AotExample.Contracts.Commands;
+using AotExample.OrderService.Commands;
 using Mocha.Mediator;
 
 namespace AotExample.OrderService.Handlers;

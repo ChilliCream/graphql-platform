@@ -1,4 +1,4 @@
-namespace AotExample.Contracts.Queries;
+namespace AotExample.OrderService.Queries;
 
 public sealed class GetOrderStatusResponse
 {

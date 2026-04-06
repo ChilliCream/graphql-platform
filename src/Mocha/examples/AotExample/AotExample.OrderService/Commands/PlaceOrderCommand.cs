@@ -1,6 +1,6 @@
 using Mocha.Mediator;
 
-namespace AotExample.Contracts.Commands;
+namespace AotExample.OrderService.Commands;
 
 public sealed class PlaceOrderCommand : ICommand<PlaceOrderResult>
 {

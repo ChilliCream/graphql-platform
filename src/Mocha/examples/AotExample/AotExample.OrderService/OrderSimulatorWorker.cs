@@ -1,6 +1,6 @@
-using AotExample.Contracts.Commands;
 using AotExample.Contracts.Events;
-using AotExample.Contracts.Queries;
+using AotExample.OrderService.Commands;
+using AotExample.OrderService.Queries;
 using Mocha;
 using Mocha.Mediator;
 
