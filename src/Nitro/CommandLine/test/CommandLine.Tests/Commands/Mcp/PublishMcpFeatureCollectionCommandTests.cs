@@ -1,28 +1,19 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Mcp;
-using ChilliCream.Nitro.CommandLine.Helpers;
 using Moq;
-using static ChilliCream.Nitro.CommandLine.Tests.TestHelpers;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Mcp;
 
-public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
+public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture fixture) : McpCommandTestBase(fixture)
 {
-    private const string DefaultMcpFeatureCollectionId = "mcp-1";
-    private const string DefaultStage = "production";
-    private const string DefaultTag = "v1";
-    private const string DefaultRequestId = "request-1";
-
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "mcp",
-                "publish",
-                "--help")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "publish",
+            "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -59,21 +50,19 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
     public async Task ForceAndWaitForApproval_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mcp",
-                "publish",
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId,
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--force",
-                "--wait-for-approval")
-            .ExecuteAsync();
+        SetupInteractionMode(mode);
+
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "publish",
+            "--mcp-feature-collection-id",
+            McpFeatureCollectionId,
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--force",
+            "--wait-for-approval");
 
         // assert
         result.StdErr.MatchInlineSnapshot(
@@ -90,18 +79,18 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mcp",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId)
-            .ExecuteAsync();
+        SetupInteractionMode(mode);
+        SetupNoAuthentication();
+
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--mcp-feature-collection-id",
+            McpFeatureCollectionId);
 
         // assert
         result.AssertError(
@@ -111,430 +100,136 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
     }
 
     [Fact]
-    public async Task ClientThrowsException_ReturnsError_NonInteractive()
+    public async Task StartMcpFeatureCollectionPublishThrows_ReturnsError()
     {
         // arrange
-        var client = CreatePublishExceptionClient(
-            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
+        SetupPublishMcpFeatureCollectionMutationException();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "mcp",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--mcp-feature-collection-id",
+            McpFeatureCollectionId);
 
         // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error: Something unexpected happened.
+            """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'production'
+            Publishing new MCP feature collection version 'v1' to stage 'dev'
             ├── Starting publish request
             │   └── ✕ Failed to start publish request.
             └── ✕ Failed to publish a new MCP feature collection version.
             """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    [MemberData(nameof(GetStartMcpFeatureCollectionPublishErrors))]
+    public async Task StartMcpFeatureCollectionPublishHasErrors_ReturnsError(
+        IPublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors error,
+        string expectedErrorMessage)
     {
         // arrange
-        var client = CreatePublishExceptionClient(
-            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
+        SetupPublishMcpFeatureCollectionMutation(errors: error);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mcp",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--mcp-feature-collection-id",
+            McpFeatureCollectionId);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
+        result.StdOut.MatchInlineSnapshot(
             """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
+            Publishing new MCP feature collection version 'v1' to stage 'dev'
+            ├── Starting publish request
+            │   └── ✕ Failed to start publish request.
+            └── ✕ Failed to publish a new MCP feature collection version.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
+    public async Task StartMcpFeatureCollectionPublishReturnsNullRequestId_ReturnsError()
     {
         // arrange
-        var client = CreatePublishExceptionClient(
-            new NitroClientAuthorizationException());
+        SetupPublishMcpFeatureCollectionMutationNullRequestId();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "mcp",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId)
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Publishing new MCP feature collection version 'v1' to stage 'production'
-            ├── Starting publish request
-            │   └── ✕ Failed to start publish request.
-            └── ✕ Failed to publish a new MCP feature collection version.
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var client = CreatePublishExceptionClient(
-            new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mcp",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId)
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [MemberData(nameof(MutationErrorCasesNonInteractive))]
-    public async Task MutationReturnsTypedError_ReturnsError_NonInteractive(
-        IPublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors mutationError,
-        string expectedStdErr)
-    {
-        // arrange
-        var client = CreatePublishSetup(
-            CreatePublishPayloadWithErrors(mutationError));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "mcp",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId)
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Publishing new MCP feature collection version 'v1' to stage 'production'
-            ├── Starting publish request
-            │   └── ✕ Failed to start publish request.
-            └── ✕ Failed to publish a new MCP feature collection version.
-            """);
-        result.StdErr.MatchInlineSnapshot(expectedStdErr);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [MemberData(nameof(MutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError(
-        InteractionMode mode,
-        IPublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors mutationError,
-        string expectedStdErr)
-    {
-        // arrange
-        var client = CreatePublishSetup(
-            CreatePublishPayloadWithErrors(mutationError));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mcp",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId)
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(expectedStdErr);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task MutationReturnsNullRequestId_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var payload = new Mock<IPublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors)
-            .Returns((IReadOnlyList<IPublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors>?)null);
-        payload.SetupGet(x => x.Id)
-            .Returns((string?)null);
-
-        var client = CreatePublishSetup(payload.Object);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "mcp",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId)
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Publishing new MCP feature collection version 'v1' to stage 'production'
-            ├── Starting publish request
-            │   └── ✕ Failed to start publish request.
-            └── ✕ Failed to publish a new MCP feature collection version.
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The GraphQL mutation completed without errors, but the server did not return the expected data.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task MutationReturnsNullRequestId_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var payload = new Mock<IPublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors)
-            .Returns((IReadOnlyList<IPublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors>?)null);
-        payload.SetupGet(x => x.Id)
-            .Returns((string?)null);
-
-        var client = CreatePublishSetup(payload.Object);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mcp",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--mcp-feature-collection-id",
+            McpFeatureCollectionId);
 
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
             The GraphQL mutation completed without errors, but the server did not return the expected data.
             """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing new MCP feature collection version 'v1' to stage 'dev'
+            ├── Starting publish request
+            │   └── ✕ Failed to start publish request.
+            └── ✕ Failed to publish a new MCP feature collection version.
+            """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Subscription_Success_ReturnsSuccess_NonInteractive()
+    public async Task Subscription_Success_ReturnsSuccess()
     {
         // arrange
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate[]
-            {
-                CreateOperationInProgress(),
-                CreatePublishSuccess()
-            });
+        SetupPublishMcpFeatureCollectionMutation();
+        SetupPublishMcpFeatureCollectionSubscription(
+            CreateMcpFeatureCollectionPublishOperationInProgressEvent(),
+            CreateMcpFeatureCollectionPublishSuccessEvent());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "mcp",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--mcp-feature-collection-id",
+            McpFeatureCollectionId);
 
         // assert
         result.AssertSuccess(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'production'
+            Publishing new MCP feature collection version 'v1' to stage 'dev'
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
             │   ├── Processing...
             │   └── ✓ Published successfully.
-            └── ✓ Published new MCP feature collection version 'v1' to stage 'production'.
+            └── ✓ Published new MCP feature collection version 'v1' to stage 'dev'.
             """);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Subscription_Success_ReturnsSuccess_Interactive()
-    {
-        // arrange
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate[]
-            {
-                CreateOperationInProgress(),
-                CreatePublishSuccess()
-            });
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "mcp",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId)
-            .ExecuteAsync();
-
-        // assert
-        result.AssertSuccess();
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task Subscription_Success_ReturnsSuccess_JsonOutput()
-    {
-        // arrange
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate[]
-            {
-                CreateOperationInProgress(),
-                CreatePublishSuccess()
-            });
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "mcp",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId)
-            .ExecuteAsync();
-
-        // assert
-        result.AssertSuccess(
-            """
-            {}
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task Subscription_FailedWithSimpleError_ReturnsError_NonInteractive()
+    public async Task Subscription_FailedWithSimpleError_ReturnsError()
     {
         // arrange
         var errorMock = new Mock<IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Errors>(
@@ -543,129 +238,64 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             .SetupGet(x => x.Message)
             .Returns("Something went wrong during publish.");
 
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate[]
-            {
-                CreateOperationInProgress(),
-                CreatePublishFailed(errorMock.Object)
-            });
+        SetupPublishMcpFeatureCollectionMutation();
+        SetupPublishMcpFeatureCollectionSubscription(
+            CreateMcpFeatureCollectionPublishOperationInProgressEvent(),
+            CreateMcpFeatureCollectionPublishFailedEvent(errorMock.Object));
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "mcp",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--mcp-feature-collection-id",
+            McpFeatureCollectionId);
 
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'production'
+            Publishing new MCP feature collection version 'v1' to stage 'dev'
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
             │   ├── Processing...
             │   └── ✕ Processing failed.
+            │       └── Something went wrong during publish.
             └── ✕ Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Something went wrong during publish.
-            MCP Feature Collection publish failed.
+            MCP feature collection publish failed.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task Subscription_FailedWithSimpleError_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var errorMock = new Mock<IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Errors>(
-            MockBehavior.Strict);
-        errorMock.As<IUnexpectedProcessingError>()
-            .SetupGet(x => x.Message)
-            .Returns("Something went wrong during publish.");
-
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate[]
-            {
-                CreateOperationInProgress(),
-                CreatePublishFailed(errorMock.Object)
-            });
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mcp",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId)
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Something went wrong during publish.
-            MCP Feature Collection publish failed.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Subscription_InProgressOnly_StreamEnds_ReturnsError_NonInteractive()
+    public async Task Subscription_InProgressOnly_StreamEnds_ReturnsError()
     {
         // arrange
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate[]
-            {
-                CreateOperationInProgress()
-            });
+        SetupPublishMcpFeatureCollectionMutation();
+        SetupPublishMcpFeatureCollectionSubscription(
+            CreateMcpFeatureCollectionPublishOperationInProgressEvent());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "mcp",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--mcp-feature-collection-id",
+            McpFeatureCollectionId);
 
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'production'
+            Publishing new MCP feature collection version 'v1' to stage 'dev'
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
@@ -675,233 +305,177 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Subscription_QueuePosition_UpdatesActivity_NonInteractive()
+    public async Task Subscription_QueuePosition_UpdatesActivity()
     {
         // arrange
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate[]
-            {
-                CreateQueuedEvent(3),
-                CreateOperationInProgress(),
-                CreatePublishSuccess()
-            });
+        SetupPublishMcpFeatureCollectionMutation();
+        SetupPublishMcpFeatureCollectionSubscription(
+            CreateMcpFeatureCollectionPublishQueuedEvent(3),
+            CreateMcpFeatureCollectionPublishOperationInProgressEvent(),
+            CreateMcpFeatureCollectionPublishSuccessEvent());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "mcp",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--mcp-feature-collection-id",
+            McpFeatureCollectionId);
 
         // assert
         result.AssertSuccess(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'production'
+            Publishing new MCP feature collection version 'v1' to stage 'dev'
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
             │   ├── Queued at position 3.
             │   ├── Processing...
             │   └── ✓ Published successfully.
-            └── ✓ Published new MCP feature collection version 'v1' to stage 'production'.
+            └── ✓ Published new MCP feature collection version 'v1' to stage 'dev'.
             """);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Subscription_ReadyState_PrintsSuccess_NonInteractive()
+    public async Task Subscription_ReadyState_PrintsSuccess()
     {
         // arrange
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate[]
-            {
-                CreateReadyEvent(),
-                CreateOperationInProgress(),
-                CreatePublishSuccess()
-            });
+        SetupPublishMcpFeatureCollectionMutation();
+        SetupPublishMcpFeatureCollectionSubscription(
+            CreateMcpFeatureCollectionPublishReadyEvent(),
+            CreateMcpFeatureCollectionPublishOperationInProgressEvent(),
+            CreateMcpFeatureCollectionPublishSuccessEvent());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "mcp",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--mcp-feature-collection-id",
+            McpFeatureCollectionId);
 
         // assert
         result.AssertSuccess(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'production'
+            Publishing new MCP feature collection version 'v1' to stage 'dev'
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
             │   ├── Ready.
             │   ├── Processing...
             │   └── ✓ Published successfully.
-            └── ✓ Published new MCP feature collection version 'v1' to stage 'production'.
+            └── ✓ Published new MCP feature collection version 'v1' to stage 'dev'.
             """);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Subscription_ApprovedState_UpdatesActivity_NonInteractive()
+    public async Task Subscription_ApprovedState_UpdatesActivity()
     {
         // arrange
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate[]
-            {
-                CreateApprovedEvent(),
-                CreateOperationInProgress(),
-                CreatePublishSuccess()
-            });
+        SetupPublishMcpFeatureCollectionMutation();
+        SetupPublishMcpFeatureCollectionSubscription(
+            CreateMcpFeatureCollectionPublishApprovedEvent(),
+            CreateMcpFeatureCollectionPublishOperationInProgressEvent(),
+            CreateMcpFeatureCollectionPublishSuccessEvent());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "mcp",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--mcp-feature-collection-id",
+            McpFeatureCollectionId);
 
         // assert
         result.AssertSuccess(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'production'
+            Publishing new MCP feature collection version 'v1' to stage 'dev'
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
             │   ├── Approved. Processing...
             │   ├── Processing...
             │   └── ✓ Published successfully.
-            └── ✓ Published new MCP feature collection version 'v1' to stage 'production'.
+            └── ✓ Published new MCP feature collection version 'v1' to stage 'dev'.
             """);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Subscription_WaitForApproval_UpdatesActivity_NonInteractive()
+    public async Task Subscription_WaitForApproval_UpdatesActivity()
     {
         // arrange
-        var waitForApprovalEvent = new PublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_WaitForApproval(
-            "WaitForApproval",
-            ProcessingState.WaitingForApproval,
-            null);
-
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate[]
-            {
-                waitForApprovalEvent,
-                CreateApprovedEvent(),
-                CreateOperationInProgress(),
-                CreatePublishSuccess()
-            });
+        SetupPublishMcpFeatureCollectionMutation();
+        SetupPublishMcpFeatureCollectionSubscription(
+            CreateMcpFeatureCollectionPublishWaitForApprovalEvent(),
+            CreateMcpFeatureCollectionPublishApprovedEvent(),
+            CreateMcpFeatureCollectionPublishOperationInProgressEvent(),
+            CreateMcpFeatureCollectionPublishSuccessEvent());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "mcp",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--mcp-feature-collection-id",
+            McpFeatureCollectionId);
 
         // assert
         result.AssertSuccess(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'production'
+            Publishing new MCP feature collection version 'v1' to stage 'dev'
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
-            │   ├── Waiting for approval. Approve in Nitro to continue.
+            │   ├── 🕐 Waiting for approval. Approve in Nitro to continue.
             │   ├── Approved. Processing...
             │   ├── Processing...
             │   └── ✓ Published successfully.
-            └── ✓ Published new MCP feature collection version 'v1' to stage 'production'.
+            └── ✓ Published new MCP feature collection version 'v1' to stage 'dev'.
             """);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Subscription_UnknownEvent_ReturnsError_NonInteractive()
+    public async Task Subscription_UnknownEvent_ReturnsError()
     {
         // arrange
         var unknownEvent = new Mock<IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate>(
             MockBehavior.Strict);
         unknownEvent.SetupGet(x => x.__typename).Returns("UnknownType");
 
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate[]
-            {
-                unknownEvent.Object
-            });
+        SetupPublishMcpFeatureCollectionMutation();
+        SetupPublishMcpFeatureCollectionSubscription(unknownEvent.Object);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "mcp",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--mcp-feature-collection-id",
+            McpFeatureCollectionId);
 
         // assert
         // Falls through the loop with no terminal state, so activity.Fail() is called
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'production'
+            Publishing new MCP feature collection version 'v1' to stage 'dev'
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
@@ -911,112 +485,83 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Subscription_ForceEnabled_ShowsWarning_NonInteractive()
+    public async Task Subscription_ForceEnabled_ShowsWarning()
     {
         // arrange
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate[]
-            {
-                CreateOperationInProgress(),
-                CreatePublishSuccess()
-            },
-            force: true);
+        SetupPublishMcpFeatureCollectionMutation(force: true);
+        SetupPublishMcpFeatureCollectionSubscription(
+            CreateMcpFeatureCollectionPublishOperationInProgressEvent(),
+            CreateMcpFeatureCollectionPublishSuccessEvent());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "mcp",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId,
-                "--force")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--mcp-feature-collection-id",
+            McpFeatureCollectionId,
+            "--force");
 
         // assert
         result.AssertSuccess(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'production'
+            Publishing new MCP feature collection version 'v1' to stage 'dev'
             ├── ! Force push is enabled.
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
             │   ├── Processing...
             │   └── ✓ Published successfully.
-            └── ✓ Published new MCP feature collection version 'v1' to stage 'production'.
+            └── ✓ Published new MCP feature collection version 'v1' to stage 'dev'.
             """);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Subscription_WaitForApprovalThenApproved_ReturnsSuccess_NonInteractive()
+    public async Task Subscription_WaitForApprovalThenApproved_ReturnsSuccess()
     {
         // arrange
-        var waitForApprovalEvent = new PublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_WaitForApproval(
-            "WaitForApproval",
-            ProcessingState.WaitingForApproval,
-            null);
-
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate[]
-            {
-                waitForApprovalEvent,
-                CreateApprovedEvent(),
-                CreateOperationInProgress(),
-                CreatePublishSuccess()
-            },
-            waitForApproval: true);
+        SetupPublishMcpFeatureCollectionMutation(waitForApproval: true);
+        SetupPublishMcpFeatureCollectionSubscription(
+            CreateMcpFeatureCollectionPublishWaitForApprovalEvent(),
+            CreateMcpFeatureCollectionPublishApprovedEvent(),
+            CreateMcpFeatureCollectionPublishOperationInProgressEvent(),
+            CreateMcpFeatureCollectionPublishSuccessEvent());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "mcp",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId,
-                "--wait-for-approval")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--mcp-feature-collection-id",
+            McpFeatureCollectionId,
+            "--wait-for-approval");
 
         // assert
         result.AssertSuccess(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'production'
+            Publishing new MCP feature collection version 'v1' to stage 'dev'
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
-            │   ├── Waiting for approval. Approve in Nitro to continue.
+            │   ├── 🕐 Waiting for approval. Approve in Nitro to continue.
             │   ├── Approved. Processing...
             │   ├── Processing...
             │   └── ✓ Published successfully.
-            └── ✓ Published new MCP feature collection version 'v1' to stage 'production'.
+            └── ✓ Published new MCP feature collection version 'v1' to stage 'dev'.
             """);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Subscription_FailedWithValidationError_ReturnsError_NonInteractive()
+    public async Task Subscription_FailedWithValidationError_ReturnsError()
     {
         // arrange
         var validationError = new Mock<IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Errors>(
@@ -1025,34 +570,26 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             .SetupGet(x => x.Collections)
             .Returns(Array.Empty<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections>());
 
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate[]
-            {
-                CreateOperationInProgress(),
-                CreatePublishFailed(validationError.Object)
-            });
+        SetupPublishMcpFeatureCollectionMutation();
+        SetupPublishMcpFeatureCollectionSubscription(
+            CreateMcpFeatureCollectionPublishOperationInProgressEvent(),
+            CreateMcpFeatureCollectionPublishFailedEvent(validationError.Object));
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "mcp",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--mcp-feature-collection-id",
+            McpFeatureCollectionId);
 
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'production'
+            Publishing new MCP feature collection version 'v1' to stage 'dev'
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
@@ -1062,406 +599,138 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            MCP Feature Collection publish failed.
+            MCP feature collection publish failed.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Subscription_FailedWithTimeoutError_ReturnsError_NonInteractive()
+    public async Task Subscription_FailedWithTimeoutError_ReturnsError()
     {
         // arrange
         var timeoutError = new PublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Errors_ProcessingTimeoutError(
             "ProcessingTimeoutError",
             "The operation timed out.");
 
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate[]
-            {
-                CreateOperationInProgress(),
-                CreatePublishFailed(timeoutError)
-            });
+        SetupPublishMcpFeatureCollectionMutation();
+        SetupPublishMcpFeatureCollectionSubscription(
+            CreateMcpFeatureCollectionPublishOperationInProgressEvent(),
+            CreateMcpFeatureCollectionPublishFailedEvent(timeoutError));
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "mcp",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--mcp-feature-collection-id",
+            McpFeatureCollectionId);
 
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'production'
+            Publishing new MCP feature collection version 'v1' to stage 'dev'
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
             │   ├── Processing...
             │   └── ✕ Processing failed.
+            │       └── The operation timed out.
             └── ✕ Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The operation timed out.
-            MCP Feature Collection publish failed.
+            MCP feature collection publish failed.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Subscription_FailedWithConcurrentOpError_ReturnsError_NonInteractive()
+    public async Task Subscription_FailedWithConcurrentOpError_ReturnsError()
     {
         // arrange
         var concurrentError = new PublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Errors_ConcurrentOperationError(
             "ConcurrentOperationError",
             "A concurrent operation is in progress.");
 
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate[]
-            {
-                CreateOperationInProgress(),
-                CreatePublishFailed(concurrentError)
-            });
+        SetupPublishMcpFeatureCollectionMutation();
+        SetupPublishMcpFeatureCollectionSubscription(
+            CreateMcpFeatureCollectionPublishOperationInProgressEvent(),
+            CreateMcpFeatureCollectionPublishFailedEvent(concurrentError));
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "mcp",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--mcp-feature-collection-id",
+            McpFeatureCollectionId);
 
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'production'
+            Publishing new MCP feature collection version 'v1' to stage 'dev'
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
             │   ├── Processing...
             │   └── ✕ Processing failed.
+            │       └── A concurrent operation is in progress.
             └── ✕ Failed to publish a new MCP feature collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            A concurrent operation is in progress.
-            MCP Feature Collection publish failed.
+            MCP feature collection publish failed.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task Subscription_InProgressOnly_StreamEnds_ReturnsError(InteractionMode mode)
+    public static TheoryData<IPublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors, string>
+        GetStartMcpFeatureCollectionPublishErrors()
     {
-        // arrange
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate[]
-            {
-                CreateOperationInProgress()
-            });
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mcp",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId)
-            .ExecuteAsync();
-
-        // assert
-        Assert.Empty(result.StdErr);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    // --- Helpers ---
-
-    private static IPublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection CreateSuccessPayload()
-    {
-        var payload = new Mock<IPublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors)
-            .Returns((IReadOnlyList<IPublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors>?)null);
-        payload.SetupGet(x => x.Id)
-            .Returns(DefaultRequestId);
-        return payload.Object;
-    }
-
-    private static IPublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection CreatePublishPayloadWithErrors(
-        params IPublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors[] errors)
-    {
-        var payload = new Mock<IPublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors).Returns(errors);
-        payload.SetupGet(x => x.Id).Returns((string?)null);
-        return payload.Object;
-    }
-
-    private static Mock<IMcpClient> CreatePublishSetup(
-        IPublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection payload,
-        bool force = false,
-        bool waitForApproval = false)
-    {
-        var client = new Mock<IMcpClient>(MockBehavior.Strict);
-        client.Setup(x => x.StartMcpFeatureCollectionPublishAsync(
-                DefaultMcpFeatureCollectionId,
-                DefaultStage,
-                DefaultTag,
-                force,
-                waitForApproval,
-                null,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(payload);
-        return client;
-    }
-
-    private static Mock<IMcpClient> CreatePublishSetupWithSubscription(
-        IPublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection mutationPayload,
-        IEnumerable<IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate> subscriptionEvents,
-        bool force = false,
-        bool waitForApproval = false)
-    {
-        var client = new Mock<IMcpClient>(MockBehavior.Strict);
-        client.Setup(x => x.StartMcpFeatureCollectionPublishAsync(
-                DefaultMcpFeatureCollectionId,
-                DefaultStage,
-                DefaultTag,
-                force,
-                waitForApproval,
-                null,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(mutationPayload);
-
-        client.Setup(x => x.SubscribeToMcpFeatureCollectionPublishAsync(
-                DefaultRequestId,
-                It.IsAny<CancellationToken>()))
-            .Returns((string _, CancellationToken ct) =>
-                ToAsyncEnumerable(subscriptionEvents, ct));
-
-        return client;
-    }
-
-    private static Mock<IMcpClient> CreatePublishExceptionClient(Exception ex)
-    {
-        var client = new Mock<IMcpClient>(MockBehavior.Strict);
-        client.Setup(x => x.StartMcpFeatureCollectionPublishAsync(
-                DefaultMcpFeatureCollectionId,
-                DefaultStage,
-                DefaultTag,
-                false,
-                false,
-                null,
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(ex);
-        return client;
-    }
-
-    private static IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate CreateOperationInProgress()
-    {
-        return new PublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_OperationInProgress(
-            "OperationInProgress",
-            ProcessingState.Processing);
-    }
-
-    private static IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate CreatePublishSuccess()
-    {
-        return new PublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_McpFeatureCollectionVersionPublishSuccess(
-            "McpFeatureCollectionVersionPublishSuccess",
-            ProcessingState.Success);
-    }
-
-    private static IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate CreatePublishFailed(
-        params IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Errors[] errors)
-    {
-        return new PublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_McpFeatureCollectionVersionPublishFailed(
-            "McpFeatureCollectionVersionPublishFailed",
-            ProcessingState.Failed,
-            errors);
-    }
-
-    private static IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate CreateQueuedEvent(
-        int queuePosition)
-    {
-        return new PublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_ProcessingTaskIsQueued(
-            "ProcessingTaskIsQueued",
-            "ProcessingTaskIsQueued",
-            queuePosition);
-    }
-
-    private static IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate CreateReadyEvent()
-    {
-        return new PublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_ProcessingTaskIsReady(
-            "ProcessingTaskIsReady",
-            "ProcessingTaskIsReady");
-    }
-
-    private static IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate CreateApprovedEvent()
-    {
-        return new PublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_ProcessingTaskApproved(
-            "ProcessingTaskApproved",
-            ProcessingState.Approved);
-    }
-
-    public static IEnumerable<object[]> MutationErrorCases()
-    {
-        var modes = new[] { InteractionMode.Interactive, InteractionMode.JsonOutput };
-
-        foreach (var mode in modes)
-        {
-            yield return
-            [
-                mode,
-                new PublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_UnauthorizedOperation(
-                    "UnauthorizedOperation",
-                    "Not authorized to publish."),
-                """
-                Not authorized to publish.
-                """
-            ];
-
-            yield return
-            [
-                mode,
-                new PublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_StageNotFoundError(
-                    "StageNotFoundError",
-                    "Stage not found.",
-                    DefaultStage),
-                """
-                Stage not found.
-                """
-            ];
-
-            yield return
-            [
-                mode,
-                new PublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_McpFeatureCollectionNotFoundError(
-                    DefaultMcpFeatureCollectionId,
-                    "MCP Feature Collection not found."),
-                """
-                MCP Feature Collection not found.
-                """
-            ];
-
-            yield return
-            [
-                mode,
-                new PublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_McpFeatureCollectionVersionNotFoundError(
-                    DefaultTag,
-                    "MCP Feature Collection version not found.",
-                    DefaultMcpFeatureCollectionId),
-                """
-                MCP Feature Collection version not found.
-                """
-            ];
-
-            var unexpectedError = new Mock<IPublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors>();
-            unexpectedError
-                .As<IError>()
-                .SetupGet(x => x.Message)
-                .Returns("Something went wrong.");
-
-            yield return
-            [
-                mode,
-                unexpectedError.Object,
-                """
-                Unexpected mutation error: Something went wrong.
-                """
-            ];
-        }
-    }
-
-    public static IEnumerable<object[]> MutationErrorCasesNonInteractive()
-    {
-        yield return
-        [
-            new PublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_UnauthorizedOperation(
-                "UnauthorizedOperation",
-                "Not authorized to publish."),
-            """
-            Not authorized to publish.
-            """
-        ];
-
-        yield return
-        [
-            new PublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_StageNotFoundError(
-                "StageNotFoundError",
-                "Stage not found.",
-                DefaultStage),
-            """
-            Stage not found.
-            """
-        ];
-
-        yield return
-        [
-            new PublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_McpFeatureCollectionNotFoundError(
-                DefaultMcpFeatureCollectionId,
-                "MCP Feature Collection not found."),
-            """
-            MCP Feature Collection not found.
-            """
-        ];
-
-        yield return
-        [
-            new PublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_McpFeatureCollectionVersionNotFoundError(
-                DefaultTag,
-                "MCP Feature Collection version not found.",
-                DefaultMcpFeatureCollectionId),
-            """
-            MCP Feature Collection version not found.
-            """
-        ];
-
         var unexpectedError = new Mock<IPublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors>();
         unexpectedError
             .As<IError>()
             .SetupGet(x => x.Message)
             .Returns("Something went wrong.");
 
-        yield return
-        [
-            unexpectedError.Object,
-            """
-            Unexpected mutation error: Something went wrong.
-            """
-        ];
+        return new()
+        {
+            {
+                new PublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_UnauthorizedOperation(
+                    "UnauthorizedOperation",
+                    "Not authorized to publish."),
+                "Not authorized to publish."
+            },
+            {
+                new PublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_StageNotFoundError(
+                    "StageNotFoundError",
+                    "Stage not found.",
+                    Stage),
+                "Stage not found."
+            },
+            {
+                new PublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_McpFeatureCollectionNotFoundError(
+                    McpFeatureCollectionId,
+                    "MCP Feature Collection not found."),
+                "MCP Feature Collection not found."
+            },
+            {
+                new PublishMcpFeatureCollectionCommandMutation_PublishMcpFeatureCollection_Errors_McpFeatureCollectionVersionNotFoundError(
+                    Tag,
+                    "MCP Feature Collection version not found.",
+                    McpFeatureCollectionId),
+                "MCP Feature Collection version not found."
+            },
+            {
+                unexpectedError.Object,
+                "Unexpected mutation error: Something went wrong."
+            }
+        };
     }
 }

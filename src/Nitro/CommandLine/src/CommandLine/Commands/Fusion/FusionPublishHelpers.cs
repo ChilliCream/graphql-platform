@@ -87,23 +87,24 @@ internal static class FusionPublishHelpers
                 // TODO: Properly test this
                 case IFusionConfigurationPublishingFailed v:
                     await subscriptionCancellation.CancelAsync();
-                    await activity.FailAllAsync();
+
+                    var errorTree = new Tree("");
 
                     foreach (var error in v.Errors)
                     {
                         switch (error)
                         {
                             case IInvalidGraphQLSchemaError e:
-                                console.PrintGraphQLSchemaErrors(e);
+                                errorTree.AddGraphQLSchemaErrors(e);
                                 break;
 
                             default:
-                                console.Error.WriteErrorLine(error.Message);
+                                errorTree.AddErrorMessage(error.Message);
                                 break;
                         }
                     }
 
-                    console.Error.WriteErrorLine("Your request has failed.");
+                    activity.Fail(errorTree);
                     throw Exit("Your request has failed.");
 
                 case IFusionConfigurationPublishingSuccess:
@@ -209,23 +210,23 @@ internal static class FusionPublishHelpers
                     break;
 
                 case IFusionConfigurationPublishingFailed v:
-                    await activity.FailAllAsync();
+                    var publishErrorTree = new Tree("");
 
-                    // TODO: Improve this
                     foreach (var error in v.Errors)
                     {
                         switch (error)
                         {
                             case IInvalidGraphQLSchemaError e:
-                                console.PrintGraphQLSchemaErrors(e);
+                                publishErrorTree.AddGraphQLSchemaErrors(e);
                                 break;
 
                             default:
-                                console.Error.WriteErrorLine(error.Message);
+                                publishErrorTree.AddErrorMessage(error.Message);
                                 break;
                         }
                     }
 
+                    activity.Fail(publishErrorTree);
                     throw new ExitException("Failed to publish the new configuration.");
 
                 case IFusionConfigurationPublishingSuccess:
@@ -371,7 +372,7 @@ internal static class FusionPublishHelpers
                                 errorTree.AddMcpFeatureCollectionValidationErrors(e);
                                 break;
                             case IUnexpectedProcessingError e:
-                                errorTree.AddNode($"[red]{e.Message.EscapeMarkup()}[/]");
+                                errorTree.AddErrorMessage(e.Message);
                                 break;
                         }
                     }

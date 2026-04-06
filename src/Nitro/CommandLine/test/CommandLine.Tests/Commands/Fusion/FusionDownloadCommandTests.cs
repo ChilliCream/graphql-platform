@@ -4,7 +4,6 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
 // TODO: Assert file has been downloaded
 // TODO: Test extension and version mismatch
-// Test version parsing
 public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : FusionCommandTestBase(fixture)
 {
     [Fact]
@@ -75,7 +74,7 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : Fu
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task NoOptions_ReturnsError(InteractionMode mode)
+    public async Task MissingRequiredOptions_ReturnsError(InteractionMode mode)
     {
         // arrange
         SetupInteractionMode(mode);
@@ -196,94 +195,4 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : Fu
             The API with the given ID does not exist or does not have a download URL.
             """);
     }
-
-    // [Theory]
-    // [InlineData(InteractionMode.Interactive)]
-    // [InlineData(InteractionMode.NonInteractive)]
-    // public async Task ExistingFileDeleted_BeforeWrite(InteractionMode mode)
-    // {
-    //     // arrange
-    //     var downloadStream = new MemoryStream("archive-content"u8.ToArray());
-    //     var fileStream = new MemoryStream();
-    //
-    //     var client = new Mock<IFusionConfigurationClient>(MockBehavior.Strict);
-    //     client.Setup(x => x.DownloadLatestFusionArchiveAsync(
-    //             "api-1",
-    //             "prod",
-    //             It.IsAny<string>(),
-    //             It.IsAny<CancellationToken>()))
-    //         .ReturnsAsync(downloadStream);
-    //
-    //     var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
-    //     fileSystem.Setup(x => x.FileExists("/tmp/gateway.far"))
-    //         .Returns(true);
-    //     fileSystem.Setup(x => x.DeleteFile("/tmp/gateway.far"));
-    //     fileSystem.Setup(x => x.CreateFile("/tmp/gateway.far"))
-    //         .Returns(fileStream);
-    //
-    //     // act
-    //     var result = await new CommandBuilder(fixture)
-    //         .AddService(client.Object)
-    //         .AddService(fileSystem.Object)
-    //         .AddApiKey()
-    //         .AddInteractionMode(mode)
-    //         .AddArguments(
-    //             "fusion",
-    //             "download",
-    //             "--api-id",
-    //             "api-1",
-    //             "--stage",
-    //             "prod",
-    //             "--output-file",
-    //             "/tmp/gateway.far")
-    //         .ExecuteAsync();
-    //
-    //     // assert
-    //     Assert.Equal(0, result.ExitCode);
-    //     Assert.Empty(result.StdErr);
-    //
-    //     client.VerifyAll();
-    //     fileSystem.VerifyAll();
-    // }
-
-    // [Theory]
-    // [InlineData(InteractionMode.Interactive)]
-    // [InlineData(InteractionMode.NonInteractive)]
-    // [InlineData(InteractionMode.JsonOutput)]
-    // public async Task StreamIsNull_ReturnsError(InteractionMode mode)
-    // {
-    //     // arrange
-    //     var client = new Mock<IFusionConfigurationClient>(MockBehavior.Strict);
-    //     client.Setup(x => x.DownloadLatestFusionArchiveAsync(
-    //             "api-1",
-    //             "prod",
-    //             It.IsAny<string>(),
-    //             It.IsAny<CancellationToken>()))
-    //         .ReturnsAsync((Stream?)null);
-    //
-    //     // act
-    //     var result = await new CommandBuilder(fixture)
-    //         .AddService(client.Object)
-    //         .AddApiKey()
-    //         .AddInteractionMode(mode)
-    //         .AddArguments(
-    //             "fusion",
-    //             "download",
-    //             "--api-id",
-    //             "api-1",
-    //             "--stage",
-    //             "prod",
-    //             "--output-file",
-    //             "/tmp/gateway.far")
-    //         .ExecuteAsync();
-    //
-    //     // assert
-    //     result.StdErr.MatchInlineSnapshot(
-    //         """
-    //         The API with the given ID does not exist or does not have a download URL.
-    //         """);
-    //     Assert.Equal(1, result.ExitCode);
-    //
-    //     client.VerifyAll();
-    // }
 }

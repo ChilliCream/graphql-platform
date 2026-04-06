@@ -160,26 +160,6 @@ internal static class NitroConsoleExtensions
             .ShowAsync(console, cancellationToken);
     }
 
-    // TODO: Get rid of these
-
-    internal static void PrintSchemaVersionChangeViolations(
-        this INitroConsole console,
-        ISchemaVersionChangeViolationError error)
-    {
-        var tree = new Tree("");
-        tree.AddSchemaChanges(error.Changes.OfType<ISchemaChange>());
-        console.Write(tree);
-    }
-
-    internal static void PrintSchemaChangeViolations(
-        this INitroConsole console,
-        ISchemaChangeViolationError error)
-    {
-        var tree = new Tree("");
-        tree.AddSchemaChanges(error.Changes.OfType<ISchemaChange>());
-        console.Write(tree);
-    }
-
     // TODO: This needs to be used
     internal static void PrintStagePublishedDependencies(
         this INitroConsole console,
@@ -205,41 +185,6 @@ internal static class NitroConsoleExtensions
                     $"The client {publishedClient.Client.Name.AsHighlight()} in version {tags.AsHighlight()} is still published to {stage.Name.AsHighlight()}");
             }
         }
-    }
-
-    internal static void PrintPersistedQueryValidationErrors(this INitroConsole console, IPersistedQueryValidationError error)
-    {
-        var node = new Tree("");
-        node.AddPersistedQueryValidationErrors(error);
-        console.Write(node);
-    }
-
-    internal static void PrintOpenApiCollectionValidationErrors(this INitroConsole console, IOpenApiCollectionValidationError error)
-    {
-        var tree = new Tree("");
-        tree.AddOpenApiCollectionValidationErrors(error);
-        console.Write(tree);
-    }
-
-    internal static void PrintMcpFeatureCollectionValidationErrors(this INitroConsole console, IMcpFeatureCollectionValidationError error)
-    {
-        var tree = new Tree("");
-        tree.AddMcpFeatureCollectionValidationErrors(error);
-        console.Write(tree);
-    }
-
-    internal static void PrintGraphQLSchemaErrors(
-        this INitroConsole console,
-        IInvalidGraphQLSchemaError error)
-    {
-        console.WriteLine(
-            "The schema you are trying to publish is invalid. Please fix the following errors:");
-
-        console.WriteLine(error.Message);
-
-        var node = new Tree("");
-        node.AddGraphQLSchemaErrors(error);
-        console.Write(node);
     }
 
     public static void Success(this INitroConsole console, string message)

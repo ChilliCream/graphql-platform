@@ -1,22 +1,15 @@
-using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Apis;
-using ChilliCream.Nitro.Client.OpenApi;
-using Moq;
-
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.OpenApi;
 
-public sealed class ListOpenApiCollectionCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
+public sealed class ListOpenApiCollectionCommandTests(NitroCommandFixture fixture) : OpenApiCommandTestBase(fixture)
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "openapi",
-                "list",
-                "--help")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "list",
+            "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -44,12 +37,12 @@ public sealed class ListOpenApiCollectionCommandTests(NitroCommandFixture fixtur
     public async Task NoApiKey_NoApiId_ReturnsError_Interactive()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "openapi",
-                "list")
-            .ExecuteAsync();
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupNoAuthentication();
+
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "list");
 
         // assert
         result.AssertError(
@@ -64,85 +57,50 @@ public sealed class ListOpenApiCollectionCommandTests(NitroCommandFixture fixtur
     public async Task MissingApiId_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var openApiClient = new Mock<IOpenApiClient>(MockBehavior.Strict);
+        SetupInteractionMode(mode);
 
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(openApiClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "openapi",
-                "list")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "list");
 
         // assert
         result.AssertError(
             """
             The '--api-id' option is required in non-interactive mode.
             """);
-
-        apisClient.VerifyAll();
-        openApiClient.VerifyAll();
     }
 
     [Fact]
     public async Task NoWorkspaceInSession_And_NoApiId_ReturnsError_Interactive()
     {
         // arrange & act
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var openApiClient = new Mock<IOpenApiClient>(MockBehavior.Strict);
+        SetupSession();
+        SetupInteractionMode(InteractionMode.Interactive);
 
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(openApiClient.Object)
-            .AddApiKey()
-            .AddSession()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "openapi",
-                "list")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "list");
 
         // assert
         result.AssertError(
             """
             You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually specify the '--workspace-id' option (if available).
             """);
-
-        apisClient.VerifyAll();
-        openApiClient.VerifyAll();
     }
 
     [Fact]
     public async Task WithApiId_ReturnsSuccess_Interactive()
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var openApiClient = new Mock<IOpenApiClient>(MockBehavior.Strict);
-        openApiClient.Setup(x => x.ListOpenApiCollectionsAsync(
-                "api-1",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(OpenApiCommandTestHelper.CreateListPage(
-                endCursor: null,
-                hasNextPage: false,
-                ("openapi-1", "auth-tools"),
-                ("openapi-2", "data-tools")));
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupListOpenApiCollectionsQuery(
+            items: [("openapi-1", "auth-tools"), ("openapi-2", "data-tools")]);
 
-        var command = new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(openApiClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "openapi",
-                "list",
-                "--api-id",
-                "api-1")
-            .Start();
+        var command = StartInteractiveCommand(
+            "openapi",
+            "list",
+            "--api-id",
+            ApiId);
 
         // act
         command.SelectOption(0);
@@ -151,9 +109,6 @@ public sealed class ListOpenApiCollectionCommandTests(NitroCommandFixture fixtur
         // assert
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
-
-        apisClient.VerifyAll();
-        openApiClient.VerifyAll();
     }
 
     [Theory]
@@ -162,31 +117,16 @@ public sealed class ListOpenApiCollectionCommandTests(NitroCommandFixture fixtur
     public async Task WithApiId_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var openApiClient = new Mock<IOpenApiClient>(MockBehavior.Strict);
-        openApiClient.Setup(x => x.ListOpenApiCollectionsAsync(
-                "api-1",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(OpenApiCommandTestHelper.CreateListPage(
-                endCursor: null,
-                hasNextPage: false,
-                ("openapi-1", "auth-tools"),
-                ("openapi-2", "data-tools")));
+        SetupInteractionMode(mode);
+        SetupListOpenApiCollectionsQuery(
+            items: [("openapi-1", "auth-tools"), ("openapi-2", "data-tools")]);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(openApiClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "openapi",
-                "list",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "list",
+            "--api-id",
+            ApiId);
 
         // assert
         result.AssertSuccess(
@@ -205,35 +145,20 @@ public sealed class ListOpenApiCollectionCommandTests(NitroCommandFixture fixtur
               "cursor": null
             }
             """);
-
-        apisClient.VerifyAll();
-        openApiClient.VerifyAll();
     }
 
     [Fact]
     public async Task WithApiId_NoData_ReturnsSuccess_Interactive()
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var openApiClient = new Mock<IOpenApiClient>(MockBehavior.Strict);
-        openApiClient.Setup(x => x.ListOpenApiCollectionsAsync(
-                "api-1",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(OpenApiCommandTestHelper.CreateListPage());
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupListOpenApiCollectionsQuery();
 
-        var command = new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(openApiClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "openapi",
-                "list",
-                "--api-id",
-                "api-1")
-            .Start();
+        var command = StartInteractiveCommand(
+            "openapi",
+            "list",
+            "--api-id",
+            ApiId);
 
         // act
         command.SelectOption(0);
@@ -242,9 +167,6 @@ public sealed class ListOpenApiCollectionCommandTests(NitroCommandFixture fixtur
         // assert
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
-
-        apisClient.VerifyAll();
-        openApiClient.VerifyAll();
     }
 
     [Theory]
@@ -253,27 +175,15 @@ public sealed class ListOpenApiCollectionCommandTests(NitroCommandFixture fixtur
     public async Task WithApiId_NoData_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var openApiClient = new Mock<IOpenApiClient>(MockBehavior.Strict);
-        openApiClient.Setup(x => x.ListOpenApiCollectionsAsync(
-                "api-1",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(OpenApiCommandTestHelper.CreateListPage());
+        SetupInteractionMode(mode);
+        SetupListOpenApiCollectionsQuery();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(openApiClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "openapi",
-                "list",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "list",
+            "--api-id",
+            ApiId);
 
         // assert
         result.AssertSuccess(
@@ -283,9 +193,6 @@ public sealed class ListOpenApiCollectionCommandTests(NitroCommandFixture fixtur
               "cursor": null
             }
             """);
-
-        apisClient.VerifyAll();
-        openApiClient.VerifyAll();
     }
 
     [Theory]
@@ -294,32 +201,19 @@ public sealed class ListOpenApiCollectionCommandTests(NitroCommandFixture fixtur
     public async Task WithCursor_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var openApiClient = new Mock<IOpenApiClient>(MockBehavior.Strict);
-        openApiClient.Setup(x => x.ListOpenApiCollectionsAsync(
-                "api-1",
-                "cursor-1",
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(OpenApiCommandTestHelper.CreateListPage(
-                endCursor: null,
-                hasNextPage: false,
-                ("openapi-1", "auth-tools")));
+        SetupInteractionMode(mode);
+        SetupListOpenApiCollectionsQuery(
+            cursor: "cursor-1",
+            items: [("openapi-1", "auth-tools")]);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(openApiClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "openapi",
-                "list",
-                "--api-id",
-                "api-1",
-                "--cursor",
-                "cursor-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "list",
+            "--api-id",
+            ApiId,
+            "--cursor",
+            "cursor-1");
 
         // assert
         result.AssertSuccess(
@@ -334,9 +228,6 @@ public sealed class ListOpenApiCollectionCommandTests(NitroCommandFixture fixtur
               "cursor": null
             }
             """);
-
-        apisClient.VerifyAll();
-        openApiClient.VerifyAll();
     }
 
     [Theory]
@@ -345,31 +236,18 @@ public sealed class ListOpenApiCollectionCommandTests(NitroCommandFixture fixtur
     public async Task WithCursorPagination_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var openApiClient = new Mock<IOpenApiClient>(MockBehavior.Strict);
-        openApiClient.Setup(x => x.ListOpenApiCollectionsAsync(
-                "api-1",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(OpenApiCommandTestHelper.CreateListPage(
-                endCursor: "cursor-2",
-                hasNextPage: true,
-                ("openapi-1", "auth-tools"),
-                ("openapi-2", "data-tools")));
+        SetupInteractionMode(mode);
+        SetupListOpenApiCollectionsQuery(
+            endCursor: "cursor-2",
+            hasNextPage: true,
+            items: [("openapi-1", "auth-tools"), ("openapi-2", "data-tools")]);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(openApiClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "openapi",
-                "list",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "list",
+            "--api-id",
+            ApiId);
 
         // assert
         result.AssertSuccess(
@@ -388,149 +266,25 @@ public sealed class ListOpenApiCollectionCommandTests(NitroCommandFixture fixtur
               "cursor": "cursor-2"
             }
             """);
-
-        apisClient.VerifyAll();
-        openApiClient.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ListOpenApiCollectionsThrows_ReturnsError()
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var openApiClient = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"), "api-1", null);
+        SetupListOpenApiCollectionsQueryException();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(openApiClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "openapi",
-                "list",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "list",
+            "--api-id",
+            ApiId);
 
         // assert
         result.AssertError(
             """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
+            There was an unexpected error: Something unexpected happened.
             """);
-
-        apisClient.VerifyAll();
-        openApiClient.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var openApiClient = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"), "api-1", null);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(openApiClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "openapi",
-                "list",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        openApiClient.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var openApiClient = CreateListExceptionClient(new NitroClientAuthorizationException(), "api-1", null);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(openApiClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "openapi",
-                "list",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-
-        apisClient.VerifyAll();
-        openApiClient.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var openApiClient = CreateListExceptionClient(new NitroClientAuthorizationException(), "api-1", null);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(openApiClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "openapi",
-                "list",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        openApiClient.VerifyAll();
-    }
-
-    private static Mock<IOpenApiClient> CreateListExceptionClient(
-        Exception ex,
-        string apiId,
-        string? cursor)
-    {
-        var client = new Mock<IOpenApiClient>(MockBehavior.Strict);
-        client.Setup(x => x.ListOpenApiCollectionsAsync(
-                apiId,
-                cursor,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(ex);
-        return client;
     }
 }

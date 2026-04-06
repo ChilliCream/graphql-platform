@@ -136,32 +136,32 @@ internal sealed class PublishClientCommand : Command
                             break;
 
                         case IClientVersionPublishFailed { Errors: var errors }:
-                            await child.FailAllAsync();
+                            var errorTree = new Tree("");
 
                             foreach (var error in errors)
                             {
                                 switch (error)
                                 {
-                                    case IConcurrentOperationError e:
-                                        console.Error.WriteErrorLine(e.Message);
-                                        break;
                                     case IPersistedQueryValidationError e:
-                                        console.PrintPersistedQueryValidationErrors(e);
+                                        errorTree.AddPersistedQueryValidationErrors(e);
+                                        break;
+                                    case IConcurrentOperationError e:
+                                        errorTree.AddErrorMessage(e.Message);
                                         break;
                                     case IProcessingTimeoutError e:
-                                        console.Error.WriteErrorLine(e.Message);
+                                        errorTree.AddErrorMessage(e.Message);
                                         break;
                                     case IUnexpectedProcessingError e:
-                                        console.Error.WriteErrorLine(e.Message);
-                                        break;
-                                    case IError e:
-                                        console.Error.WriteErrorLine("Unexpected error: " + e.Message);
+                                        errorTree.AddErrorMessage(e.Message);
                                         break;
                                 }
                             }
 
-                            console.Error.WriteErrorLine("Client publish failed.");
-                            return ExitCodes.Error;
+                            child.Fail(errorTree);
+
+                            await child.FailAllAsync();
+
+                            throw new ExitException("Client publish failed.");
 
                         case IClientVersionPublishSuccess:
                             child.Success("Published successfully.");
@@ -180,19 +180,23 @@ internal sealed class PublishClientCommand : Command
                         case IWaitForApproval waitForApprovalEvent:
                             if (waitForApprovalEvent.Deployment is IClientDeployment deployment)
                             {
+                                var approvalErrorTree = new Tree("");
+
                                 foreach (var error in deployment.Errors)
                                 {
                                     switch (error)
                                     {
                                         case IPersistedQueryValidationError e:
-                                            console.PrintPersistedQueryValidationErrors(e);
+                                            approvalErrorTree.AddPersistedQueryValidationErrors(e);
                                             break;
                                     }
                                 }
+
+                                child.Fail(approvalErrorTree);
                             }
 
                             child.Update(
-                                "Your request is waiting for approval. Check Nitro to approve the request.");
+                                "Your request is waiting for approval. Check Nitro to approve the request.", ActivityUpdateKind.Waiting);
                             break;
 
                         case IProcessingTaskApproved:

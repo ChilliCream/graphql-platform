@@ -1,28 +1,19 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.OpenApi;
-using ChilliCream.Nitro.CommandLine.Helpers;
 using Moq;
-using static ChilliCream.Nitro.CommandLine.Tests.TestHelpers;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.OpenApi;
 
-public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
+public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fixture) : OpenApiCommandTestBase(fixture)
 {
-    private const string DefaultOpenApiCollectionId = "oa-1";
-    private const string DefaultStage = "production";
-    private const string DefaultTag = "v1";
-    private const string DefaultRequestId = "request-1";
-
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "openapi",
-                "publish",
-                "--help")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "publish",
+            "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -59,21 +50,19 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
     public async Task ForceAndWaitForApproval_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "openapi",
-                "publish",
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId,
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--force",
-                "--wait-for-approval")
-            .ExecuteAsync();
+        SetupInteractionMode(mode);
+
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "publish",
+            "--openapi-collection-id",
+            OpenApiCollectionId,
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--force",
+            "--wait-for-approval");
 
         // assert
         result.StdErr.MatchInlineSnapshot(
@@ -90,18 +79,18 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "openapi",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId)
-            .ExecuteAsync();
+        SetupInteractionMode(mode);
+        SetupNoAuthentication();
+
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--openapi-collection-id",
+            OpenApiCollectionId);
 
         // assert
         result.AssertError(
@@ -111,261 +100,90 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
     }
 
     [Fact]
-    public async Task ClientThrowsException_ReturnsError_NonInteractive()
+    public async Task PublishOpenApiCollectionThrows_ReturnsError()
     {
         // arrange
-        var client = CreatePublishExceptionClient(
-            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
+        SetupPublishOpenApiCollectionMutationException();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "openapi",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--openapi-collection-id",
+            OpenApiCollectionId);
 
         // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error: Something unexpected happened.
+            """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new OpenAPI collection version 'v1' to stage 'production'
+            Publishing new OpenAPI collection version 'v1' to stage 'dev'
             ├── Starting publish request
             │   └── ✕ Failed to start publish request.
             └── ✕ Failed to publish a new OpenAPI collection version.
             """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var client = CreatePublishExceptionClient(
-            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "openapi",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId)
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var client = CreatePublishExceptionClient(
-            new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "openapi",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId)
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Publishing new OpenAPI collection version 'v1' to stage 'production'
-            ├── Starting publish request
-            │   └── ✕ Failed to start publish request.
-            └── ✕ Failed to publish a new OpenAPI collection version.
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var client = CreatePublishExceptionClient(
-            new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "openapi",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId)
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [MemberData(nameof(MutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_NonInteractive(
+    [MemberData(nameof(GetPublishOpenApiCollectionErrors))]
+    public async Task PublishOpenApiCollectionHasErrors_ReturnsError(
         IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors mutationError,
         string expectedStdErr)
     {
         // arrange
-        var client = CreatePublishSetup(
-            CreatePublishPayloadWithErrors(mutationError));
+        SetupPublishOpenApiCollectionMutation(errors: mutationError);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "openapi",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--openapi-collection-id",
+            OpenApiCollectionId);
 
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new OpenAPI collection version 'v1' to stage 'production'
+            Publishing new OpenAPI collection version 'v1' to stage 'dev'
             ├── Starting publish request
             │   └── ✕ Failed to start publish request.
             └── ✕ Failed to publish a new OpenAPI collection version.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [MemberData(nameof(MutationErrorCasesWithModes))]
-    public async Task MutationReturnsTypedError_ReturnsError(
-        IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors mutationError,
-        string expectedStdErr,
-        InteractionMode mode)
-    {
-        // arrange
-        var client = CreatePublishSetup(
-            CreatePublishPayloadWithErrors(mutationError));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "openapi",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId)
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(expectedStdErr);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task MutationReturnsNullRequestId_ReturnsError_NonInteractive()
+    public async Task PublishOpenApiCollectionReturnsNullRequestId_ReturnsError()
     {
         // arrange
-        var payload = new Mock<IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors)
-            .Returns((IReadOnlyList<IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors>?)null);
-        payload.SetupGet(x => x.Id)
-            .Returns((string?)null);
-
-        var client = CreatePublishSetup(payload.Object);
+        SetupPublishOpenApiCollectionMutationNullRequestId();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "openapi",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--openapi-collection-id",
+            OpenApiCollectionId);
 
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new OpenAPI collection version 'v1' to stage 'production'
+            Publishing new OpenAPI collection version 'v1' to stage 'dev'
             ├── Starting publish request
             │   └── ✕ Failed to start publish request.
             └── ✕ Failed to publish a new OpenAPI collection version.
@@ -375,166 +193,96 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             The GraphQL mutation completed without errors, but the server did not return the expected data.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task MutationReturnsNullRequestId_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var payload = new Mock<IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors)
-            .Returns((IReadOnlyList<IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors>?)null);
-        payload.SetupGet(x => x.Id)
-            .Returns((string?)null);
-
-        var client = CreatePublishSetup(payload.Object);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "openapi",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId)
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The GraphQL mutation completed without errors, but the server did not return the expected data.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
     public async Task Subscription_Success_ReturnsSuccess_NonInteractive()
     {
         // arrange
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate[]
-            {
-                CreateOperationInProgress(),
-                CreatePublishSuccess()
-            });
+        SetupPublishOpenApiCollectionMutation();
+        SetupPublishOpenApiCollectionSubscription(
+            CreateOpenApiCollectionPublishOperationInProgressEvent(),
+            CreateOpenApiCollectionPublishSuccessEvent());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "openapi",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--openapi-collection-id",
+            OpenApiCollectionId);
 
         // assert
         result.AssertSuccess(
             """
-            Publishing new OpenAPI collection version 'v1' to stage 'production'
+            Publishing new OpenAPI collection version 'v1' to stage 'dev'
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
             │   ├── Processing...
             │   └── ✓ Published successfully.
-            └── ✓ Published new OpenAPI collection version 'v1' to stage 'production'.
+            └── ✓ Published new OpenAPI collection version 'v1' to stage 'dev'.
             """);
-
-        client.VerifyAll();
     }
 
     [Fact]
     public async Task Subscription_Success_ReturnsSuccess_Interactive()
     {
         // arrange
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate[]
-            {
-                CreateOperationInProgress(),
-                CreatePublishSuccess()
-            });
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupPublishOpenApiCollectionMutation();
+        SetupPublishOpenApiCollectionSubscription(
+            CreateOpenApiCollectionPublishOperationInProgressEvent(),
+            CreateOpenApiCollectionPublishSuccessEvent());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "openapi",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--openapi-collection-id",
+            OpenApiCollectionId);
 
         // assert
         result.AssertSuccess();
-
-        client.VerifyAll();
     }
 
     [Fact]
     public async Task Subscription_Success_ReturnsSuccess_JsonOutput()
     {
         // arrange
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate[]
-            {
-                CreateOperationInProgress(),
-                CreatePublishSuccess()
-            });
+        SetupInteractionMode(InteractionMode.JsonOutput);
+        SetupPublishOpenApiCollectionMutation();
+        SetupPublishOpenApiCollectionSubscription(
+            CreateOpenApiCollectionPublishOperationInProgressEvent(),
+            CreateOpenApiCollectionPublishSuccessEvent());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "openapi",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--openapi-collection-id",
+            OpenApiCollectionId);
 
         // assert
         result.AssertSuccess(
             """
             {}
             """);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Subscription_FailedWithSimpleError_ReturnsError_NonInteractive()
+    public async Task Subscription_FailedWithSimpleError_ReturnsError()
     {
         // arrange
         var errorMock = new Mock<IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Errors>(
@@ -543,129 +291,64 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             .SetupGet(x => x.Message)
             .Returns("Something went wrong during publish.");
 
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate[]
-            {
-                CreateOperationInProgress(),
-                CreatePublishFailed(errorMock.Object)
-            });
+        SetupPublishOpenApiCollectionMutation();
+        SetupPublishOpenApiCollectionSubscription(
+            CreateOpenApiCollectionPublishOperationInProgressEvent(),
+            CreateOpenApiCollectionPublishFailedEvent(errorMock.Object));
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "openapi",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--openapi-collection-id",
+            OpenApiCollectionId);
 
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new OpenAPI collection version 'v1' to stage 'production'
+            Publishing new OpenAPI collection version 'v1' to stage 'dev'
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
             │   ├── Processing...
             │   └── ✕ Processing failed.
+            │       └── Something went wrong during publish.
             └── ✕ Failed to publish a new OpenAPI collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Something went wrong during publish.
             OpenAPI collection publish failed.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task Subscription_FailedWithSimpleError_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var errorMock = new Mock<IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Errors>(
-            MockBehavior.Strict);
-        errorMock.As<IUnexpectedProcessingError>()
-            .SetupGet(x => x.Message)
-            .Returns("Something went wrong during publish.");
-
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate[]
-            {
-                CreateOperationInProgress(),
-                CreatePublishFailed(errorMock.Object)
-            });
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "openapi",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId)
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Something went wrong during publish.
-            OpenAPI collection publish failed.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Subscription_InProgressOnly_StreamEnds_ReturnsError_NonInteractive()
+    public async Task Subscription_InProgressOnly_StreamEnds_ReturnsError()
     {
         // arrange
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate[]
-            {
-                CreateOperationInProgress()
-            });
+        SetupPublishOpenApiCollectionMutation();
+        SetupPublishOpenApiCollectionSubscription(
+            CreateOpenApiCollectionPublishOperationInProgressEvent());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "openapi",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--openapi-collection-id",
+            OpenApiCollectionId);
 
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new OpenAPI collection version 'v1' to stage 'production'
+            Publishing new OpenAPI collection version 'v1' to stage 'dev'
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
@@ -675,233 +358,177 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Subscription_QueuePosition_UpdatesActivity_NonInteractive()
+    public async Task Subscription_QueuePosition_UpdatesActivity()
     {
         // arrange
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate[]
-            {
-                CreateQueuedEvent(3),
-                CreateOperationInProgress(),
-                CreatePublishSuccess()
-            });
+        SetupPublishOpenApiCollectionMutation();
+        SetupPublishOpenApiCollectionSubscription(
+            CreateOpenApiCollectionPublishQueuedEvent(3),
+            CreateOpenApiCollectionPublishOperationInProgressEvent(),
+            CreateOpenApiCollectionPublishSuccessEvent());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "openapi",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--openapi-collection-id",
+            OpenApiCollectionId);
 
         // assert
         result.AssertSuccess(
             """
-            Publishing new OpenAPI collection version 'v1' to stage 'production'
+            Publishing new OpenAPI collection version 'v1' to stage 'dev'
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
             │   ├── Queued at position 3.
             │   ├── Processing...
             │   └── ✓ Published successfully.
-            └── ✓ Published new OpenAPI collection version 'v1' to stage 'production'.
+            └── ✓ Published new OpenAPI collection version 'v1' to stage 'dev'.
             """);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Subscription_ReadyState_PrintsSuccess_NonInteractive()
+    public async Task Subscription_ReadyState_PrintsSuccess()
     {
         // arrange
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate[]
-            {
-                CreateReadyEvent(),
-                CreateOperationInProgress(),
-                CreatePublishSuccess()
-            });
+        SetupPublishOpenApiCollectionMutation();
+        SetupPublishOpenApiCollectionSubscription(
+            CreateOpenApiCollectionPublishReadyEvent(),
+            CreateOpenApiCollectionPublishOperationInProgressEvent(),
+            CreateOpenApiCollectionPublishSuccessEvent());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "openapi",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--openapi-collection-id",
+            OpenApiCollectionId);
 
         // assert
         result.AssertSuccess(
             """
-            Publishing new OpenAPI collection version 'v1' to stage 'production'
+            Publishing new OpenAPI collection version 'v1' to stage 'dev'
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
             │   ├── Ready.
             │   ├── Processing...
             │   └── ✓ Published successfully.
-            └── ✓ Published new OpenAPI collection version 'v1' to stage 'production'.
+            └── ✓ Published new OpenAPI collection version 'v1' to stage 'dev'.
             """);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Subscription_ApprovedState_UpdatesActivity_NonInteractive()
+    public async Task Subscription_ApprovedState_UpdatesActivity()
     {
         // arrange
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate[]
-            {
-                CreateApprovedEvent(),
-                CreateOperationInProgress(),
-                CreatePublishSuccess()
-            });
+        SetupPublishOpenApiCollectionMutation();
+        SetupPublishOpenApiCollectionSubscription(
+            CreateOpenApiCollectionPublishApprovedEvent(),
+            CreateOpenApiCollectionPublishOperationInProgressEvent(),
+            CreateOpenApiCollectionPublishSuccessEvent());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "openapi",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--openapi-collection-id",
+            OpenApiCollectionId);
 
         // assert
         result.AssertSuccess(
             """
-            Publishing new OpenAPI collection version 'v1' to stage 'production'
+            Publishing new OpenAPI collection version 'v1' to stage 'dev'
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
             │   ├── Approved. Processing...
             │   ├── Processing...
             │   └── ✓ Published successfully.
-            └── ✓ Published new OpenAPI collection version 'v1' to stage 'production'.
+            └── ✓ Published new OpenAPI collection version 'v1' to stage 'dev'.
             """);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Subscription_WaitForApproval_UpdatesActivity_NonInteractive()
+    public async Task Subscription_WaitForApproval_UpdatesActivity()
     {
         // arrange
-        var waitForApprovalEvent = new PublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_WaitForApproval(
-            "WaitForApproval",
-            ProcessingState.WaitingForApproval,
-            null);
-
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate[]
-            {
-                waitForApprovalEvent,
-                CreateApprovedEvent(),
-                CreateOperationInProgress(),
-                CreatePublishSuccess()
-            });
+        SetupPublishOpenApiCollectionMutation();
+        SetupPublishOpenApiCollectionSubscription(
+            CreateOpenApiCollectionPublishWaitForApprovalEvent(),
+            CreateOpenApiCollectionPublishApprovedEvent(),
+            CreateOpenApiCollectionPublishOperationInProgressEvent(),
+            CreateOpenApiCollectionPublishSuccessEvent());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "openapi",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--openapi-collection-id",
+            OpenApiCollectionId);
 
         // assert
         result.AssertSuccess(
             """
-            Publishing new OpenAPI collection version 'v1' to stage 'production'
+            Publishing new OpenAPI collection version 'v1' to stage 'dev'
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
-            │   ├── Waiting for approval. Approve in Nitro to continue.
+            │   ├── 🕐 Waiting for approval. Approve in Nitro to continue.
             │   ├── Approved. Processing...
             │   ├── Processing...
             │   └── ✓ Published successfully.
-            └── ✓ Published new OpenAPI collection version 'v1' to stage 'production'.
+            └── ✓ Published new OpenAPI collection version 'v1' to stage 'dev'.
             """);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Subscription_UnknownEvent_ReturnsError_NonInteractive()
+    public async Task Subscription_UnknownEvent_ReturnsError()
     {
         // arrange
         var unknownEvent = new Mock<IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate>(
             MockBehavior.Strict);
         unknownEvent.SetupGet(x => x.__typename).Returns("UnknownType");
 
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate[]
-            {
-                unknownEvent.Object
-            });
+        SetupPublishOpenApiCollectionMutation();
+        SetupPublishOpenApiCollectionSubscription(unknownEvent.Object);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "openapi",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--openapi-collection-id",
+            OpenApiCollectionId);
 
         // assert
         // Falls through the loop with no terminal state, so activity.Fail() is called
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new OpenAPI collection version 'v1' to stage 'production'
+            Publishing new OpenAPI collection version 'v1' to stage 'dev'
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
@@ -911,275 +538,113 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
     public async Task Publish_Should_LogWarning_When_ForceEnabled()
     {
         // arrange
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate[]
-            {
-                CreatePublishSuccess()
-            },
-            force: true);
+        SetupPublishOpenApiCollectionMutation(force: true);
+        SetupPublishOpenApiCollectionSubscription(
+            CreateOpenApiCollectionPublishSuccessEvent());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "openapi",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId,
-                "--force")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--openapi-collection-id",
+            OpenApiCollectionId,
+            "--force");
 
         // assert
         result.AssertSuccess(
             """
-            Publishing new OpenAPI collection version 'v1' to stage 'production'
+            Publishing new OpenAPI collection version 'v1' to stage 'dev'
             ├── ! Force push is enabled.
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
             │   └── ✓ Published successfully.
-            └── ✓ Published new OpenAPI collection version 'v1' to stage 'production'.
+            └── ✓ Published new OpenAPI collection version 'v1' to stage 'dev'.
             """);
-
-        client.VerifyAll();
     }
 
     [Fact]
     public async Task Publish_Should_PassWaitForApproval_When_FlagProvided()
     {
         // arrange
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate[]
-            {
-                CreatePublishSuccess()
-            },
-            waitForApproval: true);
+        SetupPublishOpenApiCollectionMutation(waitForApproval: true);
+        SetupPublishOpenApiCollectionSubscription(
+            CreateOpenApiCollectionPublishSuccessEvent());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "openapi",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId,
-                "--wait-for-approval")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--openapi-collection-id",
+            OpenApiCollectionId,
+            "--wait-for-approval");
 
         // assert
         result.AssertSuccess(
             """
-            Publishing new OpenAPI collection version 'v1' to stage 'production'
+            Publishing new OpenAPI collection version 'v1' to stage 'dev'
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
             │   └── ✓ Published successfully.
-            └── ✓ Published new OpenAPI collection version 'v1' to stage 'production'.
+            └── ✓ Published new OpenAPI collection version 'v1' to stage 'dev'.
             """);
-
-        client.VerifyAll();
     }
 
-    // --- Helpers ---
-
-    private static IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection CreateSuccessPayload()
+    public static TheoryData<IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors, string>
+        GetPublishOpenApiCollectionErrors()
     {
-        var payload = new Mock<IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors)
-            .Returns((IReadOnlyList<IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors>?)null);
-        payload.SetupGet(x => x.Id)
-            .Returns(DefaultRequestId);
-        return payload.Object;
-    }
-
-    private static IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection CreatePublishPayloadWithErrors(
-        params IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors[] errors)
-    {
-        var payload = new Mock<IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors).Returns(errors);
-        payload.SetupGet(x => x.Id).Returns((string?)null);
-        return payload.Object;
-    }
-
-    private static Mock<IOpenApiClient> CreatePublishSetup(
-        IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection payload,
-        bool force = false,
-        bool waitForApproval = false)
-    {
-        var client = new Mock<IOpenApiClient>(MockBehavior.Strict);
-        client.Setup(x => x.StartOpenApiCollectionPublishAsync(
-                DefaultOpenApiCollectionId,
-                DefaultStage,
-                DefaultTag,
-                force,
-                waitForApproval,
-                null,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(payload);
-        return client;
-    }
-
-    private static Mock<IOpenApiClient> CreatePublishSetupWithSubscription(
-        IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection mutationPayload,
-        IEnumerable<IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate> subscriptionEvents,
-        bool force = false,
-        bool waitForApproval = false)
-    {
-        var client = new Mock<IOpenApiClient>(MockBehavior.Strict);
-        client.Setup(x => x.StartOpenApiCollectionPublishAsync(
-                DefaultOpenApiCollectionId,
-                DefaultStage,
-                DefaultTag,
-                force,
-                waitForApproval,
-                null,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(mutationPayload);
-
-        client.Setup(x => x.SubscribeToOpenApiCollectionPublishAsync(
-                DefaultRequestId,
-                It.IsAny<CancellationToken>()))
-            .Returns((string _, CancellationToken ct) =>
-                ToAsyncEnumerable(subscriptionEvents, ct));
-
-        return client;
-    }
-
-    private static Mock<IOpenApiClient> CreatePublishExceptionClient(Exception ex)
-    {
-        var client = new Mock<IOpenApiClient>(MockBehavior.Strict);
-        client.Setup(x => x.StartOpenApiCollectionPublishAsync(
-                DefaultOpenApiCollectionId,
-                DefaultStage,
-                DefaultTag,
-                false,
-                false,
-                null,
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(ex);
-        return client;
-    }
-
-    private static IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate CreateOperationInProgress()
-    {
-        return new PublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_OperationInProgress(
-            "OperationInProgress",
-            ProcessingState.Processing);
-    }
-
-    private static IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate CreatePublishSuccess()
-    {
-        return new PublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_OpenApiCollectionVersionPublishSuccess(
-            "OpenApiCollectionVersionPublishSuccess",
-            ProcessingState.Success);
-    }
-
-    private static IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate CreatePublishFailed(
-        params IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Errors[] errors)
-    {
-        return new PublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_OpenApiCollectionVersionPublishFailed(
-            "OpenApiCollectionVersionPublishFailed",
-            ProcessingState.Failed,
-            errors);
-    }
-
-    private static IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate CreateQueuedEvent(
-        int queuePosition)
-    {
-        return new PublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_ProcessingTaskIsQueued(
-            "ProcessingTaskIsQueued",
-            "ProcessingTaskIsQueued",
-            queuePosition);
-    }
-
-    private static IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate CreateReadyEvent()
-    {
-        return new PublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_ProcessingTaskIsReady(
-            "ProcessingTaskIsReady",
-            "ProcessingTaskIsReady");
-    }
-
-    private static IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate CreateApprovedEvent()
-    {
-        return new PublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_ProcessingTaskApproved(
-            "ProcessingTaskApproved",
-            ProcessingState.Approved);
-    }
-
-    public static IEnumerable<object[]> MutationErrorCasesWithModes()
-    {
-        foreach (var errorCase in MutationErrorCases())
+        var data = new TheoryData<IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors, string>
         {
-            yield return [.. errorCase, InteractionMode.Interactive];
-            yield return [.. errorCase, InteractionMode.JsonOutput];
-        }
-    }
-
-    public static IEnumerable<object[]> MutationErrorCases()
-    {
-        yield return
-        [
-            new PublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors_UnauthorizedOperation(
-                "UnauthorizedOperation",
-                "Not authorized to publish."),
-            """
-            Not authorized to publish.
-            """
-        ];
-
-        yield return
-        [
-            new PublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors_StageNotFoundError(
-                "StageNotFoundError",
-                "Stage not found.",
-                DefaultStage),
-            """
-            Stage not found.
-            """
-        ];
-
-        yield return
-        [
-            new PublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors_OpenApiCollectionNotFoundError(
-                DefaultOpenApiCollectionId,
-                "OpenAPI collection not found."),
-            """
-            OpenAPI collection not found.
-            """
-        ];
-
-        yield return
-        [
-            new PublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors_OpenApiCollectionVersionNotFoundError(
-                DefaultTag,
-                "OpenAPI collection version not found.",
-                DefaultOpenApiCollectionId),
-            """
-            OpenAPI collection version not found.
-            """
-        ];
+            {
+                new PublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors_UnauthorizedOperation(
+                    "UnauthorizedOperation",
+                    "Not authorized to publish."),
+                """
+                Not authorized to publish.
+                """
+            },
+            {
+                new PublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors_StageNotFoundError(
+                    "StageNotFoundError",
+                    "Stage not found.",
+                    Stage),
+                """
+                Stage not found.
+                """
+            },
+            {
+                new PublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors_OpenApiCollectionNotFoundError(
+                    OpenApiCollectionId,
+                    "OpenAPI collection not found."),
+                """
+                OpenAPI collection not found.
+                """
+            },
+            {
+                new PublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors_OpenApiCollectionVersionNotFoundError(
+                    Tag,
+                    "OpenAPI collection version not found.",
+                    OpenApiCollectionId),
+                """
+                OpenAPI collection version not found.
+                """
+            }
+        };
 
         var unexpectedError = new Mock<IPublishOpenApiCollectionCommandMutation_PublishOpenApiCollection_Errors>();
         unexpectedError
@@ -1187,12 +652,12 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             .SetupGet(x => x.Message)
             .Returns("Something went wrong.");
 
-        yield return
-        [
+        data.Add(
             unexpectedError.Object,
             """
             Unexpected mutation error: Something went wrong.
-            """
-        ];
+            """);
+
+        return data;
     }
 }

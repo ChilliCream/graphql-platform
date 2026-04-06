@@ -130,32 +130,32 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
                     switch (update)
                     {
                         case IMcpFeatureCollectionVersionValidationFailed { Errors: var errors }:
-                            await child.FailAllAsync();
+                            var errorTree = new Tree("");
 
                             foreach (var error in errors)
                             {
                                 switch (error)
                                 {
-                                    case IUnexpectedProcessingError e:
-                                        console.Error.WriteErrorLine(e.Message);
-                                        break;
-                                    case IProcessingTimeoutError e:
-                                        console.Error.WriteErrorLine(e.Message);
-                                        break;
                                     case IMcpFeatureCollectionValidationError e:
-                                        console.PrintMcpFeatureCollectionValidationErrors(e);
+                                        errorTree.AddMcpFeatureCollectionValidationErrors(e);
                                         break;
                                     case IMcpFeatureCollectionValidationArchiveError e:
-                                        console.Error.WriteErrorLine(ErrorMessages.InvalidArchive(e.Message));
+                                        errorTree.AddErrorMessage(ErrorMessages.InvalidArchive(e.Message));
                                         break;
-                                    case IError e:
-                                        console.Error.WriteErrorLine("Unexpected error: " + e.Message);
+                                    case IUnexpectedProcessingError e:
+                                        errorTree.AddErrorMessage(e.Message);
+                                        break;
+                                    case IProcessingTimeoutError e:
+                                        errorTree.AddErrorMessage(e.Message);
                                         break;
                                 }
                             }
 
-                            console.Error.WriteErrorLine("MCP Feature Collection validation failed.");
-                            return ExitCodes.Error;
+                            child.Fail(errorTree);
+
+                            await child.FailAllAsync();
+
+                            throw new ExitException("MCP feature collection validation failed.");
 
                         case IMcpFeatureCollectionVersionValidationSuccess:
                             child.Success("Validation passed.");

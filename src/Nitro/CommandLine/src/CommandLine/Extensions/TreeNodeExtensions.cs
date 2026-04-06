@@ -5,6 +5,13 @@ namespace ChilliCream.Nitro.CommandLine;
 
 internal static class TreeNodeExtensions
 {
+    public static IHasTreeNodes AddErrorMessage(
+        this IHasTreeNodes node,
+        string message)
+    {
+        return node.AddNode($"[red]{message.EscapeMarkup()}[/]");
+    }
+
     public static IHasTreeNodes AddSchemaVersionChangeViolations(
         this IHasTreeNodes node,
         ISchemaVersionChangeViolationError error)

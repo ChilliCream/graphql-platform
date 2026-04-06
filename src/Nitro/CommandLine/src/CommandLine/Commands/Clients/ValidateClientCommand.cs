@@ -119,29 +119,29 @@ internal sealed class ValidateClientCommand : Command
                     switch (update)
                     {
                         case IClientVersionValidationFailed { Errors: var errors }:
-                            await child.FailAllAsync();
+                            var errorTree = new Tree("");
 
                             foreach (var error in errors)
                             {
                                 switch (error)
                                 {
                                     case IPersistedQueryValidationError e:
-                                        console.PrintPersistedQueryValidationErrors(e);
+                                        errorTree.AddPersistedQueryValidationErrors(e);
                                         break;
                                     case IProcessingTimeoutError e:
-                                        console.Error.WriteErrorLine(e.Message);
+                                        errorTree.AddErrorMessage(e.Message);
                                         break;
                                     case IUnexpectedProcessingError e:
-                                        console.Error.WriteErrorLine(e.Message);
-                                        break;
-                                    case IError e:
-                                        console.Error.WriteErrorLine("Unexpected error: " + e.Message);
+                                        errorTree.AddErrorMessage(e.Message);
                                         break;
                                 }
                             }
 
-                            console.Error.WriteErrorLine("Client validation failed.");
-                            return ExitCodes.Error;
+                            child.Fail(errorTree);
+
+                            await child.FailAllAsync();
+
+                            throw new ExitException("Client validation failed.");
 
                         case IClientVersionValidationSuccess:
                             child.Success("Validation passed.");

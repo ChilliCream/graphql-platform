@@ -1,7 +1,10 @@
 using System.Text;
+using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.Client.FusionConfiguration;
+using ChilliCream.Nitro.Client.Mcp;
+using ChilliCream.Nitro.Client.OpenApi;
 using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.CommandLine.Services;
 using Moq;
@@ -24,6 +27,8 @@ public abstract class CommandTestBase
     protected readonly Mock<IFusionConfigurationClient> FusionConfigurationClientMock = new(MockBehavior.Strict);
     protected readonly Mock<IClientsClient> ClientsClientMock = new(MockBehavior.Strict);
     protected readonly Mock<IApisClient> ApisClientMock = new(MockBehavior.Strict);
+    protected readonly Mock<IOpenApiClient> OpenApiClientMock = new(MockBehavior.Strict);
+    protected readonly Mock<IMcpClient> McpClientMock = new(MockBehavior.Strict);
     private InteractionMode _interactionMode = InteractionMode.NonInteractive;
     private bool _authenticated = true;
     private bool _useSession;
@@ -83,7 +88,9 @@ public abstract class CommandTestBase
             .AddService(SchemasClientMock.Object)
             .AddService(FusionConfigurationClientMock.Object)
             .AddService(ClientsClientMock.Object)
-            .AddService(ApisClientMock.Object);
+            .AddService(ApisClientMock.Object)
+            .AddService(OpenApiClientMock.Object)
+            .AddService(McpClientMock.Object);
 
         if (_authenticated)
         {
@@ -178,6 +185,13 @@ public abstract class CommandTestBase
         return tempFile;
     }
 
+    protected void SetupOpenReadStreamByPath(string path, byte[] content)
+    {
+        var stream = new MemoryStream(content);
+        _files.Add(stream);
+        _fileSystemMock.Setup(x => x.OpenReadStream(path)).Returns(stream);
+    }
+
     protected void SetupGlobMatch(string[] results)
     {
         _fileSystemMock
@@ -185,11 +199,41 @@ public abstract class CommandTestBase
             .Returns(results);
     }
 
+    protected void SetupReadAllBytes(string path, byte[] content)
+    {
+        _fileSystemMock
+            .Setup(x => x.ReadAllBytesAsync(path, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(content);
+    }
+
     protected void SetupEnvironmentVariable(string variableName, string value)
     {
         _environmentVariableProviderMock
             .Setup(x => x.GetEnvironmentVariable("NITRO_" + variableName))
             .Returns(value);
+    }
+
+    protected void SetupSelectApisPrompt(
+        params (string Id, string Name)[] apis)
+    {
+        var nodes = apis
+            .Select(static a =>
+                new SelectApiPromptQuery_WorkspaceById_Apis_Edges_Node_Api(
+                    a.Id,
+                    a.Name,
+                    [],
+                    null,
+                    new ShowApiCommandQuery_Node_Settings_ApiSettings(
+                        new ShowApiCommandQuery_Node_Settings_SchemaRegistry_SchemaRegistrySettings(false, false))))
+            .ToArray<ISelectApiPromptQuery_WorkspaceById_Apis_Edges_Node>();
+
+        ApisClientMock.Setup(x => x.SelectApisAsync(
+                "workspace-from-session",
+                null,
+                5,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ConnectionPage<ISelectApiPromptQuery_WorkspaceById_Apis_Edges_Node>(
+                nodes, null, false));
     }
 
     public async ValueTask DisposeAsync()
@@ -205,5 +249,7 @@ public abstract class CommandTestBase
         FusionConfigurationClientMock.VerifyAll();
         ClientsClientMock.VerifyAll();
         ApisClientMock.VerifyAll();
+        OpenApiClientMock.VerifyAll();
+        McpClientMock.VerifyAll();
     }
 }

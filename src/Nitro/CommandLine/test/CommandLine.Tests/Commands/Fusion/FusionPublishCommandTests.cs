@@ -92,7 +92,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task NoOptions_ReturnsError(InteractionMode mode)
+    public async Task MissingRequiredOptions_ReturnsError(InteractionMode mode)
     {
         // arrange
         SetupInteractionMode(mode);

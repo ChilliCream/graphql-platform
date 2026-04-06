@@ -1,22 +1,18 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Mcp;
-using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Mcp;
 
-public sealed class CreateMcpFeatureCollectionCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
+public sealed class CreateMcpFeatureCollectionCommandTests(NitroCommandFixture fixture) : McpCommandTestBase(fixture)
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "mcp",
-                "create",
-                "--help")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "create",
+            "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -48,17 +44,18 @@ public sealed class CreateMcpFeatureCollectionCommandTests(NitroCommandFixture f
     [InlineData(InteractionMode.JsonOutput)]
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
-        // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mcp",
-                "create",
-                "--api-id",
-                "api-1",
-                "--name",
-                "my-mcp")
-            .ExecuteAsync();
+        // arrange
+        SetupNoAuthentication();
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "create",
+            "--api-id",
+            ApiId,
+            "--name",
+            McpFeatureCollectionName);
 
         // assert
         result.AssertError(
@@ -72,30 +69,21 @@ public sealed class CreateMcpFeatureCollectionCommandTests(NitroCommandFixture f
     [InlineData(InteractionMode.JsonOutput)]
     public async Task MissingRequiredName_ReturnsError(InteractionMode mode)
     {
-        // arrange & act
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
+        // arrange
+        SetupInteractionMode(mode);
 
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mcpClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mcp",
-                "create",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
+        // act
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "create",
+            "--api-id",
+            ApiId);
 
         // assert
         result.AssertError(
             """
             Missing required option '--name'.
             """);
-
-        apisClient.VerifyAll();
-        mcpClient.VerifyAll();
     }
 
     [Theory]
@@ -103,142 +91,94 @@ public sealed class CreateMcpFeatureCollectionCommandTests(NitroCommandFixture f
     [InlineData(InteractionMode.JsonOutput)]
     public async Task NoWorkspaceInSession_And_NoApiId_ReturnsError(InteractionMode mode)
     {
-        // arrange & act
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
+        // arrange
+        SetupSession();
+        SetupInteractionMode(mode);
 
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mcpClient.Object)
-            .AddApiKey()
-            .AddSession()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mcp",
-                "create",
-                "--name",
-                "my-mcp")
-            .ExecuteAsync();
+        // act
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "create",
+            "--name",
+            McpFeatureCollectionName);
 
         // assert
         result.AssertError(
             """
             You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually specify the '--workspace-id' option (if available).
             """);
-
-        apisClient.VerifyAll();
-        mcpClient.VerifyAll();
     }
 
     [Fact]
-    public async Task WithOptions_ReturnsSuccess_NonInteractive()
+    public async Task CreateMcpFeatureCollectionThrows_ReturnsError()
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
-        mcpClient.Setup(x => x.CreateMcpFeatureCollectionAsync(
-                "api-1",
-                "my-mcp",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(McpCommandTestHelper.CreateMcpFeatureCollectionPayload("mcp-1", "my-mcp"));
+        SetupCreateMcpFeatureCollectionMutationException();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mcpClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "mcp",
-                "create",
-                "--api-id",
-                "api-1",
-                "--name",
-                "my-mcp")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "create",
+            "--api-id",
+            ApiId,
+            "--name",
+            McpFeatureCollectionName);
 
         // assert
-        result.AssertSuccess(
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error: Something unexpected happened.
+            """);
+        result.StdOut.MatchInlineSnapshot(
             """
             Creating MCP feature collection 'my-mcp' for API 'api-1'
-            └── ✓ Created MCP feature collection 'my-mcp'.
-
-            {
-              "id": "mcp-1",
-              "name": "my-mcp"
-            }
+            └── ✕ Failed to create the MCP feature collection.
             """);
-
-        apisClient.VerifyAll();
-        mcpClient.VerifyAll();
+        Assert.Equal(1, result.ExitCode);
     }
 
-    [Fact]
-    public async Task WithOptions_ReturnsSuccess_JsonOutput()
+    [Theory]
+    [MemberData(nameof(GetCreateMcpFeatureCollectionErrors))]
+    public async Task CreateMcpFeatureCollectionHasErrors_ReturnsError(
+        ICreateMcpFeatureCollectionCommandMutation_CreateMcpFeatureCollection_Errors error,
+        string expectedErrorMessage)
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
-        mcpClient.Setup(x => x.CreateMcpFeatureCollectionAsync(
-                "api-1",
-                "my-mcp",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(McpCommandTestHelper.CreateMcpFeatureCollectionPayload("mcp-1", "my-mcp"));
+        SetupCreateMcpFeatureCollectionMutation(error);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mcpClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "mcp",
-                "create",
-                "--api-id",
-                "api-1",
-                "--name",
-                "my-mcp")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "create",
+            "--api-id",
+            ApiId,
+            "--name",
+            McpFeatureCollectionName);
 
         // assert
-        result.AssertSuccess(
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
+        result.StdOut.MatchInlineSnapshot(
             """
-            {
-              "id": "mcp-1",
-              "name": "my-mcp"
-            }
+            Creating MCP feature collection 'my-mcp' for API 'api-1'
+            └── ✕ Failed to create the MCP feature collection.
             """);
-
-        apisClient.VerifyAll();
-        mcpClient.VerifyAll();
+        Assert.Equal(1, result.ExitCode);
     }
 
     [Fact]
-    public async Task MutationReturnsNullResult_ReturnsError_NonInteractive()
+    public async Task CreateMcpFeatureCollectionReturnsNullResult_ReturnsError()
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
-        mcpClient.Setup(x => x.CreateMcpFeatureCollectionAsync(
-                "api-1",
-                "my-mcp",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(McpCommandTestHelper.CreateMcpFeatureCollectionPayloadWithNullResult());
+        SetupCreateMcpFeatureCollectionMutationNullResult();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mcpClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "mcp",
-                "create",
-                "--api-id",
-                "api-1",
-                "--name",
-                "my-mcp")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "create",
+            "--api-id",
+            ApiId,
+            "--name",
+            McpFeatureCollectionName);
 
         // assert
         result.StdOut.MatchInlineSnapshot(
@@ -251,312 +191,74 @@ public sealed class CreateMcpFeatureCollectionCommandTests(NitroCommandFixture f
             The GraphQL mutation completed without errors, but the server did not return the expected data.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        mcpClient.VerifyAll();
-    }
-
-    [Theory]
-    [MemberData(nameof(CreateMutationErrorCasesNonInteractive))]
-    public async Task MutationReturnsTypedError_ReturnsError_NonInteractive(
-        ICreateMcpFeatureCollectionCommandMutation_CreateMcpFeatureCollection_Errors mutationError,
-        string expectedStdErr)
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
-        mcpClient.Setup(x => x.CreateMcpFeatureCollectionAsync(
-                "api-1",
-                "my-mcp",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(McpCommandTestHelper.CreateMcpFeatureCollectionPayloadWithErrors(mutationError));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mcpClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "mcp",
-                "create",
-                "--api-id",
-                "api-1",
-                "--name",
-                "my-mcp")
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Creating MCP feature collection 'my-mcp' for API 'api-1'
-            └── ✕ Failed to create the MCP feature collection.
-            """);
-        result.StdErr.MatchInlineSnapshot(expectedStdErr);
-        Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        mcpClient.VerifyAll();
-    }
-
-    [Theory]
-    [MemberData(nameof(CreateMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError(
-        InteractionMode mode,
-        ICreateMcpFeatureCollectionCommandMutation_CreateMcpFeatureCollection_Errors mutationError,
-        string expectedStdErr)
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
-        mcpClient.Setup(x => x.CreateMcpFeatureCollectionAsync(
-                "api-1",
-                "my-mcp",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(McpCommandTestHelper.CreateMcpFeatureCollectionPayloadWithErrors(mutationError));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mcpClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mcp",
-                "create",
-                "--api-id",
-                "api-1",
-                "--name",
-                "my-mcp")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(expectedStdErr);
-        Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        mcpClient.VerifyAll();
     }
 
     [Fact]
-    public async Task ClientThrowsException_ReturnsError_NonInteractive()
+    public async Task WithOptions_ReturnsSuccess_NonInteractive()
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
-        mcpClient.Setup(x => x.CreateMcpFeatureCollectionAsync(
-                "api-1",
-                "my-mcp",
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
+        SetupCreateMcpFeatureCollectionMutation();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mcpClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "mcp",
-                "create",
-                "--api-id",
-                "api-1",
-                "--name",
-                "my-mcp")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "create",
+            "--api-id",
+            ApiId,
+            "--name",
+            McpFeatureCollectionName);
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Creating MCP feature collection 'my-mcp' for API 'api-1'
-            └── ✕ Failed to create the MCP feature collection.
+            └── ✓ Created MCP feature collection 'my-mcp'.
+
+            {
+              "id": "mcp-1",
+              "name": "my-mcp"
+            }
             """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        mcpClient.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
-        mcpClient.Setup(x => x.CreateMcpFeatureCollectionAsync(
-                "api-1",
-                "my-mcp",
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mcpClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mcp",
-                "create",
-                "--api-id",
-                "api-1",
-                "--name",
-                "my-mcp")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        mcpClient.VerifyAll();
     }
 
     [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
+    public async Task WithOptions_ReturnsSuccess_JsonOutput()
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
-        mcpClient.Setup(x => x.CreateMcpFeatureCollectionAsync(
-                "api-1",
-                "my-mcp",
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException());
+        SetupInteractionMode(InteractionMode.JsonOutput);
+        SetupCreateMcpFeatureCollectionMutation();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mcpClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "mcp",
-                "create",
-                "--api-id",
-                "api-1",
-                "--name",
-                "my-mcp")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "create",
+            "--api-id",
+            ApiId,
+            "--name",
+            McpFeatureCollectionName);
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
-            Creating MCP feature collection 'my-mcp' for API 'api-1'
-            └── ✕ Failed to create the MCP feature collection.
+            {
+              "id": "mcp-1",
+              "name": "my-mcp"
+            }
             """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        mcpClient.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
+    public static TheoryData<ICreateMcpFeatureCollectionCommandMutation_CreateMcpFeatureCollection_Errors, string>
+        GetCreateMcpFeatureCollectionErrors() => new()
     {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
-        mcpClient.Setup(x => x.CreateMcpFeatureCollectionAsync(
-                "api-1",
-                "my-mcp",
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mcpClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mcp",
-                "create",
-                "--api-id",
-                "api-1",
-                "--name",
-                "my-mcp")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        mcpClient.VerifyAll();
-    }
-
-    public static TheoryData<InteractionMode, ICreateMcpFeatureCollectionCommandMutation_CreateMcpFeatureCollection_Errors, string> CreateMutationErrorCases =>
-        new()
         {
-            {
-                InteractionMode.Interactive,
-                new CreateMcpFeatureCollectionCommandMutation_CreateMcpFeatureCollection_Errors_ApiNotFoundError(
-                    "API not found", "ApiNotFoundError", "api-1"),
-                """
-                API not found
-                """
-            },
-            {
-                InteractionMode.Interactive,
-                new CreateMcpFeatureCollectionCommandMutation_CreateMcpFeatureCollection_Errors_UnauthorizedOperation(
-                    "Not authorized", "UnauthorizedOperation"),
-                """
-                Not authorized
-                """
-            },
-            {
-                InteractionMode.JsonOutput,
-                new CreateMcpFeatureCollectionCommandMutation_CreateMcpFeatureCollection_Errors_ApiNotFoundError(
-                    "API not found", "ApiNotFoundError", "api-1"),
-                """
-                API not found
-                """
-            },
-            {
-                InteractionMode.JsonOutput,
-                new CreateMcpFeatureCollectionCommandMutation_CreateMcpFeatureCollection_Errors_UnauthorizedOperation(
-                    "Not authorized", "UnauthorizedOperation"),
-                """
-                Not authorized
-                """
-            }
-        };
-
-    public static TheoryData<ICreateMcpFeatureCollectionCommandMutation_CreateMcpFeatureCollection_Errors, string> CreateMutationErrorCasesNonInteractive =>
-        new()
+            new CreateMcpFeatureCollectionCommandMutation_CreateMcpFeatureCollection_Errors_ApiNotFoundError(
+                "API not found", "ApiNotFoundError", "api-1"),
+            "API not found"
+        },
         {
-            {
-                new CreateMcpFeatureCollectionCommandMutation_CreateMcpFeatureCollection_Errors_ApiNotFoundError(
-                    "API not found", "ApiNotFoundError", "api-1"),
-                """
-                API not found
-                """
-            },
-            {
-                new CreateMcpFeatureCollectionCommandMutation_CreateMcpFeatureCollection_Errors_UnauthorizedOperation(
-                    "Not authorized", "UnauthorizedOperation"),
-                """
-                Not authorized
-                """
-            }
-        };
+            new CreateMcpFeatureCollectionCommandMutation_CreateMcpFeatureCollection_Errors_UnauthorizedOperation(
+                "Not authorized", "UnauthorizedOperation"),
+            "Not authorized"
+        }
+    };
 }

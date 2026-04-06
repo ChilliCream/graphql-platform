@@ -122,32 +122,32 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
                     switch (update)
                     {
                         case IOpenApiCollectionVersionValidationFailed { Errors: var errors }:
-                            await child.FailAllAsync();
+                            var errorTree = new Tree("");
 
                             foreach (var error in errors)
                             {
                                 switch (error)
                                 {
-                                    case IUnexpectedProcessingError e:
-                                        console.Error.WriteErrorLine(e.Message);
-                                        break;
-                                    case IProcessingTimeoutError e:
-                                        console.Error.WriteErrorLine(e.Message);
-                                        break;
                                     case IOpenApiCollectionValidationError e:
-                                        console.PrintOpenApiCollectionValidationErrors(e);
+                                        errorTree.AddOpenApiCollectionValidationErrors(e);
                                         break;
                                     case IOpenApiCollectionValidationArchiveError e:
-                                        console.Error.WriteErrorLine(ErrorMessages.InvalidArchive(e.Message));
+                                        errorTree.AddErrorMessage(ErrorMessages.InvalidArchive(e.Message));
                                         break;
-                                    case IError e:
-                                        console.Error.WriteErrorLine("Unexpected error: " + e.Message);
+                                    case IUnexpectedProcessingError e:
+                                        errorTree.AddErrorMessage(e.Message);
+                                        break;
+                                    case IProcessingTimeoutError e:
+                                        errorTree.AddErrorMessage(e.Message);
                                         break;
                                 }
                             }
 
-                            console.Error.WriteErrorLine("OpenAPI collection validation failed.");
-                            return ExitCodes.Error;
+                            child.Fail(errorTree);
+
+                            await child.FailAllAsync();
+
+                            throw new ExitException("OpenAPI collection validation failed.");
 
                         case IOpenApiCollectionVersionValidationSuccess:
                             child.Success("Validation passed.");

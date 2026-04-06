@@ -134,32 +134,32 @@ internal sealed class PublishOpenApiCollectionCommand : Command
                             break;
 
                         case IOpenApiCollectionVersionPublishFailed { Errors: var errors }:
-                            await child.FailAllAsync();
+                            var errorTree = new Tree("");
 
                             foreach (var error in errors)
                             {
                                 switch (error)
                                 {
-                                    case IUnexpectedProcessingError e:
-                                        console.Error.WriteErrorLine(e.Message);
-                                        break;
-                                    case IProcessingTimeoutError e:
-                                        console.Error.WriteErrorLine(e.Message);
+                                    case IOpenApiCollectionValidationError e:
+                                        errorTree.AddOpenApiCollectionValidationErrors(e);
                                         break;
                                     case IConcurrentOperationError e:
-                                        console.Error.WriteErrorLine(e.Message);
+                                        errorTree.AddErrorMessage(e.Message);
                                         break;
-                                    case IOpenApiCollectionValidationError e:
-                                        console.PrintOpenApiCollectionValidationErrors(e);
+                                    case IUnexpectedProcessingError e:
+                                        errorTree.AddErrorMessage(e.Message);
                                         break;
-                                    case IError e:
-                                        console.Error.WriteErrorLine("Unexpected error: " + e.Message);
+                                    case IProcessingTimeoutError e:
+                                        errorTree.AddErrorMessage(e.Message);
                                         break;
                                 }
                             }
 
-                            console.Error.WriteErrorLine("OpenAPI collection publish failed.");
-                            return ExitCodes.Error;
+                            child.Fail(errorTree);
+
+                            await child.FailAllAsync();
+
+                            throw new ExitException("OpenAPI collection publish failed.");
 
                         case IOpenApiCollectionVersionPublishSuccess:
                             child.Success("Published successfully.");
@@ -177,18 +177,22 @@ internal sealed class PublishOpenApiCollectionCommand : Command
                         case IWaitForApproval waitForApprovalEvent:
                             if (waitForApprovalEvent.Deployment is IOpenApiCollectionDeployment deployment)
                             {
+                                var approvalErrorTree = new Tree("");
+
                                 foreach (var error in deployment.Errors)
                                 {
                                     switch (error)
                                     {
                                         case IOpenApiCollectionValidationError e:
-                                            console.PrintOpenApiCollectionValidationErrors(e);
+                                            approvalErrorTree.AddOpenApiCollectionValidationErrors(e);
                                             break;
                                     }
                                 }
+
+                                child.Fail(approvalErrorTree);
                             }
 
-                            child.Update("Waiting for approval. Approve in Nitro to continue.");
+                            child.Update("Waiting for approval. Approve in Nitro to continue.", ActivityUpdateKind.Waiting);
                             break;
 
                         case IProcessingTaskApproved:

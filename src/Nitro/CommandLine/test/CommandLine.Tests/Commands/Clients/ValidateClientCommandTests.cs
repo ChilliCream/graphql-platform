@@ -261,11 +261,11 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
             ├── Validating
             │   ├── Validating...
             │   └── ✕ Validation failed.
+            │       └── Something went wrong during validation.
             └── ✕ Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Something went wrong during validation.
             Client validation failed.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -392,10 +392,10 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
             │   └── ✓ Validation request created (ID: request-1).
             ├── Validating
             │   └── ✕ Validation failed.
+            │       └── Client 'my-client' (ID: client-1)
+            │           └── Operation 'def456'
+            │               └── Field 'bar' does not exist.
             └── ✕ Failed to validate the client.
-            └── Client 'my-client' (ID: client-1)
-                └── Operation 'def456'
-                    └── Field 'bar' does not exist.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -439,11 +439,11 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
             ├── Validating
             │   ├── Validating...
             │   └── ✕ Validation failed.
+            │       └── The operation has timed out.
             └── ✕ Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The operation has timed out.
             Client validation failed.
             """);
         Assert.Equal(1, result.ExitCode);

@@ -19,33 +19,6 @@ public abstract class ClientsCommandTestBase(NitroCommandFixture fixture) : Comm
         SetupFile(OperationsFile, "{}");
     }
 
-    #region SelectApis
-
-    protected void SetupSelectApisPrompt(
-        params (string Id, string Name)[] apis)
-    {
-        var nodes = apis
-            .Select(static a =>
-                new SelectApiPromptQuery_WorkspaceById_Apis_Edges_Node_Api(
-                    a.Id,
-                    a.Name,
-                    [],
-                    null,
-                    new ShowApiCommandQuery_Node_Settings_ApiSettings(
-                        new ShowApiCommandQuery_Node_Settings_SchemaRegistry_SchemaRegistrySettings(false, false))))
-            .ToArray<ISelectApiPromptQuery_WorkspaceById_Apis_Edges_Node>();
-
-        ApisClientMock.Setup(x => x.SelectApisAsync(
-                "workspace-from-session",
-                null,
-                5,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ConnectionPage<ISelectApiPromptQuery_WorkspaceById_Apis_Edges_Node>(
-                nodes, null, false));
-    }
-
-    #endregion
-
     #region ListClientsForPrompt
 
     protected void SetupListClientsForPrompt(

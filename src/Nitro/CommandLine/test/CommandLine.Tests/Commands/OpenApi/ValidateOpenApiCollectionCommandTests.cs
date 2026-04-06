@@ -1,27 +1,19 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.OpenApi;
-using ChilliCream.Nitro.CommandLine.Services;
 using Moq;
-using static ChilliCream.Nitro.CommandLine.Tests.TestHelpers;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.OpenApi;
 
-public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
+public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fixture) : OpenApiCommandTestBase(fixture)
 {
-    private const string DefaultOpenApiCollectionId = "oa-1";
-    private const string DefaultStage = "production";
-    private const string DefaultRequestId = "request-1";
-
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "openapi",
-                "validate",
-                "--help")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "validate",
+            "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -56,18 +48,18 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "openapi",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId,
-                "--pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
+        SetupInteractionMode(mode);
+        SetupNoAuthentication();
+
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "validate",
+            "--stage",
+            Stage,
+            "--openapi-collection-id",
+            OpenApiCollectionId,
+            "--pattern",
+            "**/*.graphql");
 
         // assert
         result.AssertError(
@@ -77,192 +69,62 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
     }
 
     [Fact]
-    public async Task ClientThrowsException_ReturnsError_NonInteractive()
+    public async Task ValidateOpenApiCollectionThrows_ReturnsError()
     {
         // arrange
-        var (client, fileSystem) = CreateValidationSetupWithException(
-            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
+        SetupValidateOpenApiCollectionMutationException();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "openapi",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId,
-                "--pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "validate",
+            "--stage",
+            Stage,
+            "--openapi-collection-id",
+            OpenApiCollectionId,
+            "--pattern",
+            "**/*.graphql");
 
         // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error: Something unexpected happened.
+            """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating OpenAPI collection against stage 'production'
+            Validating OpenAPI collection against stage 'dev'
             ├── Found 1 document(s).
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the OpenAPI collection.
             """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var (client, fileSystem) = CreateValidationSetupWithException(
-            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "openapi",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId,
-                "--pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var (client, fileSystem) = CreateValidationSetupWithException(
-            new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "openapi",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId,
-                "--pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Validating OpenAPI collection against stage 'production'
-            ├── Found 1 document(s).
-            ├── Starting validation request
-            │   └── ✕ Failed to start the validation request.
-            └── ✕ Failed to validate the OpenAPI collection.
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var (client, fileSystem) = CreateValidationSetupWithException(
-            new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "openapi",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId,
-                "--pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [MemberData(nameof(MutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_NonInteractive(
+    [MemberData(nameof(GetValidateOpenApiCollectionErrors))]
+    public async Task ValidateOpenApiCollectionHasErrors_ReturnsError(
         IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors mutationError,
         string expectedStdErr)
     {
         // arrange
-        var (client, fileSystem) = CreateValidationSetup(
-            CreateValidationPayloadWithErrors(mutationError));
+        SetupValidateOpenApiCollectionMutation(mutationError);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "openapi",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId,
-                "--pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "validate",
+            "--stage",
+            Stage,
+            "--openapi-collection-id",
+            OpenApiCollectionId,
+            "--pattern",
+            "**/*.graphql");
 
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating OpenAPI collection against stage 'production'
+            Validating OpenAPI collection against stage 'dev'
             ├── Found 1 document(s).
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
@@ -270,78 +132,29 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [MemberData(nameof(MutationErrorCasesWithModes))]
-    public async Task MutationReturnsTypedError_ReturnsError(
-        IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors mutationError,
-        string expectedStdErr,
-        InteractionMode mode)
-    {
-        // arrange
-        var (client, fileSystem) = CreateValidationSetup(
-            CreateValidationPayloadWithErrors(mutationError));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "openapi",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId,
-                "--pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(expectedStdErr);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task MutationReturnsNullRequestId_ReturnsError_NonInteractive()
+    public async Task ValidateOpenApiCollectionReturnsNullRequestId_ReturnsError()
     {
         // arrange
-        var payload = new Mock<IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors)
-            .Returns((IReadOnlyList<IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors>?)null);
-        payload.SetupGet(x => x.Id)
-            .Returns((string?)null);
-
-        var (client, fileSystem) = CreateValidationSetup(payload.Object);
+        SetupValidateOpenApiCollectionMutationNullRequestId();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "openapi",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId,
-                "--pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "validate",
+            "--stage",
+            Stage,
+            "--openapi-collection-id",
+            OpenApiCollectionId,
+            "--pattern",
+            "**/*.graphql");
 
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating OpenAPI collection against stage 'production'
+            Validating OpenAPI collection against stage 'dev'
             ├── Found 1 document(s).
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
@@ -352,85 +165,33 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             Could not create validation request!
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task MutationReturnsNullRequestId_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var payload = new Mock<IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors)
-            .Returns((IReadOnlyList<IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors>?)null);
-        payload.SetupGet(x => x.Id)
-            .Returns((string?)null);
-
-        var (client, fileSystem) = CreateValidationSetup(payload.Object);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "openapi",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId,
-                "--pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Could not create validation request!
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
     public async Task Subscription_InProgressThenSuccess_ReturnsSuccess_NonInteractive()
     {
         // arrange
-        var (client, fileSystem) = CreateValidationSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IValidateOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionValidationUpdate[]
-            {
-                CreateOperationInProgress(),
-                CreateValidationInProgress(),
-                CreateValidationSuccess()
-            });
+        SetupValidateOpenApiCollectionMutation();
+        SetupValidateOpenApiCollectionSubscription(
+            CreateOpenApiCollectionValidationOperationInProgressEvent(),
+            CreateOpenApiCollectionValidationInProgressEvent(),
+            CreateOpenApiCollectionValidationSuccessEvent());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "openapi",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId,
-                "--pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "validate",
+            "--stage",
+            Stage,
+            "--openapi-collection-id",
+            OpenApiCollectionId,
+            "--pattern",
+            "**/*.graphql");
 
         // assert
         result.AssertSuccess(
             """
-            Validating OpenAPI collection against stage 'production'
+            Validating OpenAPI collection against stage 'dev'
             ├── Found 1 document(s).
             ├── Starting validation request
             │   └── ✓ Validation request created (ID: request-1).
@@ -438,89 +199,67 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             │   ├── Validating...
             │   ├── Validating...
             │   └── ✓ Validation passed.
-            └── ✓ Validated OpenAPI collection against stage 'production'.
+            └── ✓ Validated OpenAPI collection against stage 'dev'.
             """);
-
-        client.VerifyAll();
     }
 
     [Fact]
     public async Task Subscription_InProgressThenSuccess_ReturnsSuccess_Interactive()
     {
         // arrange
-        var (client, fileSystem) = CreateValidationSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IValidateOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionValidationUpdate[]
-            {
-                CreateOperationInProgress(),
-                CreateValidationInProgress(),
-                CreateValidationSuccess()
-            });
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupValidateOpenApiCollectionMutation();
+        SetupValidateOpenApiCollectionSubscription(
+            CreateOpenApiCollectionValidationOperationInProgressEvent(),
+            CreateOpenApiCollectionValidationInProgressEvent(),
+            CreateOpenApiCollectionValidationSuccessEvent());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "openapi",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId,
-                "--pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "validate",
+            "--stage",
+            Stage,
+            "--openapi-collection-id",
+            OpenApiCollectionId,
+            "--pattern",
+            "**/*.graphql");
 
         // assert
         result.AssertSuccess();
-
-        client.VerifyAll();
     }
 
     [Fact]
     public async Task Subscription_InProgressThenSuccess_ReturnsSuccess_JsonOutput()
     {
         // arrange
-        var (client, fileSystem) = CreateValidationSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IValidateOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionValidationUpdate[]
-            {
-                CreateOperationInProgress(),
-                CreateValidationInProgress(),
-                CreateValidationSuccess()
-            });
+        SetupInteractionMode(InteractionMode.JsonOutput);
+        SetupValidateOpenApiCollectionMutation();
+        SetupValidateOpenApiCollectionSubscription(
+            CreateOpenApiCollectionValidationOperationInProgressEvent(),
+            CreateOpenApiCollectionValidationInProgressEvent(),
+            CreateOpenApiCollectionValidationSuccessEvent());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "openapi",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId,
-                "--pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "validate",
+            "--stage",
+            Stage,
+            "--openapi-collection-id",
+            OpenApiCollectionId,
+            "--pattern",
+            "**/*.graphql");
 
         // assert
         result.AssertSuccess(
             """
             {}
             """);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Subscription_FailedWithSimpleError_ReturnsError_NonInteractive()
+    public async Task Subscription_FailedWithSimpleError_ReturnsError()
     {
         // arrange
         var errorMock = new Mock<IValidateOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionValidationUpdate_Errors>(
@@ -529,133 +268,65 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             .SetupGet(x => x.Message)
             .Returns("Something went wrong during validation.");
 
-        var (client, fileSystem) = CreateValidationSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IValidateOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionValidationUpdate[]
-            {
-                CreateOperationInProgress(),
-                CreateValidationFailed(errorMock.Object)
-            });
+        SetupValidateOpenApiCollectionMutation();
+        SetupValidateOpenApiCollectionSubscription(
+            CreateOpenApiCollectionValidationOperationInProgressEvent(),
+            CreateOpenApiCollectionValidationFailedEvent(errorMock.Object));
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "openapi",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId,
-                "--pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "validate",
+            "--stage",
+            Stage,
+            "--openapi-collection-id",
+            OpenApiCollectionId,
+            "--pattern",
+            "**/*.graphql");
 
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating OpenAPI collection against stage 'production'
+            Validating OpenAPI collection against stage 'dev'
             ├── Found 1 document(s).
             ├── Starting validation request
             │   └── ✓ Validation request created (ID: request-1).
             ├── Validating
             │   ├── Validating...
             │   └── ✕ Validation failed.
+            │       └── Something went wrong during validation.
             └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Something went wrong during validation.
             OpenAPI collection validation failed.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task Subscription_FailedWithSimpleError_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var errorMock = new Mock<IValidateOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionValidationUpdate_Errors>(
-            MockBehavior.Strict);
-        errorMock.As<IUnexpectedProcessingError>()
-            .SetupGet(x => x.Message)
-            .Returns("Something went wrong during validation.");
-
-        var (client, fileSystem) = CreateValidationSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IValidateOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionValidationUpdate[]
-            {
-                CreateOperationInProgress(),
-                CreateValidationFailed(errorMock.Object)
-            });
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "openapi",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId,
-                "--pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Something went wrong during validation.
-            OpenAPI collection validation failed.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Subscription_InProgressOnly_StreamEnds_ReturnsError_NonInteractive()
+    public async Task Subscription_InProgressOnly_StreamEnds_ReturnsError()
     {
         // arrange
-        var (client, fileSystem) = CreateValidationSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IValidateOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionValidationUpdate[]
-            {
-                CreateOperationInProgress()
-            });
+        SetupValidateOpenApiCollectionMutation();
+        SetupValidateOpenApiCollectionSubscription(
+            CreateOpenApiCollectionValidationOperationInProgressEvent());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "openapi",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId,
-                "--pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "validate",
+            "--stage",
+            Stage,
+            "--openapi-collection-id",
+            OpenApiCollectionId,
+            "--pattern",
+            "**/*.graphql");
 
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating OpenAPI collection against stage 'production'
+            Validating OpenAPI collection against stage 'dev'
             ├── Found 1 document(s).
             ├── Starting validation request
             │   └── ✓ Validation request created (ID: request-1).
@@ -666,47 +337,35 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Subscription_UnknownEvent_ReturnsError_NonInteractive()
+    public async Task Subscription_UnknownEvent_ReturnsError()
     {
         // arrange
         var unknownEvent = new Mock<IValidateOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionValidationUpdate>(
             MockBehavior.Strict);
         unknownEvent.SetupGet(x => x.__typename).Returns("UnknownType");
 
-        var (client, fileSystem) = CreateValidationSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IValidateOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionValidationUpdate[]
-            {
-                unknownEvent.Object
-            });
+        SetupValidateOpenApiCollectionMutation();
+        SetupValidateOpenApiCollectionSubscription(unknownEvent.Object);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "openapi",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId,
-                "--pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "validate",
+            "--stage",
+            Stage,
+            "--openapi-collection-id",
+            OpenApiCollectionId,
+            "--pattern",
+            "**/*.graphql");
 
         // assert
         // Falls through the loop with no terminal state, so activity.Fail() is called
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating OpenAPI collection against stage 'production'
+            Validating OpenAPI collection against stage 'dev'
             ├── Found 1 document(s).
             ├── Starting validation request
             │   └── ✓ Validation request created (ID: request-1).
@@ -717,8 +376,6 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
@@ -731,216 +388,72 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             .SetupGet(x => x.Message)
             .Returns("Archive is corrupted.");
 
-        var (client, fileSystem) = CreateValidationSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IValidateOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionValidationUpdate[]
-            {
-                CreateValidationFailed(errorMock.Object)
-            });
+        SetupValidateOpenApiCollectionMutation();
+        SetupValidateOpenApiCollectionSubscription(
+            CreateOpenApiCollectionValidationFailedEvent(errorMock.Object));
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "openapi",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId,
-                "--pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "openapi",
+            "validate",
+            "--stage",
+            Stage,
+            "--openapi-collection-id",
+            OpenApiCollectionId,
+            "--pattern",
+            "**/*.graphql");
 
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating OpenAPI collection against stage 'production'
+            Validating OpenAPI collection against stage 'dev'
             ├── Found 1 document(s).
             ├── Starting validation request
             │   └── ✓ Validation request created (ID: request-1).
             ├── Validating
             │   └── ✕ Validation failed.
+            │       └── The server received an invalid archive. This indicates a bug in the tooling.
+            │           Please notify ChilliCream. Error received: Archive is corrupted.
             └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server received an invalid archive. This indicates a bug in the tooling. Please notify ChilliCream. Error received: Archive is corrupted.
             OpenAPI collection validation failed.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
-    // --- Helpers ---
-
-    private static readonly byte[] _validOpenApiGraphql =
-        """query GetUsers @http(method: GET, route: "/users") { users { id } }"""u8.ToArray();
-
-    private static Mock<IFileSystem> CreateOpenApiFileSystem()
+    public static TheoryData<IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors, string>
+        GetValidateOpenApiCollectionErrors()
     {
-        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
-        fileSystem.Setup(x => x.GlobMatch(
-                It.IsAny<IEnumerable<string>>(),
-                It.IsAny<IEnumerable<string>?>()))
-            .Returns(["api.openapi.graphql"]);
-        fileSystem.Setup(x => x.ReadAllBytesAsync("api.openapi.graphql", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(_validOpenApiGraphql);
-        return fileSystem;
-    }
-
-    private static IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection CreateSuccessPayload()
-    {
-        var payload = new Mock<IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors)
-            .Returns((IReadOnlyList<IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors>?)null);
-        payload.SetupGet(x => x.Id)
-            .Returns(DefaultRequestId);
-        return payload.Object;
-    }
-
-    private static IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection CreateValidationPayloadWithErrors(
-        params IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors[] errors)
-    {
-        var payload = new Mock<IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors).Returns(errors);
-        payload.SetupGet(x => x.Id).Returns((string?)null);
-        return payload.Object;
-    }
-
-    private static (Mock<IOpenApiClient> Client, Mock<IFileSystem> FileSystem) CreateValidationSetup(
-        IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection payload)
-    {
-        var client = new Mock<IOpenApiClient>(MockBehavior.Strict);
-        client.Setup(x => x.StartOpenApiCollectionValidationAsync(
-                DefaultOpenApiCollectionId,
-                DefaultStage,
-                It.IsAny<Stream>(),
-                null,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(payload);
-
-        var fileSystem = CreateOpenApiFileSystem();
-
-        return (client, fileSystem);
-    }
-
-    private static (Mock<IOpenApiClient> Client, Mock<IFileSystem> FileSystem) CreateValidationSetupWithSubscription(
-        IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection mutationPayload,
-        IEnumerable<IValidateOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionValidationUpdate> subscriptionEvents)
-    {
-        var client = new Mock<IOpenApiClient>(MockBehavior.Strict);
-        client.Setup(x => x.StartOpenApiCollectionValidationAsync(
-                DefaultOpenApiCollectionId,
-                DefaultStage,
-                It.IsAny<Stream>(),
-                null,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(mutationPayload);
-
-        client.Setup(x => x.SubscribeToOpenApiCollectionValidationAsync(
-                DefaultRequestId,
-                It.IsAny<CancellationToken>()))
-            .Returns((string _, CancellationToken ct) =>
-                ToAsyncEnumerable(subscriptionEvents, ct));
-
-        var fileSystem = CreateOpenApiFileSystem();
-
-        return (client, fileSystem);
-    }
-
-    private static (Mock<IOpenApiClient> Client, Mock<IFileSystem> FileSystem) CreateValidationSetupWithException(
-        Exception ex)
-    {
-        var client = new Mock<IOpenApiClient>(MockBehavior.Strict);
-        client.Setup(x => x.StartOpenApiCollectionValidationAsync(
-                DefaultOpenApiCollectionId,
-                DefaultStage,
-                It.IsAny<Stream>(),
-                null,
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(ex);
-
-        var fileSystem = CreateOpenApiFileSystem();
-
-        return (client, fileSystem);
-    }
-
-    private static IValidateOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionValidationUpdate CreateOperationInProgress()
-    {
-        return new ValidateOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionValidationUpdate_OperationInProgress(
-            "OperationInProgress",
-            ProcessingState.Processing);
-    }
-
-    private static IValidateOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionValidationUpdate CreateValidationInProgress()
-    {
-        return new ValidateOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionValidationUpdate_ValidationInProgress(
-            "ValidationInProgress",
-            ProcessingState.Processing);
-    }
-
-    private static IValidateOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionValidationUpdate CreateValidationSuccess()
-    {
-        return new ValidateOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionValidationUpdate_OpenApiCollectionVersionValidationSuccess(
-            "OpenApiCollectionVersionValidationSuccess",
-            ProcessingState.Success);
-    }
-
-    private static IValidateOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionValidationUpdate CreateValidationFailed(
-        params IValidateOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionValidationUpdate_Errors[] errors)
-    {
-        return new ValidateOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionValidationUpdate_OpenApiCollectionVersionValidationFailed(
-            "OpenApiCollectionVersionValidationFailed",
-            ProcessingState.Failed,
-            errors);
-    }
-
-    public static IEnumerable<object[]> MutationErrorCasesWithModes()
-    {
-        foreach (var errorCase in MutationErrorCases())
+        var data = new TheoryData<IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors, string>
         {
-            yield return [.. errorCase, InteractionMode.Interactive];
-            yield return [.. errorCase, InteractionMode.JsonOutput];
-        }
-    }
-
-    public static IEnumerable<object[]> MutationErrorCases()
-    {
-        yield return
-        [
-            new ValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors_UnauthorizedOperation(
-                "UnauthorizedOperation",
-                "Not authorized to validate."),
-            """
-            Not authorized to validate.
-            """
-        ];
-
-        yield return
-        [
-            new ValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors_StageNotFoundError(
-                "StageNotFoundError",
-                "Stage not found.",
-                DefaultStage),
-            """
-            Stage not found.
-            """
-        ];
-
-        yield return
-        [
-            new ValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors_OpenApiCollectionNotFoundError(
-                DefaultOpenApiCollectionId,
-                "OpenAPI collection not found."),
-            """
-            OpenAPI collection not found.
-            """
-        ];
+            {
+                new ValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors_UnauthorizedOperation(
+                    "UnauthorizedOperation",
+                    "Not authorized to validate."),
+                """
+                Not authorized to validate.
+                """
+            },
+            {
+                new ValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors_StageNotFoundError(
+                    "StageNotFoundError",
+                    "Stage not found.",
+                    Stage),
+                """
+                Stage not found.
+                """
+            },
+            {
+                new ValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors_OpenApiCollectionNotFoundError(
+                    OpenApiCollectionId,
+                    "OpenAPI collection not found."),
+                """
+                OpenAPI collection not found.
+                """
+            }
+        };
 
         var unexpectedError = new Mock<IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors>();
         unexpectedError
@@ -948,12 +461,12 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             .SetupGet(x => x.Message)
             .Returns("Something went wrong.");
 
-        yield return
-        [
+        data.Add(
             unexpectedError.Object,
             """
             Unexpected mutation error: Something went wrong.
-            """
-        ];
+            """);
+
+        return data;
     }
 }

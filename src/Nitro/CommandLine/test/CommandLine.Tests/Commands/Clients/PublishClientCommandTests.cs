@@ -263,11 +263,11 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
             ├── Processing
             │   ├── Your request is being processed.
             │   └── ✕ Processing failed.
+            │       └── Something went wrong during publish.
             └── ✕ Failed to publish a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Something went wrong during publish.
             Client publish failed.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -441,7 +441,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
-            │   ├── Your request is waiting for approval. Check Nitro to approve the request.
+            │   ├── 🕐 Your request is waiting for approval. Check Nitro to approve the request.
             │   ├── Your request has been approved.
             │   ├── Your request is being processed.
             │   └── ✓ Published successfully.
@@ -543,11 +543,11 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
             │   └── ✕ Processing failed.
+            │       └── A concurrent operation is already in progress.
             └── ✕ Failed to publish a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            A concurrent operation is already in progress.
             Client publish failed.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -612,10 +612,10 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
             │   └── ✕ Processing failed.
+            │       └── Client 'my-client' (ID: client-1)
+            │           └── Operation 'abc123'
+            │               └── Field 'foo' does not exist.
             └── ✕ Failed to publish a new client version.
-            └── Client 'my-client' (ID: client-1)
-                └── Operation 'abc123'
-                    └── Field 'foo' does not exist.
             """);
         result.StdErr.MatchInlineSnapshot(
             """

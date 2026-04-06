@@ -82,16 +82,16 @@ internal static class SchemaHelpers
                                 errorTree.AddMcpFeatureCollectionValidationErrors(e);
                                 break;
                             case IOperationsAreNotAllowedError e:
-                                errorTree.AddNode(e.Message);
+                                errorTree.AddErrorMessage(e.Message);
                                 break;
                             case ISchemaVersionSyntaxError e:
-                                errorTree.AddNode(e.Message);
+                                errorTree.AddErrorMessage(e.Message);
                                 break;
                             case IProcessingTimeoutError e:
-                                errorTree.AddNode(e.Message);
+                                errorTree.AddErrorMessage(e.Message);
                                 break;
                             case IUnexpectedProcessingError e:
-                                errorTree.AddNode(e.Message);
+                                errorTree.AddErrorMessage(e.Message);
                                 break;
                         }
                     }

@@ -157,22 +157,22 @@ internal sealed class PublishSchemaCommand : Command
                                         errorTree.AddMcpFeatureCollectionValidationErrors(e);
                                         break;
                                     case IConcurrentOperationError e:
-                                        errorTree.AddNode(e.Message);
+                                        errorTree.AddErrorMessage(e.Message);
                                         break;
                                     case IOperationsAreNotAllowedError e:
-                                        errorTree.AddNode(e.Message);
+                                        errorTree.AddErrorMessage(e.Message);
                                         break;
                                     case ISchemaVersionSyntaxError e:
-                                        errorTree.AddNode(e.Message);
+                                        errorTree.AddErrorMessage(e.Message);
                                         break;
                                     case IProcessingTimeoutError e:
-                                        errorTree.AddNode(e.Message);
+                                        errorTree.AddErrorMessage(e.Message);
                                         break;
                                     case IUnexpectedProcessingError e:
-                                        errorTree.AddNode(e.Message);
+                                        errorTree.AddErrorMessage(e.Message);
                                         break;
                                     case IError e:
-                                        errorTree.AddNode("Unexpected error: " + e.Message);
+                                        errorTree.AddErrorMessage("Unexpected error: " + e.Message);
                                         break;
                                 }
                             }
@@ -181,8 +181,7 @@ internal sealed class PublishSchemaCommand : Command
 
                             await child.FailAllAsync();
 
-                            console.Error.WriteErrorLine("Schema publish failed.");
-                            return ExitCodes.Error;
+                            throw new ExitException("Schema publish failed.");
 
                         case ISchemaVersionPublishSuccess:
                             child.Success("Published successfully.");

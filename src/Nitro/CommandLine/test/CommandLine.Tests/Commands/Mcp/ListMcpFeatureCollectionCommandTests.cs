@@ -1,22 +1,15 @@
-using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Apis;
-using ChilliCream.Nitro.Client.Mcp;
-using Moq;
-
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Mcp;
 
-public sealed class ListMcpFeatureCollectionCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
+public sealed class ListMcpFeatureCollectionCommandTests(NitroCommandFixture fixture) : McpCommandTestBase(fixture)
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "mcp",
-                "list",
-                "--help")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "list",
+            "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -47,12 +40,12 @@ public sealed class ListMcpFeatureCollectionCommandTests(NitroCommandFixture fix
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mcp",
-                "list")
-            .ExecuteAsync();
+        SetupInteractionMode(mode);
+        SetupNoAuthentication();
+
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "list");
 
         // assert
         result.AssertError(
@@ -65,28 +58,18 @@ public sealed class ListMcpFeatureCollectionCommandTests(NitroCommandFixture fix
     public async Task NoWorkspaceInSession_And_NoApiId_ReturnsError_Interactive()
     {
         // arrange & act
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
+        SetupSession();
+        SetupInteractionMode(InteractionMode.Interactive);
 
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mcpClient.Object)
-            .AddApiKey()
-            .AddSession()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "mcp",
-                "list")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "list");
 
         // assert
         result.AssertError(
             """
             You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually specify the '--workspace-id' option (if available).
             """);
-
-        apisClient.VerifyAll();
-        mcpClient.VerifyAll();
     }
 
     [Theory]
@@ -95,57 +78,32 @@ public sealed class ListMcpFeatureCollectionCommandTests(NitroCommandFixture fix
     public async Task MissingApiId_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
+        SetupInteractionMode(mode);
 
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mcpClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mcp",
-                "list")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "list");
 
         // assert
         result.AssertError(
             """
             The '--api-id' option is required in non-interactive mode.
             """);
-
-        apisClient.VerifyAll();
-        mcpClient.VerifyAll();
     }
 
     [Fact]
     public async Task WithApiId_ReturnsSuccess_Interactive()
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
-        mcpClient.Setup(x => x.ListMcpFeatureCollectionsAsync(
-                "api-1",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(McpCommandTestHelper.CreateListPage(
-                endCursor: null,
-                hasNextPage: false,
-                ("mcp-1", "auth-tools"),
-                ("mcp-2", "data-tools")));
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupListMcpFeatureCollectionsQuery(
+            items: [("mcp-1", "auth-tools"), ("mcp-2", "data-tools")]);
 
-        var command = new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mcpClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "mcp",
-                "list",
-                "--api-id",
-                "api-1")
-            .Start();
+        var command = StartInteractiveCommand(
+            "mcp",
+            "list",
+            "--api-id",
+            ApiId);
 
         // act
         command.SelectOption(0);
@@ -154,9 +112,6 @@ public sealed class ListMcpFeatureCollectionCommandTests(NitroCommandFixture fix
         // assert
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
-
-        apisClient.VerifyAll();
-        mcpClient.VerifyAll();
     }
 
     [Theory]
@@ -165,31 +120,16 @@ public sealed class ListMcpFeatureCollectionCommandTests(NitroCommandFixture fix
     public async Task WithApiId_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
-        mcpClient.Setup(x => x.ListMcpFeatureCollectionsAsync(
-                "api-1",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(McpCommandTestHelper.CreateListPage(
-                endCursor: null,
-                hasNextPage: false,
-                ("mcp-1", "auth-tools"),
-                ("mcp-2", "data-tools")));
+        SetupInteractionMode(mode);
+        SetupListMcpFeatureCollectionsQuery(
+            items: [("mcp-1", "auth-tools"), ("mcp-2", "data-tools")]);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mcpClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mcp",
-                "list",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "list",
+            "--api-id",
+            ApiId);
 
         // assert
         result.AssertSuccess(
@@ -208,35 +148,20 @@ public sealed class ListMcpFeatureCollectionCommandTests(NitroCommandFixture fix
               "cursor": null
             }
             """);
-
-        apisClient.VerifyAll();
-        mcpClient.VerifyAll();
     }
 
     [Fact]
     public async Task WithApiId_NoData_ReturnsSuccess_Interactive()
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
-        mcpClient.Setup(x => x.ListMcpFeatureCollectionsAsync(
-                "api-1",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(McpCommandTestHelper.CreateListPage());
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupListMcpFeatureCollectionsQuery();
 
-        var command = new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mcpClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "mcp",
-                "list",
-                "--api-id",
-                "api-1")
-            .Start();
+        var command = StartInteractiveCommand(
+            "mcp",
+            "list",
+            "--api-id",
+            ApiId);
 
         // act
         command.SelectOption(0);
@@ -245,9 +170,6 @@ public sealed class ListMcpFeatureCollectionCommandTests(NitroCommandFixture fix
         // assert
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
-
-        apisClient.VerifyAll();
-        mcpClient.VerifyAll();
     }
 
     [Theory]
@@ -256,27 +178,15 @@ public sealed class ListMcpFeatureCollectionCommandTests(NitroCommandFixture fix
     public async Task WithApiId_NoData_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
-        mcpClient.Setup(x => x.ListMcpFeatureCollectionsAsync(
-                "api-1",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(McpCommandTestHelper.CreateListPage());
+        SetupInteractionMode(mode);
+        SetupListMcpFeatureCollectionsQuery();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mcpClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mcp",
-                "list",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "list",
+            "--api-id",
+            ApiId);
 
         // assert
         result.AssertSuccess(
@@ -286,40 +196,24 @@ public sealed class ListMcpFeatureCollectionCommandTests(NitroCommandFixture fix
               "cursor": null
             }
             """);
-
-        apisClient.VerifyAll();
-        mcpClient.VerifyAll();
     }
 
     [Fact]
     public async Task WithCursor_ReturnsSuccess_Interactive()
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
-        mcpClient.Setup(x => x.ListMcpFeatureCollectionsAsync(
-                "api-1",
-                "cursor-1",
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(McpCommandTestHelper.CreateListPage(
-                endCursor: null,
-                hasNextPage: false,
-                ("mcp-1", "auth-tools")));
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupListMcpFeatureCollectionsQuery(
+            cursor: "cursor-1",
+            items: [("mcp-1", "auth-tools")]);
 
-        var command = new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mcpClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "mcp",
-                "list",
-                "--api-id",
-                "api-1",
-                "--cursor",
-                "cursor-1")
-            .Start();
+        var command = StartInteractiveCommand(
+            "mcp",
+            "list",
+            "--api-id",
+            ApiId,
+            "--cursor",
+            "cursor-1");
 
         // act
         command.SelectOption(0);
@@ -328,9 +222,6 @@ public sealed class ListMcpFeatureCollectionCommandTests(NitroCommandFixture fix
         // assert
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
-
-        apisClient.VerifyAll();
-        mcpClient.VerifyAll();
     }
 
     [Theory]
@@ -339,32 +230,19 @@ public sealed class ListMcpFeatureCollectionCommandTests(NitroCommandFixture fix
     public async Task WithCursor_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
-        mcpClient.Setup(x => x.ListMcpFeatureCollectionsAsync(
-                "api-1",
-                "cursor-1",
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(McpCommandTestHelper.CreateListPage(
-                endCursor: null,
-                hasNextPage: false,
-                ("mcp-1", "auth-tools")));
+        SetupInteractionMode(mode);
+        SetupListMcpFeatureCollectionsQuery(
+            cursor: "cursor-1",
+            items: [("mcp-1", "auth-tools")]);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mcpClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mcp",
-                "list",
-                "--api-id",
-                "api-1",
-                "--cursor",
-                "cursor-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "list",
+            "--api-id",
+            ApiId,
+            "--cursor",
+            "cursor-1");
 
         // assert
         result.AssertSuccess(
@@ -379,9 +257,6 @@ public sealed class ListMcpFeatureCollectionCommandTests(NitroCommandFixture fix
               "cursor": null
             }
             """);
-
-        apisClient.VerifyAll();
-        mcpClient.VerifyAll();
     }
 
     [Theory]
@@ -390,31 +265,18 @@ public sealed class ListMcpFeatureCollectionCommandTests(NitroCommandFixture fix
     public async Task WithCursorPagination_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mcpClient = new Mock<IMcpClient>(MockBehavior.Strict);
-        mcpClient.Setup(x => x.ListMcpFeatureCollectionsAsync(
-                "api-1",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(McpCommandTestHelper.CreateListPage(
-                endCursor: "cursor-2",
-                hasNextPage: true,
-                ("mcp-1", "auth-tools"),
-                ("mcp-2", "data-tools")));
+        SetupInteractionMode(mode);
+        SetupListMcpFeatureCollectionsQuery(
+            endCursor: "cursor-2",
+            hasNextPage: true,
+            items: [("mcp-1", "auth-tools"), ("mcp-2", "data-tools")]);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mcpClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mcp",
-                "list",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "list",
+            "--api-id",
+            ApiId);
 
         // assert
         result.AssertSuccess(
@@ -433,89 +295,25 @@ public sealed class ListMcpFeatureCollectionCommandTests(NitroCommandFixture fix
               "cursor": "cursor-2"
             }
             """);
-
-        apisClient.VerifyAll();
-        mcpClient.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ListMcpFeatureCollectionsThrows_ReturnsError()
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mcpClient = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"), "api-1", null);
+        SetupListMcpFeatureCollectionsQueryException();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mcpClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mcp",
-                "list",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "list",
+            "--api-id",
+            ApiId);
 
         // assert
         result.AssertError(
             """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
+            There was an unexpected error: Something unexpected happened.
             """);
-
-        apisClient.VerifyAll();
-        mcpClient.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mcpClient = CreateListExceptionClient(new NitroClientAuthorizationException(), "api-1", null);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mcpClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mcp",
-                "list",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-
-        apisClient.VerifyAll();
-        mcpClient.VerifyAll();
-    }
-
-    private static Mock<IMcpClient> CreateListExceptionClient(
-        Exception ex,
-        string apiId,
-        string? cursor)
-    {
-        var client = new Mock<IMcpClient>(MockBehavior.Strict);
-        client.Setup(x => x.ListMcpFeatureCollectionsAsync(
-                apiId,
-                cursor,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(ex);
-        return client;
     }
 }

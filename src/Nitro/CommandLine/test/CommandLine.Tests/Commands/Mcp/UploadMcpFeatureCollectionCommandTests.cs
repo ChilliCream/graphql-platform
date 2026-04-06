@@ -1,24 +1,19 @@
-using System.Net;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Mcp;
-using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Services;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Mcp;
 
-public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
+public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture fixture) : McpCommandTestBase(fixture)
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "mcp",
-                "upload",
-                "--help")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "upload",
+            "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -55,20 +50,20 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mcp",
-                "upload",
-                "--tag",
-                "v1",
-                "--mcp-feature-collection-id",
-                "mcp-1",
-                "--prompt-pattern",
-                "**/*.json",
-                "--tool-pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
+        SetupInteractionMode(mode);
+        SetupNoAuthentication();
+
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "upload",
+            "--tag",
+            Tag,
+            "--mcp-feature-collection-id",
+            McpFeatureCollectionId,
+            "--prompt-pattern",
+            "**/*.json",
+            "--tool-pattern",
+            "**/*.graphql");
 
         // assert
         result.AssertError(
@@ -77,19 +72,13 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
             """);
     }
 
-    [Theory]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task MissingRequiredOptions_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task MissingRequiredOptions_ReturnsError()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mcp",
-                "upload")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "upload");
 
         // assert
         result.StdErr.MatchInlineSnapshot(
@@ -101,416 +90,148 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
     }
 
     [Fact]
-    public async Task NoFilesFound_ReturnsError_NonInteractive()
+    public async Task NoFilesFound_ReturnsError()
     {
         // arrange
-        var client = new Mock<IMcpClient>(MockBehavior.Strict);
-        var fileSystem = CreateEmptyFileSystem();
+        SetupEmptyMcpDefinitionFiles();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "mcp",
-                "upload",
-                "--tag",
-                "v1",
-                "--mcp-feature-collection-id",
-                "mcp-1",
-                "--prompt-pattern",
-                "**/*.json",
-                "--tool-pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "upload",
+            "--tag",
+            Tag,
+            "--mcp-feature-collection-id",
+            McpFeatureCollectionId,
+            "--prompt-pattern",
+            "**/*.json",
+            "--tool-pattern",
+            "**/*.graphql");
 
         // assert
         result.AssertError(
             """
             Could not find any MCP prompt or tool definition files with the provided patterns.
             """);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task ClientThrowsException_ReturnsError_NonInteractive()
+    public async Task UploadMcpFeatureCollectionThrows_ReturnsError()
     {
         // arrange
-        var (client, fileSystem) = CreateUploadSetup(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
+        SetupUploadMcpFeatureCollectionMutationException();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "mcp",
-                "upload",
-                "--tag",
-                "v1",
-                "--mcp-feature-collection-id",
-                "mcp-1",
-                "--prompt-pattern",
-                "**/*.json",
-                "--tool-pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "upload",
+            "--tag",
+            Tag,
+            "--mcp-feature-collection-id",
+            McpFeatureCollectionId,
+            "--prompt-pattern",
+            "**/*.json",
+            "--tool-pattern",
+            "**/*.graphql");
 
         // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error: Something unexpected happened.
+            """);
         result.StdOut.MatchInlineSnapshot(
             """
             Uploading new MCP feature collection version 'v1' for collection 'mcp-1'
             ├── Found 1 prompt(s) and 1 tool(s).
             └── ✕ Failed to upload a new MCP feature collection version.
             """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    [MemberData(nameof(GetUploadMcpFeatureCollectionErrors))]
+    public async Task UploadMcpFeatureCollectionHasErrors_ReturnsError(
+        IUploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors error,
+        string expectedErrorMessage)
     {
         // arrange
-        var (client, fileSystem) = CreateUploadSetup(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
+        SetupUploadMcpFeatureCollectionMutation(error);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mcp",
-                "upload",
-                "--tag",
-                "v1",
-                "--mcp-feature-collection-id",
-                "mcp-1",
-                "--prompt-pattern",
-                "**/*.json",
-                "--tool-pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "upload",
+            "--tag",
+            Tag,
+            "--mcp-feature-collection-id",
+            McpFeatureCollectionId,
+            "--prompt-pattern",
+            "**/*.json",
+            "--tool-pattern",
+            "**/*.graphql");
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
+        result.StdOut.MatchInlineSnapshot(
             """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
+            Uploading new MCP feature collection version 'v1' for collection 'mcp-1'
+            ├── Found 1 prompt(s) and 1 tool(s).
+            └── ✕ Failed to upload a new MCP feature collection version.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
+    public async Task UploadMcpFeatureCollectionReturnsNullVersion_ReturnsError()
     {
         // arrange
-        var (client, fileSystem) = CreateUploadSetup(new NitroClientAuthorizationException());
+        SetupUploadMcpFeatureCollectionMutationNullVersion();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "mcp",
-                "upload",
-                "--tag",
-                "v1",
-                "--mcp-feature-collection-id",
-                "mcp-1",
-                "--prompt-pattern",
-                "**/*.json",
-                "--tool-pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "upload",
+            "--tag",
+            Tag,
+            "--mcp-feature-collection-id",
+            McpFeatureCollectionId,
+            "--prompt-pattern",
+            "**/*.json",
+            "--tool-pattern",
+            "**/*.graphql");
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Uploading new MCP feature collection version 'v1' for collection 'mcp-1'
-            ├── Found 1 prompt(s) and 1 tool(s).
-            └── ✕ Failed to upload a new MCP feature collection version.
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var (client, fileSystem) = CreateUploadSetup(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mcp",
-                "upload",
-                "--tag",
-                "v1",
-                "--mcp-feature-collection-id",
-                "mcp-1",
-                "--prompt-pattern",
-                "**/*.json",
-                "--tool-pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsRequestEntityTooLarge_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var (client, fileSystem) = CreateUploadSetup(new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mcp",
-                "upload",
-                "--tag",
-                "v1",
-                "--mcp-feature-collection-id",
-                "mcp-1",
-                "--prompt-pattern",
-                "**/*.json",
-                "--tool-pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned a 413 (Request Entity Too Large) HTTP status code. If you are running a self-hosted instance, check your ingress controller body-size limits, reverse proxy settings, or load balancer request size limits.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsRequestEntityTooLarge_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var (client, fileSystem) = CreateUploadSetup(new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "mcp",
-                "upload",
-                "--tag",
-                "v1",
-                "--mcp-feature-collection-id",
-                "mcp-1",
-                "--prompt-pattern",
-                "**/*.json",
-                "--tool-pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Uploading new MCP feature collection version 'v1' for collection 'mcp-1'
-            ├── Found 1 prompt(s) and 1 tool(s).
-            └── ✕ Failed to upload a new MCP feature collection version.
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned a 413 (Request Entity Too Large) HTTP status code. If you are running a self-hosted instance, check your ingress controller body-size limits, reverse proxy settings, or load balancer request size limits.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [MemberData(nameof(UploadMutationErrorCasesNonInteractive))]
-    public async Task MutationReturnsTypedError_ReturnsError_NonInteractive(
-        IUploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors mutationError,
-        string expectedStdErr)
-    {
-        // arrange
-        var (client, fileSystem) = CreateUploadSetup(CreateUploadPayloadWithErrors(mutationError));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "mcp",
-                "upload",
-                "--tag",
-                "v1",
-                "--mcp-feature-collection-id",
-                "mcp-1",
-                "--prompt-pattern",
-                "**/*.json",
-                "--tool-pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Uploading new MCP feature collection version 'v1' for collection 'mcp-1'
-            ├── Found 1 prompt(s) and 1 tool(s).
-            └── ✕ Failed to upload a new MCP feature collection version.
-            """);
-        result.StdErr.MatchInlineSnapshot(expectedStdErr);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [MemberData(nameof(UploadMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError(
-        InteractionMode mode,
-        IUploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors mutationError,
-        string expectedStdErr)
-    {
-        // arrange
-        var (client, fileSystem) = CreateUploadSetup(CreateUploadPayloadWithErrors(mutationError));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mcp",
-                "upload",
-                "--tag",
-                "v1",
-                "--mcp-feature-collection-id",
-                "mcp-1",
-                "--prompt-pattern",
-                "**/*.json",
-                "--tool-pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(expectedStdErr);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task MutationReturnsNullVersion_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var (client, fileSystem) = CreateUploadSetup(CreateUploadPayloadWithNullVersion());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "mcp",
-                "upload",
-                "--tag",
-                "v1",
-                "--mcp-feature-collection-id",
-                "mcp-1",
-                "--prompt-pattern",
-                "**/*.json",
-                "--tool-pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Uploading new MCP feature collection version 'v1' for collection 'mcp-1'
-            ├── Found 1 prompt(s) and 1 tool(s).
-            └── ✕ Failed to upload a new MCP feature collection version.
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             Could not upload MCP Feature Collection version.
             """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Uploading new MCP feature collection version 'v1' for collection 'mcp-1'
+            ├── Found 1 prompt(s) and 1 tool(s).
+            └── ✕ Failed to upload a new MCP feature collection version.
+            """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Success_ReturnsSuccess_NonInteractive()
+    public async Task UploadsMcpFeatureCollection_ReturnsSuccess()
     {
         // arrange
-        var (client, fileSystem) = CreateUploadSetup(CreateUploadSuccessPayload());
+        SetupUploadMcpFeatureCollectionMutation();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "mcp",
-                "upload",
-                "--tag",
-                "v1",
-                "--mcp-feature-collection-id",
-                "mcp-1",
-                "--prompt-pattern",
-                "**/*.json",
-                "--tool-pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mcp",
+            "upload",
+            "--tag",
+            Tag,
+            "--mcp-feature-collection-id",
+            McpFeatureCollectionId,
+            "--prompt-pattern",
+            "**/*.json",
+            "--tool-pattern",
+            "**/*.graphql");
 
         // assert
         result.AssertSuccess(
@@ -519,298 +240,48 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
             ├── Found 1 prompt(s) and 1 tool(s).
             └── ✓ Uploaded new MCP feature collection version 'v1'.
             """);
-
-        client.VerifyAll();
     }
 
-    [Fact]
-    public async Task Success_ReturnsSuccess_Interactive()
+    public static TheoryData<IUploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors, string>
+        GetUploadMcpFeatureCollectionErrors()
     {
-        // arrange
-        var (client, fileSystem) = CreateUploadSetup(CreateUploadSuccessPayload());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "mcp",
-                "upload",
-                "--tag",
-                "v1",
-                "--mcp-feature-collection-id",
-                "mcp-1",
-                "--prompt-pattern",
-                "**/*.json",
-                "--tool-pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertSuccess();
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task Success_ReturnsSuccess_JsonOutput()
-    {
-        // arrange
-        var (client, fileSystem) = CreateUploadSetup(CreateUploadSuccessPayload());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "mcp",
-                "upload",
-                "--tag",
-                "v1",
-                "--mcp-feature-collection-id",
-                "mcp-1",
-                "--prompt-pattern",
-                "**/*.json",
-                "--tool-pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertSuccess(
-            """
-            {}
-            """);
-
-        client.VerifyAll();
-    }
-
-    private static Mock<IFileSystem> CreateMcpFileSystem()
-    {
-        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
-        fileSystem.Setup(x => x.GlobMatch(
-                It.IsAny<IEnumerable<string>>(),
-                It.IsAny<IEnumerable<string>?>()))
-            .Returns(["prompt.mcp-prompt.json"]);
-        fileSystem.Setup(x => x.OpenReadStream("prompt.mcp-prompt.json"))
-            .Returns(new MemoryStream("{}"u8.ToArray()));
-        return fileSystem;
-    }
-
-    private static Mock<IFileSystem> CreateEmptyFileSystem()
-    {
-        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
-        fileSystem.Setup(x => x.GlobMatch(
-                It.IsAny<IEnumerable<string>>(),
-                It.IsAny<IEnumerable<string>?>()))
-            .Returns([]);
-        return fileSystem;
-    }
-
-    private static (Mock<IMcpClient> Client, Mock<IFileSystem> FileSystem) CreateUploadSetup(
-        IUploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection payload)
-    {
-        var client = new Mock<IMcpClient>(MockBehavior.Strict);
-        client.Setup(x => x.UploadMcpFeatureCollectionVersionAsync(
-                "mcp-1",
-                "v1",
-                It.IsAny<Stream>(),
-                null,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(payload);
-
-        var fileSystem = CreateMcpFileSystem();
-
-        return (client, fileSystem);
-    }
-
-    private static (Mock<IMcpClient> Client, Mock<IFileSystem> FileSystem) CreateUploadSetup(
-        Exception ex)
-    {
-        var client = new Mock<IMcpClient>(MockBehavior.Strict);
-        client.Setup(x => x.UploadMcpFeatureCollectionVersionAsync(
-                "mcp-1",
-                "v1",
-                It.IsAny<Stream>(),
-                null,
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(ex);
-
-        var fileSystem = CreateMcpFileSystem();
-
-        return (client, fileSystem);
-    }
-
-    private static IUploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection CreateUploadSuccessPayload()
-    {
-        var version = new Mock<IUploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_McpFeatureCollectionVersion>(MockBehavior.Strict);
-        version.SetupGet(x => x.Id).Returns("mcpv-1");
-
-        var payload = new Mock<IUploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors)
-            .Returns((IReadOnlyList<IUploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors>?)null);
-        payload.SetupGet(x => x.McpFeatureCollectionVersion).Returns(version.Object);
-
-        return payload.Object;
-    }
-
-    private static IUploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection CreateUploadPayloadWithNullVersion()
-    {
-        var payload = new Mock<IUploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors)
-            .Returns((IReadOnlyList<IUploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors>?)null);
-        payload.SetupGet(x => x.McpFeatureCollectionVersion)
-            .Returns((IUploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_McpFeatureCollectionVersion?)null);
-
-        return payload.Object;
-    }
-
-    private static IUploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection CreateUploadPayloadWithErrors(
-        params IUploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors[] errors)
-    {
-        var payload = new Mock<IUploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors).Returns(errors);
-        payload.SetupGet(x => x.McpFeatureCollectionVersion)
-            .Returns((IUploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_McpFeatureCollectionVersion?)null);
-
-        return payload.Object;
-    }
-
-    public static IEnumerable<object[]> UploadMutationErrorCases()
-    {
-        var modes = new[] { InteractionMode.Interactive, InteractionMode.JsonOutput };
-
-        foreach (var mode in modes)
-        {
-            yield return
-            [
-                mode,
-                new UploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors_McpFeatureCollectionNotFoundError(
-                    "mcp-1", "MCP Feature Collection not found."),
-                """
-                MCP Feature Collection not found.
-                """
-            ];
-
-            yield return
-            [
-                mode,
-                new UploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors_UnauthorizedOperation(
-                    "UnauthorizedOperation", "Not authorized to upload."),
-                """
-                Not authorized to upload.
-                """
-            ];
-
-            yield return
-            [
-                mode,
-                new UploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors_DuplicatedTagError(
-                    "DuplicatedTagError", "Tag 'v1' already exists."),
-                """
-                Tag 'v1' already exists.
-                """
-            ];
-
-            yield return
-            [
-                mode,
-                new UploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors_ConcurrentOperationError(
-                    "ConcurrentOperationError", "A concurrent operation is in progress."),
-                """
-                A concurrent operation is in progress.
-                """
-            ];
-
-            yield return
-            [
-                mode,
-                new UploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors_InvalidMcpFeatureCollectionArchiveError(
-                    "Invalid archive format."),
-                """
-                The server received an invalid archive. This indicates a bug in the tooling. Please notify ChilliCream. Error received: Invalid archive format.
-                """
-            ];
-
-            var unexpectedError = new Mock<IUploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors>();
-            unexpectedError
-                .As<IError>()
-                .SetupGet(x => x.Message)
-                .Returns("Something went wrong.");
-
-            yield return
-            [
-                mode,
-                unexpectedError.Object,
-                """
-                Unexpected mutation error: Something went wrong.
-                """
-            ];
-        }
-    }
-
-    public static IEnumerable<object[]> UploadMutationErrorCasesNonInteractive()
-    {
-        yield return
-        [
-            new UploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors_McpFeatureCollectionNotFoundError(
-                "mcp-1", "MCP Feature Collection not found."),
-            """
-            MCP Feature Collection not found.
-            """
-        ];
-
-        yield return
-        [
-            new UploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors_UnauthorizedOperation(
-                "UnauthorizedOperation", "Not authorized to upload."),
-            """
-            Not authorized to upload.
-            """
-        ];
-
-        yield return
-        [
-            new UploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors_DuplicatedTagError(
-                "DuplicatedTagError", "Tag 'v1' already exists."),
-            """
-            Tag 'v1' already exists.
-            """
-        ];
-
-        yield return
-        [
-            new UploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors_ConcurrentOperationError(
-                "ConcurrentOperationError", "A concurrent operation is in progress."),
-            """
-            A concurrent operation is in progress.
-            """
-        ];
-
-        yield return
-        [
-            new UploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors_InvalidMcpFeatureCollectionArchiveError(
-                "Invalid archive format."),
-            """
-            The server received an invalid archive. This indicates a bug in the tooling. Please notify ChilliCream. Error received: Invalid archive format.
-            """
-        ];
-
         var unexpectedError = new Mock<IUploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors>();
         unexpectedError
             .As<IError>()
             .SetupGet(x => x.Message)
             .Returns("Something went wrong.");
 
-        yield return
-        [
-            unexpectedError.Object,
-            """
-            Unexpected mutation error: Something went wrong.
-            """
-        ];
+        return new()
+        {
+            {
+                new UploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors_McpFeatureCollectionNotFoundError(
+                    "mcp-1", "MCP Feature Collection not found."),
+                "MCP Feature Collection not found."
+            },
+            {
+                new UploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors_UnauthorizedOperation(
+                    "UnauthorizedOperation", "Not authorized to upload."),
+                "Not authorized to upload."
+            },
+            {
+                new UploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors_DuplicatedTagError(
+                    "DuplicatedTagError", "Tag 'v1' already exists."),
+                "Tag 'v1' already exists."
+            },
+            {
+                new UploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors_ConcurrentOperationError(
+                    "ConcurrentOperationError", "A concurrent operation is in progress."),
+                "A concurrent operation is in progress."
+            },
+            {
+                new UploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors_InvalidMcpFeatureCollectionArchiveError(
+                    "Invalid archive format."),
+                "The server received an invalid archive. This indicates a bug in the tooling. Please notify ChilliCream. Error received: Invalid archive format."
+            },
+            {
+                unexpectedError.Object,
+                "Unexpected mutation error: Something went wrong."
+            }
+        };
     }
 }
