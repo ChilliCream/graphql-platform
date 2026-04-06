@@ -2,7 +2,11 @@ TODO: Preamble about you can't just bump the version because this a redesign of 
 
 TODO: Mention that Nitro needs to be updated to latest version when self-hosting
 
+TODO: High level overview over the migration
+
 ## 1. Prepare subgraph
+
+### Migrate subgraph-config.json
 
 Next we need to migrate the `subgraph-config.json` file to the new `schema-settings.json` file.
 
@@ -32,21 +36,67 @@ If you need to do this conversion manully: Create a `schema-settings.json` file 
  }
 ```
 
-> Note: By default the Fusion composition assums your subgraph is compatible with the latest features. By adding `"version": "1.0.0"` we tell the composition that this is a legacy (Fusion v1) subgraph, which relaxes certain validations like `@shareable` and re-creates inferences that were present in Fusion v1, like fields ending in `ById` being inferred as `@lookup`.
+> Note: By default the Fusion v2 composition assums your subgraph is compatible with the latest features. By adding `"version": "1.0.0"` we tell the composition that this is a legacy (Fusion v1) subgraph, which relaxes certain validations like `@shareable` and re-creates inferences that were present in Fusion v1, like fields ending in `ById` being inferred as `@lookup`.
 
-The concept of batch resolvers like `productByIds(ids: [ID!]!)` does not exist in Fusion v2. There batching is done on the transport level and fields like `productById(id: ID!)` are invoked multiple times during a single request to resolve a list of products. For this to be efficient your lookups like `productById` need to use DataLoader to batch requests.
+<!-- TODO: We still need to check the variable batching performance of v15. -->
+If your subgraph is using a version older than the latest HotChocolate v15 or your subgraph uses an entirely different technology, you also need to disable variable batching in `schema-settings.json`.
 
-You also need to enable this transport batching: `.WithOptions(new GraphQLServerOptions { EnableBatching = true })`.
+```diff
+ {
+   "version": "1.0.0",
+   "name": "products",
+   "transports": {
+     "http": {
+-      "url": "http://products/graphql"
++      "url": "http://products/graphql",
++      "capabilities": {
++        "batching": {
++          "variableBatching": false
++        }
++      }
+     }
+   }
+ }
+```
 
-TODO: For < 15 you also need to set the batchingMode to ApolloRequestBatching in the schema-settings.json.
+### Update subgraph
+
+The concept of batch resolvers like `productByIds(ids: [ID!]!)` does no longer exist in Fusion v2. Batching is done on the transport level through [variable and request batching](https://github.com/graphql/graphql-over-http/blob/fb404ac12dde473f3d9f5a1b1026574c7475e1e4/spec/Appendix%20B%20--%20Variable%20Batching.md). This means singular fields like `Query.productById(id: ID!): Product` are invoked with a list of IDs instead of a plural `Query.productsById(ids: [ID!]!): [Product!]` field. Checkout [this GitHub issue](https://github.com/graphql/composite-schemas-spec/issues/25#issue-2173900758) for details on this decision.
+
+<!-- TODO: DataLoader should be a link to documentation -->
+Since you don't want multiple invocations of the `Query.productById` field during a single request to hit the database multiple times, you need to ensure your `Query` root fields and `[NodeResolver]` implementations (powering the `Query.node(id: ID!): Node` field) are using `DataLoader`. This is a best practice and ensures the performance of your server does not degrade in comparison to the previous batching fields.
+
+If an entity currently only has batch `Query` root fields in your subgraph, you'll also have to add a singular field:
+
+```diff
+ type Query {
+   productsById(ids: [ID!]!): [Product!] @lookup @internal
++  productByid(id: ID!): Product @lookup @internal
+ }
+```
+
+Variable and request batching aren't enabled by default, so you also need to update your `Program.cs` to enable it:
+
+```diff
+- app.MapGraphQL();
++ app.MapGraphQL().WithOptions(new GraphQLServerOptions { EnableBatching = true })`.
+```
 
 If you want to, you can also now [migrate the subgraph to Hot Chocolate v16](#x-update-subgraph-to-v16), but it's not required at this point.
+
+### Update CI / CD
+
+TODO
+
+TODO: Also make sure to describe how to update `nitro fusion validate` pipeline validation on a per-repo basis
+
+## Migrate gateway
+
+TODO
 
 ## X. Update subgraph to v16
 
 TODO: Link to Hot Chocolate migration guide and mention that the version: 1.0.0 should be removed. Also `AddSourceSchemaDefaults` (TODO: Check if this modifies the batching already)
-
-TODO: Also make sure to describe how to update `nitro fusion validate` pipeline validation on a per-repo basis
 
 ## Cleanup
 
