@@ -15,6 +15,8 @@ public abstract class CommandTestBase
     private readonly Mock<IFileSystem> _fileSystemMock = new();
     private readonly Mock<IEnvironmentVariableProvider> _environmentVariableProviderMock = new();
     protected readonly Mock<IFusionConfigurationClient> FusionConfigurationClientMock = new(MockBehavior.Strict);
+    private InteractionMode _interactionMode = InteractionMode.NonInteractive;
+    private bool _authenticated = true;
 
     protected CommandTestBase(NitroCommandFixture fixture)
     {
@@ -26,18 +28,28 @@ public abstract class CommandTestBase
 
     protected void SetupInteractionMode(InteractionMode mode)
     {
+        _interactionMode  = mode;
     }
 
-    // TODO: Default should be non-interactive
+    protected void SetupNoAuthentication()
+    {
+        _authenticated = false;
+    }
+
     protected async Task<CommandResult> ExecuteCommandAsync(params string[] args)
     {
-        return await new CommandBuilder(_fixture)
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            // TODO: Get rid of this
-            .AddApiKey()
-            .AddService(_fileSystemMock.Object)
-            .AddService(_environmentVariableProviderMock.Object)
-            .AddService(FusionConfigurationClientMock.Object)
+         var builder = new CommandBuilder(_fixture)
+             .AddService(_fileSystemMock.Object)
+             .AddService(_environmentVariableProviderMock.Object)
+             .AddService(FusionConfigurationClientMock.Object);
+
+         if (_authenticated)
+         {
+             builder.AddApiKey();
+         }
+
+         return await builder
+            .AddInteractionMode(_interactionMode)
             .AddArguments(args)
             .ExecuteAsync();
     }
@@ -61,6 +73,29 @@ public abstract class CommandTestBase
         _fileSystemMock
             .Setup(x => x.ReadAllTextAsync(fullPath, It.IsAny<CancellationToken>()))
             .ReturnsAsync(Encoding.UTF8.GetString(stream.ToArray()));
+    }
+
+    protected void SetupFusionPublishingStateCache(string requestId)
+    {
+        var cacheFile = Path.Combine(Path.GetTempPath(), "fusion.configuration.publishing.state");
+        _fileSystemMock.Setup(x => x.FileExists(cacheFile)).Returns(true);
+        _fileSystemMock
+            .Setup(x => x.ReadAllTextAsync(cacheFile, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(requestId);
+    }
+
+    protected void SetupFusionPublishingStateCacheMiss()
+    {
+        var cacheFile = Path.Combine(Path.GetTempPath(), "fusion.configuration.publishing.state");
+        _fileSystemMock.Setup(x => x.FileExists(cacheFile)).Returns(false);
+    }
+
+    protected void SetupOpenReadStream(string path, byte[]? content = null)
+    {
+        var fullPath = Path.Combine(_currentDirectory, path);
+        _fileSystemMock.Setup(x => x.FileExists(fullPath)).Returns(true);
+        _fileSystemMock.Setup(x => x.OpenReadStream(fullPath))
+            .Returns(new MemoryStream(content ?? "archive-content"u8.ToArray()));
     }
 
     protected void SetupEnvironmentVariable(string variableName, string value)

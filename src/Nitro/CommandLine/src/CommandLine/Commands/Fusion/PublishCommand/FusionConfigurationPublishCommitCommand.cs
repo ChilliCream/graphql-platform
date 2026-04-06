@@ -1,6 +1,4 @@
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
@@ -44,6 +42,16 @@ internal sealed class FusionConfigurationPublishCommitCommand : Command
 
         var archiveFile =
             parseResult.GetRequiredValue(Opt<FusionArchiveFileOption>.Instance);
+
+        if (!Path.IsPathRooted(archiveFile))
+        {
+            archiveFile = Path.Combine(fileSystem.GetCurrentDirectory(), archiveFile);
+        }
+
+        if (!fileSystem.FileExists(archiveFile))
+        {
+            throw new ExitException($"Archive file '{archiveFile}' does not exist.");
+        }
 
         var committed = false;
 

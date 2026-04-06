@@ -1,4 +1,5 @@
 using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.FusionConfiguration;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
@@ -6,11 +7,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 // - Test queueing
 // - Test validation errors being returned
 // - Test publish failing
-// - Test WaitForApproval
 // - Test release failing after error
-// - Test releasing failing after error
-// - Test with composition succeeding / failing for source schema (file)
-// - Discuss with Pascal what should happen when running command when request is already processing?
 public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : FusionCommandTestBase(fixture)
 {
     [Fact]
@@ -68,6 +65,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupInteractionMode(mode);
+        SetupNoAuthentication();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -332,7 +330,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupArchiveFile();
-        SetupRequestDeploymentSlotMutation(waitForApproval: false, error);
+        SetupRequestDeploymentSlotMutation(waitForApproval: false, errors: error);
 
         // act
         var result = await ExecuteCommandAsync(
@@ -1051,7 +1049,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaFile();
-        SetupRequestDeploymentSlotMutation(waitForApproval: false, error);
+        SetupRequestDeploymentSlotMutation(waitForApproval: false, errors: error);
 
         // act
         var result = await ExecuteCommandAsync(
@@ -1807,7 +1805,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaDownload();
-        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupFusionConfigurationDownload();
@@ -1860,7 +1858,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupEnvironmentVariable(EnvironmentVariables.Tag, Tag);
 
         SetupSourceSchemaDownload();
-        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupFusionConfigurationDownload();
@@ -1898,6 +1896,57 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
     }
 
+    [Fact]
+    public async Task WithSourceSchema_WithExplicitSourceSchemaVersion_ReturnsSuccess()
+    {
+        // arrange
+        const string sourceSchemaVersion = "1.2.3";
+        SetupSourceSchemaDownload(version: sourceSchemaVersion);
+        SetupRequestDeploymentSlotMutation(
+            sourceSchemaVersions: [new SourceSchemaVersion(SourceSchema, sourceSchemaVersion)]);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema + "@" + sourceSchemaVersion);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   └── ✓ Validated configuration.
+            ├── Uploading configuration to 'dev'
+            │   └── ✓ Uploaded configuration.
+            └── ✓ Published configuration 'v1' to 'dev'.
+            """);
+    }
+
     [Theory]
     [MemberData(nameof(GetRequestDeploymentSlotErrors))]
     public async Task WithSourceSchema_RequestDeploymentSlotHasErrors_ReturnsError(
@@ -1906,7 +1955,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaDownload();
-        SetupRequestDeploymentSlotMutation(waitForApproval: false, error);
+        SetupRequestDeploymentSlotMutation(waitForApproval: false, sourceSchemaVersions: SourceSchemaVersions, errors: error);
 
         // act
         var result = await ExecuteCommandAsync(
@@ -1983,7 +2032,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaDownload();
-        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation(error);
         SetupReleaseDeploymentSlotMutation();
@@ -2025,7 +2074,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaDownload();
-        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutationException();
         SetupReleaseDeploymentSlotMutation();
@@ -2067,7 +2116,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaDownloadWithInvalidSchema();
-        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupFusionConfigurationDownload();
@@ -2121,7 +2170,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaDownload();
-        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupFusionConfigurationDownload();
@@ -2171,7 +2220,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaDownload();
-        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupFusionConfigurationDownload();
@@ -2222,7 +2271,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaDownload();
-        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupFusionConfigurationDownload();
@@ -2285,7 +2334,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaDownload();
-        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupFusionConfigurationDownload();
@@ -2348,7 +2397,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaDownload();
-        SetupRequestDeploymentSlotMutation(waitForApproval: true);
+        SetupRequestDeploymentSlotMutation(waitForApproval: true, sourceSchemaVersions: SourceSchemaVersions);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupFusionConfigurationDownload();
@@ -2395,7 +2444,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaDownload();
-        SetupRequestDeploymentSlotMutation(waitForApproval: true);
+        SetupRequestDeploymentSlotMutation(waitForApproval: true, sourceSchemaVersions: SourceSchemaVersions);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupFusionConfigurationDownload();
@@ -2449,7 +2498,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaDownload();
-        SetupRequestDeploymentSlotMutation(waitForApproval: true);
+        SetupRequestDeploymentSlotMutation(waitForApproval: true, sourceSchemaVersions: SourceSchemaVersions);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupFusionConfigurationDownload();
@@ -2510,7 +2559,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaDownload();
-        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupFusionConfigurationDownload();
@@ -2564,7 +2613,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
     {
         // arrange
         SetupSourceSchemaDownload();
-        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
         SetupRequestDeploymentSlotSubscription();
         SetupClaimDeploymentSlotMutation();
         SetupFusionConfigurationDownload();

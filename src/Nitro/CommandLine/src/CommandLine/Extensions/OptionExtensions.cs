@@ -91,6 +91,14 @@ internal static class OptionExtensions
                 return;
             }
 
+            // Skip validation when a subcommand is being invoked,
+            // since the parent's options don't apply to subcommands.
+            if (result.Parent is CommandResult commandResult
+                && commandResult.Children.OfType<CommandResult>().Any())
+            {
+                return;
+            }
+
             var value = result.GetValue(option);
             if (value is null)
             {

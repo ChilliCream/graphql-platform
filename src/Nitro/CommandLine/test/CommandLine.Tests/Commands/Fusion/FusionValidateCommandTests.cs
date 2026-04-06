@@ -2,6 +2,7 @@ using ChilliCream.Nitro.Client;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
+// TODO: Test with queueing
 public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : FusionCommandTestBase(fixture)
 {
     [Fact]
@@ -46,6 +47,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     {
         // arrange
         SetupInteractionMode(mode);
+        SetupNoAuthentication();
 
         // act
         var result = await ExecuteCommandAsync(

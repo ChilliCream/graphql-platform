@@ -1,4 +1,3 @@
-using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using Moq;
 

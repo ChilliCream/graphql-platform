@@ -17,6 +17,8 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
     protected const string SourceSchemaFile = "products/schema.graphqls";
     protected const string SourceSchemaSettingsFile = "products/schema-settings.json";
     protected const string SourceSchema = "products";
+    protected static readonly SourceSchemaVersion[] SourceSchemaVersions =
+        [new SourceSchemaVersion(SourceSchema, Tag)];
     private const string SourceSchemaText =
         """
         type Query {
@@ -36,13 +38,13 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
         }
         """;
 
-    protected void SetupSourceSchemaDownload()
+    protected void SetupSourceSchemaDownload(string version = Tag)
     {
         FusionConfigurationClientMock
             .Setup(x => x.DownloadSourceSchemaArchiveAsync(
                 ApiId,
                 SourceSchema,
-                Tag,
+                version,
                 It.IsAny<CancellationToken>()))
             .Returns(async () => await CreateSourceSchemaArchiveStreamAsync(SourceSchemaText));
     }
@@ -123,6 +125,9 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
 
     protected void SetupRequestDeploymentSlotMutation(
         bool waitForApproval = false,
+        string? subgraphId = null,
+        string? subgraphName = null,
+        SourceSchemaVersion[]? sourceSchemaVersions = null,
         params IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish_Errors[] errors)
     {
         FusionConfigurationClientMock
@@ -130,9 +135,9 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
                 ApiId,
                 Stage,
                 Tag,
-                null,
-                null,
-                It.IsAny<SourceSchemaVersion[]>(),
+                subgraphId,
+                subgraphName,
+                sourceSchemaVersions,
                 waitForApproval,
                 null,
                 It.IsAny<CancellationToken>()))
@@ -168,6 +173,15 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
                 RequestId,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => CreateReleaseDeploymentSlotPayload(errors));
+    }
+
+    protected void SetupReleaseDeploymentSlotMutationException()
+    {
+        FusionConfigurationClientMock
+            .Setup(x => x.ReleaseDeploymentSlotAsync(
+                RequestId,
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Something unexpected happened."));
     }
 
     protected void SetupFusionConfigurationDownload(
@@ -725,6 +739,34 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
         CreateClaimDeploymentSlotInvalidStateTransitionError(string message = "Invalid processing state transition.")
     {
         var mock = new Mock<IStartFusionConfigurationPublish_StartFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError>(MockBehavior.Strict);
+        mock.SetupGet(x => x.Message).Returns(message);
+        return mock.Object;
+    }
+
+    #endregion
+
+    #region Error Factories — ReleaseDeploymentSlot (Cancel)
+
+    protected static ICancelFusionConfigurationPublish_CancelFusionConfigurationComposition_Errors
+        CreateReleaseDeploymentSlotUnauthorizedError(string message = "Unauthorized.")
+    {
+        var mock = new Mock<ICancelFusionConfigurationPublish_CancelFusionConfigurationComposition_Errors_UnauthorizedOperation>(MockBehavior.Strict);
+        mock.SetupGet(x => x.Message).Returns(message);
+        return mock.Object;
+    }
+
+    protected static ICancelFusionConfigurationPublish_CancelFusionConfigurationComposition_Errors
+        CreateReleaseDeploymentSlotRequestNotFoundError(string message = "Fusion configuration request was not found.")
+    {
+        var mock = new Mock<ICancelFusionConfigurationPublish_CancelFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError>(MockBehavior.Strict);
+        mock.SetupGet(x => x.Message).Returns(message);
+        return mock.Object;
+    }
+
+    protected static ICancelFusionConfigurationPublish_CancelFusionConfigurationComposition_Errors
+        CreateReleaseDeploymentSlotInvalidStateTransitionError(string message = "Invalid processing state transition.")
+    {
+        var mock = new Mock<ICancelFusionConfigurationPublish_CancelFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError>(MockBehavior.Strict);
         mock.SetupGet(x => x.Message).Returns(message);
         return mock.Object;
     }

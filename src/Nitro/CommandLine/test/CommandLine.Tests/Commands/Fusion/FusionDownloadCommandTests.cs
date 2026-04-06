@@ -51,6 +51,7 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : Fu
     {
         // arrange
         SetupInteractionMode(mode);
+        SetupNoAuthentication();
 
         // act
         var result = await ExecuteCommandAsync(

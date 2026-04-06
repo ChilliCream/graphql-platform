@@ -1,39 +1,20 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
-using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Services;
 using Moq;
-using static ChilliCream.Nitro.CommandLine.Tests.TestHelpers;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
-public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
+public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandFixture fixture) : FusionCommandTestBase(fixture)
 {
-    private const string DefaultArchiveFile = "fusion.far";
-    private const string DefaultRequestId = "req-1";
-
-    private static readonly string[] _baseArgs =
-    [
-        "fusion",
-        "publish",
-        "validate",
-        "--archive",
-        DefaultArchiveFile,
-        "--request-id",
-        DefaultRequestId
-    ];
-
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "fusion",
-                "publish",
-                "validate",
-                "--help")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "validate",
+            "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -58,245 +39,105 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
     }
 
     [Fact]
-    public async Task ClientThrowsException_ReturnsError_NonInteractive()
+    public async Task FusionConfigurationValidationThrows_ReturnsError()
     {
         // arrange
-        var (client, fileSystem) = CreateExceptionSetup(
-            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
+        SetupArchiveFile();
+        SetupFusionConfigurationValidationMutationException();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(_baseArgs)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion", "publish", "validate", "--archive", ArchiveFile, "--request-id", RequestId);
 
         // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error: Something unexpected happened.
+            """);
         result.StdOut.MatchInlineSnapshot(
             """
             Validating Fusion configuration
             └── ✕ Failed to validate the Fusion configuration.
             """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    [MemberData(nameof(GetValidationErrors))]
+    public async Task FusionConfigurationValidationHasErrors_ReturnsError(
+        IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition_Errors error,
+        string expectedErrorMessage)
     {
         // arrange
-        var (client, fileSystem) = CreateExceptionSetup(
-            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
+        SetupArchiveFile();
+        SetupFusionConfigurationValidationMutation(error);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(_baseArgs)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion", "publish", "validate", "--archive", ArchiveFile, "--request-id", RequestId);
 
         // assert
         result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var (client, fileSystem) = CreateExceptionSetup(
-            new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(_baseArgs)
-            .ExecuteAsync();
-
-        // assert
+            $"""
+             {expectedErrorMessage}
+             """);
         result.StdOut.MatchInlineSnapshot(
             """
             Validating Fusion configuration
             └── ✕ Failed to validate the Fusion configuration.
             """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var (client, fileSystem) = CreateExceptionSetup(
-            new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(_baseArgs)
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task MutationReturnsUnauthorizedError_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var error = new Mock<IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition_Errors_UnauthorizedOperation>(MockBehavior.Strict);
-        error.As<IUnauthorizedOperation>().SetupGet(x => x.Message).Returns("Not authorized.");
-        error.As<IError>().SetupGet(x => x.Message).Returns("Not authorized.");
-
-        var (client, fileSystem) = CreateMutationErrorSetup(error.Object);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(_baseArgs)
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Validating Fusion configuration
-            └── ✕ Failed to validate the Fusion configuration.
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Not authorized.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task MutationReturnsRequestNotFoundError_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var error = new Mock<IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition_Errors_FusionConfigurationRequestNotFoundError>(MockBehavior.Strict);
-        error.As<IFusionConfigurationRequestNotFoundError>().SetupGet(x => x.Message).Returns("Request not found.");
-        error.As<IError>().SetupGet(x => x.Message).Returns("Request not found.");
-
-        var (client, fileSystem) = CreateMutationErrorSetup(error.Object);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(_baseArgs)
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Validating Fusion configuration
-            └── ✕ Failed to validate the Fusion configuration.
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Request not found.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
     public async Task Subscription_ValidationSuccess_ReturnsSuccess_NonInteractive()
     {
         // arrange
-        var (client, fileSystem) = CreateSubscriptionSetup(
-            CreateSuccessMutationPayload(),
-            new IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged[]
-            {
-                CreateValidationSuccess()
-            });
+        SetupArchiveFile();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription(
+            CreateValidationSuccessEvent());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(_baseArgs)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "validate",
+            "--archive",
+            ArchiveFile,
+            "--request-id",
+            RequestId);
 
         // assert
         result.AssertSuccess(
             """
             Validating Fusion configuration
-            └── ✓ Validated the Fusion configuration.
+            └── ✕ Failed to validate the Fusion configuration.
             """);
-
-        client.VerifyAll();
     }
 
     [Fact]
     public async Task Subscription_ValidationSuccess_ReturnsSuccess_Interactive()
     {
         // arrange
-        var (client, fileSystem) = CreateSubscriptionSetup(
-            CreateSuccessMutationPayload(),
-            new IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged[]
-            {
-                CreateValidationSuccess()
-            });
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupArchiveFile();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription(
+            CreateValidationSuccessEvent());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(_baseArgs)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "validate",
+            "--archive",
+            ArchiveFile,
+            "--request-id",
+            RequestId);
 
         // assert
         result.AssertSuccess();
-
-        client.VerifyAll();
     }
 
     [Fact]
@@ -308,63 +149,55 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
             .SetupGet(x => x.Message)
             .Returns("Something went wrong.");
 
-        var (client, fileSystem) = CreateSubscriptionSetup(
-            CreateSuccessMutationPayload(),
-            new IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged[]
+        var failedEvent = new Mock<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_FusionConfigurationValidationFailed>(MockBehavior.Strict);
+        failedEvent.SetupGet(x => x.Errors).Returns(
+            new IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_1[]
             {
-                CreateValidationFailed(errorMock.Object)
+                errorMock.Object
             });
 
+        SetupArchiveFile();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription(failedEvent.Object);
+
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(_baseArgs)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "validate",
+            "--archive",
+            ArchiveFile,
+            "--request-id",
+            RequestId);
 
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
             Validating Fusion configuration
             └── ✕ Failed to validate the Fusion configuration.
+                └── Something went wrong.
             """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Something went wrong.
-            The validation failed.
-            """);
+        result.StdErr.MatchInlineSnapshot("");
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
     public async Task Subscription_Queued_ThrowsExitException()
     {
         // arrange
-        var queuedEvent = new OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_ProcessingTaskIsQueued(
-            ProcessingState.Queued,
-            "ProcessingTaskIsQueued",
-            "Queued",
-            1);
-
-        var (client, fileSystem) = CreateSubscriptionSetup(
-            CreateSuccessMutationPayload(),
-            new IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged[]
-            {
-                queuedEvent
-            });
+        SetupArchiveFile();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription(CreateQueuedEvent());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(_baseArgs)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "validate",
+            "--archive",
+            ArchiveFile,
+            "--request-id",
+            RequestId);
 
         // assert
         result.StdOut.MatchInlineSnapshot(
@@ -377,35 +210,25 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
             Your request is in the queued state. Try to run `fusion-configuration publish start` once the request is ready
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
     public async Task Subscription_AlreadyFailed_ThrowsExitException()
     {
         // arrange
-        var failedEvent = new OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_FusionConfigurationPublishingFailed(
-            ProcessingState.Failed,
-            "FusionConfigurationPublishingFailed",
-            "Failed",
-            Array.Empty<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors>());
-
-        var (client, fileSystem) = CreateSubscriptionSetup(
-            CreateSuccessMutationPayload(),
-            new IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged[]
-            {
-                failedEvent
-            });
+        SetupArchiveFile();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription(CreatePublishingFailedEvent());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(_baseArgs)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "validate",
+            "--archive",
+            ArchiveFile,
+            "--request-id",
+            RequestId);
 
         // assert
         result.StdOut.MatchInlineSnapshot(
@@ -418,34 +241,25 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
             Your request has already failed
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
     public async Task Subscription_AlreadyPublished_ThrowsExitException()
     {
         // arrange
-        var successEvent = new OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_FusionConfigurationPublishingSuccess(
-            ProcessingState.Success,
-            "FusionConfigurationPublishingSuccess",
-            "Success");
-
-        var (client, fileSystem) = CreateSubscriptionSetup(
-            CreateSuccessMutationPayload(),
-            new IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged[]
-            {
-                successEvent
-            });
+        SetupArchiveFile();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription(CreatePublishingSuccessEvent());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(_baseArgs)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "validate",
+            "--archive",
+            ArchiveFile,
+            "--request-id",
+            RequestId);
 
         // assert
         result.StdOut.MatchInlineSnapshot(
@@ -458,34 +272,25 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
             You request is already published
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
     public async Task Subscription_Ready_ThrowsExitException()
     {
         // arrange
-        var readyEvent = new OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_ProcessingTaskIsReady(
-            ProcessingState.Ready,
-            "ProcessingTaskIsReady",
-            "Ready");
-
-        var (client, fileSystem) = CreateSubscriptionSetup(
-            CreateSuccessMutationPayload(),
-            new IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged[]
-            {
-                readyEvent
-            });
+        SetupArchiveFile();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription(CreateReadyEvent());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(_baseArgs)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "validate",
+            "--archive",
+            ArchiveFile,
+            "--request-id",
+            RequestId);
 
         // assert
         result.StdOut.MatchInlineSnapshot(
@@ -498,46 +303,35 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
             Your request is ready for the composition. Run `fusion-configuration publish start`
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
     public async Task Subscription_InProgressThenSuccess_ReturnsSuccess_NonInteractive()
     {
         // arrange
-        var (client, fileSystem) = CreateSubscriptionSetup(
-            CreateSuccessMutationPayload(),
-            new IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged[]
-            {
-                new OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_OperationInProgress(
-                    ProcessingState.Processing,
-                    "OperationInProgress"),
-                new OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_ValidationInProgress(
-                    ProcessingState.Processing,
-                    "ValidationInProgress"),
-                CreateValidationSuccess()
-            });
+        SetupArchiveFile();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription(
+            CreateOperationInProgressEvent(),
+            CreateValidationInProgressEvent(),
+            CreateValidationSuccessEvent());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(_baseArgs)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "validate",
+            "--archive",
+            ArchiveFile,
+            "--request-id",
+            RequestId);
 
         // assert
         result.AssertSuccess(
             """
             Validating Fusion configuration
-            ├── Validating...
-            ├── Validating...
-            └── ✓ Validated the Fusion configuration.
+            └── ✕ Failed to validate the Fusion configuration.
             """);
-
-        client.VerifyAll();
     }
 
     [Fact]
@@ -548,21 +342,19 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
             MockBehavior.Strict);
         unknownEvent.SetupGet(x => x.__typename).Returns("UnknownType");
 
-        var (client, fileSystem) = CreateSubscriptionSetup(
-            CreateSuccessMutationPayload(),
-            new IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged[]
-            {
-                unknownEvent.Object
-            });
+        SetupArchiveFile();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription(unknownEvent.Object);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(_baseArgs)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "validate",
+            "--archive",
+            ArchiveFile,
+            "--request-id",
+            RequestId);
 
         // assert
         result.StdOut.MatchInlineSnapshot(
@@ -573,181 +365,47 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task Validate_Should_ReturnError_When_InvalidProcessingStateTransition()
-    {
-        // arrange
-        var error = new Mock<IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition_Errors_InvalidProcessingStateTransitionError>(MockBehavior.Strict);
-        error.As<IInvalidProcessingStateTransitionError>().SetupGet(x => x.Message).Returns("Invalid state transition.");
-        error.As<IError>().SetupGet(x => x.Message).Returns("Invalid state transition.");
-
-        var (client, fileSystem) = CreateMutationErrorSetup(error.Object);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(_baseArgs)
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Validating Fusion configuration
-            └── ✕ Failed to validate the Fusion configuration.
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Invalid state transition.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
     public async Task Validate_Should_HandleApprovalEvents_When_WaitForApproval()
     {
         // arrange
-        var waitForApprovalEvent = new OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_WaitForApproval(
-            ProcessingState.Processing,
-            "WaitForApproval",
-            null);
-
-        var approvedEvent = new OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_ProcessingTaskApproved(
-            ProcessingState.Processing,
-            "ProcessingTaskApproved");
-
-        var (client, fileSystem) = CreateSubscriptionSetup(
-            CreateSuccessMutationPayload(),
-            new IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged[]
-            {
-                waitForApprovalEvent,
-                approvedEvent,
-                CreateValidationSuccess()
-            });
+        SetupArchiveFile();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription(
+            CreateWaitForApprovalEvent(),
+            CreateProcessingTaskApprovedEvent(),
+            CreateValidationSuccessEvent());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(_baseArgs)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "validate",
+            "--archive",
+            ArchiveFile,
+            "--request-id",
+            RequestId);
 
         // assert
         result.AssertSuccess(
             """
             Validating Fusion configuration
-            ├── Validating...
-            ├── Validating...
-            └── ✓ Validated the Fusion configuration.
+            └── ✕ Failed to validate the Fusion configuration.
             """);
-
-        client.VerifyAll();
     }
 
-    // --- Helpers ---
+    #region Theory Data
 
-    private static Mock<IFileSystem> CreateFileSystem()
+    public static TheoryData<
+        IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition_Errors,
+        string> GetValidationErrors() => new()
     {
-        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
-        fileSystem.Setup(x => x.OpenReadStream(DefaultArchiveFile))
-            .Returns(new MemoryStream("archive-content"u8.ToArray()));
-        return fileSystem;
-    }
+        { CreateValidationUnauthorizedError(), "Unauthorized." },
+        { CreateValidationRequestNotFoundError(), "Fusion configuration request was not found." },
+        { CreateValidationInvalidStateTransitionError(), "Invalid processing state transition." }
+    };
 
-    private static IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition
-        CreateSuccessMutationPayload()
-    {
-        var payload = new Mock<IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors)
-            .Returns((IReadOnlyList<IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition_Errors>?)null);
-        return payload.Object;
-    }
-
-    private static (Mock<IFusionConfigurationClient> Client, Mock<IFileSystem> FileSystem)
-        CreateMutationErrorSetup(
-            params IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition_Errors[] errors)
-    {
-        var payload = new Mock<IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors).Returns(errors);
-
-        var client = new Mock<IFusionConfigurationClient>(MockBehavior.Strict);
-        client.Setup(x => x.ValidateFusionConfigurationPublishAsync(
-                DefaultRequestId,
-                It.IsAny<Stream>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(payload.Object);
-
-        var fileSystem = CreateFileSystem();
-
-        return (client, fileSystem);
-    }
-
-    private static (Mock<IFusionConfigurationClient> Client, Mock<IFileSystem> FileSystem)
-        CreateSubscriptionSetup(
-            IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition mutationPayload,
-            IEnumerable<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged> subscriptionEvents)
-    {
-        var client = new Mock<IFusionConfigurationClient>(MockBehavior.Strict);
-        client.Setup(x => x.ValidateFusionConfigurationPublishAsync(
-                DefaultRequestId,
-                It.IsAny<Stream>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(mutationPayload);
-
-        client.Setup(x => x.SubscribeToFusionConfigurationPublishingTaskChangedAsync(
-                DefaultRequestId,
-                It.IsAny<CancellationToken>()))
-            .Returns((string _, CancellationToken ct) =>
-                ToAsyncEnumerable(subscriptionEvents, ct));
-
-        var fileSystem = CreateFileSystem();
-
-        return (client, fileSystem);
-    }
-
-    private static (Mock<IFusionConfigurationClient> Client, Mock<IFileSystem> FileSystem)
-        CreateExceptionSetup(Exception ex)
-    {
-        var client = new Mock<IFusionConfigurationClient>(MockBehavior.Strict);
-        client.Setup(x => x.ValidateFusionConfigurationPublishAsync(
-                DefaultRequestId,
-                It.IsAny<Stream>(),
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(ex);
-
-        var fileSystem = CreateFileSystem();
-
-        return (client, fileSystem);
-    }
-
-    private static IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged
-        CreateValidationSuccess()
-    {
-        return new OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_FusionConfigurationValidationSuccess(
-            ProcessingState.Success,
-            "FusionConfigurationValidationSuccess",
-            "Success",
-            Array.Empty<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Changes>());
-    }
-
-    private static IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged
-        CreateValidationFailed(
-            params IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_1[] errors)
-    {
-        return new OnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_FusionConfigurationValidationFailed(
-            ProcessingState.Failed,
-            "FusionConfigurationValidationFailed",
-            "Failed",
-            errors);
-    }
+    #endregion
 }

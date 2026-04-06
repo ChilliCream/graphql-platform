@@ -300,7 +300,7 @@ internal sealed class FusionValidateCommand : Command
                         console.Error.WriteErrorLine("Fusion configuration validation failed.");
 
                         return false;
-                    
+
                     case ISchemaVersionValidationSuccess:
                         activity.Success("Validation passed.");
 

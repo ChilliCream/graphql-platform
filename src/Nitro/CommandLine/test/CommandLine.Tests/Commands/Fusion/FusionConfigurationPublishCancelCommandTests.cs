@@ -1,24 +1,15 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.FusionConfiguration;
-using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Services;
-using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
-public sealed class FusionConfigurationPublishCancelCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
+public sealed class FusionConfigurationPublishCancelCommandTests(NitroCommandFixture fixture)
+    : FusionCommandTestBase(fixture)
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "fusion",
-                "publish",
-                "cancel",
-                "--help")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync("fusion", "publish", "cancel", "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -47,16 +38,17 @@ public sealed class FusionConfigurationPublishCancelCommandTests(NitroCommandFix
     [InlineData(InteractionMode.JsonOutput)]
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
-        // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "fusion",
-                "publish",
-                "cancel",
-                "--request-id",
-                "req-1")
-            .ExecuteAsync();
+        // arrange
+        SetupInteractionMode(mode);
+        SetupNoAuthentication();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "cancel",
+            "--request-id",
+            RequestId);
 
         // assert
         result.AssertError(
@@ -72,300 +64,114 @@ public sealed class FusionConfigurationPublishCancelCommandTests(NitroCommandFix
     public async Task NoRequestId_And_NoStateFile_ReturnsError(InteractionMode mode)
     {
         // arrange
-        var cacheFile = Path.Combine(Path.GetTempPath(), "fusion.configuration.publishing.state");
-        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
-        fileSystem.Setup(x => x.FileExists(cacheFile)).Returns(false);
+        SetupFusionPublishingStateCacheMiss();
+        SetupInteractionMode(mode);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "fusion",
-                "publish",
-                "cancel")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync("fusion", "publish", "cancel");
 
         // assert
         result.AssertError(
             """
             No request ID was provided and no request ID was found in the cache. Please provide a request ID.
             """);
-
-        fileSystem.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task RequestIdFromStateFile_Success(InteractionMode mode)
-    {
-        // arrange
-        var (client, fileSystem) = CreateSuccessSetup(fromStateFile: true);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "fusion",
-                "publish",
-                "cancel")
-            .ExecuteAsync();
-
-        // assert
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
-
-        client.VerifyAll();
-        fileSystem.VerifyAll();
     }
 
     [Fact]
-    public async Task ClientThrowsException_ReturnsError_NonInteractive()
+    public async Task ReleaseDeploymentSlotThrows_ReturnsError()
     {
         // arrange
-        var client = CreateExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
+        SetupReleaseDeploymentSlotMutationException();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "fusion",
-                "publish",
-                "cancel",
-                "--request-id",
-                "req-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion", "publish", "cancel", "--request-id", RequestId);
 
         // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error: Something unexpected happened.
+            """);
         result.StdOut.MatchInlineSnapshot(
             """
             Canceling publication
             └── ✕ Failed to cancel the publication.
             """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    [MemberData(nameof(GetReleaseDeploymentSlotErrors))]
+    public async Task ReleaseDeploymentSlotHasErrors_ReturnsError(
+        ICancelFusionConfigurationPublish_CancelFusionConfigurationComposition_Errors error,
+        string expectedErrorMessage)
     {
         // arrange
-        var client = CreateExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
+        SetupReleaseDeploymentSlotMutation(error);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "fusion",
-                "publish",
-                "cancel",
-                "--request-id",
-                "req-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion", "publish", "cancel", "--request-id", RequestId);
 
         // assert
         result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var client = CreateExceptionClient(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "fusion",
-                "publish",
-                "cancel",
-                "--request-id",
-                "req-1")
-            .ExecuteAsync();
-
-        // assert
+            $"""
+             {expectedErrorMessage}
+             """);
         result.StdOut.MatchInlineSnapshot(
             """
             Canceling publication
             └── ✕ Failed to cancel the publication.
             """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var client = CreateExceptionClient(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "fusion",
-                "publish",
-                "cancel",
-                "--request-id",
-                "req-1")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Success_CancelsPublish_NonInteractive()
+    public async Task RequestIdFromArg_Success()
     {
         // arrange
-        var (client, _) = CreateSuccessSetup(fromStateFile: false);
+        SetupFusionPublishingStateCache(RequestId);
+        SetupReleaseDeploymentSlotMutation();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "fusion",
-                "publish",
-                "cancel",
-                "--request-id",
-                "req-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync("fusion", "publish", "cancel", "--request-id", RequestId);
 
         // assert
         result.AssertSuccess(
             """
             Canceling publication
-            └── ✓ Canceled publication for request 'req-1'.
+            └── ✓ Canceled publication for request 'request-id'.
             """);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Success_CancelsPublish_Interactive()
+    public async Task RequestIdFromStateFile_Success()
     {
         // arrange
-        var (client, _) = CreateSuccessSetup(fromStateFile: false);
+        SetupFusionPublishingStateCache(RequestId);
+        SetupReleaseDeploymentSlotMutation();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "fusion",
-                "publish",
-                "cancel",
-                "--request-id",
-                "req-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync("fusion", "publish", "cancel");
 
         // assert
-        result.AssertSuccess();
-
-        client.VerifyAll();
+        result.AssertSuccess(
+            """
+            Canceling publication
+            └── ✓ Canceled publication for request 'request-id'.
+            """);
     }
 
-    [Fact]
-    public async Task Success_CancelsPublish_JsonOutput()
+    #region Theory Data
+
+    public static TheoryData<
+        ICancelFusionConfigurationPublish_CancelFusionConfigurationComposition_Errors,
+        string> GetReleaseDeploymentSlotErrors() => new()
     {
-        // arrange
-        var (client, _) = CreateSuccessSetup(fromStateFile: false);
+        { CreateReleaseDeploymentSlotUnauthorizedError(), "Unauthorized." },
+        { CreateReleaseDeploymentSlotRequestNotFoundError(), "Fusion configuration request was not found." },
+        { CreateReleaseDeploymentSlotInvalidStateTransitionError(), "Invalid processing state transition." }
+    };
 
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "fusion",
-                "publish",
-                "cancel",
-                "--request-id",
-                "req-1")
-            .ExecuteAsync();
-
-        // assert
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    private static (Mock<IFusionConfigurationClient> Client, Mock<IFileSystem> FileSystem) CreateSuccessSetup(
-        bool fromStateFile)
-    {
-        var payload = Mock.Of<ICancelFusionConfigurationPublish_CancelFusionConfigurationComposition>();
-
-        var client = new Mock<IFusionConfigurationClient>(MockBehavior.Strict);
-        client.Setup(x => x.ReleaseDeploymentSlotAsync(
-                "req-1",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(payload);
-
-        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
-
-        if (fromStateFile)
-        {
-            var cacheFile = Path.Combine(Path.GetTempPath(), "fusion.configuration.publishing.state");
-            fileSystem.Setup(x => x.FileExists(cacheFile)).Returns(true);
-            fileSystem.Setup(x => x.ReadAllTextAsync(cacheFile, It.IsAny<CancellationToken>()))
-                .ReturnsAsync("req-1");
-        }
-
-        return (client, fileSystem);
-    }
-
-    private static Mock<IFusionConfigurationClient> CreateExceptionClient(Exception ex)
-    {
-        var client = new Mock<IFusionConfigurationClient>(MockBehavior.Strict);
-        client.Setup(x => x.ReleaseDeploymentSlotAsync(
-                "req-1",
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(ex);
-        return client;
-    }
+    #endregion
 }
