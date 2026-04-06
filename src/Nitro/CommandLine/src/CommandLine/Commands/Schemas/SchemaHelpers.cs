@@ -73,7 +73,7 @@ internal static class SchemaHelpers
                                 errorTree.AddGraphQLSchemaErrors(e);
                                 break;
                             case IPersistedQueryValidationError e:
-                                errorTree.AddPersistedQueryValidationErrors(e);
+                                errorTree.AddPersistedQueryValidationErrorsWithClients(e);
                                 break;
                             case IOpenApiCollectionValidationError e:
                                 errorTree.AddOpenApiCollectionValidationErrors(e);

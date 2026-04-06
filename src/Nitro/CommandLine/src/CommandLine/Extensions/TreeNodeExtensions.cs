@@ -31,7 +31,7 @@ internal static class TreeNodeExtensions
         return node;
     }
 
-    public static IHasTreeNodes AddPersistedQueryValidationErrors(
+    public static IHasTreeNodes AddPersistedQueryValidationErrorsWithClients(
         this IHasTreeNodes node,
         IPersistedQueryValidationError error)
     {
@@ -45,6 +45,33 @@ internal static class TreeNodeExtensions
                 : "";
 
             var operationNode = clientNode.AddNode($"Operation '{operation.Hash}'{publishingInfo}");
+
+            foreach (var err in operation.Errors)
+            {
+                var errorLocation = string.Empty;
+                if (err.Locations is { Count: > 0 } locations)
+                {
+                    errorLocation = $"({locations[0].Line}:{locations[0].Column})";
+                }
+
+                operationNode.AddNode($"{err.Message.EscapeMarkup()} {errorLocation}");
+            }
+        }
+
+        return node;
+    }
+
+    public static IHasTreeNodes AddPersistedQueryValidationErrors(
+        this IHasTreeNodes node,
+        IPersistedQueryValidationError error)
+    {
+        foreach (var operation in error.Queries)
+        {
+            var publishingInfo = operation.DeployedTags.Count > 0
+                ? $" (Deployed tags: {string.Join(",", operation.DeployedTags)})"
+                : "";
+
+            var operationNode = node.AddNode($"Operation '{operation.Hash}'{publishingInfo}");
 
             foreach (var err in operation.Errors)
             {

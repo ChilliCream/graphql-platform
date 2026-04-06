@@ -4,18 +4,16 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.ApiKeys;
 
-public sealed class DeleteApiKeyCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
+public sealed class DeleteApiKeyCommandTests(NitroCommandFixture fixture) : ApiKeysCommandTestBase(fixture)
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "api-key",
-                "delete",
-                "--help")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "api-key",
+            "delete",
+            "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -41,25 +39,93 @@ public sealed class DeleteApiKeyCommandTests(NitroCommandFixture fixture) : ICla
             """);
     }
 
-    [Fact]
-    public async Task Delete_Should_PromptConfirmation_When_ForceNotProvided()
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange
-        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
-        client.Setup(x => x.DeleteApiKeyAsync(
-                "key-1",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ApiKeyCommandTestHelper.CreateDeleteApiKeyResult("key-1", "my-key", "Workspace"));
+        SetupInteractionMode(mode);
+        SetupNoAuthentication();
 
-        var command = new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "api-key",
-                "delete",
-                "key-1")
-            .Start();
+        // act
+        var result = await ExecuteCommandAsync(
+            "api-key",
+            "delete",
+            ApiKeyId,
+            "--force");
+
+        // assert
+        result.AssertError(
+            """
+            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            """);
+    }
+
+    [Fact]
+    public async Task DeleteApiKeyThrows_ReturnsError()
+    {
+        // arrange
+        SetupDeleteApiKeyMutationException();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "api-key",
+            "delete",
+            ApiKeyId,
+            "--force");
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Deleting API key 'key-1'
+            └── ✕ Failed to delete the API key.
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error: Something unexpected happened.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [MemberData(nameof(GetDeleteApiKeyErrors))]
+    public async Task DeleteApiKeyHasErrors_ReturnsError(
+        IDeleteApiKeyCommandMutation_DeleteApiKey_Errors error,
+        string expectedStdErr)
+    {
+        // arrange
+        SetupDeleteApiKeyMutation(ApiKeyId, error);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "api-key",
+            "delete",
+            ApiKeyId,
+            "--force");
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Deleting API key 'key-1'
+            └── ✕ Failed to delete the API key.
+            """);
+        result.StdErr.MatchInlineSnapshot(expectedStdErr);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithoutForce_PromptsUser_ReturnsSuccess()
+    {
+        // arrange
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupDeleteApiKeyMutation();
+
+        var command = StartInteractiveCommand(
+            "api-key",
+            "delete",
+            ApiKeyId);
 
         // act
         command.Confirm(true);
@@ -67,25 +133,18 @@ public sealed class DeleteApiKeyCommandTests(NitroCommandFixture fixture) : ICla
 
         // assert
         result.AssertSuccess();
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Delete_Should_ReturnError_When_UserDeclinesConfirmation()
+    public async Task WithoutForce_PromptsUser_Declined_ReturnsError()
     {
         // arrange
-        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
+        SetupInteractionMode(InteractionMode.Interactive);
 
-        var command = new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "api-key",
-                "delete",
-                "key-1")
-            .Start();
+        var command = StartInteractiveCommand(
+            "api-key",
+            "delete",
+            ApiKeyId);
 
         // act
         command.Confirm(false);
@@ -97,83 +156,20 @@ public sealed class DeleteApiKeyCommandTests(NitroCommandFixture fixture) : ICla
             API key was not deleted.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Delete_Should_SkipConfirmation_When_ForceProvided_Interactive()
+    public async Task WithForce_ReturnsSuccess()
     {
         // arrange
-        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
-        client.Setup(x => x.DeleteApiKeyAsync(
-                "key-1",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ApiKeyCommandTestHelper.CreateDeleteApiKeyResult("key-1", "my-key", "Workspace"));
+        SetupDeleteApiKeyMutation();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "api-key",
-                "delete",
-                "key-1",
-                "--force")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertSuccess();
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
-    {
-        // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "api-key",
-                "delete",
-                "key-1",
-                "--force")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
-            """);
-    }
-
-    [Fact]
-    public async Task WithApiKeyAndForce_ReturnsSuccess_NonInteractive()
-    {
-        // arrange
-        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
-        client.Setup(x => x.DeleteApiKeyAsync(
-                "key-1",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ApiKeyCommandTestHelper.CreateDeleteApiKeyResult("key-1", "my-key", "Workspace"));
-
-        var builder = new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "api-key",
-                "delete",
-                "key-1",
-                "--force");
-
-        // act
-        var result = await builder.ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "api-key",
+            "delete",
+            ApiKeyId,
+            "--force");
 
         // assert
         result.AssertSuccess(
@@ -189,250 +185,10 @@ public sealed class DeleteApiKeyCommandTests(NitroCommandFixture fixture) : ICla
               }
             }
             """);
-
-        client.VerifyAll();
     }
 
-    [Theory]
-    [MemberData(nameof(DeleteApiKeyMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError(
-        IDeleteApiKeyCommandMutation_DeleteApiKey_Errors mutationError,
-        string expectedStdErr,
-        InteractionMode mode)
-    {
-        // arrange
-        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
-        client.Setup(x => x.DeleteApiKeyAsync(
-                "key-1",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ApiKeyCommandTestHelper.CreateDeleteApiKeyResultWithErrors(mutationError));
-
-        var builder = new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "api-key",
-                "delete",
-                "key-1",
-                "--force");
-
-        // act
-        var result = await builder.ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(expectedStdErr);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [MemberData(nameof(DeleteApiKeyMutationErrorCases_NonInteractive))]
-    public async Task MutationReturnsTypedError_ReturnsError_NonInteractive(
-        IDeleteApiKeyCommandMutation_DeleteApiKey_Errors mutationError,
-        string expectedStdErr)
-    {
-        // arrange
-        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
-        client.Setup(x => x.DeleteApiKeyAsync(
-                "key-1",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ApiKeyCommandTestHelper.CreateDeleteApiKeyResultWithErrors(mutationError));
-
-        var builder = new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "api-key",
-                "delete",
-                "key-1",
-                "--force");
-
-        // act
-        var result = await builder.ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Deleting API key 'key-1'
-            └── ✕ Failed to delete the API key.
-            """);
-        result.StdErr.MatchInlineSnapshot(expectedStdErr);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
-        client.Setup(x => x.DeleteApiKeyAsync(
-                "key-1",
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        var builder = new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "api-key",
-                "delete",
-                "key-1",
-                "--force");
-
-        // act
-        var result = await builder.ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
-        client.Setup(x => x.DeleteApiKeyAsync(
-                "key-1",
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        var builder = new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "api-key",
-                "delete",
-                "key-1",
-                "--force");
-
-        // act
-        var result = await builder.ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Deleting API key 'key-1'
-            └── ✕ Failed to delete the API key.
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
-        client.Setup(x => x.DeleteApiKeyAsync(
-                "key-1",
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException());
-
-        var builder = new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "api-key",
-                "delete",
-                "key-1",
-                "--force");
-
-        // act
-        var result = await builder.ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var client = new Mock<IApiKeysClient>(MockBehavior.Strict);
-        client.Setup(x => x.DeleteApiKeyAsync(
-                "key-1",
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException());
-
-        var builder = new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "api-key",
-                "delete",
-                "key-1",
-                "--force");
-
-        // act
-        var result = await builder.ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Deleting API key 'key-1'
-            └── ✕ Failed to delete the API key.
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    public static IEnumerable<object[]> DeleteApiKeyMutationErrorCases()
-    {
-        foreach (var mode in new[] { InteractionMode.Interactive, InteractionMode.JsonOutput })
-        {
-            var apiKeyNotFound =
-                new Mock<IDeleteApiKeyCommandMutation_DeleteApiKey_Errors_ApiKeyNotFoundError>(MockBehavior.Strict);
-            apiKeyNotFound.SetupGet(x => x.ApiKeyId).Returns("key-1");
-            apiKeyNotFound.As<IApiKeyNotFoundError>().SetupGet(x => x.Message).Returns("API key not found");
-            apiKeyNotFound.As<IError>().SetupGet(x => x.Message).Returns("API key not found");
-
-            var unknownError =
-                new Mock<IDeleteApiKeyCommandMutation_DeleteApiKey_Errors_UnauthorizedOperation>(MockBehavior.Strict);
-            unknownError.As<IError>().SetupGet(x => x.Message).Returns("Unauthorized");
-
-            yield return [apiKeyNotFound.Object, "API key not found", mode];
-            yield return [unknownError.Object, "Unexpected mutation error: Unauthorized", mode];
-        }
-    }
-
-    public static IEnumerable<object[]> DeleteApiKeyMutationErrorCases_NonInteractive()
+    public static TheoryData<IDeleteApiKeyCommandMutation_DeleteApiKey_Errors, string>
+        GetDeleteApiKeyErrors()
     {
         var apiKeyNotFound =
             new Mock<IDeleteApiKeyCommandMutation_DeleteApiKey_Errors_ApiKeyNotFoundError>(MockBehavior.Strict);
@@ -444,10 +200,10 @@ public sealed class DeleteApiKeyCommandTests(NitroCommandFixture fixture) : ICla
             new Mock<IDeleteApiKeyCommandMutation_DeleteApiKey_Errors_UnauthorizedOperation>(MockBehavior.Strict);
         unknownError.As<IError>().SetupGet(x => x.Message).Returns("Unauthorized");
 
-        return new[]
+        return new()
         {
-            new object[] { apiKeyNotFound.Object, "API key not found" },
-            new object[] { unknownError.Object, "Unexpected mutation error: Unauthorized" }
+            { apiKeyNotFound.Object, "API key not found" },
+            { unknownError.Object, "Unexpected mutation error: Unauthorized" }
         };
     }
 }

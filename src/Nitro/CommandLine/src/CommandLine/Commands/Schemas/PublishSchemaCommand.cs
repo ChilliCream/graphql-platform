@@ -148,7 +148,7 @@ internal sealed class PublishSchemaCommand : Command
                                         errorTree.AddGraphQLSchemaErrors(e);
                                         break;
                                     case IPersistedQueryValidationError e:
-                                        errorTree.AddPersistedQueryValidationErrors(e);
+                                        errorTree.AddPersistedQueryValidationErrorsWithClients(e);
                                         break;
                                     case IOpenApiCollectionValidationError e:
                                         errorTree.AddOpenApiCollectionValidationErrors(e);
@@ -219,7 +219,7 @@ internal sealed class PublishSchemaCommand : Command
                                             deploymentErrorTree.AddGraphQLSchemaErrors(e);
                                             break;
                                         case IPersistedQueryValidationError e:
-                                            deploymentErrorTree.AddPersistedQueryValidationErrors(e);
+                                            deploymentErrorTree.AddPersistedQueryValidationErrorsWithClients(e);
                                             break;
                                         case IOpenApiCollectionValidationError e:
                                             deploymentErrorTree.AddOpenApiCollectionValidationErrors(e);
