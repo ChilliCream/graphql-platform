@@ -19,7 +19,7 @@ public sealed class RedeliveryTests
             .AddSingleton(counter)
             .AddSingleton(recorder)
             .AddMessageBus()
-            .AddExceptionPolicy(p =>
+            .AddResilience(p =>
             {
                 p.On<Exception>().Redeliver(
                 [
@@ -55,7 +55,7 @@ public sealed class RedeliveryTests
         await using var provider = await new ServiceCollection()
             .AddSingleton(counter)
             .AddMessageBus()
-            .AddExceptionPolicy(p =>
+            .AddResilience(p =>
             {
                 p.On<Exception>().Redeliver([TimeSpan.FromMilliseconds(1)]);
                 p.On<InvalidOperationException>().DeadLetter();
@@ -108,7 +108,7 @@ public sealed class RedeliveryTests
         await using var provider = await new ServiceCollection()
             .AddSingleton(counter)
             .AddMessageBus()
-            .AddExceptionPolicy(p =>
+            .AddResilience(p =>
             {
                 p.On<Exception>().Redeliver(
                 [
@@ -141,14 +141,14 @@ public sealed class RedeliveryTests
             .AddSingleton(counter)
             .AddScoped<AlwaysThrowingHandler>()
             .AddMessageBus()
-            .AddExceptionPolicy(p =>
+            .AddResilience(p =>
                 p.On<Exception>().Redeliver([TimeSpan.FromMilliseconds(1)]));
 
         // Override at transport level to discard all exceptions.
         builder.ConfigureMessageBus(b => b.AddHandler<AlwaysThrowingHandler>());
 
         await using var provider = await builder
-            .AddInMemory(t => t.AddExceptionPolicy(p =>
+            .AddInMemory(t => t.AddResilience(p =>
                 p.On<Exception>().DeadLetter()))
             .BuildServiceProvider();
 
@@ -164,7 +164,7 @@ public sealed class RedeliveryTests
     }
 
     [Fact]
-    public async Task Redelivery_Should_UseDefaults_When_ParameterlessAddExceptionPolicy()
+    public async Task Redelivery_Should_UseDefaults_When_ParameterlessAddResilience()
     {
         // arrange - defaults: 3 redelivery intervals from RedeliveryPolicyDefaults
         var counter = new InvocationCounter();
@@ -172,7 +172,7 @@ public sealed class RedeliveryTests
         await using var provider = await new ServiceCollection()
             .AddSingleton(counter)
             .AddMessageBus()
-            .AddExceptionPolicy()
+            .AddResilience()
             .AddEventHandler<AlwaysThrowingHandler>()
             .AddInMemory()
             .BuildServiceProvider();

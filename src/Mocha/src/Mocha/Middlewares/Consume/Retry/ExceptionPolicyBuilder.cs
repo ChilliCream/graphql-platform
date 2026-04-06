@@ -18,6 +18,16 @@ internal sealed class ExceptionPolicyBuilder<TException>
     {
         if (!_committed)
         {
+            // Replace any existing rule for the same exception type and predicate.
+            for (var i = _rules.Count - 1; i >= 0; i--)
+            {
+                if (_rules[i].ExceptionType == _rule.ExceptionType
+                    && _rules[i].Predicate == _rule.Predicate)
+                {
+                    _rules.RemoveAt(i);
+                }
+            }
+
             _rules.Add(_rule);
             _committed = true;
         }

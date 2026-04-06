@@ -8,7 +8,7 @@ Messaging systems fail. Handlers throw exceptions, brokers go offline, databases
 ```csharp
 builder.Services
     .AddMessageBus()
-    .AddExceptionPolicy(policy =>
+    .AddResilience(policy =>
     {
         policy.On<ValidationException>().DeadLetter();
         policy.Default().Retry().ThenRedeliver();
@@ -167,19 +167,19 @@ Retry lives in the **consumer pipeline**, not the receive pipeline. This matters
 ```csharp
 builder.Services
     .AddMessageBus()
-    .AddExceptionPolicy()
+    .AddResilience()
     .AddEventHandler<OrderPlacedHandler>()
     .AddRabbitMQ();
 ```
 
-The parameterless `AddExceptionPolicy()` registers a catch-all `Default()` rule with both retry and redelivery enabled. Retry defaults to 3 attempts, 200 ms base delay, exponential backoff, jitter enabled, and a 30-second maximum delay. These defaults handle the majority of transient failures without tuning.
+The parameterless `AddResilience()` registers a catch-all `Default()` rule with both retry and redelivery enabled. Retry defaults to 3 attempts, 200 ms base delay, exponential backoff, jitter enabled, and a 30-second maximum delay. These defaults handle the majority of transient failures without tuning.
 
 ## Customize retry behavior
 
 ```csharp
 builder.Services
     .AddMessageBus()
-    .AddExceptionPolicy(policy =>
+    .AddResilience(policy =>
     {
         policy.Default()
             .Retry(5, TimeSpan.FromSeconds(1), RetryBackoffType.Exponential)
@@ -196,7 +196,7 @@ When you need precise control over each delay, pass an array of intervals. The a
 ```csharp
 builder.Services
     .AddMessageBus()
-    .AddExceptionPolicy(policy =>
+    .AddResilience(policy =>
     {
         policy.Default().Retry(
         [
@@ -211,12 +211,12 @@ builder.Services
 
 ## Handle different exceptions differently
 
-Not every exception should be retried. Validation errors, authorization failures, and other permanent errors waste retry budget. Use `AddExceptionPolicy` to define per-exception handling strategies.
+Not every exception should be retried. Validation errors, authorization failures, and other permanent errors waste retry budget. Use `AddResilience` to define per-exception handling strategies.
 
 ```csharp
 builder.Services
     .AddMessageBus()
-    .AddExceptionPolicy(policy =>
+    .AddResilience(policy =>
     {
         // Never retry validation failures - route to error endpoint
         policy.On<ValidationException>().DeadLetter();
@@ -247,11 +247,11 @@ The bus-level exception policy applies to all consumers. Override it for specifi
 ```csharp
 builder.Services
     .AddMessageBus()
-    .AddExceptionPolicy() // bus-level: default retry + redelivery for all consumers
+    .AddResilience() // bus-level: default retry + redelivery for all consumers
     .AddEventHandler<OrderHandler>(consumer =>
     {
         // This consumer: 10 retries with longer delay, then redeliver
-        consumer.AddExceptionPolicy(policy =>
+        consumer.AddResilience(policy =>
         {
             policy.Default()
                 .Retry(10, TimeSpan.FromSeconds(2))
@@ -261,7 +261,7 @@ builder.Services
     .AddEventHandler<NotificationHandler>(consumer =>
     {
         // This consumer: skip retry, redeliver only
-        consumer.AddExceptionPolicy(policy =>
+        consumer.AddResilience(policy =>
         {
             policy.Default().Redeliver();
         });
@@ -315,12 +315,12 @@ All retries exhausted -> exception propagates to Redelivery
 
 ## Add redelivery with defaults
 
-Redelivery is included when you call `AddExceptionPolicy()` without arguments or when you chain `.ThenRedeliver()` in an escalation chain.
+Redelivery is included when you call `AddResilience()` without arguments or when you chain `.ThenRedeliver()` in an escalation chain.
 
 ```csharp
 builder.Services
     .AddMessageBus()
-    .AddExceptionPolicy() // Default() rule enables both retry and redelivery
+    .AddResilience() // Default() rule enables both retry and redelivery
     .AddEventHandler<OrderPlacedHandler>()
     .AddRabbitMQ();
 ```
@@ -332,7 +332,7 @@ The default redelivery schedule is three attempts at 5 minutes, 15 minutes, and 
 ```csharp
 builder.Services
     .AddMessageBus()
-    .AddExceptionPolicy(policy =>
+    .AddResilience(policy =>
     {
         policy.Default().Retry().ThenRedeliver(
         [
@@ -354,7 +354,7 @@ Instead of explicit intervals, configure a number of attempts and a base delay:
 ```csharp
 builder.Services
     .AddMessageBus()
-    .AddExceptionPolicy(policy =>
+    .AddResilience(policy =>
     {
         policy.Default()
             .Retry()
@@ -371,7 +371,7 @@ To skip retry entirely and go straight to redelivery, use `.Redeliver()` directl
 ```csharp
 builder.Services
     .AddMessageBus()
-    .AddExceptionPolicy(policy =>
+    .AddResilience(policy =>
     {
         policy.Default().Redeliver();
     })
@@ -388,10 +388,10 @@ Override exception policies at the transport level for more granular control. Tr
 ```csharp
 builder.Services
     .AddMessageBus()
-    .AddExceptionPolicy() // bus-level default
+    .AddResilience() // bus-level default
     .AddRabbitMQ(transport =>
     {
-        transport.AddExceptionPolicy(policy =>
+        transport.AddResilience(policy =>
         {
             // Override for this transport: longer redelivery intervals
             policy.Default().Retry().ThenRedeliver(
@@ -407,7 +407,7 @@ builder.Services
 Disable redelivery for a specific transport by configuring retry-only:
 
 ```csharp
-transport.AddExceptionPolicy(policy =>
+transport.AddResilience(policy =>
 {
     policy.Default().Retry();
 });
@@ -463,7 +463,7 @@ With the defaults (3 retries, 3 redeliveries): `(3 + 1) x (3 + 1) = 16` total ha
 ```csharp
 builder.Services
     .AddMessageBus()
-    .AddExceptionPolicy(policy =>
+    .AddResilience(policy =>
     {
         policy.Default()
             .Retry(5, TimeSpan.FromSeconds(1), RetryBackoffType.Exponential)
@@ -516,7 +516,7 @@ public class PaymentConsumer(ILogger<PaymentConsumer> logger) : IConsumer<Proces
 }
 ```
 
-`RetryRuntimeFeature` is `null` when `AddExceptionPolicy()` is not configured. When present, it exposes two properties:
+`RetryRuntimeFeature` is `null` when `AddResilience()` is not configured. When present, it exposes two properties:
 
 | Property              | Type  | Description                                                                                |
 | --------------------- | ----- | ------------------------------------------------------------------------------------------ |
@@ -539,7 +539,7 @@ Check both retry and redelivery. With both configured, the total handler invocat
 
 ## "Retry does not work for my consumer"
 
-`AddExceptionPolicy()` must be called at the bus level (or on the specific consumer) to register the retry middleware in the consumer pipeline. Adding a consumer-level policy without a bus-level or consumer-level `AddExceptionPolicy()` call has no effect - the middleware is not in the pipeline.
+`AddResilience()` must be called at the bus level (or on the specific consumer) to register the retry middleware in the consumer pipeline. Adding a consumer-level policy without a bus-level or consumer-level `AddResilience()` call has no effect - the middleware is not in the pipeline.
 
 ## "Redelivery fails at startup"
 
@@ -547,12 +547,12 @@ Redelivery uses Mocha's [scheduling infrastructure](/docs/mocha/v1/scheduling). 
 
 ## "Validation exceptions are being retried"
 
-Use `AddExceptionPolicy` to route permanent failures directly to the error endpoint:
+Use `AddResilience` to route permanent failures directly to the error endpoint:
 
 ```csharp
 builder.Services
     .AddMessageBus()
-    .AddExceptionPolicy(policy =>
+    .AddResilience(policy =>
     {
         policy.On<ValidationException>().DeadLetter();
         policy.Default().Retry().ThenRedeliver();

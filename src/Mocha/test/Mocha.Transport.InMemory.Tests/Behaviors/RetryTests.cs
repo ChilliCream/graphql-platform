@@ -18,7 +18,7 @@ public sealed class RetryTests
             .AddSingleton(counter)
             .AddSingleton(recorder)
             .AddMessageBus()
-            .AddExceptionPolicy(p =>
+            .AddResilience(p =>
             {
                 p.On<Exception>()
                     .Retry(3, TimeSpan.FromMilliseconds(1), RetryBackoffType.Constant);
@@ -49,7 +49,7 @@ public sealed class RetryTests
         await using var provider = await new ServiceCollection()
             .AddSingleton(counter)
             .AddMessageBus()
-            .AddExceptionPolicy(p =>
+            .AddResilience(p =>
             {
                 p.On<Exception>()
                     .Retry(3, TimeSpan.FromMilliseconds(1), RetryBackoffType.Constant);
@@ -78,7 +78,7 @@ public sealed class RetryTests
         await using var provider = await new ServiceCollection()
             .AddSingleton(counter)
             .AddMessageBus()
-            .AddExceptionPolicy(p =>
+            .AddResilience(p =>
             {
                 p.On<Exception>()
                     .Retry(3, TimeSpan.FromMilliseconds(1), RetryBackoffType.Constant);
@@ -110,7 +110,7 @@ public sealed class RetryTests
         await using var matchingProvider = await new ServiceCollection()
             .AddSingleton(matchingCounter)
             .AddMessageBus()
-            .AddExceptionPolicy(p =>
+            .AddResilience(p =>
             {
                 p.On<Exception>()
                     .Retry(3, TimeSpan.FromMilliseconds(1), RetryBackoffType.Constant);
@@ -133,7 +133,7 @@ public sealed class RetryTests
         await using var nonMatchingProvider = await new ServiceCollection()
             .AddSingleton(nonMatchingCounter)
             .AddMessageBus()
-            .AddExceptionPolicy(p =>
+            .AddResilience(p =>
             {
                 p.On<Exception>()
                     .Retry(3, TimeSpan.FromMilliseconds(1), RetryBackoffType.Constant);
@@ -163,7 +163,7 @@ public sealed class RetryTests
             .AddSingleton(counter)
             .AddScoped<AlwaysThrowingHandler>()
             .AddMessageBus()
-            .AddExceptionPolicy(p =>
+            .AddResilience(p =>
             {
                 p.On<Exception>()
                     .Retry(2, TimeSpan.FromMilliseconds(1), RetryBackoffType.Constant);
@@ -173,7 +173,7 @@ public sealed class RetryTests
         {
             b.AddHandler<AlwaysThrowingHandler>(consumer =>
             {
-                consumer.AddExceptionPolicy(p =>
+                consumer.AddResilience(p =>
                 {
                     p.On<Exception>()
                         .Retry(5, TimeSpan.FromMilliseconds(1), RetryBackoffType.Constant);
@@ -204,7 +204,7 @@ public sealed class RetryTests
             .AddSingleton(stateCapture)
             .AddScoped<RetryStateCapturingConsumer>()
             .AddMessageBus()
-            .AddExceptionPolicy(p =>
+            .AddResilience(p =>
             {
                 p.On<Exception>()
                     .Retry(2, TimeSpan.FromMilliseconds(1), RetryBackoffType.Constant);
@@ -240,7 +240,7 @@ public sealed class RetryTests
             .AddSingleton(counter)
             .AddScoped<AlwaysThrowingHandler>()
             .AddMessageBus()
-            .AddExceptionPolicy(p =>
+            .AddResilience(p =>
             {
                 p.On<Exception>()
                     .Retry(3, TimeSpan.FromMilliseconds(1), RetryBackoffType.Constant);
@@ -248,7 +248,7 @@ public sealed class RetryTests
 
         builder.ConfigureMessageBus(b =>
             b.AddHandler<AlwaysThrowingHandler>(consumer =>
-                consumer.AddExceptionPolicy(p =>
+                consumer.AddResilience(p =>
                     p.On<Exception>().Redeliver([TimeSpan.FromHours(1)]))));
 
         await using var provider = await builder.AddInMemory().BuildServiceProvider();
@@ -272,7 +272,7 @@ public sealed class RetryTests
         await using var provider = await new ServiceCollection()
             .AddSingleton(counter)
             .AddMessageBus()
-            .AddExceptionPolicy(p =>
+            .AddResilience(p =>
             {
                 p.On<Exception>().Retry(
                 [
@@ -305,7 +305,7 @@ public sealed class RetryTests
         await using var provider = await new ServiceCollection()
             .AddSingleton(counter)
             .AddMessageBus()
-            .AddExceptionPolicy(p =>
+            .AddResilience(p =>
             {
                 p.On<Exception>()
                     .Retry(3, TimeSpan.FromMilliseconds(1), RetryBackoffType.Constant);
@@ -327,14 +327,14 @@ public sealed class RetryTests
     }
 
     [Fact]
-    public async Task Retry_Should_UseDefaults_When_ParameterlessAddExceptionPolicy()
+    public async Task Retry_Should_UseDefaults_When_ParameterlessAddResilience()
     {
         // arrange - default: 3 retries (from RetryPolicyDefaults.Attempts)
         var counter = new RetryInvocationCounter();
         await using var provider = await new ServiceCollection()
             .AddSingleton(counter)
             .AddMessageBus()
-            .AddExceptionPolicy()
+            .AddResilience()
             .AddEventHandler<AlwaysThrowingHandler>()
             .AddInMemory()
             .BuildServiceProvider();

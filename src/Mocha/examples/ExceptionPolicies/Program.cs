@@ -20,10 +20,10 @@ builder.Services
     // -----------------------------------------------------------------------
     //  Exception Policies — the main showcase
     //
-    //  Per-exception rules are configured in a single AddExceptionPolicy call.
+    //  Per-exception rules are configured in a single AddResilience call.
     //  The On<Exception>() catch-all provides global retry/redelivery defaults.
     // -----------------------------------------------------------------------
-    .AddExceptionPolicy(policy =>
+    .AddResilience(policy =>
     {
         // --- Terminal: DeadLetter ---
         // Validation errors are permanent — the message payload is bad.

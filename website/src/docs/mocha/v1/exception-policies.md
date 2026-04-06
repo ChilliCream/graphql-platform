@@ -3,12 +3,12 @@ title: "Exception Policies"
 description: "Configure per-exception handling with composable retry, redelivery, and terminal actions."
 ---
 
-Not every exception deserves the same treatment. A database deadlock might resolve on immediate retry. A downstream service outage needs minutes to recover. A validation error will never succeed no matter how many times you retry. Exception policies let you define per-exception handling strategies — retry, redeliver, dead-letter, or discard — as composable escalation chains in a single `AddExceptionPolicy` call.
+Not every exception deserves the same treatment. A database deadlock might resolve on immediate retry. A downstream service outage needs minutes to recover. A validation error will never succeed no matter how many times you retry. Exception policies let you define per-exception handling strategies — retry, redeliver, dead-letter, or discard — as composable escalation chains in a single `AddResilience` call.
 
 ```csharp
 builder.Services
     .AddMessageBus()
-    .AddExceptionPolicy(policy =>
+    .AddResilience(policy =>
     {
         // Validation errors are permanent — route straight to the error endpoint
         policy.On<ValidationException>().DeadLetter();
@@ -64,7 +64,11 @@ Exception matching respects inheritance. A policy on `NpgsqlException` also matc
 
 # Configure exception policies
 
-`AddExceptionPolicy` is the single entry point for all exception handling configuration. There is no separate `AddRetry` or `AddRedelivery` call — retry and redelivery settings are configured per-exception within the policy.
+`AddResilience` is the single entry point for all exception handling configuration. There is no separate `AddRetry` or `AddRedelivery` call — retry and redelivery settings are configured per-exception within the policy.
+
+:::note Replacement semantics
+Calling `On<T>()` for the same exception type replaces the previous rule for that type — last write wins. If you call `On<HttpRequestException>()` twice without a predicate, the second call overwrites the first. The same applies to `Default()`: calling it again replaces the previous default rule. For example, the parameterless `AddResilience()` registers `Default().Retry().ThenRedeliver()`. If you later call `AddResilience(p => p.Default().Retry(5))`, the new default replaces the one registered by the parameterless overload.
+:::
 
 ## Parameterless defaults
 
@@ -73,7 +77,7 @@ The parameterless overload registers a catch-all `Default()` rule with both retr
 ```csharp
 builder.Services
     .AddMessageBus()
-    .AddExceptionPolicy()
+    .AddResilience()
     .AddEventHandler<OrderPlacedHandler>()
     .AddRabbitMQ();
 ```
@@ -81,7 +85,7 @@ builder.Services
 This is equivalent to:
 
 ```csharp
-.AddExceptionPolicy(policy =>
+.AddResilience(policy =>
 {
     policy.Default().Retry().ThenRedeliver();
 })
@@ -96,7 +100,7 @@ This is equivalent to:
 - **`On<TException>(predicate)`** — configures behavior for a specific exception type when a predicate matches.
 
 ```csharp
-.AddExceptionPolicy(policy =>
+.AddResilience(policy =>
 {
     policy.On<NpgsqlException>().Retry(5).ThenRedeliver();
     policy.On<HttpRequestException>().Retry(3);
@@ -111,7 +115,7 @@ Bus-level policies apply to all endpoints and all consumers across the entire me
 ```csharp
 builder.Services
     .AddMessageBus()
-    .AddExceptionPolicy(policy =>
+    .AddResilience(policy =>
     {
         policy.On<ValidationException>().DeadLetter();
         policy.On<DuplicateMessageException>().Discard();
@@ -128,13 +132,13 @@ Override bus-level policies for a specific transport. Transport-level policies r
 ```csharp
 builder.Services
     .AddMessageBus()
-    .AddExceptionPolicy(policy =>
+    .AddResilience(policy =>
     {
         policy.Default().Retry().ThenRedeliver();
     })
     .AddRabbitMQ(transport =>
     {
-        transport.AddExceptionPolicy(policy =>
+        transport.AddResilience(policy =>
         {
             policy.On<Exception>().DeadLetter();
         });
@@ -148,7 +152,7 @@ Override policies for a specific consumer. Consumer-level policies replace the b
 ```csharp
 builder.Services
     .AddMessageBus()
-    .AddExceptionPolicy(policy =>
+    .AddResilience(policy =>
     {
         policy.On<Exception>()
             .Retry(2, TimeSpan.FromMilliseconds(100), RetryBackoffType.Constant);
@@ -158,7 +162,7 @@ builder.Services.ConfigureMessageBus(bus =>
 {
     bus.AddHandler<PaymentHandler>(consumer =>
     {
-        consumer.AddExceptionPolicy(policy =>
+        consumer.AddResilience(policy =>
         {
             policy.On<Exception>()
                 .Retry(5, TimeSpan.FromMilliseconds(500), RetryBackoffType.Exponential);
@@ -467,15 +471,15 @@ policy.On<HttpRequestException>().Retry(3);
 | ------------------ | ---------- | ------- | --------------------------------------------------- |
 | `ThenDeadLetter()` | -          | `void`  | Route to error endpoint after redelivery exhaustion |
 
-## AddExceptionPolicy extensions
+## AddResilience extensions
 
-| Target                       | Method                                               | Description                                                            |
-| ---------------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------- |
-| `IMessageBusBuilder`         | `AddExceptionPolicy()`                               | Register default exception policies at the bus level                   |
-| `IMessageBusBuilder`         | `AddExceptionPolicy(Action<ExceptionPolicyOptions>)` | Configure exception policies at the bus level                          |
-| `IMessageBusHostBuilder`     | `AddExceptionPolicy()`                               | Register default exception policies at the host level                  |
-| `IMessageBusHostBuilder`     | `AddExceptionPolicy(Action<ExceptionPolicyOptions>)` | Configure exception policies at the host level                         |
-| `IReceiveMiddlewareProvider` | `AddExceptionPolicy()`                               | Register default exception policies at the transport or endpoint level |
-| `IReceiveMiddlewareProvider` | `AddExceptionPolicy(Action<ExceptionPolicyOptions>)` | Configure exception policies at the transport or endpoint level        |
-| `IConsumerDescriptor`        | `AddExceptionPolicy()`                               | Register default exception policies at the consumer level              |
-| `IConsumerDescriptor`        | `AddExceptionPolicy(Action<ExceptionPolicyOptions>)` | Configure exception policies at the consumer level                     |
+| Target                       | Method                                          | Description                                                            |
+| ---------------------------- | ----------------------------------------------- | ---------------------------------------------------------------------- |
+| `IMessageBusBuilder`         | `AddResilience()`                               | Register default exception policies at the bus level                   |
+| `IMessageBusBuilder`         | `AddResilience(Action<ExceptionPolicyOptions>)` | Configure exception policies at the bus level                          |
+| `IMessageBusHostBuilder`     | `AddResilience()`                               | Register default exception policies at the host level                  |
+| `IMessageBusHostBuilder`     | `AddResilience(Action<ExceptionPolicyOptions>)` | Configure exception policies at the host level                         |
+| `IReceiveMiddlewareProvider` | `AddResilience()`                               | Register default exception policies at the transport or endpoint level |
+| `IReceiveMiddlewareProvider` | `AddResilience(Action<ExceptionPolicyOptions>)` | Configure exception policies at the transport or endpoint level        |
+| `IConsumerDescriptor`        | `AddResilience()`                               | Register default exception policies at the consumer level              |
+| `IConsumerDescriptor`        | `AddResilience(Action<ExceptionPolicyOptions>)` | Configure exception policies at the consumer level                     |

@@ -6,7 +6,7 @@ namespace Mocha;
 /// Provides extension methods for configuring exception policies including retry, redelivery,
 /// and per-exception rules on message bus builders, host builders, descriptors, and consumers.
 /// </summary>
-public static class ExceptionPolicyConfigurationExtensions
+public static class ResilienceConfigurationExtensions
 {
     /// <summary>
     /// Adds exception policy configuration to the message bus with default settings.
@@ -14,7 +14,7 @@ public static class ExceptionPolicyConfigurationExtensions
     /// </summary>
     /// <param name="builder">The message bus builder.</param>
     /// <returns>The builder for method chaining.</returns>
-    public static IMessageBusBuilder AddExceptionPolicy(this IMessageBusBuilder builder)
+    public static IMessageBusBuilder AddResilience(this IMessageBusBuilder builder)
     {
         builder.ConfigureFeature(f => f.GetOrSet<ExceptionPolicyFeature>()
             .Configure(p => p.Default().Retry().ThenRedeliver()));
@@ -27,7 +27,7 @@ public static class ExceptionPolicyConfigurationExtensions
     /// <param name="builder">The message bus builder.</param>
     /// <param name="configure">The action to configure exception policy options.</param>
     /// <returns>The builder for method chaining.</returns>
-    public static IMessageBusBuilder AddExceptionPolicy(
+    public static IMessageBusBuilder AddResilience(
         this IMessageBusBuilder builder,
         Action<ExceptionPolicyOptions> configure)
     {
@@ -40,9 +40,9 @@ public static class ExceptionPolicyConfigurationExtensions
     /// </summary>
     /// <param name="builder">The host builder.</param>
     /// <returns>The builder for method chaining.</returns>
-    public static IMessageBusHostBuilder AddExceptionPolicy(this IMessageBusHostBuilder builder)
+    public static IMessageBusHostBuilder AddResilience(this IMessageBusHostBuilder builder)
     {
-        builder.ConfigureMessageBus(x => x.AddExceptionPolicy());
+        builder.ConfigureMessageBus(x => x.AddResilience());
         return builder;
     }
 
@@ -52,11 +52,11 @@ public static class ExceptionPolicyConfigurationExtensions
     /// <param name="builder">The host builder.</param>
     /// <param name="configure">The action to configure exception policy options.</param>
     /// <returns>The builder for method chaining.</returns>
-    public static IMessageBusHostBuilder AddExceptionPolicy(
+    public static IMessageBusHostBuilder AddResilience(
         this IMessageBusHostBuilder builder,
         Action<ExceptionPolicyOptions> configure)
     {
-        builder.ConfigureMessageBus(x => x.AddExceptionPolicy(configure));
+        builder.ConfigureMessageBus(x => x.AddResilience(configure));
         return builder;
     }
 
@@ -68,7 +68,7 @@ public static class ExceptionPolicyConfigurationExtensions
     /// <typeparam name="TDescriptor">The descriptor type that supports receive middleware.</typeparam>
     /// <param name="descriptor">The descriptor to configure.</param>
     /// <returns>The descriptor for method chaining.</returns>
-    public static TDescriptor AddExceptionPolicy<TDescriptor>(
+    public static TDescriptor AddResilience<TDescriptor>(
         this TDescriptor descriptor)
         where TDescriptor : IReceiveMiddlewareProvider
     {
@@ -84,7 +84,7 @@ public static class ExceptionPolicyConfigurationExtensions
     /// <param name="descriptor">The descriptor to configure.</param>
     /// <param name="configure">The action to configure exception policy options.</param>
     /// <returns>The descriptor for method chaining.</returns>
-    public static TDescriptor AddExceptionPolicy<TDescriptor>(
+    public static TDescriptor AddResilience<TDescriptor>(
         this TDescriptor descriptor,
         Action<ExceptionPolicyOptions> configure)
         where TDescriptor : IReceiveMiddlewareProvider
@@ -99,7 +99,7 @@ public static class ExceptionPolicyConfigurationExtensions
     /// </summary>
     /// <param name="descriptor">The consumer descriptor to configure.</param>
     /// <returns>The descriptor for method chaining.</returns>
-    public static IConsumerDescriptor AddExceptionPolicy(this IConsumerDescriptor descriptor)
+    public static IConsumerDescriptor AddResilience(this IConsumerDescriptor descriptor)
     {
         descriptor.Extend().Configuration.Features.GetOrSet<ExceptionPolicyFeature>()
             .Configure(p => p.Default().Retry().ThenRedeliver());
@@ -112,7 +112,7 @@ public static class ExceptionPolicyConfigurationExtensions
     /// <param name="descriptor">The consumer descriptor to configure.</param>
     /// <param name="configure">The action to configure exception policy options.</param>
     /// <returns>The descriptor for method chaining.</returns>
-    public static IConsumerDescriptor AddExceptionPolicy(
+    public static IConsumerDescriptor AddResilience(
         this IConsumerDescriptor descriptor,
         Action<ExceptionPolicyOptions> configure)
     {
