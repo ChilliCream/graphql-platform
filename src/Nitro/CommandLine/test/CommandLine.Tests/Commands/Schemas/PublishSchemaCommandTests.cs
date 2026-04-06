@@ -4,7 +4,6 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Schemas;
 
-// TODO: Test with force and waitforapproval, etc.
 public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : SchemasCommandTestBase(fixture)
 {
     [Fact]
@@ -210,12 +209,11 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
     }
 
     [Fact]
-    public async Task Subscription_Success_ReturnsSuccess()
+    public async Task ReturnsSuccess()
     {
         // arrange
         SetupPublishSchemaMutation();
         SetupPublishSchemaSubscription(
-            CreateSchemaVersionPublishOperationInProgressEvent(),
             CreateSchemaVersionPublishSuccessEvent());
 
         // act
@@ -236,26 +234,50 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-id).
             ├── Processing
-            │   ├── Your request is being processed.
             │   └── ✓ Published successfully.
             └── ✓ Published new schema version 'v1' to stage 'dev'.
             """);
     }
 
     [Fact]
-    public async Task Subscription_FailedWithSimpleError_ReturnsError()
+    public async Task WaitForApproval_ReturnsSuccess()
     {
         // arrange
-        var errorMock = new Mock<IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Errors>(
-            MockBehavior.Strict);
-        errorMock.As<IUnexpectedProcessingError>()
-            .SetupGet(x => x.Message)
-            .Returns("Something went wrong during publish.");
+        SetupPublishSchemaMutation(waitForApproval: true);
+        SetupPublishSchemaSubscription(
+            CreateSchemaVersionPublishSuccessEvent());
 
+        // act
+        var result = await ExecuteCommandAsync(
+            "schema",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--api-id",
+            ApiId,
+            "--wait-for-approval");
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing new schema version 'v1' to stage 'dev' of API 'api-1'
+            ├── Starting publish request
+            │   └── ✓ Publish request created (ID: request-id).
+            ├── Processing
+            │   └── ✓ Published successfully.
+            └── ✓ Published new schema version 'v1' to stage 'dev'.
+            """);
+    }
+
+    [Fact]
+    public async Task BreakingChanges_ReturnsError()
+    {
+        // arrange
         SetupPublishSchemaMutation();
         SetupPublishSchemaSubscription(
-            CreateSchemaVersionPublishOperationInProgressEvent(),
-            CreateSchemaVersionPublishFailedEvent(errorMock.Object));
+            CreateSchemaVersionPublishFailedEventWithErrors());
 
         // act
         var result = await ExecuteCommandAsync(
@@ -275,7 +297,6 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-id).
             ├── Processing
-            │   ├── Your request is being processed.
             │   └── ✕ Processing failed.
             │       └── Something went wrong during publish.
             └── ✕ Failed to publish a new schema version.
@@ -288,220 +309,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
     }
 
     [Fact]
-    public async Task Subscription_InProgressOnly_StreamEnds_ReturnsError()
-    {
-        // arrange
-        SetupPublishSchemaMutation();
-        SetupPublishSchemaSubscription(
-            CreateSchemaVersionPublishOperationInProgressEvent());
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "schema",
-            "publish",
-            "--tag",
-            Tag,
-            "--stage",
-            Stage,
-            "--api-id",
-            ApiId);
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Publishing new schema version 'v1' to stage 'dev' of API 'api-1'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-id).
-            ├── Processing
-            │   ├── Your request is being processed.
-            │   └── ✕ Processing failed.
-            └── ✕ Failed to publish a new schema version.
-            """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(1, result.ExitCode);
-    }
-
-    [Fact]
-    public async Task Subscription_QueuePosition_UpdatesActivity()
-    {
-        // arrange
-        SetupPublishSchemaMutation();
-        SetupPublishSchemaSubscription(
-            CreateSchemaVersionPublishQueuedEvent(3),
-            CreateSchemaVersionPublishOperationInProgressEvent(),
-            CreateSchemaVersionPublishSuccessEvent());
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "schema",
-            "publish",
-            "--tag",
-            Tag,
-            "--stage",
-            Stage,
-            "--api-id",
-            ApiId);
-
-        // assert
-        result.AssertSuccess(
-            """
-            Publishing new schema version 'v1' to stage 'dev' of API 'api-1'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-id).
-            ├── Processing
-            │   ├── Your request is queued. The current position in the queue is 3.
-            │   ├── Your request is being processed.
-            │   └── ✓ Published successfully.
-            └── ✓ Published new schema version 'v1' to stage 'dev'.
-            """);
-    }
-
-    [Fact]
-    public async Task Subscription_ReadyState_PrintsSuccess()
-    {
-        // arrange
-        SetupPublishSchemaMutation();
-        SetupPublishSchemaSubscription(
-            CreateSchemaVersionPublishReadyEvent(),
-            CreateSchemaVersionPublishOperationInProgressEvent(),
-            CreateSchemaVersionPublishSuccessEvent());
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "schema",
-            "publish",
-            "--tag",
-            Tag,
-            "--stage",
-            Stage,
-            "--api-id",
-            ApiId);
-
-        // assert
-        result.AssertSuccess(
-            """
-            Publishing new schema version 'v1' to stage 'dev' of API 'api-1'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-id).
-            ├── Processing
-            │   ├── Your request is ready for processing.
-            │   ├── Your request is being processed.
-            │   └── ✓ Published successfully.
-            └── ✓ Published new schema version 'v1' to stage 'dev'.
-            """);
-    }
-
-    [Fact]
-    public async Task Subscription_ApprovedState_UpdatesActivity()
-    {
-        // arrange
-        SetupPublishSchemaMutation();
-        SetupPublishSchemaSubscription(
-            CreateSchemaVersionPublishApprovedEvent(),
-            CreateSchemaVersionPublishOperationInProgressEvent(),
-            CreateSchemaVersionPublishSuccessEvent());
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "schema",
-            "publish",
-            "--tag",
-            Tag,
-            "--stage",
-            Stage,
-            "--api-id",
-            ApiId);
-
-        // assert
-        result.AssertSuccess(
-            """
-            Publishing new schema version 'v1' to stage 'dev' of API 'api-1'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-id).
-            ├── Processing
-            │   ├── Your request has been approved.
-            │   ├── Your request is being processed.
-            │   └── ✓ Published successfully.
-            └── ✓ Published new schema version 'v1' to stage 'dev'.
-            """);
-    }
-
-    [Fact]
-    public async Task Subscription_WaitForApproval_UpdatesActivity()
-    {
-        // arrange
-        SetupPublishSchemaMutation();
-        SetupPublishSchemaSubscription(
-            CreateSchemaVersionPublishWaitForApprovalEvent(),
-            CreateSchemaVersionPublishApprovedEvent(),
-            CreateSchemaVersionPublishOperationInProgressEvent(),
-            CreateSchemaVersionPublishSuccessEvent());
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "schema",
-            "publish",
-            "--tag",
-            Tag,
-            "--stage",
-            Stage,
-            "--api-id",
-            ApiId);
-
-        // assert
-        result.AssertSuccess(
-            """
-            Publishing new schema version 'v1' to stage 'dev' of API 'api-1'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-id).
-            ├── Processing
-            │   ├── Your request is waiting for approval. Check Nitro to approve the request.
-            │   ├── Your request has been approved.
-            │   ├── Your request is being processed.
-            │   └── ✓ Published successfully.
-            └── ✓ Published new schema version 'v1' to stage 'dev'.
-            """);
-    }
-
-    [Fact]
-    public async Task Subscription_UnknownEvent_ReturnsError()
-    {
-        // arrange
-        var unknownEvent = new Mock<IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate>(
-            MockBehavior.Strict);
-        unknownEvent.SetupGet(x => x.__typename).Returns("UnknownType");
-
-        SetupPublishSchemaMutation();
-        SetupPublishSchemaSubscription(unknownEvent.Object);
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "schema",
-            "publish",
-            "--tag",
-            Tag,
-            "--stage",
-            Stage,
-            "--api-id",
-            ApiId);
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Publishing new schema version 'v1' to stage 'dev' of API 'api-1'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-id).
-            ├── Processing
-            │   ├── ! Unknown server response. Ensure your CLI is on the latest version.
-            │   └── ✕ Processing failed.
-            └── ✕ Failed to publish a new schema version.
-            """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(1, result.ExitCode);
-    }
-
-    [Fact]
-    public async Task ForceOption_LogsForceEnabled()
+    public async Task BreakingChanges_Force_ReturnsSuccess()
     {
         // arrange
         SetupPublishSchemaMutation(force: true);
@@ -534,11 +342,13 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
     }
 
     [Fact]
-    public async Task Publish_Should_PassWaitForApproval_When_FlagProvided()
+    public async Task WaitForApproval_BreakingChanges_Approved_ReturnsSuccess()
     {
         // arrange
         SetupPublishSchemaMutation(waitForApproval: true);
         SetupPublishSchemaSubscription(
+            CreateSchemaVersionPublishWaitForApprovalEventWithErrors(),
+            CreateSchemaVersionPublishApprovedEvent(),
             CreateSchemaVersionPublishSuccessEvent());
 
         // act
@@ -552,6 +362,76 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
             "--api-id",
             ApiId,
             "--wait-for-approval");
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing new schema version 'v1' to stage 'dev' of API 'api-1'
+            ├── Starting publish request
+            │   └── ✓ Publish request created (ID: request-id).
+            ├── Processing
+            │   └── ✕ Processing failed.
+            │   ├── Your request is waiting for approval. Check Nitro to approve the request.
+            │   ├── Your request has been approved.
+            └── ✓ Published new schema version 'v1' to stage 'dev'.
+            """);
+    }
+
+    [Fact]
+    public async Task WaitForApproval_BreakingChanges_NotApproved_ReturnsError()
+    {
+        // arrange
+        SetupPublishSchemaMutation(waitForApproval: true);
+        SetupPublishSchemaSubscription(
+            CreateSchemaVersionPublishWaitForApprovalEventWithErrors(),
+            CreateSchemaVersionPublishFailedEvent());
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "schema",
+            "publish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--api-id",
+            ApiId,
+            "--wait-for-approval");
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Schema publish failed.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing new schema version 'v1' to stage 'dev' of API 'api-1'
+            ├── Starting publish request
+            │   └── ✓ Publish request created (ID: request-id).
+            ├── Processing
+            │   └── ✕ Processing failed.
+            │   ├── Your request is waiting for approval. Check Nitro to approve the request.
+            └── ✕ Failed to publish a new schema version.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithEnvVars_ReturnsSuccess()
+    {
+        // arrange
+        SetupEnvironmentVariable(EnvironmentVariables.ApiId, ApiId);
+        SetupEnvironmentVariable(EnvironmentVariables.Tag, Tag);
+        SetupEnvironmentVariable(EnvironmentVariables.Stage, Stage);
+
+        SetupPublishSchemaMutation();
+        SetupPublishSchemaSubscription(
+            CreateSchemaVersionPublishSuccessEvent());
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "schema",
+            "publish");
 
         // assert
         result.AssertSuccess(

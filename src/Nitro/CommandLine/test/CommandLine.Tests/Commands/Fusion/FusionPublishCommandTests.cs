@@ -3,6 +3,7 @@ using ChilliCream.Nitro.Client.FusionConfiguration;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
+// TODO: Assert composition result is uploaded
 public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : FusionCommandTestBase(fixture)
 {
     [Fact]

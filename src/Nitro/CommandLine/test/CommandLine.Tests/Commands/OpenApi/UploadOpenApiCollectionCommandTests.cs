@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.OpenApi;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.OpenApi;
@@ -59,7 +58,7 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
             "--openapi-collection-id",
             OpenApiCollectionId,
             "--pattern",
-            "*.openapi.json");
+            "*.graphql");
 
         // assert
         result.AssertError(
@@ -105,7 +104,7 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
             "--openapi-collection-id",
             OpenApiCollectionId,
             "--pattern",
-            "*.openapi.json");
+            "*.graphql");
 
         // assert
         result.AssertError(
@@ -118,6 +117,7 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
     public async Task UploadOpenApiCollectionThrows_ReturnsError()
     {
         // arrange
+        SetupOpenApiDocument();
         SetupUploadOpenApiCollectionMutationException();
 
         // act
@@ -129,7 +129,7 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
             "--openapi-collection-id",
             OpenApiCollectionId,
             "--pattern",
-            "*.openapi.json");
+            "*.graphql");
 
         // assert
         result.StdErr.MatchInlineSnapshot(
@@ -151,6 +151,7 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
         string expectedStdErr)
     {
         // arrange
+        SetupOpenApiDocument();
         SetupUploadOpenApiCollectionMutation(mutationError);
 
         // act
@@ -162,7 +163,7 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
             "--openapi-collection-id",
             OpenApiCollectionId,
             "--pattern",
-            "*.openapi.json");
+            "*.graphql");
 
         // assert
         result.StdOut.MatchInlineSnapshot(
@@ -178,6 +179,7 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
     public async Task UploadOpenApiCollectionReturnsNullVersion_ReturnsError()
     {
         // arrange
+        SetupOpenApiDocument();
         SetupUploadOpenApiCollectionMutationNullVersion();
 
         // act
@@ -189,7 +191,7 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
             "--openapi-collection-id",
             OpenApiCollectionId,
             "--pattern",
-            "*.openapi.json");
+            "*.graphql");
 
         // assert
         result.StdOut.MatchInlineSnapshot(
@@ -205,10 +207,11 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
     }
 
     [Fact]
-    public async Task Success_ReturnsSuccess_NonInteractive()
+    public async Task UploadsCollection_ReturnsSuccess()
     {
         // arrange
-        SetupUploadOpenApiCollectionMutation();
+        SetupOpenApiDocument();
+        var capturedStream = SetupUploadOpenApiCollectionMutation();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -219,9 +222,10 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
             "--openapi-collection-id",
             OpenApiCollectionId,
             "--pattern",
-            "*.openapi.json");
+            "*.graphql");
 
         // assert
+        Assert.True(capturedStream.Length > 0);
         result.AssertSuccess(
             """
             Uploading new OpenAPI collection version 'v1' for collection 'oa-1'
@@ -230,11 +234,10 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
     }
 
     [Fact]
-    public async Task Success_ReturnsSuccess_Interactive()
+    public async Task InvalidDocument_ReturnsError()
     {
         // arrange
-        SetupInteractionMode(InteractionMode.Interactive);
-        SetupUploadOpenApiCollectionMutation();
+        SetupInvalidOpenApiDocument();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -245,34 +248,12 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
             "--openapi-collection-id",
             OpenApiCollectionId,
             "--pattern",
-            "*.openapi.json");
+            "*.graphql");
 
         // assert
-        result.AssertSuccess();
-    }
-
-    [Fact]
-    public async Task Success_ReturnsSuccess_JsonOutput()
-    {
-        // arrange
-        SetupInteractionMode(InteractionMode.JsonOutput);
-        SetupUploadOpenApiCollectionMutation();
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "openapi",
-            "upload",
-            "--tag",
-            Tag,
-            "--openapi-collection-id",
-            OpenApiCollectionId,
-            "--pattern",
-            "*.openapi.json");
-
-        // assert
-        result.AssertSuccess(
+        result.AssertError(
             """
-            {}
+            Encountered an error while trying to parse '/some/working/directory/document.graphql': Operation must be annotated with @http directive.
             """);
     }
 

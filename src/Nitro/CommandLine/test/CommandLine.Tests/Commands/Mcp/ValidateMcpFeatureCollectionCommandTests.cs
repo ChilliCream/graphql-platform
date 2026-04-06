@@ -77,6 +77,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
     public async Task StartMcpFeatureCollectionValidationThrows_ReturnsError()
     {
         // arrange
+        SetupMcpDefinitionFiles();
         SetupValidateMcpFeatureCollectionMutationException();
 
         // act
@@ -115,6 +116,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
         string expectedErrorMessage)
     {
         // arrange
+        SetupMcpDefinitionFiles();
         SetupValidateMcpFeatureCollectionMutation(error);
 
         // act
@@ -147,6 +149,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
     public async Task StartMcpFeatureCollectionValidationReturnsNullRequestId_ReturnsError()
     {
         // arrange
+        SetupMcpDefinitionFiles();
         SetupValidateMcpFeatureCollectionMutationNullRequestId();
 
         // act
@@ -182,7 +185,8 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
     public async Task Subscription_InProgressThenSuccess_ReturnsSuccess()
     {
         // arrange
-        SetupValidateMcpFeatureCollectionMutation();
+        SetupMcpDefinitionFiles();
+        var capturedStream = SetupValidateMcpFeatureCollectionMutation();
         SetupValidateMcpFeatureCollectionSubscription(
             CreateMcpFeatureCollectionValidationOperationInProgressEvent(),
             CreateMcpFeatureCollectionValidationInProgressEvent(),
@@ -202,6 +206,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             "**/*.graphql");
 
         // assert
+        Assert.True(capturedStream.Length > 0);
         result.AssertSuccess(
             """
             Validating MCP feature collection against stage 'dev'
@@ -220,6 +225,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
     public async Task Subscription_FailedWithSimpleError_ReturnsError()
     {
         // arrange
+        SetupMcpDefinitionFiles();
         var errorMock = new Mock<IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate_Errors>(
             MockBehavior.Strict);
         errorMock.As<IUnexpectedProcessingError>()
@@ -268,6 +274,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
     public async Task Subscription_InProgressOnly_StreamEnds_ReturnsError()
     {
         // arrange
+        SetupMcpDefinitionFiles();
         SetupValidateMcpFeatureCollectionMutation();
         SetupValidateMcpFeatureCollectionSubscription(
             CreateMcpFeatureCollectionValidationOperationInProgressEvent());
@@ -305,6 +312,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
     public async Task Subscription_UnknownEvent_ReturnsError()
     {
         // arrange
+        SetupMcpDefinitionFiles();
         var unknownEvent = new Mock<IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate>(
             MockBehavior.Strict);
         unknownEvent.SetupGet(x => x.__typename).Returns("UnknownType");
@@ -345,6 +353,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
     public async Task Subscription_FailedWithValidationError_ReturnsError()
     {
         // arrange
+        SetupMcpDefinitionFiles();
         var validationError = new Mock<IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate_Errors>(
             MockBehavior.Strict);
         validationError.As<IMcpFeatureCollectionValidationError>()
@@ -392,6 +401,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
     public async Task Subscription_FailedWithTimeoutError_ReturnsError()
     {
         // arrange
+        SetupMcpDefinitionFiles();
         var timeoutError = new ValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate_Errors_ProcessingTimeoutError(
             "ProcessingTimeoutError",
             "The validation timed out.");

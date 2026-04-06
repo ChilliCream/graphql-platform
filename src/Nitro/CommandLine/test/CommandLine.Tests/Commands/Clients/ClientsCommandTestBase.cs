@@ -102,18 +102,26 @@ public abstract class ClientsCommandTestBase(NitroCommandFixture fixture) : Comm
 
     #region Upload
 
-    protected void SetupUploadClientMutation(
+    protected MemoryStream SetupUploadClientMutation(
         params IUploadClient_UploadClient_Errors[] errors)
     {
-        SetupOperationsFile();
+        var capturedStream = new MemoryStream();
+
         ClientsClientMock.Setup(x => x.UploadClientVersionAsync(
                 ClientId, Tag, It.IsAny<Stream>(), null, It.IsAny<CancellationToken>()))
+            .Callback<string, string, Stream, SourceMetadata, CancellationToken>(
+                (_, _, stream, _, _) =>
+                {
+                    stream.CopyTo(capturedStream);
+                    capturedStream.Position = 0;
+                })
             .ReturnsAsync(() => CreateUploadClientPayload(errors));
+
+        return capturedStream;
     }
 
     protected void SetupUploadClientMutationException()
     {
-        SetupOperationsFile();
         ClientsClientMock.Setup(x => x.UploadClientVersionAsync(
                 ClientId, Tag, It.IsAny<Stream>(), null, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Something unexpected happened."));
@@ -127,7 +135,6 @@ public abstract class ClientsCommandTestBase(NitroCommandFixture fixture) : Comm
         payload.SetupGet(x => x.ClientVersion)
             .Returns((IUploadClient_UploadClient_ClientVersion?)null);
 
-        SetupOperationsFile();
         ClientsClientMock.Setup(x => x.UploadClientVersionAsync(
                 ClientId, Tag, It.IsAny<Stream>(), null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(payload.Object);
@@ -137,18 +144,26 @@ public abstract class ClientsCommandTestBase(NitroCommandFixture fixture) : Comm
 
     #region Validate
 
-    protected void SetupValidateClientMutation(
+    protected MemoryStream SetupValidateClientMutation(
         params IValidateClientVersion_ValidateClient_Errors[] errors)
     {
-        SetupOperationsFile();
+        var capturedStream = new MemoryStream();
+
         ClientsClientMock.Setup(x => x.StartClientValidationAsync(
                 ClientId, Stage, It.IsAny<Stream>(), null, It.IsAny<CancellationToken>()))
+            .Callback<string, string, Stream, SourceMetadata, CancellationToken>(
+                (_, _, stream, _, _) =>
+                {
+                    stream.CopyTo(capturedStream);
+                    capturedStream.Position = 0;
+                })
             .ReturnsAsync(() => CreateValidateClientPayload(errors));
+
+        return capturedStream;
     }
 
     protected void SetupValidateClientMutationException()
     {
-        SetupOperationsFile();
         ClientsClientMock.Setup(x => x.StartClientValidationAsync(
                 ClientId, Stage, It.IsAny<Stream>(), null, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Something unexpected happened."));
@@ -162,7 +177,6 @@ public abstract class ClientsCommandTestBase(NitroCommandFixture fixture) : Comm
         payload.SetupGet(x => x.Id)
             .Returns((string?)null);
 
-        SetupOperationsFile();
         ClientsClientMock.Setup(x => x.StartClientValidationAsync(
                 ClientId, Stage, It.IsAny<Stream>(), null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(payload.Object);

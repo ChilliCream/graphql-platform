@@ -247,7 +247,7 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : Stages
     [MemberData(nameof(GetUpdateStagesErrors))]
     public async Task UpdateStagesHasErrors_ReturnsError(
         IUpdateStages_UpdateStages_Errors error,
-        string expectedStdErr)
+        string expectedStdOut)
     {
         // arrange
         SetupUpdateStagesMutation(error);
@@ -262,13 +262,11 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : Stages
             """[{"name":"dev","displayName":"Dev","conditions":[]}]""");
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.StdOut.MatchInlineSnapshot(expectedStdOut);
+        result.StdErr.MatchInlineSnapshot(
             """
-            ? For which API do you want to edit the stages?: api-1
-            Updating stages for API 'api-1'
-            └── ✕ Failed to update the stages.
+            Stage update failed.
             """);
-        result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
     }
 
@@ -294,9 +292,41 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : Stages
     public static TheoryData<IUpdateStages_UpdateStages_Errors, string>
         GetUpdateStagesErrors() => new()
     {
-        { CreateUpdateStagesApiNotFoundError(), "API not found" },
-        { CreateUpdateStagesStageNotFoundError(), "Stage not found" },
-        { CreateUpdateStagesStagesHavePublishedDependenciesError(), "Stages have published dependencies" },
-        { CreateUpdateStagesStageValidationError(), "Stage validation failed" }
+        {
+            CreateUpdateStagesApiNotFoundError(),
+            """
+            ? For which API do you want to edit the stages?: api-1
+            Updating stages for API 'api-1'
+            └── ✕ Failed to update the stages.
+                └── API not found
+            """
+        },
+        {
+            CreateUpdateStagesStageNotFoundError(),
+            """
+            ? For which API do you want to edit the stages?: api-1
+            Updating stages for API 'api-1'
+            └── ✕ Failed to update the stages.
+                └── Stage not found
+            """
+        },
+        {
+            CreateUpdateStagesStagesHavePublishedDependenciesError(),
+            """
+            ? For which API do you want to edit the stages?: api-1
+            Updating stages for API 'api-1'
+            └── ✕ Failed to update the stages.
+                └── Stages have published dependencies
+            """
+        },
+        {
+            CreateUpdateStagesStageValidationError(),
+            """
+            ? For which API do you want to edit the stages?: api-1
+            Updating stages for API 'api-1'
+            └── ✕ Failed to update the stages.
+                └── Stage validation failed
+            """
+        }
     };
 }

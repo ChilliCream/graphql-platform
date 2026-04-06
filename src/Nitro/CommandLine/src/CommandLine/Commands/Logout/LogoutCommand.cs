@@ -22,12 +22,11 @@ internal sealed class LogoutCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var sessionService = services.GetRequiredService<ISessionService>();
 
-        await using (var activity = console.StartActivity("Logging out", "Failed to log out."))
-        {
-            await sessionService.LogoutAsync(cancellationToken);
+        await using var activity = console.StartActivity("Logging out", "Failed to log out.");
 
-            activity.Success("Logged out. See you soon \ud83d\udc4b");
-        }
+        await sessionService.LogoutAsync(cancellationToken);
+
+        activity.Success("Logged out. See you soon :waving_hand:");
 
         return ExitCodes.Success;
     }

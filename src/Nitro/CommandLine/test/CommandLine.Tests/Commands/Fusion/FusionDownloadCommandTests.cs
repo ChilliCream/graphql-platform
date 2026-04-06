@@ -2,7 +2,6 @@ using ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
-// TODO: Properly assert downloads
 public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : FusionCommandTestBase(fixture)
 {
     [Fact]

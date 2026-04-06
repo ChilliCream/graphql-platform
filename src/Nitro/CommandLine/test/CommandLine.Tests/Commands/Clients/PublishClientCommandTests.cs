@@ -196,6 +196,37 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
     }
 
     [Fact]
+    public async Task ReturnsSuccess()
+    {
+        // arrange
+        SetupPublishClientMutation();
+        SetupPublishClientSubscription(
+            CreateClientVersionPublishSuccessEvent());
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "client",
+            "publish",
+            "--client-id",
+            ClientId,
+            "--tag",
+            Tag,
+            "--stage",
+            Stage);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Publishing new client version 'v1' to stage 'dev' of client 'client-1'
+            ├── Starting publish request
+            │   └── ✓ Publish request created (ID: request-1).
+            ├── Processing
+            │   └── ✓ Published successfully.
+            └── ✓ Published new client version 'v1' to stage 'dev'.
+            """);
+    }
+
+    [Fact]
     public async Task WaitForApproval_NoBreakingChanges_ReturnsSuccess()
     {
         // arrange
@@ -306,7 +337,6 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
         SetupPublishClientSubscription(
             CreateClientVersionPublishWaitForApprovalEventWithErrors(),
             CreateClientVersionPublishApprovedEvent(),
-            CreateClientVersionPublishOperationInProgressEvent(),
             CreateClientVersionPublishSuccessEvent());
 
         // act
@@ -333,7 +363,6 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
             │           └── Field 'foo' does not exist.
             │   ├── 🕐 Your request is waiting for approval. Check Nitro to approve the request.
             │   ├── Your request has been approved.
-            │   ├── Your request is being processed.
             └── ✓ Published new client version 'v1' to stage 'dev'.
             """);
     }

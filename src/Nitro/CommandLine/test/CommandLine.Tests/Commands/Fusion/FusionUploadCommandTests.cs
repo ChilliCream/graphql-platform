@@ -131,7 +131,7 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : Fusi
     {
         // arrange
         SetupSourceSchemaFile();
-        SetupUploadSourceSchemaMutation();
+        var capturedStream = SetupUploadSourceSchemaMutation();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -145,6 +145,7 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : Fusi
             SourceSchemaFile);
 
         // assert
+        Assert.True(capturedStream.Length > 0);
         result.AssertSuccess(
             """
             Uploading new source schema version 'v1' to API 'api-1'

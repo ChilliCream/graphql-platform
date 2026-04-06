@@ -14,7 +14,7 @@ public abstract class McpCommandTestBase(NitroCommandFixture fixture) : CommandT
     protected void SetupMcpDefinitionFiles()
     {
         SetupGlobMatch(["prompt.mcp-prompt.json"]);
-        SetupOpenReadStreamByPath("prompt.mcp-prompt.json", "{}"u8.ToArray());
+        SetupOpenReadStream("prompt.mcp-prompt.json", "{}"u8.ToArray());
     }
 
     protected void SetupEmptyMcpDefinitionFiles()
@@ -108,18 +108,26 @@ public abstract class McpCommandTestBase(NitroCommandFixture fixture) : CommandT
 
     #region Upload
 
-    protected void SetupUploadMcpFeatureCollectionMutation(
+    protected MemoryStream SetupUploadMcpFeatureCollectionMutation(
         params IUploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors[] errors)
     {
-        SetupMcpDefinitionFiles();
+        var capturedStream = new MemoryStream();
+
         McpClientMock.Setup(x => x.UploadMcpFeatureCollectionVersionAsync(
                 McpFeatureCollectionId, Tag, It.IsAny<Stream>(), null, It.IsAny<CancellationToken>()))
+            .Callback<string, string, Stream, SourceMetadata, CancellationToken>(
+                (_, _, stream, _, _) =>
+                {
+                    stream.CopyTo(capturedStream);
+                    capturedStream.Position = 0;
+                })
             .ReturnsAsync(() => CreateUploadMcpFeatureCollectionPayload(errors));
+
+        return capturedStream;
     }
 
     protected void SetupUploadMcpFeatureCollectionMutationException()
     {
-        SetupMcpDefinitionFiles();
         McpClientMock.Setup(x => x.UploadMcpFeatureCollectionVersionAsync(
                 McpFeatureCollectionId, Tag, It.IsAny<Stream>(), null, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Something unexpected happened."));
@@ -133,7 +141,6 @@ public abstract class McpCommandTestBase(NitroCommandFixture fixture) : CommandT
         payload.SetupGet(x => x.McpFeatureCollectionVersion)
             .Returns((IUploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_McpFeatureCollectionVersion?)null);
 
-        SetupMcpDefinitionFiles();
         McpClientMock.Setup(x => x.UploadMcpFeatureCollectionVersionAsync(
                 McpFeatureCollectionId, Tag, It.IsAny<Stream>(), null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(payload.Object);
@@ -143,18 +150,26 @@ public abstract class McpCommandTestBase(NitroCommandFixture fixture) : CommandT
 
     #region Validate
 
-    protected void SetupValidateMcpFeatureCollectionMutation(
+    protected MemoryStream SetupValidateMcpFeatureCollectionMutation(
         params IValidateMcpFeatureCollectionCommandMutation_ValidateMcpFeatureCollection_Errors[] errors)
     {
-        SetupMcpDefinitionFiles();
+        var capturedStream = new MemoryStream();
+
         McpClientMock.Setup(x => x.StartMcpFeatureCollectionValidationAsync(
                 McpFeatureCollectionId, Stage, It.IsAny<Stream>(), null, It.IsAny<CancellationToken>()))
+            .Callback<string, string, Stream, SourceMetadata, CancellationToken>(
+                (_, _, stream, _, _) =>
+                {
+                    stream.CopyTo(capturedStream);
+                    capturedStream.Position = 0;
+                })
             .ReturnsAsync(() => CreateValidateMcpFeatureCollectionPayload(errors));
+
+        return capturedStream;
     }
 
     protected void SetupValidateMcpFeatureCollectionMutationException()
     {
-        SetupMcpDefinitionFiles();
         McpClientMock.Setup(x => x.StartMcpFeatureCollectionValidationAsync(
                 McpFeatureCollectionId, Stage, It.IsAny<Stream>(), null, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Something unexpected happened."));
@@ -168,7 +183,6 @@ public abstract class McpCommandTestBase(NitroCommandFixture fixture) : CommandT
         payload.SetupGet(x => x.Id)
             .Returns((string?)null);
 
-        SetupMcpDefinitionFiles();
         McpClientMock.Setup(x => x.StartMcpFeatureCollectionValidationAsync(
                 McpFeatureCollectionId, Stage, It.IsAny<Stream>(), null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(payload.Object);
@@ -308,6 +322,39 @@ public abstract class McpCommandTestBase(NitroCommandFixture fixture) : CommandT
             "WaitForApproval",
             ProcessingState.WaitingForApproval,
             null);
+    }
+
+    protected static IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate
+        CreateMcpFeatureCollectionPublishFailedEventWithErrors()
+    {
+        var errorMock = new Mock<IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Errors>(
+            MockBehavior.Strict);
+        errorMock.As<IUnexpectedProcessingError>()
+            .SetupGet(x => x.Message)
+            .Returns("Something went wrong during publish.");
+
+        return CreateMcpFeatureCollectionPublishFailedEvent(errorMock.Object);
+    }
+
+    protected static IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate
+        CreateMcpFeatureCollectionPublishWaitForApprovalEventWithErrors()
+    {
+        var errorMock = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_2>(
+            MockBehavior.Strict);
+        errorMock.As<IMcpFeatureCollectionValidationError>()
+            .SetupGet(x => x.Collections)
+            .Returns(Array.Empty<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections>());
+
+        var deploymentMock = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment>(
+            MockBehavior.Strict);
+        deploymentMock.As<IMcpFeatureCollectionDeployment>()
+            .SetupGet(x => x.Errors)
+            .Returns(new[] { errorMock.Object });
+
+        return new PublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_WaitForApproval(
+            "WaitForApproval",
+            ProcessingState.WaitingForApproval,
+            deploymentMock.Object);
     }
 
     #endregion

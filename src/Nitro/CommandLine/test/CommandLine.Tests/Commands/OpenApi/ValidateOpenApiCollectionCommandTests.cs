@@ -72,6 +72,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
     public async Task ValidateOpenApiCollectionThrows_ReturnsError()
     {
         // arrange
+        SetupOpenApiDocument();
         SetupValidateOpenApiCollectionMutationException();
 
         // act
@@ -108,6 +109,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
         string expectedStdErr)
     {
         // arrange
+        SetupOpenApiDocument();
         SetupValidateOpenApiCollectionMutation(mutationError);
 
         // act
@@ -138,6 +140,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
     public async Task ValidateOpenApiCollectionReturnsNullRequestId_ReturnsError()
     {
         // arrange
+        SetupOpenApiDocument();
         SetupValidateOpenApiCollectionMutationNullRequestId();
 
         // act
@@ -171,7 +174,8 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
     public async Task Subscription_InProgressThenSuccess_ReturnsSuccess_NonInteractive()
     {
         // arrange
-        SetupValidateOpenApiCollectionMutation();
+        SetupOpenApiDocument();
+        var capturedStream = SetupValidateOpenApiCollectionMutation();
         SetupValidateOpenApiCollectionSubscription(
             CreateOpenApiCollectionValidationOperationInProgressEvent(),
             CreateOpenApiCollectionValidationInProgressEvent(),
@@ -189,6 +193,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             "**/*.graphql");
 
         // assert
+        Assert.True(capturedStream.Length > 0);
         result.AssertSuccess(
             """
             Validating OpenAPI collection against stage 'dev'
@@ -207,6 +212,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
     public async Task Subscription_InProgressThenSuccess_ReturnsSuccess_Interactive()
     {
         // arrange
+        SetupOpenApiDocument();
         SetupInteractionMode(InteractionMode.Interactive);
         SetupValidateOpenApiCollectionMutation();
         SetupValidateOpenApiCollectionSubscription(
@@ -233,6 +239,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
     public async Task Subscription_InProgressThenSuccess_ReturnsSuccess_JsonOutput()
     {
         // arrange
+        SetupOpenApiDocument();
         SetupInteractionMode(InteractionMode.JsonOutput);
         SetupValidateOpenApiCollectionMutation();
         SetupValidateOpenApiCollectionSubscription(
@@ -262,6 +269,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
     public async Task Subscription_FailedWithSimpleError_ReturnsError()
     {
         // arrange
+        SetupOpenApiDocument();
         var errorMock = new Mock<IValidateOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionValidationUpdate_Errors>(
             MockBehavior.Strict);
         errorMock.As<IUnexpectedProcessingError>()
@@ -308,6 +316,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
     public async Task Subscription_InProgressOnly_StreamEnds_ReturnsError()
     {
         // arrange
+        SetupOpenApiDocument();
         SetupValidateOpenApiCollectionMutation();
         SetupValidateOpenApiCollectionSubscription(
             CreateOpenApiCollectionValidationOperationInProgressEvent());
@@ -343,6 +352,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
     public async Task Subscription_UnknownEvent_ReturnsError()
     {
         // arrange
+        SetupOpenApiDocument();
         var unknownEvent = new Mock<IValidateOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionValidationUpdate>(
             MockBehavior.Strict);
         unknownEvent.SetupGet(x => x.__typename).Returns("UnknownType");
@@ -382,6 +392,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
     public async Task Validate_Should_ReturnError_When_ArchiveValidationError()
     {
         // arrange
+        SetupOpenApiDocument();
         var errorMock = new Mock<IValidateOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionValidationUpdate_Errors>(
             MockBehavior.Strict);
         errorMock.As<IOpenApiCollectionValidationArchiveError>()

@@ -12,13 +12,21 @@ public abstract class OpenApiCommandTestBase(NitroCommandFixture fixture) : Comm
     protected const string OpenApiCollectionName = "my-openapi";
     protected const string RequestId = "request-1";
 
-    private static readonly byte[] _openApiDocumentContent =
-        """query GetUsers @http(method: GET, route: "/users") { users { id } }"""u8.ToArray();
+    private const string _openApiDocumentContent =
+        """query GetUsers @http(method: GET, route: "/users") { users { id } }""";
+    private const string _invalidOpenApiDocumentContent =
+        """query GetUsers { users { id } }""";
 
-    protected void SetupOpenApiDocumentFiles()
+    protected void SetupOpenApiDocument()
     {
-        SetupGlobMatch(["api.openapi.json"]);
-        SetupReadAllBytes("api.openapi.json", _openApiDocumentContent);
+        SetupGlobMatch(["document.graphql"]);
+        SetupFile("document.graphql", _openApiDocumentContent);
+    }
+
+    protected void SetupInvalidOpenApiDocument()
+    {
+        SetupGlobMatch(["document.graphql"]);
+        SetupFile("document.graphql", _invalidOpenApiDocumentContent);
     }
 
     protected void SetupEmptyGlobMatch()
@@ -124,18 +132,26 @@ public abstract class OpenApiCommandTestBase(NitroCommandFixture fixture) : Comm
 
     #region Upload
 
-    protected void SetupUploadOpenApiCollectionMutation(
+    protected MemoryStream SetupUploadOpenApiCollectionMutation(
         params IUploadOpenApiCollectionCommandMutation_UploadOpenApiCollection_Errors[] errors)
     {
-        SetupOpenApiDocumentFiles();
+        var capturedStream = new MemoryStream();
+
         OpenApiClientMock.Setup(x => x.UploadOpenApiCollectionVersionAsync(
                 OpenApiCollectionId, Tag, It.IsAny<Stream>(), null, It.IsAny<CancellationToken>()))
+            .Callback<string, string, Stream, SourceMetadata, CancellationToken>(
+                (_, _, stream, _, _) =>
+                {
+                    stream.CopyTo(capturedStream);
+                    capturedStream.Position = 0;
+                })
             .ReturnsAsync(() => CreateUploadOpenApiCollectionPayload(errors));
+
+        return capturedStream;
     }
 
     protected void SetupUploadOpenApiCollectionMutationException()
     {
-        SetupOpenApiDocumentFiles();
         OpenApiClientMock.Setup(x => x.UploadOpenApiCollectionVersionAsync(
                 OpenApiCollectionId, Tag, It.IsAny<Stream>(), null, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Something unexpected happened."));
@@ -149,7 +165,6 @@ public abstract class OpenApiCommandTestBase(NitroCommandFixture fixture) : Comm
         payload.SetupGet(x => x.OpenApiCollectionVersion)
             .Returns((IUploadOpenApiCollectionCommandMutation_UploadOpenApiCollection_OpenApiCollectionVersion?)null);
 
-        SetupOpenApiDocumentFiles();
         OpenApiClientMock.Setup(x => x.UploadOpenApiCollectionVersionAsync(
                 OpenApiCollectionId, Tag, It.IsAny<Stream>(), null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(payload.Object);
@@ -159,18 +174,26 @@ public abstract class OpenApiCommandTestBase(NitroCommandFixture fixture) : Comm
 
     #region Validate
 
-    protected void SetupValidateOpenApiCollectionMutation(
+    protected MemoryStream SetupValidateOpenApiCollectionMutation(
         params IValidateOpenApiCollectionCommandMutation_ValidateOpenApiCollection_Errors[] errors)
     {
-        SetupOpenApiDocumentFiles();
+        var capturedStream = new MemoryStream();
+
         OpenApiClientMock.Setup(x => x.StartOpenApiCollectionValidationAsync(
                 OpenApiCollectionId, Stage, It.IsAny<Stream>(), null, It.IsAny<CancellationToken>()))
+            .Callback<string, string, Stream, SourceMetadata, CancellationToken>(
+                (_, _, stream, _, _) =>
+                {
+                    stream.CopyTo(capturedStream);
+                    capturedStream.Position = 0;
+                })
             .ReturnsAsync(() => CreateValidateOpenApiCollectionPayload(errors));
+
+        return capturedStream;
     }
 
     protected void SetupValidateOpenApiCollectionMutationException()
     {
-        SetupOpenApiDocumentFiles();
         OpenApiClientMock.Setup(x => x.StartOpenApiCollectionValidationAsync(
                 OpenApiCollectionId, Stage, It.IsAny<Stream>(), null, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Something unexpected happened."));
@@ -184,7 +207,6 @@ public abstract class OpenApiCommandTestBase(NitroCommandFixture fixture) : Comm
         payload.SetupGet(x => x.Id)
             .Returns((string?)null);
 
-        SetupOpenApiDocumentFiles();
         OpenApiClientMock.Setup(x => x.StartOpenApiCollectionValidationAsync(
                 OpenApiCollectionId, Stage, It.IsAny<Stream>(), null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(payload.Object);
@@ -324,6 +346,39 @@ public abstract class OpenApiCommandTestBase(NitroCommandFixture fixture) : Comm
             "WaitForApproval",
             ProcessingState.WaitingForApproval,
             null);
+    }
+
+    protected static IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate
+        CreateOpenApiCollectionPublishFailedEventWithErrors()
+    {
+        var errorMock = new Mock<IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Errors>(
+            MockBehavior.Strict);
+        errorMock.As<IUnexpectedProcessingError>()
+            .SetupGet(x => x.Message)
+            .Returns("Something went wrong during publish.");
+
+        return CreateOpenApiCollectionPublishFailedEvent(errorMock.Object);
+    }
+
+    protected static IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate
+        CreateOpenApiCollectionPublishWaitForApprovalEventWithErrors()
+    {
+        var errorMock = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_3>(
+            MockBehavior.Strict);
+        errorMock.As<IOpenApiCollectionValidationError>()
+            .SetupGet(x => x.Collections)
+            .Returns(Array.Empty<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_1>());
+
+        var deploymentMock = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment>(
+            MockBehavior.Strict);
+        deploymentMock.As<IOpenApiCollectionDeployment>()
+            .SetupGet(x => x.Errors)
+            .Returns(new[] { errorMock.Object });
+
+        return new PublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_WaitForApproval(
+            "WaitForApproval",
+            ProcessingState.WaitingForApproval,
+            deploymentMock.Object);
     }
 
     #endregion

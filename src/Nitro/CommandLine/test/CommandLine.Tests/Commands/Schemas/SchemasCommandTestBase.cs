@@ -19,13 +19,23 @@ public abstract class SchemasCommandTestBase(NitroCommandFixture fixture) : Comm
 
     #region Upload
 
-    protected void SetupUploadSchemaMutation(
+    protected MemoryStream SetupUploadSchemaMutation(
         params IUploadSchema_UploadSchema_Errors[] errors)
     {
+        var capturedStream = new MemoryStream();
+
         SchemasClientMock
             .Setup(x => x.UploadSchemaAsync(
                 ApiId, Tag, It.IsAny<Stream>(), null, It.IsAny<CancellationToken>()))
+            .Callback<string, string, Stream, SourceMetadata, CancellationToken>(
+                (_, _, stream, _, _) =>
+                {
+                    stream.CopyTo(capturedStream);
+                    capturedStream.Position = 0;
+                })
             .ReturnsAsync(() => CreateUploadSchemaPayload(errors));
+
+        return capturedStream;
     }
 
     protected void SetupUploadSchemaMutationException()
@@ -88,9 +98,11 @@ public abstract class SchemasCommandTestBase(NitroCommandFixture fixture) : Comm
 
     #region Validate
 
-    protected void SetupSchemaValidationMutation(
+    protected MemoryStream SetupSchemaValidationMutation(
         params IValidateSchemaVersion_ValidateSchema_Errors[] errors)
     {
+        var capturedStream = new MemoryStream();
+
         SchemasClientMock
             .Setup(x => x.StartSchemaValidationAsync(
                 ApiId,
@@ -98,7 +110,15 @@ public abstract class SchemasCommandTestBase(NitroCommandFixture fixture) : Comm
                 It.IsAny<Stream>(),
                 It.IsAny<SourceMetadata>(),
                 It.IsAny<CancellationToken>()))
+            .Callback<string, string, Stream, SourceMetadata, CancellationToken>(
+                (_, _, stream, _, _) =>
+                {
+                    stream.CopyTo(capturedStream);
+                    capturedStream.Position = 0;
+                })
             .ReturnsAsync(() => CreateValidateSchemaVersionPayload(errors));
+
+        return capturedStream;
     }
 
     protected void SetupSchemaValidationMutationException()
@@ -243,6 +263,39 @@ public abstract class SchemasCommandTestBase(NitroCommandFixture fixture) : Comm
             "WaitForApproval",
             ProcessingState.WaitingForApproval,
             null);
+    }
+
+    protected static IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate
+        CreateSchemaVersionPublishFailedEventWithErrors()
+    {
+        var errorMock = new Mock<IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Errors>(
+            MockBehavior.Strict);
+        errorMock.As<IUnexpectedProcessingError>()
+            .SetupGet(x => x.Message)
+            .Returns("Something went wrong during publish.");
+
+        return CreateSchemaVersionPublishFailedEvent(errorMock.Object);
+    }
+
+    protected static IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate
+        CreateSchemaVersionPublishWaitForApprovalEventWithErrors()
+    {
+        var errorMock = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_4>(
+            MockBehavior.Strict);
+        errorMock.As<IUnexpectedProcessingError>()
+            .SetupGet(x => x.Message)
+            .Returns("Something went wrong during publish.");
+
+        var deploymentMock = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment>(
+            MockBehavior.Strict);
+        deploymentMock.As<ISchemaDeployment>()
+            .SetupGet(x => x.Errors)
+            .Returns(new[] { errorMock.Object });
+
+        return new OnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_WaitForApproval(
+            "WaitForApproval",
+            ProcessingState.WaitingForApproval,
+            deploymentMock.Object);
     }
 
     #endregion

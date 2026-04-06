@@ -203,7 +203,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
     {
         // arrange
         SetupSchemaFile();
-        SetupSchemaValidationMutation();
+        var capturedStream = SetupSchemaValidationMutation();
         SetupSchemaValidationSubscription(
             CreateSchemaVersionOperationInProgressEvent(),
             CreateSchemaVersionValidationInProgressEvent(),
@@ -221,6 +221,8 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
             SchemaFile);
 
         // assert
+        Assert.Equal("type Query { hello: String }",
+            System.Text.Encoding.UTF8.GetString(capturedStream.ToArray()));
         result.AssertSuccess(
             """
             Validating schema against stage 'dev' of API 'api-1'

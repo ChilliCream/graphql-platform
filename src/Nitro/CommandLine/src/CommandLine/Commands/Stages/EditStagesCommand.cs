@@ -224,7 +224,7 @@ file static class ClientExtensions
 
                 activity.Fail(errorTree);
 
-                return ExitCodes.Error;
+                throw new ExitException("Stage update failed.");
             }
 
             activity.Success($"Updated stages for API '{apiId.EscapeMarkup()}'.");

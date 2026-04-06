@@ -234,9 +234,13 @@ public abstract class CommandTestBase
 
     protected void SetupGlobMatch(string[] results)
     {
+        var absoluteResults = results
+            .Select(r => Path.Combine(_currentDirectory, r))
+            .ToArray();
+
         _fileSystemMock
             .Setup(x => x.GlobMatch(It.IsAny<IEnumerable<string>>(), It.IsAny<IEnumerable<string>?>()))
-            .Returns(results);
+            .Returns(absoluteResults);
     }
 
     protected void SetupReadAllBytes(string path, byte[] content)
@@ -282,8 +286,6 @@ public abstract class CommandTestBase
         {
             await file.DisposeAsync();
         }
-
-        // TODO: Maybe this should validate filesystem/session accesses
 
         SchemasClientMock.VerifyAll();
         FusionConfigurationClientMock.VerifyAll();

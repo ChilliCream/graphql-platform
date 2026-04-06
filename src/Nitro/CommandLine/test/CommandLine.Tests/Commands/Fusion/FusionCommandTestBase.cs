@@ -310,9 +310,11 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
         SetupPublishingTaskSubscription(events);
     }
 
-    protected void SetupUploadSourceSchemaMutation(
+    protected MemoryStream SetupUploadSourceSchemaMutation(
         params IUploadFusionSubgraph_UploadFusionSubgraph_Errors[] errors)
     {
+        var capturedStream = new MemoryStream();
+
         FusionConfigurationClientMock
             .Setup(x => x.UploadFusionSubgraphAsync(
                 ApiId,
@@ -320,7 +322,15 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
                 It.IsAny<Stream>(),
                 null,
                 It.IsAny<CancellationToken>()))
+            .Callback<string, string, Stream, SourceMetadata, CancellationToken>(
+                (_, _, stream, _, _) =>
+                {
+                    stream.CopyTo(capturedStream);
+                    capturedStream.Position = 0;
+                })
             .ReturnsAsync(() => CreateUploadSourceSchemaPayload(errors));
+
+        return capturedStream;
     }
 
     protected void SetupUploadSourceSchemaMutationException()

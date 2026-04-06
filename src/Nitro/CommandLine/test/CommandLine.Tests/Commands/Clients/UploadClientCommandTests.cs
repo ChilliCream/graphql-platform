@@ -97,6 +97,7 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : Clie
     public async Task UploadClientThrows_ReturnsError()
     {
         // arrange
+        SetupOperationsFile();
         SetupUploadClientMutationException();
 
         // act
@@ -130,6 +131,7 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : Clie
         string expectedErrorMessage)
     {
         // arrange
+        SetupOperationsFile();
         SetupUploadClientMutation(error);
 
         // act
@@ -157,6 +159,7 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : Clie
     public async Task UploadClientReturnsNullClientVersion_ReturnsError()
     {
         // arrange
+        SetupOperationsFile();
         SetupUploadClientMutationNullClientVersion();
 
         // act
@@ -187,7 +190,8 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : Clie
     public async Task UploadsClient_ReturnsSuccess()
     {
         // arrange
-        SetupUploadClientMutation();
+        SetupOperationsFile();
+        var capturedStream = SetupUploadClientMutation();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -201,6 +205,8 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : Clie
             ClientId);
 
         // assert
+        Assert.Equal("{}",
+            System.Text.Encoding.UTF8.GetString(capturedStream.ToArray()));
         result.AssertSuccess(
             """
             Uploading new client version 'v1' for client 'client-1'

@@ -84,6 +84,7 @@ internal sealed class FileSystem : IFileSystem
 
         if (relativePatterns.Count > 0)
         {
+            var cwd = GetCurrentDirectory();
             var matcher = new Matcher();
             matcher.AddIncludePatterns(relativePatterns);
 
@@ -94,9 +95,9 @@ internal sealed class FileSystem : IFileSystem
 
             var result = matcher.Execute(
                 new DirectoryInfoWrapper(
-                    new DirectoryInfo(Directory.GetCurrentDirectory())));
+                    new DirectoryInfo(cwd)));
 
-            results.AddRange(result.Files.Select(f => Path.GetFullPath(f.Path)));
+            results.AddRange(result.Files.Select(f => Path.Combine(cwd, f.Path)));
         }
 
         return results.Distinct().OrderBy(f => f, StringComparer.Ordinal);

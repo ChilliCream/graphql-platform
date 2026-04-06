@@ -197,7 +197,7 @@ public sealed class UploadSchemaCommandTests(NitroCommandFixture fixture) : Sche
     {
         // arrange
         SetupSchemaFile();
-        SetupUploadSchemaMutation();
+        var capturedStream = SetupUploadSchemaMutation();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -211,6 +211,8 @@ public sealed class UploadSchemaCommandTests(NitroCommandFixture fixture) : Sche
             SchemaFile);
 
         // assert
+        Assert.Equal("type Query { hello: String }",
+            System.Text.Encoding.UTF8.GetString(capturedStream.ToArray()));
         result.AssertSuccess(
             """
             Uploading new schema version 'v1' to API 'api-1'

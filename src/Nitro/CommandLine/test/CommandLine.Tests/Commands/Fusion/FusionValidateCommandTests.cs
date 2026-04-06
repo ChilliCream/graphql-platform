@@ -2,6 +2,8 @@ using ChilliCream.Nitro.Client;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
+// TODO: precompose files that can be used to setup downlaods and stuff
+// TODO: Assert composition result is uploaded
 public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : FusionCommandTestBase(fixture)
 {
     [Fact]

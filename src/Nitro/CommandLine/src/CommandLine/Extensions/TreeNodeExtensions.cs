@@ -194,9 +194,11 @@ internal static class TreeNodeExtensions
         this IHasTreeNodes node,
         IStagesHavePublishedDependenciesError error)
     {
+        var errorNode = node.AddErrorMessage(error.Message);
+
         foreach (var stage in error.Stages)
         {
-            var stageNode = node.AddNode(
+            var stageNode = errorNode.AddNode(
                 $"Stage '{stage.Name.EscapeMarkup()}'");
 
             if (stage.PublishedSchema?.Version is { Tag: var tag })

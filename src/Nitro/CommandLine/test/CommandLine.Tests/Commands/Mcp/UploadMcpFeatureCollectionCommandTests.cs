@@ -119,6 +119,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
     public async Task UploadMcpFeatureCollectionThrows_ReturnsError()
     {
         // arrange
+        SetupMcpDefinitionFiles();
         SetupUploadMcpFeatureCollectionMutationException();
 
         // act
@@ -155,6 +156,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
         string expectedErrorMessage)
     {
         // arrange
+        SetupMcpDefinitionFiles();
         SetupUploadMcpFeatureCollectionMutation(error);
 
         // act
@@ -185,6 +187,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
     public async Task UploadMcpFeatureCollectionReturnsNullVersion_ReturnsError()
     {
         // arrange
+        SetupMcpDefinitionFiles();
         SetupUploadMcpFeatureCollectionMutationNullVersion();
 
         // act
@@ -218,7 +221,8 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
     public async Task UploadsMcpFeatureCollection_ReturnsSuccess()
     {
         // arrange
-        SetupUploadMcpFeatureCollectionMutation();
+        SetupMcpDefinitionFiles();
+        var capturedStream = SetupUploadMcpFeatureCollectionMutation();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -234,6 +238,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
             "**/*.graphql");
 
         // assert
+        Assert.True(capturedStream.Length > 0);
         result.AssertSuccess(
             """
             Uploading new MCP feature collection version 'v1' for collection 'mcp-1'

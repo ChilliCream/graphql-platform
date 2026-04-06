@@ -99,6 +99,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
     public async Task StartClientValidationThrows_ReturnsError()
     {
         // arrange
+        SetupOperationsFile();
         SetupValidateClientMutationException();
 
         // act
@@ -134,6 +135,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
         string expectedErrorMessage)
     {
         // arrange
+        SetupOperationsFile();
         SetupValidateClientMutation(error);
 
         // act
@@ -163,6 +165,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
     public async Task StartClientValidationReturnsNullRequestId_ReturnsError()
     {
         // arrange
+        SetupOperationsFile();
         SetupValidateClientMutationNullRequestId();
 
         // act
@@ -195,7 +198,8 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
     public async Task ReturnsSuccess()
     {
         // arrange
-        SetupValidateClientMutation();
+        SetupOperationsFile();
+        var capturedStream = SetupValidateClientMutation();
         SetupValidateClientSubscription();
 
         // act
@@ -210,6 +214,8 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
             OperationsFile);
 
         // assert
+        Assert.Equal("{}",
+            System.Text.Encoding.UTF8.GetString(capturedStream.ToArray()));
         result.AssertSuccess(
             """
             Validating client against stage 'dev' of client 'client-1'
@@ -225,6 +231,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
     public async Task WithEnvVars_ReturnsSuccess()
     {
         // arrange
+        SetupOperationsFile();
         SetupEnvironmentVariable(EnvironmentVariables.ClientId, ClientId);
         SetupEnvironmentVariable(EnvironmentVariables.Stage, Stage);
         SetupEnvironmentVariable(EnvironmentVariables.OperationsFile, OperationsFile);
@@ -253,6 +260,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
     public async Task BreakingChanges_ReturnsError()
     {
         // arrange
+        SetupOperationsFile();
         SetupValidateClientMutation();
         SetupValidateClientSubscription(
             CreateClientVersionValidationFailedEventWithErrors());
