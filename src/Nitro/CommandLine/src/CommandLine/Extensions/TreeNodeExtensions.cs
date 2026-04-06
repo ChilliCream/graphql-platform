@@ -190,6 +190,36 @@ internal static class TreeNodeExtensions
         }
     }
 
+    public static IHasTreeNodes AddStagePublishedDependencies(
+        this IHasTreeNodes node,
+        IStagesHavePublishedDependenciesError error)
+    {
+        foreach (var stage in error.Stages)
+        {
+            var stageNode = node.AddNode(
+                $"Stage '{stage.Name.EscapeMarkup()}'");
+
+            if (stage.PublishedSchema?.Version is { Tag: var tag })
+            {
+                stageNode.AddNode(
+                    $"Schema version '{tag.EscapeMarkup()}' is still published");
+            }
+
+            foreach (var publishedClient in stage.PublishedClients)
+            {
+                var tags = string.Join(
+                    ", ",
+                    publishedClient.PublishedVersions.Select(x => x.Version?.Tag));
+                stageNode.AddNode(
+                    $"Client '{publishedClient.Client.Name.EscapeMarkup()}' version '{tags.EscapeMarkup()}' is still published");
+            }
+
+            // TODO: We need to also request OpenAPI / MCP collection here for display
+        }
+
+        return node;
+    }
+
     public static IHasTreeNodes AddSchemaChanges(
         this IHasTreeNodes node,
         IEnumerable<ISchemaChange> changes)

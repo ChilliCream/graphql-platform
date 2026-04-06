@@ -49,43 +49,43 @@ internal sealed class DownloadClientCommand : Command
         var output = parseResult.GetRequiredValue(Opt<FileSystemOutputOptions>.Instance);
         var format = parseResult.GetRequiredValue(Opt<ClientFormatOption>.Instance);
 
-        await using (var activity = console.StartActivity(
-            $"Downloading client from stage '{stageName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'",
-            "Failed to download the client."))
+        if (!Path.IsPathRooted(output))
         {
-            var stream = await client.DownloadPersistedQueriesAsync(apiId, stageName, ct);
-
-            if (stream is null)
-            {
-                throw Exit($"Could not find a published client on stage '{stageName}'.");
-            }
-
-            await using (stream)
-            {
-                var queries = JsonSerializer.DeserializeAsyncEnumerable(
-                    stream,
-                    NitroCLIJsonContext.Default.PersistedQueryStreamResult,
-                    ct);
-
-                switch (format)
-                {
-                    case ClientFormat.Folder:
-                        await WriteToFolder(fileSystem, output, queries);
-                        break;
-
-                    case ClientFormat.Relay:
-                        await WriteToRelayJson(fileSystem, output, queries);
-                        break;
-
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(format), format, null);
-                }
-            }
-
-            activity.Success($"Downloaded the client from stage '{stageName.EscapeMarkup()}'.");
-
-            return ExitCodes.Success;
+            output = Path.Combine(fileSystem.GetCurrentDirectory(), output);
         }
+
+        var stream = await client.DownloadPersistedQueriesAsync(apiId, stageName, ct);
+
+        if (stream is null)
+        {
+            throw new ExitException($"Could not find a published client on stage '{stageName}'.");
+        }
+
+        await using (stream)
+        {
+            var queries = JsonSerializer.DeserializeAsyncEnumerable(
+                stream,
+                NitroCLIJsonContext.Default.PersistedQueryStreamResult,
+                ct);
+
+            switch (format)
+            {
+                case ClientFormat.Folder:
+                    await WriteToFolder(fileSystem, output, queries);
+                    break;
+
+                case ClientFormat.Relay:
+                    await WriteToRelayJson(fileSystem, output, queries);
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(format), format, null);
+            }
+        }
+
+        console.WriteLine($"Downloaded client to '{output.EscapeMarkup()}'.");
+
+        return ExitCodes.Success;
     }
 
     private static async Task WriteToRelayJson(

@@ -160,33 +160,6 @@ internal static class NitroConsoleExtensions
             .ShowAsync(console, cancellationToken);
     }
 
-    // TODO: This needs to be used
-    internal static void PrintStagePublishedDependencies(
-        this INitroConsole console,
-        IStagesHavePublishedDependenciesError error)
-    {
-        console.WriteLine(error.Message);
-        console.WriteLine();
-
-        foreach (var stage in error.Stages)
-        {
-            if (stage.PublishedSchema?.Version is { Tag: var tag })
-            {
-                console.WriteLine(
-                    $"The schema {tag.AsHighlight()} is still published to {stage.Name.AsHighlight()}");
-            }
-
-            foreach (var publishedClient in stage.PublishedClients)
-            {
-                var tags = string.Join(
-                    ',',
-                    publishedClient.PublishedVersions.Select(x => x.Version?.Tag));
-                console.WriteLine(
-                    $"The client {publishedClient.Client.Name.AsHighlight()} in version {tags.AsHighlight()} is still published to {stage.Name.AsHighlight()}");
-            }
-        }
-    }
-
     public static void Success(this INitroConsole console, string message)
     {
         console.MarkupLine($"[green]{message}[/]");

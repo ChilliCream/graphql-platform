@@ -1,11 +1,10 @@
-using ChilliCream.Nitro.Client.Schemas;
-using Moq;
+using System.Text;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Schemas;
 
 public sealed class DownloadSchemaCommandTests(NitroCommandFixture fixture) : SchemasCommandTestBase(fixture)
 {
-    private const string OutputFile = "/tmp/schema.graphql";
+    private const string OutputFile = "schema.graphql";
 
     [Fact]
     public async Task Help_ReturnsSuccess()
@@ -28,7 +27,7 @@ public sealed class DownloadSchemaCommandTests(NitroCommandFixture fixture) : Sc
             Options:
               --api-id <api-id> (REQUIRED)  The ID of the API [env: NITRO_API_ID]
               --stage <stage> (REQUIRED)    The name of the stage [env: NITRO_STAGE]
-              --file <file> (REQUIRED)      The file where the schema is stored
+              --output-file <output-file>   The file path to write the output to [env: NITRO_OUTPUT_FILE]
               --cloud-url <cloud-url>       The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
               --api-key <api-key>           The API key used for authentication [env: NITRO_API_KEY]
               --output <json>               The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
@@ -38,7 +37,7 @@ public sealed class DownloadSchemaCommandTests(NitroCommandFixture fixture) : Sc
               nitro schema download \
                 --api-id "<api-id>" \
                 --stage "dev" \
-                --file ./schema.graphqls
+                --output-file ./schema.graphqls
             """);
     }
 
@@ -60,7 +59,7 @@ public sealed class DownloadSchemaCommandTests(NitroCommandFixture fixture) : Sc
             ApiId,
             "--stage",
             Stage,
-            "--file",
+            "--output-file",
             OutputFile);
 
         // assert
@@ -81,16 +80,13 @@ public sealed class DownloadSchemaCommandTests(NitroCommandFixture fixture) : Sc
         // act
         var result = await ExecuteCommandAsync(
             "schema",
-            "download",
-            "--api-id",
-            ApiId,
-            "--stage",
-            Stage);
+            "download");
 
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Option '--file' is required.
+            Option '--api-id' is required.
+            Option '--stage' is required.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -109,18 +105,18 @@ public sealed class DownloadSchemaCommandTests(NitroCommandFixture fixture) : Sc
             ApiId,
             "--stage",
             Stage,
-            "--file",
+            "--output-file",
             OutputFile);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            There was an unexpected error: Something unexpected happened.
-            """);
         result.StdOut.MatchInlineSnapshot(
             """
             Downloading schema from stage 'dev' of API 'api-1'
             └── ✕ Failed to download the schema.
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error: Something unexpected happened.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -139,7 +135,7 @@ public sealed class DownloadSchemaCommandTests(NitroCommandFixture fixture) : Sc
             ApiId,
             "--stage",
             Stage,
-            "--file",
+            "--output-file",
             OutputFile);
 
         // assert
@@ -156,11 +152,11 @@ public sealed class DownloadSchemaCommandTests(NitroCommandFixture fixture) : Sc
     }
 
     [Fact]
-    public async Task Success_DownloadsSchema()
+    public async Task DownloadsSchema_ReturnsSuccess()
     {
         // arrange
         SetupDownloadSchema();
-        var tempFile = SetupCreateFile(OutputFile);
+        var outputStream = SetupCreateFile(OutputFile);
 
         // act
         var result = await ExecuteCommandAsync(
@@ -170,7 +166,7 @@ public sealed class DownloadSchemaCommandTests(NitroCommandFixture fixture) : Sc
             ApiId,
             "--stage",
             Stage,
-            "--file",
+            "--output-file",
             OutputFile);
 
         // assert
@@ -179,16 +175,16 @@ public sealed class DownloadSchemaCommandTests(NitroCommandFixture fixture) : Sc
             Downloading schema from stage 'dev' of API 'api-1'
             └── ✓ Downloaded the schema from stage 'dev'.
             """);
-        Assert.Equal("type Query { hello: String }", await File.ReadAllTextAsync(tempFile));
+        Assert.Equal("type Query { hello: String }", Encoding.UTF8.GetString(outputStream.ToArray()));
     }
 
     [Fact]
-    public async Task Success_DeletesExistingFile_BeforeDownload()
+    public async Task DownloadsSchema_DeletesExistingFile_ReturnsSuccess()
     {
         // arrange
         SetupDownloadSchema();
         SetupFile(OutputFile, "old content");
-        var tempFile = SetupCreateFile(OutputFile);
+        var outputStream = SetupCreateFile(OutputFile);
 
         // act
         var result = await ExecuteCommandAsync(
@@ -198,7 +194,7 @@ public sealed class DownloadSchemaCommandTests(NitroCommandFixture fixture) : Sc
             ApiId,
             "--stage",
             Stage,
-            "--file",
+            "--output-file",
             OutputFile);
 
         // assert
@@ -207,6 +203,6 @@ public sealed class DownloadSchemaCommandTests(NitroCommandFixture fixture) : Sc
             Downloading schema from stage 'dev' of API 'api-1'
             └── ✓ Downloaded the schema from stage 'dev'.
             """);
-        Assert.Equal("type Query { hello: String }", await File.ReadAllTextAsync(tempFile));
+        Assert.Equal("type Query { hello: String }", Encoding.UTF8.GetString(outputStream.ToArray()));
     }
 }

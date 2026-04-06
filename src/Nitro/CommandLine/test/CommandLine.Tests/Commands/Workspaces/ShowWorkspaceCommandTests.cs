@@ -1,21 +1,16 @@
-using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Workspaces;
-using Moq;
-
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Workspaces;
 
-public sealed class ShowWorkspaceCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
+public sealed class ShowWorkspaceCommandTests(NitroCommandFixture fixture)
+    : WorkspacesCommandTestBase(fixture)
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "workspace",
-                "show",
-                "--help")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "workspace",
+            "show",
+            "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -46,14 +41,15 @@ public sealed class ShowWorkspaceCommandTests(NitroCommandFixture fixture) : ICl
     [InlineData(InteractionMode.JsonOutput)]
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
-        // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "workspace",
-                "show",
-                "ws-1")
-            .ExecuteAsync();
+        // arrange
+        SetupInteractionMode(mode);
+        SetupNoAuthentication();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "workspace",
+            "show",
+            WorkspaceId);
 
         // assert
         result.AssertError(
@@ -69,30 +65,20 @@ public sealed class ShowWorkspaceCommandTests(NitroCommandFixture fixture) : ICl
     public async Task WorkspaceNotFound_ReturnsError(InteractionMode mode)
     {
         // arrange
-        var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
-        client.Setup(x => x.GetWorkspaceAsync(
-                "ws-1",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync((IShowWorkspaceCommandQuery_Node?)null);
+        SetupInteractionMode(mode);
+        SetupGetWorkspaceQuery(WorkspaceId, null);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "workspace",
-                "show",
-                "ws-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "workspace",
+            "show",
+            WorkspaceId);
 
         // assert
         result.AssertError(
             """
             The workspace with ID 'ws-1' was not found.
             """);
-
-        client.VerifyAll();
     }
 
     [Theory]
@@ -102,22 +88,15 @@ public sealed class ShowWorkspaceCommandTests(NitroCommandFixture fixture) : ICl
     public async Task WithWorkspaceId_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
-        var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
-        client.Setup(x => x.GetWorkspaceAsync(
-                "ws-1",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ShowWorkspaceCommandQuery_Node_Workspace("ws-1", "my-workspace", false));
+        SetupInteractionMode(mode);
+        SetupGetWorkspaceQuery(WorkspaceId,
+            CreateShowWorkspaceNode(WorkspaceId, WorkspaceName, false));
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "workspace",
-                "show",
-                "ws-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "workspace",
+            "show",
+            WorkspaceId);
 
         // assert
         result.AssertSuccess(
@@ -128,75 +107,24 @@ public sealed class ShowWorkspaceCommandTests(NitroCommandFixture fixture) : ICl
               "personal": false
             }
             """);
-
-        client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ShowWorkspaceThrows_ReturnsError()
     {
         // arrange
-        var client = CreateShowExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
+        SetupGetWorkspaceQueryException(WorkspaceId);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "workspace",
-                "show",
-                "ws-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "workspace",
+            "show",
+            WorkspaceId);
 
         // assert
         result.AssertError(
             """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
+            There was an unexpected error: Something unexpected happened.
             """);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var client = CreateShowExceptionClient(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "workspace",
-                "show",
-                "ws-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-
-        client.VerifyAll();
-    }
-
-    private static Mock<IWorkspacesClient> CreateShowExceptionClient(Exception ex)
-    {
-        var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
-        client.Setup(x => x.GetWorkspaceAsync(
-                "ws-1",
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(ex);
-        return client;
     }
 }

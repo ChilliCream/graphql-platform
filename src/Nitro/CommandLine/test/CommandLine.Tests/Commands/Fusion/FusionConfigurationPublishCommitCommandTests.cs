@@ -325,10 +325,10 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
             """
             Publishing Fusion configuration
             └── ✕ Failed to publish a new Fusion configuration version.
+                └── Deployment failed.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Deployment failed.
             Failed to publish the new configuration.
             """);
         Assert.Equal(1, result.ExitCode);

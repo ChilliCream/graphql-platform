@@ -1,22 +1,15 @@
-using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Apis;
-using ChilliCream.Nitro.Client.Mocks;
-using Moq;
-
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Mocks;
 
-public sealed class ListMockCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
+public sealed class ListMockCommandTests(NitroCommandFixture fixture) : MocksCommandTestBase(fixture)
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "mock",
-                "list",
-                "--help")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mock",
+            "list",
+            "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -46,13 +39,14 @@ public sealed class ListMockCommandTests(NitroCommandFixture fixture) : IClassFi
     [InlineData(InteractionMode.JsonOutput)]
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
-        // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mock",
-                "list")
-            .ExecuteAsync();
+        // arrange
+        SetupInteractionMode(mode);
+        SetupNoAuthentication();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "mock",
+            "list");
 
         // assert
         result.AssertError(
@@ -64,29 +58,20 @@ public sealed class ListMockCommandTests(NitroCommandFixture fixture) : IClassFi
     [Fact]
     public async Task NoWorkspaceInSession_And_NoApiId_ReturnsError_Interactive()
     {
-        // arrange & act
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mocksClient = new Mock<IMocksClient>(MockBehavior.Strict);
+        // arrange
+        SetupSession();
+        SetupInteractionMode(InteractionMode.Interactive);
 
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mocksClient.Object)
-            .AddApiKey()
-            .AddSession()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "mock",
-                "list")
-            .ExecuteAsync();
+        // act
+        var result = await ExecuteCommandAsync(
+            "mock",
+            "list");
 
         // assert
         result.AssertError(
             """
             You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually specify the '--workspace-id' option (if available).
             """);
-
-        apisClient.VerifyAll();
-        mocksClient.VerifyAll();
     }
 
     [Theory]
@@ -94,62 +79,62 @@ public sealed class ListMockCommandTests(NitroCommandFixture fixture) : IClassFi
     [InlineData(InteractionMode.JsonOutput)]
     public async Task MissingApiId_ReturnsError(InteractionMode mode)
     {
-        // arrange & act
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mocksClient = new Mock<IMocksClient>(MockBehavior.Strict);
+        // arrange
+        SetupInteractionMode(mode);
 
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mocksClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mock",
-                "list")
-            .ExecuteAsync();
+        // act
+        var result = await ExecuteCommandAsync(
+            "mock",
+            "list");
 
         // assert
         result.AssertError(
             """
             The '--api-id' option is required in non-interactive mode.
             """);
+    }
 
-        apisClient.VerifyAll();
-        mocksClient.VerifyAll();
+    [Fact]
+    public async Task ListMockSchemasThrows_ReturnsError()
+    {
+        // arrange
+        SetupListMockSchemasQueryException();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "mock",
+            "list",
+            "--api-id",
+            ApiId);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error: Something unexpected happened.
+            """);
+        Assert.Equal(1, result.ExitCode);
     }
 
     [Fact]
     public async Task WithApiId_ReturnsSuccess_Interactive()
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mocksClient = new Mock<IMocksClient>(MockBehavior.Strict);
-        mocksClient.Setup(x => x.ListMockSchemasAsync(
-                "api-1",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateListMockSchemasPage(
-                endCursor: null,
-                hasNextPage: false,
-                ("mock-1", "Mock One", "https://mock.example.com/1", new Uri("https://downstream.example.com/1"),
-                    "user1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero),
-                    "user2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero)),
-                ("mock-2", "Mock Two", "https://mock.example.com/2", new Uri("https://downstream.example.com/2"),
-                    "user3", new DateTimeOffset(2025, 2, 10, 10, 0, 0, TimeSpan.Zero),
-                    "user4", new DateTimeOffset(2025, 2, 11, 10, 0, 0, TimeSpan.Zero))));
+        SetupListMockSchemasQuery(
+            null,
+            (MockSchemaId, "Mock One", "https://mock.example.com/1", new Uri("https://downstream.example.com/1"),
+                "user1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero),
+                "user2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero)),
+            ("mock-2", "Mock Two", "https://mock.example.com/2", new Uri("https://downstream.example.com/2"),
+                "user3", new DateTimeOffset(2025, 2, 10, 10, 0, 0, TimeSpan.Zero),
+                "user4", new DateTimeOffset(2025, 2, 11, 10, 0, 0, TimeSpan.Zero)));
 
-        var command = new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mocksClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "mock",
-                "list",
-                "--api-id",
-                "api-1")
-            .Start();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var command = StartInteractiveCommand(
+            "mock",
+            "list",
+            "--api-id",
+            ApiId);
 
         // act
         command.SelectOption(0);
@@ -158,9 +143,6 @@ public sealed class ListMockCommandTests(NitroCommandFixture fixture) : IClassFi
         // assert
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
-
-        apisClient.VerifyAll();
-        mocksClient.VerifyAll();
     }
 
     [Theory]
@@ -169,35 +151,23 @@ public sealed class ListMockCommandTests(NitroCommandFixture fixture) : IClassFi
     public async Task WithApiId_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mocksClient = new Mock<IMocksClient>(MockBehavior.Strict);
-        mocksClient.Setup(x => x.ListMockSchemasAsync(
-                "api-1",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateListMockSchemasPage(
-                endCursor: null,
-                hasNextPage: false,
-                ("mock-1", "Mock One", "https://mock.example.com/1", new Uri("https://downstream.example.com/1"),
-                    "user1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero),
-                    "user2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero)),
-                ("mock-2", "Mock Two", "https://mock.example.com/2", new Uri("https://downstream.example.com/2"),
-                    "user3", new DateTimeOffset(2025, 2, 10, 10, 0, 0, TimeSpan.Zero),
-                    "user4", new DateTimeOffset(2025, 2, 11, 10, 0, 0, TimeSpan.Zero))));
+        SetupListMockSchemasQuery(
+            null,
+            (MockSchemaId, "Mock One", "https://mock.example.com/1", new Uri("https://downstream.example.com/1"),
+                "user1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero),
+                "user2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero)),
+            ("mock-2", "Mock Two", "https://mock.example.com/2", new Uri("https://downstream.example.com/2"),
+                "user3", new DateTimeOffset(2025, 2, 10, 10, 0, 0, TimeSpan.Zero),
+                "user4", new DateTimeOffset(2025, 2, 11, 10, 0, 0, TimeSpan.Zero)));
+
+        SetupInteractionMode(mode);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mocksClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mock",
-                "list",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mock",
+            "list",
+            "--api-id",
+            ApiId);
 
         // assert
         result.AssertSuccess(
@@ -236,9 +206,6 @@ public sealed class ListMockCommandTests(NitroCommandFixture fixture) : IClassFi
               "cursor": null
             }
             """);
-
-        apisClient.VerifyAll();
-        mocksClient.VerifyAll();
     }
 
     [Theory]
@@ -247,34 +214,24 @@ public sealed class ListMockCommandTests(NitroCommandFixture fixture) : IClassFi
     public async Task WithApiId_WithCursor_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mocksClient = new Mock<IMocksClient>(MockBehavior.Strict);
-        mocksClient.Setup(x => x.ListMockSchemasAsync(
-                "api-1",
-                "cursor-1",
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateListMockSchemasPage(
-                endCursor: "cursor-2",
-                hasNextPage: true,
-                ("mock-1", "Mock One", "https://mock.example.com/1", new Uri("https://downstream.example.com/1"),
-                    "user1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero),
-                    "user2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero))));
+        SetupListMockSchemasQueryWithPagination(
+            "cursor-1",
+            "cursor-2",
+            true,
+            (MockSchemaId, "Mock One", "https://mock.example.com/1", new Uri("https://downstream.example.com/1"),
+                "user1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero),
+                "user2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero)));
+
+        SetupInteractionMode(mode);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mocksClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mock",
-                "list",
-                "--api-id",
-                "api-1",
-                "--cursor",
-                "cursor-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mock",
+            "list",
+            "--api-id",
+            ApiId,
+            "--cursor",
+            "cursor-1");
 
         // assert
         result.AssertSuccess(
@@ -299,35 +256,20 @@ public sealed class ListMockCommandTests(NitroCommandFixture fixture) : IClassFi
               "cursor": "cursor-2"
             }
             """);
-
-        apisClient.VerifyAll();
-        mocksClient.VerifyAll();
     }
 
     [Fact]
     public async Task WithApiId_NoData_ReturnsSuccess_Interactive()
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mocksClient = new Mock<IMocksClient>(MockBehavior.Strict);
-        mocksClient.Setup(x => x.ListMockSchemasAsync(
-                "api-1",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateListMockSchemasPage());
+        SetupListMockSchemasQuery();
+        SetupInteractionMode(InteractionMode.Interactive);
 
-        var command = new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mocksClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "mock",
-                "list",
-                "--api-id",
-                "api-1")
-            .Start();
+        var command = StartInteractiveCommand(
+            "mock",
+            "list",
+            "--api-id",
+            ApiId);
 
         // act
         command.SelectOption(0);
@@ -336,9 +278,6 @@ public sealed class ListMockCommandTests(NitroCommandFixture fixture) : IClassFi
         // assert
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
-
-        apisClient.VerifyAll();
-        mocksClient.VerifyAll();
     }
 
     [Theory]
@@ -347,27 +286,15 @@ public sealed class ListMockCommandTests(NitroCommandFixture fixture) : IClassFi
     public async Task WithApiId_NoData_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mocksClient = new Mock<IMocksClient>(MockBehavior.Strict);
-        mocksClient.Setup(x => x.ListMockSchemasAsync(
-                "api-1",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateListMockSchemasPage());
+        SetupListMockSchemasQuery();
+        SetupInteractionMode(mode);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mocksClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mock",
-                "list",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "mock",
+            "list",
+            "--api-id",
+            ApiId);
 
         // assert
         result.AssertSuccess(
@@ -377,42 +304,27 @@ public sealed class ListMockCommandTests(NitroCommandFixture fixture) : IClassFi
               "cursor": null
             }
             """);
-
-        apisClient.VerifyAll();
-        mocksClient.VerifyAll();
     }
 
     [Fact]
     public async Task WithCursor_ReturnsSuccess_Interactive()
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mocksClient = new Mock<IMocksClient>(MockBehavior.Strict);
-        mocksClient.Setup(x => x.ListMockSchemasAsync(
-                "api-1",
-                "cursor-1",
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateListMockSchemasPage(
-                endCursor: null,
-                hasNextPage: false,
-                ("mock-1", "Mock One", "https://mock.example.com/1", new Uri("https://downstream.example.com/1"),
-                    "user1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero),
-                    "user2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero))));
+        SetupListMockSchemasQuery(
+            "cursor-1",
+            (MockSchemaId, "Mock One", "https://mock.example.com/1", new Uri("https://downstream.example.com/1"),
+                "user1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero),
+                "user2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero)));
 
-        var command = new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mocksClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "mock",
-                "list",
-                "--api-id",
-                "api-1",
-                "--cursor",
-                "cursor-1")
-            .Start();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var command = StartInteractiveCommand(
+            "mock",
+            "list",
+            "--api-id",
+            ApiId,
+            "--cursor",
+            "cursor-1");
 
         // act
         command.SelectOption(0);
@@ -421,199 +333,5 @@ public sealed class ListMockCommandTests(NitroCommandFixture fixture) : IClassFi
         // assert
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
-
-        apisClient.VerifyAll();
-        mocksClient.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mocksClient = CreateListExceptionClient(
-            new NitroClientGraphQLException("Some message.", "SOME_CODE"), "api-1", null);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mocksClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "mock",
-                "list",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        mocksClient.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mocksClient = CreateListExceptionClient(
-            new NitroClientGraphQLException("Some message.", "SOME_CODE"), "api-1", null);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mocksClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mock",
-                "list",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-
-        apisClient.VerifyAll();
-        mocksClient.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mocksClient = CreateListExceptionClient(
-            new NitroClientAuthorizationException(), "api-1", null);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mocksClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "mock",
-                "list",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        mocksClient.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var mocksClient = CreateListExceptionClient(
-            new NitroClientAuthorizationException(), "api-1", null);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(mocksClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "mock",
-                "list",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-
-        apisClient.VerifyAll();
-        mocksClient.VerifyAll();
-    }
-
-    private static ConnectionPage<IListMockCommandQuery_ApiById_MockSchemas_Edges_Node> CreateListMockSchemasPage(
-        string? endCursor = null,
-        bool hasNextPage = false,
-        params (string Id, string Name, string Url, Uri DownstreamUrl,
-            string CreatedByUsername, DateTimeOffset CreatedAt,
-            string ModifiedByUsername, DateTimeOffset ModifiedAt)[] mocks)
-    {
-        var items = mocks
-            .Select(static m => CreateMockSchemaNode(
-                m.Id, m.Name, m.Url, m.DownstreamUrl,
-                m.CreatedByUsername, m.CreatedAt,
-                m.ModifiedByUsername, m.ModifiedAt))
-            .ToArray();
-
-        return new ConnectionPage<IListMockCommandQuery_ApiById_MockSchemas_Edges_Node>(items, endCursor, hasNextPage);
-    }
-
-    private static IListMockCommandQuery_ApiById_MockSchemas_Edges_Node CreateMockSchemaNode(
-        string id,
-        string name,
-        string url,
-        Uri downstreamUrl,
-        string createdByUsername,
-        DateTimeOffset createdAt,
-        string modifiedByUsername,
-        DateTimeOffset modifiedAt)
-    {
-        var createdBy = new Mock<ICreateMockSchema_CreateMockSchema_MockSchema_CreatedBy>(MockBehavior.Strict);
-        createdBy.SetupGet(x => x.Username).Returns(createdByUsername);
-
-        var modifiedBy = new Mock<ICreateMockSchema_CreateMockSchema_MockSchema_ModifiedBy>(MockBehavior.Strict);
-        modifiedBy.SetupGet(x => x.Username).Returns(modifiedByUsername);
-
-        var node = new Mock<IListMockCommandQuery_ApiById_MockSchemas_Edges_Node>(MockBehavior.Strict);
-        node.SetupGet(x => x.Id).Returns(id);
-        node.SetupGet(x => x.Name).Returns(name);
-        node.SetupGet(x => x.Url).Returns(url);
-        node.SetupGet(x => x.DownstreamUrl).Returns(downstreamUrl);
-        node.SetupGet(x => x.CreatedBy).Returns(createdBy.Object);
-        node.SetupGet(x => x.CreatedAt).Returns(createdAt);
-        node.SetupGet(x => x.ModifiedBy).Returns(modifiedBy.Object);
-        node.SetupGet(x => x.ModifiedAt).Returns(modifiedAt);
-
-        return node.Object;
-    }
-
-    private static Mock<IMocksClient> CreateListExceptionClient(
-        Exception ex,
-        string apiId,
-        string? cursor)
-    {
-        var client = new Mock<IMocksClient>(MockBehavior.Strict);
-        client.Setup(x => x.ListMockSchemasAsync(
-                apiId,
-                cursor,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(ex);
-        return client;
     }
 }

@@ -137,16 +137,10 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : Cl
             OutputPath);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             There was an unexpected error: Something unexpected happened.
             """);
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Downloading client from stage 'dev' of API 'api-1'
-            └── ✕ Failed to download the client.
-            """);
-        Assert.Equal(1, result.ExitCode);
     }
 
     [Fact]
@@ -167,16 +161,10 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : Cl
             OutputPath);
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Downloading client from stage 'dev' of API 'api-1'
-            └── ✕ Failed to download the client.
-            """);
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             Could not find a published client on stage 'dev'.
             """);
-        Assert.Equal(1, result.ExitCode);
     }
 
     [Fact]
@@ -207,15 +195,16 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : Cl
         // assert
         result.AssertSuccess(
             """
-            Downloading client from stage 'dev' of API 'api-1'
-            └── ✓ Downloaded the client from stage 'dev'.
+            Downloaded client to '/some/working/directory/queries.json'.
             """);
 
-        var written = Encoding.UTF8.GetString(outputStream.ToArray());
-        Assert.Contains("doc-1", written);
-        Assert.Contains("doc-2", written);
-        Assert.Contains("query { hello }", written);
-        Assert.Contains("query { world }", written);
+        Encoding.UTF8.GetString(outputStream.ToArray()).MatchInlineSnapshot(
+            """
+            {
+              "doc-1": "query { hello }",
+              "doc-2": "query { world }"
+            }
+            """);
     }
 
     [Fact]
@@ -245,8 +234,7 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : Cl
         // assert
         result.AssertSuccess(
             """
-            Downloading client from stage 'dev' of API 'api-1'
-            └── ✓ Downloaded the client from stage 'dev'.
+            Downloaded client to '/some/working/directory/output-dir'.
             """);
 
         Assert.Equal("query { hello }", Encoding.UTF8.GetString(outputStream.ToArray()));
@@ -280,8 +268,7 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : Cl
         // assert
         result.AssertSuccess(
             """
-            Downloading client from stage 'dev' of API 'api-1'
-            └── ✓ Downloaded the client from stage 'dev'.
+            Downloaded client to '/some/working/directory/output-dir'.
             """);
 
         Assert.Equal("query { hello }", Encoding.UTF8.GetString(outputStream.ToArray()));

@@ -1,22 +1,18 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Stages;
-using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Stages;
 
-public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
+public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : StagesCommandTestBase(fixture)
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "stage",
-                "edit",
-                "--help")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "stage",
+            "edit",
+            "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -48,17 +44,18 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : IClass
     [InlineData(InteractionMode.JsonOutput)]
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
-        // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "stage",
-                "edit",
-                "--api-id",
-                "api-1",
-                "--configuration",
-                """[{"name":"dev","displayName":"Dev","conditions":[]}]""")
-            .ExecuteAsync();
+        // arrange
+        SetupInteractionMode(mode);
+        SetupNoAuthentication();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "stage",
+            "edit",
+            "--api-id",
+            ApiId,
+            "--configuration",
+            """[{"name":"dev","displayName":"Dev","conditions":[]}]""");
 
         // assert
         result.AssertError(
@@ -68,107 +65,59 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : IClass
     }
 
     [Fact]
-    public async Task MissingApiId_ReturnsError_NonInteractive()
+    public async Task MissingApiId_ReturnsError()
     {
         // arrange
-        var stagesClient = new Mock<IStagesClient>(MockBehavior.Strict);
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        SetupSession();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(stagesClient.Object)
-            .AddService(apisClient.Object)
-            .AddApiKey()
-            .AddSession()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "stage",
-                "edit",
-                "--configuration",
-                """[{"name":"dev","displayName":"Dev","conditions":[]}]""")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "stage",
+            "edit",
+            "--configuration",
+            """[{"name":"dev","displayName":"Dev","conditions":[]}]""");
 
         // assert
         result.AssertError(
             """
             You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually specify the '--workspace-id' option (if available).
             """);
-
-        stagesClient.VerifyAll();
-        apisClient.VerifyAll();
     }
 
     [Fact]
     public async Task WithJsonConfig_ReturnsSuccess_Interactive()
     {
         // arrange
-        var stagesClient = new Mock<IStagesClient>(MockBehavior.Strict);
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-
-        stagesClient.Setup(x => x.UpdateStagesAsync(
-                "api-1",
-                It.Is<IReadOnlyList<StageUpdateModel>>(s =>
-                    s.Count == 1
-                    && s[0].Name == "dev"
-                    && s[0].DisplayName == "Dev"
-                    && s[0].AfterStages.Count == 0),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateUpdateStagesSuccessPayload());
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupUpdateStagesMutation();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(stagesClient.Object)
-            .AddService(apisClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "stage",
-                "edit",
-                "--api-id",
-                "api-1",
-                "--configuration",
-                """[{"name":"dev","displayName":"Dev","conditions":[]}]""")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "stage",
+            "edit",
+            "--api-id",
+            ApiId,
+            "--configuration",
+            """[{"name":"dev","displayName":"Dev","conditions":[]}]""");
 
         // assert
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
-
-        stagesClient.VerifyAll();
-        apisClient.VerifyAll();
+        result.AssertSuccess();
     }
 
     [Fact]
     public async Task WithJsonConfig_ReturnsSuccess_NonInteractive()
     {
         // arrange
-        var stagesClient = new Mock<IStagesClient>(MockBehavior.Strict);
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-
-        stagesClient.Setup(x => x.UpdateStagesAsync(
-                "api-1",
-                It.Is<IReadOnlyList<StageUpdateModel>>(s =>
-                    s.Count == 1
-                    && s[0].Name == "dev"
-                    && s[0].DisplayName == "Dev"
-                    && s[0].AfterStages.Count == 0),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateUpdateStagesSuccessPayload());
+        SetupUpdateStagesMutation();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(stagesClient.Object)
-            .AddService(apisClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "stage",
-                "edit",
-                "--api-id",
-                "api-1",
-                "--configuration",
-                """[{"name":"dev","displayName":"Dev","conditions":[]}]""")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "stage",
+            "edit",
+            "--api-id",
+            ApiId,
+            "--configuration",
+            """[{"name":"dev","displayName":"Dev","conditions":[]}]""");
 
         // assert
         result.AssertSuccess(
@@ -188,42 +137,23 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : IClass
               "cursor": null
             }
             """);
-
-        stagesClient.VerifyAll();
-        apisClient.VerifyAll();
     }
 
     [Fact]
     public async Task WithJsonConfig_ReturnsSuccess_JsonOutput()
     {
         // arrange
-        var stagesClient = new Mock<IStagesClient>(MockBehavior.Strict);
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-
-        stagesClient.Setup(x => x.UpdateStagesAsync(
-                "api-1",
-                It.Is<IReadOnlyList<StageUpdateModel>>(s =>
-                    s.Count == 1
-                    && s[0].Name == "dev"
-                    && s[0].DisplayName == "Dev"
-                    && s[0].AfterStages.Count == 0),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateUpdateStagesSuccessPayload());
+        SetupInteractionMode(InteractionMode.JsonOutput);
+        SetupUpdateStagesMutation();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(stagesClient.Object)
-            .AddService(apisClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "stage",
-                "edit",
-                "--api-id",
-                "api-1",
-                "--configuration",
-                """[{"name":"dev","displayName":"Dev","conditions":[]}]""")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "stage",
+            "edit",
+            "--api-id",
+            ApiId,
+            "--configuration",
+            """[{"name":"dev","displayName":"Dev","conditions":[]}]""");
 
         // assert
         result.AssertSuccess(
@@ -239,73 +169,38 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : IClass
               "cursor": null
             }
             """);
-
-        stagesClient.VerifyAll();
-        apisClient.VerifyAll();
     }
 
     [Fact]
-    public async Task WithJsonConfig_WithConditions_ReturnsSuccess_NonInteractive()
+    public async Task WithJsonConfig_WithConditions_ReturnsSuccess()
     {
         // arrange
-        var stagesClient = new Mock<IStagesClient>(MockBehavior.Strict);
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-
-        stagesClient.Setup(x => x.UpdateStagesAsync(
-                "api-1",
-                It.Is<IReadOnlyList<StageUpdateModel>>(s =>
-                    s.Count == 2
-                    && s[0].Name == "dev"
-                    && s[1].Name == "prod"
-                    && s[1].AfterStages.Count == 1
-                    && s[1].AfterStages[0] == "dev"),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateUpdateStagesSuccessPayload());
+        SetupUpdateStagesMutation();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(stagesClient.Object)
-            .AddService(apisClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "stage",
-                "edit",
-                "--api-id",
-                "api-1",
-                "--configuration",
-                """[{"name":"dev","displayName":"Dev","conditions":[]},{"name":"prod","displayName":"Production","conditions":[{"afterStage":"dev"}]}]""")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "stage",
+            "edit",
+            "--api-id",
+            ApiId,
+            "--configuration",
+            """[{"name":"dev","displayName":"Dev","conditions":[]},{"name":"prod","displayName":"Production","conditions":[{"afterStage":"dev"}]}]""");
 
         // assert
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
-
-        stagesClient.VerifyAll();
-        apisClient.VerifyAll();
+        result.AssertSuccess();
     }
 
     [Fact]
-    public async Task WithInvalidJsonConfig_ReturnsError_NonInteractive()
+    public async Task WithInvalidJsonConfig_ReturnsError()
     {
-        // arrange
-        var stagesClient = new Mock<IStagesClient>(MockBehavior.Strict);
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(stagesClient.Object)
-            .AddService(apisClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "stage",
-                "edit",
-                "--api-id",
-                "api-1",
-                "--configuration",
-                "not-valid-json")
-            .ExecuteAsync();
+        // arrange & act
+        var result = await ExecuteCommandAsync(
+            "stage",
+            "edit",
+            "--api-id",
+            ApiId,
+            "--configuration",
+            "not-valid-json");
 
         // assert
         result.StdOut.MatchInlineSnapshot(
@@ -317,73 +212,54 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : IClass
             Could not parse stage configuration
             """);
         Assert.Equal(1, result.ExitCode);
-
-        stagesClient.VerifyAll();
-        apisClient.VerifyAll();
     }
 
     [Fact]
-    public async Task WithInvalidJsonConfig_ReturnsError_JsonOutput()
+    public async Task UpdateStagesThrows_ReturnsError()
     {
         // arrange
-        var stagesClient = new Mock<IStagesClient>(MockBehavior.Strict);
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
+        SetupUpdateStagesMutationException();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(stagesClient.Object)
-            .AddService(apisClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "stage",
-                "edit",
-                "--api-id",
-                "api-1",
-                "--configuration",
-                "not-valid-json")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "stage",
+            "edit",
+            "--api-id",
+            ApiId,
+            "--configuration",
+            """[{"name":"dev","displayName":"Dev","conditions":[]}]""");
 
         // assert
-        result.AssertError(
+        result.StdOut.MatchInlineSnapshot(
             """
-            Could not parse stage configuration
+            ? For which API do you want to edit the stages?: api-1
+            Updating stages for API 'api-1'
+            └── ✕ Failed to update the stages.
             """);
-
-        stagesClient.VerifyAll();
-        apisClient.VerifyAll();
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error: Something unexpected happened.
+            """);
+        Assert.Equal(1, result.ExitCode);
     }
 
     [Theory]
-    [MemberData(nameof(UpdateStagesMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_NonInteractive(
-        IUpdateStages_UpdateStages_Errors mutationError,
+    [MemberData(nameof(GetUpdateStagesErrors))]
+    public async Task UpdateStagesHasErrors_ReturnsError(
+        IUpdateStages_UpdateStages_Errors error,
         string expectedStdErr)
     {
         // arrange
-        var stagesClient = new Mock<IStagesClient>(MockBehavior.Strict);
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-
-        stagesClient.Setup(x => x.UpdateStagesAsync(
-                "api-1",
-                It.IsAny<IReadOnlyList<StageUpdateModel>>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateUpdateStagesPayloadWithErrors(mutationError));
+        SetupUpdateStagesMutation(error);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(stagesClient.Object)
-            .AddService(apisClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "stage",
-                "edit",
-                "--api-id",
-                "api-1",
-                "--configuration",
-                """[{"name":"dev","displayName":"Dev","conditions":[]}]""")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "stage",
+            "edit",
+            "--api-id",
+            ApiId,
+            "--configuration",
+            """[{"name":"dev","displayName":"Dev","conditions":[]}]""");
 
         // assert
         result.StdOut.MatchInlineSnapshot(
@@ -394,269 +270,33 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : IClass
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
-
-        stagesClient.VerifyAll();
-        apisClient.VerifyAll();
     }
 
-    [Theory]
-    [MemberData(nameof(UpdateStagesMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_JsonOutput(
-        IUpdateStages_UpdateStages_Errors mutationError,
-        string expectedStdErr)
+    [Fact]
+    public async Task UpdateStagesReturnsNullApi_ReturnsSuccess()
     {
         // arrange
-        var stagesClient = new Mock<IStagesClient>(MockBehavior.Strict);
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-
-        stagesClient.Setup(x => x.UpdateStagesAsync(
-                "api-1",
-                It.IsAny<IReadOnlyList<StageUpdateModel>>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateUpdateStagesPayloadWithErrors(mutationError));
+        SetupUpdateStagesMutationNullApi();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(stagesClient.Object)
-            .AddService(apisClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "stage",
-                "edit",
-                "--api-id",
-                "api-1",
-                "--configuration",
-                """[{"name":"dev","displayName":"Dev","conditions":[]}]""")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "stage",
+            "edit",
+            "--api-id",
+            ApiId,
+            "--configuration",
+            """[{"name":"dev","displayName":"Dev","conditions":[]}]""");
 
         // assert
-        Assert.Empty(result.StdOut);
-        result.StdErr.MatchInlineSnapshot(expectedStdErr);
-        Assert.Equal(1, result.ExitCode);
-
-        stagesClient.VerifyAll();
-        apisClient.VerifyAll();
+        result.AssertSuccess();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    public static TheoryData<IUpdateStages_UpdateStages_Errors, string>
+        GetUpdateStagesErrors() => new()
     {
-        // arrange
-        var result = await RunEditStagesWithException(
-            new NitroClientGraphQLException("Some message.", "SOME_CODE"),
-            mode);
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-        Assert.Equal(1, result.ExitCode);
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var result = await RunEditStagesWithException(
-            new NitroClientGraphQLException("Some message.", "SOME_CODE"),
-            InteractionMode.NonInteractive);
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            ? For which API do you want to edit the stages?: api-1
-            Updating stages for API 'api-1'
-            └── ✕ Failed to update the stages.
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-        Assert.Equal(1, result.ExitCode);
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var result = await RunEditStagesWithException(
-            new NitroClientAuthorizationException(),
-            mode);
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-        Assert.Equal(1, result.ExitCode);
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var result = await RunEditStagesWithException(
-            new NitroClientAuthorizationException(),
-            InteractionMode.NonInteractive);
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            ? For which API do you want to edit the stages?: api-1
-            Updating stages for API 'api-1'
-            └── ✕ Failed to update the stages.
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-        Assert.Equal(1, result.ExitCode);
-    }
-
-    private async Task<CommandResult> RunEditStagesWithException(
-        Exception ex,
-        InteractionMode mode)
-    {
-        var stagesClient = new Mock<IStagesClient>(MockBehavior.Strict);
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-
-        stagesClient.Setup(x => x.UpdateStagesAsync(
-                "api-1",
-                It.IsAny<IReadOnlyList<StageUpdateModel>>(),
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(ex);
-
-        var result = await new CommandBuilder(fixture)
-            .AddService(stagesClient.Object)
-            .AddService(apisClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "stage",
-                "edit",
-                "--api-id",
-                "api-1",
-                "--configuration",
-                """[{"name":"dev","displayName":"Dev","conditions":[]}]""")
-            .ExecuteAsync();
-
-        stagesClient.VerifyAll();
-        apisClient.VerifyAll();
-
-        return result;
-    }
-
-    [Fact]
-    public async Task MutationReturnsNullApi_ReturnsSuccess_WithEmptyResult()
-    {
-        // arrange
-        var stagesClient = new Mock<IStagesClient>(MockBehavior.Strict);
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-
-        stagesClient.Setup(x => x.UpdateStagesAsync(
-                "api-1",
-                It.IsAny<IReadOnlyList<StageUpdateModel>>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateUpdateStagesPayloadWithNullApi());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(stagesClient.Object)
-            .AddService(apisClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "stage",
-                "edit",
-                "--api-id",
-                "api-1",
-                "--configuration",
-                """[{"name":"dev","displayName":"Dev","conditions":[]}]""")
-            .ExecuteAsync();
-
-        // assert
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
-
-        stagesClient.VerifyAll();
-        apisClient.VerifyAll();
-    }
-
-    public static TheoryData<IUpdateStages_UpdateStages_Errors, string> UpdateStagesMutationErrorCases =>
-        new()
-        {
-            {
-                new UpdateStages_UpdateStages_Errors_ApiNotFoundError("ApiNotFoundError", "API not found", "api-1"),
-                """
-                API not found
-                """
-            },
-            {
-                new UpdateStages_UpdateStages_Errors_StageNotFoundError("StageNotFoundError", "Stage not found", "production"),
-                """
-                Stage not found
-                """
-            },
-            {
-                new UpdateStages_UpdateStages_Errors_StagesHavePublishedDependenciesError(
-                    "StagesHavePublishedDependenciesError",
-                    "Stages have published dependencies",
-                    Array.Empty<IUpdateStages_UpdateStages_Errors_Stages>()),
-                """
-                Stages have published dependencies
-                """
-            },
-            {
-                new UpdateStages_UpdateStages_Errors_StageValidationError("StageValidationError", "Stage validation failed"),
-                """
-                Stage validation failed
-                """
-            }
-        };
-
-    private static IUpdateStages_UpdateStages CreateUpdateStagesSuccessPayload()
-    {
-        var stage = new Mock<IUpdateStages_UpdateStages_Api_Stages>(MockBehavior.Strict);
-        stage.SetupGet(x => x.Id).Returns("stage-1");
-        stage.SetupGet(x => x.Name).Returns("dev");
-        stage.SetupGet(x => x.DisplayName).Returns("Dev");
-        stage.SetupGet(x => x.Conditions).Returns(
-            Array.Empty<IForceDeleteStageByApiIdCommandMutation_ForceDeleteStageByApiId_Api_Stages_Conditions>());
-
-        var api = new Mock<IUpdateStages_UpdateStages_Api>(MockBehavior.Strict);
-        api.SetupGet(x => x.Stages).Returns([stage.Object]);
-
-        var payload = new Mock<IUpdateStages_UpdateStages>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Api).Returns(api.Object);
-        payload.SetupGet(x => x.Errors).Returns(
-            (IReadOnlyList<IUpdateStages_UpdateStages_Errors>?)null);
-
-        return payload.Object;
-    }
-
-    private static IUpdateStages_UpdateStages CreateUpdateStagesPayloadWithNullApi()
-    {
-        var payload = new Mock<IUpdateStages_UpdateStages>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Api).Returns((IUpdateStages_UpdateStages_Api?)null);
-        payload.SetupGet(x => x.Errors).Returns(
-            (IReadOnlyList<IUpdateStages_UpdateStages_Errors>?)null);
-
-        return payload.Object;
-    }
-
-    private static IUpdateStages_UpdateStages CreateUpdateStagesPayloadWithErrors(
-        params IUpdateStages_UpdateStages_Errors[] errors)
-    {
-        var payload = new Mock<IUpdateStages_UpdateStages>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Api).Returns((IUpdateStages_UpdateStages_Api?)null);
-        payload.SetupGet(x => x.Errors).Returns(errors);
-
-        return payload.Object;
-    }
+        { CreateUpdateStagesApiNotFoundError(), "API not found" },
+        { CreateUpdateStagesStageNotFoundError(), "Stage not found" },
+        { CreateUpdateStagesStagesHavePublishedDependenciesError(), "Stages have published dependencies" },
+        { CreateUpdateStagesStageValidationError(), "Stage validation failed" }
+    };
 }

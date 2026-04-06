@@ -84,7 +84,6 @@ internal static class FusionPublishHelpers
                     activity.Update($"Queued at position {v.QueuePosition}.");
                     break;
 
-                // TODO: Properly test this
                 case IFusionConfigurationPublishingFailed v:
                     await subscriptionCancellation.CancelAsync();
 

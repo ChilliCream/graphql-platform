@@ -1,21 +1,16 @@
-using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Environments;
-using Moq;
-
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Environments;
 
-public sealed class ShowEnvironmentCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
+public sealed class ShowEnvironmentCommandTests(NitroCommandFixture fixture)
+    : EnvironmentsCommandTestBase(fixture)
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "environment",
-                "show",
-                "--help")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "environment",
+            "show",
+            "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -46,14 +41,15 @@ public sealed class ShowEnvironmentCommandTests(NitroCommandFixture fixture) : I
     [InlineData(InteractionMode.JsonOutput)]
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
-        // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "environment",
-                "show",
-                "environment-1")
-            .ExecuteAsync();
+        // arrange
+        SetupInteractionMode(mode);
+        SetupNoAuthentication();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "environment",
+            "show",
+            EnvironmentId);
 
         // assert
         result.AssertError(
@@ -69,30 +65,20 @@ public sealed class ShowEnvironmentCommandTests(NitroCommandFixture fixture) : I
     public async Task EnvironmentNotFound_ReturnsError(InteractionMode mode)
     {
         // arrange
-        var client = new Mock<IEnvironmentsClient>(MockBehavior.Strict);
-        client.Setup(x => x.GetEnvironmentAsync(
-                "environment-1",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync((IShowEnvironmentCommandQuery_Node?)null);
+        SetupInteractionMode(mode);
+        SetupGetEnvironmentQuery("environment-1", null);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "environment",
-                "show",
-                "environment-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "environment",
+            "show",
+            "environment-1");
 
         // assert
         result.AssertError(
             """
             The environment with ID 'environment-1' was not found.
             """);
-
-        client.VerifyAll();
     }
 
     [Theory]
@@ -102,22 +88,15 @@ public sealed class ShowEnvironmentCommandTests(NitroCommandFixture fixture) : I
     public async Task WithEnvironmentId_ReturnSuccess(InteractionMode mode)
     {
         // arrange
-        var client = new Mock<IEnvironmentsClient>(MockBehavior.Strict);
-        client.Setup(x => x.GetEnvironmentAsync(
-                "environment-1",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateShowEnvironmentNode("environment-1", "production", "workspace-a"));
+        SetupInteractionMode(mode);
+        SetupGetEnvironmentQuery("environment-1",
+            CreateShowEnvironmentNode("environment-1", EnvironmentName, WorkspaceName));
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "environment",
-                "show",
-                "environment-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "environment",
+            "show",
+            "environment-1");
 
         // assert
         result.AssertSuccess(
@@ -130,92 +109,24 @@ public sealed class ShowEnvironmentCommandTests(NitroCommandFixture fixture) : I
               }
             }
             """);
-
-        client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ShowEnvironmentThrows_ReturnsError()
     {
         // arrange
-        var client = CreateShowExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
+        SetupGetEnvironmentQueryException("environment-1");
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "environment",
-                "show",
-                "environment-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "environment",
+            "show",
+            "environment-1");
 
         // assert
         result.AssertError(
             """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
+            There was an unexpected error: Something unexpected happened.
             """);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var client = CreateShowExceptionClient(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "environment",
-                "show",
-                "environment-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-
-        client.VerifyAll();
-    }
-
-    private static IShowEnvironmentCommandQuery_Node CreateShowEnvironmentNode(
-        string id,
-        string name,
-        string workspaceName)
-    {
-        var workspace = new Mock<IListEnvironmentCommandQuery_WorkspaceById_Environments_Edges_Node_Workspace>(
-            MockBehavior.Strict);
-        workspace.SetupGet(x => x.Name).Returns(workspaceName);
-
-        var node = new Mock<IShowEnvironmentCommandQuery_Node_Environment>(MockBehavior.Strict);
-        node.SetupGet(x => x.Id).Returns(id);
-        node.SetupGet(x => x.Name).Returns(name);
-        node.SetupGet(x => x.Workspace).Returns(workspace.Object);
-
-        return node.Object;
-    }
-
-    private static Mock<IEnvironmentsClient> CreateShowExceptionClient(Exception ex)
-    {
-        var client = new Mock<IEnvironmentsClient>(MockBehavior.Strict);
-        client.Setup(x => x.GetEnvironmentAsync(
-                "environment-1",
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(ex);
-        return client;
     }
 }

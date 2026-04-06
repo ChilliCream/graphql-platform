@@ -14,7 +14,7 @@ internal sealed class DownloadSchemaCommand : Command
 
         Options.Add(Opt<ApiIdOption>.Instance);
         Options.Add(Opt<StageNameOption>.Instance);
-        Options.Add(Opt<OutputFileOption>.Instance);
+        Options.Add(Opt<OptionalOutputFileOption>.Instance);
 
         this.AddGlobalNitroOptions();
 
@@ -23,7 +23,7 @@ internal sealed class DownloadSchemaCommand : Command
             schema download \
               --api-id "<api-id>" \
               --stage "dev" \
-              --file ./schema.graphqls
+              --output-file ./schema.graphqls
             """);
 
         this.SetActionWithExceptionHandling(ExecuteAsync);
@@ -43,9 +43,21 @@ internal sealed class DownloadSchemaCommand : Command
 
         var apiId = parseResult.GetRequiredValue(Opt<ApiIdOption>.Instance);
         var stageName = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
-        var schemaFilePath = parseResult.GetRequiredValue(Opt<OutputFileOption>.Instance);
+        var schemaFilePath = parseResult.GetValue(Opt<OptionalOutputFileOption>.Instance);
 
-        await using (var activity = console.StartActivity($"Downloading schema from stage '{stageName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'", "Failed to download the schema."))
+        if (string.IsNullOrEmpty(schemaFilePath))
+        {
+            schemaFilePath = "schema.graphqls";
+        }
+
+        if (!Path.IsPathRooted(schemaFilePath))
+        {
+            schemaFilePath = Path.Combine(fileSystem.GetCurrentDirectory(), schemaFilePath);
+        }
+
+        await using (var activity = console.StartActivity(
+            $"Downloading schema from stage '{stageName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'",
+            "Failed to download the schema."))
         {
             await using var schemaStream = await client.DownloadLatestSchemaAsync(
                 apiId,

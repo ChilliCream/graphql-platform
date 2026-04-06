@@ -3,11 +3,15 @@ using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.ApiKeys;
 using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Clients;
+using ChilliCream.Nitro.Client.Environments;
 using ChilliCream.Nitro.Client.FusionConfiguration;
+using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.Client.Mcp;
+using ChilliCream.Nitro.Client.Mocks;
 using ChilliCream.Nitro.Client.OpenApi;
 using ChilliCream.Nitro.Client.PersonalAccessTokens;
 using ChilliCream.Nitro.Client.Schemas;
+using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Services;
 using Moq;
 
@@ -31,8 +35,13 @@ public abstract class CommandTestBase
     protected readonly Mock<IApisClient> ApisClientMock = new(MockBehavior.Strict);
     protected readonly Mock<IOpenApiClient> OpenApiClientMock = new(MockBehavior.Strict);
     protected readonly Mock<IMcpClient> McpClientMock = new(MockBehavior.Strict);
+    protected readonly Mock<IMocksClient> MocksClientMock = new(MockBehavior.Strict);
     protected readonly Mock<IApiKeysClient> ApiKeysClientMock = new(MockBehavior.Strict);
     protected readonly Mock<IPersonalAccessTokensClient> PersonalAccessTokensClientMock = new(MockBehavior.Strict);
+    protected readonly Mock<IEnvironmentsClient> EnvironmentsClientMock = new(MockBehavior.Strict);
+    protected readonly Mock<IStagesClient> StagesClientMock = new(MockBehavior.Strict);
+    internal readonly Mock<Services.Sessions.ISessionService> SessionServiceMock = new();
+    protected readonly Mock<IWorkspacesClient> WorkspacesClientMock = new(MockBehavior.Strict);
     private InteractionMode _interactionMode = InteractionMode.NonInteractive;
     private bool _authenticated = true;
     private bool _useSession;
@@ -89,14 +98,19 @@ public abstract class CommandTestBase
         var builder = new CommandBuilder(_fixture)
             .AddService(_fileSystemMock.Object)
             .AddService(_environmentVariableProviderMock.Object)
+            .AddService(SessionServiceMock.Object)
+            .AddService(WorkspacesClientMock.Object)
             .AddService(SchemasClientMock.Object)
             .AddService(FusionConfigurationClientMock.Object)
             .AddService(ClientsClientMock.Object)
             .AddService(ApisClientMock.Object)
             .AddService(OpenApiClientMock.Object)
             .AddService(McpClientMock.Object)
+            .AddService(MocksClientMock.Object)
             .AddService(ApiKeysClientMock.Object)
-            .AddService(PersonalAccessTokensClientMock.Object);
+            .AddService(PersonalAccessTokensClientMock.Object)
+            .AddService(EnvironmentsClientMock.Object)
+            .AddService(StagesClientMock.Object);
 
         if (_authenticated)
         {
@@ -105,15 +119,36 @@ public abstract class CommandTestBase
 
         if (_useSession)
         {
-            builder.AddSession();
+            SessionServiceMock
+                .SetupGet(x => x.Session)
+                .Returns(CreateSession(null));
         }
 
         if (_useSessionWithWorkspace)
         {
-            builder.AddSessionWithWorkspace();
+            SessionServiceMock
+                .SetupGet(x => x.Session)
+                .Returns(CreateSession(
+                    new Services.Sessions.Workspace(
+                        "workspace-from-session",
+                        "Workspace from session")));
         }
 
         return builder;
+    }
+
+    private static Services.Sessions.Session CreateSession(
+        Services.Sessions.Workspace? workspace)
+    {
+        return new Services.Sessions.Session(
+            "session-1",
+            "subject-1",
+            "tenant-1",
+            "https://id.chillicream.com",
+            "api.chillicream.com",
+            "user@chillicream.com",
+            tokens: null,
+            workspace: workspace);
     }
 
     protected void SetupFile(string path, string content)
@@ -175,20 +210,19 @@ public abstract class CommandTestBase
 
     /// <summary>
     /// Sets up the mock to intercept <c>CreateFile</c> for the given path.
-    /// Returns the path to a real temp file that receives the written content.
+    /// Returns an in-memory stream that receives the written content.
     /// </summary>
-    protected string SetupCreateFile(string path)
+    protected MemoryStream SetupCreateFile(string path)
     {
         var fullPath = Path.Combine(_currentDirectory, path);
-        var tempFile = Path.GetTempFileName();
-        var stream = new FileStream(tempFile, FileMode.Create, FileAccess.ReadWrite);
+        var stream = new MemoryStream();
         _files.Add(stream);
         _fileSystemMock.Setup(x => x.CreateFile(fullPath)).Returns(() =>
         {
             stream.Position = 0;
             return stream;
         });
-        return tempFile;
+        return stream;
     }
 
     protected void SetupOpenReadStreamByPath(string path, byte[] content)
@@ -257,7 +291,11 @@ public abstract class CommandTestBase
         ApisClientMock.VerifyAll();
         OpenApiClientMock.VerifyAll();
         McpClientMock.VerifyAll();
+        MocksClientMock.VerifyAll();
         ApiKeysClientMock.VerifyAll();
         PersonalAccessTokensClientMock.VerifyAll();
+        WorkspacesClientMock.VerifyAll();
+        EnvironmentsClientMock.VerifyAll();
+        StagesClientMock.VerifyAll();
     }
 }

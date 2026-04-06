@@ -1,17 +1,16 @@
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Workspaces;
 
-public sealed class CurrentWorkspaceCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
+public sealed class CurrentWorkspaceCommandTests(NitroCommandFixture fixture)
+    : WorkspacesCommandTestBase(fixture)
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "workspace",
-                "current",
-                "--help")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "workspace",
+            "current",
+            "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -39,13 +38,14 @@ public sealed class CurrentWorkspaceCommandTests(NitroCommandFixture fixture) : 
     [InlineData(InteractionMode.JsonOutput)]
     public async Task NoSession_ReturnsError(InteractionMode mode)
     {
-        // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "workspace",
-                "current")
-            .ExecuteAsync();
+        // arrange
+        SetupInteractionMode(mode);
+        SetupNoAuthentication();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "workspace",
+            "current");
 
         // assert
         Assert.Empty(result.StdOut);
@@ -62,14 +62,14 @@ public sealed class CurrentWorkspaceCommandTests(NitroCommandFixture fixture) : 
     [InlineData(InteractionMode.JsonOutput)]
     public async Task SessionWithoutWorkspace_ReturnsError(InteractionMode mode)
     {
-        // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddSession()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "workspace",
-                "current")
-            .ExecuteAsync();
+        // arrange
+        SetupInteractionMode(mode);
+        SetupSession();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "workspace",
+            "current");
 
         // assert
         Assert.Empty(result.StdOut);
@@ -80,43 +80,21 @@ public sealed class CurrentWorkspaceCommandTests(NitroCommandFixture fixture) : 
         Assert.Equal(1, result.ExitCode);
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    public async Task SessionWithWorkspace_ReturnsSuccess(InteractionMode mode)
-    {
-        // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "workspace",
-                "current")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertSuccess(
-            """
-            ✓ Currently is Workspace from session selected
-            """);
-    }
-
     [Fact]
-    public async Task SessionWithWorkspace_ReturnsSuccess_JsonOutput()
+    public async Task SessionWithWorkspace_ReturnsSuccess()
     {
-        // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "workspace",
-                "current")
-            .ExecuteAsync();
+        // arrange
+        SetupSessionWithWorkspace();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "workspace",
+            "current");
 
         // assert
         result.AssertSuccess(
             """
-            {}
+            The current workspace is: [bold blue]Workspace from session[/]
             """);
     }
 }

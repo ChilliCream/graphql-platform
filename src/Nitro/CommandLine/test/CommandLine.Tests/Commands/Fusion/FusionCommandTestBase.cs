@@ -397,6 +397,18 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
     }
 
     protected static IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged
+        CreatePublishingFailedEventWithErrors()
+    {
+        var schemaErrorEntry = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Errors>(MockBehavior.Strict);
+        schemaErrorEntry.SetupGet(x => x.Message).Returns("Field 'Query.foo' has no type.");
+        schemaErrorEntry.SetupGet(x => x.Code).Returns("SCHEMA_ERROR");
+
+        return CreatePublishingFailedEvent(
+            CreatePublishingInvalidGraphQLSchemaError("Invalid GraphQL schema.", schemaErrorEntry.Object),
+            CreatePublishingGenericError("An error occurred."));
+    }
+
+    protected static IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged
         CreateValidationFailedEventWithErrors()
     {
         // 1. SchemaVersionChangeViolationError (empty changes list)

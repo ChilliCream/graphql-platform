@@ -2,7 +2,7 @@ using ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
-// TODO: Test extension and version mismatch
+// TODO: Properly assert downloads
 public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : FusionCommandTestBase(fixture)
 {
     [Fact]
@@ -174,6 +174,52 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : Fu
             Downloaded Fusion configuration to '/some/working/directory/gateway.fgp'.
             """);
         Assert.True(outputStream.ToArray().Length > 0);
+    }
+
+    [Fact]
+    public async Task DownloadFgpFile_VersionIsNot1_ReturnsError()
+    {
+        // arrange & act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "download",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--output-file",
+            "gateway.fgp",
+            "--version",
+            "2.0.0");
+
+        // assert
+        result.AssertError(
+            """
+            Specify '--version 1.0.0' if you want to download a '.fgp' legacy Fusion archive.
+            """);
+    }
+
+    [Fact]
+    public async Task DownloadFarFile_VersionIs1_ReturnsError()
+    {
+        // arrange & act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "download",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--output-file",
+            "gateway.far",
+            "--version",
+            "1.0.0");
+
+        // assert
+        result.AssertError(
+            """
+            Specify the '.fgp' extension through the '--output-file' option, if you want to download a legacy Fusion archive.
+            """);
     }
 
     [Fact]

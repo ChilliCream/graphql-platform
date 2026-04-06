@@ -3,10 +3,6 @@ using ChilliCream.Nitro.Client.FusionConfiguration;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
-// TODO:
-// - Test queueing
-// - Test validation errors being returned
-// - Test publish failing
 public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : FusionCommandTestBase(fixture)
 {
     [Fact]
@@ -908,6 +904,56 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Validated configuration.
             ├── Uploading configuration to 'dev'
             │   └── ✕ Failed to upload the new configuration.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithArchive_PublishingFailedWithErrors_ReturnsError()
+    {
+        // arrange
+        SetupArchiveFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription(CreatePublishingFailedEventWithErrors());
+        SetupReleaseDeploymentSlotMutation();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--archive",
+            ArchiveFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Failed to publish the new configuration.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Validating configuration against 'dev'
+            │   └── ✓ Validated configuration.
+            ├── Uploading configuration to 'dev'
+            │   └── ✕ Failed to upload the new configuration.
+            │       ├── Field 'Query.foo' has no type. SCHEMA_ERROR
+            │       └── An error occurred.
             └── ✕ Failed to publish Fusion configuration.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -1856,6 +1902,61 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Validated configuration.
             ├── Uploading configuration to 'dev'
             │   └── ✕ Failed to upload the new configuration.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_PublishingFailedWithErrors_ReturnsError()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription(CreatePublishingFailedEventWithErrors());
+        SetupReleaseDeploymentSlotMutation();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Failed to publish the new configuration.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   └── ✓ Validated configuration.
+            ├── Uploading configuration to 'dev'
+            │   └── ✕ Failed to upload the new configuration.
+            │       ├── Field 'Query.foo' has no type. SCHEMA_ERROR
+            │       └── An error occurred.
             └── ✕ Failed to publish Fusion configuration.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -2928,6 +3029,63 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Validated configuration.
             ├── Uploading configuration to 'dev'
             │   └── ✕ Failed to upload the new configuration.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithSourceSchema_PublishingFailedWithErrors_ReturnsError()
+    {
+        // arrange
+        SetupSourceSchemaDownload();
+        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownload();
+        SetupFusionConfigurationValidationMutation();
+        SetupFusionConfigurationValidationSubscription();
+        SetupFusionConfigurationUploadMutation();
+        SetupFusionConfigurationUploadSubscription(CreatePublishingFailedEventWithErrors());
+        SetupReleaseDeploymentSlotMutation();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Failed to publish the new configuration.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✓ Downloaded existing configuration from 'dev'.
+            ├── Composing new configuration
+            │   └── ✓ Composed new configuration.
+            ├── Validating configuration against 'dev'
+            │   └── ✓ Validated configuration.
+            ├── Uploading configuration to 'dev'
+            │   └── ✕ Failed to upload the new configuration.
+            │       ├── Field 'Query.foo' has no type. SCHEMA_ERROR
+            │       └── An error occurred.
             └── ✕ Failed to publish Fusion configuration.
             """);
         Assert.Equal(1, result.ExitCode);

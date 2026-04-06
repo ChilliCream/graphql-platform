@@ -1,21 +1,16 @@
-using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Workspaces;
-using Moq;
-
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Workspaces;
 
-public sealed class ListWorkspaceCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
+public sealed class ListWorkspaceCommandTests(NitroCommandFixture fixture)
+    : WorkspacesCommandTestBase(fixture)
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "workspace",
-                "list",
-                "--help")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "workspace",
+            "list",
+            "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -42,25 +37,19 @@ public sealed class ListWorkspaceCommandTests(NitroCommandFixture fixture) : ICl
     public async Task WithApiKey_ReturnsSuccess_Interactive()
     {
         // arrange
-        var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
-        client.Setup(x => x.ListWorkspacesAsync(
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateListWorkspacesPage(
-                null,
-                false,
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupListWorkspacesQuery(
+            endCursor: null,
+            hasNextPage: false,
+            workspaces:
+            [
                 ("ws-1", "my-workspace", false),
-                ("ws-2", "personal-workspace", true)));
+                ("ws-2", "personal-workspace", true)
+            ]);
 
-        var command = new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "workspace",
-                "list")
-            .Start();
+        var command = StartInteractiveCommand(
+            "workspace",
+            "list");
 
         // act
         command.SelectOption(0);
@@ -68,8 +57,6 @@ public sealed class ListWorkspaceCommandTests(NitroCommandFixture fixture) : ICl
 
         // assert
         result.AssertSuccess();
-
-        client.VerifyAll();
     }
 
     [Theory]
@@ -78,26 +65,20 @@ public sealed class ListWorkspaceCommandTests(NitroCommandFixture fixture) : ICl
     public async Task WithApiKey_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
-        var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
-        client.Setup(x => x.ListWorkspacesAsync(
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateListWorkspacesPage(
-                "cursor-2",
-                true,
+        SetupInteractionMode(mode);
+        SetupListWorkspacesQuery(
+            endCursor: "cursor-2",
+            hasNextPage: true,
+            workspaces:
+            [
                 ("ws-1", "my-workspace", false),
-                ("ws-2", "personal-workspace", true)));
+                ("ws-2", "personal-workspace", true)
+            ]);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "workspace",
-                "list")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "workspace",
+            "list");
 
         // assert
         result.AssertSuccess(
@@ -118,29 +99,18 @@ public sealed class ListWorkspaceCommandTests(NitroCommandFixture fixture) : ICl
               "cursor": "cursor-2"
             }
             """);
-
-        client.VerifyAll();
     }
 
     [Fact]
     public async Task WithApiKey_NoData_ReturnsSuccess_Interactive()
     {
         // arrange
-        var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
-        client.Setup(x => x.ListWorkspacesAsync(
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateListWorkspacesPage());
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupListWorkspacesQuery();
 
-        var command = new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "workspace",
-                "list")
-            .Start();
+        var command = StartInteractiveCommand(
+            "workspace",
+            "list");
 
         // act
         command.SelectOption(0);
@@ -148,8 +118,6 @@ public sealed class ListWorkspaceCommandTests(NitroCommandFixture fixture) : ICl
 
         // assert
         result.AssertSuccess();
-
-        client.VerifyAll();
     }
 
     [Theory]
@@ -158,22 +126,13 @@ public sealed class ListWorkspaceCommandTests(NitroCommandFixture fixture) : ICl
     public async Task WithApiKey_NoData_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
-        var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
-        client.Setup(x => x.ListWorkspacesAsync(
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateListWorkspacesPage());
+        SetupInteractionMode(mode);
+        SetupListWorkspacesQuery();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "workspace",
-                "list")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "workspace",
+            "list");
 
         // assert
         result.AssertSuccess(
@@ -183,34 +142,25 @@ public sealed class ListWorkspaceCommandTests(NitroCommandFixture fixture) : ICl
               "cursor": null
             }
             """);
-
-        client.VerifyAll();
     }
 
     [Fact]
     public async Task WithCursor_ReturnsSuccess_Interactive()
     {
         // arrange
-        var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
-        client.Setup(x => x.ListWorkspacesAsync(
-                "cursor-1",
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateListWorkspacesPage(
-                null,
-                false,
-                ("ws-1", "my-workspace", false)));
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupListWorkspacesQuery(
+            cursor: "cursor-1",
+            workspaces:
+            [
+                ("ws-1", "my-workspace", false)
+            ]);
 
-        var command = new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "workspace",
-                "list",
-                "--cursor",
-                "cursor-1")
-            .Start();
+        var command = StartInteractiveCommand(
+            "workspace",
+            "list",
+            "--cursor",
+            "cursor-1");
 
         // act
         command.SelectOption(0);
@@ -218,8 +168,6 @@ public sealed class ListWorkspaceCommandTests(NitroCommandFixture fixture) : ICl
 
         // assert
         result.AssertSuccess();
-
-        client.VerifyAll();
     }
 
     [Theory]
@@ -228,27 +176,20 @@ public sealed class ListWorkspaceCommandTests(NitroCommandFixture fixture) : ICl
     public async Task WithCursor_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
-        var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
-        client.Setup(x => x.ListWorkspacesAsync(
-                "cursor-1",
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateListWorkspacesPage(
-                null,
-                false,
-                ("ws-1", "my-workspace", false)));
+        SetupInteractionMode(mode);
+        SetupListWorkspacesQuery(
+            cursor: "cursor-1",
+            workspaces:
+            [
+                ("ws-1", "my-workspace", false)
+            ]);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "workspace",
-                "list",
-                "--cursor",
-                "cursor-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "workspace",
+            "list",
+            "--cursor",
+            "cursor-1");
 
         // assert
         result.AssertSuccess(
@@ -264,87 +205,23 @@ public sealed class ListWorkspaceCommandTests(NitroCommandFixture fixture) : ICl
               "cursor": null
             }
             """);
-
-        client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task ListWorkspacesThrows_ReturnsError()
     {
         // arrange
-        var client = CreateListExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
+        SetupListWorkspacesQueryException();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(mode)
-            .AddArguments("workspace", "list")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "workspace",
+            "list");
 
         // assert
         result.AssertError(
             """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
+            There was an unexpected error: Something unexpected happened.
             """);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var client = CreateListExceptionClient(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(mode)
-            .AddArguments("workspace", "list")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-
-        client.VerifyAll();
-    }
-
-    private static ConnectionPage<IListWorkspaceCommandQuery_Me_Workspaces_Edges_Node>
-        CreateListWorkspacesPage(
-            string? endCursor = null,
-            bool hasNextPage = false,
-            params (string Id, string Name, bool Personal)[] workspaces)
-    {
-        var items = workspaces
-            .Select(static ws =>
-                (IListWorkspaceCommandQuery_Me_Workspaces_Edges_Node)
-                new ListWorkspaceCommandQuery_Me_Workspaces_Edges_Node_Workspace(
-                    ws.Id, ws.Name, ws.Personal))
-            .ToArray();
-
-        return new ConnectionPage<IListWorkspaceCommandQuery_Me_Workspaces_Edges_Node>(
-            items, endCursor, hasNextPage);
-    }
-
-    private static Mock<IWorkspacesClient> CreateListExceptionClient(Exception ex)
-    {
-        var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
-        client.Setup(x => x.ListWorkspacesAsync(
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(ex);
-        return client;
     }
 }

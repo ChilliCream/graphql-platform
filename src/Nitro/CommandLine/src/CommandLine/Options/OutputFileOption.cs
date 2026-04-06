@@ -7,6 +7,7 @@ internal class OutputFileOption : Option<string>
     public OutputFileOption() : base(OptionName)
     {
         Description = "The file path to write the output to";
+        Required = true;
         this.DefaultFromEnvironmentValue(EnvironmentVariables.OutputFile);
         this.LegalFilePathsOnly();
     }

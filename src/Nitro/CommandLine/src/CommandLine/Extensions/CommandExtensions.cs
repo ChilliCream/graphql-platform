@@ -47,15 +47,15 @@ internal static class CommandExtensions
             catch (NitroClientGraphQLException exception)
             {
                 var message = string.IsNullOrEmpty(exception.Code)
-                    ? $"The server returned an unexpected GraphQL error: {exception.ErrorMessage}"
-                    : $"The server returned an unexpected GraphQL error: {exception.ErrorMessage} ({exception.Code})";
+                    ? $"The server returned an unexpected GraphQL error: {exception.ErrorMessage.EscapeMarkup()}"
+                    : $"The server returned an unexpected GraphQL error: {exception.ErrorMessage.EscapeMarkup()} ({exception.Code})";
 
                 console.Error.WriteErrorLine(message);
             }
             catch (NitroClientException exception)
             {
                 console.Error.WriteErrorLine(
-                    $"There was an unexpected client error: {exception.Message}");
+                    $"There was an unexpected client error: {exception.Message.EscapeMarkup()}");
             }
             catch (Exception ex) when (ex is OperationCanceledException or TaskCanceledException)
             {
@@ -63,7 +63,7 @@ internal static class CommandExtensions
             }
             catch (Exception exception)
             {
-                console.Error.WriteErrorLine($"There was an unexpected error: {exception.Message}");
+                console.Error.WriteErrorLine($"There was an unexpected error: {exception.Message.EscapeMarkup()}");
             }
 
             return ExitCodes.Error;

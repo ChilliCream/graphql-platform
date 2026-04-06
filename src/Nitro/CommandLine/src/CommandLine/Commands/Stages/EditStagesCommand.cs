@@ -195,23 +195,34 @@ file static class ClientExtensions
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail();
+                var errorTree = new Tree("");
 
                 foreach (var error in data.Errors)
                 {
-                    // TODO: Use PrintStagePublishedDependencies here
-                    var errorMessage = error switch
+                    switch (error)
                     {
-                        IApiNotFoundError err => err.Message,
-                        IStageNotFoundError err => err.Message,
-                        IStagesHavePublishedDependenciesError err => err.Message,
-                        IStageValidationError err => err.Message,
-                        IError err => ErrorMessages.UnexpectedMutationError(err),
-                        _ => ErrorMessages.UnexpectedMutationError()
-                    };
-
-                    console.Error.WriteErrorLine(errorMessage);
+                        case IStagesHavePublishedDependenciesError e:
+                            errorTree.AddStagePublishedDependencies(e);
+                            break;
+                        case IApiNotFoundError e:
+                            errorTree.AddErrorMessage(e.Message);
+                            break;
+                        case IStageNotFoundError e:
+                            errorTree.AddErrorMessage(e.Message);
+                            break;
+                        case IStageValidationError e:
+                            errorTree.AddErrorMessage(e.Message);
+                            break;
+                        case IError e:
+                            errorTree.AddErrorMessage(ErrorMessages.UnexpectedMutationError(e));
+                            break;
+                        default:
+                            errorTree.AddErrorMessage(ErrorMessages.UnexpectedMutationError());
+                            break;
+                    }
                 }
+
+                activity.Fail(errorTree);
 
                 return ExitCodes.Error;
             }
