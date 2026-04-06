@@ -25,10 +25,10 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
             """
             Description:
               Upload a new MCP feature collection version.
-            
+
             Usage:
               nitro mcp upload [options]
-            
+
             Options:
               --mcp-feature-collection-id <mcp-feature-collection-id> (REQUIRED)  The ID of the MCP Feature Collection [env: NITRO_MCP_FEATURE_COLLECTION_ID]
               --tag <tag> (REQUIRED)                                              The tag of the schema version to deploy [env: NITRO_TAG]
@@ -701,8 +701,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
                 new UploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors_InvalidMcpFeatureCollectionArchiveError(
                     "Invalid archive format."),
                 """
-                The server received an invalid archive. This indicates a bug in the tooling. Please notify ChilliCream.
-                Error received: Invalid archive format.
+                The server received an invalid archive. This indicates a bug in the tooling. Please notify ChilliCream. Error received: Invalid archive format.
                 """
             ];
 
@@ -766,8 +765,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
             new UploadMcpFeatureCollectionCommandMutation_UploadMcpFeatureCollection_Errors_InvalidMcpFeatureCollectionArchiveError(
                 "Invalid archive format."),
             """
-            The server received an invalid archive. This indicates a bug in the tooling. Please notify ChilliCream.
-            Error received: Invalid archive format.
+            The server received an invalid archive. This indicates a bug in the tooling. Please notify ChilliCream. Error received: Invalid archive format.
             """
         ];
 

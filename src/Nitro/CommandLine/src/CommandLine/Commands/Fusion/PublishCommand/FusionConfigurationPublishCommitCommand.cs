@@ -50,7 +50,7 @@ internal sealed class FusionConfigurationPublishCommitCommand : Command
 
         if (!fileSystem.FileExists(archiveFile))
         {
-            throw new ExitException($"Archive file '{archiveFile}' does not exist.");
+            throw new ExitException(ErrorMessages.ArchiveFileDoesNotExist(archiveFile));
         }
 
         var committed = false;

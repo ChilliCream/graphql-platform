@@ -140,7 +140,7 @@ internal sealed class FusionPublishCommand : Command
 
             if (!fileSystem.FileExists(archiveFile))
             {
-                throw new ExitException($"Archive file '{archiveFile}' does not exist.");
+                throw new ExitException(ErrorMessages.ArchiveFileDoesNotExist(archiveFile));
             }
 
             await using var activity = StartPublishActivity(console, stageName, apiId, force);
@@ -165,7 +165,7 @@ internal sealed class FusionPublishCommand : Command
 
                 if (!fileSystem.FileExists(sourceSchemaFile))
                 {
-                    throw new ExitException($"Source schema file '{sourceSchemaFile}' does not exist.");
+                    throw new ExitException(ErrorMessages.SourceSchemaFileDoesNotExist(sourceSchemaFile));
                 }
             }
 

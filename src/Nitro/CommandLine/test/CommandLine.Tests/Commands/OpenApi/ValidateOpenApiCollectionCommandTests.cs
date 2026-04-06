@@ -29,10 +29,10 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             """
             Description:
               Validate an OpenAPI collection version.
-            
+
             Usage:
               nitro openapi validate [options]
-            
+
             Options:
               --openapi-collection-id <openapi-collection-id> (REQUIRED)  The ID of the OpenAPI collection [env: NITRO_OPENAPI_COLLECTION_ID]
               --stage <stage> (REQUIRED)                                  The name of the stage [env: NITRO_STAGE]
@@ -831,8 +831,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server received an invalid archive. This indicates a bug in the tooling. Please notify ChilliCream.
-            Error received: Archive is corrupted.
+            The server received an invalid archive. This indicates a bug in the tooling. Please notify ChilliCream. Error received: Archive is corrupted.
             OpenAPI collection validation failed.
             """);
         Assert.Equal(1, result.ExitCode);

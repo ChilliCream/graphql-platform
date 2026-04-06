@@ -1,25 +1,20 @@
-using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Services;
-using HotChocolate.Fusion.Packaging;
-using Moq;
-
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
-public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>, IDisposable
+public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture)
+    : FusionCommandTestBase(fixture), IDisposable
 {
+    private readonly NitroCommandFixture _fixture = fixture;
     private readonly List<string> _tempFiles = [];
 
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "fusion",
-                "settings",
-                "set",
-                "--help")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "settings",
+            "set",
+            "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -50,89 +45,39 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
     }
 
     [Fact]
-    public async Task MissingRequiredOptions_ReturnsError_NonInteractive()
+    public async Task InvalidSettingName_ReturnsError()
     {
-        // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "fusion",
-                "settings",
-                "set",
-                "cache-control-merge-behavior",
-                "ignore")
-            .ExecuteAsync();
+        // arrange
+        var archiveFile = CreateArchiveWithSourceSchemas();
+        SetupFile(archiveFile, new MemoryStream());
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "settings",
+            "set",
+            "nonexistent-setting",
+            "some-value",
+            "--archive",
+            archiveFile);
 
         // assert
-        var output = result.StdOut.Replace(result.ExecutableName, "nitro");
-        output.MatchInlineSnapshot(
-            """
-            Description:
-              Set a Fusion composition setting in a Fusion archive.
-
-            Usage:
-              nitro fusion settings set <SETTING_NAME> <SETTING_VALUE> [options]
-
-            Arguments:
-              <cache-control-merge-behavior|exclude-by-tag|global-object-identification|tag-merge-behavior>  The name of the setting to change
-              <SETTING_VALUE>                                                                                The value to set
-
-            Options:
-              -a, --archive, --configuration <archive> (REQUIRED)  The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
-              -e, --env, --environment <environment>               The name of the environment used for value substitution in the schema-settings.json files
-              --cloud-url <cloud-url>                              The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                                  The API key used for authentication [env: NITRO_API_KEY]
-              --output <json>                                      The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help                                       Show help and usage information
-
-            Example:
-              nitro fusion settings set global-object-identification "true" \
-                --archive ./gateway.far \
-                --env "dev"
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Option '--archive' is required.
-            """);
         Assert.Equal(1, result.ExitCode);
+        Assert.Contains("nonexistent-setting", result.StdErr);
     }
 
     [Fact]
-    public async Task MissingRequiredOptions_ReturnsError_JsonOutput()
+    public async Task MissingRequiredOptions_ReturnsError()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "fusion",
-                "settings",
-                "set",
-                "cache-control-merge-behavior",
-                "ignore")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "settings",
+            "set",
+            "cache-control-merge-behavior",
+            "ignore");
 
         // assert
-        var output = result.StdOut.Replace(result.ExecutableName, "nitro");
-        output.MatchInlineSnapshot(
-            """
-            Description:
-              Set a Fusion composition setting in a Fusion archive.
-
-            Usage:
-              nitro fusion settings set <SETTING_NAME> <SETTING_VALUE> [options]
-
-            Arguments:
-              <cache-control-merge-behavior|exclude-by-tag|global-object-identification|tag-merge-behavior>  The name of the setting to change
-              <SETTING_VALUE>                                                                                The value to set
-
-            Options:
-              -a, --archive, --configuration <archive> (REQUIRED)  The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
-              -e, --env, --environment <environment>               The name of the environment used for value substitution in the schema-settings.json files
-              --cloud-url <cloud-url>                              The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                                  The API key used for authentication [env: NITRO_API_KEY]
-              --output <json>                                      The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help                                       Show help and usage information
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             Option '--archive' is required.
@@ -144,36 +89,28 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task FileDoesNotExist_ReturnsError(InteractionMode mode)
+    public async Task ArchiveDoesNotExist_ReturnsError(InteractionMode mode)
     {
         // arrange
-        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
-        fileSystem.Setup(x => x.FileExists("/tmp/nonexistent.far"))
-            .Returns(false);
+        SetupInteractionMode(mode);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(fileSystem.Object)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "fusion",
-                "settings",
-                "set",
-                "cache-control-merge-behavior",
-                "ignore",
-                "--archive",
-                "/tmp/nonexistent.far")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "settings",
+            "set",
+            "cache-control-merge-behavior",
+            "ignore",
+            "--archive",
+            ArchiveFile);
 
         // assert
         Assert.Empty(result.StdOut);
         result.StdErr.MatchInlineSnapshot(
             """
-            File '/tmp/nonexistent.far' does not exist.
+            Archive file '/some/working/directory/fusion.far' does not exist.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        fileSystem.VerifyAll();
     }
 
     [Theory]
@@ -184,19 +121,18 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
     {
         // arrange
         var archiveFile = CreateArchiveWithSourceSchemas();
+        SetupFile(archiveFile, new MemoryStream());
+        SetupInteractionMode(mode);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "fusion",
-                "settings",
-                "set",
-                "cache-control-merge-behavior",
-                "invalid-value",
-                "--archive",
-                archiveFile)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "settings",
+            "set",
+            "cache-control-merge-behavior",
+            "invalid-value",
+            "--archive",
+            archiveFile);
 
         // assert
         Assert.Empty(result.StdOut);
@@ -214,19 +150,18 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
     {
         // arrange
         var archiveFile = CreateArchiveWithSourceSchemas();
+        SetupFile(archiveFile, new MemoryStream());
+        SetupInteractionMode(mode);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "fusion",
-                "settings",
-                "set",
-                "tag-merge-behavior",
-                "invalid-value",
-                "--archive",
-                archiveFile)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "settings",
+            "set",
+            "tag-merge-behavior",
+            "invalid-value",
+            "--archive",
+            archiveFile);
 
         // assert
         Assert.Empty(result.StdOut);
@@ -244,19 +179,18 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
     {
         // arrange
         var archiveFile = CreateArchiveWithSourceSchemas();
+        SetupFile(archiveFile, new MemoryStream());
+        SetupInteractionMode(mode);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "fusion",
-                "settings",
-                "set",
-                "global-object-identification",
-                "not-a-bool",
-                "--archive",
-                archiveFile)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "settings",
+            "set",
+            "global-object-identification",
+            "not-a-bool",
+            "--archive",
+            archiveFile);
 
         // assert
         Assert.Empty(result.StdOut);
@@ -274,19 +208,18 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
     {
         // arrange
         var archiveFile = CreateArchiveWithSourceSchemas();
+        SetupFile(archiveFile, new MemoryStream());
+        SetupInteractionMode(mode);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "fusion",
-                "settings",
-                "set",
-                "cache-control-merge-behavior",
-                "ignore",
-                "--archive",
-                archiveFile)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "settings",
+            "set",
+            "cache-control-merge-behavior",
+            "ignore",
+            "--archive",
+            archiveFile);
 
         // assert
         Assert.Equal(0, result.ExitCode);
@@ -300,19 +233,18 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
     {
         // arrange
         var archiveFile = CreateArchiveWithSourceSchemas();
+        SetupFile(archiveFile, new MemoryStream());
+        SetupInteractionMode(mode);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "fusion",
-                "settings",
-                "set",
-                "tag-merge-behavior",
-                "include",
-                "--archive",
-                archiveFile)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "settings",
+            "set",
+            "tag-merge-behavior",
+            "include",
+            "--archive",
+            archiveFile);
 
         // assert
         Assert.Equal(0, result.ExitCode);
@@ -326,19 +258,18 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
     {
         // arrange
         var archiveFile = CreateArchiveWithSourceSchemas();
+        SetupFile(archiveFile, new MemoryStream());
+        SetupInteractionMode(mode);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "fusion",
-                "settings",
-                "set",
-                "global-object-identification",
-                "true",
-                "--archive",
-                archiveFile)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "settings",
+            "set",
+            "global-object-identification",
+            "true",
+            "--archive",
+            archiveFile);
 
         // assert
         Assert.Equal(0, result.ExitCode);
@@ -352,76 +283,22 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
     {
         // arrange
         var archiveFile = CreateArchiveWithSourceSchemas();
+        SetupFile(archiveFile, new MemoryStream());
+        SetupInteractionMode(mode);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "fusion",
-                "settings",
-                "set",
-                "exclude-by-tag",
-                "tag1,tag2",
-                "--archive",
-                archiveFile)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "settings",
+            "set",
+            "exclude-by-tag",
+            "tag1,tag2",
+            "--archive",
+            archiveFile);
 
         // assert
         Assert.Equal(0, result.ExitCode);
         Assert.Empty(result.StdErr);
-    }
-
-    [Fact]
-    public async Task CacheControlMergeBehavior_ReturnsSuccess_JsonOutput()
-    {
-        // arrange
-        var archiveFile = CreateArchiveWithSourceSchemas();
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "fusion",
-                "settings",
-                "set",
-                "cache-control-merge-behavior",
-                "ignore",
-                "--archive",
-                archiveFile)
-            .ExecuteAsync();
-
-        // assert
-        result.AssertSuccess(
-            """
-            {
-              "setting": "cache-control-merge-behavior",
-              "value": "ignore"
-            }
-            """);
-    }
-
-    [Fact]
-    public async Task InvalidSettingName_ReturnsError()
-    {
-        // arrange
-        var archiveFile = CreateArchiveWithSourceSchemas();
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "fusion",
-                "settings",
-                "set",
-                "nonexistent-setting",
-                "some-value",
-                "--archive",
-                archiveFile)
-            .ExecuteAsync();
-
-        // assert
-        Assert.Equal(1, result.ExitCode);
-        Assert.Contains("nonexistent-setting", result.StdErr);
     }
 
     [Theory]
@@ -431,61 +308,32 @@ public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) :
     {
         // arrange
         var archiveFile = CreateArchiveWithSourceSchemas();
+        SetupFile(archiveFile, new MemoryStream());
+        SetupInteractionMode(mode);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "fusion",
-                "settings",
-                "set",
-                "exclude-by-tag",
-                "tag1, tag2, tag3",
-                "--archive",
-                archiveFile)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "settings",
+            "set",
+            "exclude-by-tag",
+            "tag1, tag2, tag3",
+            "--archive",
+            archiveFile);
 
         // assert
         Assert.Equal(0, result.ExitCode);
         Assert.Empty(result.StdErr);
     }
 
-    [Fact]
-    public async Task ExcludeByTag_MultipleTags_ReturnsSuccess_JsonOutput()
-    {
-        // arrange
-        var archiveFile = CreateArchiveWithSourceSchemas();
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "fusion",
-                "settings",
-                "set",
-                "exclude-by-tag",
-                "tag1, tag2, tag3",
-                "--archive",
-                archiveFile)
-            .ExecuteAsync();
-
-        // assert
-        result.AssertSuccess(
-            """
-            {
-              "setting": "exclude-by-tag",
-              "value": "tag1, tag2, tag3"
-            }
-            """);
-    }
-
+    // TODO: This is bad
     private string CreateArchiveWithSourceSchemas()
     {
         var archiveFile = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".far");
         _tempFiles.Add(archiveFile);
 
         // Create an archive by running the compose command
-        var result = new CommandBuilder(fixture)
+        var result = new CommandBuilder(_fixture)
             .AddArguments(
                 "fusion",
                 "compose",

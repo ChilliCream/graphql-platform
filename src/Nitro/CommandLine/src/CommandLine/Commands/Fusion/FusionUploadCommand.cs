@@ -52,7 +52,6 @@ internal sealed class FusionUploadCommand : Command
         var fusionConfigurationClient = services.GetRequiredService<IFusionConfigurationClient>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
         var sessionService = services.GetRequiredService<ISessionService>();
-        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         parseResult.AssertHasAuthentication(sessionService);
 
@@ -67,6 +66,11 @@ internal sealed class FusionUploadCommand : Command
         if (!Path.IsPathRooted(sourceSchemaFile))
         {
             sourceSchemaFile = Path.Combine(workingDirectory, sourceSchemaFile);
+        }
+
+        if (!fileSystem.FileExists(sourceSchemaFile))
+        {
+            throw new ExitException(ErrorMessages.SourceSchemaFileDoesNotExist(sourceSchemaFile));
         }
 
         var (_, sourceText, settings) = await FusionComposeCommand.ReadSourceSchemaAsync(
@@ -102,12 +106,7 @@ internal sealed class FusionUploadCommand : Command
                         IInvalidSourceMetadataInputError err => err.Message,
                         IDuplicatedTagError err => err.Message,
                         IConcurrentOperationError err => err.Message,
-                        IInvalidFusionSourceSchemaArchiveError err =>
-                            "The server received an invalid archive. "
-                            + "This indicates a bug in the tooling. "
-                            + "Please notify ChilliCream."
-                            + "Error received: "
-                            + err.Message,
+                        IInvalidFusionSourceSchemaArchiveError err => ErrorMessages.InvalidArchive(err.Message),
                         IError err => ErrorMessages.UnexpectedMutationError(err),
                         _ => ErrorMessages.UnexpectedMutationError()
                     };

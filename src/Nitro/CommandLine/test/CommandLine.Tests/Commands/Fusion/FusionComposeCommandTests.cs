@@ -3,9 +3,13 @@ using HotChocolate.Fusion.Packaging;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
-public sealed class FusionComposeCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>, IDisposable
+public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
+    : FusionCommandTestBase(fixture), IDisposable
 {
     private readonly List<string> _tempFiles = [];
+
+    private static readonly string s_resourcesDir =
+        Path.GetFullPath("__resources__");
 
     private static readonly string s_validExample1CompositeSchema =
         File.ReadAllText("__resources__/valid-example-1-result/composite-schema.graphqls");
@@ -20,12 +24,10 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture) : ICl
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "fusion",
-                "compose",
-                "--help")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -64,19 +66,19 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture) : ICl
     {
         // arrange
         var archiveFileName = CreateTempFile();
+        SetupSourceSchemaFromResources("valid-example-1/source-schema-1.graphqls");
+        SetupSourceSchemaFromResources("valid-example-1/source-schema-2.graphqls");
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "fusion",
-                "compose",
-                "--source-schema-file",
-                "__resources__/valid-example-1/source-schema-1.graphqls",
-                "--source-schema-file",
-                "__resources__/valid-example-1/source-schema-2.graphqls",
-                "--archive",
-                archiveFileName)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--source-schema-file",
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-1.graphqls"),
+            "--source-schema-file",
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-2.graphqls"),
+            "--archive",
+            archiveFileName);
 
         // assert
         Assert.Equal(0, result.ExitCode);
@@ -93,17 +95,19 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture) : ICl
     {
         // arrange
         var archiveFileName = CreateTempFile();
+        var workDir = Path.Combine(s_resourcesDir, "valid-example-1");
+        SetupWorkingDirectoryWithSchemas(workDir,
+            "source-schema-1.graphqls",
+            "source-schema-2.graphqls");
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "fusion",
-                "compose",
-                "--working-directory",
-                "__resources__/valid-example-1",
-                "--archive",
-                archiveFileName)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--working-directory",
+            workDir,
+            "--archive",
+            archiveFileName);
 
         // assert
         Assert.Equal(0, result.ExitCode);
@@ -120,19 +124,19 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture) : ICl
     {
         // arrange
         var archiveFileName = CreateTempFile();
+        SetupSourceSchemaFromResources("valid-example-1/source-schema-1.graphqls");
+        SetupSourceSchemaFromResources("valid-example-1/source-schema-2.graphqls");
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "fusion",
-                "compose",
-                "--source-schema-file",
-                "__resources__/valid-example-1/source-schema-1.graphqls",
-                "--source-schema-file",
-                "__resources__/valid-example-1/source-schema-2.graphqls",
-                "--archive",
-                archiveFileName)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--source-schema-file",
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-1.graphqls"),
+            "--source-schema-file",
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-2.graphqls"),
+            "--archive",
+            archiveFileName);
 
         // assert
         Assert.Equal(0, result.ExitCode);
@@ -149,29 +153,26 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture) : ICl
     public async Task Compose_ValidExample1_FromSpecified_ToFileRelativeToCurrentDirectory()
     {
         // arrange
-        var directory = Directory.GetCurrentDirectory();
-        var fileName = $"../{Path.GetRandomFileName()}";
-        var filePath = Path.Combine(directory, fileName);
-        _tempFiles.Add(filePath);
+        var archiveFileName = CreateTempFile();
+        SetupSourceSchemaFromResources("valid-example-1/source-schema-1.graphqls");
+        SetupSourceSchemaFromResources("valid-example-1/source-schema-2.graphqls");
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "fusion",
-                "compose",
-                "--source-schema-file",
-                "__resources__/valid-example-1/source-schema-1.graphqls",
-                "--source-schema-file",
-                "__resources__/valid-example-1/source-schema-2.graphqls",
-                "--archive",
-                fileName)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--source-schema-file",
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-1.graphqls"),
+            "--source-schema-file",
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-2.graphqls"),
+            "--archive",
+            archiveFileName);
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        Assert.True(File.Exists(filePath));
+        Assert.True(File.Exists(archiveFileName));
 
-        using var archive = FusionArchive.Open(fileName);
+        using var archive = FusionArchive.Open(archiveFileName);
         var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
@@ -182,27 +183,26 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture) : ICl
     public async Task Compose_ValidExample1_FromWorkingDirectory_ToFileInWorkingDirectory()
     {
         // arrange
-        const string workingDirectory = "__resources__/valid-example-1";
-        var fileName = Path.GetRandomFileName();
-        var filePath = Path.Combine(workingDirectory, fileName);
-        _tempFiles.Add(filePath);
+        var workDir = Path.Combine(s_resourcesDir, "valid-example-1");
+        var archiveFileName = CreateTempFile();
+        SetupWorkingDirectoryWithSchemas(workDir,
+            "source-schema-1.graphqls",
+            "source-schema-2.graphqls");
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "fusion",
-                "compose",
-                "--working-directory",
-                workingDirectory,
-                "--archive",
-                fileName)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--working-directory",
+            workDir,
+            "--archive",
+            archiveFileName);
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        Assert.True(File.Exists(filePath));
+        Assert.True(File.Exists(archiveFileName));
 
-        using var archive = FusionArchive.Open(filePath);
+        using var archive = FusionArchive.Open(archiveFileName);
         var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
@@ -213,27 +213,26 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture) : ICl
     public async Task Compose_ValidExample1_FromWorkingDirectory_ToFileRelativeToWorkingDirectory()
     {
         // arrange
-        const string workingDirectory = "__resources__/valid-example-1";
-        var fileName = $"../{Path.GetRandomFileName()}";
-        var filePath = Path.Combine(workingDirectory, fileName);
-        _tempFiles.Add(filePath);
+        var workDir = Path.Combine(s_resourcesDir, "valid-example-1");
+        var archiveFileName = CreateTempFile();
+        SetupWorkingDirectoryWithSchemas(workDir,
+            "source-schema-1.graphqls",
+            "source-schema-2.graphqls");
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "fusion",
-                "compose",
-                "--working-directory",
-                workingDirectory,
-                "--archive",
-                fileName)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--working-directory",
+            workDir,
+            "--archive",
+            archiveFileName);
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        Assert.True(File.Exists(filePath));
+        Assert.True(File.Exists(archiveFileName));
 
-        using var archive = FusionArchive.Open(filePath);
+        using var archive = FusionArchive.Open(archiveFileName);
         var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
@@ -244,25 +243,26 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture) : ICl
     public async Task Compose_ValidExample1_FromWorkingDirectory_ToFileAtFullyQualifiedPath()
     {
         // arrange
-        const string workingDirectory = "__resources__/valid-example-1";
-        var filePath = CreateTempFile();
+        var workDir = Path.Combine(s_resourcesDir, "valid-example-1");
+        var archiveFileName = CreateTempFile();
+        SetupWorkingDirectoryWithSchemas(workDir,
+            "source-schema-1.graphqls",
+            "source-schema-2.graphqls");
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "fusion",
-                "compose",
-                "--working-directory",
-                workingDirectory,
-                "--archive",
-                filePath)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--working-directory",
+            workDir,
+            "--archive",
+            archiveFileName);
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        Assert.True(File.Exists(filePath));
+        Assert.True(File.Exists(archiveFileName));
 
-        using var archive = FusionArchive.Open(filePath);
+        using var archive = FusionArchive.Open(archiveFileName);
         var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
         Assert.NotNull(config);
         var sourceText = await ReadSchemaAsync(config);
@@ -273,17 +273,15 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture) : ICl
     public async Task Compose_ValidExample1_FromSpecified_ToFileInNonExistentWorkingDirectory()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "fusion",
-                "compose",
-                "--working-directory",
-                "non-existent",
-                "--source-schema-file",
-                "__resources__/valid-example-1/source-schema-1.graphqls",
-                "--source-schema-file",
-                "__resources__/valid-example-1/source-schema-2.graphqls")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--working-directory",
+            "non-existent",
+            "--source-schema-file",
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-1.graphqls"),
+            "--source-schema-file",
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-2.graphqls"));
 
         // assert
         Assert.Equal(1, result.ExitCode);
@@ -298,19 +296,19 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture) : ICl
     {
         // arrange
         var archiveFileName = CreateTempFile();
+        SetupSourceSchemaFromResources("valid-example-1/source-schema-1.graphqls");
+        SetupSourceSchemaFromResources("valid-example-1/source-schema-2.graphqls");
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "fusion",
-                "compose",
-                "--source-schema-file",
-                "__resources__/valid-example-1/source-schema-1.graphqls",
-                "--source-schema-file",
-                "__resources__/valid-example-1/source-schema-2.graphqls",
-                "--archive",
-                archiveFileName)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--source-schema-file",
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-1.graphqls"),
+            "--source-schema-file",
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-2.graphqls"),
+            "--archive",
+            archiveFileName);
 
         // assert
         Assert.Equal(0, result.ExitCode);
@@ -320,22 +318,22 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture) : ICl
     [Fact]
     public async Task Compose_FromNonExistentFiles()
     {
-        // arrange & act
-        const string nonExistentFile = "non-existent-1.graphqls";
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "fusion",
-                "compose",
-                "--source-schema-file",
-                nonExistentFile)
-            .ExecuteAsync();
+        // arrange
+        var archiveFileName = CreateTempFile();
+        const string nonExistentFile = "/path/to/non-existent-1.graphqls";
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--source-schema-file",
+            nonExistentFile,
+            "--archive",
+            archiveFileName);
 
         // assert
-        var nonExistentFilePath = Path.GetFullPath(nonExistentFile);
-
-        // The console wraps long paths across lines, so normalize before replacing
+        // The console wraps long paths across lines, so normalize before matching
         var stderr = result.StdErr.Replace("\n", "").Replace("\r", "");
-        stderr = stderr.Replace(nonExistentFilePath, "/path/to/" + nonExistentFile);
 
         stderr.MatchInlineSnapshot(
             """
@@ -349,17 +347,19 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture) : ICl
     {
         // arrange
         var archiveFileName = CreateTempFile();
+        var workDir = Path.Combine(s_resourcesDir, "invalid-example-1");
+        SetupWorkingDirectoryWithSchemas(workDir,
+            "source-schema-1.graphqls",
+            "source-schema-2.graphqls");
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "fusion",
-                "compose",
-                "--working-directory",
-                "__resources__/invalid-example-1",
-                "--archive",
-                archiveFileName)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--working-directory",
+            workDir,
+            "--archive",
+            archiveFileName);
 
         // assert
         result = result with { StdOut = result.StdOut.Replace(archiveFileName, "/path/to/archive-file.far") };
@@ -376,14 +376,18 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture) : ICl
     [Fact]
     public async Task Compose_InvalidExample2_FromWorkingDirectory_ToStdOutWithWarningsAndErrors()
     {
-        // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "fusion",
-                "compose",
-                "--working-directory",
-                "__resources__/invalid-example-2")
-            .ExecuteAsync();
+        // arrange
+        var workDir = Path.Combine(s_resourcesDir, "invalid-example-2");
+        SetupWorkingDirectoryWithSchemas(workDir,
+            "source-schema-1.graphqls",
+            "source-schema-2.graphqls");
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--working-directory",
+            workDir);
 
         // assert
         Assert.Equal(1, result.ExitCode);
@@ -409,20 +413,20 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture) : ICl
     {
         // arrange
         var archiveFileName = CreateTempFile();
+        SetupSourceSchemaFromResources("valid-example-2/source-schema-a.graphqls");
+        SetupSourceSchemaFromResources("valid-example-2/source-schema-b.graphqls");
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "fusion",
-                "compose",
-                "--source-schema-file",
-                "__resources__/valid-example-2/source-schema-a.graphqls",
-                "--source-schema-file",
-                "__resources__/valid-example-2/source-schema-b.graphqls",
-                "--archive",
-                archiveFileName,
-                "--include-satisfiability-paths")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--source-schema-file",
+            Path.Combine(s_resourcesDir, "valid-example-2/source-schema-a.graphqls"),
+            "--source-schema-file",
+            Path.Combine(s_resourcesDir, "valid-example-2/source-schema-b.graphqls"),
+            "--archive",
+            archiveFileName,
+            "--include-satisfiability-paths");
 
         // assert
         Assert.Equal(0, result.ExitCode);
@@ -433,23 +437,23 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture) : ICl
     {
         // arrange
         var archiveFileName = CreateTempFile();
+        SetupSourceSchemaFromResources("valid-exclude-by-tag/source-schema-1.graphqls");
+        SetupSourceSchemaFromResources("valid-exclude-by-tag/source-schema-2.graphqls");
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "fusion",
-                "compose",
-                "--source-schema-file",
-                "__resources__/valid-exclude-by-tag/source-schema-1.graphqls",
-                "--source-schema-file",
-                "__resources__/valid-exclude-by-tag/source-schema-2.graphqls",
-                "--exclude-by-tag",
-                "exclude-1",
-                "--exclude-by-tag",
-                "exclude-2",
-                "--archive",
-                archiveFileName)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--source-schema-file",
+            Path.Combine(s_resourcesDir, "valid-exclude-by-tag/source-schema-1.graphqls"),
+            "--source-schema-file",
+            Path.Combine(s_resourcesDir, "valid-exclude-by-tag/source-schema-2.graphqls"),
+            "--exclude-by-tag",
+            "exclude-1",
+            "--exclude-by-tag",
+            "exclude-2",
+            "--archive",
+            archiveFileName);
 
         // assert
         Assert.Equal(0, result.ExitCode);
@@ -465,20 +469,18 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture) : ICl
     public async Task Compose_MissingSettingsFile_ReturnsError()
     {
         // arrange
-        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-        Directory.CreateDirectory(tempDir);
-        var schemaFile = Path.Combine(tempDir, "schema.graphqls");
-        await File.WriteAllTextAsync(schemaFile, "type Query { hello: String }");
-        _tempFiles.Add(tempDir);
+        var archiveFileName = CreateTempFile();
+        var schemaFile = Path.Combine(s_resourcesDir, "missing-settings/schema.graphqls");
+        SetupFile(schemaFile, "type Query { hello: String }");
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "fusion",
-                "compose",
-                "--source-schema-file",
-                schemaFile)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--source-schema-file",
+            schemaFile,
+            "--archive",
+            archiveFileName);
 
         // assert
         Assert.Equal(1, result.ExitCode);
@@ -489,22 +491,20 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture) : ICl
     public async Task Compose_InvalidJsonInSettingsFile_ReturnsError()
     {
         // arrange
-        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-        Directory.CreateDirectory(tempDir);
-        var schemaFile = Path.Combine(tempDir, "schema.graphqls");
-        var settingsFile = Path.Combine(tempDir, "schema-settings.json");
-        await File.WriteAllTextAsync(schemaFile, "type Query { hello: String }");
-        await File.WriteAllTextAsync(settingsFile, "not valid json{{{");
-        _tempFiles.Add(tempDir);
+        var archiveFileName = CreateTempFile();
+        var schemaFile = Path.Combine(s_resourcesDir, "invalid-json/schema.graphqls");
+        var settingsFile = Path.Combine(s_resourcesDir, "invalid-json/schema-settings.json");
+        SetupFile(schemaFile, "type Query { hello: String }");
+        SetupFile(settingsFile, "not valid json{{{");
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "fusion",
-                "compose",
-                "--source-schema-file",
-                schemaFile)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--source-schema-file",
+            schemaFile,
+            "--archive",
+            archiveFileName);
 
         // assert
         Assert.Equal(1, result.ExitCode);
@@ -516,20 +516,20 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture) : ICl
     {
         // arrange
         var archiveFileName = CreateTempFile();
+        SetupSourceSchemaFromResources("valid-example-1/source-schema-1.graphqls");
+        SetupSourceSchemaFromResources("valid-example-1/source-schema-2.graphqls");
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "fusion",
-                "compose",
-                "--source-schema-file",
-                "__resources__/valid-example-1/source-schema-1.graphqls",
-                "--source-schema-file",
-                "__resources__/valid-example-1/source-schema-2.graphqls",
-                "--archive",
-                archiveFileName,
-                "--enable-global-object-identification")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--source-schema-file",
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-1.graphqls"),
+            "--source-schema-file",
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-2.graphqls"),
+            "--archive",
+            archiveFileName,
+            "--enable-global-object-identification");
 
         // assert
         Assert.Equal(0, result.ExitCode);
@@ -541,21 +541,21 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture) : ICl
     {
         // arrange
         var archiveFileName = CreateTempFile();
+        SetupSourceSchemaFromResources("valid-example-1/source-schema-1.graphqls");
+        SetupSourceSchemaFromResources("valid-example-1/source-schema-2.graphqls");
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "fusion",
-                "compose",
-                "--source-schema-file",
-                "__resources__/valid-example-1/source-schema-1.graphqls",
-                "--source-schema-file",
-                "__resources__/valid-example-1/source-schema-2.graphqls",
-                "--archive",
-                archiveFileName,
-                "--environment",
-                "Production")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--source-schema-file",
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-1.graphqls"),
+            "--source-schema-file",
+            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-2.graphqls"),
+            "--archive",
+            archiveFileName,
+            "--environment",
+            "Production");
 
         // assert
         Assert.Equal(0, result.ExitCode);
@@ -567,17 +567,19 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture) : ICl
     {
         // arrange
         var archiveFileName = CreateTempFile();
+        var workDir = Path.Combine(s_resourcesDir, "valid-example-1");
+        SetupWorkingDirectoryWithSchemas(workDir,
+            "source-schema-1.graphqls",
+            "source-schema-2.graphqls");
 
         // act - no --source-schema-file specified, should auto-discover
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "fusion",
-                "compose",
-                "--working-directory",
-                "__resources__/valid-example-1",
-                "--archive",
-                archiveFileName)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--working-directory",
+            workDir,
+            "--archive",
+            archiveFileName);
 
         // assert
         Assert.Equal(0, result.ExitCode);
@@ -602,6 +604,48 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture) : ICl
         var tempFile = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         _tempFiles.Add(tempFile);
         return tempFile;
+    }
+
+    /// <summary>
+    /// Sets up a source schema file and its corresponding settings file
+    /// on the mock file system, reading the content from the real __resources__ directory.
+    /// </summary>
+    private void SetupSourceSchemaFromResources(string relativePath)
+    {
+        var fullPath = Path.Combine(s_resourcesDir, relativePath);
+        var settingsPath = Path.Combine(
+            Path.GetDirectoryName(fullPath)!,
+            Path.GetFileNameWithoutExtension(fullPath) + "-settings.json");
+
+        SetupFile(fullPath, File.ReadAllText(fullPath));
+        SetupFile(settingsPath, new MemoryStream(File.ReadAllBytes(settingsPath)));
+    }
+
+    /// <summary>
+    /// Sets up a working directory for auto-discovery with the given schema files.
+    /// Configures the directory mock to return the schema files from GetFiles,
+    /// and sets up each schema file and its settings on the mock file system.
+    /// </summary>
+    private void SetupWorkingDirectoryWithSchemas(
+        string workDir,
+        params string[] schemaFileNames)
+    {
+        var schemaFiles = schemaFileNames
+            .Select(f => Path.Combine(workDir, f))
+            .ToArray();
+
+        SetupDirectory(workDir, schemaFiles);
+
+        foreach (var schemaFileName in schemaFileNames)
+        {
+            var schemaFile = Path.Combine(workDir, schemaFileName);
+            var settingsFile = Path.Combine(
+                Path.GetDirectoryName(schemaFile)!,
+                Path.GetFileNameWithoutExtension(schemaFile) + "-settings.json");
+
+            SetupFile(schemaFile, File.ReadAllText(schemaFile));
+            SetupFile(settingsFile, new MemoryStream(File.ReadAllBytes(settingsFile)));
+        }
     }
 
     public void Dispose()

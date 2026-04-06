@@ -1,20 +1,15 @@
-using ChilliCream.Nitro.CommandLine.Services;
-using Moq;
-
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
-public sealed class FusionRunCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
+public sealed class FusionRunCommandTests(NitroCommandFixture fixture) : FusionCommandTestBase(fixture)
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "fusion",
-                "run",
-                "--help")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "run",
+            "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -39,30 +34,21 @@ public sealed class FusionRunCommandTests(NitroCommandFixture fixture) : IClassF
     }
 
     [Fact]
-    public async Task Run_Should_ReturnError_When_ArchiveFileNotFound()
+    public async Task FileDoesNotExist_ReturnsError()
     {
         // arrange
-        const string archiveFile = "nonexistent.far";
-
-        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
-        fileSystem.Setup(x => x.FileExists(archiveFile))
-            .Returns(false);
+        SetupNoAuthentication();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(fileSystem.Object)
-            .AddArguments(
-                "fusion",
-                "run",
-                archiveFile)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "run",
+            "nonexistent.far");
 
         // assert
         result.AssertError(
             """
             Archive file 'nonexistent.far' does not exist.
             """);
-
-        fileSystem.VerifyAll();
     }
 }

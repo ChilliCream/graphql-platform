@@ -1,7 +1,6 @@
 using System.Text.Json;
 using ChilliCream.Nitro.CommandLine.Arguments;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Services;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
@@ -14,8 +13,6 @@ internal sealed class FusionMigrateCommand : Command
 
         Arguments.Add(Opt<FusionMigrateTargetArgument>.Instance);
         Options.Add(Opt<WorkingDirectoryOption>.Instance);
-
-        this.AddGlobalNitroOptions();
 
         this.AddExamples("fusion migrate subgraph-config");
 

@@ -25,10 +25,10 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
             """
             Description:
               Upload a new OpenAPI collection version.
-            
+
             Usage:
               nitro openapi upload [options]
-            
+
             Options:
               --openapi-collection-id <openapi-collection-id> (REQUIRED)  The ID of the OpenAPI collection [env: NITRO_OPENAPI_COLLECTION_ID]
               --tag <tag> (REQUIRED)                                      The tag of the schema version to deploy [env: NITRO_TAG]
@@ -699,8 +699,7 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
             new UploadOpenApiCollectionCommandMutation_UploadOpenApiCollection_Errors_InvalidOpenApiCollectionArchiveError(
                 "Invalid archive format."),
             """
-            The server received an invalid archive. This indicates a bug in the tooling. Please notify ChilliCream.
-            Error received: Invalid archive format.
+            The server received an invalid archive. This indicates a bug in the tooling. Please notify ChilliCream. Error received: Invalid archive format.
             """
         ];
 

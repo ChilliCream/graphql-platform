@@ -50,8 +50,8 @@ internal sealed class FusionComposeCommand : Command
 
         var workingDirectory = parseResult.GetValue(Opt<WorkingDirectoryOption>.Instance)
             ?? fileSystem.GetCurrentDirectory();
-        var sourceSchemaFiles = parseResult.GetRequiredValue(Opt<OptionalSourceSchemaFileListOption>.Instance);
-        var archiveFile = parseResult.GetRequiredValue(Opt<OptionalFusionArchiveFileOption>.Instance);
+        var sourceSchemaFiles = parseResult.GetValue(Opt<OptionalSourceSchemaFileListOption>.Instance) ?? [];
+        var archiveFile = parseResult.GetValue(Opt<OptionalFusionArchiveFileOption>.Instance);
         var environment = parseResult.GetValue(Opt<FusionEnvironmentOption>.Instance);
         var enableGlobalObjectIdentification = parseResult.GetValue(
             Opt<EnableGlobalObjectIdentificationOption>.Instance);

@@ -98,6 +98,44 @@ public abstract class CommandTestBase
             .Returns(new MemoryStream(content ?? "archive-content"u8.ToArray()));
     }
 
+    protected void SetupDirectory(string path, params string[] files)
+    {
+        var fullPath = Path.Combine(_currentDirectory, path);
+        _fileSystemMock.Setup(x => x.DirectoryExists(fullPath)).Returns(true);
+
+        if (files.Length > 0)
+        {
+            _fileSystemMock
+                .Setup(x => x.GetFiles(fullPath, It.IsAny<string>(), It.IsAny<SearchOption>()))
+                .Returns(files);
+        }
+    }
+
+    /// <summary>
+    /// Sets up the mock to intercept <c>CreateFile</c> for the given path.
+    /// Returns the path to a real temp file that receives the written content.
+    /// </summary>
+    protected string SetupCreateFile(string path)
+    {
+        var fullPath = Path.Combine(_currentDirectory, path);
+        var tempFile = Path.GetTempFileName();
+        var stream = new FileStream(tempFile, FileMode.Create, FileAccess.ReadWrite);
+        _files.Add(stream);
+        _fileSystemMock.Setup(x => x.CreateFile(fullPath)).Returns(() =>
+        {
+            stream.Position = 0;
+            return stream;
+        });
+        return tempFile;
+    }
+
+    protected void SetupGlobMatch(string[] results)
+    {
+        _fileSystemMock
+            .Setup(x => x.GlobMatch(It.IsAny<IEnumerable<string>>(), It.IsAny<IEnumerable<string>?>()))
+            .Returns(results);
+    }
+
     protected void SetupEnvironmentVariable(string variableName, string value)
     {
         _environmentVariableProviderMock

@@ -47,16 +47,20 @@ internal sealed class FusionSettingsSetCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
         var environmentVariables = services.GetRequiredService<IEnvironmentVariableProvider>();
-        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         var settingName = parseResult.GetRequiredValue(Opt<FusionSettingsNameArgument>.Instance);
         var settingValue = parseResult.GetRequiredValue(Opt<FusionSettingsValueArgument>.Instance);
         var archiveFile = parseResult.GetRequiredValue(Opt<FusionArchiveFileOption>.Instance);
         var environment = parseResult.GetValue(Opt<FusionEnvironmentOption>.Instance);
+
+        if (!Path.IsPathRooted(archiveFile))
+        {
+            archiveFile = Path.Combine(fileSystem.GetCurrentDirectory(), archiveFile);
+        }
+
         if (!fileSystem.FileExists(archiveFile))
         {
-            console.Error.WriteErrorLine($"File '{archiveFile}' does not exist.");
-            return ExitCodes.Error;
+            throw new ExitException(ErrorMessages.ArchiveFileDoesNotExist(archiveFile));
         }
 
         var compositionSettings = new CompositionSettings();

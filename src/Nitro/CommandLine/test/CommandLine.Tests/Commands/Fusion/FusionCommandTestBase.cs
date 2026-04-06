@@ -326,6 +326,31 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
         SetupPublishingTaskSubscription(events);
     }
 
+    protected void SetupUploadSourceSchemaMutation(
+        params IUploadFusionSubgraph_UploadFusionSubgraph_Errors[] errors)
+    {
+        FusionConfigurationClientMock
+            .Setup(x => x.UploadFusionSubgraphAsync(
+                ApiId,
+                Tag,
+                It.IsAny<Stream>(),
+                null,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => CreateUploadSourceSchemaPayload(errors));
+    }
+
+    protected void SetupUploadSourceSchemaMutationException()
+    {
+        FusionConfigurationClientMock
+            .Setup(x => x.UploadFusionSubgraphAsync(
+                ApiId,
+                Tag,
+                It.IsAny<Stream>(),
+                null,
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Something unexpected happened."));
+    }
+
     #region Subscription Event Factories
 
     protected static IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged
@@ -662,6 +687,68 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
 
         return payload.Object;
     }
+
+    private static IUploadFusionSubgraph_UploadFusionSubgraph
+        CreateUploadSourceSchemaPayload(
+            IUploadFusionSubgraph_UploadFusionSubgraph_Errors[] errors)
+    {
+        var payload = new Mock<IUploadFusionSubgraph_UploadFusionSubgraph>(MockBehavior.Strict);
+
+        if (errors.Length > 0)
+        {
+            payload.SetupGet(x => x.Errors).Returns(errors);
+            payload.SetupGet(x => x.FusionSubgraphVersion)
+                .Returns((IUploadFusionSubgraph_UploadFusionSubgraph_FusionSubgraphVersion?)null);
+        }
+        else
+        {
+            payload.SetupGet(x => x.Errors)
+                .Returns((IReadOnlyList<IUploadFusionSubgraph_UploadFusionSubgraph_Errors>?)null);
+
+            var version = new Mock<IUploadFusionSubgraph_UploadFusionSubgraph_FusionSubgraphVersion>(MockBehavior.Strict);
+            version.SetupGet(x => x.Id).Returns("fsv-1");
+            payload.SetupGet(x => x.FusionSubgraphVersion).Returns(version.Object);
+        }
+
+        return payload.Object;
+    }
+
+    #region Error Factories — UploadSourceSchema
+
+    protected static IUploadFusionSubgraph_UploadFusionSubgraph_Errors
+        CreateUploadSourceSchemaUnauthorizedError(string message = "Not authorized to upload.")
+    {
+        var mock = new Mock<IUploadFusionSubgraph_UploadFusionSubgraph_Errors_UnauthorizedOperation>(MockBehavior.Strict);
+        mock.SetupGet(x => x.Message).Returns(message);
+        return mock.Object;
+    }
+
+    protected static IUploadFusionSubgraph_UploadFusionSubgraph_Errors
+        CreateUploadSourceSchemaDuplicatedTagError(string message = "Tag already exists.")
+    {
+        var mock = new Mock<IUploadFusionSubgraph_UploadFusionSubgraph_Errors_DuplicatedTagError>(MockBehavior.Strict);
+        mock.SetupGet(x => x.Message).Returns(message);
+        return mock.Object;
+    }
+
+    protected static IUploadFusionSubgraph_UploadFusionSubgraph_Errors
+        CreateUploadSourceSchemaConcurrentOperationError(string message = "A concurrent operation is in progress.")
+    {
+        var mock = new Mock<IUploadFusionSubgraph_UploadFusionSubgraph_Errors_ConcurrentOperationError>(MockBehavior.Strict);
+        mock.SetupGet(x => x.Message).Returns(message);
+        return mock.Object;
+    }
+
+    protected static IUploadFusionSubgraph_UploadFusionSubgraph_Errors
+        CreateUploadSourceSchemaInvalidArchiveError(string message = "The archive is invalid.")
+    {
+        var mock = new Mock<IUploadFusionSubgraph_UploadFusionSubgraph_Errors_InvalidFusionSourceSchemaArchiveError>(MockBehavior.Strict);
+        mock.As<IInvalidFusionSourceSchemaArchiveError>().SetupGet(x => x.Message).Returns(message);
+        mock.As<IError>().SetupGet(x => x.Message).Returns(message);
+        return mock.Object;
+    }
+
+    #endregion
 
     #region Error Factories — RequestDeploymentSlot (Begin)
 

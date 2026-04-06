@@ -47,7 +47,7 @@ internal class FusionRunCommand : Command
         var port = parseResult.GetValue(Opt<FusionRunPortOption>.Instance);
         if (!fileSystem.FileExists(archiveFilePath))
         {
-            throw new ExitException($"Archive file '{archiveFilePath}' does not exist.");
+            throw new ExitException(ErrorMessages.ArchiveFileDoesNotExist(archiveFilePath));
         }
 
         port ??= GetRandomUnusedPort();

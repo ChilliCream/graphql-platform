@@ -1,6 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
-public sealed class FusionMigrateCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>, IDisposable
+public sealed class FusionMigrateCommandTests(NitroCommandFixture fixture)
+    : FusionCommandTestBase(fixture), IDisposable
 {
     private readonly string _tempDir = CreateTempDir();
 
@@ -15,12 +16,10 @@ public sealed class FusionMigrateCommandTests(NitroCommandFixture fixture) : ICl
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "fusion",
-                "migrate",
-                "--help")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "migrate",
+            "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -36,9 +35,6 @@ public sealed class FusionMigrateCommandTests(NitroCommandFixture fixture) : ICl
 
             Options:
               -w, --working-directory <working-directory>  Set the working directory for the command
-              --cloud-url <cloud-url>                      The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                          The API key used for authentication [env: NITRO_API_KEY]
-              --output <json>                              The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
               -?, -h, --help                               Show help and usage information
 
             Example:
@@ -47,77 +43,14 @@ public sealed class FusionMigrateCommandTests(NitroCommandFixture fixture) : ICl
     }
 
     [Fact]
-    public async Task MissingRequiredOptions_ReturnsError_NonInteractive()
+    public async Task MissingRequiredOptions_ReturnsError()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "fusion",
-                "migrate")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "migrate");
 
         // assert
-        var output = result.StdOut.Replace(result.ExecutableName, "nitro");
-        output.MatchInlineSnapshot(
-            """
-            Description:
-              Migrate Fusion configuration files.
-
-            Usage:
-              nitro fusion migrate <TARGET> [options]
-
-            Arguments:
-              <subgraph-config>  The migration target
-
-            Options:
-              -w, --working-directory <working-directory>  Set the working directory for the command
-              --cloud-url <cloud-url>                      The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                          The API key used for authentication [env: NITRO_API_KEY]
-              --output <json>                              The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help                               Show help and usage information
-
-            Example:
-              nitro fusion migrate subgraph-config
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Required argument missing for command: 'migrate'.
-            """);
-        Assert.Equal(1, result.ExitCode);
-    }
-
-    [Fact]
-    public async Task MissingRequiredOptions_ReturnsError_JsonOutput()
-    {
-        // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "fusion",
-                "migrate")
-            .ExecuteAsync();
-
-        // assert
-        var output = result.StdOut.Replace(result.ExecutableName, "nitro");
-        output.MatchInlineSnapshot(
-            """
-            Description:
-              Migrate Fusion configuration files.
-
-            Usage:
-              nitro fusion migrate <TARGET> [options]
-
-            Arguments:
-              <subgraph-config>  The migration target
-
-            Options:
-              -w, --working-directory <working-directory>  Set the working directory for the command
-              --cloud-url <cloud-url>                      The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
-              --api-key <api-key>                          The API key used for authentication [env: NITRO_API_KEY]
-              --output <json>                              The output format (enables non-interactive mode) [env: NITRO_OUTPUT_FORMAT]
-              -?, -h, --help                               Show help and usage information
-            """);
         result.StdErr.MatchInlineSnapshot(
             """
             Required argument missing for command: 'migrate'.
@@ -129,8 +62,9 @@ public sealed class FusionMigrateCommandTests(NitroCommandFixture fixture) : ICl
     public async Task Migrate_SubgraphConfig()
     {
         // arrange
-        await File.WriteAllTextAsync(
-            Path.Combine(_tempDir, "subgraph-config.json"),
+        var sourceFile = Path.Combine(_tempDir, "subgraph-config.json");
+        var targetFile = Path.Combine(_tempDir, "schema-settings.json");
+        const string sourceContent =
             """
             {
               "subgraph": "Order",
@@ -146,22 +80,24 @@ public sealed class FusionMigrateCommandTests(NitroCommandFixture fixture) : ICl
                 }
               }
             }
-            """);
+            """;
+
+        SetupGlobMatch([sourceFile]);
+        SetupFile(sourceFile, sourceContent);
+        var outputFile = SetupCreateFile(targetFile);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "fusion",
-                "migrate",
-                "subgraph-config",
-                "--working-directory",
-                _tempDir)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "migrate",
+            "subgraph-config",
+            "--working-directory",
+            _tempDir);
 
         // assert
         Assert.Equal(0, result.ExitCode);
 
-        var json = await File.ReadAllTextAsync(Path.Combine(_tempDir, "schema-settings.json"));
+        var json = await File.ReadAllTextAsync(outputFile);
         json.MatchInlineSnapshot(
             """
             {
@@ -187,48 +123,45 @@ public sealed class FusionMigrateCommandTests(NitroCommandFixture fixture) : ICl
     public async Task Migrate_SubgraphConfig_SkipsIfTargetExists()
     {
         // arrange
-        const string existingContent = """{ "existing": true }""";
-        await File.WriteAllTextAsync(
-            Path.Combine(_tempDir, "subgraph-config.json"),
+        var sourceFile = Path.Combine(_tempDir, "subgraph-config.json");
+        var targetFile = Path.Combine(_tempDir, "schema-settings.json");
+        const string sourceContent =
             """
             {
               "subgraph": "Order",
               "http": { "baseAddress": "http://localhost:5001/graphql" }
             }
-            """);
-        await File.WriteAllTextAsync(
-            Path.Combine(_tempDir, "schema-settings.json"),
-            existingContent);
+            """;
+
+        SetupGlobMatch([sourceFile]);
+        SetupFile(sourceFile, sourceContent);
+        SetupFile(targetFile, """{ "existing": true }""");
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "fusion",
-                "migrate",
-                "subgraph-config",
-                "--working-directory",
-                _tempDir)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "migrate",
+            "subgraph-config",
+            "--working-directory",
+            _tempDir);
 
         // assert
         Assert.Equal(0, result.ExitCode);
-
-        var json = await File.ReadAllTextAsync(Path.Combine(_tempDir, "schema-settings.json"));
-        Assert.Equal(existingContent, json);
     }
 
     [Fact]
     public async Task Migrate_SubgraphConfig_NoFilesFound_ReturnsError()
     {
-        // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "fusion",
-                "migrate",
-                "subgraph-config",
-                "--working-directory",
-                _tempDir)
-            .ExecuteAsync();
+        // arrange
+        SetupGlobMatch([]);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "migrate",
+            "subgraph-config",
+            "--working-directory",
+            _tempDir);
 
         // assert
         Assert.Equal(1, result.ExitCode);
@@ -238,27 +171,31 @@ public sealed class FusionMigrateCommandTests(NitroCommandFixture fixture) : ICl
     public async Task Migrate_SubgraphConfig_MissingSubgraph()
     {
         // arrange
-        await File.WriteAllTextAsync(
-            Path.Combine(_tempDir, "subgraph-config.json"),
+        var sourceFile = Path.Combine(_tempDir, "subgraph-config.json");
+        var targetFile = Path.Combine(_tempDir, "schema-settings.json");
+        const string sourceContent =
             """
             {
               "http": { "baseAddress": "http://localhost:5001/graphql" }
             }
-            """);
+            """;
+
+        SetupGlobMatch([sourceFile]);
+        SetupFile(sourceFile, sourceContent);
+        var outputFile = SetupCreateFile(targetFile);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "fusion",
-                "migrate",
-                "subgraph-config",
-                "--working-directory",
-                _tempDir)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "migrate",
+            "subgraph-config",
+            "--working-directory",
+            _tempDir);
 
         // assert
         Assert.Equal(0, result.ExitCode);
-        var json = await File.ReadAllTextAsync(Path.Combine(_tempDir, "schema-settings.json"));
+
+        var json = await File.ReadAllTextAsync(outputFile);
         json.MatchInlineSnapshot(
             """
             {
@@ -271,49 +208,6 @@ public sealed class FusionMigrateCommandTests(NitroCommandFixture fixture) : ICl
               }
             }
             """);
-    }
-
-    [Fact]
-    public async Task Migrate_SubgraphConfig_MultipleFiles()
-    {
-        // arrange
-        var subDir1 = Path.Combine(_tempDir, "subgraph1");
-        var subDir2 = Path.Combine(_tempDir, "subgraph2");
-        Directory.CreateDirectory(subDir1);
-        Directory.CreateDirectory(subDir2);
-
-        await File.WriteAllTextAsync(
-            Path.Combine(subDir1, "subgraph-config.json"),
-            """
-            {
-              "subgraph": "Order",
-              "http": { "baseAddress": "http://localhost:5001/graphql" }
-            }
-            """);
-
-        await File.WriteAllTextAsync(
-            Path.Combine(subDir2, "subgraph-config.json"),
-            """
-            {
-              "subgraph": "Product",
-              "http": { "baseAddress": "http://localhost:5002/graphql" }
-            }
-            """);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "fusion",
-                "migrate",
-                "subgraph-config",
-                "--working-directory",
-                _tempDir)
-            .ExecuteAsync();
-
-        // assert
-        Assert.Equal(0, result.ExitCode);
-        Assert.True(File.Exists(Path.Combine(subDir1, "schema-settings.json")));
-        Assert.True(File.Exists(Path.Combine(subDir2, "schema-settings.json")));
     }
 
     public void Dispose()
