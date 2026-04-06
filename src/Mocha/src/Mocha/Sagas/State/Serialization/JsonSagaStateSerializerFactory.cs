@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 
@@ -6,12 +7,18 @@ namespace Mocha.Sagas;
 
 internal sealed class JsonSagaStateSerializerFactory(
     IEnumerable<IJsonTypeInfoResolver> typeInfos,
-    IReadOnlyMessagingOptions options)
-    : ISagaStateSerializerFactory
+    IReadOnlyMessagingOptions options) : ISagaStateSerializerFactory
 {
     private readonly ImmutableArray<IJsonTypeInfoResolver> _typeInfos = [.. typeInfos];
 
-#pragma warning disable IL2026, IL3050 // Reflection fallback for JSON serialization — AOT users should provide JsonSerializerContext
+    [UnconditionalSuppressMessage(
+        "Trimming",
+        "IL2026:RequiresUnreferencedCode",
+        Justification = "Reflection fallback only used when no JsonSerializerContext is provided.")]
+    [UnconditionalSuppressMessage(
+        "AOT",
+        "IL3050:RequiresDynamicCode",
+        Justification = "Reflection fallback only used when no JsonSerializerContext is provided.")]
     public ISagaStateSerializer GetSerializer(Type type)
     {
         JsonTypeInfo? typeInfo = null;
@@ -31,8 +38,8 @@ internal sealed class JsonSagaStateSerializerFactory(
             {
                 throw new InvalidOperationException(
                     $"No JsonTypeInfo found for saga state type '{type.Name}'. "
-                    + "Register it via [JsonSerializable] on your JsonSerializerContext. "
-                    + "Set RequireExplicitMessageTypes = false to allow reflection-based serialization.");
+                        + "Register it via [JsonSerializable] on your JsonSerializerContext. "
+                        + "Set RequireExplicitMessageTypes = false to allow reflection-based serialization.");
             }
 
             typeInfo = JsonSerializerOptions.Default.GetTypeInfo(type);
@@ -40,5 +47,4 @@ internal sealed class JsonSagaStateSerializerFactory(
 
         return new JsonSagaStateSerializer(typeInfo);
     }
-#pragma warning restore IL2026, IL3050
 }

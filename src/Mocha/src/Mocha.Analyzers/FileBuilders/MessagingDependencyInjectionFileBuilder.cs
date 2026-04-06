@@ -159,7 +159,7 @@ public sealed class MessagingDependencyInjectionFileBuilder : FileBuilderBase
         Writer.WriteIndentedLine("{");
         Writer.IncreaseIndent();
         Writer.WriteIndentedLine("SagaType = typeof({0}),", sagaTypeName);
-        Writer.WriteIndentedLine("StateSerializer = new global::Mocha.JsonSagaStateSerializer(");
+        Writer.WriteIndentedLine("StateSerializer = new global::Mocha.Sagas.JsonSagaStateSerializer(");
         Writer.IncreaseIndent();
         Writer.WriteIndentedLine("{0}.Default.GetTypeInfo(typeof({1}))!),", jsonContextTypeName, stateTypeName);
         Writer.DecreaseIndent();

@@ -4,10 +4,12 @@ using Mocha.Mediator;
 using Mocha.Transport.RabbitMQ;
 using RabbitMQ.Client;
 
-[assembly: MessagingModule("OrderService")]
+[assembly: MessagingModule("OrderService", JsonContext = typeof(OrderServiceJsonContext))]
 [assembly: MediatorModule("OrderService")]
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.WebHost.UseUrls("http://localhost:52300");
 
 builder.Services.AddSingleton<IConnectionFactory>(
     new ConnectionFactory { HostName = "localhost", Port = 5673 });

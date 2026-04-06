@@ -16,8 +16,7 @@ public class MediatorHandlerDescriptor
     /// </summary>
     /// <param name="context">The mediator configuration context.</param>
     /// <param name="handlerType">The concrete handler implementation type.</param>
-    public MediatorHandlerDescriptor(IMediatorConfigurationContext context, Type handlerType)
-        : base(context)
+    public MediatorHandlerDescriptor(IMediatorConfigurationContext context, Type handlerType) : base(context)
     {
         ArgumentNullException.ThrowIfNull(handlerType);
 
@@ -33,19 +32,22 @@ public class MediatorHandlerDescriptor
     /// <see cref="MediatorDescriptorBase{T}.Extend"/>, auto-detects handler metadata
     /// from the handler type's interfaces.
     /// </summary>
+    [UnconditionalSuppressMessage(
+        "Trimming",
+        "IL2026:RequiresUnreferencedCode",
+        Justification = "Reflection fallback only used for manual (non-generated) handler registration.")]
     public MediatorHandlerConfiguration CreateConfiguration()
     {
         if (Configuration.MessageType is null)
         {
-#pragma warning disable IL2026 // Reflection fallback only used for manual (non-generated) handler registration
             DetectHandler(Configuration.HandlerType!);
-#pragma warning restore IL2026
         }
 
         return Configuration;
     }
 
-    [RequiresUnreferencedCode("Handler detection uses reflection. Use source-generated AddHandlerConfiguration for AOT compatibility.")]
+    [RequiresUnreferencedCode(
+        "Handler detection uses reflection. Use source-generated AddHandlerConfiguration for AOT compatibility.")]
     private void DetectHandler(Type handlerType)
     {
         var found = false;

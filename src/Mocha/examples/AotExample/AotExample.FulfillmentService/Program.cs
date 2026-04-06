@@ -6,6 +6,8 @@ using RabbitMQ.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.UseUrls("http://localhost:52310");
+
 builder.Services.AddSingleton<IConnectionFactory>(
     new ConnectionFactory { HostName = "localhost", Port = 5673 });
 

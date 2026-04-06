@@ -44,7 +44,8 @@ public sealed class OrderPlacedHandler(
             new OrderShippedEvent
             {
                 OrderId = message.OrderId,
-                TrackingNumber = trackingNumber
+                TrackingNumber = trackingNumber,
+                CorrelationId = message.CorrelationId
             },
             cancellationToken);
 
