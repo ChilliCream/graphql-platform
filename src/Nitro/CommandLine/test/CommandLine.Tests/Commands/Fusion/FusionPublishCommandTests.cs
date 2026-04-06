@@ -7,7 +7,6 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 // - Test queueing
 // - Test validation errors being returned
 // - Test publish failing
-// - Test release failing after error
 public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : FusionCommandTestBase(fixture)
 {
     [Fact]
@@ -914,6 +913,97 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         Assert.Equal(1, result.ExitCode);
     }
 
+    [Fact]
+    public async Task WithArchive_ReleaseDeploymentSlotThrows_ReturnsError()
+    {
+        // arrange
+        SetupArchiveFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        // Note: We throw during the publishing process to trigger the finally block where the slot is released.
+        SetupClaimDeploymentSlotMutationException();
+        SetupReleaseDeploymentSlotMutationException();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--archive",
+            ArchiveFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Encountered an unexpected exception while trying to release the deployment slot after an error during the publishing process:
+            Something unexpected happened.
+            This is the error that caused the publishing process to fail in the first place:
+            There was an unexpected error: Something unexpected happened.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✕ Failed to claim the deployment slot.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [MemberData(nameof(GetReleaseDeploymentSlotErrors))]
+    public async Task WithArchive_ReleaseDeploymentSlotHasErrors_ReturnsError(
+        ICancelFusionConfigurationPublish_CancelFusionConfigurationComposition_Errors error,
+        string expectedErrorMessage)
+    {
+        // arrange
+        SetupArchiveFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        // Note: We throw during the publishing process to trigger the finally block where the slot is released.
+        SetupClaimDeploymentSlotMutationException();
+        SetupReleaseDeploymentSlotMutation(error);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--archive",
+            ArchiveFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            $"""
+             Encountered the following errors while trying to release the deployment slot after an error during the publishing process:
+             {expectedErrorMessage}
+             This is the error that caused the publishing process to fail in the first place:
+             There was an unexpected error: Something unexpected happened.
+             """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✕ Failed to claim the deployment slot.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
     #endregion
 
     #region Source Schema File
@@ -1192,6 +1282,49 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✕ Failed to claim the deployment slot.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_ConfigurationDownloadThrows_ReturnsError()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownloadException();
+        SetupReleaseDeploymentSlotMutation();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error: Something unexpected happened.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✕ Failed to download the existing Fusion configuration.
             └── ✕ Failed to publish Fusion configuration.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -1728,6 +1861,97 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         Assert.Equal(1, result.ExitCode);
     }
 
+    [Fact]
+    public async Task WithSourceSchemaFile_ReleaseDeploymentSlotThrows_ReturnsError()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        // Note: We throw during the publishing process to trigger the finally block where the slot is released.
+        SetupClaimDeploymentSlotMutationException();
+        SetupReleaseDeploymentSlotMutationException();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Encountered an unexpected exception while trying to release the deployment slot after an error during the publishing process:
+            Something unexpected happened.
+            This is the error that caused the publishing process to fail in the first place:
+            There was an unexpected error: Something unexpected happened.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✕ Failed to claim the deployment slot.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [MemberData(nameof(GetReleaseDeploymentSlotErrors))]
+    public async Task WithSourceSchemaFile_ReleaseDeploymentSlotHasErrors_ReturnsError(
+        ICancelFusionConfigurationPublish_CancelFusionConfigurationComposition_Errors error,
+        string expectedErrorMessage)
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupRequestDeploymentSlotMutation();
+        SetupRequestDeploymentSlotSubscription();
+        // Note: We throw during the publishing process to trigger the finally block where the slot is released.
+        SetupClaimDeploymentSlotMutationException();
+        SetupReleaseDeploymentSlotMutation(error);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            $"""
+             Encountered the following errors while trying to release the deployment slot after an error during the publishing process:
+             {expectedErrorMessage}
+             This is the error that caused the publishing process to fail in the first place:
+             There was an unexpected error: Something unexpected happened.
+             """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✕ Failed to claim the deployment slot.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
     #endregion
 
     #region Source Schema
@@ -1811,7 +2035,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         SetupFusionConfigurationDownload();
         SetupFusionConfigurationValidationMutation();
         SetupFusionConfigurationValidationSubscription();
-        SetupFusionConfigurationUploadMutation();
+        using var uploadResult = SetupFusionConfigurationUploadMutation();
         SetupFusionConfigurationUploadSubscription();
 
         // act
@@ -1847,6 +2071,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
             """);
+
+        using var archive = uploadResult.GetArchive();
     }
 
     [Fact]
@@ -2158,6 +2384,51 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ## Composition log
 
             ❌ [ERR] The @require directive on argument 'Query.field(arg:)' in schema 'products' contains invalid syntax in the 'field' argument. (REQUIRE_INVALID_SYNTAX)
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithSourceSchema_ConfigurationDownloadThrows_ReturnsError()
+    {
+        // arrange
+        SetupSourceSchemaDownload();
+        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
+        SetupRequestDeploymentSlotSubscription();
+        SetupClaimDeploymentSlotMutation();
+        SetupFusionConfigurationDownloadException();
+        SetupReleaseDeploymentSlotMutation();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error: Something unexpected happened.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✓ Claimed deployment slot.
+            ├── Downloading existing configuration from 'dev'
+            │   └── ✕ Failed to download the existing Fusion configuration.
+            └── ✕ Failed to publish Fusion configuration.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -2662,584 +2933,102 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         Assert.Equal(1, result.ExitCode);
     }
 
+        [Fact]
+    public async Task WithSourceSchema_ReleaseDeploymentSlotThrows_ReturnsError()
+    {
+        // arrange
+        SetupSourceSchemaDownload();
+        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
+        SetupRequestDeploymentSlotSubscription();
+        // Note: We throw during the publishing process to trigger the finally block where the slot is released.
+        SetupClaimDeploymentSlotMutationException();
+        SetupReleaseDeploymentSlotMutationException();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Encountered an unexpected exception while trying to release the deployment slot after an error during the publishing process:
+            Something unexpected happened.
+            This is the error that caused the publishing process to fail in the first place:
+            There was an unexpected error: Something unexpected happened.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✕ Failed to claim the deployment slot.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [MemberData(nameof(GetReleaseDeploymentSlotErrors))]
+    public async Task WithSourceSchema_ReleaseDeploymentSlotHasErrors_ReturnsError(
+        ICancelFusionConfigurationPublish_CancelFusionConfigurationComposition_Errors error,
+        string expectedErrorMessage)
+    {
+        // arrange
+        SetupSourceSchemaDownload();
+        SetupRequestDeploymentSlotMutation(sourceSchemaVersions: SourceSchemaVersions);
+        SetupRequestDeploymentSlotSubscription();
+        // Note: We throw during the publishing process to trigger the finally block where the slot is released.
+        SetupClaimDeploymentSlotMutationException();
+        SetupReleaseDeploymentSlotMutation(error);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            $"""
+             Encountered the following errors while trying to release the deployment slot after an error during the publishing process:
+             {expectedErrorMessage}
+             This is the error that caused the publishing process to fail in the first place:
+             There was an unexpected error: Something unexpected happened.
+             """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            ├── Downloading 1 source schema(s)
+            │   └── ✓ Downloaded 1 source schema(s).
+            ├── Requesting deployment slot
+            │   └── ✓ Deployment slot ready.
+            ├── Claiming deployment slot
+            │   └── ✕ Failed to claim the deployment slot.
+            └── ✕ Failed to publish Fusion configuration.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
     #endregion
-
-// --------------------------- OLD
-
-// [Fact]
-// public async Task ArchiveFileDoesNotExist_ReturnsError_NonInteractive()
-// {
-//     // arrange
-//     var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
-//     fileSystem.Setup(x => x.GetCurrentDirectory())
-//         .Returns("/tmp");
-//     fileSystem.Setup(x => x.FileExists(DefaultArchiveFile))
-//         .Returns(false);
-//
-//     // act
-//     var result = await new CommandBuilder(fixture)
-//         .AddService(fileSystem.Object)
-//         .AddApiKey()
-//         .AddInteractionMode(InteractionMode.NonInteractive)
-//         .AddArguments(
-//             "fusion",
-//             "publish",
-//             "--api-id",
-//             DefaultApiId,
-//             "--stage",
-//             DefaultStage,
-//             "--tag",
-//             DefaultTag,
-//             "--archive",
-//             DefaultArchiveFile)
-//         .ExecuteAsync();
-//
-//     // assert
-//     result.AssertError(
-//         """
-//         Archive file 'fusion.far' does not exist.
-//         """);
-//
-//     fileSystem.VerifyAll();
-// }
-//
-// [Fact]
-// public async Task ClientThrowsException_ReturnsError_NonInteractive()
-// {
-//     // arrange
-//     var (client, fileSystem) = CreateArchivePublishExceptionSetup(
-//         new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-//
-//     // act
-//     var result = await new CommandBuilder(fixture)
-//         .AddService(client.Object)
-//         .AddService(fileSystem.Object)
-//         .AddApiKey()
-//         .AddInteractionMode(InteractionMode.NonInteractive)
-//         .AddArguments(
-//             "fusion",
-//             "publish",
-//             "--api-id",
-//             DefaultApiId,
-//             "--stage",
-//             DefaultStage,
-//             "--tag",
-//             DefaultTag,
-//             "--archive",
-//             DefaultArchiveFile)
-//         .ExecuteAsync();
-//
-//     // assert
-//     result.StdOut.MatchInlineSnapshot(
-//         """
-//         Publishing Fusion configuration to stage 'production' of API 'api-1'
-//         ├── Requesting deployment slot
-//         │   └── ✕ Failed to request a deployment slot.
-//         └── ✕ Failed to publish Fusion configuration.
-//         """);
-//     result.StdErr.MatchInlineSnapshot(
-//         """
-//         The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-//         """);
-//     Assert.Equal(1, result.ExitCode);
-//
-//     client.VerifyAll();
-// }
-//
-// [Theory]
-// [InlineData(InteractionMode.Interactive)]
-// [InlineData(InteractionMode.JsonOutput)]
-// public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
-// {
-//     // arrange
-//     var (client, fileSystem) = CreateArchivePublishExceptionSetup(
-//         new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-//
-//     // act
-//     var result = await new CommandBuilder(fixture)
-//         .AddService(client.Object)
-//         .AddService(fileSystem.Object)
-//         .AddApiKey()
-//         .AddInteractionMode(mode)
-//         .AddArguments(
-//             "fusion",
-//             "publish",
-//             "--api-id",
-//             DefaultApiId,
-//             "--stage",
-//             DefaultStage,
-//             "--tag",
-//             DefaultTag,
-//             "--archive",
-//             DefaultArchiveFile)
-//         .ExecuteAsync();
-//
-//     // assert
-//     result.StdErr.MatchInlineSnapshot(
-//         """
-//         The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-//         """);
-//     Assert.Equal(1, result.ExitCode);
-//
-//     client.VerifyAll();
-// }
-//
-// [Fact]
-// public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
-// {
-//     // arrange
-//     var (client, fileSystem) = CreateArchivePublishExceptionSetup(
-//         new NitroClientAuthorizationException());
-//
-//     // act
-//     var result = await new CommandBuilder(fixture)
-//         .AddService(client.Object)
-//         .AddService(fileSystem.Object)
-//         .AddApiKey()
-//         .AddInteractionMode(InteractionMode.NonInteractive)
-//         .AddArguments(
-//             "fusion",
-//             "publish",
-//             "--api-id",
-//             DefaultApiId,
-//             "--stage",
-//             DefaultStage,
-//             "--tag",
-//             DefaultTag,
-//             "--archive",
-//             DefaultArchiveFile)
-//         .ExecuteAsync();
-//
-//     // assert
-//     result.StdOut.MatchInlineSnapshot(
-//         """
-//         Publishing Fusion configuration to stage 'production' of API 'api-1'
-//         ├── Requesting deployment slot
-//         │   └── ✕ Failed to request a deployment slot.
-//         └── ✕ Failed to publish Fusion configuration.
-//         """);
-//     result.StdErr.MatchInlineSnapshot(
-//         """
-//         The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-//         """);
-//     Assert.Equal(1, result.ExitCode);
-//
-//     client.VerifyAll();
-// }
-//
-// [Theory]
-// [InlineData(InteractionMode.Interactive)]
-// [InlineData(InteractionMode.JsonOutput)]
-// public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
-// {
-//     // arrange
-//     var (client, fileSystem) = CreateArchivePublishExceptionSetup(
-//         new NitroClientAuthorizationException());
-//
-//     // act
-//     var result = await new CommandBuilder(fixture)
-//         .AddService(client.Object)
-//         .AddService(fileSystem.Object)
-//         .AddApiKey()
-//         .AddInteractionMode(mode)
-//         .AddArguments(
-//             "fusion",
-//             "publish",
-//             "--api-id",
-//             DefaultApiId,
-//             "--stage",
-//             DefaultStage,
-//             "--tag",
-//             DefaultTag,
-//             "--archive",
-//             DefaultArchiveFile)
-//         .ExecuteAsync();
-//
-//     // assert
-//     result.StdErr.MatchInlineSnapshot(
-//         """
-//         The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-//         """);
-//     Assert.Equal(1, result.ExitCode);
-//
-//     client.VerifyAll();
-// }
-//
-// [Fact]
-// public async Task Publish_Should_UploadArchive_When_ArchiveFileProvided()
-// {
-//     // arrange
-//     var (client, fileSystem) = CreateArchivePublishSuccessSetup(
-//         CreateReadyEvent(),
-//         CreateCommitSuccessEvent());
-//
-//     // act
-//     var result = await new CommandBuilder(fixture)
-//         .AddService(client.Object)
-//         .AddService(fileSystem.Object)
-//         .AddApiKey()
-//         .AddInteractionMode(InteractionMode.NonInteractive)
-//         .AddArguments(
-//             "fusion",
-//             "publish",
-//             "--api-id",
-//             DefaultApiId,
-//             "--stage",
-//             DefaultStage,
-//             "--tag",
-//             DefaultTag,
-//             "--archive",
-//             DefaultArchiveFile)
-//         .ExecuteAsync();
-//
-//     // assert
-//     result.AssertSuccess(
-//         """
-//         Publishing Fusion configuration to stage 'production' of API 'api-1'
-//         ├── Requesting deployment slot
-//         │   ├── Request ID: request-123
-//         │   └── ✓ Deployment slot ready.
-//         ├── Claiming deployment slot
-//         │   └── ✓ Claimed deployment slot.
-//         ├── Uploading configuration to 'production'
-//         │   └── ✓ Uploaded configuration.
-//         └── ✓ Published configuration to 'production'.
-//         """);
-//
-//     client.VerifyAll();
-//     fileSystem.VerifyAll();
-// }
-//
-// [Fact]
-// public async Task Publish_Should_HandleSubscriptionEvents_When_Queued()
-// {
-//     // arrange
-//     var queuedEvent = CreateQueuedEvent(3);
-//     var readyEvent = CreateReadyEvent();
-//
-//     var (client, fileSystem) = CreateArchivePublishSuccessSetup(
-//         [queuedEvent, readyEvent],
-//         CreateCommitSuccessEvent());
-//
-//     // act
-//     var result = await new CommandBuilder(fixture)
-//         .AddService(client.Object)
-//         .AddService(fileSystem.Object)
-//         .AddApiKey()
-//         .AddInteractionMode(InteractionMode.NonInteractive)
-//         .AddArguments(
-//             "fusion",
-//             "publish",
-//             "--api-id",
-//             DefaultApiId,
-//             "--stage",
-//             DefaultStage,
-//             "--tag",
-//             DefaultTag,
-//             "--archive",
-//             DefaultArchiveFile)
-//         .ExecuteAsync();
-//
-//     // assert
-//     result.AssertSuccess(
-//         """
-//         Publishing Fusion configuration to stage 'production' of API 'api-1'
-//         ├── Requesting deployment slot
-//         │   ├── Request ID: request-123
-//         │   ├── Queued at position 3.
-//         │   └── ✓ Deployment slot ready.
-//         ├── Claiming deployment slot
-//         │   └── ✓ Claimed deployment slot.
-//         ├── Uploading configuration to 'production'
-//         │   └── ✓ Uploaded configuration.
-//         └── ✓ Published configuration to 'production'.
-//         """);
-//
-//     client.VerifyAll();
-//     fileSystem.VerifyAll();
-// }
-//
-// [Fact]
-// public async Task Publish_Should_HandleSubscriptionEvents_When_PublishSucceeds()
-// {
-//     // arrange
-//     var (client, fileSystem) = CreateArchivePublishSuccessSetup(
-//         CreateReadyEvent(),
-//         CreateCommitSuccessEvent());
-//
-//     // act
-//     var result = await new CommandBuilder(fixture)
-//         .AddService(client.Object)
-//         .AddService(fileSystem.Object)
-//         .AddApiKey()
-//         .AddInteractionMode(InteractionMode.NonInteractive)
-//         .AddArguments(
-//             "fusion",
-//             "publish",
-//             "--api-id",
-//             DefaultApiId,
-//             "--stage",
-//             DefaultStage,
-//             "--tag",
-//             DefaultTag,
-//             "--archive",
-//             DefaultArchiveFile)
-//         .ExecuteAsync();
-//
-//     // assert
-//     result.AssertSuccess(
-//         """
-//         Publishing Fusion configuration to stage 'production' of API 'api-1'
-//         ├── Requesting deployment slot
-//         │   ├── Request ID: request-123
-//         │   └── ✓ Deployment slot ready.
-//         ├── Claiming deployment slot
-//         │   └── ✓ Claimed deployment slot.
-//         ├── Uploading configuration to 'production'
-//         │   └── ✓ Uploaded configuration.
-//         └── ✓ Published configuration to 'production'.
-//         """);
-//
-//     client.VerifyAll();
-//     fileSystem.VerifyAll();
-// }
-//
-// [Fact]
-// public async Task Publish_Should_HandleSubscriptionEvents_When_PublishFails()
-// {
-//     // arrange
-//     var errorMock = new Mock<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors>(MockBehavior.Strict);
-//     errorMock.SetupGet(x => x.Message).Returns("Composition failed.");
-//
-//     var failedEvent = new Mock<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_FusionConfigurationPublishingFailed>(MockBehavior.Strict);
-//     failedEvent.As<IFusionConfigurationPublishingFailed>()
-//         .SetupGet(x => x.Errors)
-//         .Returns(new[] { errorMock.Object });
-//
-//     var (client, fileSystem) = CreateArchivePublishWithCommitEvents(
-//         CreateReadyEvent(),
-//         failedEvent.Object);
-//
-//     var releasePayload = new Mock<ICancelFusionConfigurationPublish_CancelFusionConfigurationComposition>(MockBehavior.Strict);
-//     releasePayload.SetupGet(x => x.Errors)
-//         .Returns((IReadOnlyList<ICancelFusionConfigurationPublish_CancelFusionConfigurationComposition_Errors>?)null);
-//     client.Setup(x => x.ReleaseDeploymentSlotAsync(
-//             DefaultRequestId,
-//             It.IsAny<CancellationToken>()))
-//         .ReturnsAsync(releasePayload.Object);
-//
-//     // act
-//     var result = await new CommandBuilder(fixture)
-//         .AddService(client.Object)
-//         .AddService(fileSystem.Object)
-//         .AddApiKey()
-//         .AddInteractionMode(InteractionMode.NonInteractive)
-//         .AddArguments(
-//             "fusion",
-//             "publish",
-//             "--api-id",
-//             DefaultApiId,
-//             "--stage",
-//             DefaultStage,
-//             "--tag",
-//             DefaultTag,
-//             "--archive",
-//             DefaultArchiveFile)
-//         .ExecuteAsync();
-//
-//     // assert
-//     result.StdOut.MatchInlineSnapshot(
-//         """
-//         Publishing Fusion configuration to stage 'production' of API 'api-1'
-//         ├── Requesting deployment slot
-//         │   ├── Request ID: request-123
-//         │   └── ✓ Deployment slot ready.
-//         ├── Claiming deployment slot
-//         │   └── ✓ Claimed deployment slot.
-//         ├── Uploading configuration to 'production'
-//         │   └── ✕ Failed to upload the new configuration.
-//         └── ✕ Failed to publish Fusion configuration.
-//         """);
-//     result.StdErr.MatchInlineSnapshot(
-//         """
-//         Composition failed.
-//         The commit has failed.
-//         The commit has failed.
-//         """);
-//     Assert.Equal(1, result.ExitCode);
-//
-//     client.VerifyAll();
-//     fileSystem.VerifyAll();
-// }
-//
-// // --- Helpers ---
-//
-// private static IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged
-//     CreateReadyEvent()
-// {
-//     return Mock.Of<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_ProcessingTaskIsReady>();
-// }
-//
-// private static IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged
-//     CreateCommitSuccessEvent()
-// {
-//     return Mock.Of<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_FusionConfigurationPublishingSuccess>();
-// }
-//
-// private static IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged
-//     CreateQueuedEvent(int position)
-// {
-//     var mock = new Mock<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_ProcessingTaskIsQueued>(MockBehavior.Strict);
-//     mock.As<IProcessingTaskIsQueued>()
-//         .SetupGet(x => x.QueuePosition)
-//         .Returns(position);
-//     return mock.Object;
-// }
-//
-// private static Mock<IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish>
-//     CreateSuccessPayload()
-// {
-//     var payload = new Mock<IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish>(MockBehavior.Strict);
-//     payload.SetupGet(x => x.Errors)
-//         .Returns((IReadOnlyList<IBeginFusionConfigurationPublish_BeginFusionConfigurationPublish_Errors>?)null);
-//     payload.SetupGet(x => x.RequestId).Returns(DefaultRequestId);
-//     return payload;
-// }
-//
-// private static Mock<ICommitFusionConfigurationPublish_CommitFusionConfigurationPublish>
-//     CreateCommitPayload()
-// {
-//     var payload = new Mock<ICommitFusionConfigurationPublish_CommitFusionConfigurationPublish>(MockBehavior.Strict);
-//     payload.SetupGet(x => x.Errors)
-//         .Returns((IReadOnlyList<ICommitFusionConfigurationPublish_CommitFusionConfigurationPublish_Errors>?)null);
-//     return payload;
-// }
-//
-// private static Mock<IFileSystem> CreateArchiveFileSystem()
-// {
-//     var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
-//     fileSystem.Setup(x => x.GetCurrentDirectory())
-//         .Returns("/tmp");
-//     fileSystem.Setup(x => x.FileExists(DefaultArchiveFile))
-//         .Returns(true);
-//     fileSystem.Setup(x => x.OpenReadStream(DefaultArchiveFile))
-//         .Returns(new MemoryStream("archive-content"u8.ToArray()));
-//     return fileSystem;
-// }
-//
-// private static (Mock<IFusionConfigurationClient> Client, Mock<IFileSystem> FileSystem)
-//     CreateArchivePublishSuccessSetup(
-//         IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged beginEvent,
-//         IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged commitEvent)
-// {
-//     return CreateArchivePublishSuccessSetup([beginEvent], commitEvent);
-// }
-//
-// private static (Mock<IFusionConfigurationClient> Client, Mock<IFileSystem> FileSystem)
-//     CreateArchivePublishSuccessSetup(
-//         IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged[] beginEvents,
-//         IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged commitEvent)
-// {
-//     return CreateArchivePublishWithCommitEvents(beginEvents, commitEvent, createCommitPayload: true);
-// }
-//
-// private static (Mock<IFusionConfigurationClient> Client, Mock<IFileSystem> FileSystem)
-//     CreateArchivePublishWithCommitEvents(
-//         IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged beginEvent,
-//         IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged commitEvent,
-//         bool createCommitPayload = true)
-// {
-//     return CreateArchivePublishWithCommitEvents([beginEvent], commitEvent, createCommitPayload);
-// }
-//
-// private static (Mock<IFusionConfigurationClient> Client, Mock<IFileSystem> FileSystem)
-//     CreateArchivePublishWithCommitEvents(
-//         IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged[] beginEvents,
-//         IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged commitEvent,
-//         bool createCommitPayload = true)
-// {
-//     var payload = CreateSuccessPayload();
-//     var claimPayload = new Mock<IStartFusionConfigurationPublish_StartFusionConfigurationComposition>(MockBehavior.Strict);
-//     claimPayload.SetupGet(x => x.Errors)
-//         .Returns((IReadOnlyList<IStartFusionConfigurationPublish_StartFusionConfigurationComposition_Errors>?)null);
-//     var commitPayloadMock = CreateCommitPayload();
-//
-//     var client = new Mock<IFusionConfigurationClient>(MockBehavior.Strict);
-//     client.Setup(x => x.RequestDeploymentSlotAsync(
-//             DefaultApiId,
-//             DefaultStage,
-//             DefaultTag,
-//             null,
-//             null,
-//             null,
-//             false,
-//             null,
-//             It.IsAny<CancellationToken>()))
-//         .ReturnsAsync(payload.Object);
-//
-//     var subscriptionCallCount = 0;
-//     client.Setup(x => x.SubscribeToFusionConfigurationPublishingTaskChangedAsync(
-//             DefaultRequestId,
-//             It.IsAny<CancellationToken>()))
-//         .Returns((string _, CancellationToken ct) =>
-//         {
-//             var call = Interlocked.Increment(ref subscriptionCallCount);
-//             if (call == 1)
-//             {
-//                 return ToAsyncEnumerable(beginEvents, ct);
-//             }
-//
-//             return ToAsyncEnumerable([commitEvent], ct);
-//         });
-//
-//     client.Setup(x => x.ClaimDeploymentSlotAsync(
-//             DefaultRequestId,
-//             It.IsAny<CancellationToken>()))
-//         .ReturnsAsync(claimPayload.Object);
-//
-//     client.Setup(x => x.CommitFusionArchiveAsync(
-//             DefaultRequestId,
-//             It.IsAny<Stream>(),
-//             It.IsAny<CancellationToken>()))
-//         .ReturnsAsync(commitPayloadMock.Object);
-//
-//     var fileSystem = CreateArchiveFileSystem();
-//
-//     return (client, fileSystem);
-// }
-//
-// private static (Mock<IFusionConfigurationClient> Client, Mock<IFileSystem> FileSystem)
-//     CreateArchivePublishExceptionSetup(Exception ex)
-// {
-//     var client = new Mock<IFusionConfigurationClient>(MockBehavior.Strict);
-//     client.Setup(x => x.RequestDeploymentSlotAsync(
-//             DefaultApiId,
-//             DefaultStage,
-//             DefaultTag,
-//             null,
-//             null,
-//             null,
-//             false,
-//             null,
-//             It.IsAny<CancellationToken>()))
-//         .ThrowsAsync(ex);
-//
-//     var fileSystem = CreateArchiveFileSystem();
-//
-//     return (client, fileSystem);
-// }
-//
-// private static async IAsyncEnumerable<T> ToAsyncEnumerable<T>(
-//     IEnumerable<T> items,
-//     [EnumeratorCancellation] CancellationToken ct = default)
-// {
-//     foreach (var item in items)
-//     {
-//         yield return item;
-//     }
-//
-//     await Task.CompletedTask;
-// }
 
     #region Theory Data
 
@@ -3280,6 +3069,15 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         { CreateUploadUnauthorizedError(), "Unauthorized." },
         { CreateUploadRequestNotFoundError(), "Fusion configuration request was not found." },
         { CreateUploadInvalidStateTransitionError(), "Invalid processing state transition." }
+    };
+
+    public static TheoryData<
+        ICancelFusionConfigurationPublish_CancelFusionConfigurationComposition_Errors,
+        string> GetReleaseDeploymentSlotErrors() => new()
+    {
+        { CreateReleaseDeploymentSlotUnauthorizedError(), "Unauthorized." },
+        { CreateReleaseDeploymentSlotRequestNotFoundError(), "Fusion configuration request was not found." },
+        { CreateReleaseDeploymentSlotInvalidStateTransitionError(), "Invalid processing state transition." }
     };
 
     #endregion

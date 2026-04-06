@@ -130,7 +130,7 @@ internal sealed class ListClientPublishedVersionsCommand : Command
             .Where(v => v.Stages.Count > 0)
             .ToArray();
 
-        resultHolder.SetResult(new ObjectResult(new PaginatedListResult<ClientPublishedVersionResult>(items, page.EndCursor)));
+        resultHolder.SetResult(new PaginatedListResult<ClientPublishedVersionResult>(items, page.EndCursor));
 
         return ExitCodes.Success;
     }

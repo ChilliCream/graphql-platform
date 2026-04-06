@@ -40,7 +40,6 @@ internal sealed class ValidateClientCommand : Command
         var client = services.GetRequiredService<IClientsClient>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
         var sessionService = services.GetRequiredService<ISessionService>();
-        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         parseResult.AssertHasAuthentication(sessionService);
 
@@ -138,12 +137,6 @@ internal sealed class ValidateClientCommand : Command
                             child.Success("Validation passed.");
                             rootActivity.Success($"Validated client against stage '{stage.EscapeMarkup()}'.");
 
-                            resultHolder.SetResult(new ObjectResult(new ValidateClientResult
-                            {
-                                RequestId = requestId,
-                                Status = "success"
-                            }));
-
                             return ExitCodes.Success;
 
                         case IOperationInProgress:
@@ -163,12 +156,5 @@ internal sealed class ValidateClientCommand : Command
         }
 
         return ExitCodes.Error;
-    }
-
-    public class ValidateClientResult
-    {
-        public required string RequestId { get; init; }
-
-        public required string Status { get; init; }
     }
 }

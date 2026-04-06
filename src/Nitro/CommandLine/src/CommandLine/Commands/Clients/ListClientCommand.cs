@@ -105,9 +105,9 @@ internal sealed class ListClientCommand : Command
             .Select(x => ClientDetailPrompt.From(x).ToObject())
             .ToArray();
 
-        resultHolder.SetResult(new ObjectResult(new PaginatedListResult<ClientDetailPrompt.ClientDetailPromptResult>(
+        resultHolder.SetResult(new PaginatedListResult<ClientDetailPrompt.ClientDetailPromptResult>(
             items,
-            page.EndCursor)));
+            page.EndCursor));
 
         return ExitCodes.Success;
     }

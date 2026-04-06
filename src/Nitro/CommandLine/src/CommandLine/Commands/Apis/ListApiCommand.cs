@@ -92,7 +92,7 @@ internal sealed class ListApiCommand : Command
             .ToArray();
 
         resultHolder.SetResult(
-            new ObjectResult(new PaginatedListResult<ApiDetailPrompt.ApiDetailPromptResult>(items, data.EndCursor)));
+            new PaginatedListResult<ApiDetailPrompt.ApiDetailPromptResult>(items, data.EndCursor));
 
         return ExitCodes.Success;
     }

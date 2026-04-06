@@ -1,10 +1,6 @@
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine;
-using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Services;
-using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
 
@@ -36,11 +32,20 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
         var requestId =
             parseResult.GetValue(Opt<OptionalRequestIdOption>.Instance) ??
             await FusionConfigurationPublishingState.GetRequestId(fileSystem, cancellationToken) ??
-            throw new ExitException(
-                "No request ID was provided and no request ID was found in the cache. Please provide a request ID.");
+            throw new ExitException(ErrorMessages.NoFusionRequestId);
 
         var archiveFile =
             parseResult.GetRequiredValue(Opt<FusionArchiveFileOption>.Instance);
+
+        if (!Path.IsPathRooted(archiveFile))
+        {
+            archiveFile = Path.Combine(fileSystem.GetCurrentDirectory(), archiveFile);
+        }
+
+        if (!fileSystem.FileExists(archiveFile))
+        {
+            throw new ExitException(ErrorMessages.ArchiveFileDoesNotExist(archiveFile));
+        }
 
         await using (var activity = console.StartActivity(
             "Validating Fusion configuration",

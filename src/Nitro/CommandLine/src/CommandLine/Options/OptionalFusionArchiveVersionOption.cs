@@ -4,7 +4,7 @@ namespace ChilliCream.Nitro.CommandLine;
 
 internal sealed class OptionalFusionArchiveVersionOption : Option<Version>
 {
-    private const string OptionName = "--version";
+    public const string OptionName = "--version";
 
     public OptionalFusionArchiveVersionOption() : base(OptionName)
     {
@@ -20,7 +20,7 @@ internal sealed class OptionalFusionArchiveVersionOption : Option<Version>
             }
             else
             {
-                result.AddError($"Option '--{OptionName}' received an invalid value: {versionStr}");
+                result.AddError($"Option '{OptionName}' received an invalid value: {versionStr}");
                 return null;
             }
         };

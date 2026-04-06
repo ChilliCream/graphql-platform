@@ -23,4 +23,7 @@ internal static class ErrorMessages
 
     public const string UnknownServerResponse =
         "Unknown server response. Consider updating the CLI.";
+
+    public const string NoFusionRequestId =
+        "No request ID was provided and no request ID was found in the cache. Please provide a request ID.";
 }

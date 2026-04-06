@@ -30,10 +30,10 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             """
             Description:
               Validate a client version.
-            
+
             Usage:
               nitro client validate [options]
-            
+
             Options:
               --client-id <client-id> (REQUIRED)              The ID of the client [env: NITRO_CLIENT_ID]
               --stage <stage> (REQUIRED)                      The name of the stage [env: NITRO_STAGE]
@@ -399,7 +399,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
     }
 
     [Fact]
-    public async Task Subscription_InProgressThenSuccess_ReturnsSuccess_NonInteractive()
+    public async Task Subscription_InProgressThenSuccess_ReturnsSuccess()
     {
         // arrange
         var (client, fileSystem) = CreateValidationSetupWithSubscription(
@@ -439,89 +439,6 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             │   ├── Validating...
             │   └── ✓ Validation passed.
             └── ✓ Validated client against stage 'production'.
-            
-            {
-              "requestId": "request-1",
-              "status": "success"
-            }
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task Subscription_InProgressThenSuccess_ReturnsSuccess_Interactive()
-    {
-        // arrange
-        var (client, fileSystem) = CreateValidationSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate[]
-            {
-                CreateOperationInProgress(),
-                CreateValidationInProgress(),
-                CreateValidationSuccess()
-            });
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "client",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--client-id",
-                DefaultClientId,
-                "--operations-file",
-                DefaultOperationsFile)
-            .ExecuteAsync();
-
-        // assert
-        result.AssertSuccess();
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task Subscription_InProgressThenSuccess_ReturnsSuccess_JsonOutput()
-    {
-        // arrange
-        var (client, fileSystem) = CreateValidationSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate[]
-            {
-                CreateOperationInProgress(),
-                CreateValidationInProgress(),
-                CreateValidationSuccess()
-            });
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--client-id",
-                DefaultClientId,
-                "--operations-file",
-                DefaultOperationsFile)
-            .ExecuteAsync();
-
-        // assert
-        result.AssertSuccess(
-            """
-            {
-              "requestId": "request-1",
-              "status": "success"
-            }
             """);
 
         client.VerifyAll();
@@ -785,10 +702,9 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             ├── Validating
             │   └── ✕ Validation failed.
             └── ✕ Failed to validate the client.
-            ! There were errors on client my-client (ID: client-1)
-            Validation failed for persisted queries.
-            └── Query def456 is invalid.
-                └── Field 'bar' does not exist.
+            └── Client 'my-client' (ID: client-1)
+                └── Operation 'def456'
+                    └── Field 'bar' does not exist.
             """);
         result.StdErr.MatchInlineSnapshot(
             """

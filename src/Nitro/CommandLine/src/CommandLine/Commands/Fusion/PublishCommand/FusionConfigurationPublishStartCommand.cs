@@ -38,7 +38,7 @@ internal sealed class FusionConfigurationPublishStartCommand : Command
             parseResult.GetValue(Opt<OptionalRequestIdOption>.Instance) ??
             await FusionConfigurationPublishingState.GetRequestId(fileSystem, cancellationToken) ??
             throw new ExitException(
-                "No request ID was provided and no request ID was found in the cache. Please provide a request ID.");
+                ErrorMessages.NoFusionRequestId);
 
         await using (var activity = console.StartActivity(
             "Starting composition",

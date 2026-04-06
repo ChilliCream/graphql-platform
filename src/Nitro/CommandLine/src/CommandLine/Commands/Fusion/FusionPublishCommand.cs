@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 #endif
 using System.Text;
 using System.Text.Json;
+using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.Client.FusionConfiguration;
@@ -407,9 +408,39 @@ internal sealed class FusionPublishCommand : Command
             {
                 if (!string.IsNullOrEmpty(requestId))
                 {
-                    await client.ReleaseDeploymentSlotAsync(requestId, CancellationToken.None);
+                    try
+                    {
+                        var releaseResult = await client.ReleaseDeploymentSlotAsync(requestId, CancellationToken.None);
 
-                    // TODO: Handle errors
+                        if (releaseResult.Errors is { Count: > 0 })
+                        {
+                            console.Error.WriteErrorLine(
+                                "Encountered the following errors while trying to release the deployment slot after an error during the publishing process:");
+
+                            foreach (var error in releaseResult.Errors)
+                            {
+                                var errorMessage = error switch
+                                {
+                                    IUnauthorizedOperation err => err.Message,
+                                    IFusionConfigurationRequestNotFoundError err => err.Message,
+                                    IInvalidProcessingStateTransitionError err => err.Message,
+                                    IError err => ErrorMessages.UnexpectedMutationError(err),
+                                    _ => ErrorMessages.UnexpectedMutationError()
+                                };
+
+                                console.Error.WriteErrorLine(errorMessage);
+                            }
+
+                            console.Error.WriteErrorLine("This is the error that caused the publishing process to fail in the first place:");
+                        }
+                    }
+                    catch (Exception exception)
+                    {
+                        console.Error.WriteErrorLine(
+                            "Encountered an unexpected exception while trying to release the deployment slot after an error during the publishing process:");
+                        console.Error.WriteErrorLine(exception.Message);
+                        console.Error.WriteErrorLine("This is the error that caused the publishing process to fail in the first place:");
+                    }
                 }
 
                 throw;

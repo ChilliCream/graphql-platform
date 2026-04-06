@@ -5,6 +5,7 @@ using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Commands.Fusion;
 using HotChocolate.Fusion;
+using HotChocolate.Fusion.Packaging;
 using Moq;
 using Moq.Language;
 
@@ -17,8 +18,7 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
     protected const string SourceSchemaFile = "products/schema.graphqls";
     protected const string SourceSchemaSettingsFile = "products/schema-settings.json";
     protected const string SourceSchema = "products";
-    protected static readonly SourceSchemaVersion[] SourceSchemaVersions =
-        [new SourceSchemaVersion(SourceSchema, Tag)];
+    protected static readonly SourceSchemaVersion[] SourceSchemaVersions = [new(SourceSchema, Tag)];
     private const string SourceSchemaText =
         """
         type Query {
@@ -73,38 +73,7 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
 
     protected void SetupArchiveFile()
     {
-        var stream = new MemoryStream();
-
-        SetupFile(ArchiveFile, stream);
-    }
-
-    // TODO: Change this
-    protected void SetupValidateArchiveFile()
-    {
-        var stream = new MemoryStream();
-
-        using (var zip = new ZipArchive(stream, ZipArchiveMode.Create, leaveOpen: true))
-        {
-            var metadataEntry = zip.CreateEntry("archive-metadata.json");
-            using (var writer = new StreamWriter(metadataEntry.Open()))
-            {
-                writer.Write("""{"formatVersion":"1.0.0","supportedGatewayFormats":["1.0"],"sourceSchemas":[]}""");
-            }
-
-            var schemaEntry = zip.CreateEntry("gateway/1.0/gateway.graphqls");
-            using (var writer = new StreamWriter(schemaEntry.Open()))
-            {
-                writer.Write("type Query { hello: String }");
-            }
-
-            var settingsEntry = zip.CreateEntry("gateway/1.0/gateway-settings.json");
-            using (var writer = new StreamWriter(settingsEntry.Open()))
-            {
-                writer.Write("{}");
-            }
-        }
-
-        stream.Position = 0;
+        var stream = new MemoryStream(); // await CreateFusionArchiveStreamAsync();
 
         SetupFile(ArchiveFile, stream);
     }
@@ -195,7 +164,7 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
                 version,
                 archiveFormat,
             It.IsAny<CancellationToken>()))
-            .Returns(async () => await CreateFusionAsyncStreamAsync());
+            .Returns(async () => await CreateFusionArchiveStreamAsync(version, archiveFormat));
     }
 
     protected void SetupMissingFusionConfigurationDownload(
@@ -224,16 +193,24 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
             .ThrowsAsync(new InvalidOperationException("Something unexpected happened."));
     }
 
-    protected void SetupFusionConfigurationValidationMutation(
+    protected CapturedUpload SetupFusionConfigurationValidationMutation(
         params IValidateFusionConfigurationPublish_ValidateFusionConfigurationComposition_Errors[] errors)
     {
+        var archiveStream = new MemoryStream();
+
         FusionConfigurationClientMock
             .Setup(x => x.ValidateFusionConfigurationPublishAsync(
                 RequestId,
-                // TODO: This needs to be properly asserted
                 It.IsAny<Stream>(),
                 It.IsAny<CancellationToken>()))
+            .Callback<string, Stream, CancellationToken>((_, stream, _) =>
+            {
+                stream.CopyTo(archiveStream);
+                archiveStream.Position = 0;
+            })
             .ReturnsAsync(() => CreateValidateFusionConfigurationPublishPayload(errors));
+
+        return new CapturedUpload(archiveStream);
     }
 
     protected void SetupFusionConfigurationValidationSubscription(
@@ -247,16 +224,24 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
         SetupPublishingTaskSubscription(events);
     }
 
-    protected void SetupFusionConfigurationUploadMutation(
+    protected CapturedUpload SetupFusionConfigurationUploadMutation(
         params ICommitFusionConfigurationPublish_CommitFusionConfigurationPublish_Errors[] errors)
     {
+        var archiveStream = new MemoryStream();
+
         FusionConfigurationClientMock
             .Setup(x => x.CommitFusionArchiveAsync(
                 RequestId,
-                // TODO: This needs to be properly asserted
                 It.IsAny<Stream>(),
                 It.IsAny<CancellationToken>()))
+            .Callback<string, Stream, CancellationToken>((_, stream, _) =>
+            {
+                stream.CopyTo(archiveStream);
+                archiveStream.Position = 0;
+            })
             .ReturnsAsync(() => CreateCommitFusionArchivePayload(errors));
+
+        return new CapturedUpload(archiveStream);
     }
 
     protected void SetupSourceSchemaDownloadException()
@@ -613,7 +598,9 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
         _setup.Returns(events.ToAsyncEnumerable());
     }
 
-    private async Task<Stream?> CreateFusionAsyncStreamAsync()
+    private async Task<MemoryStream> CreateFusionArchiveStreamAsync(
+        string version = "2.0.0",
+        string archiveFormat = ArchiveFormats.Far)
     {
         // TODO: Properly fill this
         return new MemoryStream();
@@ -916,4 +903,11 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
 
     #endregion
 
+    protected sealed class CapturedUpload(MemoryStream stream) : IDisposable
+    {
+        public FusionArchive GetArchive()
+            => FusionArchive.Open(stream, leaveOpen: true);
+
+        public void Dispose() => stream.Dispose();
+    }
 }

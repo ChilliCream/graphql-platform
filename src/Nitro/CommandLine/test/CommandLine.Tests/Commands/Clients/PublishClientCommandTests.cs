@@ -456,85 +456,6 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             │   ├── Your request is being processed.
             │   └── ✓ Published successfully.
             └── ✓ Published new client version 'v1.0' to stage 'production'.
-
-            {
-              "stage": "production",
-              "status": "success"
-            }
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task Subscription_Success_ReturnsSuccess_Interactive()
-    {
-        // arrange
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate[]
-            {
-                CreateOperationInProgress(),
-                CreatePublishSuccess()
-            });
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "client",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--client-id",
-                DefaultClientId)
-            .ExecuteAsync();
-
-        // assert
-        result.AssertSuccess();
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task Subscription_Success_ReturnsSuccess_JsonOutput()
-    {
-        // arrange
-        var client = CreatePublishSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate[]
-            {
-                CreateOperationInProgress(),
-                CreatePublishSuccess()
-            });
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--client-id",
-                DefaultClientId)
-            .ExecuteAsync();
-
-        // assert
-        result.AssertSuccess(
-            """
-            {
-              "stage": "production",
-              "status": "success"
-            }
             """);
 
         client.VerifyAll();
@@ -726,11 +647,6 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             │   ├── Your request is being processed.
             │   └── ✓ Published successfully.
             └── ✓ Published new client version 'v1.0' to stage 'production'.
-
-            {
-              "stage": "production",
-              "status": "success"
-            }
             """);
 
         client.VerifyAll();
@@ -776,11 +692,6 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             │   ├── Your request is being processed.
             │   └── ✓ Published successfully.
             └── ✓ Published new client version 'v1.0' to stage 'production'.
-
-            {
-              "stage": "production",
-              "status": "success"
-            }
             """);
 
         client.VerifyAll();
@@ -826,18 +737,13 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             │   ├── Your request is being processed.
             │   └── ✓ Published successfully.
             └── ✓ Published new client version 'v1.0' to stage 'production'.
-
-            {
-              "stage": "production",
-              "status": "success"
-            }
             """);
 
         client.VerifyAll();
     }
 
     [Fact]
-    public async Task Subscription_WaitForApproval_UpdatesActivity_NonInteractive()
+    public async Task Subscription_WaitForApproval_UpdatesActivity()
     {
         // arrange
         var waitForApprovalEvent = new OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_WaitForApproval(
@@ -883,11 +789,6 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             │   ├── Your request is being processed.
             │   └── ✓ Published successfully.
             └── ✓ Published new client version 'v1.0' to stage 'production'.
-
-            {
-              "stage": "production",
-              "status": "success"
-            }
             """);
 
         client.VerifyAll();
@@ -971,11 +872,6 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             ├── Processing
             │   └── ✓ Published successfully.
             └── ✓ Published new client version 'v1.0' to stage 'production'.
-
-            {
-              "stage": "production",
-              "status": "success"
-            }
             """);
 
         client.VerifyAll();
@@ -1102,10 +998,9 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             ├── Processing
             │   └── ✕ Processing failed.
             └── ✕ Failed to publish a new client version.
-            ! There were errors on client my-client (ID: client-1)
-            Validation failed for persisted queries.
-            └── Query abc123 is invalid.
-                └── Field 'foo' does not exist.
+            └── Client 'my-client' (ID: client-1)
+                └── Operation 'abc123'
+                    └── Field 'foo' does not exist.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -1154,11 +1049,6 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : ICl
             ├── Processing
             │   └── ✓ Published successfully.
             └── ✓ Published new client version 'v1.0' to stage 'production'.
-
-            {
-              "stage": "production",
-              "status": "success"
-            }
             """);
 
         client.VerifyAll();

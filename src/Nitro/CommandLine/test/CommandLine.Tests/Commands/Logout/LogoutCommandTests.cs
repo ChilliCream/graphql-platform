@@ -160,7 +160,7 @@ public sealed class LogoutCommandTests(NitroCommandFixture fixture) : IClassFixt
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Unexpected error
+            There was an unexpected error: Unexpected error
             """);
         Assert.Equal(1, result.ExitCode);
 

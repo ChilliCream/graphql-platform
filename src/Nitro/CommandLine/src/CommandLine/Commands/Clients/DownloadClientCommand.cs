@@ -87,21 +87,8 @@ internal sealed class DownloadClientCommand : Command
 
             activity.Success($"Downloaded the client from stage '{stageName.EscapeMarkup()}'.");
 
-            resultHolder.SetResult(new ObjectResult(new DownloadClientResult
-            {
-                File = output,
-                Format = format.ToLowerInvariant()
-            }));
-
             return ExitCodes.Success;
         }
-    }
-
-    public class DownloadClientResult
-    {
-        public required string File { get; init; }
-
-        public required string Format { get; init; }
     }
 
     private static async Task WriteToRelayJson(

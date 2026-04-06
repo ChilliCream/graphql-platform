@@ -38,7 +38,7 @@ internal sealed class FusionConfigurationPublishCommitCommand : Command
             parseResult.GetValue(Opt<OptionalRequestIdOption>.Instance) ??
             await FusionConfigurationPublishingState.GetRequestId(fileSystem, ct) ??
             throw new ExitException(
-                "No request ID was provided and no request ID was found in the cache. Please provide a request ID.");
+                ErrorMessages.NoFusionRequestId);
 
         var archiveFile =
             parseResult.GetRequiredValue(Opt<FusionArchiveFileOption>.Instance);

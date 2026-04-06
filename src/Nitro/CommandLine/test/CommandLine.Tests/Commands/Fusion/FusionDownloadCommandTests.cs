@@ -117,13 +117,14 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : Fu
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Option '----version' received an invalid value: invalid
+            Option '--version' received an invalid value: invalid
             """);
         Assert.Equal(1, result.ExitCode);
     }
 
     #endregion
 
+    // TODO: createfile needs to be properly setup
     [Fact]
     public async Task DownloadFarFile_ReturnsSuccess()
     {

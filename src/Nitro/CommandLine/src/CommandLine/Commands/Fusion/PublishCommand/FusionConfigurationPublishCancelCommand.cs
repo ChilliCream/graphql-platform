@@ -1,3 +1,4 @@
+using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Services;
@@ -36,13 +37,32 @@ internal sealed class FusionConfigurationPublishCancelCommand : Command
             parseResult.GetValue(Opt<OptionalRequestIdOption>.Instance) ??
             await FusionConfigurationPublishingState.GetRequestId(fileSystem, cancellationToken) ??
             throw new ExitException(
-                "No request ID was provided and no request ID was found in the cache. Please provide a request ID.");
+                ErrorMessages.NoFusionRequestId);
 
         await using (var activity = console.StartActivity(
             "Canceling publication",
             "Failed to cancel the publication."))
         {
-            await fusionConfigurationClient.ReleaseDeploymentSlotAsync(requestId, cancellationToken);
+            var result = await fusionConfigurationClient.ReleaseDeploymentSlotAsync(requestId, cancellationToken);
+
+            if (result.Errors is { Count: > 0 })
+            {
+                foreach (var error in result.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        IUnauthorizedOperation err => err.Message,
+                        IFusionConfigurationRequestNotFoundError err => err.Message,
+                        IInvalidProcessingStateTransitionError err => err.Message,
+                        IError err => ErrorMessages.UnexpectedMutationError(err),
+                        _ => ErrorMessages.UnexpectedMutationError()
+                    };
+
+                    console.Error.WriteErrorLine(errorMessage);
+                }
+
+                throw new ExitException();
+            }
 
             activity.Success($"Canceled publication for request '{requestId.EscapeMarkup()}'.");
 

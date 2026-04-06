@@ -1,10 +1,7 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine;
-using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
-using ChilliCream.Nitro.CommandLine.Services.Configuration;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
@@ -43,7 +40,6 @@ internal sealed class UploadClientCommand : Command
         var client = services.GetRequiredService<IClientsClient>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
         var sessionService = services.GetRequiredService<ISessionService>();
-        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         parseResult.AssertHasAuthentication(sessionService);
 
@@ -98,23 +94,7 @@ internal sealed class UploadClientCommand : Command
 
             activity.Success($"Uploaded new client version '{tag.EscapeMarkup()}'.");
 
-            resultHolder.SetResult(new ObjectResult(new UploadClientResult
-            {
-                ClientVersionId = data.ClientVersion.Id,
-                ClientId = clientId,
-                Tag = tag
-            }));
-
             return ExitCodes.Success;
         }
-    }
-
-    public class UploadClientResult
-    {
-        public required string ClientVersionId { get; init; }
-
-        public required string ClientId { get; init; }
-
-        public required string Tag { get; init; }
     }
 }

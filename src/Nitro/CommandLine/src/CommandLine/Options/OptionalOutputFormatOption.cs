@@ -11,9 +11,7 @@ internal sealed class OptionalOutputFormatOption : Option<OutputFormat?>
 
         Required = false;
 
-        // TODO: Not sure if this is better
-       AcceptOnlyFromAmong("json");
-        // HelpName = "json";
+        AcceptOnlyFromAmong("json");
 
         this.DefaultFromEnvironmentValue(EnvironmentVariables.OutputFormat);
     }

@@ -106,7 +106,7 @@ internal sealed class DeleteStageCommand : Command
                 .ToArray();
 
             resultHolder.SetResult(
-                new ObjectResult(new PaginatedListResult<StageDetailPrompt.StageDetailPromptResult>(items, null)));
+                new PaginatedListResult<StageDetailPrompt.StageDetailPromptResult>(items, null));
 
             return ExitCodes.Success;
         }

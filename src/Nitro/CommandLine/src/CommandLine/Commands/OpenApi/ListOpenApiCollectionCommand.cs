@@ -102,7 +102,7 @@ internal sealed class ListOpenApiCollectionCommand : Command
             .ToArray();
 
         resultHolder.SetResult(
-            new ObjectResult(new PaginatedListResult<OpenApiCollectionDetailPrompt.OpenApiCollectionDetailPromptResult>(items, data.EndCursor)));
+            new PaginatedListResult<OpenApiCollectionDetailPrompt.OpenApiCollectionDetailPromptResult>(items, data.EndCursor));
 
         return ExitCodes.Success;
     }

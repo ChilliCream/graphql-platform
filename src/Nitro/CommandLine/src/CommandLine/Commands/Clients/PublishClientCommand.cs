@@ -54,7 +54,6 @@ internal sealed class PublishClientCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var client = services.GetRequiredService<IClientsClient>();
         var sessionService = services.GetRequiredService<ISessionService>();
-        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         parseResult.AssertHasAuthentication(sessionService);
 
@@ -168,12 +167,6 @@ internal sealed class PublishClientCommand : Command
                             child.Success("Published successfully.");
                             rootActivity.Success($"Published new client version '{tag.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}'.");
 
-                            resultHolder.SetResult(new ObjectResult(new PublishClientResult
-                            {
-                                Stage = stage,
-                                Status = "success"
-                            }));
-
                             return ExitCodes.Success;
 
                         case IProcessingTaskIsReady:
@@ -218,12 +211,5 @@ internal sealed class PublishClientCommand : Command
         }
 
         return ExitCodes.Error;
-    }
-
-    public class PublishClientResult
-    {
-        public required string Stage { get; init; }
-
-        public required string Status { get; init; }
     }
 }

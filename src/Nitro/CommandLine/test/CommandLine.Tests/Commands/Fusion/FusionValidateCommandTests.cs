@@ -190,7 +190,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         SetupEnvironmentVariable(EnvironmentVariables.Stage, Stage);
         SetupEnvironmentVariable(EnvironmentVariables.FusionConfigFile, ArchiveFile);
 
-        SetupValidateArchiveFile();
+        SetupArchiveFile();
         SetupValidateSchemaVersionMutation();
         SetupSchemaVersionValidationSubscription();
 
@@ -212,7 +212,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     public async Task WithArchive_ReturnsSuccess()
     {
         // arrange
-        SetupValidateArchiveFile();
+        SetupArchiveFile();
         SetupValidateSchemaVersionMutation();
         SetupSchemaVersionValidationSubscription();
 
@@ -243,7 +243,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         string expectedErrorMessage)
     {
         // arrange
-        SetupValidateArchiveFile();
+        SetupArchiveFile();
         SetupValidateSchemaVersionMutation(error);
 
         // act
@@ -271,7 +271,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     public async Task WithArchive_ValidateSchemaVersionThrows_ReturnsError()
     {
         // arrange
-        SetupValidateArchiveFile();
+        SetupArchiveFile();
         SetupValidateSchemaVersionMutationException();
 
         // act
@@ -302,7 +302,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     public async Task WithArchive_BreakingChanges_ReturnsError()
     {
         // arrange
-        SetupValidateArchiveFile();
+        SetupArchiveFile();
         SetupFusionConfigurationDownload();
         SetupValidateSchemaVersionMutation();
         SetupSchemaVersionValidationSubscription(
@@ -563,6 +563,39 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
                 └── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
                     └── Tool 'test-tool'
                         └── Invalid MCP schema. (5:3)
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task WithSourceSchemaFile_ConfigurationDownloadThrows_ReturnsError()
+    {
+        // arrange
+        SetupSourceSchemaFile();
+        SetupFusionConfigurationDownloadException();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "validate",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--source-schema-file",
+            SourceSchemaFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error: Something unexpected happened.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating Fusion configuration against stage 'dev' of API 'api-1'
+            ├── Downloading existing Fusion configuration
+            │   └── ✕ Failed to download existing Fusion configuration.
+            └── ✕ Failed to validate the Fusion configuration.
             """);
         Assert.Equal(1, result.ExitCode);
     }

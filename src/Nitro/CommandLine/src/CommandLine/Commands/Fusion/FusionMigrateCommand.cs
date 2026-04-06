@@ -60,7 +60,7 @@ internal sealed class FusionMigrateCommand : Command
 
         if (sourceFiles.Length == 0)
         {
-            console.Error.WriteErrorLine($"No {sourceFileName} files found.");
+            console.Error.WriteErrorLine($"Could not find any '{sourceFileName}' files in '{workingDirectory}'.");
             return ExitCodes.Error;
         }
 

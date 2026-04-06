@@ -101,7 +101,7 @@ internal sealed class ListMockCommand : Command
             .ToArray();
 
         resultHolder.SetResult(
-            new ObjectResult(new PaginatedListResult<MockSchemaDetailPrompt.MockSchemaDetailPromptResult>(items, data.EndCursor)));
+            new PaginatedListResult<MockSchemaDetailPrompt.MockSchemaDetailPromptResult>(items, data.EndCursor));
 
         return ExitCodes.Success;
     }

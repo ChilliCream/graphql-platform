@@ -38,6 +38,26 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
             """);
     }
 
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task ArchiveFileDoesNotExist_ReturnsError(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion", "publish", "validate", "--archive", ArchiveFile, "--request-id", RequestId);
+
+        // assert
+        result.AssertError(
+            """
+            Archive file '/some/working/directory/fusion.far' does not exist.
+            """);
+    }
+
     [Fact]
     public async Task FusionConfigurationValidationThrows_ReturnsError()
     {

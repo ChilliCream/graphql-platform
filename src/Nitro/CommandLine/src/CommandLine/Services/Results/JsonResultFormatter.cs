@@ -9,15 +9,18 @@ internal sealed class JsonResultFormatter(INitroConsole console) : IResultFormat
         switch (result)
         {
             case ObjectResult objectResult:
-                FormatObjectResult(objectResult);
+                Serialize(objectResult.Value);
+                break;
+
+            default:
+                Serialize(result);
                 break;
         }
     }
 
-    private void FormatObjectResult(ObjectResult objectResult)
+    private void Serialize(object value)
     {
-        var obj = objectResult.Value;
-        var serializedObj = JsonSerializer.Serialize(obj, obj.GetType(), JsonSourceGenerationContext.Default);
+        var serializedObj = JsonSerializer.Serialize(value, value.GetType(), JsonSourceGenerationContext.Default);
 
         console.Out.WriteLine(serializedObj);
     }

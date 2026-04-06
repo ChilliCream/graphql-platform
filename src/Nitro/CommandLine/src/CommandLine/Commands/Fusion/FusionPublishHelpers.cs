@@ -425,6 +425,25 @@ internal static class FusionPublishHelpers
             archive = FusionArchive.Create(archiveStream, leaveOpen: true);
         }
 
+        var result = await ComposeAsync(
+            archive,
+            environment,
+            newSourceSchemas,
+            compositionSettings,
+            cancellationToken);
+
+        archiveStream.Seek(0, SeekOrigin.Begin);
+
+        return result;
+    }
+
+    public static async Task<(CompositionResult<MutableSchemaDefinition>, CompositionLog)> ComposeAsync(
+        FusionArchive archive,
+        string environment,
+        Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas,
+        CompositionSettings? compositionSettings,
+        CancellationToken cancellationToken)
+    {
         var compositionLog = new CompositionLog();
 
         var result = await CompositionHelper.ComposeAsync(
@@ -434,8 +453,6 @@ internal static class FusionPublishHelpers
             environment,
             compositionSettings,
             cancellationToken);
-
-        archiveStream.Seek(0, SeekOrigin.Begin);
 
         return (result, compositionLog);
     }

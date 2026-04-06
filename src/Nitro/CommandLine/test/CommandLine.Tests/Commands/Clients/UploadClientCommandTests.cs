@@ -25,10 +25,10 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
             """
             Description:
               Upload a new client version.
-            
+
             Usage:
               nitro client upload [options]
-            
+
             Options:
               --client-id <client-id> (REQUIRED)              The ID of the client [env: NITRO_CLIENT_ID]
               --tag <tag> (REQUIRED)                          The tag of the schema version to deploy [env: NITRO_TAG]
@@ -461,7 +461,7 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
     }
 
     [Fact]
-    public async Task Success_UploadsClient_NonInteractive()
+    public async Task Success_UploadsClient()
     {
         // arrange
         var (client, fileSystem) = CreateUploadSetup(CreateUploadSuccessPayload());
@@ -488,77 +488,6 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
             """
             Uploading new client version 'v1' for client 'client-1'
             └── ✓ Uploaded new client version 'v1'.
-
-            {
-              "clientVersionId": "cv-1",
-              "clientId": "client-1",
-              "tag": "v1"
-            }
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task Success_UploadsClient_Interactive()
-    {
-        // arrange
-        var (client, fileSystem) = CreateUploadSetup(CreateUploadSuccessPayload());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "client",
-                "upload",
-                "--tag",
-                "v1",
-                "--operations-file",
-                "operations.json",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertSuccess();
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task Success_UploadsClient_JsonOutput()
-    {
-        // arrange
-        var (client, fileSystem) = CreateUploadSetup(CreateUploadSuccessPayload());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "upload",
-                "--tag",
-                "v1",
-                "--operations-file",
-                "operations.json",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertSuccess(
-            """
-            {
-              "clientVersionId": "cv-1",
-              "clientId": "client-1",
-              "tag": "v1"
-            }
             """);
 
         client.VerifyAll();
@@ -619,7 +548,7 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            File not found.
+            There was an unexpected error: File not found.
             """);
         Assert.Equal(1, result.ExitCode);
 

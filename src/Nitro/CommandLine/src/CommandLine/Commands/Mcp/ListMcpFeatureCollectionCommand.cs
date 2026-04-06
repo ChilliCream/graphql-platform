@@ -103,7 +103,7 @@ internal sealed class ListMcpFeatureCollectionCommand : Command
             .ToArray();
 
         resultHolder.SetResult(
-            new ObjectResult(new PaginatedListResult<McpFeatureCollectionDetailPrompt.McpFeatureCollectionDetailPromptResult>(items, data.EndCursor)));
+            new PaginatedListResult<McpFeatureCollectionDetailPrompt.McpFeatureCollectionDetailPromptResult>(items, data.EndCursor));
 
         return ExitCodes.Success;
     }

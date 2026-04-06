@@ -1,16 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Results;
 
-internal abstract class Result;
+internal abstract record Result;
 
-internal class ObjectResult(object value) : Result
-{
-    public object Value { get; } = value;
-}
+internal sealed record ObjectResult(object Value) : Result;
 
-// TODO: Turn this into result again
-internal sealed class PaginatedListResult<TItem>(TItem[] values, string? cursor)
-{
-    public TItem[] Values { get; } = values;
-
-    public string? Cursor { get; } = cursor;
-}
+internal sealed record PaginatedListResult<TItem>(TItem[] Values, string? Cursor) : Result;

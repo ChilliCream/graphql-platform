@@ -124,7 +124,7 @@ internal sealed class ListClientVersionsCommand : Command
             .Select(ToResult)
             .ToArray();
 
-        resultHolder.SetResult(new ObjectResult(new PaginatedListResult<ClientVersionResult>(items, page.EndCursor)));
+        resultHolder.SetResult(new PaginatedListResult<ClientVersionResult>(items, page.EndCursor));
 
         return ExitCodes.Success;
     }

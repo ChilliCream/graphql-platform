@@ -446,8 +446,7 @@ internal sealed class FusionComposeCommand : Command
                 return 1;
             }
 
-            console.WriteLine(
-                string.Format("✅ Composite schema written to '{0}'.", archiveFile));
+            console.WriteLine($"✅ Composite schema written to '{archiveFile}'.");
 
             return 0;
         }

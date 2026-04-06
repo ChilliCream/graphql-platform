@@ -1,8 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using ChilliCream.Nitro.CommandLine.Arguments;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine;
-using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Options;
@@ -53,16 +51,6 @@ internal sealed class FusionSettingsSetCommand : Command
         var archiveFile = parseResult.GetRequiredValue(Opt<FusionArchiveFileOption>.Instance);
         var environment = parseResult.GetValue(Opt<FusionEnvironmentOption>.Instance);
 
-        if (!Path.IsPathRooted(archiveFile))
-        {
-            archiveFile = Path.Combine(fileSystem.GetCurrentDirectory(), archiveFile);
-        }
-
-        if (!fileSystem.FileExists(archiveFile))
-        {
-            throw new ExitException(ErrorMessages.ArchiveFileDoesNotExist(archiveFile));
-        }
-
         var compositionSettings = new CompositionSettings();
 
         switch (settingName)
@@ -70,10 +58,9 @@ internal sealed class FusionSettingsSetCommand : Command
             case FusionSettingsNameArgument.CacheControlMergeBehavior:
                 if (!TryParseDirectiveMergeBehavior(settingValue, out var cacheControlMergeBehavior))
                 {
-                    console.Error.WriteErrorLine(
+                    throw new ExitException(
                         $"Expected one of the following values for setting '{settingName}': "
                         + $"{string.Join(", ", DirectiveMergeBehaviorNames.All)}");
-                    return ExitCodes.Error;
                 }
 
                 compositionSettings.Merger.CacheControlMergeBehavior = cacheControlMergeBehavior;
@@ -89,8 +76,7 @@ internal sealed class FusionSettingsSetCommand : Command
             case FusionSettingsNameArgument.GlobalObjectIdentification:
                 if (!bool.TryParse(settingValue, out var enableGlobalObjectIdentification))
                 {
-                    console.Error.WriteErrorLine($"Expected a boolean value for setting '{settingName}'.");
-                    return ExitCodes.Error;
+                    throw new ExitException($"Expected a boolean value for setting '{settingName}'.");
                 }
 
                 compositionSettings.Merger.EnableGlobalObjectIdentification = enableGlobalObjectIdentification;
@@ -99,10 +85,9 @@ internal sealed class FusionSettingsSetCommand : Command
             case FusionSettingsNameArgument.TagMergeBehavior:
                 if (!TryParseDirectiveMergeBehavior(settingValue, out var tagMergeBehavior))
                 {
-                    console.Error.WriteErrorLine(
+                    throw new ExitException(
                         $"Expected one of the following values for setting '{settingName}': "
                         + $"{string.Join(", ", DirectiveMergeBehaviorNames.All)}");
-                    return ExitCodes.Error;
                 }
 
                 compositionSettings.Merger.TagMergeBehavior = tagMergeBehavior;
@@ -112,30 +97,57 @@ internal sealed class FusionSettingsSetCommand : Command
                 throw new ArgumentOutOfRangeException(nameof(settingName));
         }
 
+        if (!Path.IsPathRooted(archiveFile))
+        {
+            archiveFile = Path.Combine(fileSystem.GetCurrentDirectory(), archiveFile);
+        }
+
+        if (!fileSystem.FileExists(archiveFile))
+        {
+            throw new ExitException(ErrorMessages.ArchiveFileDoesNotExist(archiveFile));
+        }
+
         using var archive = FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update);
 
         environment ??= environmentVariables.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
 
-        // TODO: Fix this
-        const bool success = true;
-        // var composeResult = await FusionPublishHelpers.ComposeAsync(
-        //     archive,
-        //     environment,
-        //     [],
-        //     compositionSettings,
-        //     cancellationToken);
-        //
-        // var success = composeResult.Success;
-        //
-        // if (!composeResult.Log.IsEmpty)
-        // {
-        //     FusionComposeCommand.WriteCompositionLog(
-        //         composeResult.Log,
-        //         console.Out,
-        //         false);
-        // }
+        await using var composeActivity = console.StartActivity(
+            "Composing new configuration",
+            "Failed to compose new configuration.");
 
-        return success ? ExitCodes.Success : ExitCodes.Error;
+        var (result, compositionLog) = await FusionPublishHelpers.ComposeAsync(
+            archive,
+            environment,
+            [],
+            compositionSettings,
+            cancellationToken);
+
+        if (result.IsSuccess)
+        {
+            composeActivity.Success("Composed new configuration.");
+
+            return ExitCodes.Success;
+        }
+        else
+        {
+            await composeActivity.FailAllAsync();
+
+            console.WriteLine();
+            console.WriteLine("## Composition log");
+            console.WriteLine();
+
+            FusionComposeCommand.WriteCompositionLog(
+                compositionLog,
+                console.Out,
+                false);
+
+            foreach (var error in result.Errors)
+            {
+                console.Error.WriteErrorLine(error.Message);
+            }
+
+            throw new ExitException();
+        }
     }
 
     private static bool TryParseDirectiveMergeBehavior(

@@ -7,7 +7,6 @@ using ChilliCream.Nitro.CommandLine;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Sessions;
 
-// TODO: Not sure if this is the best extension point
 internal static class ParseResultExtensions
 {
     public static void AssertHasAuthentication(
@@ -43,11 +42,10 @@ internal static class ParseResultExtensions
     {
         var forceOption = parseResult.GetValue(Opt<OptionalForceOption>.Instance);
 
-        // TODO: How to do this. Maybe getResult?
-        // if (forceOption is not null)
-        // {
-        //     return true;
-        // }
+        if (!forceOption)
+        {
+            return true;
+        }
 
         return await console.ConfirmAsync(message, cancellationToken);
     }

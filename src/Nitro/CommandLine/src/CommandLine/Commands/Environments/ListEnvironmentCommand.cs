@@ -90,8 +90,8 @@ internal sealed class ListEnvironmentCommand : Command
             .Select(x => x.ToObject())
             .ToArray();
 
-        resultHolder.SetResult(new ObjectResult(
-            new PaginatedListResult<EnvironmentDetailPrompt.EnvironmentDetailPromptResult>(items, data.EndCursor)));
+        resultHolder.SetResult(
+            new PaginatedListResult<EnvironmentDetailPrompt.EnvironmentDetailPromptResult>(items, data.EndCursor));
 
         return ExitCodes.Success;
     }

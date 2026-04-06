@@ -351,59 +351,7 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
     }
 
     [Fact]
-    public async Task Success_RelayFormat_WritesJsonFile_Interactive()
-    {
-        // arrange
-        var queryStream = CreatePersistedQueryStream(
-            ("doc-1", Guid.Empty, "query { hello }"),
-            ("doc-2", Guid.Empty, "query { world }"));
-
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.DownloadPersistedQueriesAsync(
-                "api-1",
-                "production",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(queryStream);
-
-        var fileStream = new MemoryStream();
-        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
-        fileSystem.Setup(x => x.FileExists("queries.json")).Returns(false);
-        fileSystem.Setup(x => x.CreateFile("queries.json")).Returns(fileStream);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "client",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "production",
-                "--path",
-                "queries.json",
-                "--format",
-                "relay")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertSuccess();
-
-        var written = Encoding.UTF8.GetString(fileStream.ToArray());
-        Assert.Contains("doc-1", written);
-        Assert.Contains("doc-2", written);
-        Assert.Contains("query { hello }", written);
-        Assert.Contains("query { world }", written);
-
-        client.VerifyAll();
-        fileSystem.VerifyAll();
-    }
-
-    [Fact]
-    public async Task Success_RelayFormat_WritesJsonFile_NonInteractive()
+    public async Task Success_RelayFormat_WritesJsonFile()
     {
         // arrange
         var queryStream = CreatePersistedQueryStream(
@@ -446,69 +394,6 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
             """
             Downloading client from stage 'production' of API 'api-1'
             └── ✓ Downloaded the client from stage 'production'.
-
-            {
-              "file": "queries.json",
-              "format": "relay"
-            }
-            """);
-
-        var written = Encoding.UTF8.GetString(fileStream.ToArray());
-        Assert.Contains("doc-1", written);
-        Assert.Contains("doc-2", written);
-        Assert.Contains("query { hello }", written);
-        Assert.Contains("query { world }", written);
-
-        client.VerifyAll();
-        fileSystem.VerifyAll();
-    }
-
-    [Fact]
-    public async Task Success_RelayFormat_WritesJsonFile_JsonOutput()
-    {
-        // arrange
-        var queryStream = CreatePersistedQueryStream(
-            ("doc-1", Guid.Empty, "query { hello }"),
-            ("doc-2", Guid.Empty, "query { world }"));
-
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.DownloadPersistedQueriesAsync(
-                "api-1",
-                "production",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(queryStream);
-
-        var fileStream = new MemoryStream();
-        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
-        fileSystem.Setup(x => x.FileExists("queries.json")).Returns(false);
-        fileSystem.Setup(x => x.CreateFile("queries.json")).Returns(fileStream);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "production",
-                "--path",
-                "queries.json",
-                "--format",
-                "relay")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertSuccess(
-            """
-            {
-              "file": "queries.json",
-              "format": "relay"
-            }
             """);
 
         var written = Encoding.UTF8.GetString(fileStream.ToArray());
@@ -565,11 +450,6 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
             """
             Downloading client from stage 'production' of API 'api-1'
             └── ✓ Downloaded the client from stage 'production'.
-
-            {
-              "file": "queries.json",
-              "format": "relay"
-            }
             """);
         fileSystem.Verify(x => x.DeleteFile("queries.json"), Times.Once);
 
@@ -578,57 +458,7 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
     }
 
     [Fact]
-    public async Task Success_FolderFormat_WritesFiles_Interactive()
-    {
-        // arrange
-        var queryStream = CreatePersistedQueryStream(
-            ("doc-1", Guid.Empty, "query { hello }"));
-
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.DownloadPersistedQueriesAsync(
-                "api-1",
-                "production",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(queryStream);
-
-        var docFileStream = new MemoryStream();
-        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
-        fileSystem.Setup(x => x.DirectoryExists("output-dir")).Returns(false);
-        fileSystem.Setup(x => x.CreateDirectory("output-dir"));
-        fileSystem.Setup(x => x.FileExists(Path.Combine("output-dir", "doc-1.graphql"))).Returns(false);
-        fileSystem.Setup(x => x.CreateFile(Path.Combine("output-dir", "doc-1.graphql"))).Returns(docFileStream);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "client",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "production",
-                "--path",
-                "output-dir",
-                "--format",
-                "folder")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertSuccess();
-
-        var written = Encoding.UTF8.GetString(docFileStream.ToArray());
-        Assert.Equal("query { hello }", written);
-
-        client.VerifyAll();
-        fileSystem.VerifyAll();
-    }
-
-    [Fact]
-    public async Task Success_FolderFormat_WritesFiles_NonInteractive()
+    public async Task Success_FolderFormat_WritesFiles()
     {
         // arrange
         var queryStream = CreatePersistedQueryStream(
@@ -672,67 +502,6 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
             """
             Downloading client from stage 'production' of API 'api-1'
             └── ✓ Downloaded the client from stage 'production'.
-
-            {
-              "file": "output-dir",
-              "format": "folder"
-            }
-            """);
-
-        var written = Encoding.UTF8.GetString(docFileStream.ToArray());
-        Assert.Equal("query { hello }", written);
-
-        client.VerifyAll();
-        fileSystem.VerifyAll();
-    }
-
-    [Fact]
-    public async Task Success_FolderFormat_WritesFiles_JsonOutput()
-    {
-        // arrange
-        var queryStream = CreatePersistedQueryStream(
-            ("doc-1", Guid.Empty, "query { hello }"));
-
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.DownloadPersistedQueriesAsync(
-                "api-1",
-                "production",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(queryStream);
-
-        var docFileStream = new MemoryStream();
-        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
-        fileSystem.Setup(x => x.DirectoryExists("output-dir")).Returns(false);
-        fileSystem.Setup(x => x.CreateDirectory("output-dir"));
-        fileSystem.Setup(x => x.FileExists(Path.Combine("output-dir", "doc-1.graphql"))).Returns(false);
-        fileSystem.Setup(x => x.CreateFile(Path.Combine("output-dir", "doc-1.graphql"))).Returns(docFileStream);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "production",
-                "--path",
-                "output-dir",
-                "--format",
-                "folder")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertSuccess(
-            """
-            {
-              "file": "output-dir",
-              "format": "folder"
-            }
             """);
 
         var written = Encoding.UTF8.GetString(docFileStream.ToArray());
@@ -787,11 +556,6 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
             """
             Downloading client from stage 'production' of API 'api-1'
             └── ✓ Downloaded the client from stage 'production'.
-
-            {
-              "file": "output-dir",
-              "format": "folder"
-            }
             """);
 
         var written = Encoding.UTF8.GetString(docFileStream.ToArray());
@@ -846,11 +610,6 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
             """
             Downloading client from stage 'production' of API 'api-1'
             └── ✓ Downloaded the client from stage 'production'.
-
-            {
-              "file": "output-dir",
-              "format": "folder"
-            }
             """);
 
         var written = Encoding.UTF8.GetString(docFileStream.ToArray());

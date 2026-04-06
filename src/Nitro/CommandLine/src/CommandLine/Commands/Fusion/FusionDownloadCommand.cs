@@ -47,7 +47,6 @@ internal sealed class FusionDownloadCommand : Command
         var fusionConfigurationClient = services.GetRequiredService<IFusionConfigurationClient>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
         var sessionService = services.GetRequiredService<ISessionService>();
-        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         parseResult.AssertHasAuthentication(sessionService);
 
@@ -57,30 +56,31 @@ internal sealed class FusionDownloadCommand : Command
         var outputFile = parseResult.GetValue(Opt<OptionalOutputFileOption>.Instance);
 
         var archiveFormat = version.Major == 1 ? ArchiveFormats.Fgp : ArchiveFormats.Far;
+        const string legacyArchiveVersion = "1.0.0";
 
         if (string.IsNullOrEmpty(outputFile))
         {
-            outputFile = Path.Combine(fileSystem.GetCurrentDirectory(), "gateway." + archiveFormat);
+            outputFile = "gateway." + archiveFormat;
         }
-        else
+
+        if (!Path.IsPathRooted(outputFile))
         {
-            if (!Path.IsPathRooted(outputFile))
-            {
-                outputFile = Path.Combine(fileSystem.GetCurrentDirectory(), outputFile);
-            }
+            outputFile = Path.Combine(fileSystem.GetCurrentDirectory(), outputFile);
+        }
 
-            var extension = Path.GetExtension(outputFile);
-            var wantsToDownloadFgp = extension.Equals(".fgp", StringComparison.OrdinalIgnoreCase);
+        var extension = Path.GetExtension(outputFile);
+        var wantsToDownloadFgp = extension.Equals(".fgp", StringComparison.OrdinalIgnoreCase);
 
-            if (wantsToDownloadFgp && version.Major > 1)
-            {
-                throw new ExitException("TODO");
-            }
+        if (wantsToDownloadFgp && version.Major > 1)
+        {
+            throw new ExitException(
+                $"Specify '{OptionalFusionArchiveVersionOption.OptionName} {legacyArchiveVersion}' if you want to download a '.fgp' legacy Fusion archive.");
+        }
 
-            if (!wantsToDownloadFgp && version.Major == 1)
-            {
-                throw new ExitException("TODO");
-            }
+        if (!wantsToDownloadFgp && version.Major == 1)
+        {
+            throw new ExitException(
+                $"Specify the '.fgp' extension through the '{OptionalOutputFileOption.OptionName}' option, if you want to download a legacy Fusion archive.");
         }
 
         var isFgp = version.Major == 1;
@@ -88,7 +88,7 @@ internal sealed class FusionDownloadCommand : Command
         await using var stream = await fusionConfigurationClient.DownloadLatestFusionArchiveAsync(
             apiId,
             stageName,
-            isFgp ? "1.0.0" : version.ToString(),
+            isFgp ? legacyArchiveVersion : version.ToString(),
             archiveFormat,
             cancellationToken);
 
