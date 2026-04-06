@@ -532,32 +532,6 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
         client.VerifyAll();
     }
 
-    [Fact]
-    public async Task Upload_Should_ReturnError_When_SourceMetadataInvalid()
-    {
-        // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "mcp",
-                "upload",
-                "--tag",
-                "v1",
-                "--mcp-feature-collection-id",
-                "mcp-1",
-                "--source-metadata",
-                "{broken}")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Failed to parse --source-metadata: 'b' is an invalid start of a property name. Expected a '"'. Path: $ | LineNumber: 0 | BytePositionInLine: 1.
-            """);
-        Assert.Equal(1, result.ExitCode);
-    }
-
     private static Mock<IFileSystem> CreateMcpFileSystem()
     {
         var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);

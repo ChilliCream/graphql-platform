@@ -4,18 +4,16 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Clients;
 
-public sealed class ShowClientCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
+public sealed class ShowClientCommandTests(NitroCommandFixture fixture) : ClientsCommandTestBase(fixture)
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "client",
-                "show",
-                "--help")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "show",
+            "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -47,13 +45,13 @@ public sealed class ShowClientCommandTests(NitroCommandFixture fixture) : IClass
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "show",
-                "client-1")
-            .ExecuteAsync();
+        SetupInteractionMode(mode);
+        SetupNoAuthentication();
+
+        var result = await ExecuteCommandAsync(
+            "client",
+            "show",
+            "client-1");
 
         // assert
         result.AssertError(
@@ -69,30 +67,23 @@ public sealed class ShowClientCommandTests(NitroCommandFixture fixture) : IClass
     public async Task ClientNotFound_ReturnsError(InteractionMode mode)
     {
         // arrange
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.GetClientAsync(
+        SetupInteractionMode(mode);
+        ClientsClientMock.Setup(x => x.GetClientAsync(
                 "client-1",
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync((IShowClientCommandQuery_Node?)null);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "show",
-                "client-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "show",
+            "client-1");
 
         // assert
         result.AssertError(
             """
             The client with ID 'client-1' was not found.
             """);
-
-        client.VerifyAll();
     }
 
     [Theory]
@@ -102,22 +93,17 @@ public sealed class ShowClientCommandTests(NitroCommandFixture fixture) : IClass
     public async Task WithClientId_ReturnSuccess(InteractionMode mode)
     {
         // arrange
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.GetClientAsync(
+        SetupInteractionMode(mode);
+        ClientsClientMock.Setup(x => x.GetClientAsync(
                 "client-1",
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(CreateShowClientNode("client-1", "web-client", "products"));
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "show",
-                "client-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "show",
+            "client-1");
 
         // assert
         result.AssertSuccess(
@@ -130,26 +116,21 @@ public sealed class ShowClientCommandTests(NitroCommandFixture fixture) : IClass
               }
             }
             """);
-
-        client.VerifyAll();
     }
 
     [Fact]
     public async Task ClientThrowsException_ReturnsError_Interactive()
     {
         // arrange
-        var client = CreateShowExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupSessionWithWorkspace();
+        SetupGetClientException(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "client",
-                "show",
-                "client-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "show",
+            "client-1");
 
         // assert
         result.StdErr.MatchInlineSnapshot(
@@ -157,8 +138,6 @@ public sealed class ShowClientCommandTests(NitroCommandFixture fixture) : IClass
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Theory]
@@ -167,44 +146,36 @@ public sealed class ShowClientCommandTests(NitroCommandFixture fixture) : IClass
     public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
     {
         // arrange
-        var client = CreateShowExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
+        SetupInteractionMode(mode);
+        SetupSessionWithWorkspace();
+        SetupGetClientException(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "show",
-                "client-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "show",
+            "client-1");
 
         // assert
         result.AssertError(
             """
             The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
             """);
-
-        client.VerifyAll();
     }
 
     [Fact]
     public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
     {
         // arrange
-        var client = CreateShowExceptionClient(new NitroClientAuthorizationException());
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupSessionWithWorkspace();
+        SetupGetClientException(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "client",
-                "show",
-                "client-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "show",
+            "client-1");
 
         // assert
         result.StdErr.MatchInlineSnapshot(
@@ -212,8 +183,6 @@ public sealed class ShowClientCommandTests(NitroCommandFixture fixture) : IClass
             The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Theory]
@@ -222,26 +191,29 @@ public sealed class ShowClientCommandTests(NitroCommandFixture fixture) : IClass
     public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
     {
         // arrange
-        var client = CreateShowExceptionClient(new NitroClientAuthorizationException());
+        SetupInteractionMode(mode);
+        SetupSessionWithWorkspace();
+        SetupGetClientException(new NitroClientAuthorizationException());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "show",
-                "client-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "show",
+            "client-1");
 
         // assert
         result.AssertError(
             """
             The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
             """);
+    }
 
-        client.VerifyAll();
+    private void SetupGetClientException(Exception ex)
+    {
+        ClientsClientMock.Setup(x => x.GetClientAsync(
+                "client-1",
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(ex);
     }
 
     private static IShowClientCommandQuery_Node CreateShowClientNode(
@@ -260,15 +232,5 @@ public sealed class ShowClientCommandTests(NitroCommandFixture fixture) : IClass
         clientNode.SetupGet(x => x.Versions).Returns((IShowClientCommandQuery_Node_Versions?)null);
 
         return clientNode.Object;
-    }
-
-    private static Mock<IClientsClient> CreateShowExceptionClient(Exception ex)
-    {
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.GetClientAsync(
-                "client-1",
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(ex);
-        return client;
     }
 }

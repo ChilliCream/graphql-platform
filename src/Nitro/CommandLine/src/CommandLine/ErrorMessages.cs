@@ -21,6 +21,10 @@ internal static class ErrorMessages
 
     public static string ArchiveFileDoesNotExist(string path) => $"Archive file '{path}' does not exist.";
 
+    public static string OperationsFileDoesNotExist(string path) => $"Operations file '{path}' does not exist.";
+
+    public static string ExtensionFileDoesNotExist(string path) => $"Extension file '{path}' does not exist.";
+
     public const string UnknownServerResponse =
         "Unknown server response. Consider updating the CLI.";
 

@@ -68,6 +68,26 @@ internal sealed class CreateMockCommand : Command
             sessionService,
             cancellationToken);
 
+        if (!Path.IsPathRooted(extensionFile))
+        {
+            extensionFile = Path.Combine(fileSystem.GetCurrentDirectory(), extensionFile);
+        }
+
+        if (!fileSystem.FileExists(extensionFile))
+        {
+            throw new ExitException(ErrorMessages.ExtensionFileDoesNotExist(extensionFile));
+        }
+
+        if (!Path.IsPathRooted(baseSchemaFile))
+        {
+            baseSchemaFile = Path.Combine(fileSystem.GetCurrentDirectory(), baseSchemaFile);
+        }
+
+        if (!fileSystem.FileExists(baseSchemaFile))
+        {
+            throw new ExitException(ErrorMessages.SchemaFileDoesNotExist(baseSchemaFile));
+        }
+
         await using (var activity = console.StartActivity(
             $"Creating mock schema '{mockSchemaName.EscapeMarkup()}' for API '{apiId.EscapeMarkup()}'",
             "Failed to create the mock schema."))

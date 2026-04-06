@@ -50,6 +50,16 @@ internal sealed class ValidateClientCommand : Command
 
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
+        if (!Path.IsPathRooted(operationsFilePath))
+        {
+            operationsFilePath = Path.Combine(fileSystem.GetCurrentDirectory(), operationsFilePath);
+        }
+
+        if (!fileSystem.FileExists(operationsFilePath))
+        {
+            throw new ExitException(ErrorMessages.OperationsFileDoesNotExist(operationsFilePath));
+        }
+
         await using (var rootActivity = console.StartActivity(
             $"Validating client against stage '{stage.EscapeMarkup()}' of client '{clientId.EscapeMarkup()}'",
             "Failed to validate the client."))

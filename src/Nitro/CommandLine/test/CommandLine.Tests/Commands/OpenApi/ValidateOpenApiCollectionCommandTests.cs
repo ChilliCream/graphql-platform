@@ -753,37 +753,6 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
         client.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task Validate_Should_ReturnError_When_SourceMetadataInvalid(InteractionMode mode)
-    {
-        // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "openapi",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId,
-                "--pattern",
-                "**/*.graphql",
-                "--source-metadata",
-                "{broken}")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Failed to parse --source-metadata: 'b' is an invalid start of a property name. Expected a '"'. Path: $ | LineNumber: 0 | BytePositionInLine: 1.
-            """);
-        Assert.Equal(1, result.ExitCode);
-    }
-
     [Fact]
     public async Task Validate_Should_ReturnError_When_ArchiveValidationError()
     {

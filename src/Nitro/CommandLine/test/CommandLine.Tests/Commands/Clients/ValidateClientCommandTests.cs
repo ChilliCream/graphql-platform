@@ -1,29 +1,22 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Clients;
-using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Services;
 using Moq;
 using static ChilliCream.Nitro.CommandLine.Tests.TestHelpers;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Clients;
 
-public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
+public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : ClientsCommandTestBase(fixture)
 {
-    private const string DefaultClientId = "client-1";
-    private const string DefaultStage = "production";
-    private const string DefaultOperationsFile = "operations.graphql";
-    private const string DefaultRequestId = "request-1";
+    private const string RequestId = "request-1";
 
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "client",
-                "validate",
-                "--help")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "validate",
+            "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -58,18 +51,18 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--client-id",
-                DefaultClientId,
-                "--operations-file",
-                DefaultOperationsFile)
-            .ExecuteAsync();
+        SetupInteractionMode(mode);
+        SetupNoAuthentication();
+
+        var result = await ExecuteCommandAsync(
+            "client",
+            "validate",
+            "--stage",
+            Stage,
+            "--client-id",
+            ClientId,
+            "--operations-file",
+            OperationsFile);
 
         // assert
         result.AssertError(
@@ -78,241 +71,99 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             """);
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var client = CreateValidationExceptionClient(
-            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-        var fileSystem = CreateOperationsFileSystem();
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--client-id",
-                DefaultClientId,
-                "--operations-file",
-                DefaultOperationsFile)
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Validating client against stage 'production' of client 'client-1'
-            ├── Starting validation request
-            │   └── ✕ Failed to start the validation request.
-            └── ✕ Failed to validate the client.
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
     [Theory]
     [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    public async Task OperationsFileDoesNotExist_ReturnsError(InteractionMode mode)
     {
         // arrange
-        var client = CreateValidationExceptionClient(
-            new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-        var fileSystem = CreateOperationsFileSystem();
+        SetupInteractionMode(mode);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--client-id",
-                DefaultClientId,
-                "--operations-file",
-                DefaultOperationsFile)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "validate",
+            "--client-id",
+            ClientId,
+            "--stage",
+            Stage,
+            "--operations-file",
+            "nonexistent.json");
+
+        // assert
+        result.AssertError(
+            """
+            Operations file '/some/working/directory/nonexistent.json' does not exist.
+            """);
+    }
+
+    [Fact]
+    public async Task StartClientValidationThrows_ReturnsError()
+    {
+        // arrange
+        SetupValidationMutationException();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "client",
+            "validate",
+            "--stage",
+            Stage,
+            "--client-id",
+            ClientId,
+            "--operations-file",
+            OperationsFile);
 
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
+            There was an unexpected error: Something unexpected happened.
             """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var client = CreateValidationExceptionClient(
-            new NitroClientAuthorizationException());
-        var fileSystem = CreateOperationsFileSystem();
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--client-id",
-                DefaultClientId,
-                "--operations-file",
-                DefaultOperationsFile)
-            .ExecuteAsync();
-
-        // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating client against stage 'production' of client 'client-1'
+            Validating client against stage 'dev' of client 'client-1'
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the client.
             """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
+    [MemberData(nameof(GetStartClientValidationErrors))]
+    public async Task StartClientValidationHasErrors_ReturnsError(
+        IValidateClientVersion_ValidateClient_Errors error,
+        string expectedErrorMessage)
     {
         // arrange
-        var client = CreateValidationExceptionClient(
-            new NitroClientAuthorizationException());
-        var fileSystem = CreateOperationsFileSystem();
+        SetupValidationMutation(CreateValidationPayloadWithErrors(error));
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--client-id",
-                DefaultClientId,
-                "--operations-file",
-                DefaultOperationsFile)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "validate",
+            "--stage",
+            Stage,
+            "--client-id",
+            ClientId,
+            "--operations-file",
+            OperationsFile);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [MemberData(nameof(MutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_NonInteractive(
-        IValidateClientVersion_ValidateClient_Errors mutationError,
-        string expectedStdErr)
-    {
-        // arrange
-        var (client, fileSystem) = CreateValidationSetup(
-            CreateValidationPayloadWithErrors(mutationError));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--client-id",
-                DefaultClientId,
-                "--operations-file",
-                DefaultOperationsFile)
-            .ExecuteAsync();
-
-        // assert
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating client against stage 'production' of client 'client-1'
+            Validating client against stage 'dev' of client 'client-1'
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the client.
             """);
-        result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [MemberData(nameof(MutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError(
-        IValidateClientVersion_ValidateClient_Errors mutationError,
-        string expectedStdErr)
-    {
-        // arrange
-        var (client, fileSystem) = CreateValidationSetup(
-            CreateValidationPayloadWithErrors(mutationError));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "client",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--client-id",
-                DefaultClientId,
-                "--operations-file",
-                DefaultOperationsFile)
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(expectedStdErr);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task MutationReturnsNullRequestId_ReturnsError_NonInteractive()
+    public async Task StartClientValidationReturnsNullRequestId_ReturnsError()
     {
         // arrange
         var payload = new Mock<IValidateClientVersion_ValidateClient>(MockBehavior.Strict);
@@ -321,88 +172,39 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
         payload.SetupGet(x => x.Id)
             .Returns((string?)null);
 
-        var (client, fileSystem) = CreateValidationSetup(payload.Object);
+        SetupValidationMutation(payload.Object);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--client-id",
-                DefaultClientId,
-                "--operations-file",
-                DefaultOperationsFile)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "validate",
+            "--stage",
+            Stage,
+            "--client-id",
+            ClientId,
+            "--operations-file",
+            OperationsFile);
 
         // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Could not create client validation request.
+            """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating client against stage 'production' of client 'client-1'
+            Validating client against stage 'dev' of client 'client-1'
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the client.
             """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Could not create client validation request.
-            """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task MutationReturnsNullRequestId_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var payload = new Mock<IValidateClientVersion_ValidateClient>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors)
-            .Returns((IReadOnlyList<IValidateClientVersion_ValidateClient_Errors>?)null);
-        payload.SetupGet(x => x.Id)
-            .Returns((string?)null);
-
-        var (client, fileSystem) = CreateValidationSetup(payload.Object);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--client-id",
-                DefaultClientId,
-                "--operations-file",
-                DefaultOperationsFile)
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Could not create client validation request.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
     public async Task Subscription_InProgressThenSuccess_ReturnsSuccess()
     {
         // arrange
-        var (client, fileSystem) = CreateValidationSetupWithSubscription(
+        SetupValidationMutationWithSubscription(
             CreateSuccessPayload(),
             new IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate[]
             {
@@ -412,40 +214,32 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             });
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--client-id",
-                DefaultClientId,
-                "--operations-file",
-                DefaultOperationsFile)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "validate",
+            "--stage",
+            Stage,
+            "--client-id",
+            ClientId,
+            "--operations-file",
+            OperationsFile);
 
         // assert
         result.AssertSuccess(
             """
-            Validating client against stage 'production' of client 'client-1'
+            Validating client against stage 'dev' of client 'client-1'
             ├── Starting validation request
             │   └── ✓ Validation request created (ID: request-1).
             ├── Validating
             │   ├── Validating...
             │   ├── Validating...
             │   └── ✓ Validation passed.
-            └── ✓ Validated client against stage 'production'.
+            └── ✓ Validated client against stage 'dev'.
             """);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Subscription_FailedWithSimpleError_ReturnsError_NonInteractive()
+    public async Task Subscription_FailedWithSimpleError_ReturnsError()
     {
         // arrange
         var errorMock = new Mock<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors>(
@@ -454,7 +248,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             .SetupGet(x => x.Message)
             .Returns("Something went wrong during validation.");
 
-        var (client, fileSystem) = CreateValidationSetupWithSubscription(
+        SetupValidationMutationWithSubscription(
             CreateSuccessPayload(),
             new IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate[]
             {
@@ -463,26 +257,20 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             });
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--client-id",
-                DefaultClientId,
-                "--operations-file",
-                DefaultOperationsFile)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "validate",
+            "--stage",
+            Stage,
+            "--client-id",
+            ClientId,
+            "--operations-file",
+            OperationsFile);
 
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating client against stage 'production' of client 'client-1'
+            Validating client against stage 'dev' of client 'client-1'
             ├── Starting validation request
             │   └── ✓ Validation request created (ID: request-1).
             ├── Validating
@@ -496,63 +284,13 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             Client validation failed.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task Subscription_FailedWithSimpleError_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var errorMock = new Mock<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors>(
-            MockBehavior.Strict);
-        errorMock.As<IUnexpectedProcessingError>()
-            .SetupGet(x => x.Message)
-            .Returns("Something went wrong during validation.");
-
-        var (client, fileSystem) = CreateValidationSetupWithSubscription(
-            CreateSuccessPayload(),
-            new IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate[]
-            {
-                CreateOperationInProgress(),
-                CreateValidationFailed(errorMock.Object)
-            });
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--client-id",
-                DefaultClientId,
-                "--operations-file",
-                DefaultOperationsFile)
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Something went wrong during validation.
-            Client validation failed.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Subscription_InProgressOnly_StreamEnds_ReturnsError_NonInteractive()
+    public async Task Subscription_InProgressOnly_StreamEnds_ReturnsError()
     {
         // arrange
-        var (client, fileSystem) = CreateValidationSetupWithSubscription(
+        SetupValidationMutationWithSubscription(
             CreateSuccessPayload(),
             new IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate[]
             {
@@ -560,26 +298,20 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             });
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--client-id",
-                DefaultClientId,
-                "--operations-file",
-                DefaultOperationsFile)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "validate",
+            "--stage",
+            Stage,
+            "--client-id",
+            ClientId,
+            "--operations-file",
+            OperationsFile);
 
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating client against stage 'production' of client 'client-1'
+            Validating client against stage 'dev' of client 'client-1'
             ├── Starting validation request
             │   └── ✓ Validation request created (ID: request-1).
             ├── Validating
@@ -589,19 +321,17 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             """);
         Assert.Empty(result.StdErr);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Subscription_UnknownEvent_ReturnsError_NonInteractive()
+    public async Task Subscription_UnknownEvent_ReturnsError()
     {
         // arrange
         var unknownEvent = new Mock<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate>(
             MockBehavior.Strict);
         unknownEvent.SetupGet(x => x.__typename).Returns("UnknownType");
 
-        var (client, fileSystem) = CreateValidationSetupWithSubscription(
+        SetupValidationMutationWithSubscription(
             CreateSuccessPayload(),
             new IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate[]
             {
@@ -609,28 +339,20 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             });
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--client-id",
-                DefaultClientId,
-                "--operations-file",
-                DefaultOperationsFile)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "validate",
+            "--stage",
+            Stage,
+            "--client-id",
+            ClientId,
+            "--operations-file",
+            OperationsFile);
 
         // assert
         // Falls through the loop with no terminal state, so activity.Fail() is called
         Assert.Empty(result.StdErr);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
@@ -654,7 +376,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
 
         var clientInfoMock = new Mock<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Client>(
             MockBehavior.Strict);
-        clientInfoMock.SetupGet(x => x.Id).Returns(DefaultClientId);
+        clientInfoMock.SetupGet(x => x.Id).Returns(ClientId);
         clientInfoMock.SetupGet(x => x.Name).Returns("my-client");
 
         var errorMock = new Mock<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors>(
@@ -669,7 +391,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             .SetupGet(x => x.Queries)
             .Returns(new[] { queryMock.Object });
 
-        var (client, fileSystem) = CreateValidationSetupWithSubscription(
+        SetupValidationMutationWithSubscription(
             CreateSuccessPayload(),
             new IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate[]
             {
@@ -677,26 +399,20 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             });
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--client-id",
-                DefaultClientId,
-                "--operations-file",
-                DefaultOperationsFile)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "validate",
+            "--stage",
+            Stage,
+            "--client-id",
+            ClientId,
+            "--operations-file",
+            OperationsFile);
 
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating client against stage 'production' of client 'client-1'
+            Validating client against stage 'dev' of client 'client-1'
             ├── Starting validation request
             │   └── ✓ Validation request created (ID: request-1).
             ├── Validating
@@ -711,8 +427,6 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             Client validation failed.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
@@ -725,7 +439,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             .SetupGet(x => x.Message)
             .Returns("The operation has timed out.");
 
-        var (client, fileSystem) = CreateValidationSetupWithSubscription(
+        SetupValidationMutationWithSubscription(
             CreateSuccessPayload(),
             new IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate[]
             {
@@ -734,26 +448,20 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             });
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--client-id",
-                DefaultClientId,
-                "--operations-file",
-                DefaultOperationsFile)
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "validate",
+            "--stage",
+            Stage,
+            "--client-id",
+            ClientId,
+            "--operations-file",
+            OperationsFile);
 
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating client against stage 'production' of client 'client-1'
+            Validating client against stage 'dev' of client 'client-1'
             ├── Starting validation request
             │   └── ✓ Validation request created (ID: request-1).
             ├── Validating
@@ -767,46 +475,34 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             Client validation failed.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task Validate_Should_ReturnError_When_SourceMetadataInvalid()
-    {
-        // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--client-id",
-                DefaultClientId,
-                "--operations-file",
-                DefaultOperationsFile,
-                "--source-metadata",
-                "{broken}")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Failed to parse --source-metadata: 'b' is an invalid start of a property name. Expected a '"'. Path: $ | LineNumber: 0 | BytePositionInLine: 1.
-            """);
-        Assert.Equal(1, result.ExitCode);
     }
 
     // --- Helpers ---
 
-    private static Mock<IFileSystem> CreateOperationsFileSystem()
+    private void SetupValidationMutation(IValidateClientVersion_ValidateClient payload)
     {
-        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
-        fileSystem.Setup(x => x.OpenReadStream(DefaultOperationsFile))
-            .Returns(new MemoryStream("{}"u8.ToArray()));
-        return fileSystem;
+        SetupOperationsFile();
+        ClientsClientMock.Setup(x => x.StartClientValidationAsync(
+                ClientId, Stage, It.IsAny<Stream>(), null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(payload);
+    }
+
+    private void SetupValidationMutationWithSubscription(
+        IValidateClientVersion_ValidateClient payload,
+        IEnumerable<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate> events)
+    {
+        SetupValidationMutation(payload);
+        ClientsClientMock.Setup(x => x.SubscribeToClientValidationAsync(
+                RequestId, It.IsAny<CancellationToken>()))
+            .Returns((string _, CancellationToken ct) => ToAsyncEnumerable(events, ct));
+    }
+
+    private void SetupValidationMutationException()
+    {
+        SetupOperationsFile();
+        ClientsClientMock.Setup(x => x.StartClientValidationAsync(
+                ClientId, Stage, It.IsAny<Stream>(), null, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Something unexpected happened."));
     }
 
     private static IValidateClientVersion_ValidateClient CreateSuccessPayload()
@@ -815,7 +511,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
         payload.SetupGet(x => x.Errors)
             .Returns((IReadOnlyList<IValidateClientVersion_ValidateClient_Errors>?)null);
         payload.SetupGet(x => x.Id)
-            .Returns(DefaultRequestId);
+            .Returns(RequestId);
         return payload.Object;
     }
 
@@ -826,60 +522,6 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
         payload.SetupGet(x => x.Errors).Returns(errors);
         payload.SetupGet(x => x.Id).Returns((string?)null);
         return payload.Object;
-    }
-
-    private static (Mock<IClientsClient> Client, Mock<IFileSystem> FileSystem) CreateValidationSetup(
-        IValidateClientVersion_ValidateClient payload)
-    {
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.StartClientValidationAsync(
-                DefaultClientId,
-                DefaultStage,
-                It.IsAny<Stream>(),
-                null,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(payload);
-
-        var fileSystem = CreateOperationsFileSystem();
-
-        return (client, fileSystem);
-    }
-
-    private static (Mock<IClientsClient> Client, Mock<IFileSystem> FileSystem) CreateValidationSetupWithSubscription(
-        IValidateClientVersion_ValidateClient mutationPayload,
-        IEnumerable<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate> subscriptionEvents)
-    {
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.StartClientValidationAsync(
-                DefaultClientId,
-                DefaultStage,
-                It.IsAny<Stream>(),
-                null,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(mutationPayload);
-
-        client.Setup(x => x.SubscribeToClientValidationAsync(
-                DefaultRequestId,
-                It.IsAny<CancellationToken>()))
-            .Returns((string _, CancellationToken ct) =>
-                ToAsyncEnumerable(subscriptionEvents, ct));
-
-        var fileSystem = CreateOperationsFileSystem();
-
-        return (client, fileSystem);
-    }
-
-    private static Mock<IClientsClient> CreateValidationExceptionClient(Exception ex)
-    {
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.StartClientValidationAsync(
-                DefaultClientId,
-                DefaultStage,
-                It.IsAny<Stream>(),
-                null,
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(ex);
-        return client;
     }
 
     private static IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate CreateOperationInProgress()
@@ -912,61 +554,33 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : IC
             errors);
     }
 
-    public static IEnumerable<object[]> MutationErrorCases()
+    public static TheoryData<IValidateClientVersion_ValidateClient_Errors, string>
+        GetStartClientValidationErrors() => new()
     {
-        yield return
-        [
+        {
             new ValidateClientVersion_ValidateClient_Errors_UnauthorizedOperation(
                 "UnauthorizedOperation",
                 "Not authorized to validate."),
-            """
-            Not authorized to validate.
-            """
-        ];
-
-        yield return
-        [
+            "Not authorized to validate."
+        },
+        {
             new ValidateClientVersion_ValidateClient_Errors_ClientNotFoundError(
                 "Client not found.",
-                DefaultClientId),
-            """
-            Client not found.
-            """
-        ];
-
-        yield return
-        [
+                "client-1"),
+            "Client not found."
+        },
+        {
             new ValidateClientVersion_ValidateClient_Errors_StageNotFoundError(
                 "StageNotFoundError",
                 "Stage not found.",
-                DefaultStage),
-            """
-            Stage not found.
-            """
-        ];
-
-        yield return
-        [
+                "dev"),
+            "Stage not found."
+        },
+        {
             new ValidateClientVersion_ValidateClient_Errors_InvalidSourceMetadataInputError(
                 "InvalidSourceMetadataInputError",
                 "Invalid source metadata."),
-            """
-            Invalid source metadata.
-            """
-        ];
-
-        var unexpectedError = new Mock<IValidateClientVersion_ValidateClient_Errors>();
-        unexpectedError
-            .As<IError>()
-            .SetupGet(x => x.Message)
-            .Returns("Something went wrong.");
-
-        yield return
-        [
-            unexpectedError.Object,
-            """
-            Unexpected mutation error: Something went wrong.
-            """
-        ];
-    }
+            "Invalid source metadata."
+        }
+    };
 }

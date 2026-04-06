@@ -50,6 +50,16 @@ internal sealed class UploadClientCommand : Command
 
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
+        if (!Path.IsPathRooted(operationsFilePath))
+        {
+            operationsFilePath = Path.Combine(fileSystem.GetCurrentDirectory(), operationsFilePath);
+        }
+
+        if (!fileSystem.FileExists(operationsFilePath))
+        {
+            throw new ExitException(ErrorMessages.OperationsFileDoesNotExist(operationsFilePath));
+        }
+
         await using (var activity = console.StartActivity(
             $"Uploading new client version '{tag.EscapeMarkup()}' for client '{clientId.EscapeMarkup()}'",
             "Failed to upload a new client version."))

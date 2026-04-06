@@ -82,6 +82,32 @@ internal sealed class UpdateMockCommand : Command
             mockSchemaId = selectedMock?.Id ?? throw new ExitException("No mock schema selected.");
         }
 
+        if (extensionFile is not null)
+        {
+            if (!Path.IsPathRooted(extensionFile))
+            {
+                extensionFile = Path.Combine(fileSystem.GetCurrentDirectory(), extensionFile);
+            }
+
+            if (!fileSystem.FileExists(extensionFile))
+            {
+                throw new ExitException(ErrorMessages.ExtensionFileDoesNotExist(extensionFile));
+            }
+        }
+
+        if (baseSchemaFile is not null)
+        {
+            if (!Path.IsPathRooted(baseSchemaFile))
+            {
+                baseSchemaFile = Path.Combine(fileSystem.GetCurrentDirectory(), baseSchemaFile);
+            }
+
+            if (!fileSystem.FileExists(baseSchemaFile))
+            {
+                throw new ExitException(ErrorMessages.SchemaFileDoesNotExist(baseSchemaFile));
+            }
+        }
+
         await using (var activity = console.StartActivity(
             $"Updating mock schema '{mockSchemaId.EscapeMarkup()}'",
             "Failed to update the mock schema."))

@@ -1,4 +1,6 @@
 using System.Text;
+using ChilliCream.Nitro.Client.Apis;
+using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.CommandLine.Services;
@@ -20,8 +22,11 @@ public abstract class CommandTestBase
     private readonly Mock<IEnvironmentVariableProvider> _environmentVariableProviderMock = new();
     protected readonly Mock<ISchemasClient> SchemasClientMock = new(MockBehavior.Strict);
     protected readonly Mock<IFusionConfigurationClient> FusionConfigurationClientMock = new(MockBehavior.Strict);
+    protected readonly Mock<IClientsClient> ClientsClientMock = new(MockBehavior.Strict);
+    protected readonly Mock<IApisClient> ApisClientMock = new(MockBehavior.Strict);
     private InteractionMode _interactionMode = InteractionMode.NonInteractive;
     private bool _authenticated = true;
+    private bool _useSessionWithWorkspace;
 
     protected CommandTestBase(NitroCommandFixture fixture)
     {
@@ -41,17 +46,30 @@ public abstract class CommandTestBase
         _authenticated = false;
     }
 
+    protected void SetupSessionWithWorkspace()
+    {
+        _authenticated = false;
+        _useSessionWithWorkspace = true;
+    }
+
     protected async Task<CommandResult> ExecuteCommandAsync(params string[] args)
     {
         var builder = new CommandBuilder(_fixture)
             .AddService(_fileSystemMock.Object)
             .AddService(_environmentVariableProviderMock.Object)
             .AddService(SchemasClientMock.Object)
-            .AddService(FusionConfigurationClientMock.Object);
+            .AddService(FusionConfigurationClientMock.Object)
+            .AddService(ClientsClientMock.Object)
+            .AddService(ApisClientMock.Object);
 
         if (_authenticated)
         {
             builder.AddApiKey();
+        }
+
+        if (_useSessionWithWorkspace)
+        {
+            builder.AddSessionWithWorkspace();
         }
 
         return await builder
@@ -160,5 +178,7 @@ public abstract class CommandTestBase
 
         SchemasClientMock.VerifyAll();
         FusionConfigurationClientMock.VerifyAll();
+        ClientsClientMock.VerifyAll();
+        ApisClientMock.VerifyAll();
     }
 }

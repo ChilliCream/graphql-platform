@@ -81,6 +81,76 @@ public sealed class CreateMockCommandTests(NitroCommandFixture fixture) : IClass
             """);
     }
 
+    [Fact]
+    public async Task ExtensionFileDoesNotExist_ReturnsError()
+    {
+        // arrange
+        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
+        fileSystem.Setup(x => x.GetCurrentDirectory())
+            .Returns("/some/working/directory");
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddArguments(
+                "mock",
+                "create",
+                "--api-id",
+                "api-1",
+                "--extension",
+                "nonexistent.graphql",
+                "--schema",
+                "schema.graphql",
+                "--url",
+                "https://downstream.example.com",
+                "--name",
+                "my-mock")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            Extension file '/some/working/directory/nonexistent.graphql' does not exist.
+            """);
+    }
+
+    [Fact]
+    public async Task SchemaFileDoesNotExist_ReturnsError()
+    {
+        // arrange
+        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
+        fileSystem.Setup(x => x.GetCurrentDirectory())
+            .Returns("/some/working/directory");
+        fileSystem.Setup(x => x.FileExists("/some/working/directory/ext.graphql"))
+            .Returns(true);
+
+        // act
+        var result = await new CommandBuilder(fixture)
+            .AddService(fileSystem.Object)
+            .AddApiKey()
+            .AddArguments(
+                "mock",
+                "create",
+                "--api-id",
+                "api-1",
+                "--extension",
+                "ext.graphql",
+                "--schema",
+                "nonexistent.graphql",
+                "--url",
+                "https://downstream.example.com",
+                "--name",
+                "my-mock")
+            .ExecuteAsync();
+
+        // assert
+        result.AssertError(
+            """
+            Schema file '/some/working/directory/nonexistent.graphql' does not exist.
+            """);
+    }
+
     [Theory]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
@@ -123,8 +193,11 @@ public sealed class CreateMockCommandTests(NitroCommandFixture fixture) : IClass
 
         var extensionStream = new MemoryStream();
         var schemaStream = new MemoryStream();
-        fileSystem.Setup(x => x.OpenReadStream("ext.graphql")).Returns(extensionStream);
-        fileSystem.Setup(x => x.OpenReadStream("schema.graphql")).Returns(schemaStream);
+        fileSystem.Setup(x => x.GetCurrentDirectory()).Returns("/some/working/directory");
+        fileSystem.Setup(x => x.FileExists("/some/working/directory/ext.graphql")).Returns(true);
+        fileSystem.Setup(x => x.FileExists("/some/working/directory/schema.graphql")).Returns(true);
+        fileSystem.Setup(x => x.OpenReadStream("/some/working/directory/ext.graphql")).Returns(extensionStream);
+        fileSystem.Setup(x => x.OpenReadStream("/some/working/directory/schema.graphql")).Returns(schemaStream);
 
         mocksClient.Setup(x => x.CreateMockSchemaAsync(
                 "api-1",
@@ -193,8 +266,11 @@ public sealed class CreateMockCommandTests(NitroCommandFixture fixture) : IClass
 
         var extensionStream = new MemoryStream();
         var schemaStream = new MemoryStream();
-        fileSystem.Setup(x => x.OpenReadStream("ext.graphql")).Returns(extensionStream);
-        fileSystem.Setup(x => x.OpenReadStream("schema.graphql")).Returns(schemaStream);
+        fileSystem.Setup(x => x.GetCurrentDirectory()).Returns("/some/working/directory");
+        fileSystem.Setup(x => x.FileExists("/some/working/directory/ext.graphql")).Returns(true);
+        fileSystem.Setup(x => x.FileExists("/some/working/directory/schema.graphql")).Returns(true);
+        fileSystem.Setup(x => x.OpenReadStream("/some/working/directory/ext.graphql")).Returns(extensionStream);
+        fileSystem.Setup(x => x.OpenReadStream("/some/working/directory/schema.graphql")).Returns(schemaStream);
 
         mocksClient.Setup(x => x.CreateMockSchemaAsync(
                 "api-1",
@@ -244,8 +320,11 @@ public sealed class CreateMockCommandTests(NitroCommandFixture fixture) : IClass
 
         var extensionStream = new MemoryStream();
         var schemaStream = new MemoryStream();
-        fileSystem.Setup(x => x.OpenReadStream("ext.graphql")).Returns(extensionStream);
-        fileSystem.Setup(x => x.OpenReadStream("schema.graphql")).Returns(schemaStream);
+        fileSystem.Setup(x => x.GetCurrentDirectory()).Returns("/some/working/directory");
+        fileSystem.Setup(x => x.FileExists("/some/working/directory/ext.graphql")).Returns(true);
+        fileSystem.Setup(x => x.FileExists("/some/working/directory/schema.graphql")).Returns(true);
+        fileSystem.Setup(x => x.OpenReadStream("/some/working/directory/ext.graphql")).Returns(extensionStream);
+        fileSystem.Setup(x => x.OpenReadStream("/some/working/directory/schema.graphql")).Returns(schemaStream);
 
         mocksClient.Setup(x => x.CreateMockSchemaAsync(
                 "api-1",
@@ -311,8 +390,11 @@ public sealed class CreateMockCommandTests(NitroCommandFixture fixture) : IClass
 
         var extensionStream = new MemoryStream();
         var schemaStream = new MemoryStream();
-        fileSystem.Setup(x => x.OpenReadStream("ext.graphql")).Returns(extensionStream);
-        fileSystem.Setup(x => x.OpenReadStream("schema.graphql")).Returns(schemaStream);
+        fileSystem.Setup(x => x.GetCurrentDirectory()).Returns("/some/working/directory");
+        fileSystem.Setup(x => x.FileExists("/some/working/directory/ext.graphql")).Returns(true);
+        fileSystem.Setup(x => x.FileExists("/some/working/directory/schema.graphql")).Returns(true);
+        fileSystem.Setup(x => x.OpenReadStream("/some/working/directory/ext.graphql")).Returns(extensionStream);
+        fileSystem.Setup(x => x.OpenReadStream("/some/working/directory/schema.graphql")).Returns(schemaStream);
 
         mocksClient.Setup(x => x.CreateMockSchemaAsync(
                 "api-1",
@@ -374,8 +456,11 @@ public sealed class CreateMockCommandTests(NitroCommandFixture fixture) : IClass
 
         var extensionStream = new MemoryStream();
         var schemaStream = new MemoryStream();
-        fileSystem.Setup(x => x.OpenReadStream("ext.graphql")).Returns(extensionStream);
-        fileSystem.Setup(x => x.OpenReadStream("schema.graphql")).Returns(schemaStream);
+        fileSystem.Setup(x => x.GetCurrentDirectory()).Returns("/some/working/directory");
+        fileSystem.Setup(x => x.FileExists("/some/working/directory/ext.graphql")).Returns(true);
+        fileSystem.Setup(x => x.FileExists("/some/working/directory/schema.graphql")).Returns(true);
+        fileSystem.Setup(x => x.OpenReadStream("/some/working/directory/ext.graphql")).Returns(extensionStream);
+        fileSystem.Setup(x => x.OpenReadStream("/some/working/directory/schema.graphql")).Returns(schemaStream);
 
         mocksClient.Setup(x => x.CreateMockSchemaAsync(
                 "api-1",
@@ -434,8 +519,11 @@ public sealed class CreateMockCommandTests(NitroCommandFixture fixture) : IClass
 
         var extensionStream = new MemoryStream();
         var schemaStream = new MemoryStream();
-        fileSystem.Setup(x => x.OpenReadStream("ext.graphql")).Returns(extensionStream);
-        fileSystem.Setup(x => x.OpenReadStream("schema.graphql")).Returns(schemaStream);
+        fileSystem.Setup(x => x.GetCurrentDirectory()).Returns("/some/working/directory");
+        fileSystem.Setup(x => x.FileExists("/some/working/directory/ext.graphql")).Returns(true);
+        fileSystem.Setup(x => x.FileExists("/some/working/directory/schema.graphql")).Returns(true);
+        fileSystem.Setup(x => x.OpenReadStream("/some/working/directory/ext.graphql")).Returns(extensionStream);
+        fileSystem.Setup(x => x.OpenReadStream("/some/working/directory/schema.graphql")).Returns(schemaStream);
 
         mocksClient.Setup(x => x.CreateMockSchemaAsync(
                 "api-1",
@@ -489,8 +577,11 @@ public sealed class CreateMockCommandTests(NitroCommandFixture fixture) : IClass
 
         var extensionStream = new MemoryStream();
         var schemaStream = new MemoryStream();
-        fileSystem.Setup(x => x.OpenReadStream("ext.graphql")).Returns(extensionStream);
-        fileSystem.Setup(x => x.OpenReadStream("schema.graphql")).Returns(schemaStream);
+        fileSystem.Setup(x => x.GetCurrentDirectory()).Returns("/some/working/directory");
+        fileSystem.Setup(x => x.FileExists("/some/working/directory/ext.graphql")).Returns(true);
+        fileSystem.Setup(x => x.FileExists("/some/working/directory/schema.graphql")).Returns(true);
+        fileSystem.Setup(x => x.OpenReadStream("/some/working/directory/ext.graphql")).Returns(extensionStream);
+        fileSystem.Setup(x => x.OpenReadStream("/some/working/directory/schema.graphql")).Returns(schemaStream);
 
         mocksClient.Setup(x => x.CreateMockSchemaAsync(
                 "api-1",
@@ -618,8 +709,11 @@ public sealed class CreateMockCommandTests(NitroCommandFixture fixture) : IClass
 
         var extensionStream = new MemoryStream();
         var schemaStream = new MemoryStream();
-        fileSystem.Setup(x => x.OpenReadStream("ext.graphql")).Returns(extensionStream);
-        fileSystem.Setup(x => x.OpenReadStream("schema.graphql")).Returns(schemaStream);
+        fileSystem.Setup(x => x.GetCurrentDirectory()).Returns("/some/working/directory");
+        fileSystem.Setup(x => x.FileExists("/some/working/directory/ext.graphql")).Returns(true);
+        fileSystem.Setup(x => x.FileExists("/some/working/directory/schema.graphql")).Returns(true);
+        fileSystem.Setup(x => x.OpenReadStream("/some/working/directory/ext.graphql")).Returns(extensionStream);
+        fileSystem.Setup(x => x.OpenReadStream("/some/working/directory/schema.graphql")).Returns(schemaStream);
 
         mocksClient.Setup(x => x.CreateMockSchemaAsync(
                 "api-1",

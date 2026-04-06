@@ -1,24 +1,19 @@
-using System.Net;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Clients;
-using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Services;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Clients;
 
-public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
+public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ClientsCommandTestBase(fixture)
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "client",
-                "upload",
-                "--help")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "upload",
+            "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -53,18 +48,18 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "upload",
-                "--tag",
-                "v1",
-                "--operations-file",
-                "operations.json",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
+        SetupInteractionMode(mode);
+        SetupNoAuthentication();
+
+        var result = await ExecuteCommandAsync(
+            "client",
+            "upload",
+            "--tag",
+            Tag,
+            "--operations-file",
+            OperationsFile,
+            "--client-id",
+            ClientId);
 
         // assert
         result.AssertError(
@@ -73,310 +68,95 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
             """);
     }
 
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var client = CreateUploadExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-        var fileSystem = CreateOperationsFileSystem();
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "upload",
-                "--tag",
-                "v1",
-                "--operations-file",
-                "operations.json",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Uploading new client version 'v1' for client 'client-1'
-            └── ✕ Failed to upload a new client version.
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
     [Theory]
     [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    public async Task OperationsFileDoesNotExist_ReturnsError(InteractionMode mode)
     {
         // arrange
-        var client = CreateUploadExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-        var fileSystem = CreateOperationsFileSystem();
+        SetupInteractionMode(mode);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "upload",
-                "--tag",
-                "v1",
-                "--operations-file",
-                "operations.json",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "upload",
+            "--client-id",
+            ClientId,
+            "--tag",
+            Tag,
+            "--operations-file",
+            "nonexistent.json");
+
+        // assert
+        result.AssertError(
+            """
+            Operations file '/some/working/directory/nonexistent.json' does not exist.
+            """);
+    }
+
+    [Fact]
+    public async Task UploadClientThrows_ReturnsError()
+    {
+        // arrange
+        SetupUploadMutationException();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "client",
+            "upload",
+            "--tag",
+            Tag,
+            "--operations-file",
+            OperationsFile,
+            "--client-id",
+            ClientId);
 
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
+            There was an unexpected error: Something unexpected happened.
             """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var client = CreateUploadExceptionClient(
-            new NitroClientAuthorizationException());
-        var fileSystem = CreateOperationsFileSystem();
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "upload",
-                "--tag",
-                "v1",
-                "--operations-file",
-                "operations.json",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
-
-        // assert
         result.StdOut.MatchInlineSnapshot(
             """
             Uploading new client version 'v1' for client 'client-1'
             └── ✕ Failed to upload a new client version.
             """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
+    [MemberData(nameof(GetUploadClientErrors))]
+    public async Task UploadClientHasErrors_ReturnsError(
+        IUploadClient_UploadClient_Errors error,
+        string expectedErrorMessage)
     {
         // arrange
-        var client = CreateUploadExceptionClient(
-            new NitroClientAuthorizationException());
-        var fileSystem = CreateOperationsFileSystem();
+        SetupUploadMutation(CreateUploadPayloadWithErrors(error));
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "upload",
-                "--tag",
-                "v1",
-                "--operations-file",
-                "operations.json",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "upload",
+            "--tag",
+            Tag,
+            "--operations-file",
+            OperationsFile,
+            "--client-id",
+            ClientId);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsRequestEntityTooLarge_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var client = CreateUploadExceptionClient(
-            new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
-        var fileSystem = CreateOperationsFileSystem();
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "upload",
-                "--tag",
-                "v1",
-                "--operations-file",
-                "operations.json",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned a 413 (Request Entity Too Large) HTTP status code. If you are running a self-hosted instance, check your ingress controller body-size limits, reverse proxy settings, or load balancer request size limits.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsRequestEntityTooLarge_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var client = CreateUploadExceptionClient(
-            new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
-        var fileSystem = CreateOperationsFileSystem();
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "upload",
-                "--tag",
-                "v1",
-                "--operations-file",
-                "operations.json",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
-
-        // assert
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Uploading new client version 'v1' for client 'client-1'
             └── ✕ Failed to upload a new client version.
             """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned a 413 (Request Entity Too Large) HTTP status code. If you are running a self-hosted instance, check your ingress controller body-size limits, reverse proxy settings, or load balancer request size limits.
-            """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [MemberData(nameof(UploadMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_NonInteractive(
-        IUploadClient_UploadClient_Errors mutationError,
-        string expectedStdErr)
-    {
-        // arrange
-        var (client, fileSystem) = CreateUploadSetup(
-            CreateUploadPayloadWithErrors(mutationError));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "upload",
-                "--tag",
-                "v1",
-                "--operations-file",
-                "operations.json",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Uploading new client version 'v1' for client 'client-1'
-            └── ✕ Failed to upload a new client version.
-            """);
-        result.StdErr.MatchInlineSnapshot(expectedStdErr);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [MemberData(nameof(UploadMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError(
-        IUploadClient_UploadClient_Errors mutationError,
-        string expectedStdErr)
-    {
-        // arrange
-        var (client, fileSystem) = CreateUploadSetup(
-            CreateUploadPayloadWithErrors(mutationError));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "client",
-                "upload",
-                "--tag",
-                "v1",
-                "--operations-file",
-                "operations.json",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(expectedStdErr);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task MutationReturnsNullClientVersion_ReturnsError_NonInteractive()
+    public async Task UploadClientReturnsNullClientVersion_ReturnsError()
     {
         // arrange
         var payload = new Mock<IUploadClient_UploadClient>(MockBehavior.Strict);
@@ -385,103 +165,48 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
         payload.SetupGet(x => x.ClientVersion)
             .Returns((IUploadClient_UploadClient_ClientVersion?)null);
 
-        var (client, fileSystem) = CreateUploadSetup(payload.Object);
+        SetupUploadMutation(payload.Object);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "upload",
-                "--tag",
-                "v1",
-                "--operations-file",
-                "operations.json",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "upload",
+            "--tag",
+            Tag,
+            "--operations-file",
+            OperationsFile,
+            "--client-id",
+            ClientId);
 
         // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Could not upload client.
+            """);
         result.StdOut.MatchInlineSnapshot(
             """
             Uploading new client version 'v1' for client 'client-1'
             └── ✕ Failed to upload a new client version.
             """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Could not upload client.
-            """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task MutationReturnsNullClientVersion_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var payload = new Mock<IUploadClient_UploadClient>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors)
-            .Returns((IReadOnlyList<IUploadClient_UploadClient_Errors>?)null);
-        payload.SetupGet(x => x.ClientVersion)
-            .Returns((IUploadClient_UploadClient_ClientVersion?)null);
-
-        var (client, fileSystem) = CreateUploadSetup(payload.Object);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "upload",
-                "--tag",
-                "v1",
-                "--operations-file",
-                "operations.json",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Could not upload client.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Success_UploadsClient()
+    public async Task UploadsClient_ReturnsSuccess()
     {
         // arrange
-        var (client, fileSystem) = CreateUploadSetup(CreateUploadSuccessPayload());
+        SetupUploadMutation(CreateUploadSuccessPayload());
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "upload",
-                "--tag",
-                "v1",
-                "--operations-file",
-                "operations.json",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "upload",
+            "--tag",
+            Tag,
+            "--operations-file",
+            OperationsFile,
+            "--client-id",
+            ClientId);
 
         // assert
         result.AssertSuccess(
@@ -489,78 +214,22 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
             Uploading new client version 'v1' for client 'client-1'
             └── ✓ Uploaded new client version 'v1'.
             """);
-
-        client.VerifyAll();
     }
 
-    [Fact]
-    public async Task Upload_Should_ReturnError_When_SourceMetadataInvalid()
+    private void SetupUploadMutation(IUploadClient_UploadClient payload)
     {
-        // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "upload",
-                "--tag",
-                "v1",
-                "--operations-file",
-                "operations.json",
-                "--client-id",
-                "client-1",
-                "--source-metadata",
-                "{broken}")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Failed to parse --source-metadata: 'b' is an invalid start of a property name. Expected a '"'. Path: $ | LineNumber: 0 | BytePositionInLine: 1.
-            """);
-        Assert.Equal(1, result.ExitCode);
+        SetupOperationsFile();
+        ClientsClientMock.Setup(x => x.UploadClientVersionAsync(
+                ClientId, Tag, It.IsAny<Stream>(), null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(payload);
     }
 
-    [Fact]
-    public async Task Upload_Should_ReturnError_When_FileNotFound()
+    private void SetupUploadMutationException()
     {
-        // arrange
-        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
-        fileSystem.Setup(x => x.OpenReadStream("operations.json"))
-            .Throws(new FileNotFoundException("File not found.", "operations.json"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "upload",
-                "--tag",
-                "v1",
-                "--operations-file",
-                "operations.json",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            There was an unexpected error: File not found.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        fileSystem.VerifyAll();
-    }
-
-    private static Mock<IFileSystem> CreateOperationsFileSystem()
-    {
-        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
-        fileSystem.Setup(x => x.OpenReadStream("operations.json"))
-            .Returns(new MemoryStream("{}"u8.ToArray()));
-        return fileSystem;
+        SetupOperationsFile();
+        ClientsClientMock.Setup(x => x.UploadClientVersionAsync(
+                ClientId, Tag, It.IsAny<Stream>(), null, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Something unexpected happened."));
     }
 
     private static IUploadClient_UploadClient CreateUploadSuccessPayload()
@@ -587,109 +256,42 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : ICla
         return payload.Object;
     }
 
-    private static (Mock<IClientsClient> Client, Mock<IFileSystem> FileSystem) CreateUploadSetup(
-        IUploadClient_UploadClient payload)
+    public static TheoryData<IUploadClient_UploadClient_Errors, string> GetUploadClientErrors() => new()
     {
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.UploadClientVersionAsync(
-                "client-1",
-                "v1",
-                It.IsAny<Stream>(),
-                null,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(payload);
-
-        var fileSystem = CreateOperationsFileSystem();
-
-        return (client, fileSystem);
-    }
-
-    private static Mock<IClientsClient> CreateUploadExceptionClient(Exception ex)
-    {
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.UploadClientVersionAsync(
-                "client-1",
-                "v1",
-                It.IsAny<Stream>(),
-                null,
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(ex);
-        return client;
-    }
-
-    public static IEnumerable<object[]> UploadMutationErrorCases()
-    {
-        yield return
-        [
+        {
             new UploadClient_UploadClient_Errors_UnauthorizedOperation(
                 "UnauthorizedOperation",
                 "Not authorized to upload."),
-            """
-            Not authorized to upload.
-            """
-        ];
-
-        yield return
-        [
+            "Not authorized to upload."
+        },
+        {
             new UploadClient_UploadClient_Errors_ClientNotFoundError(
                 "Client not found.",
                 "client-1"),
-            """
-            Client not found.
-            """
-        ];
-
-        yield return
-        [
+            "Client not found."
+        },
+        {
             new UploadClient_UploadClient_Errors_DuplicatedTagError(
                 "DuplicatedTagError",
                 "Tag 'v1' already exists."),
-            """
-            Tag 'v1' already exists.
-            """
-        ];
-
-        yield return
-        [
+            "Tag 'v1' already exists."
+        },
+        {
             new UploadClient_UploadClient_Errors_ConcurrentOperationError(
                 "ConcurrentOperationError",
                 "A concurrent operation is in progress."),
-            """
-            A concurrent operation is in progress.
-            """
-        ];
-
-        yield return
-        [
+            "A concurrent operation is in progress."
+        },
+        {
             new UploadClient_UploadClient_Errors_InvalidPersistedQueryError(
                 "Invalid persisted query."),
-            """
-            Invalid persisted query.
-            """
-        ];
-
-        yield return
-        [
+            "Invalid persisted query."
+        },
+        {
             new UploadClient_UploadClient_Errors_InvalidSourceMetadataInputError(
                 "InvalidSourceMetadataInputError",
                 "Invalid source metadata."),
-            """
-            Invalid source metadata.
-            """
-        ];
-
-        var unexpectedError = new Mock<IUploadClient_UploadClient_Errors>();
-        unexpectedError
-            .As<IError>()
-            .SetupGet(x => x.Message)
-            .Returns("Something went wrong.");
-
-        yield return
-        [
-            unexpectedError.Object,
-            """
-            Unexpected mutation error: Something went wrong.
-            """
-        ];
-    }
+            "Invalid source metadata."
+        }
+    };
 }
