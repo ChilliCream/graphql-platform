@@ -1,22 +1,19 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Clients;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Clients;
 
-public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
+public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ClientsCommandTestBase(fixture)
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "client",
-                "create",
-                "--help")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "create",
+            "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -49,16 +46,16 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "create",
-                "--api-id",
-                "api-1",
-                "--name",
-                "web-client")
-            .ExecuteAsync();
+        SetupInteractionMode(mode);
+        SetupNoAuthentication();
+
+        var result = await ExecuteCommandAsync(
+            "client",
+            "create",
+            "--api-id",
+            ApiId,
+            "--name",
+            ClientName);
 
         // assert
         result.AssertError(
@@ -74,30 +71,20 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
     public async Task NoWorkspaceInSession_And_NoApiId_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
+        SetupSession();
+        SetupInteractionMode(mode);
 
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddSession()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "create",
-                "--name",
-                "web-client")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "create",
+            "--name",
+            ClientName);
 
         // assert
         result.AssertError(
             """
             You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually specify the '--workspace-id' option (if available).
             """);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
     }
 
     [Theory]
@@ -106,16 +93,14 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
     public async Task MissingRequiredOptions_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddApiKey()
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "create",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(mode);
+
+        var result = await ExecuteCommandAsync(
+            "client",
+            "create",
+            "--api-id",
+            ApiId);
 
         // assert
         result.AssertError(
@@ -128,80 +113,39 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
     public async Task MissingRequiredOptions_PromptsUser_ReturnSuccess()
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        apisClient.Setup(x => x.SelectApisAsync(
-                "workspace-from-session",
-                null,
-                5,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ConnectionPage<ISelectApiPromptQuery_WorkspaceById_Apis_Edges_Node>(
-                [
-                    new SelectApiPromptQuery_WorkspaceById_Apis_Edges_Node_Api(
-                        "api-1",
-                        "products",
-                        [],
-                        null,
-                        new ShowApiCommandQuery_Node_Settings_ApiSettings(
-                            new ShowApiCommandQuery_Node_Settings_SchemaRegistry_SchemaRegistrySettings(false, false)))
-                ],
-                null,
-                false));
+        SetupSelectApisPrompt(("api-1", "products"));
+        SetupCreateClientMutation(CreateClientNode(ClientId, ClientName, ApiName));
 
-        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
-        clientsClient.Setup(x => x.CreateClientAsync(
-                "api-1",
-                "web-client",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateClientPayload(CreateClientNode("client-1", "web-client", "products"), errors: null));
+        SetupSessionWithWorkspace();
+        SetupInteractionMode(InteractionMode.Interactive);
 
-        var command = new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "client",
-                "create")
-            .Start();
+        var command = StartInteractiveCommand(
+            "client",
+            "create");
 
         // act
         command.SelectOption(0);
-        command.Input("web-client");
+        command.Input(ClientName);
         var result = await command.RunToCompletionAsync();
 
         // assert
         result.AssertSuccess();
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
     }
 
     [Fact]
     public async Task WithApiId_AndName_ReturnSuccess_NonInteractive()
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
-        clientsClient.Setup(x => x.CreateClientAsync(
-                "api-1",
-                "web-client",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateClientPayload(CreateClientNode("client-1", "web-client", "products"), errors: null));
+        SetupCreateClientMutation(CreateClientNode(ClientId, ClientName, ApiName));
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "create",
-                "--api-id",
-                "api-1",
-                "--name",
-                "web-client")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "create",
+            "--api-id",
+            ApiId,
+            "--name",
+            ClientName);
 
         // assert
         result.AssertSuccess(
@@ -217,37 +161,23 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
               }
             }
             """);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
     }
 
     [Fact]
     public async Task WithApiId_AndName_ReturnSuccess_JsonOutput()
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
-        clientsClient.Setup(x => x.CreateClientAsync(
-                "api-1",
-                "web-client",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateClientPayload(CreateClientNode("client-1", "web-client", "products"), errors: null));
+        SetupInteractionMode(InteractionMode.JsonOutput);
+        SetupCreateClientMutation(CreateClientNode(ClientId, ClientName, ApiName));
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "create",
-                "--api-id",
-                "api-1",
-                "--name",
-                "web-client")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "create",
+            "--api-id",
+            ApiId,
+            "--name",
+            ClientName);
 
         // assert
         result.AssertSuccess(
@@ -260,310 +190,50 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
               }
             }
             """);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
     }
 
-    [Fact]
-    public async Task MutationReturnsApiNotFoundError_ReturnsError_NonInteractive()
+    [Theory]
+    [MemberData(nameof(GetCreateClientErrors))]
+    public async Task CreateClientHasErrors_ReturnsError(
+        ICreateClientCommandMutation_CreateClient_Errors error,
+        string expectedErrorMessage)
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-
-        var apiNotFound = new Mock<ICreateClientCommandMutation_CreateClient_Errors_ApiNotFoundError>(MockBehavior.Strict);
-        apiNotFound.As<IApiNotFoundError>().SetupGet(x => x.Message).Returns("The API was not found.");
-
-        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
-        clientsClient.Setup(x => x.CreateClientAsync(
-                "api-1",
-                "web-client",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateClientPayload(client: null, errors: [apiNotFound.Object]));
+        SetupCreateClientMutation(errors: error);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "create",
-                "--api-id",
-                "api-1",
-                "--name",
-                "web-client")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "create",
+            "--api-id",
+            ApiId,
+            "--name",
+            ClientName);
 
         // assert
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
             Creating client 'web-client' for API 'api-1'
             └── ✕ Failed to create the client.
             """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The API was not found.
-            """);
         Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task MutationReturnsApiNotFoundError_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-
-        var apiNotFound = new Mock<ICreateClientCommandMutation_CreateClient_Errors_ApiNotFoundError>(MockBehavior.Strict);
-        apiNotFound.As<IApiNotFoundError>().SetupGet(x => x.Message).Returns("The API was not found.");
-
-        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
-        clientsClient.Setup(x => x.CreateClientAsync(
-                "api-1",
-                "web-client",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateClientPayload(client: null, errors: [apiNotFound.Object]));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "create",
-                "--api-id",
-                "api-1",
-                "--name",
-                "web-client")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The API was not found.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
     }
 
     [Fact]
-    public async Task MutationReturnsUnauthorizedOperationError_ReturnsError_NonInteractive()
+    public async Task MutationReturnsNoClient_ReturnsError()
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-
-        var unauthorized = new Mock<ICreateClientCommandMutation_CreateClient_Errors_UnauthorizedOperation>(MockBehavior.Strict);
-        unauthorized.As<IUnauthorizedOperation>().SetupGet(x => x.Message).Returns("Unauthorized operation.");
-
-        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
-        clientsClient.Setup(x => x.CreateClientAsync(
-                "api-1",
-                "web-client",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateClientPayload(client: null, errors: [unauthorized.Object]));
+        SetupCreateClientMutation();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "create",
-                "--api-id",
-                "api-1",
-                "--name",
-                "web-client")
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Creating client 'web-client' for API 'api-1'
-            └── ✕ Failed to create the client.
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Unauthorized operation.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task MutationReturnsUnauthorizedOperationError_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-
-        var unauthorized = new Mock<ICreateClientCommandMutation_CreateClient_Errors_UnauthorizedOperation>(MockBehavior.Strict);
-        unauthorized.As<IUnauthorizedOperation>().SetupGet(x => x.Message).Returns("Unauthorized operation.");
-
-        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
-        clientsClient.Setup(x => x.CreateClientAsync(
-                "api-1",
-                "web-client",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateClientPayload(client: null, errors: [unauthorized.Object]));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "create",
-                "--api-id",
-                "api-1",
-                "--name",
-                "web-client")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Unauthorized operation.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
-    }
-
-    [Fact]
-    public async Task MutationReturnsGenericError_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-
-        var genericError = new Mock<ICreateClientCommandMutation_CreateClient_Errors>(MockBehavior.Strict);
-        genericError.As<IError>().SetupGet(x => x.Message).Returns("something bad happened");
-
-        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
-        clientsClient.Setup(x => x.CreateClientAsync(
-                "api-1",
-                "web-client",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateClientPayload(client: null, errors: [genericError.Object]));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "create",
-                "--api-id",
-                "api-1",
-                "--name",
-                "web-client")
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Creating client 'web-client' for API 'api-1'
-            └── ✕ Failed to create the client.
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Unexpected mutation error: something bad happened
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task MutationReturnsGenericError_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-
-        var genericError = new Mock<ICreateClientCommandMutation_CreateClient_Errors>(MockBehavior.Strict);
-        genericError.As<IError>().SetupGet(x => x.Message).Returns("something bad happened");
-
-        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
-        clientsClient.Setup(x => x.CreateClientAsync(
-                "api-1",
-                "web-client",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateClientPayload(client: null, errors: [genericError.Object]));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "create",
-                "--api-id",
-                "api-1",
-                "--name",
-                "web-client")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Unexpected mutation error: something bad happened
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
-    }
-
-    [Fact]
-    public async Task MutationReturnsNoClient_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
-        clientsClient.Setup(x => x.CreateClientAsync(
-                "api-1",
-                "web-client",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateClientPayload(client: null, errors: null));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "create",
-                "--api-id",
-                "api-1",
-                "--name",
-                "web-client")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "create",
+            "--api-id",
+            ApiId,
+            "--name",
+            ClientName);
 
         // assert
         result.StdOut.MatchInlineSnapshot(
@@ -576,216 +246,34 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
             The GraphQL mutation completed without errors, but the server did not return the expected data.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task MutationReturnsNoClient_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task CreateClientThrows_ReturnsError()
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
-        clientsClient.Setup(x => x.CreateClientAsync(
-                "api-1",
-                "web-client",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateClientPayload(client: null, errors: null));
+        SetupCreateClientMutationException();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "create",
-                "--api-id",
-                "api-1",
-                "--name",
-                "web-client")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "create",
+            "--api-id",
+            ApiId,
+            "--name",
+            ClientName);
 
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The GraphQL mutation completed without errors, but the server did not return the expected data.
+            There was an unexpected error: Something unexpected happened.
             """);
-        Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsException_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = CreateExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "create",
-                "--api-id",
-                "api-1",
-                "--name",
-                "web-client")
-            .ExecuteAsync();
-
-        // assert
         result.StdOut.MatchInlineSnapshot(
             """
             Creating client 'web-client' for API 'api-1'
             └── ✕ Failed to create the client.
             """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
         Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = CreateExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "create",
-                "--api-id",
-                "api-1",
-                "--name",
-                "web-client")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = CreateExceptionClient(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "create",
-                "--api-id",
-                "api-1",
-                "--name",
-                "web-client")
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Creating client 'web-client' for API 'api-1'
-            └── ✕ Failed to create the client.
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = CreateExceptionClient(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "create",
-                "--api-id",
-                "api-1",
-                "--name",
-                "web-client")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
-    }
-
-    private static Mock<IClientsClient> CreateExceptionClient(Exception ex)
-    {
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.CreateClientAsync(
-                "api-1",
-                "web-client",
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(ex);
-        return client;
-    }
-
-    private static ICreateClientCommandMutation_CreateClient CreateClientPayload(
-        ICreateClientCommandMutation_CreateClient_Client? client,
-        IReadOnlyList<ICreateClientCommandMutation_CreateClient_Errors>? errors)
-    {
-        var payload = new Mock<ICreateClientCommandMutation_CreateClient>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Client).Returns(client);
-        payload.SetupGet(x => x.Errors).Returns(errors);
-        return payload.Object;
     }
 
     private static ICreateClientCommandMutation_CreateClient_Client CreateClientNode(
@@ -795,7 +283,7 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
     {
         var api = new Mock<IShowClientCommandQuery_Node_Api_1>(MockBehavior.Strict);
         api.SetupGet(x => x.Name).Returns(apiName);
-        api.SetupGet(x => x.Path).Returns(["products"]);
+        api.SetupGet(x => x.Path).Returns([apiName]);
 
         var clientNode = new Mock<ICreateClientCommandMutation_CreateClient_Client>(MockBehavior.Strict);
         clientNode.SetupGet(x => x.Id).Returns(id);
@@ -804,5 +292,24 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : ICla
         clientNode.SetupGet(x => x.Versions).Returns((IShowClientCommandQuery_Node_Versions?)null);
 
         return clientNode.Object;
+    }
+
+    public static TheoryData<ICreateClientCommandMutation_CreateClient_Errors, string> GetCreateClientErrors()
+    {
+        var apiNotFound = new Mock<ICreateClientCommandMutation_CreateClient_Errors_ApiNotFoundError>(MockBehavior.Strict);
+        apiNotFound.As<IApiNotFoundError>().SetupGet(x => x.Message).Returns("The API was not found.");
+
+        var unauthorized = new Mock<ICreateClientCommandMutation_CreateClient_Errors_UnauthorizedOperation>(MockBehavior.Strict);
+        unauthorized.As<IUnauthorizedOperation>().SetupGet(x => x.Message).Returns("Unauthorized operation.");
+
+        var genericError = new Mock<ICreateClientCommandMutation_CreateClient_Errors>(MockBehavior.Strict);
+        genericError.As<IError>().SetupGet(x => x.Message).Returns("something bad happened");
+
+        return new()
+        {
+            { apiNotFound.Object, "The API was not found." },
+            { unauthorized.Object, "Unauthorized operation." },
+            { genericError.Object, "Unexpected mutation error: something bad happened" }
+        };
     }
 }

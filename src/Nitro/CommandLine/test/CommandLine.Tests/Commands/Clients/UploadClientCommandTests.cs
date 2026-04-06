@@ -1,6 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Clients;
-using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Clients;
 
@@ -99,7 +97,7 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : Clie
     public async Task UploadClientThrows_ReturnsError()
     {
         // arrange
-        SetupUploadMutationException();
+        SetupUploadClientMutationException();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -132,7 +130,7 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : Clie
         string expectedErrorMessage)
     {
         // arrange
-        SetupUploadMutation(CreateUploadPayloadWithErrors(error));
+        SetupUploadClientMutation(error);
 
         // act
         var result = await ExecuteCommandAsync(
@@ -159,13 +157,7 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : Clie
     public async Task UploadClientReturnsNullClientVersion_ReturnsError()
     {
         // arrange
-        var payload = new Mock<IUploadClient_UploadClient>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors)
-            .Returns((IReadOnlyList<IUploadClient_UploadClient_Errors>?)null);
-        payload.SetupGet(x => x.ClientVersion)
-            .Returns((IUploadClient_UploadClient_ClientVersion?)null);
-
-        SetupUploadMutation(payload.Object);
+        SetupUploadClientMutationNullClientVersion();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -195,7 +187,7 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : Clie
     public async Task UploadsClient_ReturnsSuccess()
     {
         // arrange
-        SetupUploadMutation(CreateUploadSuccessPayload());
+        SetupUploadClientMutation();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -214,46 +206,6 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : Clie
             Uploading new client version 'v1' for client 'client-1'
             └── ✓ Uploaded new client version 'v1'.
             """);
-    }
-
-    private void SetupUploadMutation(IUploadClient_UploadClient payload)
-    {
-        SetupOperationsFile();
-        ClientsClientMock.Setup(x => x.UploadClientVersionAsync(
-                ClientId, Tag, It.IsAny<Stream>(), null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(payload);
-    }
-
-    private void SetupUploadMutationException()
-    {
-        SetupOperationsFile();
-        ClientsClientMock.Setup(x => x.UploadClientVersionAsync(
-                ClientId, Tag, It.IsAny<Stream>(), null, It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("Something unexpected happened."));
-    }
-
-    private static IUploadClient_UploadClient CreateUploadSuccessPayload()
-    {
-        var clientVersion = new Mock<IUploadClient_UploadClient_ClientVersion>(MockBehavior.Strict);
-        clientVersion.SetupGet(x => x.Id).Returns("cv-1");
-
-        var payload = new Mock<IUploadClient_UploadClient>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors)
-            .Returns((IReadOnlyList<IUploadClient_UploadClient_Errors>?)null);
-        payload.SetupGet(x => x.ClientVersion).Returns(clientVersion.Object);
-
-        return payload.Object;
-    }
-
-    private static IUploadClient_UploadClient CreateUploadPayloadWithErrors(
-        params IUploadClient_UploadClient_Errors[] errors)
-    {
-        var payload = new Mock<IUploadClient_UploadClient>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors).Returns(errors);
-        payload.SetupGet(x => x.ClientVersion)
-            .Returns((IUploadClient_UploadClient_ClientVersion?)null);
-
-        return payload.Object;
     }
 
     public static TheoryData<IUploadClient_UploadClient_Errors, string> GetUploadClientErrors() => new()

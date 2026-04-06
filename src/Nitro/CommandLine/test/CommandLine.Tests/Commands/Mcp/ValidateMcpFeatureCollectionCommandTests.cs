@@ -29,10 +29,10 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             """
             Description:
               Validate an MCP feature collection version.
-            
+
             Usage:
               nitro mcp validate [options]
-            
+
             Options:
               --mcp-feature-collection-id <mcp-feature-collection-id> (REQUIRED)  The ID of the MCP Feature Collection [env: NITRO_MCP_FEATURE_COLLECTION_ID]
               --stage <stage> (REQUIRED)                                          The name of the stage [env: NITRO_STAGE]
@@ -52,41 +52,9 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             """);
     }
 
-    [Fact]
-    public async Task NoSession_Or_ApiKey_ReturnsError_NonInteractive()
-    {
-        // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "mcp",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--mcp-feature-collection-id",
-                DefaultMcpFeatureCollectionId,
-                "--prompt-pattern",
-                "**/*.json",
-                "--tool-pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Validating MCP feature collection against stage 'production'
-            ├── Found 14 prompt(s) and 0 tool(s).
-            └── ✕ Failed to validate the MCP feature collection.
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            A prompt with the name 'source-schema-1-settings' already exists in the archive.
-            """);
-        Assert.Equal(1, result.ExitCode);
-    }
-
     [Theory]
     [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
@@ -107,11 +75,10 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             .ExecuteAsync();
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
-            A prompt with the name 'source-schema-1-settings' already exists in the archive.
+            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
             """);
-        Assert.Equal(1, result.ExitCode);
     }
 
     [Fact]

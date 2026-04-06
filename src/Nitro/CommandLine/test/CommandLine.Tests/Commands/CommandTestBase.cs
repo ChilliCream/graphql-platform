@@ -26,6 +26,7 @@ public abstract class CommandTestBase
     protected readonly Mock<IApisClient> ApisClientMock = new(MockBehavior.Strict);
     private InteractionMode _interactionMode = InteractionMode.NonInteractive;
     private bool _authenticated = true;
+    private bool _useSession;
     private bool _useSessionWithWorkspace;
 
     protected CommandTestBase(NitroCommandFixture fixture)
@@ -46,6 +47,12 @@ public abstract class CommandTestBase
         _authenticated = false;
     }
 
+    protected void SetupSession()
+    {
+        _authenticated = false;
+        _useSession = true;
+    }
+
     protected void SetupSessionWithWorkspace()
     {
         _authenticated = false;
@@ -53,6 +60,22 @@ public abstract class CommandTestBase
     }
 
     protected async Task<CommandResult> ExecuteCommandAsync(params string[] args)
+    {
+        return await CreateCommandBuilder()
+           .AddInteractionMode(_interactionMode)
+           .AddArguments(args)
+           .ExecuteAsync();
+    }
+
+    internal InteractiveCommand StartInteractiveCommand(params string[] args)
+    {
+        return CreateCommandBuilder()
+            .AddInteractionMode(_interactionMode)
+            .AddArguments(args)
+            .Start();
+    }
+
+    private CommandBuilder CreateCommandBuilder()
     {
         var builder = new CommandBuilder(_fixture)
             .AddService(_fileSystemMock.Object)
@@ -67,15 +90,17 @@ public abstract class CommandTestBase
             builder.AddApiKey();
         }
 
+        if (_useSession)
+        {
+            builder.AddSession();
+        }
+
         if (_useSessionWithWorkspace)
         {
             builder.AddSessionWithWorkspace();
         }
 
-        return await builder
-           .AddInteractionMode(_interactionMode)
-           .AddArguments(args)
-           .ExecuteAsync();
+        return builder;
     }
 
     protected void SetupFile(string path, string content)

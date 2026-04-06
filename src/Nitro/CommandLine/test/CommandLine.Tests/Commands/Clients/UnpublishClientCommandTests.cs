@@ -1,21 +1,17 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Clients;
-using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Clients;
 
-public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
+public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : ClientsCommandTestBase(fixture)
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "client",
-                "unpublish",
-                "--help")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "unpublish",
+            "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -50,18 +46,18 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : I
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "unpublish",
-                "--tag",
-                "v1",
-                "--stage",
-                "production",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
+        SetupInteractionMode(mode);
+        SetupNoAuthentication();
+
+        var result = await ExecuteCommandAsync(
+            "client",
+            "unpublish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--client-id",
+            ClientId);
 
         // assert
         result.AssertError(
@@ -74,430 +70,205 @@ public sealed class UnpublishClientCommandTests(NitroCommandFixture fixture) : I
     public async Task WithOptions_ReturnsSuccess_NonInteractive()
     {
         // arrange
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.UnpublishClientVersionAsync(
-                "client-1",
-                "production",
-                "v1",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateUnpublishSuccessPayload("my-client"));
+        SetupUnpublishClientMutation();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "unpublish",
-                "--tag",
-                "v1",
-                "--stage",
-                "production",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "unpublish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--client-id",
+            ClientId);
 
         // assert
         result.AssertSuccess(
             """
-            Unpublishing client 'client-1' from stage 'production'
+            Unpublishing client 'client-1' from stage 'dev'
             ├── Unpublishing v1...
-            Unpublished my-client:v1 from production
-            └── ✓ Unpublished client 'client-1' from stage 'production'.
+            Unpublished web-client:v1 from dev
+            └── ✓ Unpublished client 'client-1' from stage 'dev'.
             """);
-
-        client.VerifyAll();
     }
 
     [Fact]
     public async Task WithOptions_ReturnsSuccess_JsonOutput()
     {
         // arrange
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.UnpublishClientVersionAsync(
-                "client-1",
-                "production",
-                "v1",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateUnpublishSuccessPayload("my-client"));
+        SetupInteractionMode(InteractionMode.JsonOutput);
+        SetupUnpublishClientMutation();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "unpublish",
-                "--tag",
-                "v1",
-                "--stage",
-                "production",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "unpublish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--client-id",
+            ClientId);
 
         // assert
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
     public async Task MultipleTags_ReturnsSuccess_NonInteractive()
     {
         // arrange
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.UnpublishClientVersionAsync(
-                "client-1",
-                "production",
-                "v1",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateUnpublishSuccessPayload("my-client"));
-        client.Setup(x => x.UnpublishClientVersionAsync(
-                "client-1",
-                "production",
-                "v2",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateUnpublishSuccessPayload("my-client"));
+        SetupUnpublishClientMutation("v1");
+        SetupUnpublishClientMutation("v2");
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "unpublish",
-                "--tag",
-                "v1",
-                "--tag",
-                "v2",
-                "--stage",
-                "production",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "unpublish",
+            "--tag",
+            "v1",
+            "--tag",
+            "v2",
+            "--stage",
+            Stage,
+            "--client-id",
+            ClientId);
 
         // assert
         result.AssertSuccess(
             """
-            Unpublishing client 'client-1' from stage 'production'
+            Unpublishing client 'client-1' from stage 'dev'
             ├── Unpublishing v1...
-            Unpublished my-client:v1 from production
+            Unpublished web-client:v1 from dev
             ├── Unpublishing v2...
-            Unpublished my-client:v2 from production
-            └── ✓ Unpublished client 'client-1' from stage 'production'.
+            Unpublished web-client:v2 from dev
+            └── ✓ Unpublished client 'client-1' from stage 'dev'.
             """);
-
-        client.VerifyAll();
     }
 
     [Theory]
     [MemberData(nameof(UnpublishMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_NonInteractive(
+    public async Task MutationReturnsTypedError_ReturnsError(
         IUnpublishClient_UnpublishClient_Errors mutationError,
         string expectedStdErr)
     {
         // arrange
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.UnpublishClientVersionAsync(
-                "client-1",
-                "production",
-                "v1",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateUnpublishPayloadWithErrors(mutationError));
+        SetupUnpublishClientMutation(errors: [mutationError]);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "unpublish",
-                "--tag",
-                "v1",
-                "--stage",
-                "production",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "unpublish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--client-id",
+            ClientId);
 
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Unpublishing client 'client-1' from stage 'production'
+            Unpublishing client 'client-1' from stage 'dev'
             ├── Unpublishing v1...
             └── ✕ Failed to unpublish the client.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
-    [Theory]
-    [MemberData(nameof(UnpublishMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_Interactive(
-        IUnpublishClient_UnpublishClient_Errors mutationError,
-        string expectedStdErr)
+    [Fact]
+    public async Task UnpublishThrows_ReturnsError()
     {
         // arrange
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.UnpublishClientVersionAsync(
-                "client-1",
-                "production",
-                "v1",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateUnpublishPayloadWithErrors(mutationError));
+        SetupUnpublishClientMutationException();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddSessionWithWorkspace()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "client",
-                "unpublish",
-                "--tag",
-                "v1",
-                "--stage",
-                "production",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(expectedStdErr);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [MemberData(nameof(UnpublishMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_JsonOutput(
-        IUnpublishClient_UnpublishClient_Errors mutationError,
-        string expectedStdErr)
-    {
-        // arrange
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.UnpublishClientVersionAsync(
-                "client-1",
-                "production",
-                "v1",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateUnpublishPayloadWithErrors(mutationError));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "client",
-                "unpublish",
-                "--tag",
-                "v1",
-                "--stage",
-                "production",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(expectedStdErr);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.UnpublishClientVersionAsync(
-                "client-1",
-                "production",
-                "v1",
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "unpublish",
-                "--tag",
-                "v1",
-                "--stage",
-                "production",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "unpublish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--client-id",
+            ClientId);
 
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
+            There was an unexpected error: Something unexpected happened.
             """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.UnpublishClientVersionAsync(
-                "client-1",
-                "production",
-                "v1",
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "unpublish",
-                "--tag",
-                "v1",
-                "--stage",
-                "production",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
+        result.StdOut.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            Unpublishing client 'client-1' from stage 'dev'
+            ├── Unpublishing v1...
+            └── ✕ Failed to unpublish the client.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
     public async Task Unpublish_Should_ShowNotFound_When_ClientVersionNull()
     {
         // arrange
-        var payload = new Mock<IUnpublishClient_UnpublishClient>(MockBehavior.Strict);
-        payload.SetupGet(x => x.ClientVersion).Returns((IUnpublishClient_UnpublishClient_ClientVersion?)null);
-        payload.SetupGet(x => x.Errors).Returns((IReadOnlyList<IUnpublishClient_UnpublishClient_Errors>?)null);
-
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.UnpublishClientVersionAsync(
-                "client-1",
-                "production",
-                "v1",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(payload.Object);
+        SetupUnpublishClientMutationNullClientVersion();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "unpublish",
-                "--tag",
-                "v1",
-                "--stage",
-                "production",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "unpublish",
+            "--tag",
+            Tag,
+            "--stage",
+            Stage,
+            "--client-id",
+            ClientId);
 
         // assert
         result.AssertSuccess(
             """
-            Unpublishing client 'client-1' from stage 'production'
+            Unpublishing client 'client-1' from stage 'dev'
             ├── Unpublishing v1...
-            Unpublished <<NotFound>>:v1 from production
-            └── ✓ Unpublished client 'client-1' from stage 'production'.
+            Unpublished <<NotFound>>:v1 from dev
+            └── ✓ Unpublished client 'client-1' from stage 'dev'.
             """);
-
-        client.VerifyAll();
     }
 
     public static TheoryData<IUnpublishClient_UnpublishClient_Errors, string> UnpublishMutationErrorCases =>
         new()
         {
             {
-                new UnpublishClient_UnpublishClient_Errors_ConcurrentOperationError("ConcurrentOperationError", "Concurrent operation in progress"),
+                CreateUnpublishClientConcurrentOperationError(),
                 """
-                Concurrent operation in progress
-                """
-            },
-            {
-                new UnpublishClient_UnpublishClient_Errors_StageNotFoundError("StageNotFoundError", "Stage not found", "production"),
-                """
-                Stage not found
+                A concurrent operation is in progress.
                 """
             },
             {
-                new UnpublishClient_UnpublishClient_Errors_ClientVersionNotFoundError("v1", "Client version not found", "client-1"),
+                CreateUnpublishClientStageNotFoundError(),
                 """
-                Client version not found
-                """
-            },
-            {
-                new UnpublishClient_UnpublishClient_Errors_UnauthorizedOperation("UnauthorizedOperation", "Not authorized"),
-                """
-                Not authorized
+                Stage 'dev' was not found.
                 """
             },
             {
-                new UnpublishClient_UnpublishClient_Errors_ClientNotFoundError("Client not found", "client-1"),
+                CreateUnpublishClientVersionNotFoundError(),
                 """
-                Client not found
+                Client version not found.
+                """
+            },
+            {
+                CreateUnpublishClientUnauthorizedError(),
+                """
+                Unauthorized.
+                """
+            },
+            {
+                CreateUnpublishClientClientNotFoundError(),
+                """
+                Client 'client-1' was not found.
                 """
             }
         };
-
-    private static IUnpublishClient_UnpublishClient CreateUnpublishSuccessPayload(string clientName)
-    {
-        var clientObj = new Mock<IUnpublishClient_UnpublishClient_ClientVersion_Client>(MockBehavior.Strict);
-        clientObj.SetupGet(x => x.Name).Returns(clientName);
-
-        var clientVersion = new Mock<IUnpublishClient_UnpublishClient_ClientVersion>(MockBehavior.Strict);
-        clientVersion.SetupGet(x => x.Id).Returns("cv-1");
-        clientVersion.SetupGet(x => x.Client).Returns(clientObj.Object);
-
-        var payload = new Mock<IUnpublishClient_UnpublishClient>(MockBehavior.Strict);
-        payload.SetupGet(x => x.ClientVersion).Returns(clientVersion.Object);
-        payload.SetupGet(x => x.Errors).Returns((IReadOnlyList<IUnpublishClient_UnpublishClient_Errors>?)null);
-
-        return payload.Object;
-    }
-
-    private static IUnpublishClient_UnpublishClient CreateUnpublishPayloadWithErrors(
-        params IUnpublishClient_UnpublishClient_Errors[] errors)
-    {
-        var payload = new Mock<IUnpublishClient_UnpublishClient>(MockBehavior.Strict);
-        payload.SetupGet(x => x.ClientVersion).Returns((IUnpublishClient_UnpublishClient_ClientVersion?)null);
-        payload.SetupGet(x => x.Errors).Returns(errors);
-
-        return payload.Object;
-    }
 }

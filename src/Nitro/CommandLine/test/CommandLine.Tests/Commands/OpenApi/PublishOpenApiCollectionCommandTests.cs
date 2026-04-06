@@ -83,40 +83,9 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
         Assert.Equal(1, result.ExitCode);
     }
 
-    [Fact]
-    public async Task NoSession_Or_ApiKey_ReturnsError_NonInteractive()
-    {
-        // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "openapi",
-                "publish",
-                "--tag",
-                DefaultTag,
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId)
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Publishing new OpenAPI collection version 'v1' to stage 'production'
-            ├── Starting publish request
-            │   └── ✕ Failed to start publish request.
-            └── ✕ Failed to publish a new OpenAPI collection version.
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Object reference not set to an instance of an object.
-            """);
-        Assert.Equal(1, result.ExitCode);
-    }
-
     [Theory]
     [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
@@ -135,11 +104,10 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             .ExecuteAsync();
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
-            Object reference not set to an instance of an object.
+            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
             """);
-        Assert.Equal(1, result.ExitCode);
     }
 
     [Fact]

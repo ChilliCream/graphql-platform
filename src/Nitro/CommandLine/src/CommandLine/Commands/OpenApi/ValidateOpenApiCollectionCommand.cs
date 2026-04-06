@@ -3,6 +3,7 @@ using ChilliCream.Nitro.Client.OpenApi;
 using ChilliCream.Nitro.CommandLine.Commands.OpenApi.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi;
 
@@ -38,6 +39,9 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var client = services.GetRequiredService<IOpenApiClient>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+
+        parseResult.AssertHasAuthentication(sessionService);
 
         var stage = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
         var openApiCollectionId = parseResult.GetRequiredValue(Opt<OpenApiCollectionIdOption>.Instance);

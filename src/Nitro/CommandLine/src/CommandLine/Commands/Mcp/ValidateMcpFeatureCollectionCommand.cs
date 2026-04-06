@@ -3,6 +3,7 @@ using ChilliCream.Nitro.Client.Mcp;
 using ChilliCream.Nitro.CommandLine.Commands.Mcp.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mcp;
 
@@ -40,6 +41,9 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var client = services.GetRequiredService<IMcpClient>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+
+        parseResult.AssertHasAuthentication(sessionService);
 
         var stage = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
         var mcpFeatureCollectionId = parseResult.GetRequiredValue(Opt<McpFeatureCollectionIdOption>.Instance);

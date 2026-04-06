@@ -4,6 +4,7 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Schemas;
 
+// TODO: Test with force and waitforapproval, etc.
 public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : SchemasCommandTestBase(fixture)
 {
     [Fact]
@@ -276,11 +277,11 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
             ├── Processing
             │   ├── Your request is being processed.
             │   └── ✕ Processing failed.
+            │       └── Something went wrong during publish.
             └── ✕ Failed to publish a new schema version.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Something went wrong during publish.
             Schema publish failed.
             """);
         Assert.Equal(1, result.ExitCode);

@@ -1,6 +1,7 @@
 using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.CommandLine.Helpers;
 
-namespace ChilliCream.Nitro.CommandLine.Helpers;
+namespace ChilliCream.Nitro.CommandLine;
 
 internal static class TreeNodeExtensions
 {
@@ -85,8 +86,7 @@ internal static class TreeNodeExtensions
                     }
                     else
                     {
-                        // TODO: Improve
-                        entityNode.AddNode("Unknown error type");
+                        entityNode.AddNode(ErrorMessages.UnknownServerResponse);
                     }
                 }
             }
@@ -137,7 +137,7 @@ internal static class TreeNodeExtensions
                     }
                     else
                     {
-                        entityNode.AddNode("Unknown error type");
+                        entityNode.AddNode(ErrorMessages.UnknownServerResponse);
                     }
                 }
             }

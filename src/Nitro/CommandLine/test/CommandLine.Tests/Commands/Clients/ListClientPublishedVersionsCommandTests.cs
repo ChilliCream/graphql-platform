@@ -1,23 +1,17 @@
-using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Apis;
-using ChilliCream.Nitro.Client.Clients;
-using Moq;
-
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Clients;
 
-public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
+public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture fixture)
+    : ClientsCommandTestBase(fixture)
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "client",
-                "list",
-                "published-versions",
-                "--help")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "list",
+            "published-versions",
+            "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -48,13 +42,13 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "list",
-                "published-versions")
-            .ExecuteAsync();
+        SetupInteractionMode(mode);
+        SetupNoAuthentication();
+
+        var result = await ExecuteCommandAsync(
+            "client",
+            "list",
+            "published-versions");
 
         // assert
         result.AssertError(
@@ -69,28 +63,18 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
     public async Task MissingClientId_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
+        SetupInteractionMode(mode);
 
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "list",
-                "published-versions")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "list",
+            "published-versions");
 
         // assert
         result.AssertError(
             """
             The '--client-id' option is required in non-interactive mode.
             """);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
     }
 
     [Theory]
@@ -99,32 +83,19 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
     public async Task WithClientId_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
-        clientsClient.Setup(x => x.ListClientVersionsAsync(
-                "client-1",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateListClientVersionsPage(
-                endCursor: null,
-                hasNextPage: false,
-                ("v1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero), new[] { "production" }),
-                ("v2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero), new[] { "staging", "production" })));
+        SetupInteractionMode(mode);
+        SetupListClientVersionsQuery(
+            versions: [
+                ("v1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero), new[] { Stage }),
+                ("v2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero), new[] { "staging", Stage })]);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "list",
-                "published-versions",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "list",
+            "published-versions",
+            "--client-id",
+            ClientId);
 
         // assert
         result.AssertSuccess(
@@ -135,7 +106,7 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
                   "tag": "v1",
                   "createdAt": "2025-01-15T10:00:00+00:00",
                   "stages": [
-                    "production"
+                    "dev"
                   ]
                 },
                 {
@@ -143,47 +114,31 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
                   "createdAt": "2025-01-16T10:00:00+00:00",
                   "stages": [
                     "staging",
-                    "production"
+                    "dev"
                   ]
                 }
               ],
               "cursor": null
             }
             """);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
     }
 
     [Fact]
     public async Task WithClientId_ReturnsSuccess_Interactive()
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
-        clientsClient.Setup(x => x.ListClientVersionsAsync(
-                "client-1",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateListClientVersionsPage(
-                endCursor: null,
-                hasNextPage: false,
-                ("v1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero), new[] { "production" }),
-                ("v2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero), new[] { "staging", "production" })));
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupListClientVersionsQuery(
+            versions: [
+                ("v1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero), new[] { Stage }),
+                ("v2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero), new[] { "staging", Stage })]);
 
-        var command = new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "client",
-                "list",
-                "published-versions",
-                "--client-id",
-                "client-1")
-            .Start();
+        var command = StartInteractiveCommand(
+            "client",
+            "list",
+            "published-versions",
+            "--client-id",
+            ClientId);
 
         // act
         command.SelectOption(0);
@@ -191,9 +146,6 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
 
         // assert
         result.AssertSuccess();
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
     }
 
     [Theory]
@@ -202,32 +154,19 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
     public async Task WithClientId_FiltersUnpublishedVersions_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
-        clientsClient.Setup(x => x.ListClientVersionsAsync(
-                "client-1",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateListClientVersionsPage(
-                endCursor: null,
-                hasNextPage: false,
-                ("v1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero), new[] { "production" }),
-                ("v2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero), Array.Empty<string>())));
+        SetupInteractionMode(mode);
+        SetupListClientVersionsQuery(
+            versions: [
+                ("v1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero), new[] { Stage }),
+                ("v2", new DateTimeOffset(2025, 1, 16, 10, 0, 0, TimeSpan.Zero), Array.Empty<string>())]);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "list",
-                "published-versions",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "list",
+            "published-versions",
+            "--client-id",
+            ClientId);
 
         // assert
         result.AssertSuccess(
@@ -238,16 +177,13 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
                   "tag": "v1",
                   "createdAt": "2025-01-15T10:00:00+00:00",
                   "stages": [
-                    "production"
+                    "dev"
                   ]
                 }
               ],
               "cursor": null
             }
             """);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
     }
 
     [Theory]
@@ -256,28 +192,16 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
     public async Task WithClientId_NoData_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
-        clientsClient.Setup(x => x.ListClientVersionsAsync(
-                "client-1",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateListClientVersionsPage());
+        SetupInteractionMode(mode);
+        SetupListClientVersionsQuery();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "list",
-                "published-versions",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "list",
+            "published-versions",
+            "--client-id",
+            ClientId);
 
         // assert
         result.AssertSuccess(
@@ -287,36 +211,21 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
               "cursor": null
             }
             """);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
     }
 
     [Fact]
     public async Task WithClientId_NoData_ReturnsSuccess_Interactive()
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
-        clientsClient.Setup(x => x.ListClientVersionsAsync(
-                "client-1",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateListClientVersionsPage());
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupListClientVersionsQuery();
 
-        var command = new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "client",
-                "list",
-                "published-versions",
-                "--client-id",
-                "client-1")
-            .Start();
+        var command = StartInteractiveCommand(
+            "client",
+            "list",
+            "published-versions",
+            "--client-id",
+            ClientId);
 
         // act
         command.SelectOption(0);
@@ -324,41 +233,25 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
 
         // assert
         result.AssertSuccess();
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
     }
 
     [Fact]
     public async Task WithCursor_ReturnsSuccess_Interactive()
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
-        clientsClient.Setup(x => x.ListClientVersionsAsync(
-                "client-1",
-                "cursor-1",
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateListClientVersionsPage(
-                endCursor: null,
-                hasNextPage: false,
-                ("v1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero), new[] { "production" })));
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupListClientVersionsQuery(
+            cursor: "cursor-1",
+            versions: [("v1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero), new[] { Stage })]);
 
-        var command = new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "client",
-                "list",
-                "published-versions",
-                "--client-id",
-                "client-1",
-                "--cursor",
-                "cursor-1")
-            .Start();
+        var command = StartInteractiveCommand(
+            "client",
+            "list",
+            "published-versions",
+            "--client-id",
+            ClientId,
+            "--cursor",
+            "cursor-1");
 
         // act
         command.SelectOption(0);
@@ -366,9 +259,6 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
 
         // assert
         result.AssertSuccess();
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
     }
 
     [Theory]
@@ -377,33 +267,20 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
     public async Task WithCursor_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
-        clientsClient.Setup(x => x.ListClientVersionsAsync(
-                "client-1",
-                "cursor-1",
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateListClientVersionsPage(
-                endCursor: null,
-                hasNextPage: false,
-                ("v1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero), new[] { "production" })));
+        SetupInteractionMode(mode);
+        SetupListClientVersionsQuery(
+            cursor: "cursor-1",
+            versions: [("v1", new DateTimeOffset(2025, 1, 15, 10, 0, 0, TimeSpan.Zero), new[] { Stage })]);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "list",
-                "published-versions",
-                "--client-id",
-                "client-1",
-                "--cursor",
-                "cursor-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "list",
+            "published-versions",
+            "--client-id",
+            ClientId,
+            "--cursor",
+            "cursor-1");
 
         // assert
         result.AssertSuccess(
@@ -414,180 +291,54 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
                   "tag": "v1",
                   "createdAt": "2025-01-15T10:00:00+00:00",
                   "stages": [
-                    "production"
+                    "dev"
                   ]
                 }
               ],
               "cursor": null
             }
             """);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
     }
 
     [Fact]
-    public async Task ClientThrowsException_ReturnsError_Interactive()
+    public async Task ListClientPublishedVersionsThrows_ReturnsError()
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = CreateListExceptionClient(
-            new NitroClientGraphQLException("Some message.", "SOME_CODE"), "client-1", null);
+        SetupListClientVersionsQueryException();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "client",
-                "list",
-                "published-versions",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "list",
+            "published-versions",
+            "--client-id",
+            ClientId);
 
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
+            There was an unexpected error: Something unexpected happened.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+
             """);
         Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = CreateListExceptionClient(
-            new NitroClientGraphQLException("Some message.", "SOME_CODE"), "client-1", null);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "list",
-                "published-versions",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
     }
 
     [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_Interactive()
+    public async Task ListPublished_Should_ReturnError_When_ClientNotFound()
     {
         // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = CreateListExceptionClient(
-            new NitroClientAuthorizationException(), "client-1", null);
+        SetupListClientVersionsQueryNotFound();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "client",
-                "list",
-                "published-versions",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = CreateListExceptionClient(
-            new NitroClientAuthorizationException(), "client-1", null);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "list",
-                "published-versions",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertError(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ListPublished_Should_ReturnError_When_ClientNotFound(InteractionMode mode)
-    {
-        // arrange
-        var apisClient = new Mock<IApisClient>(MockBehavior.Strict);
-        var clientsClient = new Mock<IClientsClient>(MockBehavior.Strict);
-        clientsClient.Setup(x => x.ListClientVersionsAsync(
-                "client-1",
-                null,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync((ConnectionPage<IClientDetailPrompt_ClientVersionEdge>?)null);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(apisClient.Object)
-            .AddService(clientsClient.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "list",
-                "published-versions",
-                "--client-id",
-                "client-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "list",
+            "published-versions",
+            "--client-id",
+            ClientId);
 
         // assert
         result.AssertError(
@@ -595,64 +346,5 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
             There was an issue with the request to the server.
             The client was not found.
             """);
-
-        apisClient.VerifyAll();
-        clientsClient.VerifyAll();
-    }
-
-    private static ConnectionPage<IClientDetailPrompt_ClientVersionEdge> CreateListClientVersionsPage(
-        string? endCursor = null,
-        bool hasNextPage = false,
-        params (string Tag, DateTimeOffset CreatedAt, string[] Stages)[] versions)
-    {
-        var items = versions
-            .Select(static v => CreateVersionEdge(v.Tag, v.CreatedAt, v.Stages))
-            .ToArray();
-
-        return new ConnectionPage<IClientDetailPrompt_ClientVersionEdge>(items, endCursor, hasNextPage);
-    }
-
-    private static IClientDetailPrompt_ClientVersionEdge CreateVersionEdge(
-        string tag,
-        DateTimeOffset createdAt,
-        string[] stages)
-    {
-        var publishedTo = stages
-            .Select(static stageName =>
-            {
-                var stage = new Mock<IShowClientCommandQuery_Node_Versions_Edges_Node_PublishedTo_Stage>(MockBehavior.Strict);
-                stage.SetupGet(x => x.Name).Returns(stageName);
-
-                var published = new Mock<IShowClientCommandQuery_Node_Versions_Edges_Node_PublishedTo>(MockBehavior.Strict);
-                published.SetupGet(x => x.Stage).Returns(stage.Object);
-
-                return published.Object;
-            })
-            .ToArray();
-
-        var node = new Mock<IShowClientCommandQuery_Node_Versions_Edges_Node>(MockBehavior.Strict);
-        node.SetupGet(x => x.Tag).Returns(tag);
-        node.SetupGet(x => x.CreatedAt).Returns(createdAt);
-        node.SetupGet(x => x.PublishedTo).Returns(publishedTo);
-
-        var edge = new Mock<IClientDetailPrompt_ClientVersionEdge>(MockBehavior.Strict);
-        edge.SetupGet(x => x.Node).Returns(node.Object);
-
-        return edge.Object;
-    }
-
-    private static Mock<IClientsClient> CreateListExceptionClient(
-        Exception ex,
-        string clientId,
-        string? cursor)
-    {
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.ListClientVersionsAsync(
-                clientId,
-                cursor,
-                10,
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(ex);
-        return client;
     }
 }

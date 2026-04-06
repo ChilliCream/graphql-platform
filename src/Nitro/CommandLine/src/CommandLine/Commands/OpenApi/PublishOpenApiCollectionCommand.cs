@@ -3,6 +3,7 @@ using ChilliCream.Nitro.Client.OpenApi;
 using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Commands.OpenApi.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi;
@@ -52,6 +53,9 @@ internal sealed class PublishOpenApiCollectionCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var client = services.GetRequiredService<IOpenApiClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+
+        parseResult.AssertHasAuthentication(sessionService);
 
         var tag = parseResult.GetRequiredValue(Opt<TagOption>.Instance);
         var stage = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);

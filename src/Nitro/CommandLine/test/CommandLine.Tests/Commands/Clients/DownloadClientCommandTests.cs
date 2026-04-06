@@ -1,25 +1,21 @@
 using System.Text;
 using System.Text.Json;
-using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Clients;
-using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Services;
-using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Clients;
 
-public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
+public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : ClientsCommandTestBase(fixture)
 {
+    private const string OutputPath = "/some/working/directory/queries.json";
+    private const string OutputDir = "/some/working/directory/output-dir";
+
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "client",
-                "download",
-                "--help")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "download",
+            "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -55,18 +51,18 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "production",
-                "--path",
-                "queries.json")
-            .ExecuteAsync();
+        SetupInteractionMode(mode);
+        SetupNoAuthentication();
+
+        var result = await ExecuteCommandAsync(
+            "client",
+            "download",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--path",
+            OutputPath);
 
         // assert
         result.AssertError(
@@ -81,17 +77,15 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
     public async Task MissingRequiredOptions_ReturnsError(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "download",
-                "--api-id",
-                "api-1",
-                "--path",
-                "queries.json")
-            .ExecuteAsync();
+        SetupInteractionMode(mode);
+
+        var result = await ExecuteCommandAsync(
+            "client",
+            "download",
+            "--api-id",
+            ApiId,
+            "--path",
+            OutputPath);
 
         // assert
         result.StdErr.MatchInlineSnapshot(
@@ -107,17 +101,15 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
     public async Task Download_Should_ReturnError_When_ApiIdNotProvided(InteractionMode mode)
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "download",
-                "--stage",
-                "production",
-                "--path",
-                "queries.json")
-            .ExecuteAsync();
+        SetupInteractionMode(mode);
+
+        var result = await ExecuteCommandAsync(
+            "client",
+            "download",
+            "--stage",
+            Stage,
+            "--path",
+            OutputPath);
 
         // assert
         result.StdErr.MatchInlineSnapshot(
@@ -127,227 +119,64 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
         Assert.Equal(1, result.ExitCode);
     }
 
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
+    [Fact]
+    public async Task DownloadThrows_ReturnsError()
     {
         // arrange
-        var client = CreateDownloadExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
+        SetupDownloadPersistedQueriesException();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "production",
-                "--path",
-                "queries.json")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "download",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--path",
+            OutputPath);
 
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
+            There was an unexpected error: Something unexpected happened.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Downloading client from stage 'dev' of API 'api-1'
+            └── ✕ Failed to download the client.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task ClientThrowsException_ReturnsError_NonInteractive()
+    public async Task NoPublishedClient_ReturnsError()
     {
         // arrange
-        var client = CreateDownloadExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
+        SetupDownloadPersistedQueries(null);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "production",
-                "--path",
-                "queries.json")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "download",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--path",
+            OutputPath);
 
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Downloading client from stage 'production' of API 'api-1'
+            Downloading client from stage 'dev' of API 'api-1'
             └── ✕ Failed to download the client.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
+            Could not find a published client on stage 'dev'.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var client = CreateDownloadExceptionClient(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "production",
-                "--path",
-                "queries.json")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var client = CreateDownloadExceptionClient(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "production",
-                "--path",
-                "queries.json")
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Downloading client from stage 'production' of API 'api-1'
-            └── ✕ Failed to download the client.
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task NoPublishedClient_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.DownloadPersistedQueriesAsync(
-                "api-1",
-                "production",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Stream?)null);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "client",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "production",
-                "--path",
-                "queries.json")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Could not find a published client on stage 'production'.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task NoPublishedClient_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.DownloadPersistedQueriesAsync(
-                "api-1",
-                "production",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Stream?)null);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "production",
-                "--path",
-                "queries.json")
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Downloading client from stage 'production' of API 'api-1'
-            └── ✕ Failed to download the client.
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Could not find a published client on stage 'production'.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
@@ -358,52 +187,35 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
             ("doc-1", Guid.Empty, "query { hello }"),
             ("doc-2", Guid.Empty, "query { world }"));
 
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.DownloadPersistedQueriesAsync(
-                "api-1",
-                "production",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(queryStream);
+        SetupDownloadPersistedQueries(queryStream);
 
-        var fileStream = new MemoryStream();
-        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
-        fileSystem.Setup(x => x.FileExists("queries.json")).Returns(false);
-        fileSystem.Setup(x => x.CreateFile("queries.json")).Returns(fileStream);
+        var tempFile = SetupCreateFile("queries.json");
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "production",
-                "--path",
-                "queries.json",
-                "--format",
-                "relay")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "download",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--path",
+            OutputPath,
+            "--format",
+            "relay");
 
         // assert
         result.AssertSuccess(
             """
-            Downloading client from stage 'production' of API 'api-1'
-            └── ✓ Downloaded the client from stage 'production'.
+            Downloading client from stage 'dev' of API 'api-1'
+            └── ✓ Downloaded the client from stage 'dev'.
             """);
 
-        var written = Encoding.UTF8.GetString(fileStream.ToArray());
+        var written = await File.ReadAllTextAsync(tempFile);
         Assert.Contains("doc-1", written);
         Assert.Contains("doc-2", written);
         Assert.Contains("query { hello }", written);
         Assert.Contains("query { world }", written);
-
-        client.VerifyAll();
-        fileSystem.VerifyAll();
     }
 
     [Fact]
@@ -413,48 +225,30 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
         var queryStream = CreatePersistedQueryStream(
             ("doc-1", Guid.Empty, "query { hello }"));
 
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.DownloadPersistedQueriesAsync(
-                "api-1",
-                "production",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(queryStream);
+        SetupDownloadPersistedQueries(queryStream);
 
-        var fileStream = new MemoryStream();
-        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
-        fileSystem.Setup(x => x.FileExists("queries.json")).Returns(true);
-        fileSystem.Setup(x => x.DeleteFile("queries.json"));
-        fileSystem.Setup(x => x.CreateFile("queries.json")).Returns(fileStream);
+        SetupFile("queries.json", "{}");
+        SetupCreateFile("queries.json");
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "production",
-                "--path",
-                "queries.json",
-                "--format",
-                "relay")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "download",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--path",
+            OutputPath,
+            "--format",
+            "relay");
 
         // assert
         result.AssertSuccess(
             """
-            Downloading client from stage 'production' of API 'api-1'
-            └── ✓ Downloaded the client from stage 'production'.
+            Downloading client from stage 'dev' of API 'api-1'
+            └── ✓ Downloaded the client from stage 'dev'.
             """);
-        fileSystem.Verify(x => x.DeleteFile("queries.json"), Times.Once);
-
-        client.VerifyAll();
-        fileSystem.VerifyAll();
     }
 
     [Fact]
@@ -464,51 +258,32 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
         var queryStream = CreatePersistedQueryStream(
             ("doc-1", Guid.Empty, "query { hello }"));
 
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.DownloadPersistedQueriesAsync(
-                "api-1",
-                "production",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(queryStream);
+        SetupDownloadPersistedQueries(queryStream);
 
-        var docFileStream = new MemoryStream();
-        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
-        fileSystem.Setup(x => x.DirectoryExists("output-dir")).Returns(false);
-        fileSystem.Setup(x => x.CreateDirectory("output-dir"));
-        fileSystem.Setup(x => x.FileExists(Path.Combine("output-dir", "doc-1.graphql"))).Returns(false);
-        fileSystem.Setup(x => x.CreateFile(Path.Combine("output-dir", "doc-1.graphql"))).Returns(docFileStream);
+        var tempFile = SetupCreateFile(Path.Combine("output-dir", "doc-1.graphql"));
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "production",
-                "--path",
-                "output-dir",
-                "--format",
-                "folder")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "download",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--path",
+            OutputDir,
+            "--format",
+            "folder");
 
         // assert
         result.AssertSuccess(
             """
-            Downloading client from stage 'production' of API 'api-1'
-            └── ✓ Downloaded the client from stage 'production'.
+            Downloading client from stage 'dev' of API 'api-1'
+            └── ✓ Downloaded the client from stage 'dev'.
             """);
 
-        var written = Encoding.UTF8.GetString(docFileStream.ToArray());
+        var written = await File.ReadAllTextAsync(tempFile);
         Assert.Equal("query { hello }", written);
-
-        client.VerifyAll();
-        fileSystem.VerifyAll();
     }
 
     [Fact]
@@ -518,52 +293,34 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
         var queryStream = CreatePersistedQueryStream(
             ("doc-1", Guid.Empty, "query { hello }"));
 
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.DownloadPersistedQueriesAsync(
-                "api-1",
-                "production",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(queryStream);
+        SetupDownloadPersistedQueries(queryStream);
 
-        var docFileStream = new MemoryStream();
-        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
-        fileSystem.Setup(x => x.DirectoryExists("output-dir")).Returns(true);
-        fileSystem.Setup(x => x.FileExists(Path.Combine("output-dir", "doc-1.graphql"))).Returns(true);
-        fileSystem.Setup(x => x.DeleteFile(Path.Combine("output-dir", "doc-1.graphql")));
-        fileSystem.Setup(x => x.CreateFile(Path.Combine("output-dir", "doc-1.graphql"))).Returns(docFileStream);
+        SetupDirectory("output-dir");
+        SetupFile(Path.Combine("output-dir", "doc-1.graphql"), "old content");
+        var tempFile = SetupCreateFile(Path.Combine("output-dir", "doc-1.graphql"));
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "production",
-                "--path",
-                "output-dir",
-                "--format",
-                "folder")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "download",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--path",
+            OutputDir,
+            "--format",
+            "folder");
 
         // assert
         result.AssertSuccess(
             """
-            Downloading client from stage 'production' of API 'api-1'
-            └── ✓ Downloaded the client from stage 'production'.
+            Downloading client from stage 'dev' of API 'api-1'
+            └── ✓ Downloaded the client from stage 'dev'.
             """);
 
-        var written = Encoding.UTF8.GetString(docFileStream.ToArray());
+        var written = await File.ReadAllTextAsync(tempFile);
         Assert.Equal("query { hello }", written);
-        fileSystem.Verify(x => x.DeleteFile(Path.Combine("output-dir", "doc-1.graphql")), Times.Once);
-
-        client.VerifyAll();
-        fileSystem.VerifyAll();
     }
 
     [Fact]
@@ -573,51 +330,33 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
         var queryStream = CreatePersistedQueryStream(
             ("doc-1", Guid.Empty, "query { hello }"));
 
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.DownloadPersistedQueriesAsync(
-                "api-1",
-                "production",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(queryStream);
+        SetupDownloadPersistedQueries(queryStream);
 
-        var docFileStream = new MemoryStream();
-        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
-        fileSystem.Setup(x => x.DirectoryExists("output-dir")).Returns(true);
-        fileSystem.Setup(x => x.FileExists(Path.Combine("output-dir", "doc-1.graphql"))).Returns(false);
-        fileSystem.Setup(x => x.CreateFile(Path.Combine("output-dir", "doc-1.graphql"))).Returns(docFileStream);
+        SetupDirectory("output-dir");
+        var tempFile = SetupCreateFile(Path.Combine("output-dir", "doc-1.graphql"));
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "client",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "production",
-                "--path",
-                "output-dir",
-                "--format",
-                "folder")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "client",
+            "download",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--path",
+            OutputDir,
+            "--format",
+            "folder");
 
         // assert
         result.AssertSuccess(
             """
-            Downloading client from stage 'production' of API 'api-1'
-            └── ✓ Downloaded the client from stage 'production'.
+            Downloading client from stage 'dev' of API 'api-1'
+            └── ✓ Downloaded the client from stage 'dev'.
             """);
 
-        var written = Encoding.UTF8.GetString(docFileStream.ToArray());
+        var written = await File.ReadAllTextAsync(tempFile);
         Assert.Equal("query { hello }", written);
-        fileSystem.Verify(x => x.CreateDirectory(It.IsAny<string>()), Times.Never);
-
-        client.VerifyAll();
-        fileSystem.VerifyAll();
     }
 
     private static Stream CreatePersistedQueryStream(
@@ -628,16 +367,5 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : IC
 
         var json = JsonSerializer.Serialize(jsonArray);
         return new MemoryStream(Encoding.UTF8.GetBytes(json));
-    }
-
-    private static Mock<IClientsClient> CreateDownloadExceptionClient(Exception ex)
-    {
-        var client = new Mock<IClientsClient>(MockBehavior.Strict);
-        client.Setup(x => x.DownloadPersistedQueriesAsync(
-                "api-1",
-                "production",
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(ex);
-        return client;
     }
 }

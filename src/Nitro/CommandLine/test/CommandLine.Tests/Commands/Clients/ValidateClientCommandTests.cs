@@ -1,14 +1,11 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Clients;
 using Moq;
-using static ChilliCream.Nitro.CommandLine.Tests.TestHelpers;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Clients;
 
 public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : ClientsCommandTestBase(fixture)
 {
-    private const string RequestId = "request-1";
-
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
@@ -102,7 +99,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
     public async Task StartClientValidationThrows_ReturnsError()
     {
         // arrange
-        SetupValidationMutationException();
+        SetupValidateClientMutationException();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -137,7 +134,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
         string expectedErrorMessage)
     {
         // arrange
-        SetupValidationMutation(CreateValidationPayloadWithErrors(error));
+        SetupValidateClientMutation(error);
 
         // act
         var result = await ExecuteCommandAsync(
@@ -166,13 +163,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
     public async Task StartClientValidationReturnsNullRequestId_ReturnsError()
     {
         // arrange
-        var payload = new Mock<IValidateClientVersion_ValidateClient>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors)
-            .Returns((IReadOnlyList<IValidateClientVersion_ValidateClient_Errors>?)null);
-        payload.SetupGet(x => x.Id)
-            .Returns((string?)null);
-
-        SetupValidationMutation(payload.Object);
+        SetupValidateClientMutationNullRequestId();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -204,14 +195,11 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
     public async Task Subscription_InProgressThenSuccess_ReturnsSuccess()
     {
         // arrange
-        SetupValidationMutationWithSubscription(
-            CreateSuccessPayload(),
-            new IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate[]
-            {
-                CreateOperationInProgress(),
-                CreateValidationInProgress(),
-                CreateValidationSuccess()
-            });
+        SetupValidateClientMutation();
+        SetupValidateClientSubscription(
+            CreateClientVersionValidationOperationInProgressEvent(),
+            CreateClientVersionValidationInProgressEvent(),
+            CreateClientVersionValidationSuccessEvent());
 
         // act
         var result = await ExecuteCommandAsync(
@@ -248,13 +236,10 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
             .SetupGet(x => x.Message)
             .Returns("Something went wrong during validation.");
 
-        SetupValidationMutationWithSubscription(
-            CreateSuccessPayload(),
-            new IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate[]
-            {
-                CreateOperationInProgress(),
-                CreateValidationFailed(errorMock.Object)
-            });
+        SetupValidateClientMutation();
+        SetupValidateClientSubscription(
+            CreateClientVersionValidationOperationInProgressEvent(),
+            CreateClientVersionValidationFailedEvent(errorMock.Object));
 
         // act
         var result = await ExecuteCommandAsync(
@@ -290,12 +275,9 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
     public async Task Subscription_InProgressOnly_StreamEnds_ReturnsError()
     {
         // arrange
-        SetupValidationMutationWithSubscription(
-            CreateSuccessPayload(),
-            new IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate[]
-            {
-                CreateOperationInProgress()
-            });
+        SetupValidateClientMutation();
+        SetupValidateClientSubscription(
+            CreateClientVersionValidationOperationInProgressEvent());
 
         // act
         var result = await ExecuteCommandAsync(
@@ -331,12 +313,8 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
             MockBehavior.Strict);
         unknownEvent.SetupGet(x => x.__typename).Returns("UnknownType");
 
-        SetupValidationMutationWithSubscription(
-            CreateSuccessPayload(),
-            new IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate[]
-            {
-                unknownEvent.Object
-            });
+        SetupValidateClientMutation();
+        SetupValidateClientSubscription(unknownEvent.Object);
 
         // act
         var result = await ExecuteCommandAsync(
@@ -391,12 +369,9 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
             .SetupGet(x => x.Queries)
             .Returns(new[] { queryMock.Object });
 
-        SetupValidationMutationWithSubscription(
-            CreateSuccessPayload(),
-            new IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate[]
-            {
-                CreateValidationFailed(errorMock.Object)
-            });
+        SetupValidateClientMutation();
+        SetupValidateClientSubscription(
+            CreateClientVersionValidationFailedEvent(errorMock.Object));
 
         // act
         var result = await ExecuteCommandAsync(
@@ -439,13 +414,10 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
             .SetupGet(x => x.Message)
             .Returns("The operation has timed out.");
 
-        SetupValidationMutationWithSubscription(
-            CreateSuccessPayload(),
-            new IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate[]
-            {
-                CreateOperationInProgress(),
-                CreateValidationFailed(errorMock.Object)
-            });
+        SetupValidateClientMutation();
+        SetupValidateClientSubscription(
+            CreateClientVersionValidationOperationInProgressEvent(),
+            CreateClientVersionValidationFailedEvent(errorMock.Object));
 
         // act
         var result = await ExecuteCommandAsync(
@@ -475,83 +447,6 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
             Client validation failed.
             """);
         Assert.Equal(1, result.ExitCode);
-    }
-
-    // --- Helpers ---
-
-    private void SetupValidationMutation(IValidateClientVersion_ValidateClient payload)
-    {
-        SetupOperationsFile();
-        ClientsClientMock.Setup(x => x.StartClientValidationAsync(
-                ClientId, Stage, It.IsAny<Stream>(), null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(payload);
-    }
-
-    private void SetupValidationMutationWithSubscription(
-        IValidateClientVersion_ValidateClient payload,
-        IEnumerable<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate> events)
-    {
-        SetupValidationMutation(payload);
-        ClientsClientMock.Setup(x => x.SubscribeToClientValidationAsync(
-                RequestId, It.IsAny<CancellationToken>()))
-            .Returns((string _, CancellationToken ct) => ToAsyncEnumerable(events, ct));
-    }
-
-    private void SetupValidationMutationException()
-    {
-        SetupOperationsFile();
-        ClientsClientMock.Setup(x => x.StartClientValidationAsync(
-                ClientId, Stage, It.IsAny<Stream>(), null, It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("Something unexpected happened."));
-    }
-
-    private static IValidateClientVersion_ValidateClient CreateSuccessPayload()
-    {
-        var payload = new Mock<IValidateClientVersion_ValidateClient>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors)
-            .Returns((IReadOnlyList<IValidateClientVersion_ValidateClient_Errors>?)null);
-        payload.SetupGet(x => x.Id)
-            .Returns(RequestId);
-        return payload.Object;
-    }
-
-    private static IValidateClientVersion_ValidateClient CreateValidationPayloadWithErrors(
-        params IValidateClientVersion_ValidateClient_Errors[] errors)
-    {
-        var payload = new Mock<IValidateClientVersion_ValidateClient>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors).Returns(errors);
-        payload.SetupGet(x => x.Id).Returns((string?)null);
-        return payload.Object;
-    }
-
-    private static IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate CreateOperationInProgress()
-    {
-        return new OnClientVersionValidationUpdated_OnClientVersionValidationUpdate_OperationInProgress(
-            "OperationInProgress",
-            ProcessingState.Processing);
-    }
-
-    private static IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate CreateValidationInProgress()
-    {
-        return new OnClientVersionValidationUpdated_OnClientVersionValidationUpdate_ValidationInProgress(
-            "ValidationInProgress",
-            ProcessingState.Processing);
-    }
-
-    private static IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate CreateValidationSuccess()
-    {
-        return new OnClientVersionValidationUpdated_OnClientVersionValidationUpdate_ClientVersionValidationSuccess(
-            "ClientVersionValidationSuccess",
-            ProcessingState.Success);
-    }
-
-    private static IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate CreateValidationFailed(
-        params IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors[] errors)
-    {
-        return new OnClientVersionValidationUpdated_OnClientVersionValidationUpdate_ClientVersionValidationFailed(
-            "ClientVersionValidationFailed",
-            ProcessingState.Failed,
-            errors);
     }
 
     public static TheoryData<IValidateClientVersion_ValidateClient_Errors, string>

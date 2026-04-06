@@ -2,6 +2,7 @@ using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Mcp;
 using ChilliCream.Nitro.CommandLine.Commands.Mcp.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mcp;
@@ -51,6 +52,9 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var client = services.GetRequiredService<IMcpClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+
+        parseResult.AssertHasAuthentication(sessionService);
 
         var tag = parseResult.GetRequiredValue(Opt<TagOption>.Instance);
         var stage = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);

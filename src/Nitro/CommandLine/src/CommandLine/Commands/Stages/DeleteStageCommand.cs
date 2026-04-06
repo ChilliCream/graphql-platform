@@ -55,14 +55,17 @@ internal sealed class DeleteStageCommand : Command
 
         var stageName = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
 
-        var shouldDelete = await parseResult.ConfirmWhenNotForced(
-            $"Do you really want to force delete stage {stageName.AsHighlight()}",
-            console,
-            cancellationToken);
-
-        if (!shouldDelete)
+        var force = parseResult.GetValue(Opt<OptionalForceOption>.Instance);
+        if (!force)
         {
-            throw Exit("Stage was not deleted.");
+            var confirmed = await console.ConfirmAsync(
+                $"Do you really want to force delete stage {stageName.AsHighlight()}",
+                cancellationToken);
+
+            if (!confirmed)
+            {
+                throw Exit("Stage was not deleted.");
+            }
         }
 
         await using (var activity = console.StartActivity(

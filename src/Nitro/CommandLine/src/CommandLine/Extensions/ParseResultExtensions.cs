@@ -34,60 +34,6 @@ internal static class ParseResultExtensions
             ?? throw ThrowHelper.NoDefaultWorkspace();
     }
 
-    public static async Task<bool> ConfirmWhenNotForced(
-        this ParseResult parseResult,
-        string message,
-        INitroConsole console,
-        CancellationToken cancellationToken)
-    {
-        var forceOption = parseResult.GetValue(Opt<OptionalForceOption>.Instance);
-
-        if (!forceOption)
-        {
-            return true;
-        }
-
-        return await console.ConfirmAsync(message, cancellationToken);
-    }
-
-    public static Task<string> OptionOrAskAsync(
-        this ParseResult parseResult,
-        string question,
-        Option<string> option,
-        INitroConsole console,
-        CancellationToken cancellationToken)
-        => OptionOrAskAsync(parseResult, question, option, defaultValue: null, console, cancellationToken);
-
-    public static async Task<string> OptionOrAskAsync(
-        this ParseResult parseResult,
-        string question,
-        Option<string> option,
-        string? defaultValue,
-        INitroConsole console,
-        CancellationToken cancellationToken)
-    {
-        var value = parseResult.GetValue(option);
-
-        if (value is not null)
-        {
-            return value;
-        }
-
-        if (!console.IsInteractive)
-        {
-            throw new ExitException($"Missing required option '{option.Name}'.");
-        }
-
-        var prompt = new TextPrompt<string>(question.AsQuestion());
-
-        if (defaultValue is not null)
-        {
-            prompt = prompt.DefaultValue(defaultValue);
-        }
-
-        return await prompt.ShowAsync(console, cancellationToken);
-    }
-
     public static async Task<bool> OptionOrConfirmAsync(
         this ParseResult parseResult,
         string question,

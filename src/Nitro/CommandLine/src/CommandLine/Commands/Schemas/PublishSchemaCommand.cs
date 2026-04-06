@@ -135,47 +135,51 @@ internal sealed class PublishSchemaCommand : Command
                             break;
 
                         case ISchemaVersionPublishFailed { Errors: var schemaErrors }:
-                            await child.FailAllAsync();
+                            var errorTree = new Tree("");
 
                             foreach (var error in schemaErrors)
                             {
                                 switch (error)
                                 {
                                     case ISchemaVersionChangeViolationError e:
-                                        console.PrintSchemaVersionChangeViolations(e);
+                                        errorTree.AddSchemaVersionChangeViolations(e);
                                         break;
                                     case IInvalidGraphQLSchemaError e:
-                                        console.PrintGraphQLSchemaErrors(e);
+                                        errorTree.AddGraphQLSchemaErrors(e);
                                         break;
                                     case IPersistedQueryValidationError e:
-                                        console.PrintPersistedQueryValidationErrors(e);
+                                        errorTree.AddPersistedQueryValidationErrors(e);
                                         break;
                                     case IOpenApiCollectionValidationError e:
-                                        console.PrintOpenApiCollectionValidationErrors(e);
+                                        errorTree.AddOpenApiCollectionValidationErrors(e);
                                         break;
                                     case IMcpFeatureCollectionValidationError e:
-                                        console.PrintMcpFeatureCollectionValidationErrors(e);
+                                        errorTree.AddMcpFeatureCollectionValidationErrors(e);
                                         break;
                                     case IConcurrentOperationError e:
-                                        console.Error.WriteErrorLine(e.Message);
+                                        errorTree.AddNode(e.Message);
                                         break;
                                     case IOperationsAreNotAllowedError e:
-                                        console.Error.WriteErrorLine(e.Message);
+                                        errorTree.AddNode(e.Message);
                                         break;
                                     case ISchemaVersionSyntaxError e:
-                                        console.Error.WriteErrorLine(e.Message);
+                                        errorTree.AddNode(e.Message);
                                         break;
                                     case IProcessingTimeoutError e:
-                                        console.Error.WriteErrorLine(e.Message);
+                                        errorTree.AddNode(e.Message);
                                         break;
                                     case IUnexpectedProcessingError e:
-                                        console.Error.WriteErrorLine(e.Message);
+                                        errorTree.AddNode(e.Message);
                                         break;
                                     case IError e:
-                                        console.Error.WriteErrorLine("Unexpected error: " + e.Message);
+                                        errorTree.AddNode("Unexpected error: " + e.Message);
                                         break;
                                 }
                             }
+
+                            child.Fail(errorTree);
+
+                            await child.FailAllAsync();
 
                             console.Error.WriteErrorLine("Schema publish failed.");
                             return ExitCodes.Error;
@@ -197,33 +201,37 @@ internal sealed class PublishSchemaCommand : Command
                         case IWaitForApproval waitForApprovalEvent:
                             if (waitForApprovalEvent.Deployment is ISchemaDeployment deployment)
                             {
+                                var deploymentErrorTree = new Tree("");
+
                                 foreach (var error in deployment.Errors)
                                 {
                                     switch (error)
                                     {
                                         case IOperationsAreNotAllowedError e:
-                                            console.Error.WriteErrorLine(e.Message);
+                                            deploymentErrorTree.AddNode(e.Message);
                                             break;
                                         case ISchemaVersionSyntaxError e:
-                                            console.Error.WriteErrorLine(e.Message);
+                                            deploymentErrorTree.AddNode(e.Message);
                                             break;
                                         case ISchemaChangeViolationError e:
-                                            console.PrintSchemaChangeViolations(e);
+                                            deploymentErrorTree.AddSchemaChanges(e.Changes.OfType<ISchemaChange>());
                                             break;
                                         case IInvalidGraphQLSchemaError e:
-                                            console.PrintGraphQLSchemaErrors(e);
+                                            deploymentErrorTree.AddGraphQLSchemaErrors(e);
                                             break;
                                         case IPersistedQueryValidationError e:
-                                            console.PrintPersistedQueryValidationErrors(e);
+                                            deploymentErrorTree.AddPersistedQueryValidationErrors(e);
                                             break;
                                         case IOpenApiCollectionValidationError e:
-                                            console.PrintOpenApiCollectionValidationErrors(e);
+                                            deploymentErrorTree.AddOpenApiCollectionValidationErrors(e);
                                             break;
                                         case IMcpFeatureCollectionValidationError e:
-                                            console.PrintMcpFeatureCollectionValidationErrors(e);
+                                            deploymentErrorTree.AddMcpFeatureCollectionValidationErrors(e);
                                             break;
                                     }
                                 }
+
+                                child.Fail(deploymentErrorTree);
                             }
 
                             child.Update(

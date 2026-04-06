@@ -63,7 +63,11 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
                 "--tag",
                 "v1",
                 "--mcp-feature-collection-id",
-                "mcp-1")
+                "mcp-1",
+                "--prompt-pattern",
+                "**/*.json",
+                "--tool-pattern",
+                "**/*.graphql")
             .ExecuteAsync();
 
         // assert
@@ -115,7 +119,11 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
                 "--tag",
                 "v1",
                 "--mcp-feature-collection-id",
-                "mcp-1")
+                "mcp-1",
+                "--prompt-pattern",
+                "**/*.json",
+                "--tool-pattern",
+                "**/*.graphql")
             .ExecuteAsync();
 
         // assert
@@ -145,7 +153,11 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
                 "--tag",
                 "v1",
                 "--mcp-feature-collection-id",
-                "mcp-1")
+                "mcp-1",
+                "--prompt-pattern",
+                "**/*.json",
+                "--tool-pattern",
+                "**/*.graphql")
             .ExecuteAsync();
 
         // assert
@@ -184,7 +196,11 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
                 "--tag",
                 "v1",
                 "--mcp-feature-collection-id",
-                "mcp-1")
+                "mcp-1",
+                "--prompt-pattern",
+                "**/*.json",
+                "--tool-pattern",
+                "**/*.graphql")
             .ExecuteAsync();
 
         // assert
@@ -215,7 +231,11 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
                 "--tag",
                 "v1",
                 "--mcp-feature-collection-id",
-                "mcp-1")
+                "mcp-1",
+                "--prompt-pattern",
+                "**/*.json",
+                "--tool-pattern",
+                "**/*.graphql")
             .ExecuteAsync();
 
         // assert
@@ -254,7 +274,11 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
                 "--tag",
                 "v1",
                 "--mcp-feature-collection-id",
-                "mcp-1")
+                "mcp-1",
+                "--prompt-pattern",
+                "**/*.json",
+                "--tool-pattern",
+                "**/*.graphql")
             .ExecuteAsync();
 
         // assert
@@ -287,7 +311,11 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
                 "--tag",
                 "v1",
                 "--mcp-feature-collection-id",
-                "mcp-1")
+                "mcp-1",
+                "--prompt-pattern",
+                "**/*.json",
+                "--tool-pattern",
+                "**/*.graphql")
             .ExecuteAsync();
 
         // assert
@@ -318,7 +346,11 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
                 "--tag",
                 "v1",
                 "--mcp-feature-collection-id",
-                "mcp-1")
+                "mcp-1",
+                "--prompt-pattern",
+                "**/*.json",
+                "--tool-pattern",
+                "**/*.graphql")
             .ExecuteAsync();
 
         // assert
@@ -358,7 +390,11 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
                 "--tag",
                 "v1",
                 "--mcp-feature-collection-id",
-                "mcp-1")
+                "mcp-1",
+                "--prompt-pattern",
+                "**/*.json",
+                "--tool-pattern",
+                "**/*.graphql")
             .ExecuteAsync();
 
         // assert
@@ -396,7 +432,11 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
                 "--tag",
                 "v1",
                 "--mcp-feature-collection-id",
-                "mcp-1")
+                "mcp-1",
+                "--prompt-pattern",
+                "**/*.json",
+                "--tool-pattern",
+                "**/*.graphql")
             .ExecuteAsync();
 
         // assert
@@ -424,7 +464,11 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
                 "--tag",
                 "v1",
                 "--mcp-feature-collection-id",
-                "mcp-1")
+                "mcp-1",
+                "--prompt-pattern",
+                "**/*.json",
+                "--tool-pattern",
+                "**/*.graphql")
             .ExecuteAsync();
 
         // assert
@@ -461,7 +505,11 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
                 "--tag",
                 "v1",
                 "--mcp-feature-collection-id",
-                "mcp-1")
+                "mcp-1",
+                "--prompt-pattern",
+                "**/*.json",
+                "--tool-pattern",
+                "**/*.graphql")
             .ExecuteAsync();
 
         // assert
@@ -493,7 +541,11 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
                 "--tag",
                 "v1",
                 "--mcp-feature-collection-id",
-                "mcp-1")
+                "mcp-1",
+                "--prompt-pattern",
+                "**/*.json",
+                "--tool-pattern",
+                "**/*.graphql")
             .ExecuteAsync();
 
         // assert
@@ -520,7 +572,11 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
                 "--tag",
                 "v1",
                 "--mcp-feature-collection-id",
-                "mcp-1")
+                "mcp-1",
+                "--prompt-pattern",
+                "**/*.json",
+                "--tool-pattern",
+                "**/*.graphql")
             .ExecuteAsync();
 
         // assert

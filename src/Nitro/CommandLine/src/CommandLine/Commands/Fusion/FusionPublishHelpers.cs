@@ -1,7 +1,6 @@
 using System.Text.Json;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
-using ChilliCream.Nitro.CommandLine.Helpers;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Packaging;
@@ -85,6 +84,7 @@ internal static class FusionPublishHelpers
                     activity.Update($"Queued at position {v.QueuePosition}.");
                     break;
 
+                // TODO: Properly test this
                 case IFusionConfigurationPublishingFailed v:
                     await subscriptionCancellation.CancelAsync();
                     await activity.FailAllAsync();

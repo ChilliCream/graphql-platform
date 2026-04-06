@@ -1,6 +1,6 @@
 namespace ChilliCream.Nitro.CommandLine.Helpers;
 
-internal static class ConsoleRenderExtensions
+internal static class ConsoleRenderingExtensions
 {
     public static string AsSchemaCoordinate(this string str)
     {

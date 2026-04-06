@@ -1,6 +1,5 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.OpenApi;
-using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using Moq;
 using static ChilliCream.Nitro.CommandLine.Tests.TestHelpers;
@@ -50,39 +49,9 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             """);
     }
 
-    [Fact]
-    public async Task NoSession_Or_ApiKey_ReturnsError_NonInteractive()
-    {
-        // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "openapi",
-                "validate",
-                "--stage",
-                DefaultStage,
-                "--openapi-collection-id",
-                DefaultOpenApiCollectionId,
-                "--pattern",
-                "**/*.graphql")
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Validating OpenAPI collection against stage 'production'
-            ├── Found 0 document(s).
-            └── ✕ Failed to validate the OpenAPI collection.
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Could not find any OpenAPI documents with the provided pattern.
-            """);
-        Assert.Equal(1, result.ExitCode);
-    }
-
     [Theory]
     [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
@@ -101,11 +70,10 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             .ExecuteAsync();
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
-            Could not find any OpenAPI documents with the provided pattern.
+            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
             """);
-        Assert.Equal(1, result.ExitCode);
     }
 
     [Fact]
