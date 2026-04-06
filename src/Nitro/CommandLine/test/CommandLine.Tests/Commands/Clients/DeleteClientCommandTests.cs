@@ -157,7 +157,7 @@ public sealed class DeleteClientCommandTests(NitroCommandFixture fixture) : Clie
     }
 
     [Fact]
-    public async Task WithClientId_AndNoForce_UserCancels_ReturnSuccess()
+    public async Task WithoutForce_And_ConfirmationRejected_ReturnsError()
     {
         // arrange
         SetupInteractionMode(InteractionMode.Interactive);
@@ -172,7 +172,11 @@ public sealed class DeleteClientCommandTests(NitroCommandFixture fixture) : Clie
         var result = await command.RunToCompletionAsync();
 
         // assert
-        result.AssertSuccess();
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The client was not deleted.
+            """);
+        Assert.Equal(1, result.ExitCode);
     }
 
     [Fact]

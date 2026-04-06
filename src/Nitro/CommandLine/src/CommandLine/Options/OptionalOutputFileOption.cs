@@ -1,14 +1,9 @@
 namespace ChilliCream.Nitro.CommandLine;
 
-internal sealed class OptionalOutputFileOption : Option<string>
+internal sealed class OptionalOutputFileOption : OutputFileOption
 {
-    public const string OptionName = "--output-file";
-
-    public OptionalOutputFileOption() : base(OptionName)
+    public OptionalOutputFileOption()
     {
-        Description = "The file path to write the output to";
         Required = false;
-        this.DefaultFromEnvironmentValue(EnvironmentVariables.OutputFile);
-        this.LegalFilePathsOnly();
     }
 }

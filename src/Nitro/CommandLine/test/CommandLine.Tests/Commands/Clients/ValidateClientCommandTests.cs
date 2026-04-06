@@ -191,6 +191,102 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
         Assert.Equal(1, result.ExitCode);
     }
 
+    [Fact]
+    public async Task ReturnsSuccess()
+    {
+        // arrange
+        SetupValidateClientMutation();
+        SetupValidateClientSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "client",
+            "validate",
+            "--client-id",
+            ClientId,
+            "--stage",
+            Stage,
+            "--operations-file",
+            OperationsFile);
+
+        // assert
+        result.AssertSuccess(
+            """
+            Validating client against stage 'dev' of client 'client-1'
+            ├── Starting validation request
+            │   └── ✓ Validation request created (ID: request-1).
+            ├── Validating
+            │   └── ✓ Validation passed.
+            └── ✓ Validated client against stage 'dev'.
+            """);
+    }
+
+    [Fact]
+    public async Task WithEnvVars_ReturnsSuccess()
+    {
+        // arrange
+        SetupEnvironmentVariable(EnvironmentVariables.ClientId, ClientId);
+        SetupEnvironmentVariable(EnvironmentVariables.Stage, Stage);
+        SetupEnvironmentVariable(EnvironmentVariables.OperationsFile, OperationsFile);
+
+        SetupValidateClientMutation();
+        SetupValidateClientSubscription();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "client",
+            "validate");
+
+        // assert
+        result.AssertSuccess(
+            """
+            Validating client against stage 'dev' of client 'client-1'
+            ├── Starting validation request
+            │   └── ✓ Validation request created (ID: request-1).
+            ├── Validating
+            │   └── ✓ Validation passed.
+            └── ✓ Validated client against stage 'dev'.
+            """);
+    }
+
+    [Fact]
+    public async Task BreakingChanges_ReturnsError()
+    {
+        // arrange
+        SetupValidateClientMutation();
+        SetupValidateClientSubscription(
+            CreateClientVersionValidationFailedEventWithErrors());
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "client",
+            "validate",
+            "--client-id",
+            ClientId,
+            "--stage",
+            Stage,
+            "--operations-file",
+            OperationsFile);
+
+        // assert
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Validating client against stage 'dev' of client 'client-1'
+            ├── Starting validation request
+            │   └── ✓ Validation request created (ID: request-1).
+            ├── Validating
+            │   └── ✕ Validation failed.
+            │       └── Operation 'abc123'
+            │           └── Field 'foo' does not exist.
+            └── ✕ Failed to validate the client.
+            """);
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Client validation failed.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
     public static TheoryData<IValidateClientVersion_ValidateClient_Errors, string>
         GetStartClientValidationErrors() => new()
     {

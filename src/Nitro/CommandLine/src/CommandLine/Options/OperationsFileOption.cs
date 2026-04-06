@@ -6,7 +6,7 @@ internal sealed class OperationsFileOption : Option<string>
     {
         Description = "The path to the json file with the operations";
         Required = true;
-        this.DefaultFileFromEnvironmentValue("OPERATIONS_FILE");
+        this.DefaultFileFromEnvironmentValue(EnvironmentVariables.OperationsFile);
         this.LegalFilePathsOnly();
     }
 }

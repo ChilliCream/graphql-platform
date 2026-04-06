@@ -2,7 +2,6 @@ using ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
-// TODO: Assert file has been downloaded
 // TODO: Test extension and version mismatch
 public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : FusionCommandTestBase(fixture)
 {
@@ -123,12 +122,12 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : Fu
 
     #endregion
 
-    // TODO: createfile needs to be properly setup
     [Fact]
     public async Task DownloadFarFile_ReturnsSuccess()
     {
         // arrange
         SetupFusionConfigurationDownload();
+        var outputStream = SetupCreateFile(ArchiveFile);
 
         // act
         var result = await ExecuteCommandAsync(
@@ -144,8 +143,9 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : Fu
         // assert
         result.AssertSuccess(
             """
-
+            Downloaded Fusion configuration to '/some/working/directory/fusion.far'.
             """);
+        Assert.True(outputStream.ToArray().Length > 0);
     }
 
     [Fact]
@@ -153,6 +153,7 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : Fu
     {
         // arrange
         SetupFusionConfigurationDownload("1.0.0", ArchiveFormats.Fgp);
+        var outputStream = SetupCreateFile("gateway.fgp");
 
         // act
         var result = await ExecuteCommandAsync(
@@ -170,8 +171,9 @@ public sealed class FusionDownloadCommandTests(NitroCommandFixture fixture) : Fu
         // assert
         result.AssertSuccess(
             """
-
+            Downloaded Fusion configuration to '/some/working/directory/gateway.fgp'.
             """);
+        Assert.True(outputStream.ToArray().Length > 0);
     }
 
     [Fact]

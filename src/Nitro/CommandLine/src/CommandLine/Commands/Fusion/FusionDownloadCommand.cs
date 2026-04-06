@@ -80,7 +80,7 @@ internal sealed class FusionDownloadCommand : Command
         if (!wantsToDownloadFgp && version.Major == 1)
         {
             throw new ExitException(
-                $"Specify the '.fgp' extension through the '{OptionalOutputFileOption.OptionName}' option, if you want to download a legacy Fusion archive.");
+                $"Specify the '.fgp' extension through the '{OutputFileOption.OptionName}' option, if you want to download a legacy Fusion archive.");
         }
 
         var isFgp = version.Major == 1;

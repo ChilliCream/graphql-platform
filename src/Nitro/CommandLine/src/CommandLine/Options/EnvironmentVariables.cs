@@ -32,4 +32,5 @@ internal static class EnvironmentVariables
     public const string ApiPath = "API_PATH";
     public const string TreatDangerousAsBreaking = "TREAT_DANGEROUS_AS_BREAKING";
     public const string AllowBreakingSchemaChanges = "ALLOW_BREAKING_SCHEMA_CHANGES";
+    public const string OperationsFile = "OPERATIONS_FILE";
 }

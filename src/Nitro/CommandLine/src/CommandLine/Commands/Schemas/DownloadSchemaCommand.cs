@@ -1,8 +1,5 @@
 using ChilliCream.Nitro.Client.Schemas;
-using ChilliCream.Nitro.CommandLine;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
@@ -17,7 +14,7 @@ internal sealed class DownloadSchemaCommand : Command
 
         Options.Add(Opt<ApiIdOption>.Instance);
         Options.Add(Opt<StageNameOption>.Instance);
-        Options.Add(Opt<FileNameOption>.Instance);
+        Options.Add(Opt<OutputFileOption>.Instance);
 
         this.AddGlobalNitroOptions();
 
@@ -46,7 +43,7 @@ internal sealed class DownloadSchemaCommand : Command
 
         var apiId = parseResult.GetRequiredValue(Opt<ApiIdOption>.Instance);
         var stageName = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
-        var schemaFilePath = parseResult.GetRequiredValue(Opt<FileNameOption>.Instance);
+        var schemaFilePath = parseResult.GetRequiredValue(Opt<OutputFileOption>.Instance);
 
         await using (var activity = console.StartActivity($"Downloading schema from stage '{stageName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'", "Failed to download the schema."))
         {

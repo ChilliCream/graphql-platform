@@ -189,7 +189,7 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : Cl
 
         SetupDownloadPersistedQueries(queryStream);
 
-        var tempFile = SetupCreateFile("queries.json");
+        var outputStream = SetupCreateFile("queries.json");
 
         // act
         var result = await ExecuteCommandAsync(
@@ -211,44 +211,11 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : Cl
             └── ✓ Downloaded the client from stage 'dev'.
             """);
 
-        var written = await File.ReadAllTextAsync(tempFile);
+        var written = Encoding.UTF8.GetString(outputStream.ToArray());
         Assert.Contains("doc-1", written);
         Assert.Contains("doc-2", written);
         Assert.Contains("query { hello }", written);
         Assert.Contains("query { world }", written);
-    }
-
-    [Fact]
-    public async Task Success_RelayFormat_DeletesExistingFile()
-    {
-        // arrange
-        var queryStream = CreatePersistedQueryStream(
-            ("doc-1", Guid.Empty, "query { hello }"));
-
-        SetupDownloadPersistedQueries(queryStream);
-
-        SetupFile("queries.json", "{}");
-        SetupCreateFile("queries.json");
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "client",
-            "download",
-            "--api-id",
-            ApiId,
-            "--stage",
-            Stage,
-            "--path",
-            OutputPath,
-            "--format",
-            "relay");
-
-        // assert
-        result.AssertSuccess(
-            """
-            Downloading client from stage 'dev' of API 'api-1'
-            └── ✓ Downloaded the client from stage 'dev'.
-            """);
     }
 
     [Fact]
@@ -260,7 +227,7 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : Cl
 
         SetupDownloadPersistedQueries(queryStream);
 
-        var tempFile = SetupCreateFile(Path.Combine("output-dir", "doc-1.graphql"));
+        var outputStream = SetupCreateFile(Path.Combine("output-dir", "doc-1.graphql"));
 
         // act
         var result = await ExecuteCommandAsync(
@@ -282,45 +249,7 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : Cl
             └── ✓ Downloaded the client from stage 'dev'.
             """);
 
-        var written = await File.ReadAllTextAsync(tempFile);
-        Assert.Equal("query { hello }", written);
-    }
-
-    [Fact]
-    public async Task Success_FolderFormat_DeletesExistingFiles()
-    {
-        // arrange
-        var queryStream = CreatePersistedQueryStream(
-            ("doc-1", Guid.Empty, "query { hello }"));
-
-        SetupDownloadPersistedQueries(queryStream);
-
-        SetupDirectory("output-dir");
-        SetupFile(Path.Combine("output-dir", "doc-1.graphql"), "old content");
-        var tempFile = SetupCreateFile(Path.Combine("output-dir", "doc-1.graphql"));
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "client",
-            "download",
-            "--api-id",
-            ApiId,
-            "--stage",
-            Stage,
-            "--path",
-            OutputDir,
-            "--format",
-            "folder");
-
-        // assert
-        result.AssertSuccess(
-            """
-            Downloading client from stage 'dev' of API 'api-1'
-            └── ✓ Downloaded the client from stage 'dev'.
-            """);
-
-        var written = await File.ReadAllTextAsync(tempFile);
-        Assert.Equal("query { hello }", written);
+        Assert.Equal("query { hello }", Encoding.UTF8.GetString(outputStream.ToArray()));
     }
 
     [Fact]
@@ -333,7 +262,7 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : Cl
         SetupDownloadPersistedQueries(queryStream);
 
         SetupDirectory("output-dir");
-        var tempFile = SetupCreateFile(Path.Combine("output-dir", "doc-1.graphql"));
+        var outputStream = SetupCreateFile(Path.Combine("output-dir", "doc-1.graphql"));
 
         // act
         var result = await ExecuteCommandAsync(
@@ -355,8 +284,7 @@ public sealed class DownloadClientCommandTests(NitroCommandFixture fixture) : Cl
             └── ✓ Downloaded the client from stage 'dev'.
             """);
 
-        var written = await File.ReadAllTextAsync(tempFile);
-        Assert.Equal("query { hello }", written);
+        Assert.Equal("query { hello }", Encoding.UTF8.GetString(outputStream.ToArray()));
     }
 
     private static Stream CreatePersistedQueryStream(

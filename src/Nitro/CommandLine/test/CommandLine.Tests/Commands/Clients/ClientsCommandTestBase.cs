@@ -591,6 +591,16 @@ public abstract class ClientsCommandTestBase(NitroCommandFixture fixture) : Comm
             ProcessingState.Processing);
     }
 
+    protected static IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate
+        CreateClientVersionValidationFailedEventWithErrors()
+    {
+        var errorMock = new Mock<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors>(
+            MockBehavior.Strict);
+        SetupPersistedQueryValidationError(errorMock);
+
+        return CreateClientVersionValidationFailedEvent(errorMock.Object);
+    }
+
     #endregion
 
     #region Error Factories -- UploadClient
