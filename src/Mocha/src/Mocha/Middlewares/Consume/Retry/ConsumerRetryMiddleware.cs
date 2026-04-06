@@ -1,14 +1,13 @@
 using Microsoft.Extensions.DependencyInjection;
-using Polly;
-using Polly.Retry;
 
 namespace Mocha;
 
 /// <summary>
-/// A consumer middleware that implements in-process retry using Polly, replaying the handler
-/// with configurable backoff strategies when transient failures occur.
+/// A consumer middleware that implements in-process retry with configurable backoff strategies
+/// when transient failures occur.
 /// </summary>
-internal sealed class ConsumerRetryMiddleware(ResiliencePipeline resiliencePipeline)
+internal sealed class ConsumerRetryMiddleware(
+    IReadOnlyList<ExceptionPolicyRule> exceptionPolicyRules)
 {
     public async ValueTask InvokeAsync(IConsumeContext context, ConsumerDelegate next)
     {
@@ -22,152 +21,156 @@ internal sealed class ConsumerRetryMiddleware(ResiliencePipeline resiliencePipel
         }
 
         // Expose retry state to handlers via features.
-        // ImmediateRetryCount starts at -1 so the first increment in the callback yields 0.
-        var retryState = new RetryRuntimeFeature { DelayedRetryCount = delayedRetryCount, ImmediateRetryCount = -1 };
+        var retryState = new RetryRuntimeFeature { DelayedRetryCount = delayedRetryCount, ImmediateRetryCount = 0 };
         context.Features.Set(retryState);
 
-        await resiliencePipeline.ExecuteAsync(
-            static (state, _) =>
+        var attempts = 0;
+
+        while (true)
+        {
+            try
             {
-                state.retryState.ImmediateRetryCount++;
-                return state.next(state.context);
-            },
-            (context, next, retryState),
-            context.CancellationToken);
+                await next(context);
+                return;
+            }
+            catch (Exception ex)
+            {
+                // Match exception against policy rules.
+                var rule = ExceptionPolicyMatcher.Match(exceptionPolicyRules, ex);
+
+                // No matching rule — no policy for this exception, let it propagate.
+                if (rule is null)
+                {
+                    throw;
+                }
+
+                // Discard: swallow at consumer level so other consumers can still run.
+                if (rule.Terminal == TerminalAction.Discard)
+                {
+                    return;
+                }
+
+                // DeadLetter: don't retry, let it propagate to fault middleware.
+                if (rule.Terminal == TerminalAction.DeadLetter)
+                {
+                    throw;
+                }
+
+                // No retry configured for this rule, or retry explicitly disabled.
+                if (rule.Retry is null or { Enabled: false })
+                {
+                    throw;
+                }
+
+                attempts++;
+
+                // Use the rule's retry config (fully populated by the builder).
+                var retryConfig = rule.Retry;
+
+                if (attempts > (retryConfig.Attempts ?? RetryPolicyDefaults.Attempts))
+                {
+                    throw;
+                }
+
+                // Calculate delay.
+                var delay = CalculateDelay(attempts, retryConfig);
+
+                // Update runtime feature.
+                retryState.ImmediateRetryCount = attempts;
+
+                if (delay > TimeSpan.Zero)
+                {
+                    await Task.Delay(delay, context.CancellationToken);
+                }
+            }
+        }
+    }
+
+    private static TimeSpan CalculateDelay(int attempt, RetryPolicyConfig config)
+    {
+        // Explicit intervals take precedence.
+        if (config.Intervals is { Length: > 0 } intervals)
+        {
+            var index = Math.Min(attempt - 1, intervals.Length - 1);
+            return intervals[index];
+        }
+
+        // Calculate based on backoff type.
+        var baseDelay = config.Delay ?? RetryPolicyDefaults.Delay;
+        var backoff = config.Backoff ?? RetryPolicyDefaults.Backoff;
+        var maxDelay = config.MaxDelay ?? RetryPolicyDefaults.MaxDelay;
+        var useJitter = config.UseJitter ?? RetryPolicyDefaults.UseJitter;
+
+        var delay = backoff switch
+        {
+            RetryBackoffType.Constant => baseDelay,
+            RetryBackoffType.Linear => baseDelay * attempt,
+            RetryBackoffType.Exponential => baseDelay * Math.Pow(2, attempt - 1),
+            _ => baseDelay * Math.Pow(2, attempt - 1)
+        };
+
+        // Cap at max delay.
+        if (delay > maxDelay)
+        {
+            delay = maxDelay;
+        }
+
+        // Add jitter: +/- 25%.
+        if (useJitter)
+        {
+            var jitterRange = delay.TotalMilliseconds * 0.25;
+            var jitter = (Random.Shared.NextDouble() * 2 - 1) * jitterRange;
+            delay = TimeSpan.FromMilliseconds(Math.Max(0, delay.TotalMilliseconds + jitter));
+        }
+
+        return delay;
     }
 
     public static ConsumerMiddlewareConfiguration Create()
         => new(
             static (context, next) =>
             {
-                // Feature values are resolved from consumer -> bus to support overrides.
-                var enabled = context.GetConfiguration(f => f.Enabled) ?? true;
+                var feature = context.GetExceptionPolicyFeature();
 
-                if (!enabled)
+                if (feature is null)
                 {
+                    // No exception policy configured — skip retry middleware entirely.
                     return next;
                 }
 
-                var intervals = context.GetConfiguration(f => f.Intervals);
-                var maxRetryAttempts =
-                    intervals?.Length
-                    ?? context.GetConfiguration(f => f.MaxRetryAttempts)
-                    ?? RetryOptions.Defaults.MaxRetryAttempts;
-
-                var delay = context.GetConfiguration(f => f.Delay) ?? RetryOptions.Defaults.Delay;
-
-                var maxDelay = context.GetConfiguration(f => f.MaxDelay) ?? RetryOptions.Defaults.MaxDelay;
-
-                var backoffType = context.GetConfiguration(f => f.BackoffType) ?? RetryOptions.Defaults.BackoffType;
-
-                var useJitter = context.GetConfiguration(f => f.UseJitter) ?? RetryOptions.Defaults.UseJitter;
-
-                // Resolve exception rules (atomically from first scope that has them).
-                var exceptionRules = ResolveExceptionRules(context);
-
-                // Map RetryBackoffType to Polly's DelayBackoffType.
-                var pollyBackoffType = backoffType switch
-                {
-                    RetryBackoffType.Constant => DelayBackoffType.Constant,
-                    RetryBackoffType.Linear => DelayBackoffType.Linear,
-                    RetryBackoffType.Exponential => DelayBackoffType.Exponential,
-                    _ => DelayBackoffType.Exponential
-                };
-
-                var strategyOptions = new RetryStrategyOptions
-                {
-                    MaxRetryAttempts = maxRetryAttempts,
-                    Delay = delay,
-                    MaxDelay = maxDelay,
-                    BackoffType = pollyBackoffType,
-                    UseJitter = useJitter
-                };
-
-                // Map Intervals to custom DelayGenerator.
-                if (intervals is { Length: > 0 })
-                {
-                    strategyOptions.DelayGenerator = args =>
-                    {
-                        var index = Math.Min(args.AttemptNumber, intervals.Length - 1);
-                        return new ValueTask<TimeSpan?>(intervals[index]);
-                    };
-                }
-
-                // Map On<T>().Ignore() rules to ShouldHandle predicate.
-                if (exceptionRules.Count > 0)
-                {
-                    strategyOptions.ShouldHandle = args =>
-                    {
-                        if (args.Outcome.Exception is { } ex
-                            && ExceptionRuleMatcher.ShouldIgnore(exceptionRules, ex))
-                        {
-                            return new ValueTask<bool>(false);
-                        }
-
-                        return new ValueTask<bool>(args.Outcome.Exception is not null);
-                    };
-                }
-
-                var pipeline = new ResiliencePipelineBuilder().AddRetry(strategyOptions).Build();
-
-                var middleware = new ConsumerRetryMiddleware(pipeline);
+                var middleware = new ConsumerRetryMiddleware(feature.Rules);
 
                 return ctx => middleware.InvokeAsync(ctx, next);
             },
             "Retry");
-
-    private static IReadOnlyList<ExceptionRule> ResolveExceptionRules(ConsumerMiddlewareFactoryContext context)
-    {
-        var busFeatures = context.Services.GetRequiredService<IFeatureCollection>();
-
-        // Consumer rules take precedence if present.
-        if (context.Consumer.Configuration?.Features is { } consumerFeatures
-            && consumerFeatures.TryGet(out RetryFeature? consumerFeature)
-            && consumerFeature.ExceptionRules.Count > 0)
-        {
-            return consumerFeature.ExceptionRules;
-        }
-
-        if (busFeatures.TryGet(out RetryFeature? busFeature)
-            && busFeature.ExceptionRules.Count > 0)
-        {
-            return busFeature.ExceptionRules;
-        }
-
-        return [];
-    }
 }
 
 file static class Extensions
 {
     /// <summary>
-    /// Resolves configuration with the most specific scope taking precedence.
+    /// Resolves exception policy feature with the most specific scope taking precedence.
+    /// Consumer-level ExceptionPolicyFeature overrides bus-level.
     /// </summary>
-    public static T? GetConfiguration<T>(this ConsumerMiddlewareFactoryContext context, Func<RetryFeature, T> selector)
+    public static ExceptionPolicyFeature? GetExceptionPolicyFeature(this ConsumerMiddlewareFactoryContext context)
     {
         var busFeatures = context.Services.GetRequiredService<IFeatureCollection>();
 
-        // consumer -> bus (most specific first)
-        if (context.Consumer.Configuration?.Features is { } consumerFeatures)
+        // Consumer -> bus (most specific first).
+        var config = context.Consumer.Configuration;
+        if (config is not null)
         {
-            var value = consumerFeatures.GetFeatureValue(selector);
-
-            if (value is not null)
+            var consumerFeatures = config.GetFeatures();
+            if (consumerFeatures.TryGet(out ExceptionPolicyFeature? consumerFeature))
             {
-                return value;
+                return consumerFeature;
             }
         }
 
-        return busFeatures.GetFeatureValue(selector);
-    }
-
-    private static T? GetFeatureValue<T>(this IFeatureCollection features, Func<RetryFeature, T?> selector)
-    {
-        if (features.TryGet(out RetryFeature? feature))
+        if (busFeatures.TryGet(out ExceptionPolicyFeature? busFeature))
         {
-            return selector(feature);
+            return busFeature;
         }
 
-        return default;
+        return null;
     }
 }

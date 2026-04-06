@@ -19,14 +19,14 @@ public sealed class RedeliveryTests
             .AddSingleton(counter)
             .AddSingleton(recorder)
             .AddMessageBus()
-            .AddRedelivery(redeliver =>
+            .AddExceptionPolicy(p =>
             {
-                redeliver.Intervals =
+                p.On<Exception>().Redeliver(
                 [
                     TimeSpan.FromMilliseconds(1),
                     TimeSpan.FromMilliseconds(1),
                     TimeSpan.FromMilliseconds(1)
-                ];
+                ]);
             })
             .AddEventHandler<ThrowThenSucceedHandler>()
             .AddInMemory()
@@ -55,10 +55,10 @@ public sealed class RedeliveryTests
         await using var provider = await new ServiceCollection()
             .AddSingleton(counter)
             .AddMessageBus()
-            .AddRedelivery(redeliver =>
+            .AddExceptionPolicy(p =>
             {
-                redeliver.Intervals = [TimeSpan.FromMilliseconds(1)];
-                redeliver.On<InvalidOperationException>().Ignore();
+                p.On<Exception>().Redeliver([TimeSpan.FromMilliseconds(1)]);
+                p.On<InvalidOperationException>().DeadLetter();
             })
             .AddEventHandler<ThrowInvalidOperationHandler>()
             .AddInMemory()
@@ -78,17 +78,12 @@ public sealed class RedeliveryTests
     [Fact]
     public async Task Redelivery_Should_PassThrough_When_Disabled()
     {
-        // arrange
+        // arrange — no exception policy configured, so retry and redelivery are both no-ops
         var counter = new InvocationCounter();
 
         await using var provider = await new ServiceCollection()
             .AddSingleton(counter)
             .AddMessageBus()
-            .AddRedelivery(redeliver =>
-            {
-                redeliver.Enabled = false;
-                redeliver.Intervals = [TimeSpan.FromMilliseconds(1)];
-            })
             .AddEventHandler<AlwaysThrowingHandler>()
             .AddInMemory()
             .BuildServiceProvider();
@@ -99,7 +94,7 @@ public sealed class RedeliveryTests
         // act
         await bus.PublishAsync(new OrderCreated { OrderId = "ORD-DISABLED" }, CancellationToken.None);
 
-        // assert - only 1 invocation, redelivery disabled
+        // assert - no exception policy: only 1 invocation, no retry or redelivery
         await Task.Delay(500);
         Assert.Equal(1, counter.Count);
     }
@@ -113,13 +108,13 @@ public sealed class RedeliveryTests
         await using var provider = await new ServiceCollection()
             .AddSingleton(counter)
             .AddMessageBus()
-            .AddRedelivery(redeliver =>
+            .AddExceptionPolicy(p =>
             {
-                redeliver.Intervals =
+                p.On<Exception>().Redeliver(
                 [
                     TimeSpan.FromMilliseconds(1),
                     TimeSpan.FromMilliseconds(1)
-                ];
+                ]);
             })
             .AddEventHandler<AlwaysThrowingHandler>()
             .AddInMemory()
@@ -140,19 +135,21 @@ public sealed class RedeliveryTests
     [Fact]
     public async Task Redelivery_Should_UseEndpointOverride_When_EndpointConfigured()
     {
-        // arrange - bus-level: 1 redelivery, but the endpoint overrides to disabled
+        // arrange - bus-level: redeliver once, but the transport overrides to discard
         var counter = new InvocationCounter();
         var builder = new ServiceCollection()
             .AddSingleton(counter)
             .AddScoped<AlwaysThrowingHandler>()
             .AddMessageBus()
-            .AddRedelivery(redeliver => redeliver.Intervals = [TimeSpan.FromMilliseconds(1)]);
+            .AddExceptionPolicy(p =>
+                p.On<Exception>().Redeliver([TimeSpan.FromMilliseconds(1)]));
 
-        // Override at transport level to disable redelivery.
+        // Override at transport level to discard all exceptions.
         builder.ConfigureMessageBus(b => b.AddHandler<AlwaysThrowingHandler>());
 
         await using var provider = await builder
-            .AddInMemory(t => t.AddRedelivery(redeliver => redeliver.Enabled = false))
+            .AddInMemory(t => t.AddExceptionPolicy(p =>
+                p.On<Exception>().DeadLetter()))
             .BuildServiceProvider();
 
         using var scope = provider.CreateScope();
@@ -161,21 +158,21 @@ public sealed class RedeliveryTests
         // act
         await bus.PublishAsync(new OrderCreated { OrderId = "ORD-OVERRIDE" }, CancellationToken.None);
 
-        // assert - redelivery disabled at transport level: only 1 invocation
+        // assert - redelivery disabled at transport level via DeadLetter: only 1 invocation
         await Task.Delay(500);
         Assert.Equal(1, counter.Count);
     }
 
     [Fact]
-    public async Task Redelivery_Should_UseDefaults_When_ParameterlessAddRedelivery()
+    public async Task Redelivery_Should_UseDefaults_When_ParameterlessAddExceptionPolicy()
     {
-        // arrange - parameterless AddRedelivery uses defaults: 3 intervals
+        // arrange - defaults: 3 redelivery intervals from RedeliveryPolicyDefaults
         var counter = new InvocationCounter();
 
         await using var provider = await new ServiceCollection()
             .AddSingleton(counter)
             .AddMessageBus()
-            .AddRedelivery()
+            .AddExceptionPolicy()
             .AddEventHandler<AlwaysThrowingHandler>()
             .AddInMemory()
             .BuildServiceProvider();
@@ -186,10 +183,12 @@ public sealed class RedeliveryTests
         // act
         await bus.PublishAsync(new OrderCreated { OrderId = "ORD-DEFAULT" }, CancellationToken.None);
 
-        // assert - default is 3 intervals: 1 original + 3 redeliveries = 4 total
+        // assert - default is 3 retries + 3 redeliveries: 1 original + 3 retries = 4 on first delivery,
+        // then 3 redeliveries each with 1 original + 3 retries = 4, total = 4 + 3*4 = 16
+        // Wait for at least the first 4 (initial delivery with retries)
         Assert.True(
             await counter.WaitForCountAsync(4, s_timeout),
-            $"Expected 4 invocations (1 original + 3 default redeliveries), but got {counter.Count}");
+            $"Expected at least 4 invocations (1 original + 3 default retries), but got {counter.Count}");
     }
 
     // ============================================================

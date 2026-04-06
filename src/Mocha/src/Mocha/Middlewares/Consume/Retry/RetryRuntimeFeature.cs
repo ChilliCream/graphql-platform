@@ -3,7 +3,7 @@ namespace Mocha;
 /// <summary>
 /// Provides retry state information to message handlers via
 /// <c>context.Features.Get&lt;RetryState&gt;()</c>.
-/// Null if AddRetry is not configured.
+/// Null if retry is not configured via AddExceptionPolicy.
 /// </summary>
 public sealed class RetryRuntimeFeature
 {

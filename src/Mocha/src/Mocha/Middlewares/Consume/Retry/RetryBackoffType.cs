@@ -6,17 +6,17 @@ namespace Mocha;
 public enum RetryBackoffType
 {
     /// <summary>
-    /// Constant delay between retries. Every attempt waits the same <see cref="RetryOptions.Delay"/>.
+    /// Constant delay between retries. Every attempt waits the same base delay.
     /// </summary>
     Constant,
 
     /// <summary>
-    /// Linearly increasing delay. Delay = <see cref="RetryOptions.Delay"/> * (attempt + 1).
+    /// Linearly increasing delay. Delay = baseDelay * attempt.
     /// </summary>
     Linear,
 
     /// <summary>
-    /// Exponentially increasing delay. Delay = <see cref="RetryOptions.Delay"/> * 2^attempt.
+    /// Exponentially increasing delay. Delay = baseDelay * 2^(attempt-1).
     /// </summary>
     Exponential
 }

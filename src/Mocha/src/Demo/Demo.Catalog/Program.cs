@@ -31,8 +31,7 @@ builder.Services.AddMediator()
 builder
     .Services.AddMessageBus()
     .AddInstrumentation()
-    .AddRetry()
-    .AddRedelivery()
+    .AddExceptionPolicy()
     .AddCatalog()
     .AddEntityFramework<CatalogDbContext>(p =>
     {

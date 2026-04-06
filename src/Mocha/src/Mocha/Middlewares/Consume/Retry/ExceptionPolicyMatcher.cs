@@ -1,21 +1,21 @@
 namespace Mocha;
 
 /// <summary>
-/// Evaluates exception rules to determine if an exception should be ignored.
-/// Most-specific-type-wins: if both DbException.Ignore() and NpgsqlException rules exist,
+/// Evaluates exception policy rules to find the best matching rule for an exception.
+/// Most-specific-type-wins: if both DbException and NpgsqlException rules exist,
 /// NpgsqlException rule takes priority for NpgsqlException instances.
 /// </summary>
-internal static class ExceptionRuleMatcher
+internal static class ExceptionPolicyMatcher
 {
     /// <summary>
-    /// Determines whether the given exception should be ignored based on the configured rules.
+    /// Finds the best matching exception policy rule for the given exception.
     /// </summary>
-    /// <param name="rules">The list of exception rules to evaluate.</param>
+    /// <param name="rules">The list of exception policy rules to evaluate.</param>
     /// <param name="exception">The exception to match against.</param>
-    /// <returns><c>true</c> if the exception should be ignored; otherwise, <c>false</c>.</returns>
-    public static bool ShouldIgnore(IReadOnlyList<ExceptionRule> rules, Exception exception)
+    /// <returns>The best matching rule, or <c>null</c> if no rule matches.</returns>
+    public static ExceptionPolicyRule? Match(IReadOnlyList<ExceptionPolicyRule> rules, Exception exception)
     {
-        ExceptionRule? bestMatch = null;
+        ExceptionPolicyRule? bestMatch = null;
         var bestDepth = int.MaxValue;
 
         foreach (var rule in rules)
@@ -47,6 +47,6 @@ internal static class ExceptionRuleMatcher
             }
         }
 
-        return bestMatch?.Action == ExceptionAction.Ignore;
+        return bestMatch;
     }
 }

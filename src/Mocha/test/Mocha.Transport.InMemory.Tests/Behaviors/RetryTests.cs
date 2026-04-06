@@ -18,12 +18,10 @@ public sealed class RetryTests
             .AddSingleton(counter)
             .AddSingleton(recorder)
             .AddMessageBus()
-            .AddRetry(retry =>
+            .AddExceptionPolicy(p =>
             {
-                retry.MaxRetryAttempts = 3;
-                retry.Delay = TimeSpan.FromMilliseconds(1);
-                retry.BackoffType = RetryBackoffType.Constant;
-                retry.UseJitter = false;
+                p.On<Exception>()
+                    .Retry(3, TimeSpan.FromMilliseconds(1), RetryBackoffType.Constant);
             })
             .AddEventHandler<ThrowOnceHandler>()
             .AddInMemory()
@@ -51,12 +49,10 @@ public sealed class RetryTests
         await using var provider = await new ServiceCollection()
             .AddSingleton(counter)
             .AddMessageBus()
-            .AddRetry(retry =>
+            .AddExceptionPolicy(p =>
             {
-                retry.MaxRetryAttempts = 3;
-                retry.Delay = TimeSpan.FromMilliseconds(1);
-                retry.BackoffType = RetryBackoffType.Constant;
-                retry.UseJitter = false;
+                p.On<Exception>()
+                    .Retry(3, TimeSpan.FromMilliseconds(1), RetryBackoffType.Constant);
             })
             .AddEventHandler<AlwaysThrowingHandler>()
             .AddInMemory()
@@ -82,13 +78,11 @@ public sealed class RetryTests
         await using var provider = await new ServiceCollection()
             .AddSingleton(counter)
             .AddMessageBus()
-            .AddRetry(retry =>
+            .AddExceptionPolicy(p =>
             {
-                retry.MaxRetryAttempts = 3;
-                retry.Delay = TimeSpan.FromMilliseconds(1);
-                retry.BackoffType = RetryBackoffType.Constant;
-                retry.UseJitter = false;
-                retry.On<InvalidOperationException>().Ignore();
+                p.On<Exception>()
+                    .Retry(3, TimeSpan.FromMilliseconds(1), RetryBackoffType.Constant);
+                p.On<InvalidOperationException>().DeadLetter();
             })
             .AddEventHandler<ThrowInvalidOperationHandler>()
             .AddInMemory()
@@ -116,13 +110,11 @@ public sealed class RetryTests
         await using var matchingProvider = await new ServiceCollection()
             .AddSingleton(matchingCounter)
             .AddMessageBus()
-            .AddRetry(retry =>
+            .AddExceptionPolicy(p =>
             {
-                retry.MaxRetryAttempts = 3;
-                retry.Delay = TimeSpan.FromMilliseconds(1);
-                retry.BackoffType = RetryBackoffType.Constant;
-                retry.UseJitter = false;
-                retry.On<ArgumentException>(ex => ex.ParamName == "test").Ignore();
+                p.On<Exception>()
+                    .Retry(3, TimeSpan.FromMilliseconds(1), RetryBackoffType.Constant);
+                p.On<ArgumentException>(ex => ex.ParamName == "test").DeadLetter();
             })
             .AddEventHandler<ThrowMatchingArgumentHandler>()
             .AddInMemory()
@@ -141,13 +133,11 @@ public sealed class RetryTests
         await using var nonMatchingProvider = await new ServiceCollection()
             .AddSingleton(nonMatchingCounter)
             .AddMessageBus()
-            .AddRetry(retry =>
+            .AddExceptionPolicy(p =>
             {
-                retry.MaxRetryAttempts = 3;
-                retry.Delay = TimeSpan.FromMilliseconds(1);
-                retry.BackoffType = RetryBackoffType.Constant;
-                retry.UseJitter = false;
-                retry.On<ArgumentException>(ex => ex.ParamName == "other").Ignore();
+                p.On<Exception>()
+                    .Retry(3, TimeSpan.FromMilliseconds(1), RetryBackoffType.Constant);
+                p.On<ArgumentException>(ex => ex.ParamName == "other").DeadLetter();
             })
             .AddEventHandler<ThrowMatchingArgumentHandler>()
             .AddInMemory()
@@ -173,24 +163,20 @@ public sealed class RetryTests
             .AddSingleton(counter)
             .AddScoped<AlwaysThrowingHandler>()
             .AddMessageBus()
-            .AddRetry(retry =>
+            .AddExceptionPolicy(p =>
             {
-                retry.MaxRetryAttempts = 2;
-                retry.Delay = TimeSpan.FromMilliseconds(1);
-                retry.BackoffType = RetryBackoffType.Constant;
-                retry.UseJitter = false;
+                p.On<Exception>()
+                    .Retry(2, TimeSpan.FromMilliseconds(1), RetryBackoffType.Constant);
             });
 
         builder.ConfigureMessageBus(b =>
         {
             b.AddHandler<AlwaysThrowingHandler>(consumer =>
             {
-                consumer.AddRetry(retry =>
+                consumer.AddExceptionPolicy(p =>
                 {
-                    retry.MaxRetryAttempts = 5;
-                    retry.Delay = TimeSpan.FromMilliseconds(1);
-                    retry.BackoffType = RetryBackoffType.Constant;
-                    retry.UseJitter = false;
+                    p.On<Exception>()
+                        .Retry(5, TimeSpan.FromMilliseconds(1), RetryBackoffType.Constant);
                 });
             });
         });
@@ -218,12 +204,10 @@ public sealed class RetryTests
             .AddSingleton(stateCapture)
             .AddScoped<RetryStateCapturingConsumer>()
             .AddMessageBus()
-            .AddRetry(retry =>
+            .AddExceptionPolicy(p =>
             {
-                retry.MaxRetryAttempts = 2;
-                retry.Delay = TimeSpan.FromMilliseconds(1);
-                retry.BackoffType = RetryBackoffType.Constant;
-                retry.UseJitter = false;
+                p.On<Exception>()
+                    .Retry(2, TimeSpan.FromMilliseconds(1), RetryBackoffType.Constant);
             });
 
         builder.ConfigureMessageBus(b => b.AddHandler<RetryStateCapturingConsumer>());
@@ -256,17 +240,16 @@ public sealed class RetryTests
             .AddSingleton(counter)
             .AddScoped<AlwaysThrowingHandler>()
             .AddMessageBus()
-            .AddRetry(retry =>
+            .AddExceptionPolicy(p =>
             {
-                retry.MaxRetryAttempts = 3;
-                retry.Delay = TimeSpan.FromMilliseconds(1);
-                retry.BackoffType = RetryBackoffType.Constant;
-                retry.UseJitter = false;
+                p.On<Exception>()
+                    .Retry(3, TimeSpan.FromMilliseconds(1), RetryBackoffType.Constant);
             });
 
         builder.ConfigureMessageBus(b =>
             b.AddHandler<AlwaysThrowingHandler>(consumer =>
-                consumer.AddRetry(retry => retry.Enabled = false)));
+                consumer.AddExceptionPolicy(p =>
+                    p.On<Exception>().Redeliver([TimeSpan.FromHours(1)]))));
 
         await using var provider = await builder.AddInMemory().BuildServiceProvider();
 
@@ -276,7 +259,7 @@ public sealed class RetryTests
         // act
         await bus.PublishAsync(new OrderCreated { OrderId = "ORD-DISABLED" }, CancellationToken.None);
 
-        // assert - retry disabled: only 1 invocation
+        // assert - retry disabled via consumer override: only 1 invocation (redeliver does not cause immediate retry)
         await Task.Delay(500);
         Assert.Equal(1, counter.Count);
     }
@@ -289,14 +272,14 @@ public sealed class RetryTests
         await using var provider = await new ServiceCollection()
             .AddSingleton(counter)
             .AddMessageBus()
-            .AddRetry(retry =>
+            .AddExceptionPolicy(p =>
             {
-                retry.Intervals =
+                p.On<Exception>().Retry(
                 [
                     TimeSpan.FromMilliseconds(10),
                     TimeSpan.FromMilliseconds(20),
                     TimeSpan.FromMilliseconds(30)
-                ];
+                ]);
             })
             .AddEventHandler<AlwaysThrowingHandler>()
             .AddInMemory()
@@ -322,13 +305,11 @@ public sealed class RetryTests
         await using var provider = await new ServiceCollection()
             .AddSingleton(counter)
             .AddMessageBus()
-            .AddRetry(retry =>
+            .AddExceptionPolicy(p =>
             {
-                retry.MaxRetryAttempts = 3;
-                retry.Delay = TimeSpan.FromMilliseconds(1);
-                retry.BackoffType = RetryBackoffType.Constant;
-                retry.UseJitter = false;
-                retry.On<ArgumentException>().Ignore();
+                p.On<Exception>()
+                    .Retry(3, TimeSpan.FromMilliseconds(1), RetryBackoffType.Constant);
+                p.On<ArgumentException>().DeadLetter();
             })
             .AddEventHandler<ThrowArgumentNullHandler>()
             .AddInMemory()
@@ -346,14 +327,14 @@ public sealed class RetryTests
     }
 
     [Fact]
-    public async Task Retry_Should_UseDefaults_When_ParameterlessAddRetry()
+    public async Task Retry_Should_UseDefaults_When_ParameterlessAddExceptionPolicy()
     {
-        // arrange - default: MaxRetryAttempts = 3
+        // arrange - default: 3 retries (from RetryPolicyDefaults.Attempts)
         var counter = new RetryInvocationCounter();
         await using var provider = await new ServiceCollection()
             .AddSingleton(counter)
             .AddMessageBus()
-            .AddRetry()
+            .AddExceptionPolicy()
             .AddEventHandler<AlwaysThrowingHandler>()
             .AddInMemory()
             .BuildServiceProvider();
