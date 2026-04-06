@@ -1,5 +1,5 @@
-using ChilliCream.Nitro.Client.ApiKeys;
 using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.ApiKeys;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.ApiKeys;

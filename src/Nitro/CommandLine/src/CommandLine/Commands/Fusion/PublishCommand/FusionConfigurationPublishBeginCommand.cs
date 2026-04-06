@@ -1,10 +1,10 @@
+using ChilliCream.Nitro.Client.FusionConfiguration;
+using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Results;
-using ChilliCream.Nitro.CommandLine.Services.Configuration;
-using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Services;
+using ChilliCream.Nitro.CommandLine.Services.Configuration;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
@@ -43,7 +43,6 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var fusionConfigurationClient = services.GetRequiredService<IFusionConfigurationClient>();
-        var configurationService = services.GetRequiredService<IConfigurationService>();
         var sessionService = services.GetRequiredService<ISessionService>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
         var resultHolder = services.GetRequiredService<IResultHolder>();

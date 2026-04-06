@@ -1,8 +1,8 @@
 using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Mcp;
+using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Commands.Mcp.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
@@ -64,7 +64,7 @@ internal sealed class ListMcpFeatureCollectionCommand : Command
         var container = PaginationContainer
             .CreateConnectionData(async (after, first, token) =>
                 await client.ListMcpFeatureCollectionsAsync(apiId, after ?? cursor, first, token)
-                    ?? throw ThrowHelper.ThereWasAnIssueWithTheRequest("The API was not found."))
+                    ?? throw ThereWasAnIssueWithTheRequest("The API was not found."))
             .PageSize(10);
 
         var api = await PagedTable
@@ -96,7 +96,7 @@ internal sealed class ListMcpFeatureCollectionCommand : Command
         }
 
         var data = await client.ListMcpFeatureCollectionsAsync(apiId, cursor, 10, ct)
-            ?? throw ThrowHelper.ThereWasAnIssueWithTheRequest("The API was not found.");
+            ?? throw ThereWasAnIssueWithTheRequest("The API was not found.");
         var items = data.Items
             .Select(McpFeatureCollectionDetailPrompt.From)
             .Select(x => x.ToObject())

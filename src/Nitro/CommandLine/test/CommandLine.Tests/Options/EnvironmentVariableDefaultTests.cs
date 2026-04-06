@@ -32,7 +32,7 @@ public class EnvironmentVariableDefaultTests
             .ReturnsAsync((Session?)null);
         sessionMock.SetupGet(x => x.Session).Returns((Session?)null);
         services.Replace(ServiceDescriptor.Singleton(sessionMock.Object));
-        services.Replace(ServiceDescriptor.Singleton<IEnvironmentVariableProvider>(envProviderMock.Object));
+        services.Replace(ServiceDescriptor.Singleton(envProviderMock.Object));
 
         services.AddSingleton<NitroClientContext>();
         services.AddSingleton<INitroClientContextProvider>(

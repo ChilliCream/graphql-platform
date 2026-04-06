@@ -11,13 +11,13 @@ public interface IWorkspacesClient
     /// Fetches a page of workspaces.
     /// </summary>
     /// <returns>A page of results. The page may be empty if no items exist or the caller is not authorized.</returns>
-    /// <exception cref="ChilliCream.Nitro.Client.NitroClientGraphQLException">
+    /// <exception cref="NitroClientGraphQLException">
     /// The server returned a GraphQL error.
     /// </exception>
-    /// <exception cref="ChilliCream.Nitro.Client.NitroClientHttpRequestException">
+    /// <exception cref="NitroClientHttpRequestException">
     /// The server returned an HTTP error without a GraphQL response body.
     /// </exception>
-    /// <exception cref="ChilliCream.Nitro.Client.NitroClientAuthorizationException">
+    /// <exception cref="NitroClientAuthorizationException">
     /// The request was rejected because the current credentials do not grant access.
     /// </exception>
     /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
@@ -30,13 +30,13 @@ public interface IWorkspacesClient
     /// Fetches a page of workspaces for default-workspace selection.
     /// </summary>
     /// <returns>A page of results. The page may be empty if no items exist or the caller is not authorized.</returns>
-    /// <exception cref="ChilliCream.Nitro.Client.NitroClientGraphQLException">
+    /// <exception cref="NitroClientGraphQLException">
     /// The server returned a GraphQL error.
     /// </exception>
-    /// <exception cref="ChilliCream.Nitro.Client.NitroClientHttpRequestException">
+    /// <exception cref="NitroClientHttpRequestException">
     /// The server returned an HTTP error without a GraphQL response body.
     /// </exception>
-    /// <exception cref="ChilliCream.Nitro.Client.NitroClientAuthorizationException">
+    /// <exception cref="NitroClientAuthorizationException">
     /// The request was rejected because the current credentials do not grant access.
     /// </exception>
     /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
@@ -48,13 +48,13 @@ public interface IWorkspacesClient
     /// <summary>
     /// Creates a new workspace.
     /// </summary>
-    /// <exception cref="ChilliCream.Nitro.Client.NitroClientGraphQLException">
+    /// <exception cref="NitroClientGraphQLException">
     /// The server returned a GraphQL error.
     /// </exception>
-    /// <exception cref="ChilliCream.Nitro.Client.NitroClientHttpRequestException">
+    /// <exception cref="NitroClientHttpRequestException">
     /// The server returned an HTTP error without a GraphQL response body.
     /// </exception>
-    /// <exception cref="ChilliCream.Nitro.Client.NitroClientAuthorizationException">
+    /// <exception cref="NitroClientAuthorizationException">
     /// The request was rejected because the current credentials do not grant access.
     /// </exception>
     /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
@@ -66,13 +66,13 @@ public interface IWorkspacesClient
     /// Loads workspace details by identifier.
     /// </summary>
     /// <returns>The workspace details, or <c>null</c> if the workspace was not found or the caller is not authorized.</returns>
-    /// <exception cref="ChilliCream.Nitro.Client.NitroClientGraphQLException">
+    /// <exception cref="NitroClientGraphQLException">
     /// The server returned a GraphQL error.
     /// </exception>
-    /// <exception cref="ChilliCream.Nitro.Client.NitroClientHttpRequestException">
+    /// <exception cref="NitroClientHttpRequestException">
     /// The server returned an HTTP error without a GraphQL response body.
     /// </exception>
-    /// <exception cref="ChilliCream.Nitro.Client.NitroClientAuthorizationException">
+    /// <exception cref="NitroClientAuthorizationException">
     /// The request was rejected because the current credentials do not grant access.
     /// </exception>
     /// <exception cref="OperationCanceledException">The operation was canceled.</exception>

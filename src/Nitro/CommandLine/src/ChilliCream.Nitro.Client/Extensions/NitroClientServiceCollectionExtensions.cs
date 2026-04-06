@@ -171,7 +171,7 @@ public static class NitroClientServiceCollectionExtensions
         }
 
         services.AddHttpClient(ApiClient.ClientName, static (sp, client) => ConfigureApiHttpClient(sp, client));
-        services.TryAddSingleton<IApiClient>(CreateApiClient);
+        services.TryAddSingleton(CreateApiClient);
     }
 
     private static void ConfigureApiHttpClient(IServiceProvider sp, HttpClient client)

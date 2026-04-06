@@ -4,11 +4,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO.Compression;
 using System.Net;
 using System.Text.Json;
-using ChilliCream.Nitro.CommandLine.FusionCompatibility;
-using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
+using ChilliCream.Nitro.CommandLine;
+using ChilliCream.Nitro.CommandLine.FusionCompatibility;
+using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
@@ -257,7 +257,7 @@ internal sealed class FusionValidateCommand : Command
             {
                 switch (@event)
                 {
-                    case ISchemaVersionValidationFailed { Errors: var schemaErrors}:
+                    case ISchemaVersionValidationFailed { Errors: var schemaErrors }:
                         var errorTree = new Tree("");
 
                         foreach (var error in schemaErrors)

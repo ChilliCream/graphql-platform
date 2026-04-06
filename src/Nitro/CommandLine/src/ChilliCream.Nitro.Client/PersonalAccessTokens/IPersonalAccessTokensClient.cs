@@ -10,13 +10,13 @@ public interface IPersonalAccessTokensClient
     /// Fetches a page of personal access tokens.
     /// </summary>
     /// <returns>A page of results. The page may be empty if no items exist or the caller is not authorized.</returns>
-    /// <exception cref="ChilliCream.Nitro.Client.NitroClientGraphQLException">
+    /// <exception cref="NitroClientGraphQLException">
     /// The server returned a GraphQL error.
     /// </exception>
-    /// <exception cref="ChilliCream.Nitro.Client.NitroClientHttpRequestException">
+    /// <exception cref="NitroClientHttpRequestException">
     /// The server returned an HTTP error without a GraphQL response body.
     /// </exception>
-    /// <exception cref="ChilliCream.Nitro.Client.NitroClientAuthorizationException">
+    /// <exception cref="NitroClientAuthorizationException">
     /// The request was rejected because the current credentials do not grant access.
     /// </exception>
     /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
@@ -28,13 +28,13 @@ public interface IPersonalAccessTokensClient
     /// <summary>
     /// Creates a personal access token.
     /// </summary>
-    /// <exception cref="ChilliCream.Nitro.Client.NitroClientGraphQLException">
+    /// <exception cref="NitroClientGraphQLException">
     /// The server returned a GraphQL error.
     /// </exception>
-    /// <exception cref="ChilliCream.Nitro.Client.NitroClientHttpRequestException">
+    /// <exception cref="NitroClientHttpRequestException">
     /// The server returned an HTTP error without a GraphQL response body.
     /// </exception>
-    /// <exception cref="ChilliCream.Nitro.Client.NitroClientAuthorizationException">
+    /// <exception cref="NitroClientAuthorizationException">
     /// The request was rejected because the current credentials do not grant access.
     /// </exception>
     /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
@@ -46,13 +46,13 @@ public interface IPersonalAccessTokensClient
     /// <summary>
     /// Revokes a personal access token.
     /// </summary>
-    /// <exception cref="ChilliCream.Nitro.Client.NitroClientGraphQLException">
+    /// <exception cref="NitroClientGraphQLException">
     /// The server returned a GraphQL error.
     /// </exception>
-    /// <exception cref="ChilliCream.Nitro.Client.NitroClientHttpRequestException">
+    /// <exception cref="NitroClientHttpRequestException">
     /// The server returned an HTTP error without a GraphQL response body.
     /// </exception>
-    /// <exception cref="ChilliCream.Nitro.Client.NitroClientAuthorizationException">
+    /// <exception cref="NitroClientAuthorizationException">
     /// The request was rejected because the current credentials do not grant access.
     /// </exception>
     /// <exception cref="OperationCanceledException">The operation was canceled.</exception>

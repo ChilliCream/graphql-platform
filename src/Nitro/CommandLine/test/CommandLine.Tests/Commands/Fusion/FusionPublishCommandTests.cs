@@ -2933,7 +2933,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         Assert.Equal(1, result.ExitCode);
     }
 
-        [Fact]
+    [Fact]
     public async Task WithSourceSchema_ReleaseDeploymentSlotThrows_ReturnsError()
     {
         // arrange

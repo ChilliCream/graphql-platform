@@ -348,7 +348,7 @@ internal static class FusionPublishHelpers
                     throw Exit(
                         "Your request is ready for the composition. Run `fusion-configuration publish start`");
 
-                case IFusionConfigurationValidationFailed {Errors: var errors}:
+                case IFusionConfigurationValidationFailed { Errors: var errors }:
                     var errorTree = new Tree("");
 
                     foreach (var error in errors)

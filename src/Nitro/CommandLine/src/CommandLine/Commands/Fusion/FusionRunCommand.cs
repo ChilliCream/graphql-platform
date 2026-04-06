@@ -23,7 +23,7 @@ internal class FusionRunCommand : Command
 {
     public FusionRunCommand() : base("run")
     {
-        base.Description = "Start a Fusion gateway with the specified archive."
+        Description = "Start a Fusion gateway with the specified archive."
             + Environment.NewLine
             + "This command only supports Fusion v2.";
 

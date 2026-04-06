@@ -912,20 +912,6 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : IClassF
         return payload.Object;
     }
 
-    private static ICreateApiCommandMutation_PushWorkspaceChanges CreateApiPayloadWithResult(
-        ICreateApiCommandMutation_PushWorkspaceChanges_Changes_Result result)
-    {
-        var change = new Mock<ICreateApiCommandMutation_PushWorkspaceChanges_Changes>(MockBehavior.Strict);
-        change.SetupGet(x => x.Error).Returns((ICreateApiCommandMutation_PushWorkspaceChanges_Changes_Error?)null);
-        change.SetupGet(x => x.Result).Returns(result);
-
-        var payload = new Mock<ICreateApiCommandMutation_PushWorkspaceChanges>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Changes).Returns([change.Object]);
-        payload.SetupGet(x => x.Errors).Returns(Array.Empty<ICreateApiCommandMutation_PushWorkspaceChanges_Errors>());
-
-        return payload.Object;
-    }
-
     private static ICreateApiCommandMutation_PushWorkspaceChanges CreateApiPayloadWithMutationErrors(
         params ICreateApiCommandMutation_PushWorkspaceChanges_Errors[] errors)
     {

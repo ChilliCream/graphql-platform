@@ -98,8 +98,8 @@ public sealed class SetApiSettingsCommandTests(NitroCommandFixture fixture) : IC
             .ExecuteAsync();
 
         // assert
-                result.AssertSuccess(
-                        """
+        result.AssertSuccess(
+                """
                         Updating settings for API 'api-1'
                         └── ✓ Updated settings for API 'api-1'.
 

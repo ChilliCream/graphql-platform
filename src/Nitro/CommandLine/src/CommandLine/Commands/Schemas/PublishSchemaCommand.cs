@@ -1,7 +1,7 @@
-using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.CommandLine;
+using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
@@ -55,7 +55,6 @@ internal sealed class PublishSchemaCommand : Command
         var console = services.GetRequiredService<INitroConsole>();
         var client = services.GetRequiredService<ISchemasClient>();
         var sessionService = services.GetRequiredService<ISessionService>();
-        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         parseResult.AssertHasAuthentication(sessionService);
 

@@ -9,13 +9,13 @@ public interface IStagesClient
     /// Loads all stages for the specified API.
     /// </summary>
     /// <returns>The stages for the API, or <c>null</c> if the API was not found.</returns>
-    /// <exception cref="ChilliCream.Nitro.Client.NitroClientGraphQLException">
+    /// <exception cref="NitroClientGraphQLException">
     /// The server returned a GraphQL error.
     /// </exception>
-    /// <exception cref="ChilliCream.Nitro.Client.NitroClientHttpRequestException">
+    /// <exception cref="NitroClientHttpRequestException">
     /// The server returned an HTTP error without a GraphQL response body.
     /// </exception>
-    /// <exception cref="ChilliCream.Nitro.Client.NitroClientAuthorizationException">
+    /// <exception cref="NitroClientAuthorizationException">
     /// The request was rejected because the current credentials do not grant access.
     /// </exception>
     /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
@@ -26,13 +26,13 @@ public interface IStagesClient
     /// <summary>
     /// Force-deletes a stage.
     /// </summary>
-    /// <exception cref="ChilliCream.Nitro.Client.NitroClientGraphQLException">
+    /// <exception cref="NitroClientGraphQLException">
     /// The server returned a GraphQL error.
     /// </exception>
-    /// <exception cref="ChilliCream.Nitro.Client.NitroClientHttpRequestException">
+    /// <exception cref="NitroClientHttpRequestException">
     /// The server returned an HTTP error without a GraphQL response body.
     /// </exception>
-    /// <exception cref="ChilliCream.Nitro.Client.NitroClientAuthorizationException">
+    /// <exception cref="NitroClientAuthorizationException">
     /// The request was rejected because the current credentials do not grant access.
     /// </exception>
     /// <exception cref="OperationCanceledException">The operation was canceled.</exception>
@@ -44,13 +44,13 @@ public interface IStagesClient
     /// <summary>
     /// Updates stages for an API.
     /// </summary>
-    /// <exception cref="ChilliCream.Nitro.Client.NitroClientGraphQLException">
+    /// <exception cref="NitroClientGraphQLException">
     /// The server returned a GraphQL error.
     /// </exception>
-    /// <exception cref="ChilliCream.Nitro.Client.NitroClientHttpRequestException">
+    /// <exception cref="NitroClientHttpRequestException">
     /// The server returned an HTTP error without a GraphQL response body.
     /// </exception>
-    /// <exception cref="ChilliCream.Nitro.Client.NitroClientAuthorizationException">
+    /// <exception cref="NitroClientAuthorizationException">
     /// The request was rejected because the current credentials do not grant access.
     /// </exception>
     /// <exception cref="OperationCanceledException">The operation was canceled.</exception>

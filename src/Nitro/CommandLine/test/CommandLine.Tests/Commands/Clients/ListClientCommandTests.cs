@@ -526,7 +526,7 @@ public sealed class ListClientCommandTests(NitroCommandFixture fixture) : IClass
         string id,
         string name,
         string apiName)
-     {
+    {
         var api = new Mock<IShowClientCommandQuery_Node_Api_1>(MockBehavior.Strict);
         api.SetupGet(x => x.Name).Returns(apiName);
         api.SetupGet(x => x.Path).Returns(["products"]);
@@ -538,20 +538,20 @@ public sealed class ListClientCommandTests(NitroCommandFixture fixture) : IClass
         clientNode.SetupGet(x => x.Versions).Returns((IShowClientCommandQuery_Node_Versions?)null);
 
         return clientNode.Object;
-     }
+    }
 
     private static Mock<IClientsClient> CreateListExceptionClient(
         Exception ex,
         string apiId,
         string? cursor)
-     {
-         var client = new Mock<IClientsClient>(MockBehavior.Strict);
-         client.Setup(x => x.ListClientsAsync(
-                 apiId,
-                 cursor,
-                 10,
-                 It.IsAny<CancellationToken>()))
-             .ThrowsAsync(ex);
-         return client;
-     }
- }
+    {
+        var client = new Mock<IClientsClient>(MockBehavior.Strict);
+        client.Setup(x => x.ListClientsAsync(
+                apiId,
+                cursor,
+                10,
+                It.IsAny<CancellationToken>()))
+            .ThrowsAsync(ex);
+        return client;
+    }
+}

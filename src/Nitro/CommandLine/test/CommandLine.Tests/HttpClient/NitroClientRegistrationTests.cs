@@ -135,18 +135,18 @@ public class NitroClientRegistrationTests
         services.Replace(ServiceDescriptor.Singleton(sessionMock.Object));
 
         services
-            .AddSingleton<IApisClient>(Mock.Of<IApisClient>())
-            .AddSingleton<IApiKeysClient>(Mock.Of<IApiKeysClient>())
-            .AddSingleton<IClientsClient>(Mock.Of<IClientsClient>())
-            .AddSingleton<IEnvironmentsClient>(Mock.Of<IEnvironmentsClient>())
-            .AddSingleton<IFusionConfigurationClient>(Mock.Of<IFusionConfigurationClient>())
-            .AddSingleton<IMcpClient>(Mock.Of<IMcpClient>())
-            .AddSingleton<IMocksClient>(Mock.Of<IMocksClient>())
-            .AddSingleton<IOpenApiClient>(Mock.Of<IOpenApiClient>())
-            .AddSingleton<IPersonalAccessTokensClient>(Mock.Of<IPersonalAccessTokensClient>())
-            .AddSingleton<ISchemasClient>(Mock.Of<ISchemasClient>())
-            .AddSingleton<IStagesClient>(Mock.Of<IStagesClient>())
-            .AddSingleton<IWorkspacesClient>(Mock.Of<IWorkspacesClient>());
+            .AddSingleton(Mock.Of<IApisClient>())
+            .AddSingleton(Mock.Of<IApiKeysClient>())
+            .AddSingleton(Mock.Of<IClientsClient>())
+            .AddSingleton(Mock.Of<IEnvironmentsClient>())
+            .AddSingleton(Mock.Of<IFusionConfigurationClient>())
+            .AddSingleton(Mock.Of<IMcpClient>())
+            .AddSingleton(Mock.Of<IMocksClient>())
+            .AddSingleton(Mock.Of<IOpenApiClient>())
+            .AddSingleton(Mock.Of<IPersonalAccessTokensClient>())
+            .AddSingleton(Mock.Of<ISchemasClient>())
+            .AddSingleton(Mock.Of<IStagesClient>())
+            .AddSingleton(Mock.Of<IWorkspacesClient>());
 
         services.AddSingleton<NitroClientContext>();
         services.AddSingleton<INitroClientContextProvider>(
@@ -173,7 +173,7 @@ public class NitroClientRegistrationTests
         };
 
         await rootCommand.ExecuteAsync(
-            ["__probe", ..args], provider, invocationConfig, CancellationToken.None);
+            ["__probe", .. args], provider, invocationConfig, CancellationToken.None);
 
         return provider;
     }

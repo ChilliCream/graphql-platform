@@ -6,7 +6,7 @@ namespace ChilliCream.Nitro.CommandLine.Helpers;
 
 internal static class CommandExamples
 {
-    private static readonly ConditionalWeakTable<Command, string[]> _examples = new();
+    private static readonly ConditionalWeakTable<Command, string[]> _examples = [];
 
     public static void AddExamples(Command command, string[] examples)
     {

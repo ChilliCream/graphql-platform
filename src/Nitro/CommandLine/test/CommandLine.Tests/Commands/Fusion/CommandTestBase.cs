@@ -28,7 +28,7 @@ public abstract class CommandTestBase
 
     protected void SetupInteractionMode(InteractionMode mode)
     {
-        _interactionMode  = mode;
+        _interactionMode = mode;
     }
 
     protected void SetupNoAuthentication()
@@ -38,20 +38,20 @@ public abstract class CommandTestBase
 
     protected async Task<CommandResult> ExecuteCommandAsync(params string[] args)
     {
-         var builder = new CommandBuilder(_fixture)
-             .AddService(_fileSystemMock.Object)
-             .AddService(_environmentVariableProviderMock.Object)
-             .AddService(FusionConfigurationClientMock.Object);
+        var builder = new CommandBuilder(_fixture)
+            .AddService(_fileSystemMock.Object)
+            .AddService(_environmentVariableProviderMock.Object)
+            .AddService(FusionConfigurationClientMock.Object);
 
-         if (_authenticated)
-         {
-             builder.AddApiKey();
-         }
+        if (_authenticated)
+        {
+            builder.AddApiKey();
+        }
 
-         return await builder
-            .AddInteractionMode(_interactionMode)
-            .AddArguments(args)
-            .ExecuteAsync();
+        return await builder
+           .AddInteractionMode(_interactionMode)
+           .AddArguments(args)
+           .ExecuteAsync();
     }
 
     protected void SetupFile(string path, string content)

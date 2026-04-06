@@ -1,9 +1,9 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Clients;
+using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
@@ -79,7 +79,7 @@ internal sealed class ListClientVersionsCommand : Command
             {
                 var page = await client.ListClientVersionsAsync(
                     clientId, after ?? cursor, first, cancellationToken)
-                    ?? throw ThrowHelper.ThereWasAnIssueWithTheRequest("The client was not found.");
+                    ?? throw ThereWasAnIssueWithTheRequest("The client was not found.");
 
                 return new ConnectionPage<ClientVersionResult>(
                     page.Items.Select(ToResult).ToArray(),
@@ -118,7 +118,7 @@ internal sealed class ListClientVersionsCommand : Command
         }
 
         var page = await client.ListClientVersionsAsync(clientId, cursor, 10, ct)
-            ?? throw ThrowHelper.ThereWasAnIssueWithTheRequest("The client was not found.");
+            ?? throw ThereWasAnIssueWithTheRequest("The client was not found.");
 
         var items = page.Items
             .Select(ToResult)

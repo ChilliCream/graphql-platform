@@ -1,4 +1,3 @@
-using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys;
 using ChilliCream.Nitro.CommandLine.Commands.Apis;
 using ChilliCream.Nitro.CommandLine.Commands.Clients;
@@ -15,6 +14,7 @@ using ChilliCream.Nitro.CommandLine.Commands.Schemas;
 using ChilliCream.Nitro.CommandLine.Commands.Stages;
 using ChilliCream.Nitro.CommandLine.Commands.Status;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces;
+using ChilliCream.Nitro.CommandLine.Helpers;
 
 #if !NET9_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;

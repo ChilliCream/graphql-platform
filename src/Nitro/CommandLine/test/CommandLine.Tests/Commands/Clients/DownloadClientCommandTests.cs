@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.Json;
-using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using Moq;

@@ -12,7 +12,7 @@ internal static class OptionExtensions
         {
             var value = result.GetValueOrDefault<string>();
 
-           ValidateFilePath(result, value);
+            ValidateFilePath(result, value);
         });
     }
 

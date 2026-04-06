@@ -1,8 +1,8 @@
 using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Clients;
+using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
@@ -67,7 +67,7 @@ internal sealed class ListClientCommand : Command
         var container = PaginationContainer
             .CreateConnectionData(async (after, first, cancellationToken) =>
                 await client.ListClientsAsync(apiId, after ?? cursor, first, cancellationToken)
-                    ?? throw ThrowHelper.ThereWasAnIssueWithTheRequest("The API was not found."))
+                    ?? throw ThereWasAnIssueWithTheRequest("The API was not found."))
             .PageSize(10);
 
         var selectedClient = await PagedTable
@@ -99,7 +99,7 @@ internal sealed class ListClientCommand : Command
         }
 
         var page = await client.ListClientsAsync(apiId, cursor, 10, ct)
-            ?? throw ThrowHelper.ThereWasAnIssueWithTheRequest("The API was not found.");
+            ?? throw ThereWasAnIssueWithTheRequest("The API was not found.");
 
         var items = page.Items
             .Select(x => ClientDetailPrompt.From(x).ToObject())

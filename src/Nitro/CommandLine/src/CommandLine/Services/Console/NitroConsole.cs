@@ -28,7 +28,7 @@ internal sealed class NitroConsole(
 
     public void SetOutputFormat(OutputFormat format)
     {
-       _outputFormat = format;
+        _outputFormat = format;
     }
 
     public void Clear(bool home)
