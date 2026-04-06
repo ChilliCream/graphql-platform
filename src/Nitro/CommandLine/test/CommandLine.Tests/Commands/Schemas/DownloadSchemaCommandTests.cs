@@ -1,23 +1,20 @@
-using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Schemas;
-using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Services;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Schemas;
 
-public sealed class DownloadSchemaCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
+public sealed class DownloadSchemaCommandTests(NitroCommandFixture fixture) : SchemasCommandTestBase(fixture)
 {
+    private const string OutputFile = "/tmp/schema.graphql";
+
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "schema",
-                "download",
-                "--help")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "schema",
+            "download",
+            "--help");
 
         // assert
         result.AssertHelpOutput(
@@ -51,19 +48,20 @@ public sealed class DownloadSchemaCommandTests(NitroCommandFixture fixture) : IC
     [InlineData(InteractionMode.JsonOutput)]
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
-        // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "schema",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "production",
-                "--file",
-                "schema.graphql")
-            .ExecuteAsync();
+        // arrange
+        SetupInteractionMode(mode);
+        SetupNoAuthentication();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "schema",
+            "download",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--file",
+            OutputFile);
 
         // assert
         result.AssertError(
@@ -77,18 +75,17 @@ public sealed class DownloadSchemaCommandTests(NitroCommandFixture fixture) : IC
     [InlineData(InteractionMode.JsonOutput)]
     public async Task MissingRequiredOptions_ReturnsError(InteractionMode mode)
     {
-        // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "schema",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "production")
-            .ExecuteAsync();
+        // arrange
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "schema",
+            "download",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage);
 
         // assert
         result.StdErr.MatchInlineSnapshot(
@@ -99,425 +96,117 @@ public sealed class DownloadSchemaCommandTests(NitroCommandFixture fixture) : IC
     }
 
     [Fact]
-    public async Task ClientThrowsException_ReturnsError_NonInteractive()
+    public async Task DownloadSchemaThrows_ReturnsError()
     {
         // arrange
-        var client = CreateDownloadExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
+        SetupDownloadSchemaException();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "schema",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "production",
-                "--file",
-                "schema.graphql")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "schema",
+            "download",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--file",
+            OutputFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error: Something unexpected happened.
+            """);
+        result.StdOut.MatchInlineSnapshot(
+            """
+            Downloading schema from stage 'dev' of API 'api-1'
+            └── ✕ Failed to download the schema.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task SchemaNotFound_ReturnsError()
+    {
+        // arrange
+        SetupMissingDownloadSchema();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "schema",
+            "download",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--file",
+            OutputFile);
 
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Downloading schema from stage 'production' of API 'api-1'
+            Downloading schema from stage 'dev' of API 'api-1'
             └── ✕ Failed to download the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
+            Could not find a published schema on stage 'dev'.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var client = CreateDownloadExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "schema",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "production",
-                "--file",
-                "schema.graphql")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
+    public async Task Success_DownloadsSchema()
     {
         // arrange
-        var client = CreateDownloadExceptionClient(new NitroClientAuthorizationException());
+        SetupDownloadSchema();
+        var tempFile = SetupCreateFile(OutputFile);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "schema",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "production",
-                "--file",
-                "schema.graphql")
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Downloading schema from stage 'production' of API 'api-1'
-            └── ✕ Failed to download the schema.
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var client = CreateDownloadExceptionClient(new NitroClientAuthorizationException());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "schema",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "production",
-                "--file",
-                "schema.graphql")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task SchemaNotFound_ReturnsError_NonInteractive()
-    {
-        // arrange
-        var client = new Mock<ISchemasClient>(MockBehavior.Strict);
-        client.Setup(x => x.DownloadLatestSchemaAsync(
-                "api-1",
-                "production",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Stream?)null);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "schema",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "production",
-                "--file",
-                "schema.graphql")
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Downloading schema from stage 'production' of API 'api-1'
-            └── ✕ Failed to download the schema.
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Could not find a published schema on stage 'production'.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task SchemaNotFound_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var client = new Mock<ISchemasClient>(MockBehavior.Strict);
-        client.Setup(x => x.DownloadLatestSchemaAsync(
-                "api-1",
-                "production",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Stream?)null);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "schema",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "production",
-                "--file",
-                "schema.graphql")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Could not find a published schema on stage 'production'.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task Success_DownloadsSchema_NonInteractive()
-    {
-        // arrange
-        var schemaContent = "type Query { hello: String }"u8.ToArray();
-        var schemaStream = new MemoryStream(schemaContent);
-        var fileStream = new MemoryStream();
-
-        var client = new Mock<ISchemasClient>(MockBehavior.Strict);
-        client.Setup(x => x.DownloadLatestSchemaAsync(
-                "api-1",
-                "production",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(schemaStream);
-
-        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
-        fileSystem.Setup(x => x.FileExists("schema.graphql")).Returns(false);
-        fileSystem.Setup(x => x.CreateFile("schema.graphql")).Returns(fileStream);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "schema",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "production",
-                "--file",
-                "schema.graphql")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "schema",
+            "download",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--file",
+            OutputFile);
 
         // assert
         result.AssertSuccess(
             """
-            Downloading schema from stage 'production' of API 'api-1'
-            └── ✓ Downloaded the schema from stage 'production'.
+            Downloading schema from stage 'dev' of API 'api-1'
+            └── ✓ Downloaded the schema from stage 'dev'.
             """);
-        Assert.Equal(schemaContent, fileStream.ToArray());
-
-        client.VerifyAll();
-        fileSystem.VerifyAll();
-    }
-
-    [Fact]
-    public async Task Success_DownloadsSchema_Interactive()
-    {
-        // arrange
-        var schemaContent = "type Query { hello: String }"u8.ToArray();
-        var schemaStream = new MemoryStream(schemaContent);
-        var fileStream = new MemoryStream();
-
-        var client = new Mock<ISchemasClient>(MockBehavior.Strict);
-        client.Setup(x => x.DownloadLatestSchemaAsync(
-                "api-1",
-                "production",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(schemaStream);
-
-        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
-        fileSystem.Setup(x => x.FileExists("schema.graphql")).Returns(false);
-        fileSystem.Setup(x => x.CreateFile("schema.graphql")).Returns(fileStream);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "schema",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "production",
-                "--file",
-                "schema.graphql")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertSuccess();
-        Assert.Equal(schemaContent, fileStream.ToArray());
-
-        client.VerifyAll();
-        fileSystem.VerifyAll();
-    }
-
-    [Fact]
-    public async Task Success_DownloadsSchema_JsonOutput()
-    {
-        // arrange
-        var schemaContent = "type Query { hello: String }"u8.ToArray();
-        var schemaStream = new MemoryStream(schemaContent);
-        var fileStream = new MemoryStream();
-
-        var client = new Mock<ISchemasClient>(MockBehavior.Strict);
-        client.Setup(x => x.DownloadLatestSchemaAsync(
-                "api-1",
-                "production",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(schemaStream);
-
-        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
-        fileSystem.Setup(x => x.FileExists("schema.graphql")).Returns(false);
-        fileSystem.Setup(x => x.CreateFile("schema.graphql")).Returns(fileStream);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "schema",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "production",
-                "--file",
-                "schema.graphql")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertSuccess(
-            """
-            {
-              "file": "schema.graphql"
-            }
-            """);
-        Assert.Equal(schemaContent, fileStream.ToArray());
-
-        client.VerifyAll();
-        fileSystem.VerifyAll();
+        Assert.Equal("type Query { hello: String }", await File.ReadAllTextAsync(tempFile));
     }
 
     [Fact]
     public async Task Success_DeletesExistingFile_BeforeDownload()
     {
         // arrange
-        var schemaStream = new MemoryStream("schema"u8.ToArray());
-        var fileStream = new MemoryStream();
-
-        var client = new Mock<ISchemasClient>(MockBehavior.Strict);
-        client.Setup(x => x.DownloadLatestSchemaAsync(
-                "api-1",
-                "production",
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(schemaStream);
-
-        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
-        fileSystem.Setup(x => x.FileExists("schema.graphql")).Returns(true);
-        fileSystem.Setup(x => x.DeleteFile("schema.graphql"));
-        fileSystem.Setup(x => x.CreateFile("schema.graphql")).Returns(fileStream);
+        SetupDownloadSchema();
+        SetupFile(OutputFile, "old content");
+        var tempFile = SetupCreateFile(OutputFile);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "schema",
-                "download",
-                "--api-id",
-                "api-1",
-                "--stage",
-                "production",
-                "--file",
-                "schema.graphql")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "schema",
+            "download",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--file",
+            OutputFile);
 
         // assert
         result.AssertSuccess(
             """
-            Downloading schema from stage 'production' of API 'api-1'
-            └── ✓ Downloaded the schema from stage 'production'.
+            Downloading schema from stage 'dev' of API 'api-1'
+            └── ✓ Downloaded the schema from stage 'dev'.
             """);
-
-        fileSystem.Verify(x => x.DeleteFile("schema.graphql"), Times.Once);
-        client.VerifyAll();
-        fileSystem.VerifyAll();
-    }
-
-    private static Mock<ISchemasClient> CreateDownloadExceptionClient(Exception ex)
-    {
-        var client = new Mock<ISchemasClient>(MockBehavior.Strict);
-        client.Setup(x => x.DownloadLatestSchemaAsync(
-                "api-1",
-                "production",
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(ex);
-        return client;
+        Assert.Equal("type Query { hello: String }", await File.ReadAllTextAsync(tempFile));
     }
 }

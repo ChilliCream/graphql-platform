@@ -122,46 +122,6 @@ internal sealed class FusionConfigurationClient(
         return OperationResultHelper.EnsureData(result).ValidateFusionConfigurationComposition;
     }
 
-    public async Task<IValidateSchemaVersion_ValidateSchema> ValidateSchemaVersionAsync(
-        string apiId,
-        string stageName,
-        Stream schema,
-        CancellationToken cancellationToken)
-    {
-        var input = new ValidateSchemaInput
-        {
-            ApiId = apiId,
-            Stage = stageName,
-            Schema = new Upload(schema, "schema.graphql")
-        };
-
-        var result = await apiClient.ValidateSchemaVersion.ExecuteAsync(input, cancellationToken);
-
-        return OperationResultHelper.EnsureData(result).ValidateSchema;
-    }
-
-    public async IAsyncEnumerable<IOnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate> SubscribeToSchemaVersionValidationUpdatedAsync(
-        string requestId,
-        [EnumeratorCancellation] CancellationToken cancellationToken = default)
-    {
-        using var stopSignal = new ReplaySubject<Unit>(1);
-        await using var _ = cancellationToken.Register(stopSignal);
-
-        var subscription = apiClient.OnSchemaVersionValidationUpdated
-            .Watch(requestId, ExecutionStrategy.NetworkOnly)
-            .TakeUntil(stopSignal);
-
-        // The cancellation token is intentionally not passed to ToAsyncEnumerable() to avoid
-        // an OperationCanceledException. Cancellation is handled via the stop signal above,
-        // which completes the sequence cleanly.
-        await foreach (var @event in subscription.ToAsyncEnumerable())
-        {
-            var data = OperationResultHelper.EnsureData(@event);
-
-            yield return data.OnSchemaVersionValidationUpdate;
-        }
-    }
-
     public async Task<IUploadFusionSubgraph_UploadFusionSubgraph> UploadFusionSubgraphAsync(
         string apiId,
         string tag,

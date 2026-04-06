@@ -1,9 +1,9 @@
-using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Commands.Fusion;
+using ChilliCream.Nitro.CommandLine.Tests.Commands.Schemas;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Packaging;
 using Moq;
@@ -11,9 +11,8 @@ using Moq.Language;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
-public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : SchemaCommandTestBase(fixture)
+public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : SchemasCommandTestBase(fixture)
 {
-    protected const string Tag = "v1";
     protected const string ArchiveFile = "fusion.far";
     protected const string SourceSchemaFile = "products/schema.graphqls";
     protected const string SourceSchemaSettingsFile = "products/schema-settings.json";

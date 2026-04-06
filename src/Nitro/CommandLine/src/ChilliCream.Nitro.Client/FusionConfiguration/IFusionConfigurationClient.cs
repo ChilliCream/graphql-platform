@@ -130,46 +130,6 @@ public interface IFusionConfigurationClient
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Creates a schema validation request and returns its request identifier.
-    /// </summary>
-    /// <exception cref="NitroClientGraphQLException">
-    /// The server returned a GraphQL error.
-    /// </exception>
-    /// <exception cref="NitroClientHttpRequestException">
-    /// The server returned an HTTP error without a GraphQL response body.
-    /// </exception>
-    /// <exception cref="NitroClientAuthorizationException">
-    /// The request was rejected because the current credentials do not grant access.
-    /// </exception>
-    /// <exception cref="OperationCanceledException">
-    /// The operation was canceled.
-    /// </exception>
-    Task<IValidateSchemaVersion_ValidateSchema> ValidateSchemaVersionAsync(
-        string apiId,
-        string stageName,
-        Stream schema,
-        CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Streams updates for a schema validation request.
-    /// </summary>
-    /// <exception cref="NitroClientGraphQLException">
-    /// The server returned a GraphQL error.
-    /// </exception>
-    /// <exception cref="NitroClientHttpRequestException">
-    /// The server returned an HTTP error without a GraphQL response body.
-    /// </exception>
-    /// <exception cref="NitroClientAuthorizationException">
-    /// The request was rejected because the current credentials do not grant access.
-    /// </exception>
-    /// <exception cref="OperationCanceledException">
-    /// The operation was canceled.
-    /// </exception>
-    IAsyncEnumerable<IOnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate> SubscribeToSchemaVersionValidationUpdatedAsync(
-        string requestId,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Uploads a source schema archive.
     /// </summary>
     /// <exception cref="NitroClientGraphQLException">

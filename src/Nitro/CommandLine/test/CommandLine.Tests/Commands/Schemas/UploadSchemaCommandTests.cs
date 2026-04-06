@@ -1,34 +1,28 @@
-using System.Net;
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Schemas;
-using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Services;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Schemas;
 
-public sealed class UploadSchemaCommandTests(NitroCommandFixture fixture) : IClassFixture<NitroCommandFixture>
+public sealed class UploadSchemaCommandTests(NitroCommandFixture fixture) : SchemasCommandTestBase(fixture)
 {
     [Fact]
     public async Task Help_ReturnsSuccess()
     {
         // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddArguments(
-                "schema",
-                "upload",
-                "--help")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "schema",
+            "upload",
+            "--help");
 
         // assert
         result.AssertHelpOutput(
             """
             Description:
               Upload a new schema version.
-            
+
             Usage:
               nitro schema upload [options]
-            
+
             Options:
               --api-id <api-id> (REQUIRED)            The ID of the API [env: NITRO_API_ID]
               --tag <tag> (REQUIRED)                  The tag of the schema version to deploy [env: NITRO_TAG]
@@ -52,19 +46,20 @@ public sealed class UploadSchemaCommandTests(NitroCommandFixture fixture) : ICla
     [InlineData(InteractionMode.JsonOutput)]
     public async Task NoSession_Or_ApiKey_ReturnsError(InteractionMode mode)
     {
-        // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "schema",
-                "upload",
-                "--tag",
-                "v1",
-                "--schema-file",
-                "schema.graphql",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
+        // arrange
+        SetupInteractionMode(mode);
+        SetupNoAuthentication();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "schema",
+            "upload",
+            "--tag",
+            Tag,
+            "--schema-file",
+            SchemaFile,
+            "--api-id",
+            ApiId);
 
         // assert
         result.AssertError(
@@ -74,409 +69,146 @@ public sealed class UploadSchemaCommandTests(NitroCommandFixture fixture) : ICla
     }
 
     [Fact]
-    public async Task ClientThrowsException_ReturnsError_NonInteractive()
+    public async Task SchemaFileDoesNotExist_ReturnsError()
     {
-        // arrange
-        var client = CreateUploadExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-        var fileSystem = CreateSchemaFileSystem();
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "schema",
-                "upload",
-                "--tag",
-                "v1",
-                "--schema-file",
-                "schema.graphql",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
+        // arrange & act
+        var result = await ExecuteCommandAsync(
+            "schema",
+            "upload",
+            "--api-id",
+            ApiId,
+            "--tag",
+            Tag,
+            "--schema-file",
+            "nonexistent.graphql");
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertError(
             """
-            Uploading new schema version 'v1' to API 'api-1'
-            └── ✕ Failed to upload a new schema version.
+            Schema file '/some/working/directory/nonexistent.graphql' does not exist.
             """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsException_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var client = CreateUploadExceptionClient(new NitroClientGraphQLException("Some message.", "SOME_CODE"));
-        var fileSystem = CreateSchemaFileSystem();
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "schema",
-                "upload",
-                "--tag",
-                "v1",
-                "--schema-file",
-                "schema.graphql",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned an unexpected GraphQL error: Some message. (SOME_CODE)
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task ClientThrowsAuthorizationException_ReturnsError_NonInteractive()
+    public async Task UploadSchemaThrows_ReturnsError()
     {
         // arrange
-        var client = CreateUploadExceptionClient(new NitroClientAuthorizationException());
-        var fileSystem = CreateSchemaFileSystem();
+        SetupSchemaFile();
+        SetupUploadSchemaMutationException();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "schema",
-                "upload",
-                "--tag",
-                "v1",
-                "--schema-file",
-                "schema.graphql",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "schema",
+            "upload",
+            "--tag",
+            Tag,
+            "--schema-file",
+            SchemaFile,
+            "--api-id",
+            ApiId);
 
         // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            There was an unexpected error: Something unexpected happened.
+            """);
         result.StdOut.MatchInlineSnapshot(
             """
             Uploading new schema version 'v1' to API 'api-1'
             └── ✕ Failed to upload a new schema version.
             """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
-            """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsAuthorizationException_ReturnsError(InteractionMode mode)
+    [MemberData(nameof(GetUploadSchemaErrors))]
+    public async Task UploadSchemaHasErrors_ReturnsError(
+        IUploadSchema_UploadSchema_Errors error,
+        string expectedErrorMessage)
     {
         // arrange
-        var client = CreateUploadExceptionClient(new NitroClientAuthorizationException());
-        var fileSystem = CreateSchemaFileSystem();
+        SetupSchemaFile();
+        SetupUploadSchemaMutation(error);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "schema",
-                "upload",
-                "--tag",
-                "v1",
-                "--schema-file",
-                "schema.graphql",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "schema",
+            "upload",
+            "--tag",
+            Tag,
+            "--schema-file",
+            SchemaFile,
+            "--api-id",
+            ApiId);
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
+        result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
+        result.StdOut.MatchInlineSnapshot(
             """
-            The server rejected your request as unauthorized. Ensure your account or API key has the proper permissions for this action.
+            Uploading new schema version 'v1' to API 'api-1'
+            └── ✕ Failed to upload a new schema version.
             """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task ClientThrowsRequestEntityTooLarge_ReturnsError_NonInteractive()
+    public async Task UploadSchemaReturnsNullSchemaVersion_ReturnsError()
     {
         // arrange
-        var client = CreateUploadExceptionClient(new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
-        var fileSystem = CreateSchemaFileSystem();
+        SetupSchemaFile();
 
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "schema",
-                "upload",
-                "--tag",
-                "v1",
-                "--schema-file",
-                "schema.graphql",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Uploading new schema version 'v1' to API 'api-1'
-            └── ✕ Failed to upload a new schema version.
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned a 413 (Request Entity Too Large) HTTP status code. If you are running a self-hosted instance, check your ingress controller body-size limits, reverse proxy settings, or load balancer request size limits.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task ClientThrowsRequestEntityTooLarge_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var client = CreateUploadExceptionClient(new NitroClientHttpRequestException(HttpStatusCode.RequestEntityTooLarge));
-        var fileSystem = CreateSchemaFileSystem();
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "schema",
-                "upload",
-                "--tag",
-                "v1",
-                "--schema-file",
-                "schema.graphql",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            The server returned a 413 (Request Entity Too Large) HTTP status code. If you are running a self-hosted instance, check your ingress controller body-size limits, reverse proxy settings, or load balancer request size limits.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [MemberData(nameof(UploadMutationErrorCases))]
-    public async Task MutationReturnsTypedError_ReturnsError_NonInteractive(
-        IUploadSchema_UploadSchema_Errors mutationError,
-        string expectedStdErr)
-    {
-        // arrange
-        var (client, fileSystem) = CreateUploadSetup(CreateUploadPayloadWithErrors(mutationError));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "schema",
-                "upload",
-                "--tag",
-                "v1",
-                "--schema-file",
-                "schema.graphql",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Uploading new schema version 'v1' to API 'api-1'
-            └── ✕ Failed to upload a new schema version.
-            """);
-        result.StdErr.MatchInlineSnapshot(expectedStdErr);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [MemberData(nameof(UploadMutationErrorCasesWithModes))]
-    public async Task MutationReturnsTypedError_ReturnsError(
-        IUploadSchema_UploadSchema_Errors mutationError,
-        string expectedStdErr,
-        InteractionMode mode)
-    {
-        // arrange
-        var (client, fileSystem) = CreateUploadSetup(CreateUploadPayloadWithErrors(mutationError));
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "schema",
-                "upload",
-                "--tag",
-                "v1",
-                "--schema-file",
-                "schema.graphql",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(expectedStdErr);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task MutationReturnsNullSchemaVersion_ReturnsError_NonInteractive()
-    {
-        // arrange
         var payload = new Mock<IUploadSchema_UploadSchema>(MockBehavior.Strict);
         payload.SetupGet(x => x.Errors)
             .Returns((IReadOnlyList<IUploadSchema_UploadSchema_Errors>?)null);
         payload.SetupGet(x => x.SchemaVersion)
             .Returns((IUploadSchema_UploadSchema_SchemaVersion?)null);
 
-        var (client, fileSystem) = CreateUploadSetup(payload.Object);
+        SchemasClientMock
+            .Setup(x => x.UploadSchemaAsync(
+                ApiId, Tag, It.IsAny<Stream>(), null, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(payload.Object);
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "schema",
-                "upload",
-                "--tag",
-                "v1",
-                "--schema-file",
-                "schema.graphql",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "schema",
+            "upload",
+            "--tag",
+            Tag,
+            "--schema-file",
+            SchemaFile,
+            "--api-id",
+            ApiId);
 
         // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Could not upload schema.
+            """);
         result.StdOut.MatchInlineSnapshot(
             """
             Uploading new schema version 'v1' to API 'api-1'
             └── ✕ Failed to upload a new schema version.
             """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Could not upload schema.
-            """);
         Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task MutationReturnsNullSchemaVersion_ReturnsError(InteractionMode mode)
-    {
-        // arrange
-        var payload = new Mock<IUploadSchema_UploadSchema>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors)
-            .Returns((IReadOnlyList<IUploadSchema_UploadSchema_Errors>?)null);
-        payload.SetupGet(x => x.SchemaVersion)
-            .Returns((IUploadSchema_UploadSchema_SchemaVersion?)null);
-
-        var (client, fileSystem) = CreateUploadSetup(payload.Object);
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "schema",
-                "upload",
-                "--tag",
-                "v1",
-                "--schema-file",
-                "schema.graphql",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Could not upload schema.
-            """);
-        Assert.Equal(1, result.ExitCode);
-
-        client.VerifyAll();
     }
 
     [Fact]
-    public async Task Success_UploadsSchema_NonInteractive()
+    public async Task UploadsSchema_ReturnsSuccess()
     {
         // arrange
-        var (client, fileSystem) = CreateUploadSetup(CreateUploadSuccessPayload());
+        SetupSchemaFile();
+        SetupUploadSchemaMutation();
 
         // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.NonInteractive)
-            .AddArguments(
-                "schema",
-                "upload",
-                "--tag",
-                "v1",
-                "--schema-file",
-                "schema.graphql",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
+        var result = await ExecuteCommandAsync(
+            "schema",
+            "upload",
+            "--api-id",
+            ApiId,
+            "--tag",
+            Tag,
+            "--schema-file",
+            SchemaFile);
 
         // assert
         result.AssertSuccess(
@@ -484,231 +216,19 @@ public sealed class UploadSchemaCommandTests(NitroCommandFixture fixture) : ICla
             Uploading new schema version 'v1' to API 'api-1'
             └── ✓ Uploaded new schema version 'v1'.
             """);
-
-        client.VerifyAll();
     }
 
-    [Fact]
-    public async Task Success_UploadsSchema_Interactive()
+    #region Error Theory Data
+
+    public static TheoryData<
+        IUploadSchema_UploadSchema_Errors,
+        string> GetUploadSchemaErrors() => new()
     {
-        // arrange
-        var (client, fileSystem) = CreateUploadSetup(CreateUploadSuccessPayload());
+        { CreateUploadSchemaUnauthorizedError(), "Unauthorized." },
+        { CreateUploadSchemaApiNotFoundError(), $"API '{ApiId}' was not found." },
+        { CreateUploadSchemaDuplicatedTagError(), $"Tag '{Tag}' already exists." },
+        { CreateUploadSchemaConcurrentOperationError(), "A concurrent operation is in progress." }
+    };
 
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.Interactive)
-            .AddArguments(
-                "schema",
-                "upload",
-                "--tag",
-                "v1",
-                "--schema-file",
-                "schema.graphql",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertSuccess();
-
-        client.VerifyAll();
-    }
-
-    [Fact]
-    public async Task Success_UploadsSchema_JsonOutput()
-    {
-        // arrange
-        var (client, fileSystem) = CreateUploadSetup(CreateUploadSuccessPayload());
-
-        // act
-        var result = await new CommandBuilder(fixture)
-            .AddService(client.Object)
-            .AddService(fileSystem.Object)
-            .AddApiKey()
-            .AddInteractionMode(InteractionMode.JsonOutput)
-            .AddArguments(
-                "schema",
-                "upload",
-                "--tag",
-                "v1",
-                "--schema-file",
-                "schema.graphql",
-                "--api-id",
-                "api-1")
-            .ExecuteAsync();
-
-        // assert
-        result.AssertSuccess(
-            """
-            {
-              "schemaVersionId": "sv-1",
-              "tag": "v1"
-            }
-            """);
-
-        client.VerifyAll();
-    }
-
-    [Theory]
-    [InlineData(InteractionMode.Interactive)]
-    [InlineData(InteractionMode.NonInteractive)]
-    [InlineData(InteractionMode.JsonOutput)]
-    public async Task Upload_Should_ReturnError_When_SourceMetadataInvalid(InteractionMode mode)
-    {
-        // arrange & act
-        var result = await new CommandBuilder(fixture)
-            .AddApiKey()
-            .AddInteractionMode(mode)
-            .AddArguments(
-                "schema",
-                "upload",
-                "--tag",
-                "v1",
-                "--schema-file",
-                "schema.graphql",
-                "--api-id",
-                "api-1",
-                "--source-metadata",
-                "{broken}")
-            .ExecuteAsync();
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Failed to parse --source-metadata: 'b' is an invalid start of a property name. Expected a '"'. Path: $ | LineNumber: 0 | BytePositionInLine: 1.
-            """);
-        Assert.Equal(1, result.ExitCode);
-    }
-
-    private static Mock<IFileSystem> CreateSchemaFileSystem()
-    {
-        var fileSystem = new Mock<IFileSystem>(MockBehavior.Strict);
-        fileSystem.Setup(x => x.OpenReadStream("schema.graphql"))
-            .Returns(new MemoryStream("type Query { hello: String }"u8.ToArray()));
-        return fileSystem;
-    }
-
-    private static (Mock<ISchemasClient> Client, Mock<IFileSystem> FileSystem) CreateUploadSetup(
-        IUploadSchema_UploadSchema payload)
-    {
-        var client = new Mock<ISchemasClient>(MockBehavior.Strict);
-        client.Setup(x => x.UploadSchemaAsync(
-                "api-1",
-                "v1",
-                It.IsAny<Stream>(),
-                null,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(payload);
-
-        var fileSystem = CreateSchemaFileSystem();
-
-        return (client, fileSystem);
-    }
-
-    private static Mock<ISchemasClient> CreateUploadExceptionClient(Exception ex)
-    {
-        var client = new Mock<ISchemasClient>(MockBehavior.Strict);
-        client.Setup(x => x.UploadSchemaAsync(
-                "api-1",
-                "v1",
-                It.IsAny<Stream>(),
-                null,
-                It.IsAny<CancellationToken>()))
-            .ThrowsAsync(ex);
-        return client;
-    }
-
-    private static IUploadSchema_UploadSchema CreateUploadSuccessPayload()
-    {
-        var schemaVersion = new Mock<IUploadSchema_UploadSchema_SchemaVersion>(MockBehavior.Strict);
-        schemaVersion.SetupGet(x => x.Id).Returns("sv-1");
-
-        var payload = new Mock<IUploadSchema_UploadSchema>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors)
-            .Returns((IReadOnlyList<IUploadSchema_UploadSchema_Errors>?)null);
-        payload.SetupGet(x => x.SchemaVersion).Returns(schemaVersion.Object);
-
-        return payload.Object;
-    }
-
-    private static IUploadSchema_UploadSchema CreateUploadPayloadWithErrors(
-        params IUploadSchema_UploadSchema_Errors[] errors)
-    {
-        var payload = new Mock<IUploadSchema_UploadSchema>(MockBehavior.Strict);
-        payload.SetupGet(x => x.Errors).Returns(errors);
-        payload.SetupGet(x => x.SchemaVersion)
-            .Returns((IUploadSchema_UploadSchema_SchemaVersion?)null);
-
-        return payload.Object;
-    }
-
-    public static IEnumerable<object[]> UploadMutationErrorCasesWithModes()
-    {
-        foreach (var errorCase in UploadMutationErrorCases())
-        {
-            yield return [.. errorCase, InteractionMode.Interactive];
-            yield return [.. errorCase, InteractionMode.JsonOutput];
-        }
-    }
-
-    public static IEnumerable<object[]> UploadMutationErrorCases()
-    {
-        yield return
-        [
-            new UploadSchema_UploadSchema_Errors_UnauthorizedOperation(
-                "UnauthorizedOperation",
-                "Not authorized to upload."),
-            """
-            Not authorized to upload.
-            """
-        ];
-
-        yield return
-        [
-            new UploadSchema_UploadSchema_Errors_DuplicatedTagError(
-                "DuplicatedTagError",
-                "Tag 'v1' already exists."),
-            """
-            Tag 'v1' already exists.
-            """
-        ];
-
-        yield return
-        [
-            new UploadSchema_UploadSchema_Errors_ConcurrentOperationError(
-                "ConcurrentOperationError",
-                "A concurrent operation is in progress."),
-            """
-            A concurrent operation is in progress.
-            """
-        ];
-
-        yield return
-        [
-            new UploadSchema_UploadSchema_Errors_ApiNotFoundError(
-                "ApiNotFoundError",
-                "API not found.",
-                "api-1"),
-            """
-            API not found.
-            """
-        ];
-
-        var unexpectedError = new Mock<IUploadSchema_UploadSchema_Errors>();
-        unexpectedError
-            .As<IError>()
-            .SetupGet(x => x.Message)
-            .Returns("Something went wrong.");
-
-        yield return
-        [
-            unexpectedError.Object,
-            """
-            Unexpected mutation error: Something went wrong.
-            """
-        ];
-    }
+    #endregion
 }

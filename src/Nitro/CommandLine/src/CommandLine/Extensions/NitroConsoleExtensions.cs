@@ -160,6 +160,8 @@ internal static class NitroConsoleExtensions
             .ShowAsync(console, cancellationToken);
     }
 
+    // TODO: Get rid of these
+
     internal static void PrintSchemaVersionChangeViolations(
         this INitroConsole console,
         ISchemaVersionChangeViolationError error)
@@ -178,6 +180,7 @@ internal static class NitroConsoleExtensions
         console.Write(tree);
     }
 
+    // TODO: This needs to be used
     internal static void PrintStagePublishedDependencies(
         this INitroConsole console,
         IStagesHavePublishedDependenciesError error)
@@ -239,12 +242,6 @@ internal static class NitroConsoleExtensions
         console.Write(node);
     }
 
-    public static void Title(this INitroConsole console, string str)
-    {
-        console.MarkupLineInterpolated($"[white bold]{str}:[/]");
-        console.WriteLine();
-    }
-
     public static void Success(this INitroConsole console, string message)
     {
         console.MarkupLine($"[green bold]{message}[/]");
@@ -270,10 +267,5 @@ internal static class NitroConsoleExtensions
         var questionText = $"{question}".AsQuestion();
         var prompt = new TextPrompt<string>(questionText).DefaultValue(defaultValue);
         return await prompt.ShowAsync(console, cancellationToken);
-    }
-
-    public static void WarningLine(this INitroConsole console, string message)
-    {
-        console.MarkupLine(Glyphs.ExclamationMark.Space() + message);
     }
 }

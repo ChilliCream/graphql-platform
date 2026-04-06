@@ -1033,7 +1033,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Source schema file '/some/working/directory/products/schema.graphqls' does not exist.
+            Schema file '/some/working/directory/products/schema.graphqls' does not exist.
             """);
         Assert.Equal(1, result.ExitCode);
     }

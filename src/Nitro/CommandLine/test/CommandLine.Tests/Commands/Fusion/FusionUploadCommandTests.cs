@@ -91,7 +91,7 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : Fusi
         // assert
         result.AssertError(
             """
-            Source schema file '/some/working/directory/products/schema.graphqls' does not exist.
+            Schema file '/some/working/directory/products/schema.graphqls' does not exist.
             """);
     }
 

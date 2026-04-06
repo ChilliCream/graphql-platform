@@ -6,7 +6,9 @@ using System.Net;
 using System.Text.Json;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
+using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.CommandLine;
+using ChilliCream.Nitro.CommandLine.Commands.Schemas;
 using ChilliCream.Nitro.CommandLine.FusionCompatibility;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
@@ -53,9 +55,9 @@ internal sealed class FusionValidateCommand : Command
     {
         var console = services.GetRequiredService<INitroConsole>();
         var fusionConfigurationClient = services.GetRequiredService<IFusionConfigurationClient>();
+        var schemasClient = services.GetRequiredService<ISchemasClient>();
         var fileSystem = services.GetRequiredService<IFileSystem>();
         var sessionService = services.GetRequiredService<ISessionService>();
-        var resultHolder = services.GetRequiredService<IResultHolder>();
 
         parseResult.AssertHasAuthentication(sessionService);
 
@@ -122,7 +124,7 @@ internal sealed class FusionValidateCommand : Command
 
                 if (!fileSystem.FileExists(sourceSchemaFile))
                 {
-                    throw new ExitException(ErrorMessages.SourceSchemaFileDoesNotExist(sourceSchemaFile));
+                    throw new ExitException(ErrorMessages.SchemaFileDoesNotExist(sourceSchemaFile));
                 }
             }
 
@@ -222,7 +224,15 @@ internal sealed class FusionValidateCommand : Command
 
             try
             {
-                var isValid = await ValidateSchemaAsync(activity, schemaStream);
+                var isValid = await SchemaHelpers.ValidateSchemaAsync(
+                    activity,
+                    console,
+                    schemasClient,
+                    apiId,
+                    stageName,
+                    schemaStream,
+                    source: null,
+                    ct);
 
                 return isValid ? ExitCodes.Success : ExitCodes.Error;
             }
@@ -238,132 +248,6 @@ internal sealed class FusionValidateCommand : Command
                 $"Validating Fusion configuration against stage '{stageName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'",
                 "Failed to validate the Fusion configuration.");
         }
-
-        async Task<bool> ValidateSchemaAsync(INitroConsoleActivity activity, Stream schemaStream)
-        {
-            var requestId = await StartSchemaValidationAsync(
-                activity,
-                console,
-                fusionConfigurationClient,
-                apiId,
-                stageName,
-                schemaStream,
-                ct);
-
-            activity.Update($"Validation request created (ID: {requestId.EscapeMarkup()})");
-
-            await foreach (var @event in fusionConfigurationClient
-                               .SubscribeToSchemaVersionValidationUpdatedAsync(requestId, ct))
-            {
-                switch (@event)
-                {
-                    case ISchemaVersionValidationFailed { Errors: var schemaErrors }:
-                        var errorTree = new Tree("");
-
-                        foreach (var error in schemaErrors)
-                        {
-                            switch (error)
-                            {
-                                case ISchemaVersionChangeViolationError e:
-                                    // TODO
-                                    break;
-                                case IInvalidGraphQLSchemaError e:
-                                    errorTree.AddGraphQLSchemaErrors(e);
-                                    break;
-                                case IPersistedQueryValidationError e:
-                                    errorTree.AddPersistedQueryValidationErrors(e);
-                                    break;
-                                case IOpenApiCollectionValidationError e:
-                                    errorTree.AddOpenApiCollectionValidationErrors(e);
-                                    break;
-                                case IMcpFeatureCollectionValidationError e:
-                                    errorTree.AddMcpFeatureCollectionValidationErrors(e);
-                                    break;
-                                case IOperationsAreNotAllowedError e:
-                                    // console.Error.WriteErrorLine(e.Message);
-                                    break;
-                                case ISchemaVersionSyntaxError e:
-                                    // console.Error.WriteErrorLine(e.Message);
-                                    break;
-                                case IProcessingTimeoutError e:
-                                    // console.Error.WriteErrorLine(e.Message);
-                                    break;
-                                case IUnexpectedProcessingError e:
-                                    // console.Error.WriteErrorLine(e.Message);
-                                    break;
-                            }
-                        }
-
-                        activity.Fail(errorTree);
-                        await activity.FailAllAsync();
-
-                        console.Error.WriteErrorLine("Fusion configuration validation failed.");
-
-                        return false;
-
-                    case ISchemaVersionValidationSuccess:
-                        activity.Success("Validation passed.");
-
-                        return true;
-
-                    case IOperationInProgress:
-                    case IValidationInProgress:
-                        activity.Update("Validating...");
-                        break;
-
-                    default:
-                        activity.Update(ErrorMessages.UnknownServerResponse, ActivityUpdateKind.Warning);
-                        break;
-                }
-            }
-
-            return false;
-        }
-    }
-
-    private static async Task<string> StartSchemaValidationAsync(
-        INitroConsoleActivity activity,
-        INitroConsole console,
-        IFusionConfigurationClient fusionConfigurationClient,
-        string apiId,
-        string stageName,
-        Stream schema,
-        CancellationToken ct)
-    {
-        var result = await fusionConfigurationClient.ValidateSchemaVersionAsync(
-            apiId,
-            stageName,
-            schema,
-            ct);
-
-        if (result.Errors?.Count > 0)
-        {
-            await activity.FailAllAsync();
-
-            foreach (var error in result.Errors)
-            {
-                var errorMessage = error switch
-                {
-                    IValidateSchemaVersion_ValidateSchema_Errors_UnauthorizedOperation err => err.Message,
-                    IValidateSchemaVersion_ValidateSchema_Errors_ApiNotFoundError err => err.Message,
-                    IValidateSchemaVersion_ValidateSchema_Errors_StageNotFoundError err => err.Message,
-                    IValidateSchemaVersion_ValidateSchema_Errors_SchemaNotFoundError err => err.Message,
-                    IError err => ErrorMessages.UnexpectedMutationError(err),
-                    _ => ErrorMessages.UnexpectedMutationError()
-                };
-
-                console.Error.WriteErrorLine(errorMessage);
-            }
-
-            throw new ExitException();
-        }
-
-        if (string.IsNullOrWhiteSpace(result.Id))
-        {
-            throw new ExitException("Could not create validation request!");
-        }
-
-        return result.Id;
     }
 
     private static async Task<Stream> LoadSchemaFile(FusionArchive archive, CancellationToken ct)

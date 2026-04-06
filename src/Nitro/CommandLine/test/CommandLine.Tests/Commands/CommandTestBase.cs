@@ -1,19 +1,24 @@
 using System.Text;
 using ChilliCream.Nitro.Client.FusionConfiguration;
+using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.CommandLine.Services;
 using Moq;
 
-namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
+namespace ChilliCream.Nitro.CommandLine.Tests.Commands;
 
-// TODO: Disposable to validate all session/file-system cases were validated
 public abstract class CommandTestBase
     : IClassFixture<NitroCommandFixture>, IAsyncDisposable
 {
+    protected const string ApiId = "api-1";
+    protected const string Stage = "dev";
+    protected const string Tag = "v1";
+
     private readonly string _currentDirectory = "/some/working/directory";
     private readonly NitroCommandFixture _fixture;
     private readonly List<Stream> _files = [];
     private readonly Mock<IFileSystem> _fileSystemMock = new();
     private readonly Mock<IEnvironmentVariableProvider> _environmentVariableProviderMock = new();
+    protected readonly Mock<ISchemasClient> SchemasClientMock = new(MockBehavior.Strict);
     protected readonly Mock<IFusionConfigurationClient> FusionConfigurationClientMock = new(MockBehavior.Strict);
     private InteractionMode _interactionMode = InteractionMode.NonInteractive;
     private bool _authenticated = true;
@@ -41,6 +46,7 @@ public abstract class CommandTestBase
         var builder = new CommandBuilder(_fixture)
             .AddService(_fileSystemMock.Object)
             .AddService(_environmentVariableProviderMock.Object)
+            .AddService(SchemasClientMock.Object)
             .AddService(FusionConfigurationClientMock.Object);
 
         if (_authenticated)
@@ -150,6 +156,9 @@ public abstract class CommandTestBase
             await file.DisposeAsync();
         }
 
+        // TODO: Maybe this should validate filesystem/session accesses
+
+        SchemasClientMock.VerifyAll();
         FusionConfigurationClientMock.VerifyAll();
     }
 }

@@ -166,7 +166,7 @@ internal sealed class FusionPublishCommand : Command
 
                 if (!fileSystem.FileExists(sourceSchemaFile))
                 {
-                    throw new ExitException(ErrorMessages.SourceSchemaFileDoesNotExist(sourceSchemaFile));
+                    throw new ExitException(ErrorMessages.SchemaFileDoesNotExist(sourceSchemaFile));
                 }
             }
 

@@ -191,8 +191,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         SetupEnvironmentVariable(EnvironmentVariables.FusionConfigFile, ArchiveFile);
 
         SetupArchiveFile();
-        SetupValidateSchemaVersionMutation();
-        SetupSchemaVersionValidationSubscription();
+        SetupSchemaValidationMutation();
+        SetupSchemaValidationSubscription();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -213,8 +213,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     {
         // arrange
         SetupArchiveFile();
-        SetupValidateSchemaVersionMutation();
-        SetupSchemaVersionValidationSubscription();
+        SetupSchemaValidationMutation();
+        SetupSchemaValidationSubscription();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -244,7 +244,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     {
         // arrange
         SetupArchiveFile();
-        SetupValidateSchemaVersionMutation(error);
+        SetupSchemaValidationMutation(error);
 
         // act
         var result = await ExecuteCommandAsync(
@@ -272,7 +272,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
     {
         // arrange
         SetupArchiveFile();
-        SetupValidateSchemaVersionMutationException();
+        SetupSchemaValidationMutationException();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -304,8 +304,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         // arrange
         SetupArchiveFile();
         SetupFusionConfigurationDownload();
-        SetupValidateSchemaVersionMutation();
-        SetupSchemaVersionValidationSubscription(
+        SetupSchemaValidationMutation();
+        SetupSchemaValidationSubscription(
             CreateSchemaVersionOperationInProgressEvent(),
             CreateSchemaVersionValidationInProgressEvent(),
             CreateSchemaVersionValidationFailedEventWithErrors());
@@ -373,7 +373,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Source schema file '/some/working/directory/products/schema.graphqls' does not exist.
+            Schema file '/some/working/directory/products/schema.graphqls' does not exist.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -384,8 +384,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         // arrange
         SetupSourceSchemaFile();
         SetupFusionConfigurationDownload();
-        SetupValidateSchemaVersionMutation();
-        SetupSchemaVersionValidationSubscription();
+        SetupSchemaValidationMutation();
+        SetupSchemaValidationSubscription();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -406,7 +406,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new Fusion configuration
             │   └── ✓ Composed new configuration.
-            ├── Validation request created (ID: request-id)
+            ├── Validation request created (ID: request-id).
             └── ✓ Validation passed.
             """);
     }
@@ -420,8 +420,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
 
         SetupSourceSchemaFile();
         SetupFusionConfigurationDownload();
-        SetupValidateSchemaVersionMutation();
-        SetupSchemaVersionValidationSubscription();
+        SetupSchemaValidationMutation();
+        SetupSchemaValidationSubscription();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -438,7 +438,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new Fusion configuration
             │   └── ✓ Composed new configuration.
-            ├── Validation request created (ID: request-id)
+            ├── Validation request created (ID: request-id).
             └── ✓ Validation passed.
             """);
     }
@@ -452,7 +452,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         // arrange
         SetupSourceSchemaFile();
         SetupFusionConfigurationDownload();
-        SetupValidateSchemaVersionMutation(error);
+        SetupSchemaValidationMutation(error);
 
         // act
         var result = await ExecuteCommandAsync(
@@ -485,7 +485,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         // arrange
         SetupSourceSchemaFile();
         SetupFusionConfigurationDownload();
-        SetupValidateSchemaVersionMutationException();
+        SetupSchemaValidationMutationException();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -521,8 +521,8 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         // arrange
         SetupSourceSchemaFile();
         SetupFusionConfigurationDownload();
-        SetupValidateSchemaVersionMutation();
-        SetupSchemaVersionValidationSubscription(
+        SetupSchemaValidationMutation();
+        SetupSchemaValidationSubscription(
             CreateSchemaVersionOperationInProgressEvent(),
             CreateSchemaVersionValidationInProgressEvent(),
             CreateSchemaVersionValidationFailedEventWithErrors());
@@ -541,7 +541,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Fusion configuration validation failed.
+            Validation failed.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
@@ -550,7 +550,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new Fusion configuration
             │   └── ✓ Composed new configuration.
-            ├── Validation request created (ID: request-id)
+            ├── Validation request created (ID: request-id).
             ├── Validating...
             ├── Validating...
             └── ✕ Failed to validate the Fusion configuration.
@@ -560,9 +560,10 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
                 ├── OpenAPI collection 'petstore' (ID: collection-1)
                 │   └── Endpoint 'GET /pets'
                 │       └── Invalid schema. (10:5)
-                └── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
-                    └── Tool 'test-tool'
-                        └── Invalid MCP schema. (5:3)
+                ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
+                │   └── Tool 'test-tool'
+                │       └── Invalid MCP schema. (5:3)
+                └── An unexpected error occurred.
             """);
         Assert.Equal(1, result.ExitCode);
     }

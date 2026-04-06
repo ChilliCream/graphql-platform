@@ -17,7 +17,7 @@ internal static class ErrorMessages
     public static string UnexpectedMutationError(IError error)
         => $"Unexpected mutation error: {error.Message}";
 
-    public static string SourceSchemaFileDoesNotExist(string path) => $"Source schema file '{path}' does not exist.";
+    public static string SchemaFileDoesNotExist(string path) => $"Schema file '{path}' does not exist.";
 
     public static string ArchiveFileDoesNotExist(string path) => $"Archive file '{path}' does not exist.";
 

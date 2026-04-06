@@ -70,7 +70,7 @@ internal sealed class FusionUploadCommand : Command
 
         if (!fileSystem.FileExists(sourceSchemaFile))
         {
-            throw new ExitException(ErrorMessages.SourceSchemaFileDoesNotExist(sourceSchemaFile));
+            throw new ExitException(ErrorMessages.SchemaFileDoesNotExist(sourceSchemaFile));
         }
 
         var (_, sourceText, settings) = await FusionComposeCommand.ReadSourceSchemaAsync(

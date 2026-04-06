@@ -53,6 +53,16 @@ internal sealed class UploadSchemaCommand : Command
 
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
+        if (!Path.IsPathRooted(schemaFilePath))
+        {
+            schemaFilePath = Path.Combine(fileSystem.GetCurrentDirectory(), schemaFilePath);
+        }
+
+        if (!fileSystem.FileExists(schemaFilePath))
+        {
+            throw new ExitException(ErrorMessages.SchemaFileDoesNotExist(schemaFilePath));
+        }
+
         await using (var activity = console.StartActivity(
             $"Uploading new schema version '{tag.EscapeMarkup()}' to API '{apiId.EscapeMarkup()}'",
             "Failed to upload a new schema version."))
