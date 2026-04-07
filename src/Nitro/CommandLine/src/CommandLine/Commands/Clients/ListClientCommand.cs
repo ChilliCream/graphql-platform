@@ -1,11 +1,10 @@
-using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
-using ChilliCream.Nitro.CommandLine.Commands.Apis.Inputs;
+using ChilliCream.Nitro.Client.Apis;
+using ChilliCream.Nitro.Client.Clients;
+using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
@@ -14,92 +13,101 @@ internal sealed class ListClientCommand : Command
 {
     public ListClientCommand() : base("list")
     {
-        Description = "Lists all clients of an API";
+        Description = "List all clients of an API.";
 
-        AddOption(Opt<OptionalApiIdOption>.Instance);
-        AddOption(Opt<CursorOption>.Instance);
+        Options.Add(Opt<OptionalApiIdOption>.Instance);
+        Options.Add(Opt<OptionalCursorOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples("client list --api-id \"<api-id>\"");
+
+        Subcommands.Add(new ListClientVersionsCommand());
+        Subcommands.Add(new ListClientPublishedVersionsCommand());
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken ct)
     {
-        if (console.IsHumanReadable())
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IClientsClient>();
+        var apisClient = services.GetRequiredService<IApisClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
+
+        parseResult.AssertHasAuthentication(sessionService);
+
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
+
+        if (console.IsInteractive)
         {
-            return await RenderInteractiveAsync(context, console, client, ct);
+            return await RenderInteractiveAsync(parseResult, console, client, apisClient, sessionService, resultHolder, cursor, ct);
         }
 
-        return await RenderNonInteractiveAsync(context, console, client, ct);
+        return await RenderNonInteractiveAsync(parseResult, client, resultHolder, cursor, ct);
     }
 
     private static async Task<int> RenderInteractiveAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        ParseResult parseResult,
+        INitroConsole console,
+        IClientsClient client,
+        IApisClient apisClient,
+        ISessionService sessionService,
+        IResultHolder resultHolder,
+        string? cursor,
         CancellationToken ct)
     {
         const string apiMessage = "For which API do you want to list the clients?";
-        var apiId = await context.GetOrSelectApiId(apiMessage);
+        var apiId = await console.GetOrPromptForApiIdAsync(apiMessage, parseResult, apisClient, sessionService, ct);
 
         var container = PaginationContainer
-            .Create((after, first, ct) =>
-                    client.ListClientCommandQuery.ExecuteAsync(apiId, after, first, ct),
-                static p => (p.Node as IListClientCommandQuery_Node_Api)?.Clients?.PageInfo,
-                static p => (p.Node as IListClientCommandQuery_Node_Api)?.Clients?.Edges)
+            .CreateConnectionData(async (after, first, cancellationToken) =>
+                await client.ListClientsAsync(apiId, after ?? cursor, first, cancellationToken)
+                    ?? throw ThereWasAnIssueWithTheRequest("The API was not found."))
             .PageSize(10);
 
-        var api = await PagedTable
+        var selectedClient = await PagedTable
             .From(container)
             .Title("Clients of API")
-            .AddColumn("Id", x => x.Node.Id)
-            .AddColumn("Name", x => x.Node.Name)
+            .AddColumn("Id", x => x.Id)
+            .AddColumn("Name", x => x.Name)
             .RenderAsync(console, ct);
 
-        if (api?.Node is IClientDetailPrompt_Client node)
+        if (selectedClient is not null)
         {
-            context.SetResult(await ClientDetailPrompt.From(node, client).ToObject([]));
+            resultHolder.SetResult(new ObjectResult(ClientDetailPrompt.From(selectedClient).ToObject()));
         }
 
         return ExitCodes.Success;
     }
 
     private static async Task<int> RenderNonInteractiveAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        ParseResult parseResult,
+        IClientsClient client,
+        IResultHolder resultHolder,
+        string? cursor,
         CancellationToken ct)
     {
-        var apiId = context.ParseResult.GetValueForOption(Opt<OptionalApiIdOption>.Instance);
+        var apiId = parseResult.GetValue(Opt<OptionalApiIdOption>.Instance);
         if (apiId is null)
         {
-            throw Exit("The API ID is required in non-interactive mode.");
+            throw MissingRequiredOption(ApiIdOption.OptionName);
         }
 
-        var cursor = context.ParseResult.GetValueForOption(Opt<CursorOption>.Instance);
-        var result = await client
-            .ListClientCommandQuery
-            .ExecuteAsync(apiId, cursor, 10, ct);
+        var page = await client.ListClientsAsync(apiId, cursor, 10, ct)
+            ?? throw ThereWasAnIssueWithTheRequest("The API was not found.");
 
-        console.EnsureNoErrors(result);
+        var items = page.Items
+            .Select(x => ClientDetailPrompt.From(x).ToObject())
+            .ToArray();
 
-        var endCursor = (result.Data?.Node as IListClientCommandQuery_Node_Api)?.Clients?.PageInfo
-            .EndCursor;
-
-        var taskItems = (result.Data?.Node as IListClientCommandQuery_Node_Api)?.Clients?.Edges?.Select(x =>
-                ClientDetailPrompt.From(x.Node, client).ToObject([]))
-            .ToArray() ?? [];
-        var items = await Task.WhenAll(taskItems);
-
-        context.SetResult(new PaginatedListResult<ClientDetailPrompt.ClientDetailPromptResult>(items, endCursor));
+        resultHolder.SetResult(new PaginatedListResult<ClientDetailPrompt.ClientDetailPromptResult>(
+            items,
+            page.EndCursor));
 
         return ExitCodes.Success;
     }

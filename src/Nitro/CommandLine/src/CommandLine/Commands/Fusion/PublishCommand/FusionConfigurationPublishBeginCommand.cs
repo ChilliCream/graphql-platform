@@ -1,9 +1,9 @@
-using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client.FusionConfiguration;
+using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
+using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Configuration;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
@@ -13,64 +13,65 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
 {
     public FusionConfigurationPublishBeginCommand() : base("begin")
     {
-        Description = "Begin a configuration publish. This command will request a deployment slot";
-        AddOption(Opt<TagOption>.Instance);
-        AddOption(Opt<StageNameOption>.Instance);
-        AddOption(Opt<ApiIdOption>.Instance);
-        AddOption(Opt<OptionalSubgraphIdOption>.Instance);
-        AddOption(Opt<OptionalSubgraphNameOption>.Instance);
-        AddOption(Opt<OptionalWaitForApprovalOption>.Instance);
-        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
+        Description = "Begin a configuration publish. This command will request a deployment slot.";
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Bind.FromServiceProvider<ISessionService>(),
-            Bind.FromServiceProvider<IConfigurationService>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        Options.Add(Opt<TagOption>.Instance);
+        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<ApiIdOption>.Instance);
+        Options.Add(Opt<OptionalSubgraphIdOption>.Instance);
+        Options.Add(Opt<OptionalSubgraphNameOption>.Instance);
+        Options.Add(Opt<OptionalWaitForApprovalOption>.Instance);
+        Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
+
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples(
+            """
+            fusion publish begin \
+              --api-id "<api-id>" \
+              --tag "v1" \
+              --stage "dev"
+            """);
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
-        ISessionService sessionService,
-        IConfigurationService configurationService,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken cancellationToken)
     {
-        var stageName = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
-        var apiId = context.ParseResult.GetValueForOption(Opt<ApiIdOption>.Instance)!;
-        var tag = context.ParseResult.GetValueForOption(Opt<TagOption>.Instance)!;
+        var console = services.GetRequiredService<INitroConsole>();
+        var fusionConfigurationClient = services.GetRequiredService<IFusionConfigurationClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var fileSystem = services.GetRequiredService<IFileSystem>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
+
+        parseResult.AssertHasAuthentication(sessionService);
+
+        var stageName = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
+        var apiId = parseResult.GetRequiredValue(Opt<ApiIdOption>.Instance);
+        var tag = parseResult.GetRequiredValue(Opt<TagOption>.Instance);
         var subgraphId =
-            context.ParseResult.GetValueForOption(Opt<OptionalSubgraphIdOption>.Instance)!;
+            parseResult.GetRequiredValue(Opt<OptionalSubgraphIdOption>.Instance);
         var subgraphName =
-            context.ParseResult.GetValueForOption(Opt<OptionalSubgraphNameOption>.Instance)!;
+            parseResult.GetRequiredValue(Opt<OptionalSubgraphNameOption>.Instance);
         var waitForApproval =
-            context.ParseResult.GetValueForOption(Opt<OptionalWaitForApprovalOption>.Instance);
+            parseResult.GetValue(Opt<OptionalWaitForApprovalOption>.Instance);
         var sourceMetadataJson =
-            context.ParseResult.GetValueForOption(Opt<OptionalSourceMetadataOption>.Instance);
-        var source = SourceMetadataHelper.Parse(sourceMetadataJson);
+            parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
+        var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        console.Title("Requesting a deployment slot");
-
-        if (console.IsHumanReadable())
+        await using (var activity = console.StartActivity(
+            $"Requesting deployment slot for stage '{stageName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'",
+            "Failed to request a deployment slot."))
         {
-            await console
-                .Status()
-                .Spinner(Spinner.Known.BouncingBar)
-                .SpinnerStyle(Style.Parse("green bold"))
-                .StartAsync("Requesting deployment slot ...", RequestDeploymentSlotAsync);
-        }
-        else
-        {
-            await RequestDeploymentSlotAsync(null);
+            await RequestDeploymentSlotAsync(activity);
         }
 
         return ExitCodes.Success;
 
-        async Task RequestDeploymentSlotAsync(StatusContext? ctx)
+        async Task RequestDeploymentSlotAsync(INitroConsoleActivity activity)
         {
             var requestId = await FusionPublishHelpers.RequestDeploymentSlotAsync(
                 apiId,
@@ -81,13 +82,17 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
                 sourceSchemaVersions: null,
                 waitForApproval,
                 source,
-                ctx,
+                activity,
                 console,
-                client,
+                fusionConfigurationClient,
                 cancellationToken);
 
-            context.SetResult(new FusionConfigurationPublishBeginCommandResult { RequestId = requestId });
-            await FusionConfigurationPublishingState.SetRequestId(requestId, cancellationToken);
+            resultHolder.SetResult(new ObjectResult(new FusionConfigurationPublishBeginCommandResult { RequestId = requestId }));
+
+            await FusionConfigurationPublishingState.SetRequestId(
+                fileSystem,
+                requestId,
+                cancellationToken);
         }
     }
 
