@@ -132,7 +132,7 @@ internal static class FusionPublishHelpers
             }
         }
 
-        throw new ExitException("TODO");
+        throw new ExitException("Subscription terminated before request was ready for processing.");
     }
 
     public static async Task ClaimDeploymentSlotAsync(

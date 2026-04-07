@@ -3,7 +3,6 @@ using HotChocolate.Fusion.Packaging;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
-// TODO: Migrate these to the file system abstraction
 public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
     : FusionCommandTestBase(fixture), IDisposable
 {
