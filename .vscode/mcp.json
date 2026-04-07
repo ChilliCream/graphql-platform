@@ -6,8 +6,9 @@
     },
     "nuget": {
       "type": "stdio",
-      "command": "dnx",
+      "command": "dotnet",
       "args": [
+        "dnx",
         "NuGet.Mcp.Server",
         "--source",
         "https://api.nuget.org/v3/index.json",

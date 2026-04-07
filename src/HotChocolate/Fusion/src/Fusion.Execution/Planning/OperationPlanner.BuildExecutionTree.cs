@@ -24,7 +24,8 @@ public sealed partial class OperationPlanner
         OperationDefinitionNode operationDefinition,
         ImmutableList<PlanStep> planSteps,
         int searchSpace,
-        int expandedNodes)
+        int expandedNodes,
+        ImmutableArray<DeferredExecutionGroup> deferredGroups = default)
     {
         if (operation.IsIntrospectionOnly())
         {
@@ -73,7 +74,7 @@ public sealed partial class OperationPlanner
             node.Seal();
         }
 
-        return OperationPlan.Create(operation, rootNodes, allNodes, searchSpace, expandedNodes);
+        return OperationPlan.Create(operation, rootNodes, allNodes, searchSpace, expandedNodes, deferredGroups);
     }
 
     private static ImmutableList<PlanStep> TransformPlanSteps(
@@ -122,6 +123,10 @@ public sealed partial class OperationPlanner
                 operationPlanStep = updated;
             }
 
+            // Strip @defer directives from subgraph operations — the gateway
+            // manages deferral itself and subgraphs should not see @defer.
+            operationPlanStep = StripDeferDirectivesFromStep(operationPlanStep);
+
             // Attach variable definitions so the operation is syntactically valid
             // when sent to the downstream service.
             updatedPlanSteps = updatedPlanSteps.Replace(
@@ -157,6 +162,80 @@ public sealed partial class OperationPlanner
             return ReferenceEquals(updatedDefinition, step.Definition)
                 ? step
                 : step with { Definition = updatedDefinition };
+        }
+
+        static OperationPlanStep StripDeferDirectivesFromStep(OperationPlanStep step)
+        {
+            var updated = StripDeferFromSelectionSet(step.Definition.SelectionSet);
+
+            if (ReferenceEquals(updated, step.Definition.SelectionSet))
+            {
+                return step;
+            }
+
+            return step with { Definition = step.Definition.WithSelectionSet(updated) };
+        }
+
+        static SelectionSetNode StripDeferFromSelectionSet(SelectionSetNode selectionSet)
+        {
+            List<ISelectionNode>? rewritten = null;
+
+            for (var i = 0; i < selectionSet.Selections.Count; i++)
+            {
+                var selection = selectionSet.Selections[i];
+
+                if (selection is InlineFragmentNode inlineFragment)
+                {
+                    var strippedDirectives = StripDeferDirective(inlineFragment.Directives);
+                    var strippedInner = StripDeferFromSelectionSet(inlineFragment.SelectionSet);
+
+                    if (!ReferenceEquals(strippedDirectives, inlineFragment.Directives)
+                        || !ReferenceEquals(strippedInner, inlineFragment.SelectionSet))
+                    {
+                        rewritten ??= new List<ISelectionNode>(selectionSet.Selections);
+                        rewritten[i] = inlineFragment
+                            .WithDirectives(strippedDirectives)
+                            .WithSelectionSet(strippedInner);
+                    }
+                }
+                else if (selection is FieldNode { SelectionSet: not null } field)
+                {
+                    var strippedInner = StripDeferFromSelectionSet(field.SelectionSet);
+
+                    if (!ReferenceEquals(strippedInner, field.SelectionSet))
+                    {
+                        rewritten ??= new List<ISelectionNode>(selectionSet.Selections);
+                        rewritten[i] = field.WithSelectionSet(strippedInner);
+                    }
+                }
+            }
+
+            return rewritten is null ? selectionSet : new SelectionSetNode(rewritten);
+        }
+
+        static IReadOnlyList<DirectiveNode> StripDeferDirective(IReadOnlyList<DirectiveNode> directives)
+        {
+            for (var i = 0; i < directives.Count; i++)
+            {
+                if (directives[i].Name.Value.Equals(
+                    DirectiveNames.Defer.Name,
+                    StringComparison.Ordinal))
+                {
+                    var result = new List<DirectiveNode>(directives.Count - 1);
+
+                    for (var j = 0; j < directives.Count; j++)
+                    {
+                        if (j != i)
+                        {
+                            result.Add(directives[j]);
+                        }
+                    }
+
+                    return result;
+                }
+            }
+
+            return directives;
         }
 
         static OperationPlanStep AddVariableDefinitions(

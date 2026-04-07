@@ -91,21 +91,44 @@ public sealed partial class OperationPlanner
 
         try
         {
+            // Check for @defer directives before planning. If present, we split the
+            // operation into a main (non-deferred) part and deferred fragment groups.
+            // The main operation is planned without the deferred selections, and each
+            // deferred fragment is planned independently.
+            //
+            // PERF: For non-deferred operations (the common case), the only overhead is
+            // the HasDeferDirective check which does a fast AST walk looking for @defer.
+            ImmutableArray<DeferredExecutionGroup> deferredGroups = default;
+            DeferSplitResult? deferSplit = null;
+            var mainOperationDefinition = operationDefinition;
+
+            if (DeferOperationRewriter.HasDeferDirective(operationDefinition))
+            {
+                var rewriter = new DeferOperationRewriter();
+                var splitResult = rewriter.Split(operationDefinition);
+
+                if (!splitResult.DeferredFragments.IsEmpty)
+                {
+                    deferSplit = splitResult;
+                    mainOperationDefinition = splitResult.MainOperation;
+                }
+            }
+
             // We first need to create an index to keep track of the logical selections
             // sets before we can branch them. This allows us to inline requirements later
             // into the right place.
-            var index = SelectionSetIndexer.Create(operationDefinition);
+            var index = SelectionSetIndexer.Create(mainOperationDefinition);
 
             // Next, we create the seed plan with a set of initial work items exploring the root selection set.
-            var (node, selectionSet) = operationDefinition.Operation switch
+            var (node, selectionSet) = mainOperationDefinition.Operation switch
             {
-                OperationType.Query => CreateQueryPlanBase(operationDefinition, shortHash, index),
-                OperationType.Mutation => CreateMutationPlanBase(operationDefinition, shortHash, index),
-                OperationType.Subscription => CreateSubscriptionPlanBase(operationDefinition, shortHash, index),
+                OperationType.Query => CreateQueryPlanBase(mainOperationDefinition, shortHash, index),
+                OperationType.Mutation => CreateMutationPlanBase(mainOperationDefinition, shortHash, index),
+                OperationType.Subscription => CreateSubscriptionPlanBase(mainOperationDefinition, shortHash, index),
                 _ => throw new ArgumentOutOfRangeException()
             };
 
-            var internalOperationDefinition = operationDefinition;
+            var internalOperationDefinition = mainOperationDefinition;
             ImmutableList<PlanStep> planSteps = [];
 
             // The backlog is only empty for pure introspection queries, which the
@@ -150,16 +173,33 @@ public sealed partial class OperationPlanner
                 internalOperationDefinition =
                     AddTypeNameToAbstractSelections(
                         internalOperationDefinition,
-                        _schema.GetOperationType(operationDefinition.Operation));
+                        _schema.GetOperationType(mainOperationDefinition.Operation));
             }
 
+            // Always compile from the planner's internal definition — for defer,
+            // this is the stripped main operation (without deferred fragments),
+            // which ensures the result mapper only includes non-deferred fields.
             var operation = _operationCompiler.Compile(id, hash, internalOperationDefinition);
+
+            // Plan deferred groups if @defer was detected.
+            if (deferSplit.HasValue)
+            {
+                deferredGroups = PlanDeferredGroups(
+                    id,
+                    hash,
+                    shortHash,
+                    deferSplit.Value,
+                    eventSourceEnabled,
+                    cancellationToken);
+            }
+
             var operationPlan = BuildExecutionPlan(
                 operation,
-                operationDefinition,
+                mainOperationDefinition,
                 planSteps,
                 searchSpace,
-                expandedNodes);
+                expandedNodes,
+                deferredGroups);
 
             if (eventSourceEnabled)
             {

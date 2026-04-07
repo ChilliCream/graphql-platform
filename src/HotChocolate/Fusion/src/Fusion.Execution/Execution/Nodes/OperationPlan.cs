@@ -21,7 +21,8 @@ public sealed record OperationPlan
         ImmutableArray<ExecutionNode> rootNodes,
         ImmutableArray<ExecutionNode> allNodes,
         int searchSpace,
-        int expandedNodes)
+        int expandedNodes,
+        ImmutableArray<DeferredExecutionGroup> deferredGroups = default)
     {
         Id = id;
         Operation = operation;
@@ -29,6 +30,7 @@ public sealed record OperationPlan
         AllNodes = allNodes;
         SearchSpace = searchSpace;
         ExpandedNodes = expandedNodes;
+        DeferredGroups = deferredGroups.IsDefault ? [] : deferredGroups;
         _nodesById = CreateNodeLookup(allNodes);
         MaxNodeId = _nodesById.Length > 0 ? _nodesById.Length - 1 : 0;
     }
@@ -73,6 +75,14 @@ public sealed record OperationPlan
     /// Gets the number of nodes expanded (dequeued) during the A* search.
     /// </summary>
     public int ExpandedNodes { get; }
+
+    /// <summary>
+    /// Gets the deferred execution groups for this plan.
+    /// Each group corresponds to one <c>@defer</c> fragment and contains the execution nodes
+    /// that must run after the initial result is sent.
+    /// Empty if the operation has no <c>@defer</c> directives.
+    /// </summary>
+    public ImmutableArray<DeferredExecutionGroup> DeferredGroups { get; }
 
     /// <summary>
     /// Gets the maximum node identifier across all nodes in this plan.
@@ -133,6 +143,7 @@ public sealed record OperationPlan
     /// <param name="allNodes">All execution nodes in the plan.</param>
     /// <param name="searchSpace">A number specifying how many possible plans were considered during planning.</param>
     /// <param name="expandedNodes">The number of expanded nodes during planner search.</param>
+    /// <param name="deferredGroups">The deferred execution groups for <c>@defer</c> support.</param>
     /// <returns>A new <see cref="OperationPlan"/> instance.</returns>
     /// <exception cref="ArgumentException">Thrown when <paramref name="id"/> is null or empty.</exception>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="operation"/> is null.</exception>
@@ -143,14 +154,15 @@ public sealed record OperationPlan
         ImmutableArray<ExecutionNode> rootNodes,
         ImmutableArray<ExecutionNode> allNodes,
         int searchSpace,
-        int expandedNodes)
+        int expandedNodes,
+        ImmutableArray<DeferredExecutionGroup> deferredGroups = default)
     {
         ArgumentException.ThrowIfNullOrEmpty(id);
         ArgumentNullException.ThrowIfNull(operation);
         ArgumentOutOfRangeException.ThrowIfLessThan(rootNodes.Length, 0);
         ArgumentOutOfRangeException.ThrowIfLessThan(allNodes.Length, 0);
 
-        return new OperationPlan(id, operation, rootNodes, allNodes, searchSpace, expandedNodes);
+        return new OperationPlan(id, operation, rootNodes, allNodes, searchSpace, expandedNodes, deferredGroups);
     }
 
     /// <summary>
@@ -162,6 +174,7 @@ public sealed record OperationPlan
     /// <param name="allNodes">All execution nodes in the plan.</param>
     /// <param name="searchSpace">A number specifying how many possible plans were considered during planning.</param>
     /// <param name="expandedNodes">The number of expanded nodes during planner search.</param>
+    /// <param name="deferredGroups">The deferred execution groups for <c>@defer</c> support.</param>
     /// <returns>A new <see cref="OperationPlan"/> instance with a content-based identifier.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="operation"/> is null.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Thrown when node arrays have negative length.</exception>
@@ -170,7 +183,8 @@ public sealed record OperationPlan
         ImmutableArray<ExecutionNode> rootNodes,
         ImmutableArray<ExecutionNode> allNodes,
         int searchSpace,
-        int expandedNodes)
+        int expandedNodes,
+        ImmutableArray<DeferredExecutionGroup> deferredGroups = default)
     {
         ArgumentNullException.ThrowIfNull(operation);
         ArgumentOutOfRangeException.ThrowIfLessThan(rootNodes.Length, 0);
@@ -192,7 +206,7 @@ public sealed record OperationPlan
         var id = Convert.ToHexString(buffer.WrittenSpan[^32..]).ToLowerInvariant();
 #endif
 
-        return new OperationPlan(id, operation, rootNodes, allNodes, searchSpace, expandedNodes);
+        return new OperationPlan(id, operation, rootNodes, allNodes, searchSpace, expandedNodes, deferredGroups);
     }
 
     private static ExecutionNode?[] CreateNodeLookup(ImmutableArray<ExecutionNode> allNodes)

@@ -21,6 +21,7 @@ public sealed class Operation : IOperation
     private readonly OperationCompiler _compiler;
     private readonly IncludeConditionCollection _includeConditions;
     private readonly OperationFeatureCollection _features;
+    private readonly bool _hasIncrementalParts;
     private object[] _elementsById;
     private int _lastId;
 
@@ -34,7 +35,8 @@ public sealed class Operation : IOperation
         OperationCompiler compiler,
         IncludeConditionCollection includeConditions,
         int lastId,
-        object[] elementsById)
+        object[] elementsById,
+        bool hasIncrementalParts)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(hash);
@@ -56,6 +58,7 @@ public sealed class Operation : IOperation
         _includeConditions = includeConditions;
         _lastId = lastId;
         _elementsById = elementsById;
+        _hasIncrementalParts = hasIncrementalParts;
 
         _features = new OperationFeatureCollection();
         rootSelectionSet.Seal(this);
@@ -105,7 +108,7 @@ public sealed class Operation : IOperation
     /// <inheritdoc cref="IFeatureProvider"/>
     public IFeatureCollection Features => _features;
 
-    public bool HasIncrementalParts => throw new NotImplementedException();
+    public bool HasIncrementalParts => _hasIncrementalParts;
 
     /// <summary>
     /// Gets the selection set for the specified <paramref name="selection"/>

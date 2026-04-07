@@ -63,6 +63,8 @@ public sealed class OperationCompiler
                 fields,
                 includeConditions);
 
+            var hasIncrementalParts = HasDeferDirective(operationDefinition);
+
             var selectionSet = BuildSelectionSet(
                 fields,
                 rootType,
@@ -81,7 +83,8 @@ public sealed class OperationCompiler
                 this,
                 includeConditions,
                 lastId,
-                compilationContext.ElementsById); // Pass the populated array
+                compilationContext.ElementsById,
+                hasIncrementalParts);
         }
         finally
         {
@@ -394,6 +397,69 @@ public sealed class OperationCompiler
         }
 
         return false;
+    }
+
+    private static bool HasDeferDirective(OperationDefinitionNode operation)
+    {
+        return DeferDetectionVisitor.Instance.HasDefer(operation);
+    }
+
+    private sealed class DeferDetectionVisitor : SyntaxWalker<DeferDetectionVisitor.Context>
+    {
+        public static readonly DeferDetectionVisitor Instance = new();
+
+        public bool HasDefer(OperationDefinitionNode operation)
+        {
+            var context = new Context();
+            Visit(operation, context);
+            return context.Found;
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            InlineFragmentNode node,
+            Context context)
+        {
+            if (HasDeferDirectiveOnNode(node.Directives))
+            {
+                context.Found = true;
+                return Break;
+            }
+
+            return base.Enter(node, context);
+        }
+
+        protected override ISyntaxVisitorAction Enter(
+            FragmentSpreadNode node,
+            Context context)
+        {
+            if (HasDeferDirectiveOnNode(node.Directives))
+            {
+                context.Found = true;
+                return Break;
+            }
+
+            return base.Enter(node, context);
+        }
+
+        private static bool HasDeferDirectiveOnNode(IReadOnlyList<DirectiveNode> directives)
+        {
+            for (var i = 0; i < directives.Count; i++)
+            {
+                if (directives[i].Name.Value.Equals(
+                    DirectiveNames.Defer.Name,
+                    StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        internal sealed class Context
+        {
+            public bool Found;
+        }
     }
 
     private class IncludeConditionVisitor : SyntaxWalker<IncludeConditionCollection>

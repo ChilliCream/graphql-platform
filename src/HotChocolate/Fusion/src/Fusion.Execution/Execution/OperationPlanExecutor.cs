@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
+using System.Threading.Channels;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
@@ -44,6 +45,329 @@ internal sealed class OperationPlanExecutor
         cancellationToken.ThrowIfCancellationRequested();
 
         return context.Complete();
+    }
+
+    public async Task<IExecutionResult> ExecuteWithDeferAsync(
+        RequestContext requestContext,
+        IVariableValueCollection variables,
+        OperationPlan operationPlan,
+        CancellationToken cancellationToken)
+    {
+        // Execute the main (non-deferred) plan nodes first.
+        var executionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        OperationPlanContext? context = null;
+
+        try
+        {
+            context = requestContext.Schema.Services.GetRequiredService<OperationPlanContextPool>().Rent();
+            context.Initialize(requestContext, variables, operationPlan, executionCts);
+
+            context.Begin();
+
+            switch (operationPlan.Operation.Definition.Operation)
+            {
+                case OperationType.Query:
+                    await ExecuteQueryAsync(context, operationPlan, executionCts.Token);
+                    break;
+
+                case OperationType.Mutation:
+                    await ExecuteMutationAsync(context, operationPlan, executionCts.Token);
+                    break;
+
+                default:
+                    throw new InvalidOperationException("Only queries and mutations can use @defer.");
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Build the initial result
+            var initialResult = context.Complete();
+
+            // Annotate the initial result with pending entries for each deferred group
+            var deferredGroups = operationPlan.DeferredGroups;
+            var pendingResults = ImmutableList.CreateBuilder<PendingResult>();
+
+            foreach (var group in deferredGroups)
+            {
+                // Skip nested groups — they'll be announced when their parent completes
+                if (group.Parent is not null)
+                {
+                    continue;
+                }
+
+                // If the defer is conditional, evaluate the condition
+                if (group.IfVariable is not null)
+                {
+                    if (!variables.TryGetValue<BooleanValueNode>(group.IfVariable, out var boolValue))
+                    {
+                        throw new InvalidOperationException(
+                            $"The variable {group.IfVariable} has an invalid value.");
+                    }
+
+                    if (!boolValue.Value)
+                    {
+                        continue;
+                    }
+                }
+
+                pendingResults.Add(new PendingResult(
+                    group.DeferId,
+                    BuildPath(group.Path),
+                    group.Label));
+            }
+
+            initialResult.HasNext = pendingResults.Count > 0;
+            initialResult.Pending = pendingResults.ToImmutable();
+
+            if (pendingResults.Count == 0)
+            {
+                // No active deferred groups (all conditions were false)
+                executionCts.Dispose();
+                await context.DisposeAsync();
+                return initialResult;
+            }
+
+            // Return a ResponseStream that yields the initial result then deferred results
+            var stream = new ResponseStream(
+                () => CreateDeferredStream(
+                    requestContext,
+                    variables,
+                    operationPlan,
+                    initialResult,
+                    cancellationToken),
+                ExecutionResultKind.DeferredResult);
+
+            stream.RegisterForCleanup(context);
+            stream.RegisterForCleanup(executionCts);
+            return stream;
+        }
+        catch (Exception)
+        {
+            executionCts.Dispose();
+
+            if (context is { } c)
+            {
+                await c.DisposeAsync();
+            }
+
+            throw;
+        }
+    }
+
+    private static async IAsyncEnumerable<OperationResult> CreateDeferredStream(
+        RequestContext requestContext,
+        IVariableValueCollection variables,
+        OperationPlan operationPlan,
+        OperationResult initialResult,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        // Yield the initial result first
+        yield return initialResult;
+
+        var deferredGroups = operationPlan.DeferredGroups;
+
+        // Filter to only active groups (where @defer(if:) evaluates to true)
+        var activeGroups = new List<DeferredExecutionGroup>();
+        foreach (var group in deferredGroups)
+        {
+            if (group.IfVariable is not null)
+            {
+                if (!variables.TryGetValue<BooleanValueNode>(group.IfVariable, out var boolValue))
+                {
+                    throw new InvalidOperationException(
+                        $"The variable {group.IfVariable} has an invalid value.");
+                }
+
+                if (!boolValue.Value)
+                {
+                    continue;
+                }
+            }
+
+            // Only top-level groups start immediately; nested groups start when parent completes
+            if (group.Parent is null)
+            {
+                activeGroups.Add(group);
+            }
+        }
+
+        // Execute all top-level deferred groups in parallel using a channel
+        var channel = Channel.CreateUnbounded<(DeferredExecutionGroup Group, OperationResult? Result, Exception? Error)>();
+        var pendingCount = activeGroups.Count;
+
+        foreach (var group in activeGroups)
+        {
+            _ = ExecuteDeferredGroupInBackground(
+                requestContext, variables, operationPlan, group, channel.Writer, cancellationToken);
+        }
+
+        // Yield results as they complete
+        while (pendingCount > 0 && !cancellationToken.IsCancellationRequested)
+        {
+            var (group, result, error) = await channel.Reader.ReadAsync(cancellationToken);
+            pendingCount--;
+
+            // Check if this group has children that should now start
+            var childGroups = new List<DeferredExecutionGroup>();
+            foreach (var candidate in deferredGroups)
+            {
+                if (candidate.Parent?.DeferId == group.DeferId)
+                {
+                    childGroups.Add(candidate);
+                    pendingCount++;
+                    _ = ExecuteDeferredGroupInBackground(
+                        requestContext, variables, operationPlan, candidate, channel.Writer, cancellationToken);
+                }
+            }
+
+            // Build the incremental payload following the GraphQL incremental delivery spec:
+            // - Deferred data goes in `incremental` array (not top-level `data`)
+            // - `completed` signals the defer is done
+            // - `hasNext` indicates if more payloads follow
+            var isLast = pendingCount == 0;
+            OperationResult payload;
+
+            if (error is not null)
+            {
+                var errorObj = ErrorBuilder.New()
+                    .SetMessage(error.Message)
+                    .Build();
+                payload = OperationResult.FromError(errorObj);
+                payload.Completed = [new CompletedResult(group.DeferId, [errorObj])];
+            }
+            else if (result is not null)
+            {
+                payload = result;
+
+                // Wrap the deferred result's data in IncrementalObjectResult
+                // and clear top-level data/errors (per spec, subsequent payloads
+                // use `incremental` array, not root `data`).
+                if (result.Data.HasValue && !result.Data.Value.IsValueNull)
+                {
+                    payload.Incremental =
+                    [
+                        new IncrementalObjectResult(
+                            group.DeferId,
+                            result.Errors.Count > 0 ? result.Errors : null,
+                            data: result.Data)
+                    ];
+                    payload.Completed = [new CompletedResult(group.DeferId)];
+                }
+                else
+                {
+                    payload.Completed = [new CompletedResult(group.DeferId, result.Errors)];
+                }
+
+                // Per spec: subsequent payloads use `incremental` array, not root `data`.
+                // We clear top-level data/errors so the formatter only renders
+                // incremental delivery fields (incremental, completed, hasNext, pending).
+                // The IncrementalDataFeature must be set first (via Incremental/Completed above)
+                // so the Errors setter validation passes.
+                payload.Data = null;
+                if (payload.Errors.Count > 0)
+                {
+                    payload.Errors = [];
+                }
+            }
+            else
+            {
+                // Empty deferred group — all fields may have been conditional and excluded.
+                // Report a successful completion with no data.
+                // We use FromError to create a valid OperationResult, then clear
+                // top-level errors since this is a successful completion.
+                var placeholder = ErrorBuilder.New()
+                    .SetMessage("placeholder")
+                    .Build();
+                payload = OperationResult.FromError(placeholder);
+                payload.Completed = [new CompletedResult(group.DeferId)];
+                payload.Data = null;
+                payload.Errors = [];
+            }
+
+            // Announce child pending results
+            if (childGroups.Count > 0)
+            {
+                var childPending = ImmutableList.CreateBuilder<PendingResult>();
+                foreach (var child in childGroups)
+                {
+                    childPending.Add(new PendingResult(
+                        child.DeferId,
+                        BuildPath(child.Path),
+                        child.Label));
+                }
+                payload.Pending = childPending.ToImmutable();
+            }
+
+            payload.HasNext = !isLast;
+            yield return payload;
+        }
+    }
+
+    private static async Task ExecuteDeferredGroupInBackground(
+        RequestContext requestContext,
+        IVariableValueCollection variables,
+        OperationPlan operationPlan,
+        DeferredExecutionGroup group,
+        ChannelWriter<(DeferredExecutionGroup, OperationResult?, Exception?)> writer,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (group.AllNodes.IsEmpty)
+            {
+                await writer.WriteAsync((group, null, null), cancellationToken);
+                return;
+            }
+
+            // Create a mini OperationPlan for the deferred group using the group's
+            // own compiled Operation for correct result mapping.
+            var deferPlan = OperationPlan.Create(
+                operationPlan.Id + "#defer_" + group.DeferId,
+                group.Operation,
+                group.RootNodes,
+                group.AllNodes,
+                0,
+                0);
+
+            using var executionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+            await using var context = requestContext.Schema.Services
+                .GetRequiredService<OperationPlanContextPool>().Rent();
+            context.Initialize(requestContext, variables, deferPlan, executionCts);
+
+            context.Begin();
+
+            await ExecuteQueryAsync(context, deferPlan, executionCts.Token);
+
+            var deferredResult = context.Complete();
+            await writer.WriteAsync((group, deferredResult, null), cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            // Write a cancellation result so the consumer doesn't hang
+            await writer.WriteAsync((group, null, null), CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            await writer.WriteAsync((group, null, ex), CancellationToken.None);
+        }
+    }
+
+    private static Path BuildPath(SelectionPath selectionPath)
+    {
+        var path = Path.Root;
+
+        for (var i = 0; i < selectionPath.Length; i++)
+        {
+            var segment = selectionPath[i];
+
+            if (segment.Kind is SelectionPathSegmentKind.Field)
+            {
+                path = path.Append(segment.Name);
+            }
+        }
+
+        return path;
     }
 
     public async Task<IExecutionResult> SubscribeAsync(

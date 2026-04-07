@@ -521,7 +521,7 @@ internal sealed class ExecutionState
         };
     }
 
-    private void AddToBacklog(ExecutionNode node)
+    internal void AddToBacklog(ExecutionNode node)
     {
         var nodeId = node.Id;
 

@@ -16,9 +16,10 @@ public sealed class SelectionSet : ISelectionSet
     private readonly Selection[] _selections;
     private readonly FrozenDictionary<string, Selection> _responseNameLookup;
     private readonly SelectionLookup _utf8ResponseNameLookup;
+    private readonly bool _hasIncrementalParts;
     private bool _isSealed;
 
-    public SelectionSet(int id, IObjectTypeDefinition type, Selection[] selections, bool isConditional)
+    public SelectionSet(int id, IObjectTypeDefinition type, Selection[] selections, bool isConditional, bool hasIncrementalParts = false)
     {
         ArgumentNullException.ThrowIfNull(selections);
 
@@ -30,6 +31,7 @@ public sealed class SelectionSet : ISelectionSet
         Id = id;
         Type = type;
         IsConditional = isConditional;
+        _hasIncrementalParts = hasIncrementalParts;
         _selections = selections;
         _responseNameLookup = _selections.ToFrozenDictionary(t => t.ResponseName);
         _utf8ResponseNameLookup = SelectionLookup.Create(this);
@@ -62,7 +64,7 @@ public sealed class SelectionSet : ISelectionSet
     /// </summary>
     public ReadOnlySpan<Selection> Selections => _selections;
 
-    public bool HasIncrementalParts => throw new NotImplementedException();
+    public bool HasIncrementalParts => _hasIncrementalParts;
 
     IEnumerable<ISelection> ISelectionSet.GetSelections() => _selections;
 

@@ -97,4 +97,6 @@ enum ScalarSerializationType {
 scalar Custom
   @serializeAs(type: STRING)
 
+directive @defer(if: Boolean = true label: String) on FRAGMENT_SPREAD | INLINE_FRAGMENT
+
 directive @serializeAs(pattern: String type: [ScalarSerializationType!]!) on SCALAR

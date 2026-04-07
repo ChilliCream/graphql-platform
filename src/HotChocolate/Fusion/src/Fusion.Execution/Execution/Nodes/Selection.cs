@@ -13,6 +13,7 @@ public sealed class Selection : ISelection
     private readonly FieldSelectionNode[] _syntaxNodes;
     private readonly ulong[] _includeFlags;
     private readonly byte[] _utf8ResponseName;
+    private readonly ulong _deferMask;
     private Flags _flags;
 
     public Selection(
@@ -21,7 +22,8 @@ public sealed class Selection : ISelection
         IOutputFieldDefinition field,
         FieldSelectionNode[] syntaxNodes,
         ulong[] includeFlags,
-        bool isInternal)
+        bool isInternal,
+        ulong deferMask = 0)
     {
         ArgumentNullException.ThrowIfNull(field);
 
@@ -37,6 +39,7 @@ public sealed class Selection : ISelection
         Field = field;
         _syntaxNodes = syntaxNodes;
         _includeFlags = includeFlags;
+        _deferMask = deferMask;
         _flags = isInternal ? Flags.Internal : Flags.None;
 
         if (field.Type.NamedType().IsLeafType())
@@ -162,7 +165,7 @@ public sealed class Selection : ISelection
 
     public bool IsDeferred(ulong deferFlags)
     {
-        throw new NotImplementedException();
+        return (_deferMask & deferFlags) != 0;
     }
 
     [Flags]
