@@ -1,9 +1,10 @@
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Mocks;
 using ChilliCream.Nitro.CommandLine.Helpers;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mocks.Components;
 
-public sealed class SelectMockSchemaPrompt(IApiClient client, string apiId)
+internal sealed class SelectMockSchemaPrompt(IMocksClient client, string apiId)
 {
     private string _title = "Select the mock schema you want to use.";
 
@@ -13,25 +14,20 @@ public sealed class SelectMockSchemaPrompt(IApiClient client, string apiId)
         return this;
     }
 
-    public async Task<IMockSchemaDetailPrompt?> RenderAsync(
-        IAnsiConsole console,
+    public async Task<IListMockCommandQuery_ApiById_MockSchemas_Edges_Node?> RenderAsync(
+        INitroConsole console,
         CancellationToken cancellationToken)
     {
-        var paginationContainer = PaginationContainer.Create(
-            (after, first, ct)
-                => client.SelectMockSchemaPromptQuery.ExecuteAsync(apiId, after, first, ct),
-            p => p.ApiById?.MockSchemas?.PageInfo,
-            p => p.ApiById?.MockSchemas?.Edges);
+        var paginationContainer = PaginationContainer.CreateConnectionData(
+            (after, first, ct) => client.ListMockSchemasAsync(apiId, after, first, ct));
 
-        var selectedEdge = await PagedSelectionPrompt
+        return await PagedSelectionPrompt
             .New(paginationContainer)
             .Title(_title)
-            .UseConverter(x => x.Node.Name)
+            .UseConverter(x => x.Name)
             .RenderAsync(console, cancellationToken);
-
-        return selectedEdge?.Node;
     }
 
-    public static SelectMockSchemaPrompt New(IApiClient client, string apiId)
+    public static SelectMockSchemaPrompt New(IMocksClient client, string apiId)
         => new(client, apiId);
 }
