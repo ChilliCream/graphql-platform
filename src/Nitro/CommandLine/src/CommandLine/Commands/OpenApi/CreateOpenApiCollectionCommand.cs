@@ -74,8 +74,9 @@ internal sealed class CreateOpenApiCollectionCommand : Command
                     };
 
                     console.Error.WriteErrorLine(errorMessage);
-                    return ExitCodes.Error;
                 }
+
+                return ExitCodes.Error;
             }
 
             if (data.OpenApiCollection is not IOpenApiCollectionDetailPrompt_OpenApiCollection detail)

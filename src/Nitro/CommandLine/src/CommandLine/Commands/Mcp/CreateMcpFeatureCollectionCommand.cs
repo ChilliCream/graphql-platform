@@ -75,8 +75,9 @@ internal sealed class CreateMcpFeatureCollectionCommand : Command
                     };
 
                     console.Error.WriteErrorLine(errorMessage);
-                    return ExitCodes.Error;
                 }
+
+                return ExitCodes.Error;
             }
 
             if (data.McpFeatureCollection is not IMcpFeatureCollectionDetailPrompt_McpFeatureCollection detail)

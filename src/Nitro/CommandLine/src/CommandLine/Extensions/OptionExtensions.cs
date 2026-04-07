@@ -22,7 +22,10 @@ internal static class OptionExtensions
         {
             var values = result.GetValueOrDefault<List<string>>();
 
-            values.ForEach(value => ValidateFilePath(result, value));
+            foreach (var value in values ?? [])
+            {
+                ValidateFilePath(result, value);
+            }
         });
     }
 

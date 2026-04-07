@@ -68,8 +68,9 @@ internal sealed class CreateEnvironmentCommand : Command
                     };
 
                     console.Error.WriteErrorLine(errorMessage);
-                    return ExitCodes.Error;
                 }
+
+                return ExitCodes.Error;
             }
 
             var changeResult = data.Changes?.SingleOrDefault();

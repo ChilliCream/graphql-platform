@@ -22,7 +22,10 @@ internal static class CommandExtensions
             }
             catch (ExitException exception)
             {
-                console.Error.WriteErrorLine(exception.Message);
+                if (!string.IsNullOrEmpty(exception.Message))
+                {
+                    console.Error.WriteErrorLine(exception.Message);
+                }
             }
             catch (NitroClientAuthorizationException)
             {
