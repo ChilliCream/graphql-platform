@@ -94,21 +94,12 @@ public abstract class CommandTestBase
         var stdOutWriter = new StringWriter();
         var stdErrWriter = new StringWriter();
 
-        var outConsole = AnsiConsole.Create(new AnsiConsoleSettings
-        {
-            Ansi = AnsiSupport.No,
-            ColorSystem = ColorSystemSupport.NoColors,
-            Out = new AnsiConsoleOutput(stdOutWriter)
-        });
+        var outConsole = new TestConsole();
+        outConsole.Profile.Out = new AnsiConsoleOutput(stdOutWriter);
         outConsole.Profile.Width = 10_000;
-        outConsole.Profile.Capabilities.Unicode = true;
 
-        var errConsole = AnsiConsole.Create(new AnsiConsoleSettings
-        {
-            Ansi = AnsiSupport.No,
-            ColorSystem = ColorSystemSupport.NoColors,
-            Out = new AnsiConsoleOutput(stdErrWriter)
-        });
+        var errConsole = new TestConsole();
+        errConsole.Profile.Out = new AnsiConsoleOutput(stdErrWriter);
         errConsole.Profile.Width = 10_000;
 
         if (_interactionMode is InteractionMode.JsonOutput)
