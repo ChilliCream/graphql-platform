@@ -3,7 +3,7 @@ using Mocha.Mediator;
 
 namespace AotExample.OrderService.Handlers;
 
-public sealed class PlaceOrderCommandHandler(
+public sealed partial class PlaceOrderCommandHandler(
     ILogger<PlaceOrderCommandHandler> logger)
     : ICommandHandler<PlaceOrderCommand, PlaceOrderResult>
 {
@@ -13,13 +13,12 @@ public sealed class PlaceOrderCommandHandler(
     {
         var orderId = Guid.NewGuid().ToString("N")[..8];
 
-        logger.LogInformation(
-            "Order {OrderId} placed: {Quantity}x {ProductName}",
-            orderId,
-            command.Quantity,
-            command.ProductName);
+        LogOrderPlaced(orderId, command.Quantity, command.ProductName);
 
         return new ValueTask<PlaceOrderResult>(
             new PlaceOrderResult { OrderId = orderId });
     }
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Order {OrderId} placed: {Quantity}x {ProductName}")]
+    private partial void LogOrderPlaced(string orderId, int quantity, string productName);
 }

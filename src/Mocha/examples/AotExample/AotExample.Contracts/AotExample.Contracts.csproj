@@ -2,7 +2,6 @@
   <PropertyGroup>
     <RootNamespace>AotExample.Contracts</RootNamespace>
   </PropertyGroup>
-  <Import Project="..\..\..\src\Mocha.Analyzers\buildTransitive\Mocha.Analyzers.props" />
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Mocha\Mocha.csproj" />
     <ProjectReference

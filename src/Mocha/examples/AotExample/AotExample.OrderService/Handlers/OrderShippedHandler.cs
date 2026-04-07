@@ -5,7 +5,7 @@ using Mocha.Mediator;
 
 namespace AotExample.OrderService.Handlers;
 
-public sealed class OrderShippedHandler(
+public sealed partial class OrderShippedHandler(
     IPublisher publisher,
     ILogger<OrderShippedHandler> logger)
     : IEventHandler<OrderShippedEvent>
@@ -14,10 +14,7 @@ public sealed class OrderShippedHandler(
         OrderShippedEvent message,
         CancellationToken cancellationToken)
     {
-        logger.LogInformation(
-            "Order {OrderId} shipped with tracking {TrackingNumber}",
-            message.OrderId,
-            message.TrackingNumber);
+        LogOrderShipped(message.OrderId, message.TrackingNumber);
 
         await publisher.PublishAsync(
             new OrderStatusChangedNotification
@@ -27,4 +24,7 @@ public sealed class OrderShippedHandler(
             },
             cancellationToken);
     }
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Order {OrderId} shipped with tracking {TrackingNumber}")]
+    private partial void LogOrderShipped(string orderId, string trackingNumber);
 }

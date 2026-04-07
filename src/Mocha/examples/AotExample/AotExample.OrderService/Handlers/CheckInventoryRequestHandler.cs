@@ -3,7 +3,7 @@ using Mocha;
 
 namespace AotExample.OrderService.Handlers;
 
-public sealed class CheckInventoryRequestHandler(
+public sealed partial class CheckInventoryRequestHandler(
     ILogger<CheckInventoryRequestHandler> logger)
     : IEventRequestHandler<CheckInventoryRequest, CheckInventoryResponse>
 {
@@ -14,8 +14,7 @@ public sealed class CheckInventoryRequestHandler(
         var quantityOnHand = Random.Shared.Next(0, 20);
         var isAvailable = quantityOnHand >= request.Quantity;
 
-        logger.LogInformation(
-            "Inventory check for {ProductName}: {QuantityOnHand} on hand, requested {Quantity} — {Result}",
+        LogInventoryCheck(
             request.ProductName,
             quantityOnHand,
             request.Quantity,
@@ -28,4 +27,7 @@ public sealed class CheckInventoryRequestHandler(
                 QuantityOnHand = quantityOnHand
             });
     }
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Inventory check for {ProductName}: {QuantityOnHand} on hand, requested {Quantity} — {Result}")]
+    private partial void LogInventoryCheck(string productName, int quantityOnHand, int quantity, string result);
 }
