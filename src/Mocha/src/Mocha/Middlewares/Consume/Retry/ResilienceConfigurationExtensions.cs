@@ -16,8 +16,8 @@ public static class ResilienceConfigurationExtensions
     /// <returns>The builder for method chaining.</returns>
     public static IMessageBusBuilder AddResilience(this IMessageBusBuilder builder)
     {
-        builder.ConfigureFeature(f => f.GetOrSet<ExceptionPolicyFeature>()
-            .Configure(p => p.Default().Retry().ThenRedeliver()));
+        builder.ConfigureFeature(f => f.GetOrSet<ExceptionPolicyFeature>().Configure(p => p.AddDefaultPolicy()));
+
         return builder;
     }
 
@@ -31,7 +31,13 @@ public static class ResilienceConfigurationExtensions
         this IMessageBusBuilder builder,
         Action<ExceptionPolicyOptions> configure)
     {
-        builder.ConfigureFeature(f => f.GetOrSet<ExceptionPolicyFeature>().Configure(configure));
+        builder.ConfigureFeature(f =>
+        {
+            var feature = f.GetOrSet<ExceptionPolicyFeature>();
+            feature.Configure(p => p.AddDefaultPolicy());
+            feature.Configure(configure);
+        });
+
         return builder;
     }
 
@@ -68,12 +74,14 @@ public static class ResilienceConfigurationExtensions
     /// <typeparam name="TDescriptor">The descriptor type that supports receive middleware.</typeparam>
     /// <param name="descriptor">The descriptor to configure.</param>
     /// <returns>The descriptor for method chaining.</returns>
-    public static TDescriptor AddResilience<TDescriptor>(
-        this TDescriptor descriptor)
+    public static TDescriptor AddResilience<TDescriptor>(this TDescriptor descriptor)
         where TDescriptor : IReceiveMiddlewareProvider
     {
-        descriptor.Extend().Configuration.Features.GetOrSet<ExceptionPolicyFeature>()
-            .Configure(p => p.Default().Retry().ThenRedeliver());
+        descriptor
+            .Extend()
+            .Configuration.Features.GetOrSet<ExceptionPolicyFeature>()
+            .Configure(p => p.AddDefaultPolicy());
+
         return descriptor;
     }
 
@@ -89,7 +97,16 @@ public static class ResilienceConfigurationExtensions
         Action<ExceptionPolicyOptions> configure)
         where TDescriptor : IReceiveMiddlewareProvider
     {
-        descriptor.Extend().Configuration.Features.GetOrSet<ExceptionPolicyFeature>().Configure(configure);
+        var feature = descriptor.Extend().Configuration.Features.GetOrSet<ExceptionPolicyFeature>();
+        feature.Configure(p => p.AddDefaultPolicy());
+        feature.Configure(configure);
+
         return descriptor;
+    }
+
+    private static ExceptionPolicyOptions AddDefaultPolicy(this ExceptionPolicyOptions options)
+    {
+        options.Default().Retry().ThenRedeliver();
+        return options;
     }
 }

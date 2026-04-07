@@ -22,7 +22,7 @@ internal sealed class ConsumerRetryMiddleware(ImmutableArray<ExceptionPolicyRule
         }
 
         // Expose retry state to handlers via features.
-        var retryState = context.Features.GetOrSet<RetryRuntimeFeature>();
+        var retryState = context.Features.GetOrSet<RetryFeature>();
         retryState.DelayedRetryCount = delayedRetryCount;
         retryState.ImmediateRetryCount = 0;
 

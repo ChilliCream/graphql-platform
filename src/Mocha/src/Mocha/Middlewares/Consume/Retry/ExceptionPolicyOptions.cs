@@ -3,18 +3,13 @@ namespace Mocha;
 /// <summary>
 /// Options for configuring exception policies with per-exception rules.
 /// </summary>
-public class ExceptionPolicyOptions
+/// <remarks>
+/// Initializes a new instance of the <see cref="ExceptionPolicyOptions"/> class.
+/// </remarks>
+/// <param name="rules">The shared list of exception policy rules to populate.</param>
+public class ExceptionPolicyOptions(List<ExceptionPolicyRule> rules)
 {
-    private readonly List<ExceptionPolicyRule> _rules;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ExceptionPolicyOptions"/> class.
-    /// </summary>
-    /// <param name="rules">The shared list of exception policy rules to populate.</param>
-    public ExceptionPolicyOptions(List<ExceptionPolicyRule> rules)
-    {
-        _rules = rules;
-    }
+    private readonly List<ExceptionPolicyRule> _rules = rules;
 
     /// <summary>
     /// Configures the default behavior for all exceptions that don't match a more specific rule.
@@ -28,8 +23,7 @@ public class ExceptionPolicyOptions
     /// </summary>
     /// <typeparam name="TException">The exception type to configure.</typeparam>
     /// <returns>A builder for configuring the exception behavior.</returns>
-    public IExceptionPolicyBuilder<TException> On<TException>() where TException : Exception
-        => On<TException>(null);
+    public IExceptionPolicyBuilder<TException> On<TException>() where TException : Exception => On<TException>(null);
 
     /// <summary>
     /// Configures behavior for a specific exception type matching a predicate.
@@ -43,11 +37,9 @@ public class ExceptionPolicyOptions
         Func<Exception, bool>? wrappedPredicate = predicate is not null
             ? ex => ex is TException typed && predicate(typed)
             : null;
-        var rule = new ExceptionPolicyRule
-        {
-            ExceptionType = typeof(TException),
-            Predicate = wrappedPredicate
-        };
+
+        var rule = new ExceptionPolicyRule { ExceptionType = typeof(TException), Predicate = wrappedPredicate };
+
         return new ExceptionPolicyBuilder<TException>(rule, _rules);
     }
 }

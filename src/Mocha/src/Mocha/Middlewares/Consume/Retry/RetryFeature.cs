@@ -5,7 +5,7 @@ namespace Mocha;
 /// <c>context.Features.Get&lt;RetryState&gt;()</c>.
 /// Null if retry is not configured via AddResilience.
 /// </summary>
-public sealed class RetryRuntimeFeature
+public sealed class RetryFeature
 {
     /// <summary>
     /// Number of immediate retries already attempted for this delivery round.

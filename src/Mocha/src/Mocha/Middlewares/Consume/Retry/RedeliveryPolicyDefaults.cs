@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace Mocha;
 
 /// <summary>
@@ -8,7 +10,7 @@ internal static class RedeliveryPolicyDefaults
     /// <summary>
     /// The default redelivery intervals. Value: 5min, 15min, 30min.
     /// </summary>
-    public static readonly TimeSpan[] Intervals =
+    public static readonly ImmutableArray<TimeSpan> Intervals =
     [
         TimeSpan.FromMinutes(5),
         TimeSpan.FromMinutes(15),

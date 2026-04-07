@@ -415,7 +415,7 @@ public sealed class RetryTests
     {
         public ValueTask ConsumeAsync(IConsumeContext<OrderCreated> context)
         {
-            var retryState = context.Features.Get<RetryRuntimeFeature>();
+            var retryState = context.Features.Get<RetryFeature>();
             capture.Record(retryState?.ImmediateRetryCount ?? -1);
             throw new InvalidOperationException("Fail to trigger retry");
         }

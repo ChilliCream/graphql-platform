@@ -493,7 +493,7 @@ public class PaymentConsumer(ILogger<PaymentConsumer> logger) : IConsumer<Proces
 {
     public async ValueTask ConsumeAsync(IConsumeContext<ProcessPayment> context)
     {
-        var state = context.Features.Get<RetryRuntimeFeature>();
+        var state = context.Features.Get<RetryFeature>();
 
         if (state is { ImmediateRetryCount: > 2 })
         {
@@ -516,7 +516,7 @@ public class PaymentConsumer(ILogger<PaymentConsumer> logger) : IConsumer<Proces
 }
 ```
 
-`RetryRuntimeFeature` is `null` when `AddResilience()` is not configured. When present, it exposes two properties:
+`RetryFeature` is `null` when `AddResilience()` is not configured. When present, it exposes two properties:
 
 | Property              | Type  | Description                                                                                |
 | --------------------- | ----- | ------------------------------------------------------------------------------------------ |

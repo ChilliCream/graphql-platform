@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace Mocha;
 
 /// <summary>
@@ -33,5 +35,5 @@ public sealed class RedeliveryPolicyConfig
     /// <summary>
     /// Gets the explicit redelivery intervals, or <c>null</c> to use global defaults.
     /// </summary>
-    public TimeSpan[]? Intervals { get; init; }
+    public ImmutableArray<TimeSpan>? Intervals { get; init; }
 }

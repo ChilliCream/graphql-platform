@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace Mocha;
 
 /// <summary>
@@ -38,5 +40,5 @@ public sealed class RetryPolicyConfig
     /// <summary>
     /// Gets the explicit retry intervals.
     /// </summary>
-    public TimeSpan[]? Intervals { get; init; }
+    public ImmutableArray<TimeSpan>[]? Intervals { get; init; }
 }
