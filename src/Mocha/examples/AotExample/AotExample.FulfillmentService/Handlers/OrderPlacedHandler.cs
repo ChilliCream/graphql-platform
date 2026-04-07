@@ -4,12 +4,12 @@ using Mocha;
 
 namespace AotExample.FulfillmentService.Handlers;
 
-public sealed partial class OrderPlacedHandler(IMessageBus messageBus, ILogger<OrderPlacedHandler> logger)
+public sealed class OrderPlacedHandler(IMessageBus messageBus, ILogger<OrderPlacedHandler> logger)
     : IEventHandler<OrderPlacedEvent>
 {
     public async ValueTask HandleAsync(OrderPlacedEvent message, CancellationToken cancellationToken)
     {
-        LogOrderReceived(message.OrderId, message.Quantity, message.ProductName);
+        logger.LogOrderReceived(message.OrderId, message.Quantity, message.ProductName);
 
         // Check inventory with OrderService via bus request/response
         var inventory = await messageBus.RequestAsync(
@@ -18,7 +18,7 @@ public sealed partial class OrderPlacedHandler(IMessageBus messageBus, ILogger<O
 
         if (!inventory.IsAvailable)
         {
-            LogCannotFulfillOrder(message.OrderId, inventory.QuantityOnHand, message.ProductName);
+            logger.LogCannotFulfillOrder(message.OrderId, inventory.QuantityOnHand, message.ProductName);
             return;
         }
 
@@ -33,15 +33,18 @@ public sealed partial class OrderPlacedHandler(IMessageBus messageBus, ILogger<O
             },
             cancellationToken);
 
-        LogOrderFulfilled(message.OrderId, trackingNumber);
+        logger.LogOrderFulfilled(message.OrderId, trackingNumber);
     }
+}
 
+internal static partial class Logs
+{
     [LoggerMessage(Level = LogLevel.Information, Message = "Received order {OrderId}: {Quantity}x {ProductName}")]
-    private partial void LogOrderReceived(string orderId, int quantity, string productName);
+    public static partial void LogOrderReceived(this ILogger logger, string orderId, int quantity, string productName);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Cannot fulfill order {OrderId}: only {QuantityOnHand} of {ProductName} on hand")]
-    private partial void LogCannotFulfillOrder(string orderId, int quantityOnHand, string productName);
+    public static partial void LogCannotFulfillOrder(this ILogger logger, string orderId, int quantityOnHand, string productName);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Order {OrderId} fulfilled — tracking {TrackingNumber}")]
-    private partial void LogOrderFulfilled(string orderId, string trackingNumber);
+    public static partial void LogOrderFulfilled(this ILogger logger, string orderId, string trackingNumber);
 }

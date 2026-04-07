@@ -6,7 +6,7 @@ using Mocha.Mediator;
 
 namespace AotExample.OrderService;
 
-public sealed partial class OrderSimulatorWorker(
+public sealed class OrderSimulatorWorker(
     IServiceScopeFactory scopeFactory,
     ILogger<OrderSimulatorWorker> logger)
     : BackgroundService
@@ -25,7 +25,7 @@ public sealed partial class OrderSimulatorWorker(
     {
         await Task.Delay(3000, stoppingToken);
 
-        LogSimulatorStarted();
+        logger.LogSimulatorStarted();
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -48,7 +48,7 @@ public sealed partial class OrderSimulatorWorker(
                     new GetOrderStatusQuery { OrderId = result.OrderId },
                     stoppingToken);
 
-                LogOrderStatus(result.OrderId, status.Status);
+                logger.LogOrderStatus(result.OrderId, status.Status);
 
                 var correlationId = Guid.NewGuid();
 
@@ -69,19 +69,22 @@ public sealed partial class OrderSimulatorWorker(
             }
             catch (Exception ex)
             {
-                LogSimulationError(ex);
+                logger.LogSimulationError(ex);
             }
 
             await Task.Delay(5000, stoppingToken);
         }
     }
+}
 
+internal static partial class Logs
+{
     [LoggerMessage(Level = LogLevel.Information, Message = "Order simulator started")]
-    private partial void LogSimulatorStarted();
+    public static partial void LogSimulatorStarted(this ILogger logger);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Order {OrderId} status: {Status}")]
-    private partial void LogOrderStatus(string orderId, string status);
+    public static partial void LogOrderStatus(this ILogger logger, string orderId, string status);
 
     [LoggerMessage(Level = LogLevel.Error, Message = "Error in order simulation")]
-    private partial void LogSimulationError(Exception ex);
+    public static partial void LogSimulationError(this ILogger logger, Exception ex);
 }

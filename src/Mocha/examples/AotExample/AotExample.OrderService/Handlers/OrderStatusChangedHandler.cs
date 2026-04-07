@@ -3,19 +3,19 @@ using Mocha.Mediator;
 
 namespace AotExample.OrderService.Handlers;
 
-public sealed partial class OrderStatusChangedHandler(
-    ILogger<OrderStatusChangedHandler> logger)
+public sealed class OrderStatusChangedHandler(ILogger<OrderStatusChangedHandler> logger)
     : INotificationHandler<OrderStatusChangedNotification>
 {
-    public ValueTask HandleAsync(
-        OrderStatusChangedNotification notification,
-        CancellationToken cancellationToken)
+    public ValueTask HandleAsync(OrderStatusChangedNotification notification, CancellationToken cancellationToken)
     {
-        LogOrderStatusChanged(notification.OrderId, notification.Status);
+        logger.LogOrderStatusChanged(notification.OrderId, notification.Status);
 
         return ValueTask.CompletedTask;
     }
+}
 
+internal static partial class Logs
+{
     [LoggerMessage(Level = LogLevel.Information, Message = "Order {OrderId} status changed to {Status}")]
-    private partial void LogOrderStatusChanged(string orderId, string status);
+    public static partial void LogOrderStatusChanged(this ILogger logger, string orderId, string status);
 }
