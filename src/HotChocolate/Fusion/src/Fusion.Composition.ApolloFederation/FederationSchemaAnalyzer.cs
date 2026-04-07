@@ -1,5 +1,6 @@
 using HotChocolate.Fusion.Errors;
 using HotChocolate.Language;
+using static HotChocolate.Fusion.ApolloFederation.Properties.FederationResources;
 
 namespace HotChocolate.Fusion.ApolloFederation;
 
@@ -37,7 +38,7 @@ internal static class FederationSchemaAnalyzer
 
         if (federationVersion is null)
         {
-            result.Errors.Add(new CompositionError("Federation v1 is not supported."));
+            result.Errors.Add(new CompositionError(FederationSchemaAnalyzer_FederationV1NotSupported));
             return;
         }
 
@@ -48,7 +49,7 @@ internal static class FederationSchemaAnalyzer
     {
         foreach (var definition in document.Definitions)
         {
-            IReadOnlyList<DirectiveNode>? directives = definition switch
+            var directives = definition switch
             {
                 SchemaDefinitionNode schemaDef => schemaDef.Directives,
                 SchemaExtensionNode schemaExt => schemaExt.Directives,
@@ -62,25 +63,16 @@ internal static class FederationSchemaAnalyzer
 
             foreach (var directive in directives)
             {
-                if (!directive.Name.Value.Equals(
-                        FederationDirectiveNames.Link,
-                        StringComparison.Ordinal))
+                if (!directive.Name.Value.Equals(FederationDirectiveNames.Link, StringComparison.Ordinal))
                 {
                     continue;
                 }
 
                 var url = GetStringArgument(directive, "url");
 
-                if (url is null
-                    || !url.Contains(FederationUrlPrefix, StringComparison.Ordinal))
+                if (url is null || !url.Contains(FederationUrlPrefix, StringComparison.Ordinal))
                 {
                     continue;
-                }
-
-                // Check for @composeDirective imports in this @link directive.
-                if (HasComposeDirectiveImport(directive))
-                {
-                    // We only add the error but continue to extract the version.
                 }
 
                 // Extract version from URL like
@@ -95,14 +87,6 @@ internal static class FederationSchemaAnalyzer
         }
 
         return null;
-    }
-
-    private static bool HasComposeDirectiveImport(DirectiveNode linkDirective)
-    {
-        // @link can import specific directives via the `import` argument.
-        // We do not inspect imports here; @composeDirective is a separate directive.
-        // This is checked elsewhere in AnalyzeTypeDefinitions.
-        return false;
     }
 
     private static void DetectQueryTypeName(DocumentNode document, AnalysisResult result)
@@ -123,12 +107,19 @@ internal static class FederationSchemaAnalyzer
                 }
             }
         }
-
-        // Default remains "Query" as set in AnalysisResult constructor.
     }
 
     private static void AnalyzeTypeDefinitions(DocumentNode document, AnalysisResult result)
     {
+        var unsupportedDirectives = new HashSet<string>(StringComparer.Ordinal)
+        {
+            FederationDirectiveNames.ComposeDirective,
+            FederationDirectiveNames.Authenticated,
+            FederationDirectiveNames.RequiresScopes,
+            FederationDirectiveNames.Policy,
+            FederationDirectiveNames.InterfaceObject
+        };
+
         foreach (var definition in document.Definitions)
         {
             switch (definition)
@@ -148,88 +139,13 @@ internal static class FederationSchemaAnalyzer
                         interfaceType.Fields,
                         result);
                     break;
-            }
-        }
 
-        // Check for @composeDirective definitions in the document.
-        foreach (var definition in document.Definitions)
-        {
-            if (definition is DirectiveDefinitionNode directiveDef
-                && directiveDef.Name.Value.Equals(
-                    FederationDirectiveNames.ComposeDirective,
-                    StringComparison.Ordinal))
-            {
-                result.Errors.Add(
-                    new CompositionError(
-                        "The @composeDirective feature is not supported."));
-                break;
-            }
-        }
-
-        // Also check for @composeDirective usage in @link imports.
-        foreach (var definition in document.Definitions)
-        {
-            IReadOnlyList<DirectiveNode>? directives = definition switch
-            {
-                SchemaDefinitionNode schemaDef => schemaDef.Directives,
-                SchemaExtensionNode schemaExt => schemaExt.Directives,
-                _ => null
-            };
-
-            if (directives is null)
-            {
-                continue;
-            }
-
-            foreach (var directive in directives)
-            {
-                if (directive.Name.Value.Equals(
-                        FederationDirectiveNames.Link,
-                        StringComparison.Ordinal))
-                {
-                    var url = GetStringArgument(directive, "url");
-
-                    if (url?.Contains(FederationUrlPrefix, StringComparison.Ordinal) == false)
-                    {
-                        // This is a non-federation @link, check if there is a
-                        // @composeDirective applied elsewhere.
-                        CheckForComposeDirectiveUsage(document, result);
-                        break;
-                    }
-                }
-            }
-        }
-    }
-
-    private static void CheckForComposeDirectiveUsage(
-        DocumentNode document,
-        AnalysisResult result)
-    {
-        foreach (var definition in document.Definitions)
-        {
-            IReadOnlyList<DirectiveNode>? directives = definition switch
-            {
-                SchemaDefinitionNode schemaDef => schemaDef.Directives,
-                SchemaExtensionNode schemaExt => schemaExt.Directives,
-                _ => null
-            };
-
-            if (directives is null)
-            {
-                continue;
-            }
-
-            foreach (var directive in directives)
-            {
-                if (directive.Name.Value.Equals(
-                        FederationDirectiveNames.ComposeDirective,
-                        StringComparison.Ordinal))
-                {
-                    result.Errors.Add(
-                        new CompositionError(
-                            "The @composeDirective feature is not supported."));
-                    return;
-                }
+                case DirectiveDefinitionNode directiveDef
+                    when unsupportedDirectives.Contains(directiveDef.Name.Value):
+                    result.Errors.Add(new CompositionError(string.Format(
+                        FederationSchemaAnalyzer_DirectiveNotSupported,
+                        directiveDef.Name.Value)));
+                    break;
             }
         }
     }
@@ -240,26 +156,11 @@ internal static class FederationSchemaAnalyzer
         IReadOnlyList<FieldDefinitionNode> fields,
         AnalysisResult result)
     {
-        // Check for unsupported directives on the type.
+        // we extract the key directives from federation and construct from resolvable keys lookups and from
+        // non-resolvable keys simply the keys.
         foreach (var directive in directives)
         {
-            if (directive.Name.Value.Equals(
-                    FederationDirectiveNames.InterfaceObject,
-                    StringComparison.Ordinal))
-            {
-                result.Errors.Add(
-                    new CompositionError(
-                        $"The @interfaceObject directive on type '{typeName}'"
-                        + " is not supported."));
-            }
-        }
-
-        // Extract @key directives.
-        foreach (var directive in directives)
-        {
-            if (!directive.Name.Value.Equals(
-                    FederationDirectiveNames.Key,
-                    StringComparison.Ordinal))
+            if (!directive.Name.Value.Equals(FederationDirectiveNames.Key, StringComparison.Ordinal))
             {
                 continue;
             }
@@ -286,7 +187,7 @@ internal static class FederationSchemaAnalyzer
             });
         }
 
-        // Build field type map.
+        // For later processing we need the type of each field of this type.
         var fieldTypes = new Dictionary<string, ITypeNode>(StringComparer.Ordinal);
 
         foreach (var field in fields)
@@ -295,39 +196,6 @@ internal static class FederationSchemaAnalyzer
         }
 
         result.TypeFieldTypes[typeName] = fieldTypes;
-
-        // Check for unsupported directives on fields.
-        foreach (var field in fields)
-        {
-            foreach (var directive in field.Directives)
-            {
-                if (directive.Name.Value.Equals(
-                        FederationDirectiveNames.InterfaceObject,
-                        StringComparison.Ordinal))
-                {
-                    result.Errors.Add(
-                        new CompositionError(
-                            "The @interfaceObject directive on field"
-                            + $" '{typeName}.{field.Name.Value}' is not supported."));
-                }
-
-                if (directive.Name.Value.Equals(
-                        FederationDirectiveNames.Override,
-                        StringComparison.Ordinal))
-                {
-                    var label = GetStringArgument(directive, "label");
-
-                    if (label is not null)
-                    {
-                        result.Errors.Add(
-                            new CompositionError(
-                                "The @override directive with a 'label' argument"
-                                + $" on field '{typeName}.{field.Name.Value}'"
-                                + " is not supported."));
-                    }
-                }
-            }
-        }
     }
 
     private static string? GetStringArgument(DirectiveNode directive, string argumentName)

@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Language;
+using static HotChocolate.Fusion.ApolloFederation.Properties.FederationResources;
 
 namespace HotChocolate.Fusion.ApolloFederation;
 
@@ -34,7 +35,7 @@ public static class FederationSchemaTransformer
         catch (SyntaxException ex)
         {
             return new CompositionError(
-                $"Failed to parse federation SDL: {ex.Message}");
+                string.Format(FederationSchemaTransformer_ParseFailed, ex.Message));
         }
 
         var analysis = FederationSchemaAnalyzer.Analyze(document);
