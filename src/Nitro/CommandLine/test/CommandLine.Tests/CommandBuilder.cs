@@ -112,12 +112,13 @@ internal sealed class CommandBuilder
     {
         var context = CreateContext();
 
-        if (!context.TestConsole.Profile.Capabilities.Interactive)
+        if (context.Console is not TestConsole testConsole
+            || !testConsole.Profile.Capabilities.Interactive)
         {
             throw new InvalidOperationException();
         }
 
-        return new InteractiveCommand(context);
+        return new InteractiveCommand(context, testConsole);
     }
 
     private static Session CreateSession(Workspace? workspace)
@@ -154,14 +155,49 @@ internal sealed class CommandBuilder
     {
         var stdOutWriter = new StringWriter();
         var stdErrWriter = new StringWriter();
+        var arguments = _arguments.ToList();
 
-        var testConsole = new TestConsole();
-        testConsole.Profile.Out = new AnsiConsoleOutput(stdOutWriter);
-        testConsole.Profile.Width = 10_000;
+        IAnsiConsole testConsole;
+        IAnsiConsole errorConsole;
 
-        var errorConsole = new TestConsole();
-        errorConsole.Profile.Out = new AnsiConsoleOutput(stdErrWriter);
-        errorConsole.Profile.Width = 10_000;
+        if (_interactionMode is InteractionMode.NonInteractive or InteractionMode.JsonOutput)
+        {
+            testConsole = AnsiConsole.Create(new AnsiConsoleSettings
+            {
+                Ansi = AnsiSupport.No,
+                Out = new AnsiConsoleOutput(stdOutWriter)
+            });
+            testConsole.Profile.Width = 10_000;
+
+            errorConsole = AnsiConsole.Create(new AnsiConsoleSettings
+            {
+                Ansi = AnsiSupport.No,
+                Out = new AnsiConsoleOutput(stdErrWriter)
+            });
+            errorConsole.Profile.Width = 10_000;
+
+            if (_interactionMode is InteractionMode.JsonOutput)
+            {
+                arguments.AddRange(["--output", "json"]);
+            }
+            else
+            {
+                testConsole.Profile.Capabilities.Interactive = false;
+            }
+        }
+        else
+        {
+            var tc = new TestConsole();
+            tc.Profile.Out = new AnsiConsoleOutput(stdOutWriter);
+            tc.Profile.Width = 10_000;
+            tc.Profile.Capabilities.Interactive = true;
+            testConsole = tc;
+
+            var ec = new TestConsole();
+            ec.Profile.Out = new AnsiConsoleOutput(stdErrWriter);
+            ec.Profile.Width = 10_000;
+            errorConsole = ec;
+        }
 
         var console = new NitroConsole(testConsole, errorConsole, _environmentVariableProviderMock.Object);
 
@@ -170,25 +206,6 @@ internal sealed class CommandBuilder
         var services = _services.BuildServiceProvider();
 
         var rootCommand = _fixture?.RootCommand ?? new NitroRootCommand();
-
-        var arguments = _arguments.ToList();
-
-        if (_interactionMode is InteractionMode.JsonOutput)
-        {
-            testConsole.Profile.Capabilities.Ansi = false;
-            errorConsole.Profile.Capabilities.Ansi = false;
-            arguments.AddRange(["--output", "json"]);
-        }
-        else if (_interactionMode is InteractionMode.NonInteractive)
-        {
-            testConsole.Profile.Capabilities.Ansi = false;
-            errorConsole.Profile.Capabilities.Ansi = false;
-            testConsole.Profile.Capabilities.Interactive = false;
-        }
-        else
-        {
-            testConsole.Profile.Capabilities.Interactive = true;
-        }
 
         return new CommandContext(
             stdOutWriter,
@@ -203,7 +220,7 @@ internal sealed class CommandBuilder
 internal sealed record CommandContext(
     TextWriter StdOut,
     TextWriter StdErr,
-    TestConsole TestConsole,
+    IAnsiConsole Console,
     NitroRootCommand RootCommand,
     IReadOnlyList<string> Arguments,
     IServiceProvider Services)
@@ -232,26 +249,26 @@ public sealed record CommandResult(
     string StdErr,
     string ExecutableName);
 
-internal sealed class InteractiveCommand(CommandContext context)
+internal sealed class InteractiveCommand(CommandContext context, TestConsole testConsole)
 {
     public void Input(string input)
     {
-        context.TestConsole.Input.PushTextWithEnter(input);
+        testConsole.Input.PushTextWithEnter(input);
     }
 
     public void SelectOption(int index)
     {
         for (var i = 0; i < index; i++)
         {
-            context.TestConsole.Input.PushKey(ConsoleKey.DownArrow);
+            testConsole.Input.PushKey(ConsoleKey.DownArrow);
         }
 
-        context.TestConsole.Input.PushKey(ConsoleKey.Enter);
+        testConsole.Input.PushKey(ConsoleKey.Enter);
     }
 
     public void Confirm(bool value)
     {
-        context.TestConsole.Input.PushTextWithEnter(value ? "y" : "n");
+        testConsole.Input.PushTextWithEnter(value ? "y" : "n");
     }
 
     public async Task<CommandResult> RunToCompletionAsync(
