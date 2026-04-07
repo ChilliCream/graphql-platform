@@ -1,3 +1,5 @@
+using ChilliCream.Nitro.CommandLine.Tests.Commands;
+
 namespace ChilliCream.Nitro.CommandLine.Tests;
 
 internal static class CommandExecutionResultExtensions

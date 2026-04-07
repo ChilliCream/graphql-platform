@@ -1,3 +1,4 @@
+using System.CommandLine;
 using System.Text;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.ApiKeys;
@@ -5,15 +6,19 @@ using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.Client.Environments;
 using ChilliCream.Nitro.Client.FusionConfiguration;
-using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.Client.Mcp;
 using ChilliCream.Nitro.Client.Mocks;
 using ChilliCream.Nitro.Client.OpenApi;
 using ChilliCream.Nitro.Client.PersonalAccessTokens;
 using ChilliCream.Nitro.Client.Schemas;
+using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Services;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
+using Spectre.Console;
+using Spectre.Console.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands;
 
@@ -79,43 +84,124 @@ public abstract class CommandTestBase
 
     protected async Task<CommandResult> ExecuteCommandAsync(params string[] args)
     {
-        return await CreateCommandBuilder()
-           .AddInteractionMode(_interactionMode)
-           .AddArguments(args)
-           .ExecuteAsync();
+        var arguments = args.ToList();
+
+        if (_authenticated)
+        {
+            arguments.AddRange(["--api-key", "default-api-key"]);
+        }
+
+        var stdOutWriter = new StringWriter();
+        var stdErrWriter = new StringWriter();
+
+        var outConsole = AnsiConsole.Create(new AnsiConsoleSettings
+        {
+            Ansi = AnsiSupport.No,
+            ColorSystem = ColorSystemSupport.NoColors,
+            Out = new AnsiConsoleOutput(stdOutWriter)
+        });
+        outConsole.Profile.Width = 10_000;
+
+        var errConsole = AnsiConsole.Create(new AnsiConsoleSettings
+        {
+            Ansi = AnsiSupport.No,
+            ColorSystem = ColorSystemSupport.NoColors,
+            Out = new AnsiConsoleOutput(stdErrWriter)
+        });
+        errConsole.Profile.Width = 10_000;
+
+        if (_interactionMode is InteractionMode.JsonOutput)
+        {
+            arguments.AddRange(["--output", "json"]);
+        }
+        else if (_interactionMode is InteractionMode.NonInteractive)
+        {
+            outConsole.Profile.Capabilities.Interactive = false;
+        }
+        else
+        {
+            outConsole.Profile.Capabilities.Interactive = true;
+        }
+
+        var console = new NitroConsole(outConsole, errConsole, _environmentVariableProviderMock.Object);
+        var services = BuildServices(console);
+        var rootCommand = _fixture.RootCommand;
+
+        var invocationConfig = new InvocationConfiguration
+        {
+            Output = stdOutWriter,
+            Error = stdErrWriter
+        };
+
+        var exitCode = await rootCommand.ExecuteAsync(arguments, services, invocationConfig, default);
+
+        return new CommandResult(
+            exitCode,
+            stdOutWriter.ToString()?.TrimEnd() ?? string.Empty,
+            stdErrWriter.ToString()?.TrimEnd() ?? string.Empty,
+            rootCommand.Name);
     }
 
     internal InteractiveCommand StartInteractiveCommand(params string[] args)
     {
-        return CreateCommandBuilder()
-            .AddInteractionMode(_interactionMode)
-            .AddArguments(args)
-            .Start();
-    }
-
-    private CommandBuilder CreateCommandBuilder()
-    {
-        var builder = new CommandBuilder(_fixture)
-            .AddService(_fileSystemMock.Object)
-            .AddService(_environmentVariableProviderMock.Object)
-            .AddService(SessionServiceMock.Object)
-            .AddService(WorkspacesClientMock.Object)
-            .AddService(SchemasClientMock.Object)
-            .AddService(FusionConfigurationClientMock.Object)
-            .AddService(ClientsClientMock.Object)
-            .AddService(ApisClientMock.Object)
-            .AddService(OpenApiClientMock.Object)
-            .AddService(McpClientMock.Object)
-            .AddService(MocksClientMock.Object)
-            .AddService(ApiKeysClientMock.Object)
-            .AddService(PersonalAccessTokensClientMock.Object)
-            .AddService(EnvironmentsClientMock.Object)
-            .AddService(StagesClientMock.Object);
+        var arguments = args.ToList();
 
         if (_authenticated)
         {
-            builder.AddApiKey();
+            arguments.AddRange(["--api-key", "default-api-key"]);
         }
+
+        if (_interactionMode is InteractionMode.JsonOutput)
+        {
+            arguments.AddRange(["--output", "json"]);
+        }
+
+        var stdOutWriter = new StringWriter();
+        var stdErrWriter = new StringWriter();
+
+        var outConsole = new TestConsole();
+        outConsole.Profile.Out = new AnsiConsoleOutput(stdOutWriter);
+        outConsole.Profile.Width = 10_000;
+        outConsole.Profile.Capabilities.Interactive = true;
+
+        var errConsole = new TestConsole();
+        errConsole.Profile.Out = new AnsiConsoleOutput(stdErrWriter);
+        errConsole.Profile.Width = 10_000;
+
+        var console = new NitroConsole(outConsole, errConsole, _environmentVariableProviderMock.Object);
+        var services = BuildServices(console);
+        var rootCommand = _fixture.RootCommand;
+
+        return new InteractiveCommand(
+            async cancellationToken =>
+            {
+                var invocationConfig = new InvocationConfiguration
+                {
+                    Output = stdOutWriter,
+                    Error = stdErrWriter
+                };
+
+                var exitCode = await rootCommand.ExecuteAsync(
+                    arguments, services, invocationConfig, cancellationToken);
+
+                return new CommandResult(
+                    exitCode,
+                    stdOutWriter.ToString()?.TrimEnd() ?? string.Empty,
+                    stdErrWriter.ToString()?.TrimEnd() ?? string.Empty,
+                    rootCommand.Name);
+            },
+            outConsole);
+    }
+
+    private ServiceProvider BuildServices(INitroConsole console)
+    {
+        var services = new ServiceCollection();
+
+        services.AddNitroServices();
+
+        services.AddSingleton<NitroClientContext>();
+        services.AddSingleton<INitroClientContextProvider>(
+            sp => sp.GetRequiredService<NitroClientContext>());
 
         if (_useSession)
         {
@@ -134,7 +220,24 @@ public abstract class CommandTestBase
                         "Workspace from session")));
         }
 
-        return builder;
+        services.Replace(ServiceDescriptor.Singleton(_fileSystemMock.Object));
+        services.Replace(ServiceDescriptor.Singleton(_environmentVariableProviderMock.Object));
+        services.Replace(ServiceDescriptor.Singleton(SessionServiceMock.Object));
+        services.Replace(ServiceDescriptor.Singleton(WorkspacesClientMock.Object));
+        services.Replace(ServiceDescriptor.Singleton(SchemasClientMock.Object));
+        services.Replace(ServiceDescriptor.Singleton(FusionConfigurationClientMock.Object));
+        services.Replace(ServiceDescriptor.Singleton(ClientsClientMock.Object));
+        services.Replace(ServiceDescriptor.Singleton(ApisClientMock.Object));
+        services.Replace(ServiceDescriptor.Singleton(OpenApiClientMock.Object));
+        services.Replace(ServiceDescriptor.Singleton(McpClientMock.Object));
+        services.Replace(ServiceDescriptor.Singleton(MocksClientMock.Object));
+        services.Replace(ServiceDescriptor.Singleton(ApiKeysClientMock.Object));
+        services.Replace(ServiceDescriptor.Singleton(PersonalAccessTokensClientMock.Object));
+        services.Replace(ServiceDescriptor.Singleton(EnvironmentsClientMock.Object));
+        services.Replace(ServiceDescriptor.Singleton(StagesClientMock.Object));
+        services.AddSingleton(console);
+
+        return services.BuildServiceProvider();
     }
 
     private static Services.Sessions.Session CreateSession(
@@ -292,5 +395,42 @@ public abstract class CommandTestBase
         WorkspacesClientMock.VerifyAll();
         EnvironmentsClientMock.VerifyAll();
         StagesClientMock.VerifyAll();
+    }
+}
+
+public sealed record CommandResult(
+    int ExitCode,
+    string StdOut,
+    string StdErr,
+    string ExecutableName);
+
+internal sealed class InteractiveCommand(
+    Func<CancellationToken, Task<CommandResult>> executeAsync,
+    TestConsole testConsole)
+{
+    public void Input(string input)
+    {
+        testConsole.Input.PushTextWithEnter(input);
+    }
+
+    public void SelectOption(int index)
+    {
+        for (var i = 0; i < index; i++)
+        {
+            testConsole.Input.PushKey(ConsoleKey.DownArrow);
+        }
+
+        testConsole.Input.PushKey(ConsoleKey.Enter);
+    }
+
+    public void Confirm(bool value)
+    {
+        testConsole.Input.PushTextWithEnter(value ? "y" : "n");
+    }
+
+    public async Task<CommandResult> RunToCompletionAsync(
+        CancellationToken cancellationToken = default)
+    {
+        return await executeAsync(cancellationToken);
     }
 }
