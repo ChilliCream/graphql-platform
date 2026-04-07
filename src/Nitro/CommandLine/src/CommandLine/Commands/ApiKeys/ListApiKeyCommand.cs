@@ -1,9 +1,8 @@
-using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.ApiKeys;
+using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys.Components;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
@@ -13,85 +12,84 @@ internal sealed class ListApiKeyCommand : Command
 {
     public ListApiKeyCommand() : base("list")
     {
-        Description = "Lists all API keys of a workspace";
+        Description = "List all API keys of a workspace.";
 
-        AddOption(Opt<CursorOption>.Instance);
-        AddOption(Opt<WorkspaceIdOption>.Instance);
+        Options.Add(Opt<OptionalCursorOption>.Instance);
+        Options.Add(Opt<OptionalWorkspaceIdOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples("api-key list");
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken ct)
     {
-        var workspaceId = context.RequireWorkspaceId();
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IApiKeysClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        if (console.IsHumanReadable())
+        var workspaceId = parseResult.GetWorkspaceId(sessionService);
+
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
+
+        if (console.IsInteractive)
         {
-            return await RenderInteractiveAsync(context, console, client, workspaceId, ct);
+            return await RenderInteractiveAsync(cursor, console, client, resultHolder, workspaceId, ct);
         }
 
-        return await RenderNonInteractiveAsync(context, console, client, workspaceId, ct);
+        return await RenderNonInteractiveAsync(cursor, client, resultHolder, workspaceId, ct);
     }
 
     private static async Task<int> RenderInteractiveAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        string? cursor,
+        INitroConsole console,
+        IApiKeysClient client,
+        IResultHolder resultHolder,
         string workspaceId,
         CancellationToken ct)
     {
         var container = PaginationContainer
-            .Create((after, first, _) =>
-                    client.ListApiKeyCommandQuery.ExecuteAsync(workspaceId, after, first, ct),
-                static p => p.WorkspaceById?.ApiKeys?.PageInfo,
-                static p => p.WorkspaceById?.ApiKeys?.Edges)
+            .CreateConnectionData((after, first, token)
+                => client.ListApiKeysAsync(workspaceId, after ?? cursor, first, token))
             .PageSize(10);
 
-        var api = await PagedTable
+        var apiKey = await PagedTable
             .From(container)
             .Title("API Keys")
-            .AddColumn("Id", x => x.Node.Id)
-            .AddColumn("Name", x => x.Node.Name)
+            .AddColumn("Id", x => x.Id)
+            .AddColumn("Name", x => x.Name)
             .RenderAsync(console, ct);
 
-        if (api?.Node is IApiKeyDetailPrompt_ApiKey node)
+        if (apiKey is not null)
         {
-            context.SetResult(ApiKeyDetailPrompt.From(node).ToObject());
+            resultHolder.SetResult(new ObjectResult(ApiKeyDetailPrompt.From(apiKey).ToObject()));
         }
 
         return ExitCodes.Success;
     }
 
     private static async Task<int> RenderNonInteractiveAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        string? cursor,
+        IApiKeysClient client,
+        IResultHolder resultHolder,
         string workspaceId,
         CancellationToken ct)
     {
-        var cursor = context.ParseResult.GetValueForOption(Opt<CursorOption>.Instance);
-        var result = await client
-            .ListApiKeyCommandQuery
-            .ExecuteAsync(workspaceId, cursor, 10, ct);
+        var data = await client.ListApiKeysAsync(workspaceId, cursor, 10, ct);
 
-        console.EnsureNoErrors(result);
+        var items = data.Items
+            .Select(ApiKeyDetailPrompt.From)
+            .Select(x => x.ToObject())
+            .ToArray();
 
-        var endCursor = result.Data?.WorkspaceById?.ApiKeys?.PageInfo.EndCursor;
-
-        var items = result.Data?.WorkspaceById?.ApiKeys?.Edges?.Select(x =>
-                ApiKeyDetailPrompt.From(x.Node).ToObject())
-            .ToArray() ?? [];
-
-        context.SetResult(new PaginatedListResult<ApiKeyDetailPrompt.ApiKeyDetailPromptResult>(items, endCursor));
+        resultHolder.SetResult(
+            new PaginatedListResult<ApiKeyDetailPrompt.ApiKeyDetailPromptResult>(items, data.EndCursor));
 
         return ExitCodes.Success;
     }

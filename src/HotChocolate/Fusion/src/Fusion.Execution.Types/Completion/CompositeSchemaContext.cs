@@ -172,7 +172,7 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
             default,
             FusionDirectiveCollection.Empty,
             specifiedBy: null,
-            serializationType: ScalarSerializationType.String,
+            serializationType: GetSpecScalarSerializationType(name),
             pattern: null));
 
         _typeDefinitionNodeLookup = _typeDefinitionNodeLookup.SetItem(name, typeDef);
@@ -180,6 +180,19 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
 
         return type;
     }
+
+    private static ScalarSerializationType GetSpecScalarSerializationType(string name)
+        => name switch
+        {
+            SpecScalarNames.String.Name => ScalarSerializationType.String,
+            SpecScalarNames.Int.Name => ScalarSerializationType.Int,
+            SpecScalarNames.Float.Name => ScalarSerializationType.Float,
+            SpecScalarNames.Boolean.Name => ScalarSerializationType.Boolean,
+            SpecScalarNames.ID.Name => ScalarSerializationType.String | ScalarSerializationType.Int,
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(name),
+                $"The specified name `{name}` is not a valid spec scalar name.")
+        };
 
     private static IType CreateType(ITypeNode typeNode, ITypeDefinition compositeNamedType)
     {

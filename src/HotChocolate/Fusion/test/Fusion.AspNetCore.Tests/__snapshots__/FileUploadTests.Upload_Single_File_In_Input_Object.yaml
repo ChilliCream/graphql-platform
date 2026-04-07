@@ -79,6 +79,7 @@ sourceSchemas:
       scalar Upload @serializeAs(type: STRING)
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           contentType: multipart/form-data; boundary="f56524ab-5626-4955-b296-234a097b44f6"
           body: |
             --f56524ab-5626-4955-b296-234a097b44f6

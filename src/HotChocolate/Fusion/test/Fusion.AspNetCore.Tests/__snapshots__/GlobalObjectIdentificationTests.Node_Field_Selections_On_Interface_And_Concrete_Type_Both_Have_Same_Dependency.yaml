@@ -67,6 +67,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query testQuery_648537b2_3(
               $id: ID!
@@ -120,6 +121,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query testQuery_648537b2_4(
               $__fusion_1_id: ID!
@@ -143,6 +145,7 @@ sourceSchemas:
                 }
               }
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query testQuery_648537b2_5(
               $__fusion_2_id: ID!

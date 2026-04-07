@@ -36,7 +36,7 @@ public abstract partial class FusionTestBase : IDisposable
         Action<IServiceCollection>? configureServices = null,
         Action<IApplicationBuilder>? configureApplication = null,
         Action<IFusionGatewayBuilder>? configureGatewayBuilder = null,
-        [StringSyntax("json")] string? schemaSettings = null)
+        [StringSyntax("json")] string? gatewaySettings = null)
     {
         var sourceSchemas = new List<SourceSchemaText>();
         var gatewayServices = new ServiceCollection();
@@ -56,13 +56,15 @@ public abstract partial class FusionTestBase : IDisposable
             gatewayServices.TryAddSingleton<IHttpClientFactory, Factory>();
             gatewayServices.AddSingleton(new TestServerRegistration(name, server, sourceSchemaOptions));
 
-            if (schemaSettings is null)
+            if (gatewaySettings is null)
             {
                 gatewayBuilder.AddHttpClientConfiguration(
                     name,
                     new Uri("http://localhost:5000/graphql"),
-                    batchingMode: sourceSchemaOptions.BatchingMode,
+                    capabilities: sourceSchemaOptions.Capabilities,
+                    defaultAcceptHeaderValues: sourceSchemaOptions.DefaultAcceptHeaderValues,
                     batchingAcceptHeaderValues: sourceSchemaOptions.BatchingAcceptHeaderValues,
+                    subscriptionAcceptHeaderValues: sourceSchemaOptions.SubscriptionAcceptHeaderValues,
                     onBeforeSend: (context, node, request) =>
                     {
                         var interaction = GetOrCreateInteractionForRequest(context, node, request);
@@ -96,7 +98,10 @@ public abstract partial class FusionTestBase : IDisposable
                         interaction.Request = new SourceSchemaInteraction.RawSourceSchemaRequest
                         {
                             Body = bodyStream,
-                            ContentType = contentType
+                            ContentType = contentType,
+                            Accept = request.Headers.Accept.Count > 0
+                                ? string.Join(", ", request.Headers.Accept)
+                                : null
                         };
                     },
                     onAfterReceive: (context, node, response) =>
@@ -141,9 +146,9 @@ public abstract partial class FusionTestBase : IDisposable
         }
 
         JsonDocumentOwner? settings = null;
-        if (schemaSettings is not null)
+        if (gatewaySettings is not null)
         {
-            var body = JsonDocument.Parse(schemaSettings);
+            var body = JsonDocument.Parse(gatewaySettings);
             settings = new JsonDocumentOwner(body, new EmptyMemoryOwner());
         }
 
@@ -267,6 +272,7 @@ public abstract partial class FusionTestBase : IDisposable
         {
             public required MemoryStream Body { get; init; }
             public required MediaTypeHeaderValue ContentType { get; init; }
+            public string? Accept { get; init; }
         }
     }
 
@@ -276,13 +282,19 @@ public abstract partial class FusionTestBase : IDisposable
 
         public bool IsTimingOut { get; set; }
 
-        public SourceSchemaHttpClientBatchingMode BatchingMode { get; set; }
-
-        public ImmutableArray<MediaTypeWithQualityHeaderValue>? BatchingAcceptHeaderValues { get; set; }
-
         public Action<HttpClient>? ConfigureHttpClient { get; set; }
 
         public HttpClient? HttpClient { get; set; }
+
+        public Func<HttpRequestMessage, Task<HttpResponseMessage>>? MockHttpResponse { get; set; }
+
+        public SourceSchemaClientCapabilities Capabilities { get; set; } = SourceSchemaClientCapabilities.All;
+
+        public ImmutableArray<MediaTypeWithQualityHeaderValue>? DefaultAcceptHeaderValues { get; set; }
+
+        public ImmutableArray<MediaTypeWithQualityHeaderValue>? BatchingAcceptHeaderValues { get; set; }
+
+        public ImmutableArray<MediaTypeWithQualityHeaderValue>? SubscriptionAcceptHeaderValues { get; set; }
     }
 
     private sealed class OperationPlanHttpRequestInterceptor : DefaultHttpRequestInterceptor
@@ -320,6 +332,10 @@ public abstract partial class FusionTestBase : IDisposable
                 else if (registration.Options.IsTimingOut)
                 {
                     client = new HttpClient(new TimeoutHandler());
+                }
+                else if (registration.Options.MockHttpResponse is { } mockHandler)
+                {
+                    client = new HttpClient(new MockResponseHandler(mockHandler));
                 }
                 else if (registration.Options.HttpClient is { } httpClient)
                 {
@@ -359,6 +375,15 @@ public abstract partial class FusionTestBase : IDisposable
 
                 return new HttpResponseMessage(HttpStatusCode.OK);
             }
+        }
+
+        private class MockResponseHandler(
+            Func<HttpRequestMessage, Task<HttpResponseMessage>> handler) : HttpMessageHandler
+        {
+            protected override Task<HttpResponseMessage> SendAsync(
+                HttpRequestMessage request,
+                CancellationToken cancellationToken)
+                => handler(request);
         }
     }
 

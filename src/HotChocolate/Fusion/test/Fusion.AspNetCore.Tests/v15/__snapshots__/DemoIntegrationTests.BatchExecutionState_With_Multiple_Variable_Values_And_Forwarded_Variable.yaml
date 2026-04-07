@@ -89,6 +89,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
             query Op_b1ca18eb_3(
               $arg2: String
@@ -168,6 +169,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_b1ca18eb_1 {
               userBySlug(slug: "me") {
@@ -185,6 +187,7 @@ sourceSchemas:
                 }
               }
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
             query Op_b1ca18eb_4(
               $arg1: String
@@ -280,6 +283,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_b1ca18eb_2(
               $__fusion_1_id: ID!

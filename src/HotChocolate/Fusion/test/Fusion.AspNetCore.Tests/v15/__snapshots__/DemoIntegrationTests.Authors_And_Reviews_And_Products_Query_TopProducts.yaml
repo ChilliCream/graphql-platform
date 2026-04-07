@@ -116,6 +116,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
             query TopProducts_c6ef3d11_3(
               $__fusion_2_id: ID!
@@ -277,6 +278,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
             query TopProducts_c6ef3d11_2(
               $__fusion_1_id: ID!
@@ -435,6 +437,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query TopProducts_c6ef3d11_1 {
               topProducts(first: 2) {

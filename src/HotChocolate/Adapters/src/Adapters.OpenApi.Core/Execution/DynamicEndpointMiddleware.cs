@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.IO.Pipelines;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
@@ -332,13 +333,19 @@ internal sealed class DynamicEndpointMiddleware(
                     return false;
                 }
 
+                if (leaf.IsNonNullType)
+                {
+                    throw new BadRequestException(
+                        $"Required route parameter '{leaf.ParameterKey}' is missing");
+                }
+
                 parameterValue = s_nullValueNode;
                 return true;
             }
 
             try
             {
-                parameterValue = ParseValueNode(value, leaf.Type);
+                parameterValue = ParseValueNode(value, leaf.NamedType);
                 return true;
             }
             catch (InvalidFormatException)
@@ -349,20 +356,32 @@ internal sealed class DynamicEndpointMiddleware(
 
         if (leaf.ParameterType is OpenApiEndpointParameterType.Query)
         {
-            if (!query.TryGetValue(leaf.ParameterKey, out var values) || values is not [{ } value])
+            if (!query.TryGetValue(leaf.ParameterKey, out var values))
             {
                 if (leaf.HasDefaultValue)
                 {
                     return false;
                 }
 
+                if (leaf.IsNonNullType)
+                {
+                    throw new BadRequestException(
+                        $"Required query parameter '{leaf.ParameterKey}' is missing");
+                }
+
                 parameterValue = s_nullValueNode;
                 return true;
             }
 
+            if (values is not [{ } value])
+            {
+                throw new BadRequestException(
+                    $"Query parameter '{leaf.ParameterKey}' can only be specified once.");
+            }
+
             try
             {
-                parameterValue = ParseValueNode(value, leaf.Type);
+                parameterValue = ParseValueNode(value, leaf.NamedType);
                 return true;
             }
             catch (InvalidFormatException)
@@ -418,7 +437,7 @@ internal sealed class DynamicEndpointMiddleware(
                     return new IntValueNode(i);
                 }
 
-                if (value is string s && int.TryParse(s, out var intValue))
+                if (value is string s && int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out var intValue))
                 {
                     return new IntValueNode(intValue);
                 }
@@ -449,7 +468,14 @@ internal sealed class DynamicEndpointMiddleware(
                     return new FloatValueNode(d);
                 }
 
-                if (value is string s && double.TryParse(s, out var doubleValue))
+                if (value is string s
+                    && double.TryParse(
+                        s,
+                        NumberStyles.Float,
+                        CultureInfo.InvariantCulture,
+                        out var doubleValue)
+                    && !double.IsNaN(doubleValue)
+                    && !double.IsInfinity(doubleValue))
                 {
                     return new FloatValueNode(doubleValue);
                 }
