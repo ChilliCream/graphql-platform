@@ -758,7 +758,6 @@ public class AbstractTypeTests : FusionTestBase
             interface Votable @key(fields: "id") {
               id: ID!
               upvotes: Int!
-              score: Int!
             }
 
             type Discussion implements Votable & Node @key(fields: "id") {
