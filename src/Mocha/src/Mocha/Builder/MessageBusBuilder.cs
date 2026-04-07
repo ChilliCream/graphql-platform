@@ -203,10 +203,7 @@ public partial class MessageBusBuilder : IMessageBusBuilder
     {
         var sagaType = typeof(TSaga);
 
-        if (_sagaRegistrations.Exists(r => r.SagaType == sagaType))
-        {
-            return this;
-        }
+        _sagaRegistrations.RemoveAll(r => r.SagaType == sagaType);
 
         _sagaRegistrations.Add(new SagaRegistration { SagaType = sagaType, Factory = static () => new TSaga() });
 
@@ -257,19 +254,14 @@ public partial class MessageBusBuilder : IMessageBusBuilder
     {
         var sagaType = typeof(TSaga);
 
-        if (_sagaRegistrations.Exists(r => r.SagaType == sagaType))
-        {
-            return this;
-        }
-
-        var serializer = configuration.StateSerializer;
+        _sagaRegistrations.RemoveAll(r => r.SagaType == sagaType);
 
         _sagaRegistrations.Add(
             new SagaRegistration
             {
                 SagaType = sagaType,
                 Factory = static () => new TSaga(),
-                StateSerializer = serializer
+                StateSerializer = configuration.StateSerializer
             });
 
         return this;
