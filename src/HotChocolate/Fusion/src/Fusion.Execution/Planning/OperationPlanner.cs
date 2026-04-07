@@ -451,6 +451,7 @@ public sealed partial class OperationPlanner
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
             var backlog = current.Backlog;
 
             if (backlog.IsEmpty)
