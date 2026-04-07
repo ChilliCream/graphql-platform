@@ -16,5 +16,5 @@ public class MessagingOptions : IReadOnlyMessagingOptions
     /// startup. When <c>true</c>, runtime auto-registration of unknown types throws instead of
     /// falling back to reflection-based serialization. Defaults to <c>false</c>.
     /// </summary>
-    public bool RequireExplicitMessageTypes { get; set; }
+    public bool IsAotCompatible { get; set; }
 }

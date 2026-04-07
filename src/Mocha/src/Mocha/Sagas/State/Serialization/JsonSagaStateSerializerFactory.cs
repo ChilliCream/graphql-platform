@@ -34,12 +34,12 @@ internal sealed class JsonSagaStateSerializerFactory(
 
         if (typeInfo is null)
         {
-            if (options.RequireExplicitMessageTypes)
+            if (options.IsAotCompatible)
             {
                 throw new InvalidOperationException(
                     $"No JsonTypeInfo found for saga state type '{type.Name}'. "
                         + "Register it via [JsonSerializable] on your JsonSerializerContext. "
-                        + "Set RequireExplicitMessageTypes = false to allow reflection-based serialization.");
+                        + "Set IsAotCompatible = false to allow reflection-based serialization.");
             }
 
             typeInfo = JsonSerializerOptions.Default.GetTypeInfo(type);

@@ -59,12 +59,12 @@ public sealed class MessageTypeRegistry(
             return messageType;
         }
 
-        if (options.RequireExplicitMessageTypes)
+        if (options.IsAotCompatible)
         {
             throw new InvalidOperationException(
-                $"Message type '{type.Name}' was not registered at startup. "
+                $"Message type '{type.FullName}' was not registered at startup. "
                 + "Register it via the source generator or AddMessageConfiguration(). "
-                + "Set RequireExplicitMessageTypes = false to allow runtime type registration.");
+                + "Set IsAotCompatible = false to allow runtime type registration.");
         }
 
         lock (_lock)

@@ -537,7 +537,7 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
     private sealed class StubMessagingOptions : IReadOnlyMessagingOptions
     {
         public MessageContentType DefaultContentType => new("application/json");
-        public bool RequireExplicitMessageTypes => false;
+        public bool IsAotCompatible => false;
     }
 
     private sealed class StubHostInfo : IHostInfo

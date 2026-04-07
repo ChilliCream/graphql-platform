@@ -78,7 +78,7 @@ public sealed class MessagingDependencyInjectionFileBuilder : FileBuilderBase
         Writer.WriteIndentedLine("global::Mocha.MessageBusHostBuilderExtensions.ModifyOptions(");
         Writer.IncreaseIndent();
         Writer.WriteIndentedLine("builder,");
-        Writer.WriteIndentedLine("static o => o.RequireExplicitMessageTypes = true);");
+        Writer.WriteIndentedLine("static o => o.IsAotCompatible = true);");
         Writer.DecreaseIndent();
     }
 

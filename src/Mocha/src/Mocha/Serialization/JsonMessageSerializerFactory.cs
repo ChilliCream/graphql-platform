@@ -31,12 +31,12 @@ internal sealed class JsonMessageSerializerFactory(
 
         if (typeInfo is null)
         {
-            if (options.RequireExplicitMessageTypes)
+            if (options.IsAotCompatible)
             {
                 throw new InvalidOperationException(
-                    $"No JsonTypeInfo found for type '{type.Name}'. "
+                    $"No JsonTypeInfo found for type '{type.FullName}'. "
                     + "Register it via [JsonSerializable] on your JsonSerializerContext. "
-                    + "Set RequireExplicitMessageTypes = false to allow reflection-based serialization.");
+                    + "Set IsAotCompatible = false to allow reflection-based serialization.");
             }
 
             typeInfo = JsonSerializerOptions.Default.GetTypeInfo(type);

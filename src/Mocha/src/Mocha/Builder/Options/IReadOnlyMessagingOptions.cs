@@ -15,5 +15,5 @@ public interface IReadOnlyMessagingOptions
     /// Gets a value indicating whether all message types must be explicitly registered at startup.
     /// When <c>true</c>, runtime auto-registration of unknown types is disabled.
     /// </summary>
-    bool RequireExplicitMessageTypes { get; }
+    bool IsAotCompatible { get; }
 }

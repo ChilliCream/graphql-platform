@@ -4,7 +4,6 @@
     <PublishAot>true</PublishAot>
     <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
-  <Import Project="..\..\..\src\Mocha.Analyzers\buildTransitive\Mocha.Analyzers.props" />
   <ItemGroup>
     <ProjectReference Include="..\AotExample.Contracts\AotExample.Contracts.csproj" />
     <ProjectReference Include="..\..\..\src\Mocha\Mocha.csproj" />
