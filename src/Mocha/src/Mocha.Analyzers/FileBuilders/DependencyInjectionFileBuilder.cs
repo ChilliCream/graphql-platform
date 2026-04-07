@@ -43,7 +43,8 @@ public sealed class DependencyInjectionFileBuilder : FileBuilderBase
     {
         if (messageTypeNames is { Count: > 0 })
         {
-            Writer.WriteIndentedLine("[global::Mocha.Mediator.MediatorModuleInfo(MessageTypes = new global::System.Type[]");
+            Writer.WriteIndentedLine(
+                "[global::Mocha.Mediator.MediatorModuleInfo(MessageTypes = new global::System.Type[]");
             Writer.WriteIndentedLine("{");
             Writer.IncreaseIndent();
             foreach (var typeName in messageTypeNames)
@@ -92,9 +93,7 @@ public sealed class DependencyInjectionFileBuilder : FileBuilderBase
     /// <summary>
     /// Writes an AddHandlerConfiguration call for a notification handler.
     /// </summary>
-    public void WriteNotificationHandlerConfiguration(
-        string notificationType,
-        NotificationHandlerInfo handler)
+    public void WriteNotificationHandlerConfiguration(string notificationType, NotificationHandlerInfo handler)
     {
         WriteAddHandlerConfiguration(
             handler.HandlerTypeName,

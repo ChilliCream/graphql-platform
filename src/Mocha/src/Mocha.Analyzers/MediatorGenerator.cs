@@ -359,6 +359,7 @@ public sealed class MediatorGenerator : IIncrementalGenerator
         [Errors.AbstractHandler.Id] = Errors.AbstractHandler,
         [Errors.OpenGenericMessageType.Id] = Errors.OpenGenericMessageType,
         [Errors.MultipleHandlerInterfaces.Id] = Errors.MultipleHandlerInterfaces,
+        [Errors.OpenGenericHandler.Id] = Errors.OpenGenericHandler,
         [Errors.CallSiteNoHandler.Id] = Errors.CallSiteNoHandler
     };
 

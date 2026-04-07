@@ -47,16 +47,16 @@ public class MessageBusSchedulingTests
         public List<(object Message, DateTimeOffset ScheduledTime)> ScheduledSendMessages { get; } = [];
         public List<(object Message, DateTimeOffset ScheduledTime)> ScheduledPublishMessages { get; } = [];
 
-        public ValueTask SendAsync<T>(T message, CancellationToken cancellationToken) =>
+        public ValueTask SendAsync<T>(T message, CancellationToken cancellationToken) where T : notnull =>
             ValueTask.CompletedTask;
 
-        public ValueTask SendAsync<T>(T message, SendOptions options, CancellationToken cancellationToken) =>
+        public ValueTask SendAsync<T>(T message, SendOptions options, CancellationToken cancellationToken) where T : notnull =>
             ValueTask.CompletedTask;
 
-        public ValueTask PublishAsync<T>(T message, CancellationToken cancellationToken) =>
+        public ValueTask PublishAsync<T>(T message, CancellationToken cancellationToken) where T : notnull =>
             ValueTask.CompletedTask;
 
-        public ValueTask PublishAsync<T>(T message, PublishOptions options, CancellationToken cancellationToken) =>
+        public ValueTask PublishAsync<T>(T message, PublishOptions options, CancellationToken cancellationToken) where T : notnull =>
             ValueTask.CompletedTask;
 
         public ValueTask<TResponse> RequestAsync<TResponse>(
@@ -104,9 +104,9 @@ public class MessageBusSchedulingTests
         public ValueTask<SchedulingResult> ScheduleSendAsync<T>(
             T message,
             DateTimeOffset scheduledTime,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken) where T : notnull
         {
-            ScheduledSendMessages.Add((message!, scheduledTime));
+            ScheduledSendMessages.Add((message, scheduledTime));
             return ValueTask.FromResult(new SchedulingResult { ScheduledTime = scheduledTime });
         }
 
@@ -114,9 +114,9 @@ public class MessageBusSchedulingTests
             T message,
             DateTimeOffset scheduledTime,
             SendOptions options,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken) where T : notnull
         {
-            ScheduledSendMessages.Add((message!, scheduledTime));
+            ScheduledSendMessages.Add((message, scheduledTime));
             return ValueTask.FromResult(new SchedulingResult { ScheduledTime = scheduledTime });
         }
 

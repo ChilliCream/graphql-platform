@@ -12,8 +12,7 @@ public interface IMessageBus
     /// <param name="message">The message instance to publish.</param>
     /// <param name="cancellationToken">A token to cancel the publish operation.</param>
     /// <returns>A task that completes when the message has been handed off to the transport.</returns>
-    ValueTask PublishAsync<T>(T message, CancellationToken cancellationToken)
-        where T : notnull;
+    ValueTask PublishAsync<T>(T message, CancellationToken cancellationToken) where T : notnull;
 
     /// <summary>
     /// Publishes a message to all subscribers of the specified message type with additional publish options.
@@ -23,8 +22,7 @@ public interface IMessageBus
     /// <param name="options">Options controlling publish behavior such as headers and expiration.</param>
     /// <param name="cancellationToken">A token to cancel the publish operation.</param>
     /// <returns>A task that completes when the message has been handed off to the transport.</returns>
-    ValueTask PublishAsync<T>(T message, PublishOptions options, CancellationToken cancellationToken)
-        where T : notnull;
+    ValueTask PublishAsync<T>(T message, PublishOptions options, CancellationToken cancellationToken) where T : notnull;
 
     /// <summary>
     /// Sends a message to a single receiver determined by the message type's routing configuration.
@@ -33,8 +31,7 @@ public interface IMessageBus
     /// <param name="message">The message instance to send.</param>
     /// <param name="cancellationToken">A token to cancel the send operation.</param>
     /// <returns>A task that completes when the message has been handed off to the transport.</returns>
-    ValueTask SendAsync<T>(T message, CancellationToken cancellationToken)
-        where T : notnull;
+    ValueTask SendAsync<T>(T message, CancellationToken cancellationToken) where T : notnull;
 
     /// <summary>
     /// Sends a message to a single receiver with additional send options.
@@ -44,8 +41,7 @@ public interface IMessageBus
     /// <param name="options">Options controlling send behavior such as headers and expiration.</param>
     /// <param name="cancellationToken">A token to cancel the send operation.</param>
     /// <returns>A task that completes when the message has been handed off to the transport.</returns>
-    ValueTask SendAsync<T>(T message, SendOptions options, CancellationToken cancellationToken)
-        where T : notnull;
+    ValueTask SendAsync<T>(T message, SendOptions options, CancellationToken cancellationToken) where T : notnull;
 
     /// <summary>
     /// Sends a request message and waits for a typed response from the handler.
@@ -112,7 +108,8 @@ public interface IMessageBus
     ValueTask<SchedulingResult> SchedulePublishAsync<T>(
         T message,
         DateTimeOffset scheduledTime,
-        CancellationToken cancellationToken) where T : notnull;
+        CancellationToken cancellationToken)
+        where T : notnull;
 
     /// <summary>
     /// Publishes a message scheduled for delivery at the specified time with additional options.
@@ -127,7 +124,8 @@ public interface IMessageBus
         T message,
         DateTimeOffset scheduledTime,
         PublishOptions options,
-        CancellationToken cancellationToken) where T : notnull;
+        CancellationToken cancellationToken)
+        where T : notnull;
 
     /// <summary>
     /// Sends a message scheduled for delivery at the specified time.
@@ -166,7 +164,5 @@ public interface IMessageBus
     /// <param name="token">The opaque scheduling token returned by a prior schedule operation.</param>
     /// <param name="cancellationToken">A token to cancel the cancellation operation.</param>
     /// <returns><c>true</c> if the scheduled message was cancelled; otherwise <c>false</c>.</returns>
-    ValueTask<bool> CancelScheduledMessageAsync(
-        string token,
-        CancellationToken cancellationToken);
+    ValueTask<bool> CancelScheduledMessageAsync(string token, CancellationToken cancellationToken);
 }

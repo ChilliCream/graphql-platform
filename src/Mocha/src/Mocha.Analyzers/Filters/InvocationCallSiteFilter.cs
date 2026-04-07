@@ -15,7 +15,7 @@ public sealed class InvocationCallSiteFilter : ISyntaxFilter
     /// <inheritdoc />
     public bool IsMatch(SyntaxNode node)
         => node is InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax memberAccess }
-            && IsDispatchMethodName(GetMethodName(memberAccess));
+        && IsDispatchMethodName(GetMethodName(memberAccess));
 
     /// <summary>
     /// Gets the singleton instance of <see cref="InvocationCallSiteFilter"/>.
@@ -31,10 +31,11 @@ public sealed class InvocationCallSiteFilter : ISyntaxFilter
         };
 
     private static bool IsDispatchMethodName(string? name)
-        => name is "SendAsync"
-            or "PublishAsync"
-            or "QueryAsync"
-            or "ScheduleSendAsync"
-            or "SchedulePublishAsync"
-            or "RequestAsync";
+        => name
+            is "SendAsync"
+                or "PublishAsync"
+                or "QueryAsync"
+                or "ScheduleSendAsync"
+                or "SchedulePublishAsync"
+                or "RequestAsync";
 }

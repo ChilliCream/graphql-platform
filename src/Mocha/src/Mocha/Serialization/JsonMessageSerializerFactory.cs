@@ -7,15 +7,20 @@ namespace Mocha;
 
 internal sealed class JsonMessageSerializerFactory(
     IEnumerable<IJsonTypeInfoResolver> typeInfos,
-    IReadOnlyMessagingOptions options)
-    : IMessageSerializerFactory
+    IReadOnlyMessagingOptions options) : IMessageSerializerFactory
 {
     private readonly ImmutableArray<IJsonTypeInfoResolver> _typeInfos = [.. typeInfos];
 
     public MessageContentType ContentType { get; } = MessageContentType.Json;
 
-    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Fallback path; AOT users provide JsonSerializerContext via MessagingModule attribute.")]
-    [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "Fallback path; AOT users provide JsonSerializerContext via MessagingModule attribute.")]
+    [UnconditionalSuppressMessage(
+        "Trimming",
+        "IL2026",
+        Justification = "Fallback path; AOT users provide JsonSerializerContext via MessagingModule attribute.")]
+    [UnconditionalSuppressMessage(
+        "AOT",
+        "IL3050",
+        Justification = "Fallback path; AOT users provide JsonSerializerContext via MessagingModule attribute.")]
     public IMessageSerializer GetSerializer(Type type)
     {
         JsonTypeInfo? typeInfo = null;
@@ -35,8 +40,8 @@ internal sealed class JsonMessageSerializerFactory(
             {
                 throw new InvalidOperationException(
                     $"No JsonTypeInfo found for type '{type.FullName}'. "
-                    + "Register it via [JsonSerializable] on your JsonSerializerContext. "
-                    + "Set IsAotCompatible = false to allow reflection-based serialization.");
+                        + "Register it via [JsonSerializable] on your JsonSerializerContext. "
+                        + "Set IsAotCompatible = false to allow reflection-based serialization.");
             }
 
             typeInfo = JsonSerializerOptions.Default.GetTypeInfo(type);

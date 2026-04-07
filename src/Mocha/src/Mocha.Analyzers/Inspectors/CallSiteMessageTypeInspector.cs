@@ -17,8 +17,7 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
     public ImmutableArray<ISyntaxFilter> Filters { get; } = [InvocationCallSiteFilter.Instance];
 
     /// <inheritdoc />
-    public IImmutableSet<SyntaxKind> SupportedKinds { get; } =
-        ImmutableHashSet.Create(SyntaxKind.InvocationExpression);
+    public IImmutableSet<SyntaxKind> SupportedKinds { get; } = ImmutableHashSet.Create(SyntaxKind.InvocationExpression);
 
     /// <inheritdoc />
     public bool TryHandle(
@@ -106,7 +105,7 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
                 return false;
         }
 
-        // Non-generic RequestAsync(object, CT) — ack-only version.
+        // Non-generic RequestAsync(object, CT) - ack-only version.
         // Fall back to argument-expression analysis to get the compile-time type.
         if (kind == CallSiteKind.Request && methodSymbol.TypeArguments.Length == 0)
         {
@@ -124,7 +123,7 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
             return false;
         }
 
-        // All other IMessageBus methods are generic — extract T from type arguments.
+        // All other IMessageBus methods are generic - extract T from type arguments.
         if (methodSymbol.TypeArguments.Length == 0)
         {
             return false;
@@ -134,8 +133,9 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
 
         // For RequestAsync<TResponse>(IEventRequest<TResponse>, ...), the type argument is the response.
         // We want the message type (the first parameter's compile-time type) AND the response type.
-        if (kind == CallSiteKind.Request && methodSymbol.Parameters.Length > 0
-            && methodSymbol.Parameters[0].Type is INamedTypeSymbol requestParamType)
+        if (kind == CallSiteKind.Request
+            && methodSymbol.Parameters.Length > 0
+            && methodSymbol.Parameters[0].Type is INamedTypeSymbol)
         {
             // The first parameter is IEventRequest<TResponse> or a concrete type implementing it.
             // Get the compile-time type of the first argument expression.
@@ -147,9 +147,11 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
 
                 // The response type is the type argument TResponse from RequestAsync<TResponse>.
                 string? responseTypeName = null;
-                if (methodSymbol.TypeArguments.Length > 0 && !IsOpenTypeParameter(methodSymbol.TypeArguments[0]))
+                if (methodSymbol.TypeArguments.Length > 0
+                    && !IsOpenTypeParameter(methodSymbol.TypeArguments[0]))
                 {
-                    responseTypeName = methodSymbol.TypeArguments[0]
+                    responseTypeName = methodSymbol
+                        .TypeArguments[0]
                         .ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
                 }
 
@@ -198,7 +200,7 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
         // ISender methods take the message as the first parameter.
         // For SendAsync(ICommand, CT) and SendAsync<TResponse>(ICommand<TResponse>, CT)
         // and QueryAsync<TResponse>(IQuery<TResponse>, CT), get the first argument's type.
-        // Skip SendAsync(object, CT) — runtime dispatch, no static type info.
+        // Skip SendAsync(object, CT) - runtime dispatch, no static type info.
         if (methodSymbol.Parameters.Length == 0)
         {
             return false;
@@ -234,7 +236,7 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
             return false;
         }
 
-        // Skip PublishAsync(object, CT) — runtime dispatch.
+        // Skip PublishAsync(object, CT) - runtime dispatch.
         if (methodSymbol.TypeArguments.Length == 0)
         {
             return false;
@@ -267,6 +269,5 @@ public sealed class CallSiteMessageTypeInspector : ISyntaxInspector
         return typeInfo.Type;
     }
 
-    private static bool IsOpenTypeParameter(ITypeSymbol type)
-        => type.TypeKind == TypeKind.TypeParameter;
+    private static bool IsOpenTypeParameter(ITypeSymbol type) => type.TypeKind == TypeKind.TypeParameter;
 }

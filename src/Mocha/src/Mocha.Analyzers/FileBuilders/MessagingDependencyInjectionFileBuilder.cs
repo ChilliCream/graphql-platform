@@ -88,8 +88,7 @@ public sealed class MessagingDependencyInjectionFileBuilder : FileBuilderBase
     /// <param name="jsonContextTypeName">The fully qualified type name of the JsonSerializerContext.</param>
     public void WriteJsonTypeInfoResolverRegistration(string jsonContextTypeName)
     {
-        Writer.WriteIndentedLine(
-            "global::Mocha.MessageBusHostBuilderExtensions.AddJsonTypeInfoResolver(");
+        Writer.WriteIndentedLine("global::Mocha.MessageBusHostBuilderExtensions.AddJsonTypeInfoResolver(");
         Writer.IncreaseIndent();
         Writer.WriteIndentedLine("builder,");
         Writer.WriteIndentedLine("{0}.Default);", jsonContextTypeName);
@@ -109,8 +108,7 @@ public sealed class MessagingDependencyInjectionFileBuilder : FileBuilderBase
         string jsonContextTypeName,
         List<string>? enclosedTypes = null)
     {
-        Writer.WriteIndentedLine(
-            "global::Mocha.MessageBusHostBuilderExtensions.AddMessageConfiguration(");
+        Writer.WriteIndentedLine("global::Mocha.MessageBusHostBuilderExtensions.AddMessageConfiguration(");
         Writer.IncreaseIndent();
         Writer.WriteIndentedLine("builder,");
         Writer.WriteIndentedLine("new global::Mocha.MessagingMessageConfiguration");
@@ -148,8 +146,7 @@ public sealed class MessagingDependencyInjectionFileBuilder : FileBuilderBase
     /// <param name="jsonContextTypeName">The fully qualified type name of the JsonSerializerContext.</param>
     public void WriteSagaConfiguration(string sagaTypeName, string stateTypeName, string jsonContextTypeName)
     {
-        Writer.WriteIndentedLine(
-            "global::Mocha.MessageBusHostBuilderExtensions.AddSagaConfiguration<");
+        Writer.WriteIndentedLine("global::Mocha.MessageBusHostBuilderExtensions.AddSagaConfiguration<");
         Writer.IncreaseIndent();
         Writer.WriteIndentedLine("{0}>(", sagaTypeName);
         Writer.DecreaseIndent();
@@ -176,16 +173,12 @@ public sealed class MessagingDependencyInjectionFileBuilder : FileBuilderBase
     {
         var factoryCall = handler.Kind switch
         {
-            MessagingHandlerKind.Event =>
-                $"Subscribe<{handler.HandlerTypeName}, {handler.MessageTypeName}>()",
-            MessagingHandlerKind.Send =>
-                $"Send<{handler.HandlerTypeName}, {handler.MessageTypeName}>()",
+            MessagingHandlerKind.Event => $"Subscribe<{handler.HandlerTypeName}, {handler.MessageTypeName}>()",
+            MessagingHandlerKind.Send => $"Send<{handler.HandlerTypeName}, {handler.MessageTypeName}>()",
             MessagingHandlerKind.RequestResponse =>
                 $"Request<{handler.HandlerTypeName}, {handler.MessageTypeName}, {handler.ResponseTypeName}>()",
-            MessagingHandlerKind.Consumer =>
-                $"Consume<{handler.HandlerTypeName}, {handler.MessageTypeName}>()",
-            MessagingHandlerKind.Batch =>
-                $"Batch<{handler.HandlerTypeName}, {handler.MessageTypeName}>()",
+            MessagingHandlerKind.Consumer => $"Consume<{handler.HandlerTypeName}, {handler.MessageTypeName}>()",
+            MessagingHandlerKind.Batch => $"Batch<{handler.HandlerTypeName}, {handler.MessageTypeName}>()",
             _ => throw new ArgumentOutOfRangeException()
         };
 
@@ -209,8 +202,7 @@ public sealed class MessagingDependencyInjectionFileBuilder : FileBuilderBase
     /// <param name="saga">The saga info to register.</param>
     public void WriteSagaRegistration(SagaInfo saga)
     {
-        Writer.WriteIndentedLine(
-            "global::Mocha.MessageBusHostBuilderExtensions.AddSaga<");
+        Writer.WriteIndentedLine("global::Mocha.MessageBusHostBuilderExtensions.AddSaga<");
         Writer.IncreaseIndent();
         Writer.WriteIndentedLine("{0}>(builder);", saga.SagaTypeName);
         Writer.DecreaseIndent();

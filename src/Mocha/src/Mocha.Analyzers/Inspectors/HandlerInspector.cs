@@ -53,6 +53,25 @@ public sealed class HandlerInspector : ISyntaxInspector
             return false;
         }
 
+        // Check for open generics (MO0006)
+        if (namedTypeSymbol is { IsGenericType: true, TypeParameters.Length: > 0 })
+        {
+            if (ImplementsAnyHandlerInterface(knownSymbols, namedTypeSymbol))
+            {
+                var handlerName = namedTypeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                var locationInfo = typeDeclaration.Identifier.GetLocation().ToLocationInfo();
+                syntaxInfo = new OpenGenericHandlerDiagnosticInfo(handlerName)
+                {
+                    Diagnostics = new([
+                        new DiagnosticInfo(Errors.OpenGenericHandler.Id, locationInfo, new([handlerName]))
+                    ])
+                };
+                return true;
+            }
+
+            return false;
+        }
+
         foreach (var descriptor in s_handlerKinds)
         {
             var target = descriptor.GetTarget(knownSymbols);
@@ -82,8 +101,31 @@ public sealed class HandlerInspector : ISyntaxInspector
         return false;
     }
 
+    private static bool ImplementsAnyHandlerInterface(
+        KnownTypeSymbols knownSymbols,
+        INamedTypeSymbol namedTypeSymbol)
+    {
+        return
+            (knownSymbols.ICommandHandlerVoid is not null
+                && namedTypeSymbol.FindImplementedInterface(knownSymbols.ICommandHandlerVoid) is not null)
+            || (knownSymbols.ICommandHandlerResponse is not null
+                && namedTypeSymbol.FindImplementedInterface(knownSymbols.ICommandHandlerResponse) is not null)
+            || (knownSymbols.IQueryHandler is not null
+                && namedTypeSymbol.FindImplementedInterface(knownSymbols.IQueryHandler) is not null);
+    }
+
     private sealed record HandlerKindDescriptor(
         Func<KnownTypeSymbols, INamedTypeSymbol?> GetTarget,
         HandlerKind Kind,
         bool HasResponse);
+}
+
+/// <summary>
+/// A diagnostic-only SyntaxInfo for MO0006 (open generic mediator handler).
+/// This is not used by code generators.
+/// </summary>
+internal sealed record OpenGenericHandlerDiagnosticInfo(string HandlerTypeName) : SyntaxInfo
+{
+    /// <inheritdoc />
+    public override string OrderByKey => $"OpenGenericDiag:{HandlerTypeName}";
 }

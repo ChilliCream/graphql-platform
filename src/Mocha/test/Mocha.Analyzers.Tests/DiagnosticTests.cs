@@ -170,6 +170,27 @@ public class DiagnosticTests
     }
 
     [Fact]
+    public async Task MO0006_OpenGenericHandlerWithConcreteMessage_ReportsInfo()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+        [
+            """
+            using Mocha.Mediator;
+
+            namespace TestApp;
+
+            public record MyCommand : ICommand;
+
+            public class GenericHandler<T> : ICommandHandler<MyCommand>
+            {
+                public ValueTask HandleAsync(MyCommand command, CancellationToken cancellationToken)
+                    => default;
+            }
+            """
+        ]).MatchMarkdownAsync();
+    }
+
+    [Fact]
     public async Task MO0005_CommandAndNotificationHandler_ReportsError()
     {
         await TestHelper.GetGeneratedSourceSnapshot(

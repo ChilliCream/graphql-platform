@@ -15,8 +15,8 @@ public sealed class InvocationModuleFilter : ISyntaxFilter
     /// <inheritdoc />
     public bool IsMatch(SyntaxNode node)
         => node is InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax memberAccess }
-            && GetMethodName(memberAccess) is { } name
-            && name.StartsWith("Add", StringComparison.Ordinal);
+        && GetMethodName(memberAccess) is { } name
+        && name.StartsWith("Add", StringComparison.Ordinal);
 
     /// <summary>
     /// Gets the singleton instance of <see cref="InvocationModuleFilter"/>.

@@ -63,8 +63,8 @@ public sealed class MessageTypeRegistry(
         {
             throw new InvalidOperationException(
                 $"Message type '{type.FullName}' was not registered at startup. "
-                + "Register it via the source generator or AddMessageConfiguration(). "
-                + "Set IsAotCompatible = false to allow runtime type registration.");
+                    + "Register it via the source generator or AddMessageConfiguration(). "
+                    + "Set IsAotCompatible = false to allow runtime type registration.");
         }
 
         lock (_lock)

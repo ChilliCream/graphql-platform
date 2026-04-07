@@ -7,6 +7,7 @@ MO0002 | Mediator | Error | Message type has multiple handlers
 MO0003 | Mediator | Warning | Handler is abstract and will not be registered
 MO0004 | Mediator | Info | Open generic message type cannot be dispatched
 MO0005 | Mediator | Error | Handler implements multiple mediator handler interfaces
+MO0006 | Mediator | Info | Open generic handler cannot be auto-registered
 MO0011 | Messaging | Error | Request type has multiple handlers
 MO0012 | Messaging | Info | Open generic messaging handler cannot be auto-registered
 MO0013 | Messaging | Warning | Messaging handler is abstract

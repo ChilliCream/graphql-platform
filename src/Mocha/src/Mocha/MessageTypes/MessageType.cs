@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.DependencyInjection;
 using Mocha.Features;
 
 namespace Mocha;
@@ -152,6 +153,16 @@ public sealed class MessageType
         }
         else
         {
+            var options = context.Services.GetRequiredService<IReadOnlyMessagingOptions>();
+
+            if (options.IsAotCompatible)
+            {
+                throw new InvalidOperationException(
+                    $"No enclosed types provided for message type '{Identity}'. "
+                    + "Register enclosed types via the source generator. "
+                    + "Set IsAotCompatible = false to allow reflection-based type discovery.");
+            }
+
             // Reflection path: existing code, completely unchanged
             var allTypes = GetAllTypesInHierarchy(RuntimeType, context);
 

@@ -85,6 +85,21 @@ public static class Errors
         isEnabledByDefault: true);
 
     /// <summary>
+    /// Gets the descriptor for MO0006: a mediator handler is an open generic and cannot be auto-registered.
+    /// </summary>
+    /// <remarks>
+    /// Reported as an info when a mediator handler has unbound type parameters,
+    /// making it impossible to register at compile time.
+    /// </remarks>
+    public static readonly DiagnosticDescriptor OpenGenericHandler = new(
+        id: "MO0006",
+        title: "Open generic handler cannot be auto-registered",
+        messageFormat: "Handler '{0}' is an open generic and cannot be auto-registered",
+        category: "Mediator",
+        defaultSeverity: DiagnosticSeverity.Info,
+        isEnabledByDefault: true);
+
+    /// <summary>
     /// Gets the descriptor for MO0011: a request type has more than one handler.
     /// </summary>
     /// <remarks>
