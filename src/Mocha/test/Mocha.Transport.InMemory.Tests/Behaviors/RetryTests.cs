@@ -155,47 +155,6 @@ public sealed class RetryTests
     }
 
     [Fact]
-    public async Task Retry_Should_UseConsumerOverride_When_ConsumerHasDifferentConfig()
-    {
-        // arrange - bus-level: 2 retries, consumer-level: 5 retries
-        var counter = new RetryInvocationCounter();
-        var builder = new ServiceCollection()
-            .AddSingleton(counter)
-            .AddScoped<AlwaysThrowingHandler>()
-            .AddMessageBus()
-            .AddResilience(p =>
-            {
-                p.On<Exception>()
-                    .Retry(2, TimeSpan.FromMilliseconds(1), RetryBackoffType.Constant);
-            });
-
-        builder.ConfigureMessageBus(b =>
-        {
-            b.AddHandler<AlwaysThrowingHandler>(consumer =>
-            {
-                consumer.AddResilience(p =>
-                {
-                    p.On<Exception>()
-                        .Retry(5, TimeSpan.FromMilliseconds(1), RetryBackoffType.Constant);
-                });
-            });
-        });
-
-        await using var provider = await builder.AddInMemory().BuildServiceProvider();
-
-        using var scope = provider.CreateScope();
-        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-
-        // act
-        await bus.PublishAsync(new OrderCreated { OrderId = "ORD-OVERRIDE" }, CancellationToken.None);
-
-        // assert - consumer override: 1 original + 5 retries = 6 total invocations
-        Assert.True(
-            await counter.WaitForCountAsync(6, s_timeout),
-            $"Expected 6 invocations (1 original + 5 consumer-level retries), but got {counter.Count}");
-    }
-
-    [Fact]
     public async Task Retry_Should_ExposeRetryState_When_HandlerAccessesFeatures()
     {
         // arrange
@@ -229,39 +188,6 @@ public sealed class RetryTests
         Assert.Equal(0, states[0]); // first attempt
         Assert.Equal(1, states[1]); // first retry
         Assert.Equal(2, states[2]); // second retry
-    }
-
-    [Fact]
-    public async Task Retry_Should_PassThrough_When_DisabledForConsumer()
-    {
-        // arrange
-        var counter = new RetryInvocationCounter();
-        var builder = new ServiceCollection()
-            .AddSingleton(counter)
-            .AddScoped<AlwaysThrowingHandler>()
-            .AddMessageBus()
-            .AddResilience(p =>
-            {
-                p.On<Exception>()
-                    .Retry(3, TimeSpan.FromMilliseconds(1), RetryBackoffType.Constant);
-            });
-
-        builder.ConfigureMessageBus(b =>
-            b.AddHandler<AlwaysThrowingHandler>(consumer =>
-                consumer.AddResilience(p =>
-                    p.On<Exception>().Redeliver([TimeSpan.FromHours(1)]))));
-
-        await using var provider = await builder.AddInMemory().BuildServiceProvider();
-
-        using var scope = provider.CreateScope();
-        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-
-        // act
-        await bus.PublishAsync(new OrderCreated { OrderId = "ORD-DISABLED" }, CancellationToken.None);
-
-        // assert - retry disabled via consumer override: only 1 invocation (redeliver does not cause immediate retry)
-        await Task.Delay(500);
-        Assert.Equal(1, counter.Count);
     }
 
     [Fact]

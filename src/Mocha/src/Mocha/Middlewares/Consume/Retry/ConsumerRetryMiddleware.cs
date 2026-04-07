@@ -55,23 +55,11 @@ internal sealed class ConsumerRetryMiddleware(IReadOnlyList<ExceptionPolicyRule>
 file static class Extensions
 {
     /// <summary>
-    /// Resolves exception policy feature with the most specific scope taking precedence.
-    /// Consumer-level ExceptionPolicyFeature overrides bus-level.
+    /// Resolves the bus-level exception policy feature, if configured.
     /// </summary>
     public static ExceptionPolicyFeature? GetExceptionPolicyFeature(this ConsumerMiddlewareFactoryContext context)
     {
         var busFeatures = context.Services.GetRequiredService<IFeatureCollection>();
-
-        // Consumer -> bus (most specific first).
-        var config = context.Consumer.Configuration;
-        if (config is not null)
-        {
-            var consumerFeatures = config.GetFeatures();
-            if (consumerFeatures.TryGet(out ExceptionPolicyFeature? consumerFeature))
-            {
-                return consumerFeature;
-            }
-        }
 
         if (busFeatures.TryGet(out ExceptionPolicyFeature? busFeature))
         {

@@ -4,7 +4,7 @@ namespace Mocha;
 
 /// <summary>
 /// Provides extension methods for configuring exception policies including retry, redelivery,
-/// and per-exception rules on message bus builders, host builders, descriptors, and consumers.
+/// and per-exception rules on message bus builders, host builders, and descriptors.
 /// </summary>
 public static class ResilienceConfigurationExtensions
 {
@@ -88,33 +88,6 @@ public static class ResilienceConfigurationExtensions
         this TDescriptor descriptor,
         Action<ExceptionPolicyOptions> configure)
         where TDescriptor : IReceiveMiddlewareProvider
-    {
-        descriptor.Extend().Configuration.Features.GetOrSet<ExceptionPolicyFeature>().Configure(configure);
-        return descriptor;
-    }
-
-    /// <summary>
-    /// Adds exception policy configuration to a specific consumer with default settings.
-    /// Registers a catch-all rule for <see cref="Exception"/> with default retry and redelivery.
-    /// </summary>
-    /// <param name="descriptor">The consumer descriptor to configure.</param>
-    /// <returns>The descriptor for method chaining.</returns>
-    public static IConsumerDescriptor AddResilience(this IConsumerDescriptor descriptor)
-    {
-        descriptor.Extend().Configuration.Features.GetOrSet<ExceptionPolicyFeature>()
-            .Configure(p => p.Default().Retry().ThenRedeliver());
-        return descriptor;
-    }
-
-    /// <summary>
-    /// Adds exception policy configuration to a specific consumer.
-    /// </summary>
-    /// <param name="descriptor">The consumer descriptor to configure.</param>
-    /// <param name="configure">The action to configure exception policy options.</param>
-    /// <returns>The descriptor for method chaining.</returns>
-    public static IConsumerDescriptor AddResilience(
-        this IConsumerDescriptor descriptor,
-        Action<ExceptionPolicyOptions> configure)
     {
         descriptor.Extend().Configuration.Features.GetOrSet<ExceptionPolicyFeature>().Configure(configure);
         return descriptor;
