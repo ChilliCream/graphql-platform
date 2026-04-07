@@ -119,43 +119,27 @@ sourceSchemas:
     interactions:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
-          kind: OperationBatch
-          items:
-            - document: |
-                query Op_13354b96_2(
-                  $__fusion_1_id: ID!
-                ) {
-                  discussionById(id: $__fusion_1_id) {
-                    __typename
-                    upvotes
-                  }
+          document: |
+            query Op_13354b96_2(
+              $__fusion_1_id: ID!
+            ) {
+              discussionById(id: $__fusion_1_id) {
+                __typename
+                upvotes
+                ... on Discussion {
+                  score
                 }
-              variables: |
-                [
-                  {
-                    "__fusion_1_id": "RGlzY3Vzc2lvbjox"
-                  },
-                  {
-                    "__fusion_1_id": "RGlzY3Vzc2lvbjoz"
-                  }
-                ]
-            - document: |
-                query Op_13354b96_5(
-                  $__fusion_4_id: ID!
-                ) {
-                  discussionById(id: $__fusion_4_id) {
-                    score
-                  }
-                }
-              variables: |
-                [
-                  {
-                    "__fusion_4_id": "RGlzY3Vzc2lvbjox"
-                  },
-                  {
-                    "__fusion_4_id": "RGlzY3Vzc2lvbjoz"
-                  }
-                ]
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "RGlzY3Vzc2lvbjox"
+              },
+              {
+                "__fusion_1_id": "RGlzY3Vzc2lvbjoz"
+              }
+            ]
         response:
           contentType: application/jsonl; charset=utf-8
           results:
@@ -163,14 +147,8 @@ sourceSchemas:
               {
                 "data": {
                   "discussionById": {
-                    "score": 123
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "discussionById": {
+                    "__typename": "Discussion",
+                    "upvotes": 123,
                     "score": 123
                   }
                 }
@@ -180,16 +158,8 @@ sourceSchemas:
                 "data": {
                   "discussionById": {
                     "__typename": "Discussion",
-                    "upvotes": 123
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "discussionById": {
-                    "__typename": "Discussion",
-                    "upvotes": 123
+                    "upvotes": 123,
+                    "score": 123
                   }
                 }
               }
@@ -221,50 +191,31 @@ sourceSchemas:
       }
     interactions:
       - request:
-          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
-          kind: OperationBatch
-          items:
-            - document: |
-                query Op_13354b96_3(
-                  $__fusion_2_id: ID!
-                ) {
-                  authorById(id: $__fusion_2_id) {
-                    __typename
-                    upvotes
-                  }
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_13354b96_3(
+              $__fusion_2_id: ID!
+            ) {
+              authorById(id: $__fusion_2_id) {
+                __typename
+                upvotes
+                ... on Author {
+                  score
                 }
-              variables: |
-                {
-                  "__fusion_2_id": "QXV0aG9yOjI="
-                }
-            - document: |
-                query Op_13354b96_4(
-                  $__fusion_3_id: ID!
-                ) {
-                  authorById(id: $__fusion_3_id) {
-                    score
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_3_id": "QXV0aG9yOjI="
-                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_2_id": "QXV0aG9yOjI="
+            }
         response:
-          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
                 "data": {
                   "authorById": {
                     "__typename": "Author",
-                    "upvotes": 123
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
+                    "upvotes": 123,
                     "score": 123
                   }
                 }
@@ -279,11 +230,9 @@ operationPlan:
             id @fusion__requirement
             ... on Discussion {
               score
-              id @fusion__requirement
             }
             ... on Author {
               score
-              id @fusion__requirement
             }
           }
         }
@@ -311,33 +260,15 @@ operationPlan:
           discussionById(id: $__fusion_1_id) {
             __typename
             upvotes
+            ... on Discussion {
+              score
+            }
           }
         }
       source: $.discussionById
       target: $.abstractTypes<Discussion>
-      batchingGroupId: 2
       requirements:
         - name: __fusion_1_id
-          selectionMap: >-
-            id
-      dependencies:
-        - id: 1
-    - id: 5
-      type: Operation
-      schema: B
-      operation: |
-        query Op_13354b96_5(
-          $__fusion_4_id: ID!
-        ) {
-          discussionById(id: $__fusion_4_id) {
-            score
-          }
-        }
-      source: $.discussionById
-      target: $.abstractTypes<Discussion>
-      batchingGroupId: 2
-      requirements:
-        - name: __fusion_4_id
           selectionMap: >-
             id
       dependencies:
@@ -352,33 +283,15 @@ operationPlan:
           authorById(id: $__fusion_2_id) {
             __typename
             upvotes
+            ... on Author {
+              score
+            }
           }
         }
       source: $.authorById
       target: $.abstractTypes<Author>
-      batchingGroupId: 3
       requirements:
         - name: __fusion_2_id
-          selectionMap: >-
-            id
-      dependencies:
-        - id: 1
-    - id: 4
-      type: Operation
-      schema: C
-      operation: |
-        query Op_13354b96_4(
-          $__fusion_3_id: ID!
-        ) {
-          authorById(id: $__fusion_3_id) {
-            score
-          }
-        }
-      source: $.authorById
-      target: $.abstractTypes<Author>
-      batchingGroupId: 3
-      requirements:
-        - name: __fusion_3_id
           selectionMap: >-
             id
       dependencies:

@@ -152,6 +152,17 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
 
         if (unresolvableSelections is not null)
         {
+            // When we have unresolvable selections on an abstract type, check if inner
+            // recursive calls already pushed type-specific entries (from inline fragments)
+            // to the unresolvable stack. If so, merge them into this entry to avoid
+            // creating duplicate lookups for the same downstream schema.
+            if (isAbstractType)
+            {
+                var currentPath = context.BuildPath();
+                var currentConditions = context.SnapshotConditions();
+                MergeChildUnresolvableEntries(context, currentPath, currentConditions, unresolvableSelections);
+            }
+
             if (isAbstractType && !unresolvableSelections.Any(IsTypeNameSelection))
             {
                 unresolvableSelections = [
@@ -256,6 +267,67 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
 
             return false;
         }
+    }
+
+    /// <summary>
+    /// Merges child unresolvable entries from inline fragments back into the parent's
+    /// unresolvable selections. This prevents duplicate lookups when both interface-level
+    /// fields and type-refinement fields target the same downstream schema.
+    /// </summary>
+    private static void MergeChildUnresolvableEntries(
+        Context context,
+        SelectionPath currentPath,
+        ExecutionNodeCondition[] currentConditions,
+        List<ISelectionNode> unresolvableSelections)
+    {
+        if (context.Unresolvable.IsEmpty)
+        {
+            return;
+        }
+
+        // Collect entries that are NOT children of the current path (to keep),
+        // and entries that ARE children (to merge).
+        var keep = ImmutableStack<ConditionedSelectionSet>.Empty;
+        var merge = new List<ConditionedSelectionSet>();
+
+        foreach (var entry in context.Unresolvable)
+        {
+            var entryPath = entry.SelectionSet.Path;
+
+            // A child entry has exactly one more segment than the current path,
+            // and that extra segment is an InlineFragment.
+            if (entryPath.Length == currentPath.Length + 1
+                && entryPath[entryPath.Length - 1].Kind == SelectionPathSegmentKind.InlineFragment
+                && currentPath.IsParentOfOrSame(entryPath)
+                && currentConditions.SequenceEqual(entry.Conditions))
+            {
+                merge.Add(entry);
+            }
+            else
+            {
+                keep = keep.Push(entry);
+            }
+        }
+
+        if (merge.Count == 0)
+        {
+            return;
+        }
+
+        // Wrap each child's selections in an inline fragment and add to the parent.
+        foreach (var entry in merge)
+        {
+            var typeName = entry.SelectionSet.Path[entry.SelectionSet.Path.Length - 1].Name;
+            var inlineFragment = new InlineFragmentNode(
+                null,
+                new NamedTypeNode(typeName),
+                [],
+                entry.SelectionSet.Node);
+            unresolvableSelections.Add(inlineFragment);
+        }
+
+        // Rebuild the stack without the merged entries.
+        context.Unresolvable = keep;
     }
 
     private (FieldNode?, FieldNode?) RewriteFieldNode(

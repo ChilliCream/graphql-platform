@@ -153,43 +153,27 @@ sourceSchemas:
     interactions:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
-          kind: OperationBatch
-          items:
-            - document: |
-                query Op_2bff8025_3(
-                  $__fusion_2_id: ID!
-                ) {
-                  discussionById(id: $__fusion_2_id) {
-                    __typename
-                    upvotes
-                  }
+          document: |
+            query Op_2bff8025_3(
+              $__fusion_2_id: ID!
+            ) {
+              discussionById(id: $__fusion_2_id) {
+                __typename
+                upvotes
+                ... on Discussion {
+                  score
                 }
-              variables: |
-                [
-                  {
-                    "__fusion_2_id": "RGlzY3Vzc2lvbjox"
-                  },
-                  {
-                    "__fusion_2_id": "RGlzY3Vzc2lvbjoz"
-                  }
-                ]
-            - document: |
-                query Op_2bff8025_5(
-                  $__fusion_4_id: ID!
-                ) {
-                  discussionById(id: $__fusion_4_id) {
-                    score
-                  }
-                }
-              variables: |
-                [
-                  {
-                    "__fusion_4_id": "RGlzY3Vzc2lvbjox"
-                  },
-                  {
-                    "__fusion_4_id": "RGlzY3Vzc2lvbjoz"
-                  }
-                ]
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_id": "RGlzY3Vzc2lvbjox"
+              },
+              {
+                "__fusion_2_id": "RGlzY3Vzc2lvbjoz"
+              }
+            ]
         response:
           contentType: application/jsonl; charset=utf-8
           results:
@@ -197,14 +181,8 @@ sourceSchemas:
               {
                 "data": {
                   "discussionById": {
-                    "score": 123
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "discussionById": {
+                    "__typename": "Discussion",
+                    "upvotes": 123,
                     "score": 123
                   }
                 }
@@ -214,16 +192,8 @@ sourceSchemas:
                 "data": {
                   "discussionById": {
                     "__typename": "Discussion",
-                    "upvotes": 123
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "discussionById": {
-                    "__typename": "Discussion",
-                    "upvotes": 123
+                    "upvotes": 123,
+                    "score": 123
                   }
                 }
               }
@@ -313,7 +283,6 @@ operationPlan:
             id @fusion__requirement
             ... on Discussion {
               score
-              id @fusion__requirement
             }
             ... on Author {
               someId: id
@@ -399,33 +368,15 @@ operationPlan:
           discussionById(id: $__fusion_2_id) {
             __typename
             upvotes
+            ... on Discussion {
+              score
+            }
           }
         }
       source: $.discussionById
       target: $.abstractTypes<Discussion>
-      batchingGroupId: 3
       requirements:
         - name: __fusion_2_id
-          selectionMap: >-
-            id
-      dependencies:
-        - id: 1
-    - id: 5
-      type: Operation
-      schema: B
-      operation: |
-        query Op_2bff8025_5(
-          $__fusion_4_id: ID!
-        ) {
-          discussionById(id: $__fusion_4_id) {
-            score
-          }
-        }
-      source: $.discussionById
-      target: $.abstractTypes<Discussion>
-      batchingGroupId: 3
-      requirements:
-        - name: __fusion_4_id
           selectionMap: >-
             id
       dependencies:
