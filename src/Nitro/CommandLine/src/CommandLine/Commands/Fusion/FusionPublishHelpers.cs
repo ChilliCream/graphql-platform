@@ -407,6 +407,7 @@ internal static class FusionPublishHelpers
         string environment,
         Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas,
         CompositionSettings? compositionSettings,
+        Stream? legacyArchive,
         CancellationToken cancellationToken)
     {
         FusionArchive archive;
@@ -433,6 +434,7 @@ internal static class FusionPublishHelpers
             environment,
             newSourceSchemas,
             compositionSettings,
+            legacyArchive,
             cancellationToken);
 
         archiveStream.Seek(0, SeekOrigin.Begin);
@@ -445,6 +447,7 @@ internal static class FusionPublishHelpers
         string environment,
         Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas,
         CompositionSettings? compositionSettings,
+        Stream? legacyArchive,
         CancellationToken cancellationToken)
     {
         var compositionLog = new CompositionLog();
@@ -455,6 +458,7 @@ internal static class FusionPublishHelpers
             archive,
             environment,
             compositionSettings,
+            legacyArchive,
             cancellationToken);
 
         return (result, compositionLog);

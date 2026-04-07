@@ -177,37 +177,52 @@ internal sealed class FusionValidateCommand : Command
                                  "Composing new Fusion configuration",
                                  "Failed to compose new Fusion configuration."))
                 {
-                    var (result, compositionLog) = await FusionPublishHelpers.ComposeAsync(
-                        archiveStream,
-                        existingArchiveStream,
-                        stageName,
-                        newSourceSchemas,
-                        compositionSettings: null,
-                        ct);
+                    Stream? legacyStream = legacyArchiveFile is not null
+                        ? fileSystem.OpenReadStream(legacyArchiveFile)
+                        : null;
 
-                    if (result.IsSuccess)
+                    try
                     {
-                        composeActivity.Success("Composed new configuration.");
-                    }
-                    else
-                    {
-                        await composeActivity.FailAllAsync(message: "Fusion configuration could not be composed.");
+                        var (result, compositionLog) = await FusionPublishHelpers.ComposeAsync(
+                            archiveStream,
+                            existingArchiveStream,
+                            stageName,
+                            newSourceSchemas,
+                            compositionSettings: null,
+                            legacyStream,
+                            ct);
 
-                        console.WriteLine();
-                        console.WriteLine("## Composition log");
-                        console.WriteLine();
-
-                        FusionComposeCommand.WriteCompositionLog(
-                            compositionLog,
-                            console.Out,
-                            false);
-
-                        foreach (var error in result.Errors)
+                        if (result.IsSuccess)
                         {
-                            console.Error.WriteErrorLine(error.Message);
+                            composeActivity.Success("Composed new configuration.");
                         }
+                        else
+                        {
+                            await composeActivity.FailAllAsync();
 
-                        throw new ExitException();
+                            console.WriteLine();
+                            console.WriteLine("## Composition log");
+                            console.WriteLine();
+
+                            FusionComposeCommand.WriteCompositionLog(
+                                compositionLog,
+                                console.Out,
+                                false);
+
+                            foreach (var error in result.Errors)
+                            {
+                                console.Error.WriteErrorLine(error.Message);
+                            }
+
+                            throw new ExitException();
+                        }
+                    }
+                    finally
+                    {
+                        if (legacyStream is not null)
+                        {
+                            await legacyStream.DisposeAsync();
+                        }
                     }
                 }
 

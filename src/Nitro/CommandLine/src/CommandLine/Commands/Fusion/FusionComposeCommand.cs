@@ -115,6 +115,7 @@ internal sealed class FusionComposeCommand : Command
                 enableGlobalObjectIdentification,
                 includeSatisfiabilityPaths,
                 tagsToExclude,
+                legacyArchiveFile,
                 cancellationToken);
         }
 
@@ -140,6 +141,7 @@ internal sealed class FusionComposeCommand : Command
                     ExcludeByTag = tagsToExclude?.ToHashSet()
                 }
             },
+            legacyArchiveFile,
             cancellationToken);
     }
 
@@ -154,6 +156,7 @@ internal sealed class FusionComposeCommand : Command
         bool? enableGlobalObjectIdentification,
         bool? includeSatisfiabilityPaths,
         List<string>? tagsToExclude,
+        string? legacyArchiveFile,
         CancellationToken cancellationToken)
     {
         console.WriteLine("🔍 Starting watch mode...");
@@ -181,6 +184,7 @@ internal sealed class FusionComposeCommand : Command
                     ExcludeByTag = tagsToExclude?.ToHashSet()
                 }
             },
+            legacyArchiveFile,
             cancellationToken);
 
         // use a bounded channel to queue composition requests
@@ -206,6 +210,7 @@ internal sealed class FusionComposeCommand : Command
             enableGlobalObjectIdentification,
             includeSatisfiabilityPaths,
             tagsToExclude,
+            legacyArchiveFile,
             cancellationToken);
 
         var sourceSchemaFileWatchers = new List<FileSystemWatcher>();
@@ -336,6 +341,7 @@ internal sealed class FusionComposeCommand : Command
         bool? enableGlobalObjectIdentification,
         bool? includeSatisfiabilityPaths,
         List<string>? tagsToExclude,
+        string? legacyArchiveFile,
         CancellationToken cancellationToken)
     {
         var lastComposition = DateTime.MinValue;
@@ -383,6 +389,7 @@ internal sealed class FusionComposeCommand : Command
                             ExcludeByTag = tagsToExclude?.ToHashSet()
                         }
                     },
+                    legacyArchiveFile,
                     cancellationToken);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
@@ -415,6 +422,7 @@ internal sealed class FusionComposeCommand : Command
         string archiveFile,
         string? environment,
         CompositionSettings compositionSettings,
+        string? legacyArchiveFile,
         CancellationToken cancellationToken)
     {
         using var archive = fileSystem.FileExists(archiveFile)
@@ -432,32 +440,47 @@ internal sealed class FusionComposeCommand : Command
 
             var compositionLog = new CompositionLog();
 
-            var result = await CompositionHelper.ComposeAsync(
-                compositionLog,
-                sourceSchemas,
-                archive,
-                environment,
-                compositionSettings,
-                cancellationToken);
+            Stream? legacyArchiveStream = legacyArchiveFile is not null
+                ? fileSystem.OpenReadStream(legacyArchiveFile)
+                : null;
 
-            WriteCompositionLog(
-                compositionLog,
-                console.Out,
-                writeAsGraphQLComments: false);
-
-            if (!compositionLog.IsEmpty)
+            try
             {
-                console.Out.WriteLine();
-            }
+                var result = await CompositionHelper.ComposeAsync(
+                    compositionLog,
+                    sourceSchemas,
+                    archive,
+                    environment,
+                    compositionSettings,
+                    legacyArchiveStream,
+                    cancellationToken);
 
-            if (result.IsFailure)
-            {
-                foreach (var error in result.Errors)
+                WriteCompositionLog(
+                    compositionLog,
+                    console.Out,
+                    writeAsGraphQLComments: false);
+
+                if (!compositionLog.IsEmpty)
                 {
-                    console.Error.WriteErrorLine(error.Message);
+                    console.Out.WriteLine();
                 }
 
-                return 1;
+                if (result.IsFailure)
+                {
+                    foreach (var error in result.Errors)
+                    {
+                        console.Error.WriteErrorLine(error.Message);
+                    }
+
+                    return 1;
+                }
+            }
+            finally
+            {
+                if (legacyArchiveStream is not null)
+                {
+                    await legacyArchiveStream.DisposeAsync();
+                }
             }
 
             console.WriteLine($"✅ Composite schema written to '{archiveFile}'.");

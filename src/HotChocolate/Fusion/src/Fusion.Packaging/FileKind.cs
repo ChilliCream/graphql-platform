@@ -6,5 +6,6 @@ internal enum FileKind
     Settings,
     Manifest,
     Metadata,
-    Signature
+    Signature,
+    File
 }

@@ -47,7 +47,7 @@ internal static class FileNames
                 return FileKind.Signature;
 
             default:
-                return FileKind.Settings;
+                return FileKind.File;
         }
     }
 }

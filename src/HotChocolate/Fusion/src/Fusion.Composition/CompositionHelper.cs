@@ -20,6 +20,7 @@ internal static class CompositionHelper
         FusionArchive archive,
         string environment,
         CompositionSettings? compositionSettings,
+        Stream? legacyArchive,
         CancellationToken cancellationToken)
     {
         var existingSourceSchemaNames = new SortedSet<string>(
@@ -147,6 +148,11 @@ internal static class CompositionHelper
             cancellationToken);
 
         await SaveCompositionSettingsAsync(archive, mergedCompositionSettings, cancellationToken);
+
+        if (legacyArchive is not null)
+        {
+            await archive.SetFileAsync("legacy-v1-archive.fgp", legacyArchive, cancellationToken);
+        }
 
         await archive.CommitAsync(cancellationToken);
 

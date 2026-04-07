@@ -283,41 +283,56 @@ internal sealed class FusionPublishCommand : Command
                 "Composing new configuration",
                 "Failed to compose new configuration.");
 
-            var archiveStream = new MemoryStream();
-            var (result, compositionLog) = await FusionPublishHelpers.ComposeAsync(
-                archiveStream,
-                existingArchiveStream,
-                stageName,
-                newSourceSchemas,
-                null,
-                cancellationToken);
+            Stream? legacyStream = legacyArchiveFile is not null
+                ? fileSystem.OpenReadStream(legacyArchiveFile)
+                : null;
 
-            if (result.IsSuccess)
+            try
             {
-                composeActivity.Success("Composed new configuration.");
-            }
-            else
-            {
-                await composeActivity.FailAllAsync(message: "Fusion configuration could not be composed.");
+                var archiveStream = new MemoryStream();
+                var (result, compositionLog) = await FusionPublishHelpers.ComposeAsync(
+                    archiveStream,
+                    existingArchiveStream,
+                    stageName,
+                    newSourceSchemas,
+                    null,
+                    legacyStream,
+                    cancellationToken);
 
-                console.WriteLine();
-                console.WriteLine("## Composition log");
-                console.WriteLine();
-
-                FusionComposeCommand.WriteCompositionLog(
-                    compositionLog,
-                    console.Out,
-                    false);
-
-                foreach (var error in result.Errors)
+                if (result.IsSuccess)
                 {
-                    console.Error.WriteErrorLine(error.Message);
+                    composeActivity.Success("Composed new configuration.");
+                }
+                else
+                {
+                    await composeActivity.FailAllAsync();
+
+                    console.WriteLine();
+                    console.WriteLine("## Composition log");
+                    console.WriteLine();
+
+                    FusionComposeCommand.WriteCompositionLog(
+                        compositionLog,
+                        console.Out,
+                        false);
+
+                    foreach (var error in result.Errors)
+                    {
+                        console.Error.WriteErrorLine(error.Message);
+                    }
+
+                    throw new ExitException();
                 }
 
-                throw new ExitException();
+                return archiveStream;
             }
-
-            return archiveStream;
+            finally
+            {
+                if (legacyStream is not null)
+                {
+                    await legacyStream.DisposeAsync();
+                }
+            }
         }
 
         async Task<int> ExecutePublishAsync(
