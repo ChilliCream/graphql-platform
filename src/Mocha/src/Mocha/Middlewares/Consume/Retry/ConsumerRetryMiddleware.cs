@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Features;
 
@@ -7,7 +8,7 @@ namespace Mocha;
 /// A consumer middleware that implements in-process retry with configurable backoff strategies
 /// when transient failures occur.
 /// </summary>
-internal sealed class ConsumerRetryMiddleware(IReadOnlyList<ExceptionPolicyRule> exceptionPolicyRules)
+internal sealed class ConsumerRetryMiddleware(ImmutableArray<ExceptionPolicyRule> exceptionPolicyRules)
 {
     public async ValueTask InvokeAsync(IConsumeContext context, ConsumerDelegate next)
     {
@@ -45,7 +46,7 @@ internal sealed class ConsumerRetryMiddleware(IReadOnlyList<ExceptionPolicyRule>
                     return next;
                 }
 
-                var middleware = new ConsumerRetryMiddleware(feature.Rules);
+                var middleware = new ConsumerRetryMiddleware(feature.Rules.ToImmutableArray());
 
                 return ctx => middleware.InvokeAsync(ctx, next);
             },

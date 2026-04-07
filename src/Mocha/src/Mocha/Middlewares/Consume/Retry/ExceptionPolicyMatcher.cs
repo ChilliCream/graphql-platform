@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace Mocha;
 
 /// <summary>
@@ -13,7 +15,7 @@ internal static class ExceptionPolicyMatcher
     /// <param name="rules">The list of exception policy rules to evaluate.</param>
     /// <param name="exception">The exception to match against.</param>
     /// <returns>The best matching rule, or <c>null</c> if no rule matches.</returns>
-    public static ExceptionPolicyRule? Match(IReadOnlyList<ExceptionPolicyRule> rules, Exception exception)
+    public static ExceptionPolicyRule? Match(ImmutableArray<ExceptionPolicyRule> rules, Exception exception)
     {
         ExceptionPolicyRule? bestMatch = null;
         var bestDepth = int.MaxValue;

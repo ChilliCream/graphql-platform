@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace Mocha.Tests.Middlewares.Consume.Retry;
 
 public sealed class ExceptionPolicyMatcherTests
@@ -6,7 +8,7 @@ public sealed class ExceptionPolicyMatcherTests
     public void Match_Should_ReturnNull_When_RulesListIsEmpty()
     {
         // arrange
-        var rules = Array.Empty<ExceptionPolicyRule>();
+        var rules = ImmutableArray<ExceptionPolicyRule>.Empty;
         var exception = new InvalidOperationException("test");
 
         // act
@@ -20,10 +22,7 @@ public sealed class ExceptionPolicyMatcherTests
     public void Match_Should_ReturnNull_When_NoRuleMatchesExceptionType()
     {
         // arrange
-        var rules = new[]
-        {
-            CreateRule<ArgumentException>()
-        };
+        var rules = ImmutableArray.Create(CreateRule<ArgumentException>());
         var exception = new InvalidOperationException("test");
 
         // act
@@ -38,7 +37,7 @@ public sealed class ExceptionPolicyMatcherTests
     {
         // arrange
         var rule = CreateRule<InvalidOperationException>();
-        var rules = new[] { rule };
+        var rules = ImmutableArray.Create(rule);
         var exception = new InvalidOperationException("test");
 
         // act
@@ -53,7 +52,7 @@ public sealed class ExceptionPolicyMatcherTests
     {
         // arrange
         var rule = CreateRule<Exception>();
-        var rules = new[] { rule };
+        var rules = ImmutableArray.Create(rule);
         var exception = new InvalidOperationException("test");
 
         // act
@@ -69,7 +68,7 @@ public sealed class ExceptionPolicyMatcherTests
         // arrange
         var baseRule = CreateRule<Exception>();
         var specificRule = CreateRule<InvalidOperationException>();
-        var rules = new[] { baseRule, specificRule };
+        var rules = ImmutableArray.Create(baseRule, specificRule);
         var exception = new InvalidOperationException("test");
 
         // act
@@ -84,7 +83,7 @@ public sealed class ExceptionPolicyMatcherTests
     {
         // arrange
         var rule = CreateRule<InvalidOperationException>(predicate: _ => false);
-        var rules = new[] { rule };
+        var rules = ImmutableArray.Create(rule);
         var exception = new InvalidOperationException("test");
 
         // act
@@ -99,7 +98,7 @@ public sealed class ExceptionPolicyMatcherTests
     {
         // arrange
         var rule = CreateRule<InvalidOperationException>(predicate: _ => true);
-        var rules = new[] { rule };
+        var rules = ImmutableArray.Create(rule);
         var exception = new InvalidOperationException("test");
 
         // act
@@ -115,7 +114,7 @@ public sealed class ExceptionPolicyMatcherTests
         // arrange
         var baseRuleWithPredicate = CreateRule<Exception>(predicate: _ => true);
         var specificRule = CreateRule<InvalidOperationException>();
-        var rules = new[] { baseRuleWithPredicate, specificRule };
+        var rules = ImmutableArray.Create(baseRuleWithPredicate, specificRule);
         var exception = new InvalidOperationException("test");
 
         // act
@@ -131,7 +130,7 @@ public sealed class ExceptionPolicyMatcherTests
         // arrange
         var failingRule = CreateRule<ArgumentNullException>(predicate: _ => false);
         var passingRule = CreateRule<ArgumentNullException>(predicate: _ => true);
-        var rules = new[] { failingRule, passingRule };
+        var rules = ImmutableArray.Create(failingRule, passingRule);
         var exception = new ArgumentNullException("param");
 
         // act

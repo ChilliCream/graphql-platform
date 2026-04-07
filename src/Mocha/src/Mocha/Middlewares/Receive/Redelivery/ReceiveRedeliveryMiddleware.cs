@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Features;
 using Mocha.Middlewares;
@@ -15,7 +16,7 @@ namespace Mocha;
 /// because the caller would time out waiting for a response.
 /// </remarks>
 internal sealed class ReceiveRedeliveryMiddleware(
-    IReadOnlyList<ExceptionPolicyRule> exceptionPolicyRules,
+    ImmutableArray<ExceptionPolicyRule> exceptionPolicyRules,
     TimeProvider timeProvider,
     IMessagingPools pools)
 {
@@ -196,7 +197,7 @@ internal sealed class ReceiveRedeliveryMiddleware(
                 var pools = context.Services.GetRequiredService<IMessagingPools>();
 
                 var middleware = new ReceiveRedeliveryMiddleware(
-                    feature.Rules,
+                    feature.Rules.ToImmutableArray(),
                     timeProvider,
                     pools);
 

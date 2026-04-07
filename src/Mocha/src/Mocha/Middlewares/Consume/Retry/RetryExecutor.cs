@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+
 namespace Mocha;
 
 /// <summary>
@@ -7,7 +9,7 @@ namespace Mocha;
 internal static class RetryExecutor
 {
     public static ValueTask ExecuteAsync<TState>(
-        IReadOnlyList<ExceptionPolicyRule> rules,
+        ImmutableArray<ExceptionPolicyRule> rules,
         TState state,
         Func<TState, ValueTask> action,
         Action<TState, int>? onRetry,
@@ -17,7 +19,7 @@ internal static class RetryExecutor
     }
 
     public static async ValueTask ExecuteAsync<TState>(
-        IReadOnlyList<ExceptionPolicyRule> rules,
+        ImmutableArray<ExceptionPolicyRule> rules,
         TState state,
         Func<TState, ValueTask> action,
         Action<TState, int>? onRetry,

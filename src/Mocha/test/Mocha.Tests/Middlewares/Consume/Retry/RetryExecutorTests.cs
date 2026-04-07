@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using Microsoft.Extensions.Time.Testing;
 
 namespace Mocha.Tests.Middlewares.Consume.Retry;
@@ -893,11 +894,11 @@ public sealed class RetryExecutorTests
 
     // -- Helpers --
 
-    private static IReadOnlyList<ExceptionPolicyRule> BuildRules(Action<ExceptionPolicyOptions> configure)
+    private static ImmutableArray<ExceptionPolicyRule> BuildRules(Action<ExceptionPolicyOptions> configure)
     {
         var feature = new ExceptionPolicyFeature();
         feature.Configure(configure);
-        return feature.Rules;
+        return [.. feature.Rules];
     }
 
     private sealed class Counter
