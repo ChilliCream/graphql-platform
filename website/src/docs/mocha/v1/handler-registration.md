@@ -79,7 +79,7 @@ builder.Services
     .AddRabbitMQ();
 ```
 
-You can mix source-generated and manual registration freely. If both the source generator and manual code register the same handler type, the configurations are composed — the source generator sets up the base registration and your manual call layers additional configuration (such as consumer middleware) on top.
+You can mix source-generated and manual registration freely. If both the source generator and manual code register the same handler type, the configurations are composed the source generator sets up the base registration and your manual call layers additional configuration (such as consumer middleware) on top.
 
 > **Prefer the source generator.** Manual registration methods use runtime reflection to create handler consumers. The source generator produces direct, reflection-free factory calls. We guarantee backwards compatibility for the source-generated registration path; the manual registration API is stable at the surface level but its internal behavior may evolve.
 

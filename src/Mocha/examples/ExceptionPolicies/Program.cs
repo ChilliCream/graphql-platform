@@ -9,7 +9,7 @@ using Mocha.Transport.InMemory;
 //  Exception Policies Demo
 //
 //  Demonstrates all per-exception policy configurations available in Mocha.
-//  Uses the InMemory transport for simplicity — no external dependencies.
+//  Uses the InMemory transport for simplicity  no external dependencies.
 // ---------------------------------------------------------------------------
 
 var builder = Host.CreateApplicationBuilder(args);
@@ -18,7 +18,7 @@ builder.Services
     .AddMessageBus()
 
     // -----------------------------------------------------------------------
-    //  Exception Policies — the main showcase
+    //  Exception Policies  the main showcase
     //
     //  Per-exception rules are configured in a single AddResilience call.
     //  The On<Exception>() catch-all provides global retry/redelivery defaults.
@@ -26,13 +26,13 @@ builder.Services
     .AddResilience(policy =>
     {
         // --- Terminal: DeadLetter ---
-        // Validation errors are permanent — the message payload is bad.
+        // Validation errors are permanent  the message payload is bad.
         // Skip retry and redelivery entirely; route straight to the error endpoint.
         policy.On<MessageValidationException>().DeadLetter();
 
         // --- Terminal: Discard ---
         // Duplicate messages are expected in at-least-once delivery systems.
-        // Silently drop them — no retry, no redelivery, no error endpoint.
+        // Silently drop them  no retry, no redelivery, no error endpoint.
         policy.On<DuplicateMessageException>().Discard();
 
         // --- Retry only (skip redelivery) ---
@@ -45,26 +45,26 @@ builder.Services
                 backoff: RetryBackoffType.Exponential);
 
         // --- Redeliver only (skip retry) ---
-        // Auth token expired — immediate retry is pointless because the token
+        // Auth token expired  immediate retry is pointless because the token
         // won't refresh in milliseconds. Wait for redelivery instead.
         policy.On<AuthTokenExpiredException>().Redeliver();
 
         // --- Escalation: Retry then Redeliver ---
-        // Transient DB errors — try a few times quickly (connection hiccup),
+        // Transient DB errors  try a few times quickly (connection hiccup),
         // then back off with redelivery if the database is truly struggling.
         policy.On<TransientDatabaseException>()
             .Retry(attempts: 3)
             .ThenRedeliver();
 
         // --- Escalation: Retry then DeadLetter (skip redelivery) ---
-        // Poison messages — try once in case it was a transient parse glitch,
+        // Poison messages  try once in case it was a transient parse glitch,
         // then give up immediately. Redelivery won't fix a corrupt payload.
         policy.On<PoisonMessageException>()
             .Retry(attempts: 1)
             .ThenDeadLetter();
 
         // --- Full chain: Retry -> Redeliver -> DeadLetter ---
-        // External service completely down — aggressive retry first, then
+        // External service completely down  aggressive retry first, then
         // patient redelivery with increasing intervals, then dead-letter
         // as the last resort so operators can investigate.
         policy.On<ExternalServiceUnavailableException>()
@@ -117,7 +117,7 @@ builder.Services
     .AddEventHandler<HandlePoisonMessageHandler>()
 
     // -----------------------------------------------------------------------
-    //  Transport — InMemory for this demo (no external dependencies)
+    //  Transport  InMemory for this demo (no external dependencies)
     // -----------------------------------------------------------------------
     .AddInMemory();
 

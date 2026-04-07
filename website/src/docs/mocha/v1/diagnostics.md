@@ -5,7 +5,7 @@ description: "Reference for all compile-time diagnostics emitted by the Mocha so
 
 # Diagnostics
 
-Mocha uses a Roslyn source generator to validate your message handlers, consumers, and sagas at compile time. When the generator detects a problem — a missing handler, a duplicate registration, an invalid type — it emits a diagnostic that appears as a compiler warning or error in your IDE and build output. You can fix these issues before your code ever runs.
+Mocha uses a Roslyn source generator to validate your message handlers, consumers, and sagas at compile time. When the generator detects a problem a missing handler, a duplicate registration, an invalid type it emits a diagnostic that appears as a compiler warning or error in your IDE and build output. You can fix these issues before your code ever runs.
 
 # Quick reference
 
@@ -23,7 +23,7 @@ Mocha uses a Roslyn source generator to validate your message handlers, consumer
 
 # Mediator diagnostics
 
-These diagnostics apply to the in-process [mediator](/docs/mocha/v1/mediator) — commands, queries, and notifications dispatched within a single process.
+These diagnostics apply to the in-process [mediator](/docs/mocha/v1/mediator) commands, queries, and notifications dispatched within a single process.
 
 ## MO0001
 
@@ -43,7 +43,7 @@ A command or query type is declared but no corresponding handler implementation 
 ```csharp
 using Mocha.Mediator;
 
-// Command with no handler — triggers MO0001
+// Command with no handler  triggers MO0001
 public record PlaceOrder(Guid OrderId, decimal Total) : ICommand;
 ```
 
@@ -79,7 +79,7 @@ public class PlaceOrderHandler : ICommandHandler<PlaceOrder>
 
 ### Cause
 
-A command or query type has more than one handler implementation. Commands and queries require exactly one handler — the mediator cannot decide which one to call. This diagnostic does not apply to notifications, which support multiple handlers by design.
+A command or query type has more than one handler implementation. Commands and queries require exactly one handler the mediator cannot decide which one to call. This diagnostic does not apply to notifications, which support multiple handlers by design.
 
 ### Example
 
@@ -88,7 +88,7 @@ using Mocha.Mediator;
 
 public record PlaceOrder(Guid OrderId, decimal Total) : ICommand;
 
-// Two handlers for the same command — triggers MO0002
+// Two handlers for the same command  triggers MO0002
 public class PlaceOrderHandler : ICommandHandler<PlaceOrder>
 {
     public ValueTask HandleAsync(PlaceOrder command, CancellationToken ct)
@@ -138,7 +138,7 @@ using Mocha.Mediator;
 
 public record GetOrderTotal(Guid OrderId) : IQuery<decimal>;
 
-// Abstract handler — triggers MO0003
+// Abstract handler  triggers MO0003
 public abstract class GetOrderTotalHandler : IQueryHandler<GetOrderTotal, decimal>
 {
     public abstract ValueTask<decimal> HandleAsync(
@@ -185,7 +185,7 @@ A command or query type has unbound type parameters. The mediator dispatches con
 ```csharp
 using Mocha.Mediator;
 
-// Open generic command — triggers MO0004
+// Open generic command  triggers MO0004
 public record ProcessItem<T>(T Item) : ICommand;
 ```
 
@@ -221,7 +221,7 @@ using Mocha.Mediator;
 public record PlaceOrder(Guid OrderId) : ICommand;
 public record GetOrder(Guid OrderId) : IQuery<Order>;
 
-// Implements both command and query handler — triggers MO0005
+// Implements both command and query handler  triggers MO0005
 public class OrderHandler
     : ICommandHandler<PlaceOrder>,
       IQueryHandler<GetOrder, Order>
@@ -259,7 +259,7 @@ public class GetOrderHandler : IQueryHandler<GetOrder, Order>
 
 # Messaging diagnostics
 
-These diagnostics apply to the [message bus](/docs/mocha/v1/handlers-and-consumers) — event handlers, request handlers, batch handlers, consumers, and sagas that communicate across service boundaries.
+These diagnostics apply to the [message bus](/docs/mocha/v1/handlers-and-consumers) event handlers, request handlers, batch handlers, consumers, and sagas that communicate across service boundaries.
 
 ## MO0011
 
@@ -272,7 +272,7 @@ These diagnostics apply to the [message bus](/docs/mocha/v1/handlers-and-consume
 
 ### Cause
 
-A request type (used with `SendAsync` or `RequestAsync`) has more than one [handler](/docs/mocha/v1/handlers-and-consumers) implementation. Request types require exactly one handler — the bus cannot route to multiple targets.
+A request type (used with `SendAsync` or `RequestAsync`) has more than one [handler](/docs/mocha/v1/handlers-and-consumers) implementation. Request types require exactly one handler the bus cannot route to multiple targets.
 
 ### Example
 
@@ -281,7 +281,7 @@ using Mocha;
 
 public record ProcessPayment(decimal Amount);
 
-// Two handlers for the same request type — triggers MO0011
+// Two handlers for the same request type  triggers MO0011
 public class PaymentHandlerA : IEventRequestHandler<ProcessPayment>
 {
     public ValueTask HandleAsync(
@@ -335,7 +335,7 @@ A messaging handler (`IEventHandler<T>`, `IEventRequestHandler<T>`, `IBatchEvent
 ```csharp
 using Mocha;
 
-// Open generic handler — triggers MO0012
+// Open generic handler  triggers MO0012
 public class GenericEventHandler<T> : IEventHandler<T>
 {
     public ValueTask HandleAsync(
@@ -385,7 +385,7 @@ using Mocha;
 
 public record OrderPlaced(Guid OrderId);
 
-// Abstract handler — triggers MO0013
+// Abstract handler  triggers MO0013
 public abstract class OrderEventHandler : IEventHandler<OrderPlaced>
 {
     public abstract ValueTask HandleAsync(
@@ -435,7 +435,7 @@ public class RefundSagaState : SagaStateBase
     public Guid OrderId { get; set; }
 }
 
-// Constructor requires a parameter — triggers MO0014
+// Constructor requires a parameter  triggers MO0014
 public class RefundSaga : Saga<RefundSagaState>
 {
     private readonly ILogger _logger;
