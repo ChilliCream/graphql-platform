@@ -17,13 +17,7 @@ internal sealed class ConsumerRetryMiddleware(ImmutableArray<ExceptionPolicyRule
 
         if (context.Headers.TryGetValue(MessageHeaders.Retry.DelayedRetryCount.Key, out var headerValue))
         {
-            delayedRetryCount = headerValue switch
-            {
-                int i => i,
-                long l => (int)l,
-                double d => (int)d,
-                _ => 0
-            };
+            delayedRetryCount = RedeliveryExecutor.ParseDelayedRetryCount(headerValue);
         }
 
         // Expose retry state to handlers via features.

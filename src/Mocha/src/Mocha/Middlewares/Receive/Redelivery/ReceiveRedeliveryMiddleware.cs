@@ -27,13 +27,7 @@ internal sealed class ReceiveRedeliveryMiddleware(
 
         if (context.Headers.TryGetValue(MessageHeaders.Retry.DelayedRetryCount.Key, out var headerValue))
         {
-            delayedRetryCount = headerValue switch
-            {
-                int i => i,
-                long l => (int)l,
-                double d => (int)d,
-                _ => 0
-            };
+            delayedRetryCount = RedeliveryExecutor.ParseDelayedRetryCount(headerValue);
         }
 
         try
@@ -42,100 +36,72 @@ internal sealed class ReceiveRedeliveryMiddleware(
         }
         catch (Exception ex)
         {
-            var consumerFeature = context.Features.GetOrSet<ReceiveConsumerFeature>();
-
             // Request/reply messages must not be redelivered -- the caller is waiting.
             if (context.Envelope?.ResponseAddress is not null)
             {
                 throw;
             }
 
-            // Match exception against policy rules.
-            var rule = ExceptionPolicyMatcher.Match(exceptionPolicyRules, ex);
+            var decision = RedeliveryExecutor.Evaluate(exceptionPolicyRules, ex, delayedRetryCount);
 
-            // No matching rule - no policy for this exception, let it propagate.
-            if (rule is null)
+            switch (decision.Action)
             {
-                throw;
+                case RedeliveryAction.Discard:
+                    context.Features.GetOrSet<ReceiveConsumerFeature>().MessageConsumed = true;
+                    return;
+
+                case RedeliveryAction.Redeliver:
+                    var scheduledTime = timeProvider.GetUtcNow().Add(decision.Delay);
+                    await DispatchRedeliveryAsync(context, delayedRetryCount, scheduledTime);
+                    context.Features.GetOrSet<ReceiveConsumerFeature>().MessageConsumed = true;
+                    return;
+
+                default:
+                    throw;
             }
+        }
+    }
 
-            // Discard: swallow at receive level.
-            if (rule.Terminal == TerminalAction.Discard)
-            {
-                consumerFeature.MessageConsumed = true;
+    private async ValueTask DispatchRedeliveryAsync(
+        IReceiveContext context,
+        int delayedRetryCount,
+        DateTimeOffset scheduledTime)
+    {
+        var envelope = context.Envelope
+            ?? throw new InvalidOperationException(
+                "Cannot redeliver because the receive context has no envelope.");
 
-                return;
-            }
+        if (envelope.Headers is null)
+        {
+            throw new InvalidOperationException(
+                "Cannot increment delayed retry count because the envelope has no headers collection.");
+        }
 
-            // DeadLetter: skip redelivery, let fault middleware handle.
-            if (rule.Terminal == TerminalAction.DeadLetter)
-            {
-                throw;
-            }
+        envelope.Headers.Set(MessageHeaders.Retry.DelayedRetryCount.Key, delayedRetryCount + 1);
 
-            // No redelivery configured for this rule, or redelivery explicitly disabled.
-            if (rule.Redelivery is null or { Enabled: false })
-            {
-                throw;
-            }
+        // Dispatch the envelope back to the same endpoint with the scheduled time.
+        // Use the Source address (queue/topic) rather than the endpoint address, because
+        // transports resolve dispatch endpoints from the topology resource address.
+        var dispatchEndpoint = context.Runtime.GetDispatchEndpoint(context.Endpoint.Source.Address);
+        var dispatchContext = pools.DispatchContext.Get();
 
-            var redeliveryConfig = rule.Redelivery;
+        try
+        {
+            dispatchContext.Initialize(
+                context.Services,
+                dispatchEndpoint,
+                context.Runtime,
+                context.MessageType,
+                context.CancellationToken);
 
-            // Check if redelivery attempts remain.
-            var maxAttempts = redeliveryConfig.Attempts ?? redeliveryConfig.Intervals?.Length ?? 0;
+            dispatchContext.Envelope = envelope;
+            dispatchContext.ScheduledTime = scheduledTime;
 
-            if (delayedRetryCount >= maxAttempts)
-            {
-                throw;
-            }
-
-            // Calculate the delay for this redelivery attempt.
-            var delay = RedeliveryExecutor.CalculateDelay(delayedRetryCount, redeliveryConfig);
-            var scheduledTime = timeProvider.GetUtcNow().Add(delay);
-
-            // Update the header on the envelope so the next delivery round sees the incremented count.
-            var envelope = context.Envelope;
-
-            if (envelope is null)
-            {
-                throw;
-            }
-
-            if (envelope.Headers is null)
-            {
-                throw new InvalidOperationException(
-                    "Cannot increment delayed retry count because the envelope has no headers collection.");
-            }
-
-            envelope.Headers.Set(MessageHeaders.Retry.DelayedRetryCount.Key, delayedRetryCount + 1);
-
-            // Dispatch the envelope back to the same endpoint with the scheduled time.
-            // Use the Source address (queue/topic) rather than the endpoint address, because
-            // transports resolve dispatch endpoints from the topology resource address.
-            var dispatchEndpoint = context.Runtime.GetDispatchEndpoint(context.Endpoint.Source.Address);
-            var dispatchContext = pools.DispatchContext.Get();
-
-            try
-            {
-                dispatchContext.Initialize(
-                    context.Services,
-                    dispatchEndpoint,
-                    context.Runtime,
-                    context.MessageType,
-                    context.CancellationToken);
-
-                dispatchContext.Envelope = envelope;
-                dispatchContext.ScheduledTime = scheduledTime;
-
-                await dispatchEndpoint.ExecuteAsync(dispatchContext);
-            }
-            finally
-            {
-                pools.DispatchContext.Return(dispatchContext);
-            }
-
-            // Mark the message as consumed so Fault/DeadLetter don't also handle it.
-            consumerFeature.MessageConsumed = true;
+            await dispatchEndpoint.ExecuteAsync(dispatchContext);
+        }
+        finally
+        {
+            pools.DispatchContext.Return(dispatchContext);
         }
     }
 

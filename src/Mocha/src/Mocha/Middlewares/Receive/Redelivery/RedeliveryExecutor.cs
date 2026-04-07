@@ -1,10 +1,82 @@
+using System.Collections.Immutable;
+
 namespace Mocha;
 
 /// <summary>
-/// Provides delay calculation logic for the redelivery middleware.
+/// Provides delay calculation and exception evaluation logic for the redelivery middleware.
 /// </summary>
 internal static class RedeliveryExecutor
 {
+    /// <summary>
+    /// Evaluates exception policy rules and determines whether to rethrow, discard, or redeliver.
+    /// </summary>
+    /// <param name="rules">The exception policy rules to evaluate.</param>
+    /// <param name="exception">The exception that was thrown.</param>
+    /// <param name="delayedRetryCount">The current delayed retry count.</param>
+    /// <returns>A <see cref="RedeliveryDecision"/> indicating the action to take.</returns>
+    internal static RedeliveryDecision Evaluate(
+        ImmutableArray<ExceptionPolicyRule> rules,
+        Exception exception,
+        int delayedRetryCount)
+    {
+        // Match exception against policy rules.
+        var rule = ExceptionPolicyMatcher.Match(rules, exception);
+
+        // No matching rule — no policy for this exception.
+        if (rule is null)
+        {
+            return RedeliveryDecision.Rethrow;
+        }
+
+        // Discard: swallow at receive level.
+        if (rule.Terminal == TerminalAction.Discard)
+        {
+            return RedeliveryDecision.Discard;
+        }
+
+        // DeadLetter: skip redelivery, let fault middleware handle.
+        if (rule.Terminal == TerminalAction.DeadLetter)
+        {
+            return RedeliveryDecision.Rethrow;
+        }
+
+        // No redelivery configured for this rule, or redelivery explicitly disabled.
+        if (rule.Redelivery is null or { Enabled: false })
+        {
+            return RedeliveryDecision.Rethrow;
+        }
+
+        var redeliveryConfig = rule.Redelivery;
+
+        // Check if redelivery attempts remain.
+        var maxAttempts = redeliveryConfig.Attempts ?? redeliveryConfig.Intervals?.Length ?? 0;
+
+        if (delayedRetryCount >= maxAttempts)
+        {
+            return RedeliveryDecision.Rethrow;
+        }
+
+        // Calculate the delay for this redelivery attempt.
+        var delay = CalculateDelay(delayedRetryCount, redeliveryConfig);
+        return RedeliveryDecision.Redeliver(delay);
+    }
+
+    /// <summary>
+    /// Parses a delayed retry count from a message header value.
+    /// </summary>
+    /// <param name="headerValue">The raw header value.</param>
+    /// <returns>The parsed integer count, or 0 if the value cannot be parsed.</returns>
+    internal static int ParseDelayedRetryCount(object? headerValue)
+    {
+        return headerValue switch
+        {
+            int i => i,
+            long l => (int)l,
+            double d => (int)d,
+            _ => 0
+        };
+    }
+
     internal static TimeSpan CalculateDelay(int attempt, RedeliveryPolicyConfig config)
     {
         TimeSpan baseDelay;

@@ -454,7 +454,7 @@ Message arrives
 
 The total number of handler invocations before a message reaches the error endpoint:
 
-```
+```text
 Total attempts = (retry attempts + 1) x (redelivery attempts + 1)
 ```
 

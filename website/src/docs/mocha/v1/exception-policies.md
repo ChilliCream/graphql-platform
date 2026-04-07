@@ -184,7 +184,7 @@ Exception policies resolve at four levels. The most specific scope wins, and rep
 | Transport | All endpoints on a specific transport | `IReceiveMiddlewareProvider` |
 | Consumer  | A single consumer                     | `IConsumerDescriptor`        |
 
-```
+```text
 Consumer policies  →  Transport policies  →  Bus policies  →  Host policies
    (highest priority)                                        (lowest priority)
 ```
