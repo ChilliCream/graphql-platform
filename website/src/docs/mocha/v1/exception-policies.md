@@ -3,20 +3,20 @@ title: "Exception Policies"
 description: "Configure per-exception handling with composable retry, redelivery, and terminal actions."
 ---
 
-Not every exception deserves the same treatment. A database deadlock might resolve on immediate retry. A downstream service outage needs minutes to recover. A validation error will never succeed no matter how many times you retry. Exception policies let you define per-exception handling strategies — retry, redeliver, dead-letter, or discard — as composable escalation chains in a single `AddResilience` call.
+Not every exception deserves the same treatment. A database deadlock might resolve on immediate retry. A downstream service outage needs minutes to recover. A validation error will never succeed no matter how many times you retry. Exception policies let you define per-exception handling strategies - retry, redeliver, dead-letter, or discard - as composable escalation chains in a single `AddResilience` call.
 
 ```csharp
 builder.Services
     .AddMessageBus()
     .AddResilience(policy =>
     {
-        // Validation errors are permanent — route straight to the error endpoint
+        // Validation errors are permanent - route straight to the error endpoint
         policy.On<ValidationException>().DeadLetter();
 
         // Duplicate messages are safe to drop
         policy.On<DuplicateMessageException>().Discard();
 
-        // Database deadlocks resolve quickly — retry then redeliver
+        // Database deadlocks resolve quickly - retry then redeliver
         policy.On<NpgsqlException>(ex => ex.IsTransient)
             .Retry(5, TimeSpan.FromMilliseconds(200))
             .ThenRedeliver();
@@ -33,7 +33,7 @@ builder.Services
 
 # How exception handling works
 
-When a handler throws an exception, Mocha evaluates exception policies to determine what happens next. The decision flows through two pipeline stages — retry in the consumer pipeline and redelivery in the receive pipeline — before reaching the fault middleware as a last resort.
+When a handler throws an exception, Mocha evaluates exception policies to determine what happens next. The decision flows through two pipeline stages - retry in the consumer pipeline and redelivery in the receive pipeline - before reaching the fault middleware as a last resort.
 
 ```mermaid
 flowchart TD
@@ -60,14 +60,14 @@ flowchart TD
 
 Each exception policy rule targets a specific exception type and defines an escalation chain. The chain controls which stages the message passes through and with what settings.
 
-Exception matching respects inheritance. A policy on `NpgsqlException` also matches any subclass. When multiple rules could match, the most specific type wins — the same precedence as C# `catch` blocks.
+Exception matching respects inheritance. A policy on `NpgsqlException` also matches any subclass. When multiple rules could match, the most specific type wins - the same precedence as C# `catch` blocks.
 
 # Configure exception policies
 
-`AddResilience` is the single entry point for all exception handling configuration. There is no separate `AddRetry` or `AddRedelivery` call — retry and redelivery settings are configured per-exception within the policy.
+`AddResilience` is the single entry point for all exception handling configuration. There is no separate `AddRetry` or `AddRedelivery` call - retry and redelivery settings are configured per-exception within the policy.
 
 :::note Replacement semantics
-Calling `On<T>()` for the same exception type replaces the previous rule for that type — last write wins. If you call `On<HttpRequestException>()` twice without a predicate, the second call overwrites the first. The same applies to `Default()`: calling it again replaces the previous default rule. For example, the parameterless `AddResilience()` registers `Default().Retry().ThenRedeliver()`. If you later call `AddResilience(p => p.Default().Retry(5))`, the new default replaces the one registered by the parameterless overload.
+Calling `On<T>()` for the same exception type replaces the previous rule for that type - last write wins. If you call `On<HttpRequestException>()` twice without a predicate, the second call overwrites the first. The same applies to `Default()`: calling it again replaces the previous default rule. For example, the parameterless `AddResilience()` registers `Default().Retry().ThenRedeliver()`. If you later call `AddResilience(p => p.Default().Retry(5))`, the new default replaces the one registered by the parameterless overload.
 :::
 
 ## Parameterless defaults
@@ -95,9 +95,9 @@ This is equivalent to:
 
 `ExceptionPolicyOptions` exposes two methods for creating rules:
 
-- **`Default()`** — shorthand for `On<Exception>()`. Configures the catch-all behavior for any exception that does not match a more specific rule.
-- **`On<TException>()`** — configures behavior for a specific exception type.
-- **`On<TException>(predicate)`** — configures behavior for a specific exception type when a predicate matches.
+- **`Default()`** - shorthand for `On<Exception>()`. Configures the catch-all behavior for any exception that does not match a more specific rule.
+- **`On<TException>()`** - configures behavior for a specific exception type.
+- **`On<TException>(predicate)`** - configures behavior for a specific exception type when a predicate matches.
 
 ```csharp
 .AddResilience(policy =>
@@ -127,7 +127,7 @@ builder.Services
 
 ## Transport-level policies
 
-Override bus-level policies for a specific transport. Transport-level policies replace the bus-level policies entirely for all endpoints on that transport — they are not merged.
+Override bus-level policies for a specific transport. Transport-level policies replace the bus-level policies entirely for all endpoints on that transport - they are not merged.
 
 ```csharp
 builder.Services
@@ -175,7 +175,7 @@ The `PaymentHandler` gets 5 retries with exponential backoff. All other consumer
 
 ## Scope hierarchy
 
-Exception policies resolve at four levels. The most specific scope wins, and replacement is atomic — the entire set of rules is replaced, not individual rules.
+Exception policies resolve at four levels. The most specific scope wins, and replacement is atomic - the entire set of rules is replaced, not individual rules.
 
 | Scope     | Applies to                            | Configured on                |
 | --------- | ------------------------------------- | ---------------------------- |
@@ -193,11 +193,11 @@ If a consumer defines exception policies, the bus-level and transport-level poli
 
 # Terminal actions
 
-Terminal actions end the message's lifecycle immediately. No retry, no redelivery — the message is either routed to the error endpoint or discarded.
+Terminal actions end the message's lifecycle immediately. No retry, no redelivery - the message is either routed to the error endpoint or discarded.
 
 ## DeadLetter
 
-`DeadLetter()` routes the message to the error endpoint, skipping both retry and redelivery. Use this for exceptions that are permanent — retrying will never succeed and you want the message preserved for inspection.
+`DeadLetter()` routes the message to the error endpoint, skipping both retry and redelivery. Use this for exceptions that are permanent - retrying will never succeed and you want the message preserved for inspection.
 
 ```csharp
 policy.On<ValidationException>().DeadLetter();
@@ -216,7 +216,7 @@ policy.On<DuplicateMessageException>().Discard();
 policy.On<MessageExpiredException>().Discard();
 ```
 
-**When to use:** Messages that are safe to lose — duplicates you have already processed, stale events that no longer matter. Use with caution: discarded messages leave no audit trail in the error endpoint.
+**When to use:** Messages that are safe to lose - duplicates you have already processed, stale events that no longer matter. Use with caution: discarded messages leave no audit trail in the error endpoint.
 
 # Retry policies
 
@@ -280,7 +280,7 @@ All strategies apply jitter by default to prevent thundering herd effects.
 
 # Redelivery policies
 
-Redelivery schedules the message for later delivery through the transport. The concurrency slot is released, the message re-enters the full receive pipeline on each redelivery attempt, and fresh retry cycles run on each delivery. Use redelivery for failures that need minutes or hours to resolve — a downstream service recovering from an outage, a rate limit resetting, or a database completing a failover.
+Redelivery schedules the message for later delivery through the transport. The concurrency slot is released, the message re-enters the full receive pipeline on each redelivery attempt, and fresh retry cycles run on each delivery. Use redelivery for failures that need minutes or hours to resolve - a downstream service recovering from an outage, a rate limit resetting, or a database completing a failover.
 
 When you call `.Redeliver()` directly (without `.Retry()` first), retry is disabled for that exception type. The handler failure goes straight to redelivery scheduling.
 
@@ -319,7 +319,7 @@ Specifies the exact delay before each redelivery attempt. The array length deter
 
 # Escalation chains
 
-The fluent API composes retry, redelivery, and terminal actions into escalation chains. The interface design enforces valid chains at compile time — you cannot chain `.ThenRedeliver()` after `.Redeliver()`, or `.Retry()` after `.ThenRedeliver()`.
+The fluent API composes retry, redelivery, and terminal actions into escalation chains. The interface design enforces valid chains at compile time - you cannot chain `.ThenRedeliver()` after `.Redeliver()`, or `.Retry()` after `.ThenRedeliver()`.
 
 ## Retry then redeliver
 

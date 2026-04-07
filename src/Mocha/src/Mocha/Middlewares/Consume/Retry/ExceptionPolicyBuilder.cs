@@ -79,7 +79,7 @@ internal sealed class ExceptionPolicyBuilder<TException>(ExceptionPolicyRule rul
     {
         EnsureCommitted();
 
-        rule.Retry = new RetryPolicyConfig { Intervals = intervals, Attempts = intervals.Length };
+        rule.Retry = new RetryPolicyConfig { Intervals = [.. intervals], Attempts = intervals.Length };
         rule.Redelivery = new RedeliveryPolicyConfig { Enabled = false };
 
         return this;
@@ -124,7 +124,7 @@ internal sealed class ExceptionPolicyBuilder<TException>(ExceptionPolicyRule rul
         rule.Retry = new RetryPolicyConfig { Enabled = false };
         rule.Redelivery = new RedeliveryPolicyConfig
         {
-            Intervals = intervals,
+            Intervals = [.. intervals],
             Attempts = intervals.Length,
             UseJitter = RedeliveryPolicyDefaults.UseJitter,
             MaxDelay = RedeliveryPolicyDefaults.MaxDelay
@@ -160,7 +160,7 @@ internal sealed class ExceptionPolicyBuilder<TException>(ExceptionPolicyRule rul
     {
         rule.Redelivery = new RedeliveryPolicyConfig
         {
-            Intervals = intervals,
+            Intervals = [.. intervals],
             Attempts = intervals.Length,
             UseJitter = RedeliveryPolicyDefaults.UseJitter,
             MaxDelay = RedeliveryPolicyDefaults.MaxDelay

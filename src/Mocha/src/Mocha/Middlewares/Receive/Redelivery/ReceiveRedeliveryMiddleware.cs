@@ -31,6 +31,7 @@ internal sealed class ReceiveRedeliveryMiddleware(
             {
                 int i => i,
                 long l => (int)l,
+                double d => (int)d,
                 _ => 0
             };
         }
@@ -41,6 +42,8 @@ internal sealed class ReceiveRedeliveryMiddleware(
         }
         catch (Exception ex)
         {
+            var consumerFeature = context.Features.GetOrSet<ReceiveConsumerFeature>();
+
             // Request/reply messages must not be redelivered -- the caller is waiting.
             if (context.Envelope?.ResponseAddress is not null)
             {
@@ -50,7 +53,7 @@ internal sealed class ReceiveRedeliveryMiddleware(
             // Match exception against policy rules.
             var rule = ExceptionPolicyMatcher.Match(exceptionPolicyRules, ex);
 
-            // No matching rule — no policy for this exception, let it propagate.
+            // No matching rule - no policy for this exception, let it propagate.
             if (rule is null)
             {
                 throw;
@@ -59,12 +62,7 @@ internal sealed class ReceiveRedeliveryMiddleware(
             // Discard: swallow at receive level.
             if (rule.Terminal == TerminalAction.Discard)
             {
-                var consumerFeature = context.Features.Get<ReceiveConsumerFeature>();
-
-                if (consumerFeature is not null)
-                {
-                    consumerFeature.MessageConsumed = true;
-                }
+                consumerFeature.MessageConsumed = true;
 
                 return;
             }
@@ -84,9 +82,7 @@ internal sealed class ReceiveRedeliveryMiddleware(
             var redeliveryConfig = rule.Redelivery;
 
             // Check if redelivery attempts remain.
-            var maxAttempts = redeliveryConfig.Attempts
-                ?? redeliveryConfig.Intervals?.Length
-                ?? 0;
+            var maxAttempts = redeliveryConfig.Attempts ?? redeliveryConfig.Intervals?.Length ?? 0;
 
             if (delayedRetryCount >= maxAttempts)
             {
@@ -94,7 +90,7 @@ internal sealed class ReceiveRedeliveryMiddleware(
             }
 
             // Calculate the delay for this redelivery attempt.
-            var delay = CalculateDelay(delayedRetryCount, redeliveryConfig);
+            var delay = RedeliveryExecutor.CalculateDelay(delayedRetryCount, redeliveryConfig);
             var scheduledTime = timeProvider.GetUtcNow().Add(delay);
 
             // Update the header on the envelope so the next delivery round sees the incremented count.
@@ -139,45 +135,8 @@ internal sealed class ReceiveRedeliveryMiddleware(
             }
 
             // Mark the message as consumed so Fault/DeadLetter don't also handle it.
-            context.Features.GetOrSet<ReceiveConsumerFeature>().MessageConsumed = true;
+            consumerFeature.MessageConsumed = true;
         }
-    }
-
-    private static TimeSpan CalculateDelay(int attempt, RedeliveryPolicyConfig config)
-    {
-        TimeSpan baseDelay;
-
-        if (config.Intervals is { Length: > 0 } intervals)
-        {
-            // Explicit intervals: use array index, clamp to last.
-            baseDelay = intervals[Math.Min(attempt, intervals.Length - 1)];
-        }
-        else
-        {
-            // Calculated: BaseDelay * (attempt + 1).
-            var configuredBaseDelay = config.BaseDelay ?? RedeliveryPolicyDefaults.Intervals[0];
-            baseDelay = configuredBaseDelay * (attempt + 1);
-        }
-
-        // Cap by MaxDelay.
-        var maxDelay = config.MaxDelay ?? RedeliveryPolicyDefaults.MaxDelay;
-
-        if (baseDelay > maxDelay)
-        {
-            baseDelay = maxDelay;
-        }
-
-        // Add jitter: +/- 25%.
-        var useJitter = config.UseJitter ?? RedeliveryPolicyDefaults.UseJitter;
-
-        if (useJitter)
-        {
-            var jitterRange = baseDelay.TotalMilliseconds * 0.25;
-            var jitter = (Random.Shared.NextDouble() * 2 - 1) * jitterRange;
-            baseDelay = TimeSpan.FromMilliseconds(Math.Max(0, baseDelay.TotalMilliseconds + jitter));
-        }
-
-        return baseDelay;
     }
 
     public static ReceiveMiddlewareConfiguration Create()
@@ -189,17 +148,14 @@ internal sealed class ReceiveRedeliveryMiddleware(
 
                 if (feature is null)
                 {
-                    // No exception policy configured — skip redelivery middleware entirely.
+                    // No exception policy configured - skip redelivery middleware entirely.
                     return next;
                 }
 
                 var timeProvider = context.Services.GetRequiredService<TimeProvider>();
                 var pools = context.Services.GetRequiredService<IMessagingPools>();
 
-                var middleware = new ReceiveRedeliveryMiddleware(
-                    feature.Rules.ToImmutableArray(),
-                    timeProvider,
-                    pools);
+                var middleware = new ReceiveRedeliveryMiddleware(feature.Rules.ToImmutableArray(), timeProvider, pools);
 
                 return ctx => middleware.InvokeAsync(ctx, next);
             },

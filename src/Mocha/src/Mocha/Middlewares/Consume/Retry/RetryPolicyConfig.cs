@@ -40,5 +40,5 @@ public sealed class RetryPolicyConfig
     /// <summary>
     /// Gets the explicit retry intervals.
     /// </summary>
-    public ImmutableArray<TimeSpan>[]? Intervals { get; init; }
+    public ImmutableArray<TimeSpan>? Intervals { get; init; }
 }

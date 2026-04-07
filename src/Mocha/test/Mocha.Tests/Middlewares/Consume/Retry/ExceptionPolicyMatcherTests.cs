@@ -140,14 +140,9 @@ public sealed class ExceptionPolicyMatcherTests
         Assert.Same(passingRule, result);
     }
 
-    private static ExceptionPolicyRule CreateRule<TException>(
-        Func<Exception, bool>? predicate = null)
+    private static ExceptionPolicyRule CreateRule<TException>(Func<Exception, bool>? predicate = null)
         where TException : Exception
     {
-        return new ExceptionPolicyRule
-        {
-            ExceptionType = typeof(TException),
-            Predicate = predicate
-        };
+        return new ExceptionPolicyRule { ExceptionType = typeof(TException), Predicate = predicate };
     }
 }
