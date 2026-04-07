@@ -101,6 +101,7 @@ public abstract class CommandTestBase
             Out = new AnsiConsoleOutput(stdOutWriter)
         });
         outConsole.Profile.Width = 10_000;
+        outConsole.Profile.Capabilities.Unicode = true;
 
         var errConsole = AnsiConsole.Create(new AnsiConsoleSettings
         {
