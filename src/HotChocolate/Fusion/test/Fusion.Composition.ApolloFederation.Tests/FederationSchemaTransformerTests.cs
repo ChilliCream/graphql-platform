@@ -407,46 +407,6 @@ public sealed class FederationSchemaTransformerTests
     }
 
     [Fact]
-    public void TransformToSourceSchema()
-    {
-        // arrange
-        const string federationSdl =
-            """
-            schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"]) {
-              query: Query
-            }
-            type Product @key(fields: "id") {
-              id: ID!
-              name: String
-            }
-            type Query {
-              product(id: ID!): Product
-              _service: _Service!
-              _entities(representations: [_Any!]!): [_Entity]!
-            }
-            type _Service { sdl: String! }
-            union _Entity = Product
-            scalar FieldSet
-            scalar _Any
-            directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
-            directive @link(url: String! import: [String!]) repeatable on SCHEMA
-            """;
-
-        // act
-        var result = FederationSchemaTransformer.TransformToSourceSchema(
-            "products",
-            federationSdl);
-
-        // assert
-        Assert.True(result.IsSuccess);
-        Assert.Equal("products", result.Value.Name);
-        Snapshot.Create()
-            .Add(federationSdl, "Apollo Federation SDL", "graphql")
-            .Add(result.Value.SourceText, "Transformed Source Schema", "graphql")
-            .MatchMarkdownSnapshot();
-    }
-
-    [Fact]
     public void Transform_InterfaceObject_Should_ReturnError()
     {
         // arrange
@@ -481,43 +441,6 @@ public sealed class FederationSchemaTransformerTests
         Assert.Contains(
             result.Errors,
             e => e.Message.Contains("@interfaceObject"));
-    }
-
-    [Fact]
-    public void Transform_ProgressiveOverride_Should_ReturnError()
-    {
-        // arrange
-        const string federationSdl =
-            """
-            schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key", "@override"]) {
-              query: Query
-            }
-            type Product @key(fields: "id") {
-              id: ID!
-              name: String @override(from: "other", label: "percent(50)")
-            }
-            type Query {
-              products: [Product]
-              _service: _Service!
-              _entities(representations: [_Any!]!): [_Entity]!
-            }
-            type _Service { sdl: String! }
-            union _Entity = Product
-            scalar FieldSet
-            scalar _Any
-            directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
-            directive @override(from: String!, label: String) on FIELD_DEFINITION
-            directive @link(url: String! import: [String!]) repeatable on SCHEMA
-            """;
-
-        // act
-        var result = FederationSchemaTransformer.Transform(federationSdl);
-
-        // assert
-        Assert.True(result.IsFailure);
-        Assert.Contains(
-            result.Errors,
-            e => e.Message.Contains("@override") && e.Message.Contains("label"));
     }
 
     [Fact]
@@ -563,36 +486,10 @@ public sealed class FederationSchemaTransformerTests
     }
 
     [Fact]
-    public void TransformToSourceSchema_Should_PropagateErrors()
-    {
-        // arrange
-        const string federationSdl = "not valid graphql";
-
-        // act
-        var result = FederationSchemaTransformer.TransformToSourceSchema(
-            "products",
-            federationSdl);
-
-        // assert
-        Assert.True(result.IsFailure);
-        Assert.True(result.Errors.Length > 0);
-    }
-
-    [Fact]
     public void Transform_EmptyString_Should_ThrowArgumentException()
     {
         // arrange & act & assert
         Assert.Throws<ArgumentException>(
             () => FederationSchemaTransformer.Transform(string.Empty));
-    }
-
-    [Fact]
-    public void TransformToSourceSchema_EmptySchemaName_Should_ThrowArgumentException()
-    {
-        // arrange & act & assert
-        Assert.Throws<ArgumentException>(
-            () => FederationSchemaTransformer.TransformToSourceSchema(
-                string.Empty,
-                "type Query { hello: String }"));
     }
 }

@@ -1,5 +1,6 @@
 using HotChocolate.Language;
-
+using HotChocolate.Types;
+using HotChocolate.Types.Mutable;
 namespace HotChocolate.Fusion.ApolloFederation;
 
 /// <summary>
@@ -9,153 +10,66 @@ namespace HotChocolate.Fusion.ApolloFederation;
 internal static class TransformRequiresToRequire
 {
     /// <summary>
-    /// Applies the requires-to-require transformation on the document.
+    /// Applies the requires-to-require transformation on the schema.
     /// </summary>
-    /// <param name="document">
-    /// The document to transform.
+    /// <param name="schema">
+    /// The mutable schema definition to transform in place.
     /// </param>
-    /// <param name="analysis">
-    /// The analysis result containing field type metadata.
-    /// </param>
-    /// <returns>
-    /// A new document with <c>@requires</c> directives replaced by
-    /// <c>@require</c> argument directives.
-    /// </returns>
-    public static DocumentNode Apply(DocumentNode document, AnalysisResult analysis)
+    public static void Apply(MutableSchemaDefinition schema)
     {
-        var definitions = new List<IDefinitionNode>(document.Definitions.Count);
-        var changed = false;
+        var requireDef = new MutableDirectiveDefinition("require");
 
-        foreach (var definition in document.Definitions)
+        foreach (var type in schema.Types.OfType<MutableObjectTypeDefinition>())
         {
-            if (definition is ObjectTypeDefinitionNode objectType)
+            foreach (var field in type.Fields)
             {
-                var transformed = TransformObjectType(objectType, analysis);
+                var requiresDirective = field.Directives.FirstOrDefault(
+                    FederationDirectiveNames.Requires);
 
-                if (!ReferenceEquals(transformed, objectType))
+                if (requiresDirective is null)
                 {
-                    changed = true;
+                    continue;
                 }
 
-                definitions.Add(transformed);
-            }
-            else
-            {
-                definitions.Add(definition);
-            }
-        }
+                if (!requiresDirective.Arguments.TryGetValue("fields", out var fieldsValue)
+                    || fieldsValue is not StringValueNode fieldsString)
+                {
+                    continue;
+                }
 
-        if (!changed)
-        {
-            return document;
-        }
+                SelectionSetNode selectionSet;
 
-        return document.WithDefinitions(definitions);
-    }
+                try
+                {
+                    selectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet(
+                        "{ " + fieldsString.Value + " }");
+                }
+                catch (SyntaxException)
+                {
+                    continue;
+                }
 
-    private static ObjectTypeDefinitionNode TransformObjectType(
-        ObjectTypeDefinitionNode objectType,
-        AnalysisResult analysis)
-    {
-        var typeName = objectType.Name.Value;
-        var fields = new List<FieldDefinitionNode>(objectType.Fields.Count);
-        var anyFieldChanged = false;
+                ExtractRequireArguments(
+                    selectionSet,
+                    [],
+                    type,
+                    schema,
+                    field,
+                    requireDef);
 
-        foreach (var field in objectType.Fields)
-        {
-            var transformed = TransformField(field, typeName, analysis);
-
-            if (!ReferenceEquals(transformed, field))
-            {
-                anyFieldChanged = true;
-            }
-
-            fields.Add(transformed);
-        }
-
-        if (!anyFieldChanged)
-        {
-            return objectType;
-        }
-
-        return objectType.WithFields(fields);
-    }
-
-    private static FieldDefinitionNode TransformField(
-        FieldDefinitionNode field,
-        string typeName,
-        AnalysisResult analysis)
-    {
-        DirectiveNode? requiresDirective = null;
-
-        foreach (var directive in field.Directives)
-        {
-            if (directive.Name.Value.Equals(
-                    FederationDirectiveNames.Requires,
-                    StringComparison.Ordinal))
-            {
-                requiresDirective = directive;
-                break;
+                // Remove the @requires directive from the field.
+                field.Directives.Remove(requiresDirective);
             }
         }
-
-        if (requiresDirective is null)
-        {
-            return field;
-        }
-
-        var fieldsValue = GetStringArgument(requiresDirective, "fields");
-
-        if (fieldsValue is null)
-        {
-            return field;
-        }
-
-        SelectionSetNode selectionSet;
-
-        try
-        {
-            selectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet(
-                "{ " + fieldsValue + " }");
-        }
-        catch (SyntaxException)
-        {
-            return field;
-        }
-
-        if (!analysis.TypeFieldTypes.TryGetValue(typeName, out var fieldTypes))
-        {
-            return field;
-        }
-
-        var newArguments = new List<InputValueDefinitionNode>(field.Arguments);
-
-        ExtractRequireArguments(selectionSet, [], typeName, analysis, newArguments);
-
-        // Remove the @requires directive from the field.
-        var newDirectives = new List<DirectiveNode>(field.Directives.Count);
-
-        foreach (var directive in field.Directives)
-        {
-            if (!directive.Name.Value.Equals(
-                    FederationDirectiveNames.Requires,
-                    StringComparison.Ordinal))
-            {
-                newDirectives.Add(directive);
-            }
-        }
-
-        return field
-            .WithArguments(newArguments)
-            .WithDirectives(newDirectives);
     }
 
     private static void ExtractRequireArguments(
         SelectionSetNode selectionSet,
         List<string> parentPath,
-        string currentTypeName,
-        AnalysisResult analysis,
-        List<InputValueDefinitionNode> arguments)
+        MutableComplexTypeDefinition currentType,
+        MutableSchemaDefinition schema,
+        MutableOutputFieldDefinition targetField,
+        MutableDirectiveDefinition requireDef)
     {
         foreach (var selection in selectionSet.Selections)
         {
@@ -169,32 +83,44 @@ internal static class TransformRequiresToRequire
             if (fieldNode.SelectionSet?.Selections.Count > 0)
             {
                 // Nested selection: recurse.
-                var nestedTypeName = ResolveFieldTypeName(currentTypeName, fieldName, analysis);
+                if (!currentType.Fields.TryGetField(fieldName, out var pathField))
+                {
+                    continue;
+                }
 
-                if (nestedTypeName is null)
+                var namedType = pathField.Type.NamedType();
+
+                if (!schema.Types.TryGetType<MutableComplexTypeDefinition>(
+                        namedType.Name, out var nestedType))
                 {
                     continue;
                 }
 
                 var nestedPath = new List<string>(parentPath) { fieldName };
+
                 ExtractRequireArguments(
                     fieldNode.SelectionSet!,
                     nestedPath,
-                    nestedTypeName,
-                    analysis,
-                    arguments);
+                    nestedType,
+                    schema,
+                    targetField,
+                    requireDef);
             }
             else
             {
                 // Leaf field: generate an argument.
-                var fieldType = ResolveFieldType(currentTypeName, fieldName, analysis);
-
-                if (fieldType is null)
+                if (!currentType.Fields.TryGetField(fieldName, out var sourceField))
                 {
                     continue;
                 }
 
+                var fieldType = sourceField.Type;
                 var nonNullType = EnsureNonNull(StripNonNull(fieldType));
+
+                if (nonNullType is not IInputType inputType)
+                {
+                    continue;
+                }
 
                 string requireFieldValue;
 
@@ -207,18 +133,17 @@ internal static class TransformRequiresToRequire
                     requireFieldValue = BuildFieldPath(parentPath, fieldName);
                 }
 
-                var requireDirective = new DirectiveNode(
-                    "require",
-                    new ArgumentNode("field", new StringValueNode(requireFieldValue)));
+                var argument = new MutableInputFieldDefinition(fieldName, inputType)
+                {
+                    DeclaringMember = targetField
+                };
 
-                arguments.Add(
-                    new InputValueDefinitionNode(
-                        null,
-                        new NameNode(fieldName),
-                        null,
-                        nonNullType,
-                        null,
-                        [requireDirective]));
+                argument.Directives.Add(
+                    new Directive(
+                        requireDef,
+                        new ArgumentAssignment("field", requireFieldValue)));
+
+                targetField.Arguments.Add(argument);
             }
         }
     }
@@ -248,82 +173,23 @@ internal static class TransformRequiresToRequire
         return result;
     }
 
-    private static string? ResolveFieldTypeName(
-        string typeName,
-        string fieldName,
-        AnalysisResult analysis)
+    private static IType StripNonNull(IType type)
     {
-        var fieldType = ResolveFieldType(typeName, fieldName, analysis);
-
-        if (fieldType is null)
+        if (type is NonNullType nonNull)
         {
-            return null;
+            return nonNull.NullableType;
         }
 
-        return GetNamedTypeName(fieldType);
+        return type;
     }
 
-    private static ITypeNode? ResolveFieldType(
-        string typeName,
-        string fieldName,
-        AnalysisResult analysis)
+    private static IType EnsureNonNull(IType type)
     {
-        if (analysis.TypeFieldTypes.TryGetValue(typeName, out var fieldTypes)
-            && fieldTypes.TryGetValue(fieldName, out var fieldType))
+        if (type.Kind is TypeKind.NonNull)
         {
-            return fieldType;
+            return type;
         }
 
-        return null;
-    }
-
-    private static string? GetNamedTypeName(ITypeNode typeNode)
-    {
-        return typeNode switch
-        {
-            NamedTypeNode named => named.Name.Value,
-            NonNullTypeNode nonNull => GetNamedTypeName(nonNull.Type),
-            ListTypeNode list => GetNamedTypeName(list.Type),
-            _ => null
-        };
-    }
-
-    private static ITypeNode StripNonNull(ITypeNode typeNode)
-    {
-        if (typeNode is NonNullTypeNode nonNull)
-        {
-            return nonNull.Type;
-        }
-
-        return typeNode;
-    }
-
-    private static ITypeNode EnsureNonNull(ITypeNode typeNode)
-    {
-        if (typeNode is NonNullTypeNode)
-        {
-            return typeNode;
-        }
-
-        if (typeNode is INullableTypeNode nullable)
-        {
-            return new NonNullTypeNode(nullable);
-        }
-
-        return typeNode;
-    }
-
-    private static string? GetStringArgument(DirectiveNode directive, string argumentName)
-    {
-        foreach (var argument in directive.Arguments)
-        {
-            if (argument.Name.Value.Equals(argumentName, StringComparison.Ordinal)
-                && argument.Value is StringValueNode stringValue)
-            {
-                return stringValue.Value;
-            }
-        }
-
-        return null;
+        return new NonNullType(type);
     }
 }

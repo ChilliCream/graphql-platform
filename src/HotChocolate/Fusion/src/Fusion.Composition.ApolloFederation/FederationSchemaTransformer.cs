@@ -2,6 +2,8 @@ using System.Collections.Immutable;
 using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Language;
+using HotChocolate.Types.Mutable;
+using HotChocolate.Types.Mutable.Serialization;
 using static HotChocolate.Fusion.ApolloFederation.Properties.FederationResources;
 
 namespace HotChocolate.Fusion.ApolloFederation;
@@ -26,11 +28,11 @@ public static class FederationSchemaTransformer
     {
         ArgumentException.ThrowIfNullOrEmpty(federationSdl);
 
-        DocumentNode document;
+        MutableSchemaDefinition schema;
 
         try
         {
-            document = Utf8GraphQLParser.Parse(federationSdl);
+            schema = SchemaParser.Parse(federationSdl);
         }
         catch (SyntaxException ex)
         {
@@ -38,48 +40,18 @@ public static class FederationSchemaTransformer
                 string.Format(FederationSchemaTransformer_ParseFailed, ex.Message));
         }
 
-        var analysis = FederationSchemaAnalyzer.Analyze(document);
+        var errors = FederationSchemaAnalyzer.Validate(schema);
 
-        if (analysis.HasErrors)
+        if (errors.Count > 0)
         {
-            return analysis.Errors.ToImmutableArray();
+            return errors.ToImmutableArray();
         }
 
-        document = RemoveFederationInfrastructure.Apply(document, analysis);
-        document = RewriteKeyDirectives.Apply(document);
-        document = GenerateLookupFields.Apply(document, analysis);
-        document = TransformRequiresToRequire.Apply(document, analysis);
+        RemoveFederationInfrastructure.Apply(schema);
+        GenerateLookupFields.Apply(schema);
+        RewriteKeyDirectives.Apply(schema);
+        TransformRequiresToRequire.Apply(schema);
 
-        return document.ToString(indented: true);
-    }
-
-    /// <summary>
-    /// Transforms the given Apollo Federation v2 subgraph SDL into a
-    /// <see cref="SourceSchemaText"/> for the composition pipeline.
-    /// </summary>
-    /// <param name="schemaName">
-    /// The name to assign to the source schema.
-    /// </param>
-    /// <param name="federationSdl">
-    /// The Apollo Federation v2 subgraph SDL to transform.
-    /// </param>
-    /// <returns>
-    /// A <see cref="CompositionResult{TValue}"/> containing a <see cref="SourceSchemaText"/>
-    /// on success, or composition errors on failure.
-    /// </returns>
-    public static CompositionResult<SourceSchemaText> TransformToSourceSchema(
-        string schemaName,
-        string federationSdl)
-    {
-        ArgumentException.ThrowIfNullOrEmpty(schemaName);
-
-        var (_, isFailure, sdl, errors) = Transform(federationSdl);
-
-        if (isFailure)
-        {
-            return errors;
-        }
-
-        return new SourceSchemaText(schemaName, sdl);
+        return SchemaFormatter.FormatAsString(schema);
     }
 }

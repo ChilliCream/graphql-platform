@@ -1,228 +1,105 @@
 using HotChocolate.Fusion.Errors;
 using HotChocolate.Language;
+using HotChocolate.Types.Mutable;
 using static HotChocolate.Fusion.ApolloFederation.Properties.FederationResources;
 
 namespace HotChocolate.Fusion.ApolloFederation;
 
 /// <summary>
-/// Analyzes a parsed <see cref="DocumentNode"/> to extract Apollo Federation metadata
-/// needed for transformations.
+/// Validates a <see cref="MutableSchemaDefinition"/> for Apollo Federation v2 compatibility
+/// and detects unsupported directives.
 /// </summary>
 internal static class FederationSchemaAnalyzer
 {
     private const string FederationUrlPrefix = "specs.apollo.dev/federation";
 
+    private static readonly HashSet<string> s_unsupportedDirectives =
+    [
+        FederationDirectiveNames.ComposeDirective,
+        FederationDirectiveNames.Authenticated,
+        FederationDirectiveNames.RequiresScopes,
+        FederationDirectiveNames.Policy,
+        FederationDirectiveNames.InterfaceObject
+    ];
+
     /// <summary>
-    /// Analyzes the given federation schema document and extracts metadata.
+    /// Validates the given federation schema and returns any composition errors.
     /// </summary>
-    /// <param name="document">
-    /// The parsed GraphQL document to analyze.
+    /// <param name="schema">
+    /// The mutable schema definition to validate.
     /// </param>
     /// <returns>
-    /// An <see cref="AnalysisResult"/> containing the extracted federation metadata.
+    /// A list of <see cref="CompositionError"/> instances. An empty list indicates success.
     /// </returns>
-    public static AnalysisResult Analyze(DocumentNode document)
+    public static List<CompositionError> Validate(MutableSchemaDefinition schema)
     {
-        var result = new AnalysisResult();
+        var errors = new List<CompositionError>();
 
-        DetectFederationVersion(document, result);
-        DetectQueryTypeName(document, result);
-        AnalyzeTypeDefinitions(document, result);
+        ValidateFederationVersion(schema, errors);
+        ValidateUnsupportedDirectives(schema, errors);
 
-        return result;
+        return errors;
     }
 
-    private static void DetectFederationVersion(DocumentNode document, AnalysisResult result)
+    private static void ValidateFederationVersion(
+        MutableSchemaDefinition schema,
+        List<CompositionError> errors)
     {
-        var federationVersion = FindFederationVersion(document);
+        var federationVersion = FindFederationVersion(schema);
 
         if (federationVersion is null)
         {
-            result.Errors.Add(new CompositionError(FederationSchemaAnalyzer_FederationV1NotSupported));
-            return;
+            errors.Add(new CompositionError(FederationSchemaAnalyzer_FederationV1NotSupported));
         }
-
-        result.FederationVersion = federationVersion;
     }
 
-    private static string? FindFederationVersion(DocumentNode document)
+    private static string? FindFederationVersion(MutableSchemaDefinition schema)
     {
-        foreach (var definition in document.Definitions)
+        foreach (var directive in schema.Directives)
         {
-            var directives = definition switch
-            {
-                SchemaDefinitionNode schemaDef => schemaDef.Directives,
-                SchemaExtensionNode schemaExt => schemaExt.Directives,
-                _ => null
-            };
-
-            if (directives is null)
+            if (!directive.Name.Equals(FederationDirectiveNames.Link, StringComparison.Ordinal))
             {
                 continue;
             }
 
-            foreach (var directive in directives)
+            if (!directive.Arguments.TryGetValue("url", out var urlValue)
+                || urlValue is not StringValueNode urlString)
             {
-                if (!directive.Name.Value.Equals(FederationDirectiveNames.Link, StringComparison.Ordinal))
-                {
-                    continue;
-                }
+                continue;
+            }
 
-                var url = GetStringArgument(directive, "url");
+            var url = urlString.Value;
 
-                if (url is null || !url.Contains(FederationUrlPrefix, StringComparison.Ordinal))
-                {
-                    continue;
-                }
+            if (!url.Contains(FederationUrlPrefix, StringComparison.Ordinal))
+            {
+                continue;
+            }
 
-                // Extract version from URL like
-                // "https://specs.apollo.dev/federation/v2.5"
-                var lastSlash = url.LastIndexOf('/');
+            // Extract version from URL like
+            // "https://specs.apollo.dev/federation/v2.5"
+            var lastSlash = url.LastIndexOf('/');
 
-                if (lastSlash >= 0 && lastSlash < url.Length - 1)
-                {
-                    return url[(lastSlash + 1)..];
-                }
+            if (lastSlash >= 0 && lastSlash < url.Length - 1)
+            {
+                return url[(lastSlash + 1)..];
             }
         }
 
         return null;
     }
 
-    private static void DetectQueryTypeName(DocumentNode document, AnalysisResult result)
+    private static void ValidateUnsupportedDirectives(
+        MutableSchemaDefinition schema,
+        List<CompositionError> errors)
     {
-        foreach (var definition in document.Definitions)
+        foreach (var name in s_unsupportedDirectives)
         {
-            if (definition is not SchemaDefinitionNode schemaDef)
+            if (schema.DirectiveDefinitions.ContainsName(name))
             {
-                continue;
-            }
-
-            foreach (var operationType in schemaDef.OperationTypes)
-            {
-                if (operationType.Operation == OperationType.Query)
-                {
-                    result.QueryTypeName = operationType.Type.Name.Value;
-                    return;
-                }
+                errors.Add(new CompositionError(string.Format(
+                    FederationSchemaAnalyzer_DirectiveNotSupported,
+                    name)));
             }
         }
-    }
-
-    private static void AnalyzeTypeDefinitions(DocumentNode document, AnalysisResult result)
-    {
-        var unsupportedDirectives = new HashSet<string>(StringComparer.Ordinal)
-        {
-            FederationDirectiveNames.ComposeDirective,
-            FederationDirectiveNames.Authenticated,
-            FederationDirectiveNames.RequiresScopes,
-            FederationDirectiveNames.Policy,
-            FederationDirectiveNames.InterfaceObject
-        };
-
-        foreach (var definition in document.Definitions)
-        {
-            switch (definition)
-            {
-                case ObjectTypeDefinitionNode objectType:
-                    AnalyzeComplexType(
-                        objectType.Name.Value,
-                        objectType.Directives,
-                        objectType.Fields,
-                        result);
-                    break;
-
-                case InterfaceTypeDefinitionNode interfaceType:
-                    AnalyzeComplexType(
-                        interfaceType.Name.Value,
-                        interfaceType.Directives,
-                        interfaceType.Fields,
-                        result);
-                    break;
-
-                case DirectiveDefinitionNode directiveDef
-                    when unsupportedDirectives.Contains(directiveDef.Name.Value):
-                    result.Errors.Add(new CompositionError(string.Format(
-                        FederationSchemaAnalyzer_DirectiveNotSupported,
-                        directiveDef.Name.Value)));
-                    break;
-            }
-        }
-    }
-
-    private static void AnalyzeComplexType(
-        string typeName,
-        IReadOnlyList<DirectiveNode> directives,
-        IReadOnlyList<FieldDefinitionNode> fields,
-        AnalysisResult result)
-    {
-        // we extract the key directives from federation and construct from resolvable keys lookups and from
-        // non-resolvable keys simply the keys.
-        foreach (var directive in directives)
-        {
-            if (!directive.Name.Value.Equals(FederationDirectiveNames.Key, StringComparison.Ordinal))
-            {
-                continue;
-            }
-
-            var fieldsValue = GetStringArgument(directive, "fields");
-
-            if (fieldsValue is null)
-            {
-                continue;
-            }
-
-            var resolvable = GetBooleanArgument(directive, "resolvable") ?? true;
-
-            if (!result.EntityKeys.TryGetValue(typeName, out var keyList))
-            {
-                keyList = [];
-                result.EntityKeys[typeName] = keyList;
-            }
-
-            keyList.Add(new EntityKeyInfo
-            {
-                Fields = fieldsValue,
-                Resolvable = resolvable
-            });
-        }
-
-        // For later processing we need the type of each field of this type.
-        var fieldTypes = new Dictionary<string, ITypeNode>(StringComparer.Ordinal);
-
-        foreach (var field in fields)
-        {
-            fieldTypes[field.Name.Value] = field.Type;
-        }
-
-        result.TypeFieldTypes[typeName] = fieldTypes;
-    }
-
-    private static string? GetStringArgument(DirectiveNode directive, string argumentName)
-    {
-        foreach (var argument in directive.Arguments)
-        {
-            if (argument.Name.Value.Equals(argumentName, StringComparison.Ordinal)
-                && argument.Value is StringValueNode stringValue)
-            {
-                return stringValue.Value;
-            }
-        }
-
-        return null;
-    }
-
-    private static bool? GetBooleanArgument(DirectiveNode directive, string argumentName)
-    {
-        foreach (var argument in directive.Arguments)
-        {
-            if (argument.Name.Value.Equals(argumentName, StringComparison.Ordinal)
-                && argument.Value is BooleanValueNode boolValue)
-            {
-                return boolValue.Value;
-            }
-        }
-
-        return null;
     }
 }

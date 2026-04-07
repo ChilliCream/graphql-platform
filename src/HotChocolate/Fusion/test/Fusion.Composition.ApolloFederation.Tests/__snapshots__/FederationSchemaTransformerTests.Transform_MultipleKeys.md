@@ -28,16 +28,26 @@ directive @link(url: String! import: [String!]) repeatable on SCHEMA
 ## Transformed SDL
 
 ```graphql
-type Product @key(fields: "id") @key(fields: "sku package") {
-  id: ID!
-  sku: String!
-  package: String!
-  name: String
+schema {
+  query: Query
 }
 
 type Query {
+  productById(id: ID!): Product
+    @internal
+    @lookup
+  productBySkuAndPackage(package: String! sku: String!): Product
+    @internal
+    @lookup
   products: [Product]
-  productById(id: ID!): Product @internal @lookup
-  productBySkuAndPackage(sku: String! package: String!): Product @internal @lookup
+}
+
+type Product
+  @key(fields: "id")
+  @key(fields: "sku package") {
+  id: ID!
+  name: String
+  package: String!
+  sku: String!
 }
 ```

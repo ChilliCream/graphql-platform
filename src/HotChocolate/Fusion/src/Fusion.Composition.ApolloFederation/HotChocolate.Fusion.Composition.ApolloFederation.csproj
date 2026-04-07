@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Language\src\Language\HotChocolate.Language.csproj" />
+    <ProjectReference Include="..\..\..\Mutable\src\Types.Mutable\HotChocolate.Types.Mutable.csproj" />
     <ProjectReference Include="..\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
   </ItemGroup>
 

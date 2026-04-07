@@ -1,5 +1,6 @@
 using HotChocolate.Language;
-
+using HotChocolate.Types;
+using HotChocolate.Types.Mutable;
 namespace HotChocolate.Fusion.ApolloFederation;
 
 /// <summary>
@@ -8,58 +9,80 @@ namespace HotChocolate.Fusion.ApolloFederation;
 internal static class GenerateLookupFields
 {
     /// <summary>
-    /// Applies the lookup field generation to the document.
+    /// Applies the lookup field generation to the schema.
     /// </summary>
-    /// <param name="document">
-    /// The document to transform.
+    /// <param name="schema">
+    /// The mutable schema definition to transform in place.
     /// </param>
-    /// <param name="analysis">
-    /// The analysis result containing entity key and field type metadata.
-    /// </param>
-    /// <returns>
-    /// A new document with generated lookup fields on the Query type.
-    /// </returns>
-    public static DocumentNode Apply(DocumentNode document, AnalysisResult analysis)
+    public static void Apply(MutableSchemaDefinition schema)
     {
-        var lookupFields = new List<FieldDefinitionNode>();
-
-        foreach (var (typeName, keys) in analysis.EntityKeys)
+        if (schema.QueryType is null)
         {
-            foreach (var key in keys)
+            return;
+        }
+
+        var internalDef = new MutableDirectiveDefinition("internal");
+        var lookupDef = new MutableDirectiveDefinition("lookup");
+        var isDef = new MutableDirectiveDefinition("is");
+
+        foreach (var type in schema.Types)
+        {
+            if (type is not MutableComplexTypeDefinition complexType)
             {
-                if (!key.Resolvable)
+                continue;
+            }
+
+            foreach (var keyDirective in complexType.Directives["key"])
+            {
+                if (!keyDirective.Arguments.TryGetValue("fields", out var fieldsValue)
+                    || fieldsValue is not StringValueNode fieldsString)
                 {
                     continue;
                 }
 
-                var field = GenerateLookupField(typeName, key, analysis);
+                var resolvable = true;
+
+                if (keyDirective.Arguments.TryGetValue("resolvable", out var resolvableValue)
+                    && resolvableValue is BooleanValueNode boolValue)
+                {
+                    resolvable = boolValue.Value;
+                }
+
+                if (!resolvable)
+                {
+                    continue;
+                }
+
+                var field = GenerateLookupField(
+                    schema,
+                    complexType,
+                    fieldsString.Value,
+                    internalDef,
+                    lookupDef,
+                    isDef);
 
                 if (field is not null)
                 {
-                    lookupFields.Add(field);
+                    schema.QueryType.Fields.Add(field);
                 }
             }
         }
-
-        if (lookupFields.Count == 0)
-        {
-            return document;
-        }
-
-        return AppendFieldsToQueryType(document, analysis.QueryTypeName, lookupFields);
     }
 
-    private static FieldDefinitionNode? GenerateLookupField(
-        string typeName,
-        EntityKeyInfo key,
-        AnalysisResult analysis)
+    private static MutableOutputFieldDefinition? GenerateLookupField(
+        MutableSchemaDefinition schema,
+        MutableComplexTypeDefinition complexType,
+        string fieldsSelection,
+        MutableDirectiveDefinition internalDef,
+        MutableDirectiveDefinition lookupDef,
+        MutableDirectiveDefinition isDef)
     {
         SelectionSetNode selectionSet;
 
         try
         {
             selectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet(
-                "{ " + key.Fields + " }");
+                "{ " + fieldsSelection + " }");
         }
         catch (SyntaxException)
         {
@@ -74,18 +97,20 @@ internal static class GenerateLookupFields
             return null;
         }
 
-        if (!analysis.TypeFieldTypes.TryGetValue(typeName, out var fieldTypes))
-        {
-            return null;
-        }
-
-        var arguments = new List<InputValueDefinitionNode>();
         var nameParts = new List<string>();
+        var fieldName = ToCamelCase(complexType.Name) + "By";
+
+        // Build a temporary field to set as DeclaringMember on arguments.
+        var lookupField = new MutableOutputFieldDefinition(
+            "placeholder",
+            complexType)
+        {
+            DeclaringMember = schema.QueryType
+        };
 
         foreach (var leaf in leafFields)
         {
-            var argumentName = leaf.ArgumentName;
-            var fieldType = ResolveLeafFieldType(leaf, typeName, analysis);
+            var fieldType = ResolveLeafFieldType(leaf, complexType, schema);
 
             if (fieldType is null)
             {
@@ -95,101 +120,87 @@ internal static class GenerateLookupFields
             // Make the type NonNull.
             var nonNullType = EnsureNonNull(fieldType);
 
-            var argumentDirectives = new List<DirectiveNode>();
+            if (nonNullType is not IInputType inputType)
+            {
+                continue;
+            }
+
+            var argument = new MutableInputFieldDefinition(leaf.ArgumentName, inputType)
+            {
+                DeclaringMember = lookupField
+            };
 
             // If the field has a nested path, add @is directive.
             if (leaf.Path.Count > 0)
             {
                 var fieldPath = BuildFieldPath(leaf);
-                argumentDirectives.Add(
-                    new DirectiveNode(
-                        "is",
-                        new ArgumentNode("field", new StringValueNode(fieldPath))));
+                argument.Directives.Add(
+                    new Directive(isDef, new ArgumentAssignment("field", fieldPath)));
             }
 
-            arguments.Add(
-                new InputValueDefinitionNode(
-                    null,
-                    new NameNode(argumentName),
-                    null,
-                    nonNullType,
-                    null,
-                    argumentDirectives));
-
-            nameParts.Add(ToPascalCase(argumentName));
+            lookupField.Arguments.Add(argument);
+            nameParts.Add(ToPascalCase(leaf.ArgumentName));
         }
 
-        if (arguments.Count == 0)
+        if (lookupField.Arguments.Count == 0)
         {
             return null;
         }
 
-        var fieldName = ToCamelCase(typeName) + "By" + string.Join("And", nameParts);
+        fieldName += string.Join("And", nameParts);
 
-        return new FieldDefinitionNode(
-            null,
-            new NameNode(fieldName),
-            null,
-            arguments,
-            new NamedTypeNode(typeName),
-            [new DirectiveNode("internal"), new DirectiveNode("lookup")]);
+        // Update the field name now that we know it.
+        lookupField.Name = fieldName;
+
+        lookupField.Directives.Add(new Directive(internalDef));
+        lookupField.Directives.Add(new Directive(lookupDef));
+
+        return lookupField;
     }
 
-    private static ITypeNode? ResolveLeafFieldType(
+    private static IType? ResolveLeafFieldType(
         LeafFieldInfo leaf,
-        string typeName,
-        AnalysisResult analysis)
+        MutableComplexTypeDefinition owningType,
+        MutableSchemaDefinition schema)
     {
         if (leaf.Path.Count == 0)
         {
             // Simple field: look up directly.
-            if (analysis.TypeFieldTypes.TryGetValue(typeName, out var fieldTypes)
-                && fieldTypes.TryGetValue(leaf.FieldName, out var fieldType))
+            if (owningType.Fields.TryGetField(leaf.FieldName, out var field))
             {
-                return fieldType;
+                return field.Type;
             }
 
             return null;
         }
 
         // Nested field: walk the path.
-        var currentTypeName = typeName;
+        var currentType = owningType;
 
         foreach (var pathSegment in leaf.Path)
         {
-            if (!analysis.TypeFieldTypes.TryGetValue(currentTypeName, out var pathFieldTypes)
-                || !pathFieldTypes.TryGetValue(pathSegment, out var pathFieldType))
+            if (!currentType.Fields.TryGetField(pathSegment, out var pathField))
             {
                 return null;
             }
 
-            currentTypeName = GetNamedTypeName(pathFieldType);
+            var namedType = pathField.Type.NamedType();
 
-            if (currentTypeName is null)
+            if (!schema.Types.TryGetType<MutableComplexTypeDefinition>(namedType.Name, out var nestedType))
             {
                 return null;
             }
+
+            currentType = nestedType;
         }
 
         // Now look up the final leaf field.
-        if (analysis.TypeFieldTypes.TryGetValue(currentTypeName, out var leafFieldTypes)
-            && leafFieldTypes.TryGetValue(leaf.FieldName, out var leafFieldType))
+        if (currentType.Fields.TryGetField(leaf.FieldName, out var leafField))
         {
-            return leafFieldType;
+            return leafField.Type;
         }
 
         return null;
-    }
-
-    private static string? GetNamedTypeName(ITypeNode typeNode)
-    {
-        return typeNode switch
-        {
-            NamedTypeNode named => named.Name.Value,
-            NonNullTypeNode nonNull => GetNamedTypeName(nonNull.Type),
-            ListTypeNode list => GetNamedTypeName(list.Type),
-            _ => null
-        };
     }
 
     private static void ExtractLeafFields(
@@ -210,7 +221,7 @@ internal static class GenerateLookupFields
             {
                 // Nested field: recurse with the current field added to the path.
                 var nestedPath = new List<string>(parentPath) { fieldName };
-                ExtractLeafFields(fieldNode.SelectionSet!, nestedPath, results);
+                ExtractLeafFields(fieldNode.SelectionSet, nestedPath, results);
             }
             else
             {
@@ -268,48 +279,14 @@ internal static class GenerateLookupFields
         return result;
     }
 
-    private static ITypeNode EnsureNonNull(ITypeNode typeNode)
+    private static IType EnsureNonNull(IType type)
     {
-        if (typeNode is NonNullTypeNode)
+        if (type.Kind is TypeKind.NonNull)
         {
-            return typeNode;
+            return type;
         }
 
-        if (typeNode is INullableTypeNode nullable)
-        {
-            return new NonNullTypeNode(nullable);
-        }
-
-        return typeNode;
-    }
-
-    private static DocumentNode AppendFieldsToQueryType(
-        DocumentNode document,
-        string queryTypeName,
-        List<FieldDefinitionNode> lookupFields)
-    {
-        var definitions = new List<IDefinitionNode>(document.Definitions.Count);
-
-        foreach (var definition in document.Definitions)
-        {
-            if (definition is ObjectTypeDefinitionNode objectType
-                && objectType.Name.Value.Equals(queryTypeName, StringComparison.Ordinal))
-            {
-                var allFields = new List<FieldDefinitionNode>(
-                    objectType.Fields.Count + lookupFields.Count);
-
-                allFields.AddRange(objectType.Fields);
-                allFields.AddRange(lookupFields);
-
-                definitions.Add(objectType.WithFields(allFields));
-            }
-            else
-            {
-                definitions.Add(definition);
-            }
-        }
-
-        return document.WithDefinitions(definitions);
+        return new NonNullType(type);
     }
 
     private static string ToCamelCase(string value)

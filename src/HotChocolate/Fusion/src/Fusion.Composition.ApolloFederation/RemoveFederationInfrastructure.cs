@@ -1,10 +1,10 @@
-using HotChocolate.Language;
+using HotChocolate.Types.Mutable;
 
 namespace HotChocolate.Fusion.ApolloFederation;
 
 /// <summary>
 /// Removes Apollo Federation infrastructure types, directives, and fields
-/// from a schema document.
+/// from a mutable schema definition.
 /// </summary>
 internal static class RemoveFederationInfrastructure
 {
@@ -33,186 +33,43 @@ internal static class RemoveFederationInfrastructure
         FederationTypeNames.LegacyFieldSet
     };
 
-    private static readonly HashSet<string> _federationFieldNames = new(StringComparer.Ordinal)
-    {
-        FederationFieldNames.Entities,
-        FederationFieldNames.Service
-    };
-
     /// <summary>
-    /// Applies the transformation to remove federation infrastructure from the document.
+    /// Applies the transformation to remove federation infrastructure from the schema.
     /// </summary>
-    /// <param name="document">
-    /// The document to transform.
+    /// <param name="schema">
+    /// The mutable schema definition to transform in place.
     /// </param>
-    /// <param name="analysis">
-    /// The analysis result containing metadata about the schema.
-    /// </param>
-    /// <returns>
-    /// A new document with federation infrastructure removed.
-    /// </returns>
-    public static DocumentNode Apply(DocumentNode document, AnalysisResult analysis)
+    public static void Apply(MutableSchemaDefinition schema)
     {
-        var definitions = new List<IDefinitionNode>(document.Definitions.Count);
-
-        foreach (var definition in document.Definitions)
+        // Remove federation directive definitions.
+        foreach (var name in _federationDirectiveNames)
         {
-            var transformed = TransformDefinition(definition, analysis);
-
-            if (transformed is not null)
-            {
-                definitions.Add(transformed);
-            }
+            schema.DirectiveDefinitions.Remove(name);
         }
 
-        return document.WithDefinitions(definitions);
-    }
-
-    private static IDefinitionNode? TransformDefinition(
-        IDefinitionNode definition,
-        AnalysisResult analysis)
-    {
-        switch (definition)
+        // Remove federation scalar types.
+        foreach (var name in _federationScalarNames)
         {
-            case ObjectTypeDefinitionNode objectType
-                when objectType.Name.Value.Equals(
-                    FederationTypeNames.Service,
-                    StringComparison.Ordinal):
-                return null;
-
-            case UnionTypeDefinitionNode unionType
-                when unionType.Name.Value.Equals(
-                    FederationTypeNames.Entity,
-                    StringComparison.Ordinal):
-                return null;
-
-            case ScalarTypeDefinitionNode scalarType
-                when _federationScalarNames.Contains(scalarType.Name.Value):
-                return null;
-
-            case DirectiveDefinitionNode directiveDef
-                when _federationDirectiveNames.Contains(directiveDef.Name.Value):
-                return null;
-
-            case SchemaDefinitionNode schemaDef:
-                return TransformSchemaDefinition(schemaDef);
-
-            case SchemaExtensionNode schemaExt:
-                return TransformSchemaExtension(schemaExt);
-
-            case ObjectTypeDefinitionNode objectType
-                when objectType.Name.Value.Equals(
-                    analysis.QueryTypeName,
-                    StringComparison.Ordinal):
-                return RemoveQueryFederationFields(objectType);
-
-            default:
-                return definition;
-        }
-    }
-
-    private static IDefinitionNode? TransformSchemaDefinition(SchemaDefinitionNode schemaDef)
-    {
-        var nonLinkDirectives = new List<DirectiveNode>();
-
-        foreach (var directive in schemaDef.Directives)
-        {
-            if (!directive.Name.Value.Equals(
-                    FederationDirectiveNames.Link,
-                    StringComparison.Ordinal))
-            {
-                nonLinkDirectives.Add(directive);
-            }
+            schema.Types.Remove(name);
         }
 
-        // If the schema definition only had @link directives and has standard
-        // operation types, remove it entirely.
-        if (nonLinkDirectives.Count == 0 && HasOnlyStandardOperationTypes(schemaDef))
+        // Remove _Service type and _Entity union.
+        schema.Types.Remove(FederationTypeNames.Service);
+        schema.Types.Remove(FederationTypeNames.Entity);
+
+        // Remove _entities and _service fields from query type.
+        if (schema.QueryType is not null)
         {
-            return null;
+            schema.QueryType.Fields.Remove(FederationFieldNames.Entities);
+            schema.QueryType.Fields.Remove(FederationFieldNames.Service);
         }
 
-        // Otherwise keep it but strip the @link directives.
-        if (nonLinkDirectives.Count != schemaDef.Directives.Count)
+        // Remove @link directives from schema.
+        var linkDirectives = schema.Directives[FederationDirectiveNames.Link].ToList();
+
+        foreach (var directive in linkDirectives)
         {
-            return schemaDef.WithDirectives(nonLinkDirectives);
+            schema.Directives.Remove(directive);
         }
-
-        return schemaDef;
-    }
-
-    private static IDefinitionNode? TransformSchemaExtension(SchemaExtensionNode schemaExt)
-    {
-        var nonLinkDirectives = new List<DirectiveNode>();
-
-        foreach (var directive in schemaExt.Directives)
-        {
-            if (!directive.Name.Value.Equals(
-                    FederationDirectiveNames.Link,
-                    StringComparison.Ordinal))
-            {
-                nonLinkDirectives.Add(directive);
-            }
-        }
-
-        // If only @link directives, remove entirely.
-        if (nonLinkDirectives.Count == 0)
-        {
-            return null;
-        }
-
-        if (nonLinkDirectives.Count != schemaExt.Directives.Count)
-        {
-            return schemaExt.WithDirectives(nonLinkDirectives);
-        }
-
-        return schemaExt;
-    }
-
-    private static bool HasOnlyStandardOperationTypes(SchemaDefinitionNode schemaDef)
-    {
-        foreach (var operationType in schemaDef.OperationTypes)
-        {
-            var isStandard = operationType.Operation switch
-            {
-                OperationType.Query
-                    => operationType.Type.Name.Value.Equals("Query", StringComparison.Ordinal),
-                OperationType.Mutation
-                    => operationType.Type.Name.Value.Equals("Mutation", StringComparison.Ordinal),
-                OperationType.Subscription
-                    => operationType.Type.Name.Value.Equals(
-                        "Subscription",
-                        StringComparison.Ordinal),
-                _ => false
-            };
-
-            if (!isStandard)
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private static ObjectTypeDefinitionNode RemoveQueryFederationFields(
-        ObjectTypeDefinitionNode queryType)
-    {
-        var filteredFields = new List<FieldDefinitionNode>(queryType.Fields.Count);
-
-        foreach (var field in queryType.Fields)
-        {
-            if (!_federationFieldNames.Contains(field.Name.Value))
-            {
-                filteredFields.Add(field);
-            }
-        }
-
-        if (filteredFields.Count == queryType.Fields.Count)
-        {
-            return queryType;
-        }
-
-        return queryType.WithFields(filteredFields);
     }
 }
