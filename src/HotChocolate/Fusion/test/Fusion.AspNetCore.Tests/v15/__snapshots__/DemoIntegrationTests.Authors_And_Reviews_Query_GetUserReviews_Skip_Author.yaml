@@ -1,0 +1,346 @@
+title: Authors_And_Reviews_Query_GetUserReviews_Skip_Author
+request:
+  document: |
+    query GetUser(
+      $skip: Boolean!
+    ) {
+      users {
+        name
+        reviews {
+          body
+          author @skip(if: $skip) {
+            name
+            birthdate
+          }
+        }
+      }
+    }
+  variables: |
+    {
+      "skip": true
+    }
+response:
+  body: |
+    {
+      "data": {
+        "users": [
+          {
+            "name": "User: VXNlcjox",
+            "reviews": [
+              {
+                "body": "Review: UmV2aWV3OjE="
+              },
+              {
+                "body": "Review: UmV2aWV3OjI="
+              },
+              {
+                "body": "Review: UmV2aWV3OjM="
+              }
+            ]
+          },
+          {
+            "name": "User: VXNlcjoy",
+            "reviews": [
+              {
+                "body": "Review: UmV2aWV3OjQ="
+              },
+              {
+                "body": "Review: UmV2aWV3OjU="
+              },
+              {
+                "body": "Review: UmV2aWV3OjY="
+              }
+            ]
+          },
+          {
+            "name": "User: VXNlcjoz",
+            "reviews": [
+              {
+                "body": "Review: UmV2aWV3Ojc="
+              },
+              {
+                "body": "Review: UmV2aWV3Ojg="
+              },
+              {
+                "body": "Review: UmV2aWV3Ojk="
+              }
+            ]
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        userById(id: ID!): User!
+        users: [User!]!
+        testWithTwoArgumentsDifferingNullability(first: Int! second: Int): String!
+      }
+
+      type User implements Node {
+        id: ID!
+        name: String!
+        username: String!
+        birthdate: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query GetUser_f346d273_1 {
+              users {
+                name
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "users": [
+                    {
+                      "name": "User: VXNlcjox",
+                      "id": "VXNlcjox"
+                    },
+                    {
+                      "name": "User: VXNlcjoy",
+                      "id": "VXNlcjoy"
+                    },
+                    {
+                      "name": "User: VXNlcjoz",
+                      "id": "VXNlcjoz"
+                    }
+                  ]
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Product implements Node {
+        id: ID!
+        reviews: [Review!]!
+        reviewCount: Int!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        reviews: [Review!]!
+      }
+
+      type Review implements Node {
+        id: ID!
+        body: String!
+        author: User!
+        product: Product!
+      }
+
+      type User implements Node {
+        id: ID!
+        reviews: [Review!]!
+        errorField: String @error
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query GetUser_f346d273_2(
+              $skip: Boolean!
+                $__fusion_1_id: ID!
+            ) {
+              node(id: $__fusion_1_id) {
+                __typename
+                ... on User {
+                  reviews {
+                    body
+                    author @skip(if: $skip) {
+                      id
+                    }
+                  }
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "skip": true,
+                "__fusion_1_id": "VXNlcjox"
+              },
+              {
+                "skip": true,
+                "__fusion_1_id": "VXNlcjoy"
+              },
+              {
+                "skip": true,
+                "__fusion_1_id": "VXNlcjoz"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "reviews": [
+                      {
+                        "body": "Review: UmV2aWV3OjE="
+                      },
+                      {
+                        "body": "Review: UmV2aWV3OjI="
+                      },
+                      {
+                        "body": "Review: UmV2aWV3OjM="
+                      }
+                    ]
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "reviews": [
+                      {
+                        "body": "Review: UmV2aWV3OjQ="
+                      },
+                      {
+                        "body": "Review: UmV2aWV3OjU="
+                      },
+                      {
+                        "body": "Review: UmV2aWV3OjY="
+                      }
+                    ]
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "reviews": [
+                      {
+                        "body": "Review: UmV2aWV3Ojc="
+                      },
+                      {
+                        "body": "Review: UmV2aWV3Ojg="
+                      },
+                      {
+                        "body": "Review: UmV2aWV3Ojk="
+                      }
+                    ]
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query GetUser(
+          $skip: Boolean!
+        ) {
+          users {
+            name
+            reviews {
+              body
+              author @skip(if: $skip) {
+                name
+                birthdate
+                id @fusion__requirement
+              }
+            }
+            id @fusion__requirement
+          }
+        }
+      name: GetUser
+      hash: f346d273632eda35e187eb747bbc7600
+      searchSpace: 1
+      expandedNodes: 3
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query GetUser_f346d273_1 {
+          users {
+            name
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query GetUser_f346d273_2(
+          $skip: Boolean!
+            $__fusion_1_id: ID!
+        ) {
+          node(id: $__fusion_1_id) {
+            __typename
+            ... on User {
+              reviews {
+                body
+                author @skip(if: $skip) {
+                  id
+                }
+              }
+            }
+          }
+        }
+      source: $.node<User>
+      target: $.users
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      forwardedVariables:
+        - skip
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: A
+      operation: |
+        query GetUser_f346d273_3(
+          $__fusion_2_id: ID!
+        ) {
+          node(id: $__fusion_2_id) {
+            __typename
+            ... on User {
+              name
+              birthdate
+            }
+          }
+        }
+      source: $.node<User>
+      target: $.users.reviews.author
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      conditions:
+        - variable: $skip
+          passingValue: false
+      dependencies:
+        - id: 2

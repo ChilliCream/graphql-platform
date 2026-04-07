@@ -1,0 +1,176 @@
+title: Inline_Fragments_With_Duplicate_Response_Name_Should_Not_Drop_Pocketed_Error
+request:
+  document: |
+    {
+      node {
+        ... on Product {
+          shared {
+            a
+          }
+        }
+        ... on Review {
+          shared {
+            b
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "node": {
+          "shared": null
+        }
+      },
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "node",
+            "shared"
+          ]
+        }
+      ]
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface INode @key(fields: "id") {
+        id: Int!
+      }
+
+      type Product implements INode @key(fields: "id") {
+        id: Int!
+        shared: SharedData @shareable @error
+      }
+
+      type Query {
+        node: INode @shareable @returns(types: ["Product"])
+        productA(id: Int!): Product @lookup
+        reviewA(id: Int!): Review @lookup
+      }
+
+      type Review implements INode @key(fields: "id") {
+        id: Int!
+        shared: SharedData @shareable
+      }
+
+      type SharedData @shareable {
+        a: String
+        b: String
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_e478e62b_1 {
+              node {
+                __typename
+                ... on Product {
+                  shared {
+                    a
+                  }
+                }
+                ... on Review {
+                  shared {
+                    b
+                  }
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Unexpected Execution Error",
+                    "path": [
+                      "node",
+                      "shared"
+                    ]
+                  }
+                ],
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "shared": null
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface INode @key(fields: "id") {
+        id: Int!
+      }
+
+      type Product implements INode @key(fields: "id") {
+        id: Int!
+        shared: SharedData @shareable
+      }
+
+      type Query {
+        node: INode @shareable @returns(types: ["Product"])
+        productB(id: Int!): Product @lookup
+        reviewB(id: Int!): Review @lookup
+      }
+
+      type Review implements INode @key(fields: "id") {
+        id: Int!
+        shared: SharedData @shareable
+      }
+
+      type SharedData @shareable {
+        a: String
+        b: String
+      }
+operationPlan:
+  operation:
+    - document: |
+        {
+          node {
+            __typename @fusion__requirement
+            ... on Product {
+              shared {
+                a
+              }
+            }
+            ... on Review {
+              shared {
+                b
+              }
+            }
+          }
+        }
+      hash: e478e62b445cdeba5f97f95b02771a77
+      searchSpace: 2
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_e478e62b_1 {
+          node {
+            __typename
+            ... on Product {
+              shared {
+                a
+              }
+            }
+            ... on Review {
+              shared {
+                b
+              }
+            }
+          }
+        }

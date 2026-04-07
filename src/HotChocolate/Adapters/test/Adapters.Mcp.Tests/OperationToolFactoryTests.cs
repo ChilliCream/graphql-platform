@@ -301,7 +301,7 @@ public sealed class OperationToolFactoryTests
     public void CreateTool_WithComplexVariables_CreatesCorrectSchema()
     {
         // arrange
-        var schema = CreateSchema(s => s.AddType(new TimeSpanType(TimeSpanFormat.DotNet)));
+        var schema = CreateSchema(s => s.AddType(new DurationType(DurationFormat.DotNet)));
         var document = Utf8GraphQLParser.Parse(
             File.ReadAllText("__resources__/GetWithComplexVariables.graphql"));
         var toolDefinition = new OperationToolDefinition(document);

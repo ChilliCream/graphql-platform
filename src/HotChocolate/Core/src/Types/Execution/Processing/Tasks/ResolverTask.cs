@@ -1,11 +1,10 @@
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Resolvers;
-using HotChocolate.Utilities;
 using Microsoft.Extensions.ObjectPool;
 
 namespace HotChocolate.Execution.Processing.Tasks;
 
-internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) : IExecutionTask
+internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) : IResolverTask
 {
     private readonly MiddlewareContext _context = new();
     private readonly List<IExecutionTask> _taskBuffer = [];
@@ -56,6 +55,7 @@ internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) 
             SelectionExecutionStrategy.Default => ExecutionTaskKind.Parallel,
             SelectionExecutionStrategy.Serial => ExecutionTaskKind.Serial,
             SelectionExecutionStrategy.Pure => ExecutionTaskKind.Pure,
+            SelectionExecutionStrategy.Batch => ExecutionTaskKind.Parallel,
             _ => throw new NotSupportedException()
         };
 
@@ -81,9 +81,14 @@ internal sealed partial class ResolverTask(ObjectPool<ResolverTask> objectPool) 
     public bool IsDeferred => DeferUsage is not null;
 
     /// <inheritdoc />
+    public SelectionPath FieldSelectionPath => Selection.FieldSelectionPath;
+
+    /// <inheritdoc />
     public void BeginExecute(CancellationToken cancellationToken)
     {
+#pragma warning disable CA2012
         Status = ExecutionTaskStatus.Running;
         _ = ExecuteAsync(cancellationToken);
+#pragma warning restore CA2012
     }
 }

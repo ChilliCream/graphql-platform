@@ -1,0 +1,201 @@
+{
+  "activities": [
+    {
+      "OperationName": "GraphQL Operation",
+      "DisplayName": "subscription",
+      "Status": "Ok",
+      "tags": [
+        {
+          "Key": "graphql.operation.type",
+          "Value": "subscription"
+        },
+        {
+          "Key": "graphql.operation.name",
+          "Value": "OnFailingMessageSubscription"
+        },
+        {
+          "Key": "graphql.document.hash",
+          "Value": "md5:1f38a1bfe720ad0cb6083bf8b309d3aa"
+        }
+      ],
+      "event": [
+        {
+          "Name": "AddedOperationToCache",
+          "Tags": []
+        },
+        {
+          "Name": "AddedDocumentToCache",
+          "Tags": []
+        }
+      ],
+      "activities": [
+        {
+          "OperationName": "GraphQL Document Parsing",
+          "DisplayName": "GraphQL Document Parsing",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:1f38a1bfe720ad0cb6083bf8b309d3aa"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Document Validation",
+          "DisplayName": "GraphQL Document Validation",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "validate"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:1f38a1bfe720ad0cb6083bf8b309d3aa"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Operation Planning",
+          "DisplayName": "GraphQL Operation Planning",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "plan"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:1f38a1bfe720ad0cb6083bf8b309d3aa"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "subscription"
+            },
+            {
+              "Key": "graphql.operation.name",
+              "Value": "OnFailingMessageSubscription"
+            }
+          ],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Operation Execution",
+          "DisplayName": "GraphQL Operation Execution",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.processing.type",
+              "Value": "execute"
+            },
+            {
+              "Key": "graphql.operation.type",
+              "Value": "subscription"
+            },
+            {
+              "Key": "graphql.operation.name",
+              "Value": "OnFailingMessageSubscription"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:1f38a1bfe720ad0cb6083bf8b309d3aa"
+            }
+          ],
+          "event": [],
+          "activities": [
+            {
+              "OperationName": "GraphQL Subscription Event",
+              "DisplayName": "GraphQL Subscription Event",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "execute"
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "subscription"
+                },
+                {
+                  "Key": "graphql.operation.name",
+                  "Value": "OnFailingMessageSubscription"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:1f38a1bfe720ad0cb6083bf8b309d3aa"
+                },
+                {
+                  "Key": "graphql.subscription.id",
+                  "Value": "1"
+                }
+              ],
+              "event": [],
+              "activities": [
+                {
+                  "OperationName": "SimpleSubscription.onFailingMessage",
+                  "DisplayName": "SimpleSubscription.onFailingMessage",
+                  "Status": "Error",
+                  "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "resolve"
+                    },
+                    {
+                      "Key": "graphql.selection.name",
+                      "Value": "onFailingMessage"
+                    },
+                    {
+                      "Key": "graphql.selection.path",
+                      "Value": "onFailingMessage"
+                    },
+                    {
+                      "Key": "graphql.selection.field.name",
+                      "Value": "onFailingMessage"
+                    },
+                    {
+                      "Key": "graphql.selection.field.coordinate",
+                      "Value": "SimpleSubscription.onFailingMessage"
+                    },
+                    {
+                      "Key": "graphql.selection.field.parent_type",
+                      "Value": "SimpleSubscription"
+                    }
+                  ],
+                  "event": [
+                    {
+                      "Name": "exception",
+                      "Tags": [
+                        {
+                          "Key": "graphql.error.message",
+                          "Value": "Unexpected Execution Error"
+                        },
+                        {
+                          "Key": "exception.message",
+                          "Value": "Subscription event failed."
+                        },
+                        {
+                          "Key": "exception.stacktrace",
+                          "Value": "System.InvalidOperationException: Subscription event failed.\n   at HotChocolate.Diagnostics.ActivityExecutionDiagnosticListenerTests.SimpleSubscription.OnFailingMessage(String message) in ActivityExecutionDiagnosticListenerTests.cs:line 554\n   at lambda_method(Closure, IResolverContext)\n   at HotChocolate.Types.Helpers.FieldMiddlewareCompiler.<>c__DisplayClass9_0.<<CreateResolverMiddleware>b__0>d.MoveNext() in FieldMiddlewareCompiler.cs:line 127\n--- End of stack trace from previous location ---\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.ExecuteResolverPipelineAsync(CancellationToken cancellationToken) in ResolverTask.Execute.cs:line 135\n   at HotChocolate.Execution.Processing.Tasks.ResolverTask.TryExecuteAsync(CancellationToken cancellationToken) in ResolverTask.Execute.cs:line 81"
+                        },
+                        {
+                          "Key": "exception.type",
+                          "Value": "System.InvalidOperationException"
+                        },
+                        {
+                          "Key": "graphql.error.path",
+                          "Value": "onFailingMessage"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

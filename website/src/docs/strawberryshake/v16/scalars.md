@@ -14,16 +14,16 @@ Strawberry Shake supports the following scalars out of the box:
 | Date          | The [Date][5] scalar type represents a date in UTC.                                                                 |
 | DateTime      | The [DateTime][6] scalar type represents a date and time with time zone offset information.                         |
 | Decimal       | The [Decimal][7] scalar type represents a decimal floating-point number with high precision.                        |
-| Float         | The [Float][8] scalar type represents signed double-precision finite values as specified by [IEEE 754][9].          |
-| ID            | The [ID][10] scalar type represents a unique identifier, often used to refetch an object or as the key for a cache. |
-| Int           | The [Int][11] scalar type represents a signed 32-bit numeric non-fractional value.                                  |
-| LocalDate     | The [LocalDate][12] scalar type represents a date without time or time zone information.                            |
-| LocalDateTime | The [LocalDateTime][13] scalar type represents a date and time without time zone information.                       |
-| LocalTime     | The [LocalTime][14] scalar type represents a time of day without date or time zone information.                     |
-| Long          | The [Long][15] scalar type represents a signed 64-bit integer.                                                      |
-| Short         | The [Short][16] scalar type represents a signed 16-bit integer.                                                     |
-| String        | The [String][17] scalar type represents textual data, represented as a sequence of Unicode code points.             |
-| TimeSpan      | The [TimeSpan][18] scalar type represents a duration of time.                                                       |
+| Duration      | The [Duration][8] scalar type represents a duration of time.                                                        |
+| Float         | The [Float][9] scalar type represents signed double-precision finite values as specified by [IEEE 754][10].         |
+| ID            | The [ID][11] scalar type represents a unique identifier, often used to refetch an object or as the key for a cache. |
+| Int           | The [Int][12] scalar type represents a signed 32-bit numeric non-fractional value.                                  |
+| LocalDate     | The [LocalDate][13] scalar type represents a date without time or time zone information.                            |
+| LocalDateTime | The [LocalDateTime][14] scalar type represents a date and time without time zone information.                       |
+| LocalTime     | The [LocalTime][15] scalar type represents a time of day without date or time zone information.                     |
+| Long          | The [Long][16] scalar type represents a signed 64-bit integer.                                                      |
+| Short         | The [Short][17] scalar type represents a signed 16-bit integer.                                                     |
+| String        | The [String][18] scalar type represents textual data, represented as a sequence of Unicode code points.             |
 | UnsignedByte  | The [UnsignedByte][19] scalar type represents an unsigned 8-bit integer.                                            |
 | UnsignedInt   | The [UnsignedInt][20] scalar type represents an unsigned 32-bit integer.                                            |
 | UnsignedLong  | The [UnsignedLong][21] scalar type represents an unsigned 64-bit integer.                                           |
@@ -39,17 +39,17 @@ Strawberry Shake supports the following scalars out of the box:
 [5]: https://scalars.graphql.org/chillicream/date.html
 [6]: https://scalars.graphql.org/chillicream/date-time.html
 [7]: https://scalars.graphql.org/chillicream/decimal.html
-[8]: https://spec.graphql.org/September2025/#sec-Float
-[9]: https://en.wikipedia.org/wiki/IEEE_floating_point
-[10]: https://spec.graphql.org/September2025/#sec-ID
-[11]: https://spec.graphql.org/September2025/#sec-Int
-[12]: https://scalars.graphql.org/chillicream/local-date.html
-[13]: https://scalars.graphql.org/chillicream/local-date-time.html
-[14]: https://scalars.graphql.org/chillicream/local-time.html
-[15]: https://scalars.graphql.org/chillicream/long.html
-[16]: https://scalars.graphql.org/chillicream/short.html
-[17]: https://spec.graphql.org/September2025/#sec-String
-[18]: https://scalars.graphql.org/chillicream/time-span.html
+[8]: https://scalars.graphql.org/chillicream/duration.html
+[9]: https://spec.graphql.org/September2025/#sec-Float
+[10]: https://en.wikipedia.org/wiki/IEEE_floating_point
+[11]: https://spec.graphql.org/September2025/#sec-ID
+[12]: https://spec.graphql.org/September2025/#sec-Int
+[13]: https://scalars.graphql.org/chillicream/local-date.html
+[14]: https://scalars.graphql.org/chillicream/local-date-time.html
+[15]: https://scalars.graphql.org/chillicream/local-time.html
+[16]: https://scalars.graphql.org/chillicream/long.html
+[17]: https://scalars.graphql.org/chillicream/short.html
+[18]: https://spec.graphql.org/September2025/#sec-String
 [19]: https://scalars.graphql.org/chillicream/unsigned-byte.html
 [20]: https://scalars.graphql.org/chillicream/unsigned-int.html
 [21]: https://scalars.graphql.org/chillicream/unsigned-long.html

@@ -1,9 +1,9 @@
-using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.PersonalAccessTokens;
+using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens.Components;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens;
@@ -12,54 +12,57 @@ internal sealed class ListPersonalAccessTokenCommand : Command
 {
     public ListPersonalAccessTokenCommand() : base("list")
     {
-        Description = "Lists all API keys of a workspace";
+        Description = "List all personal access tokens.";
 
-        AddOption(Opt<CursorOption>.Instance);
+        Options.Add(Opt<OptionalCursorOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples("pat list");
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken ct)
     {
-        if (console.IsHumanReadable())
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IPersonalAccessTokensClient>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
+
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
+
+        if (console.IsInteractive)
         {
-            return await RenderInteractiveAsync(context, console, client, ct);
+            return await RenderInteractiveAsync(cursor, console, client, resultHolder, ct);
         }
 
-        return await RenderNonInteractiveAsync(context, console, client, ct);
+        return await RenderNonInteractiveAsync(cursor, client, resultHolder, ct);
     }
 
     private static async Task<int> RenderInteractiveAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        string? cursor,
+        INitroConsole console,
+        IPersonalAccessTokensClient client,
+        IResultHolder resultHolder,
         CancellationToken ct)
     {
         var container = PaginationContainer
-            .Create((after, first, _) =>
-                    client.ListPersonalAccessTokenCommandQuery.ExecuteAsync(after, first, ct),
-                static p => p.Me?.PersonalAccessTokens?.PageInfo,
-                static p => p.Me?.PersonalAccessTokens?.Edges)
+            .CreateConnectionData((after, first, token)
+                => client.ListPersonalAccessTokensAsync(after ?? cursor, first, token))
             .PageSize(10);
 
-        var pats = await PagedTable
+        var pat = await PagedTable
             .From(container)
             .Title("PersonalAccessTokens")
-            .AddColumn("Id", x => x.Node.Id)
-            .AddColumn("Description", x => x.Node.Description)
+            .AddColumn("Id", x => x.Id)
+            .AddColumn("Description", x => x.Description)
             .AddColumn("Expires in",
                 x =>
                 {
-                    var diff = x.Node.ExpiresAt - DateTimeOffset.UtcNow;
+                    var diff = x.ExpiresAt - DateTimeOffset.UtcNow;
 
                     if (diff.Days > 0)
                     {
@@ -70,37 +73,29 @@ internal sealed class ListPersonalAccessTokenCommand : Command
                 })
             .RenderAsync(console, ct);
 
-        if (pats?.Node is IPersonalAccessTokenDetailPrompt_PersonalAccessToken node)
+        if (pat is not null)
         {
-            context.SetResult(PersonalAccessTokenDetailPrompt.From(node).ToObject());
+            resultHolder.SetResult(new ObjectResult(PersonalAccessTokenDetailPrompt.From(pat).ToObject()));
         }
 
         return ExitCodes.Success;
     }
 
     private static async Task<int> RenderNonInteractiveAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        string? cursor,
+        IPersonalAccessTokensClient client,
+        IResultHolder resultHolder,
         CancellationToken ct)
     {
-        var cursor = context.ParseResult.GetValueForOption(Opt<CursorOption>.Instance);
-        var result = await client
-            .ListPersonalAccessTokenCommandQuery
-            .ExecuteAsync(cursor, 10, ct);
+        var data = await client.ListPersonalAccessTokensAsync(cursor, 10, ct);
 
-        console.EnsureNoErrors(result);
+        var items = data.Items
+            .Select(PersonalAccessTokenDetailPrompt.From)
+            .Select(x => x.ToObject())
+            .ToArray();
 
-        var endCursor = result.Data?.Me?.PersonalAccessTokens?.PageInfo.EndCursor;
-
-        var items = result.Data?.Me?.PersonalAccessTokens?.Edges?.Select(x =>
-                    PersonalAccessTokenDetailPrompt.From(x.Node).ToObject())
-                .ToArray() ??
-            [];
-
-        context.SetResult(
-            new PaginatedListResult<PersonalAccessTokenDetailPrompt.PersonalAccessTokenDetailPromptResult>(items,
-                endCursor));
+        resultHolder.SetResult(
+            new PaginatedListResult<PersonalAccessTokenDetailPrompt.PersonalAccessTokenDetailPromptResult>(items, data.EndCursor));
 
         return ExitCodes.Success;
     }

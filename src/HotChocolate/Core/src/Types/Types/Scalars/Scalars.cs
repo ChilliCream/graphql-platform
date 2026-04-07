@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
@@ -24,11 +23,12 @@ public static class Scalars
         { typeof(int), typeof(IntType) },
         { typeof(JsonElement), typeof(AnyType) },
         { typeof(long), typeof(LongType) },
+        { typeof(object), typeof(AnyType) },
         { typeof(sbyte), typeof(ByteType) },
         { typeof(short), typeof(ShortType) },
         { typeof(string), typeof(StringType) },
         { typeof(TimeOnly), typeof(LocalTimeType) },
-        { typeof(TimeSpan), typeof(TimeSpanType) },
+        { typeof(TimeSpan), typeof(DurationType) },
         { typeof(uint), typeof(UnsignedIntType) },
         { typeof(ulong), typeof(UnsignedLongType) },
         { typeof(Uri), typeof(UriType) },
@@ -47,6 +47,7 @@ public static class Scalars
         { ScalarNames.Date, typeof(DateType) },
         { ScalarNames.DateTime, typeof(DateTimeType) },
         { ScalarNames.Decimal, typeof(DecimalType) },
+        { ScalarNames.Duration, typeof(DurationType) },
         { ScalarNames.Float, typeof(FloatType) },
         { ScalarNames.ID, typeof(IdType) },
         { ScalarNames.Int, typeof(IntType) },
@@ -56,7 +57,6 @@ public static class Scalars
         { ScalarNames.Long, typeof(LongType) },
         { ScalarNames.Short, typeof(ShortType) },
         { ScalarNames.String, typeof(StringType) },
-        { ScalarNames.TimeSpan, typeof(TimeSpanType) },
         { ScalarNames.UnsignedByte, typeof(UnsignedByteType) },
         { ScalarNames.UnsignedInt, typeof(UnsignedIntType) },
         { ScalarNames.UnsignedLong, typeof(UnsignedLongType) },

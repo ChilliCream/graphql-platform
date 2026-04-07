@@ -1,0 +1,188 @@
+title: Union_Field_With_Type_Refinements_And_Concrete_Lookups
+request:
+  document: |
+    {
+      search {
+        ... on User {
+          reputation
+        }
+        ... on Product {
+          price
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "search": {
+          "reputation": 123
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Product @key(fields: "id") {
+        id: ID!
+      }
+
+      type Query {
+        search: SearchResult
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+      }
+
+      union SearchResult = User | Product
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_465e7f4e_1 {
+              search {
+                __typename
+                ... on User {
+                  id
+                }
+                ... on Product {
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "search": {
+                    "__typename": "User",
+                    "id": "VXNlcjox"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Product {
+        id: ID!
+        price: Float!
+      }
+
+      type Query {
+        userById(id: ID!): User @lookup @shareable
+        productById(id: ID!): Product @lookup
+      }
+
+      type User {
+        id: ID!
+        reputation: Int!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_465e7f4e_3(
+              $__fusion_2_id: ID!
+            ) {
+              userById(id: $__fusion_2_id) {
+                reputation
+              }
+            }
+          variables: |
+            {
+              "__fusion_2_id": "VXNlcjox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "reputation": 123
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          search {
+            __typename @fusion__requirement
+            ... on User {
+              reputation
+              id @fusion__requirement
+            }
+            ... on Product {
+              price
+              id @fusion__requirement
+            }
+          }
+        }
+      hash: 465e7f4e2fce633f9dddf88285e5c3b1
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_465e7f4e_1 {
+          search {
+            __typename
+            ... on User {
+              id
+            }
+            ... on Product {
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_465e7f4e_2(
+          $__fusion_1_id: ID!
+        ) {
+          productById(id: $__fusion_1_id) {
+            price
+          }
+        }
+      source: $.productById
+      target: $.search<Product>
+      batchingGroupId: 2
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: B
+      operation: |
+        query Op_465e7f4e_3(
+          $__fusion_2_id: ID!
+        ) {
+          userById(id: $__fusion_2_id) {
+            reputation
+          }
+        }
+      source: $.userById
+      target: $.search<User>
+      batchingGroupId: 2
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

@@ -128,6 +128,7 @@ public abstract class OpenApiTestBase : IAsyncLifetime
                 date
                 dateTime
                 decimal
+                duration
                 enum
                 float
                 id
@@ -147,7 +148,6 @@ public abstract class OpenApiTestBase : IAsyncLifetime
                 }
                 short
                 string
-                timeSpan
                 unknown
                 url
                 uuid
@@ -249,7 +249,9 @@ public abstract class OpenApiTestBase : IAsyncLifetime
                                 IssuerSigningKey = s_tokenKey
                             });
 
-                services.AddGraphQLServer()
+                services
+                    .AddGraphQLServer()
+                    .AddSourceSchemaDefaults()
                     .AddBasicServer();
             },
             app =>

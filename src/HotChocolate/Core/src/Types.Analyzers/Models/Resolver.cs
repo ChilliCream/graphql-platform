@@ -36,15 +36,20 @@ public sealed class Resolver
         {
             for (var i = 0; i < parameters.Length; i++)
             {
-                parameters[i].Description ??= m.ParameterDescriptions[i];
+                if (parameters[i].Description is null)
+                {
+                    var (paramDesc, paramIsFromAttr) = m.ParameterDescriptions[i];
+                    parameters[i].Description = paramDesc;
+                    parameters[i].IsDescriptionFromAttribute = paramIsFromAttr;
+                }
             }
         }
 
-        Attributes = member.GetAttributes();
-        Shareable = Attributes.GetShareableScope();
-        Inaccessible = Attributes.GetInaccessibleScope();
-        IsNodeResolver = Attributes.IsNodeResolver();
-        DescriptorAttributes = Attributes.GetUserAttributes();
+        var attributes = member.GetAttributes();
+        Shareable = attributes.GetShareableScope();
+        Inaccessible = attributes.GetInaccessibleScope();
+        IsNodeResolver = attributes.IsNodeResolver();
+        DescriptorAttributes = attributes.GetUserAttributes();
     }
 
     public string FieldName { get; }
@@ -52,6 +57,8 @@ public sealed class Resolver
     public string TypeName { get; }
 
     public string? Description => _description?.Description;
+
+    public bool IsDescriptionFromAttribute => _description?.IsDescriptionFromAttribute ?? false;
 
     public string? DeprecationReason { get; }
 
@@ -66,7 +73,7 @@ public sealed class Resolver
     public bool IsStatic => Member.IsStatic;
 
     public bool IsPure
-        => Kind is not ResolverKind.NodeResolver
+        => Kind is not (ResolverKind.NodeResolver or ResolverKind.BatchResolver)
             && ResultKind is ResolverResultKind.Pure
             && Parameters.All(t => t.IsPure);
 
@@ -87,8 +94,6 @@ public sealed class Resolver
     public DirectiveScope Shareable { get; }
 
     public DirectiveScope Inaccessible { get; }
-
-    public ImmutableArray<AttributeData> Attributes { get; }
 
     public ImmutableArray<AttributeData> DescriptorAttributes { get; }
 

@@ -1,0 +1,548 @@
+title: Authors_And_Reviews_And_Products_Query_TopProducts
+request:
+  document: |
+    query TopProducts {
+      topProducts(first: 2) {
+        name
+        reviews {
+          body
+          author {
+            name
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "topProducts": [
+          {
+            "name": "Product: UHJvZHVjdDox",
+            "reviews": [
+              {
+                "body": "Review: UmV2aWV3OjE=",
+                "author": {
+                  "name": "User: VXNlcjoxNg=="
+                }
+              },
+              {
+                "body": "Review: UmV2aWV3OjI=",
+                "author": {
+                  "name": "User: VXNlcjoxNw=="
+                }
+              },
+              {
+                "body": "Review: UmV2aWV3OjM=",
+                "author": {
+                  "name": "User: VXNlcjoxOA=="
+                }
+              }
+            ]
+          },
+          {
+            "name": "Product: UHJvZHVjdDoy",
+            "reviews": [
+              {
+                "body": "Review: UmV2aWV3OjQ=",
+                "author": {
+                  "name": "User: VXNlcjoxMw=="
+                }
+              },
+              {
+                "body": "Review: UmV2aWV3OjU=",
+                "author": {
+                  "name": "User: VXNlcjoxNA=="
+                }
+              },
+              {
+                "body": "Review: UmV2aWV3OjY=",
+                "author": {
+                  "name": "User: VXNlcjoxNQ=="
+                }
+              }
+            ]
+          },
+          {
+            "name": "Product: UHJvZHVjdDoz",
+            "reviews": [
+              {
+                "body": "Review: UmV2aWV3Ojc=",
+                "author": {
+                  "name": "User: VXNlcjoxMA=="
+                }
+              },
+              {
+                "body": "Review: UmV2aWV3Ojg=",
+                "author": {
+                  "name": "User: VXNlcjoxMQ=="
+                }
+              },
+              {
+                "body": "Review: UmV2aWV3Ojk=",
+                "author": {
+                  "name": "User: VXNlcjoxMg=="
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        userById(id: ID!): User!
+        users: [User!]!
+        testWithTwoArgumentsDifferingNullability(first: Int! second: Int): String!
+      }
+
+      type User implements Node {
+        id: ID!
+        name: String!
+        username: String!
+        birthdate: String!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query TopProducts_c6ef3d11_3(
+              $__fusion_2_id: ID!
+            ) {
+              node(id: $__fusion_2_id) {
+                __typename
+                ... on User {
+                  name
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_id": "VXNlcjoxNg=="
+              },
+              {
+                "__fusion_2_id": "VXNlcjoxNw=="
+              },
+              {
+                "__fusion_2_id": "VXNlcjoxOA=="
+              },
+              {
+                "__fusion_2_id": "VXNlcjoxMw=="
+              },
+              {
+                "__fusion_2_id": "VXNlcjoxNA=="
+              },
+              {
+                "__fusion_2_id": "VXNlcjoxNQ=="
+              },
+              {
+                "__fusion_2_id": "VXNlcjoxMA=="
+              },
+              {
+                "__fusion_2_id": "VXNlcjoxMQ=="
+              },
+              {
+                "__fusion_2_id": "VXNlcjoxMg=="
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoxNg=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoxNw=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoxOA=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoxMw=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoxNA=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoxNQ=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoxMA=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoxMQ=="
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjoxMg=="
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Product implements Node {
+        id: ID!
+        reviews: [Review!]!
+        reviewCount: Int!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        reviews: [Review!]!
+      }
+
+      type Review implements Node {
+        id: ID!
+        body: String!
+        author: User!
+        product: Product!
+      }
+
+      type User implements Node {
+        id: ID!
+        reviews: [Review!]!
+        errorField: String @error
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query TopProducts_c6ef3d11_2(
+              $__fusion_1_id: ID!
+            ) {
+              node(id: $__fusion_1_id) {
+                __typename
+                ... on Product {
+                  reviews {
+                    body
+                    author {
+                      id
+                    }
+                  }
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "UHJvZHVjdDox"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDoy"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDoz"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "reviews": [
+                      {
+                        "body": "Review: UmV2aWV3OjE=",
+                        "author": {
+                          "id": "VXNlcjoxNg=="
+                        }
+                      },
+                      {
+                        "body": "Review: UmV2aWV3OjI=",
+                        "author": {
+                          "id": "VXNlcjoxNw=="
+                        }
+                      },
+                      {
+                        "body": "Review: UmV2aWV3OjM=",
+                        "author": {
+                          "id": "VXNlcjoxOA=="
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "reviews": [
+                      {
+                        "body": "Review: UmV2aWV3OjQ=",
+                        "author": {
+                          "id": "VXNlcjoxMw=="
+                        }
+                      },
+                      {
+                        "body": "Review: UmV2aWV3OjU=",
+                        "author": {
+                          "id": "VXNlcjoxNA=="
+                        }
+                      },
+                      {
+                        "body": "Review: UmV2aWV3OjY=",
+                        "author": {
+                          "id": "VXNlcjoxNQ=="
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "reviews": [
+                      {
+                        "body": "Review: UmV2aWV3Ojc=",
+                        "author": {
+                          "id": "VXNlcjoxMA=="
+                        }
+                      },
+                      {
+                        "body": "Review: UmV2aWV3Ojg=",
+                        "author": {
+                          "id": "VXNlcjoxMQ=="
+                        }
+                      },
+                      {
+                        "body": "Review: UmV2aWV3Ojk=",
+                        "author": {
+                          "id": "VXNlcjoxMg=="
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+  - name: C
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Product implements Node {
+        id: ID!
+        name: String!
+        size: Int! @shareable
+        weight: Int! @shareable
+        repeat(num: Int!): String!
+        repeatData(data: RepeatDataInput!): RepeatDataPayload!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        productById(id: ID!): Product @lookup @shareable
+        topProducts(first: Int!): [Product!]!
+      }
+
+      type RepeatDataData {
+        num: Int!
+      }
+
+      type RepeatDataPayload {
+        data: RepeatDataData!
+      }
+
+      input RepeatDataDataInput {
+        num: Int!
+      }
+
+      input RepeatDataInput {
+        data: RepeatDataDataInput!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query TopProducts_c6ef3d11_1 {
+              topProducts(first: 2) {
+                name
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "topProducts": [
+                    {
+                      "name": "Product: UHJvZHVjdDox",
+                      "id": "UHJvZHVjdDox"
+                    },
+                    {
+                      "name": "Product: UHJvZHVjdDoy",
+                      "id": "UHJvZHVjdDoy"
+                    },
+                    {
+                      "name": "Product: UHJvZHVjdDoz",
+                      "id": "UHJvZHVjdDoz"
+                    }
+                  ]
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query TopProducts {
+          topProducts(first: 2) {
+            name
+            reviews {
+              body
+              author {
+                name
+                id @fusion__requirement
+              }
+            }
+            id @fusion__requirement
+          }
+        }
+      name: TopProducts
+      hash: c6ef3d11d0c88575a305e18635857068
+      searchSpace: 1
+      expandedNodes: 3
+  nodes:
+    - id: 1
+      type: Operation
+      schema: C
+      operation: |
+        query TopProducts_c6ef3d11_1 {
+          topProducts(first: 2) {
+            name
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query TopProducts_c6ef3d11_2(
+          $__fusion_1_id: ID!
+        ) {
+          node(id: $__fusion_1_id) {
+            __typename
+            ... on Product {
+              reviews {
+                body
+                author {
+                  id
+                }
+              }
+            }
+          }
+        }
+      source: $.node<Product>
+      target: $.topProducts
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: A
+      operation: |
+        query TopProducts_c6ef3d11_3(
+          $__fusion_2_id: ID!
+        ) {
+          node(id: $__fusion_2_id) {
+            __typename
+            ... on User {
+              name
+            }
+          }
+        }
+      source: $.node<User>
+      target: $.topProducts.reviews.author
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 2

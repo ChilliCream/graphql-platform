@@ -10,7 +10,7 @@ public class QueryableProjectionFieldHandler
     : QueryableProjectionHandlerBase
 {
     public override bool CanHandle(Selection selection)
-        => selection.Field.Member is not null && !selection.IsLeaf;
+        => !selection.IsLeaf && CanProjectMember(selection);
 
     public override bool TryHandleEnter(
         QueryableProjectionContext context,
@@ -99,9 +99,10 @@ public class QueryableProjectionFieldHandler
             return true;
         }
 
+        var nullabilityInfo = context.NullabilityInfoContext.Create(propertyInfo);
         var memberInit = queryableScope.CreateMemberInit();
 
-        if (context.InMemory)
+        if (context.InMemory && nullabilityInfo.ReadState == NullabilityState.Nullable)
         {
             parentScope.Level
                 .Peek()

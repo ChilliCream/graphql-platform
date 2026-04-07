@@ -1,7 +1,11 @@
 import { execSync } from "child_process";
 import path from "path";
 
-import { getContentDir, getFilesRecursively, readMarkdownFile } from "./content";
+import {
+  getContentDir,
+  getFilesRecursively,
+  readMarkdownFile,
+} from "./content";
 import docsConfig from "../src/docs/docs.json";
 
 export interface DocPage {
@@ -38,17 +42,28 @@ export interface DocsNavItem {
 
 const DOCS_DIR = getContentDir("docs");
 
-let _cachedDocPages: DocPage[] | null = null;
+// Use globalThis to persist cache across HMR in development
+const _globalCache = globalThis as typeof globalThis & {
+  __docPagesCache?: DocPage[] | null;
+};
+if (!_globalCache.__docPagesCache) {
+  _globalCache.__docPagesCache = null;
+}
 
 function getGitMetadata(filePath: string): {
   lastUpdated: string;
   lastAuthorName: string;
 } {
+  // Skip expensive git operations in development — 636 execSync calls is brutal
+  if (process.env.NODE_ENV === "development") {
+    return { lastUpdated: "", lastAuthorName: "" };
+  }
+
   try {
-    const result = execSync(
-      `git log -1 --format="%ai||%an" -- "${filePath}"`,
-      { encoding: "utf-8", timeout: 5000 }
-    ).trim();
+    const result = execSync(`git log -1 --format="%ai||%an" -- "${filePath}"`, {
+      encoding: "utf-8",
+      timeout: 5000,
+    }).trim();
 
     if (result) {
       const [dateStr, authorName] = result.split("||");
@@ -70,8 +85,12 @@ export function getDocsConfig(): DocsProduct[] {
   return docsConfig as unknown as DocsProduct[];
 }
 
-export function getAllDocPages(): DocPage[] {
-  if (_cachedDocPages) return _cachedDocPages;
+export function getAllDocPages(options?: {
+  skipGitMetadata?: boolean;
+}): DocPage[] {
+  if (!options?.skipGitMetadata && _globalCache.__docPagesCache) {
+    return _globalCache.__docPagesCache;
+  }
 
   const files = getFilesRecursively(DOCS_DIR, ".md");
   const pages: DocPage[] = [];
@@ -97,7 +116,9 @@ export function getAllDocPages(): DocPage[] {
       version = parts[1];
     }
 
-    const gitMeta = getGitMetadata(file);
+    const gitMeta = options?.skipGitMetadata
+      ? { lastUpdated: "", lastAuthorName: "" }
+      : getGitMetadata(file);
 
     pages.push({
       slug,
@@ -111,7 +132,9 @@ export function getAllDocPages(): DocPage[] {
     });
   }
 
-  _cachedDocPages = pages;
+  if (!options?.skipGitMetadata) {
+    _globalCache.__docPagesCache = pages;
+  }
   return pages;
 }
 

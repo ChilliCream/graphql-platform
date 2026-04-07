@@ -1,0 +1,730 @@
+title: Authors_And_Reviews_And_Products_Introspection
+request:
+  document: |
+    query Introspect {
+      __schema {
+        types {
+          name
+          kind
+          fields {
+            name
+            type {
+              name
+              kind
+            }
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "__schema": {
+          "types": [
+            {
+              "name": "__Schema",
+              "kind": "OBJECT",
+              "fields": [
+                {
+                  "name": "description",
+                  "type": {
+                    "name": "String",
+                    "kind": "SCALAR"
+                  }
+                },
+                {
+                  "name": "types",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "queryType",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "mutationType",
+                  "type": {
+                    "name": "__Type",
+                    "kind": "OBJECT"
+                  }
+                },
+                {
+                  "name": "subscriptionType",
+                  "type": {
+                    "name": "__Type",
+                    "kind": "OBJECT"
+                  }
+                },
+                {
+                  "name": "directives",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "__Type",
+              "kind": "OBJECT",
+              "fields": [
+                {
+                  "name": "kind",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "name",
+                  "type": {
+                    "name": "String",
+                    "kind": "SCALAR"
+                  }
+                },
+                {
+                  "name": "description",
+                  "type": {
+                    "name": "String",
+                    "kind": "SCALAR"
+                  }
+                },
+                {
+                  "name": "specifiedByURL",
+                  "type": {
+                    "name": "String",
+                    "kind": "SCALAR"
+                  }
+                },
+                {
+                  "name": "fields",
+                  "type": {
+                    "name": null,
+                    "kind": "LIST"
+                  }
+                },
+                {
+                  "name": "interfaces",
+                  "type": {
+                    "name": null,
+                    "kind": "LIST"
+                  }
+                },
+                {
+                  "name": "possibleTypes",
+                  "type": {
+                    "name": null,
+                    "kind": "LIST"
+                  }
+                },
+                {
+                  "name": "enumValues",
+                  "type": {
+                    "name": null,
+                    "kind": "LIST"
+                  }
+                },
+                {
+                  "name": "inputFields",
+                  "type": {
+                    "name": null,
+                    "kind": "LIST"
+                  }
+                },
+                {
+                  "name": "ofType",
+                  "type": {
+                    "name": "__Type",
+                    "kind": "OBJECT"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "__TypeKind",
+              "kind": "ENUM",
+              "fields": null
+            },
+            {
+              "name": "__Field",
+              "kind": "OBJECT",
+              "fields": [
+                {
+                  "name": "name",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "description",
+                  "type": {
+                    "name": "String",
+                    "kind": "SCALAR"
+                  }
+                },
+                {
+                  "name": "args",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "type",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "isDeprecated",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "deprecationReason",
+                  "type": {
+                    "name": "String",
+                    "kind": "SCALAR"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "__InputValue",
+              "kind": "OBJECT",
+              "fields": [
+                {
+                  "name": "name",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "description",
+                  "type": {
+                    "name": "String",
+                    "kind": "SCALAR"
+                  }
+                },
+                {
+                  "name": "type",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "defaultValue",
+                  "type": {
+                    "name": "String",
+                    "kind": "SCALAR"
+                  }
+                },
+                {
+                  "name": "isDeprecated",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "deprecationReason",
+                  "type": {
+                    "name": "String",
+                    "kind": "SCALAR"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "__EnumValue",
+              "kind": "OBJECT",
+              "fields": [
+                {
+                  "name": "name",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "description",
+                  "type": {
+                    "name": "String",
+                    "kind": "SCALAR"
+                  }
+                },
+                {
+                  "name": "isDeprecated",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "deprecationReason",
+                  "type": {
+                    "name": "String",
+                    "kind": "SCALAR"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "__Directive",
+              "kind": "OBJECT",
+              "fields": [
+                {
+                  "name": "name",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "description",
+                  "type": {
+                    "name": "String",
+                    "kind": "SCALAR"
+                  }
+                },
+                {
+                  "name": "isRepeatable",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "locations",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "args",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "__DirectiveLocation",
+              "kind": "ENUM",
+              "fields": null
+            },
+            {
+              "name": "Query",
+              "kind": "OBJECT",
+              "fields": [
+                {
+                  "name": "node",
+                  "type": {
+                    "name": "Node",
+                    "kind": "INTERFACE"
+                  }
+                },
+                {
+                  "name": "productById",
+                  "type": {
+                    "name": "Product",
+                    "kind": "OBJECT"
+                  }
+                },
+                {
+                  "name": "reviews",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "testWithTwoArgumentsDifferingNullability",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "topProducts",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "userById",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "users",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Product",
+              "kind": "OBJECT",
+              "fields": [
+                {
+                  "name": "id",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "name",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "repeat",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "repeatData",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "reviewCount",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "reviews",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "size",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "weight",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "RepeatDataData",
+              "kind": "OBJECT",
+              "fields": [
+                {
+                  "name": "num",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "RepeatDataPayload",
+              "kind": "OBJECT",
+              "fields": [
+                {
+                  "name": "data",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Review",
+              "kind": "OBJECT",
+              "fields": [
+                {
+                  "name": "author",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "body",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "id",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "product",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "User",
+              "kind": "OBJECT",
+              "fields": [
+                {
+                  "name": "birthdate",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "errorField",
+                  "type": {
+                    "name": "String",
+                    "kind": "SCALAR"
+                  }
+                },
+                {
+                  "name": "id",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "name",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "reviews",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                },
+                {
+                  "name": "username",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Node",
+              "kind": "INTERFACE",
+              "fields": [
+                {
+                  "name": "id",
+                  "type": {
+                    "name": null,
+                    "kind": "NON_NULL"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "RepeatDataDataInput",
+              "kind": "INPUT_OBJECT",
+              "fields": null
+            },
+            {
+              "name": "RepeatDataInput",
+              "kind": "INPUT_OBJECT",
+              "fields": null
+            },
+            {
+              "name": "String",
+              "kind": "SCALAR",
+              "fields": null
+            },
+            {
+              "name": "Boolean",
+              "kind": "SCALAR",
+              "fields": null
+            },
+            {
+              "name": "ID",
+              "kind": "SCALAR",
+              "fields": null
+            },
+            {
+              "name": "Int",
+              "kind": "SCALAR",
+              "fields": null
+            }
+          ]
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        userById(id: ID!): User!
+        users: [User!]!
+        testWithTwoArgumentsDifferingNullability(first: Int! second: Int): String!
+      }
+
+      type User implements Node {
+        id: ID!
+        name: String!
+        username: String!
+        birthdate: String!
+      }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Product implements Node {
+        id: ID!
+        reviews: [Review!]!
+        reviewCount: Int!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        reviews: [Review!]!
+      }
+
+      type Review implements Node {
+        id: ID!
+        body: String!
+        author: User!
+        product: Product!
+      }
+
+      type User implements Node {
+        id: ID!
+        reviews: [Review!]!
+        errorField: String @error
+      }
+  - name: C
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Product implements Node {
+        id: ID!
+        name: String!
+        size: Int! @shareable
+        weight: Int! @shareable
+        repeat(num: Int!): String!
+        repeatData(data: RepeatDataInput!): RepeatDataPayload!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        productById(id: ID!): Product @lookup @shareable
+        topProducts(first: Int!): [Product!]!
+      }
+
+      type RepeatDataData {
+        num: Int!
+      }
+
+      type RepeatDataPayload {
+        data: RepeatDataData!
+      }
+
+      input RepeatDataDataInput {
+        num: Int!
+      }
+
+      input RepeatDataInput {
+        data: RepeatDataDataInput!
+      }
+operationPlan:
+  operation:
+    - document: |
+        query Introspect {
+          __schema {
+            types {
+              name
+              kind
+              fields {
+                name
+                type {
+                  name
+                  kind
+                }
+              }
+            }
+          }
+        }
+      name: Introspect
+      hash: 151c2e2faa405b4b9c65f001decc564e
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Introspection
+      selections:
+        - id: 2
+          responseName: __schema
+          fieldName: __schema

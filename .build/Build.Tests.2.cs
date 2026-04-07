@@ -82,10 +82,6 @@ partial class Build
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "Mutable" / "HotChocolate.Types.Mutable.sln"));
 
-    Target TestHotChocolateOpenApi => _ => _
-        .Produces(TestResultDirectory / "*.trx")
-        .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "OpenApi" / "HotChocolate.OpenApi.sln"));
-
     Target TestHotChocolatePersistedOperations => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunTests(SourceDirectory / "HotChocolate" / "PersistedOperations" / "HotChocolate.PersistedOperations.sln"));
@@ -113,6 +109,10 @@ partial class Build
     Target TestStrawberryShakeTooling => _ => _
         .Produces(TestResultDirectory / "*.trx")
         .Executes(() => RunClientTests(SourceDirectory / "StrawberryShake" / "Tooling" / "StrawberryShake.Tooling.sln"));
+
+    Target TestMocha => _ => _
+        .Produces(TestResultDirectory / "*.trx")
+        .Executes(() => RunTests(SourceDirectory / "Mocha" / "Mocha.sln"));
 
     void RunClientTests(AbsolutePath solutionFile)
     {

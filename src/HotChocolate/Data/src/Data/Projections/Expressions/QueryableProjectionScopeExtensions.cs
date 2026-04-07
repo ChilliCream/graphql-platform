@@ -41,14 +41,28 @@ public static class QueryableProjectionScopeExtensions
         if (scope.HasAbstractTypes())
         {
             Expression lastValue = Expression.Default(scope.RuntimeType);
+            var sourceInstance = scope.Instance.Peek();
 
             foreach (var val in scope.GetAbstractTypes())
             {
-                var ctor = Expression.New(val.Key);
-                Expression memberInit = Expression.MemberInit(ctor, val.Value);
+                Expression memberInit;
+
+                // If a type condition only selects non-bindable fields like __typename,
+                // creating `new TDerived()` is evaluatable and gets parameterized as a
+                // constant by EF. Reuse the source instance instead so the branch
+                // remains query-parameter dependent.
+                if (val.Value.Count == 0)
+                {
+                    memberInit = Expression.Convert(sourceInstance, val.Key);
+                }
+                else
+                {
+                    var ctor = Expression.New(val.Key);
+                    memberInit = Expression.MemberInit(ctor, val.Value);
+                }
 
                 lastValue = Expression.Condition(
-                    Expression.TypeIs(scope.Instance.Peek(), val.Key),
+                    Expression.TypeIs(sourceInstance, val.Key),
                     Expression.Convert(memberInit, scope.RuntimeType),
                     lastValue);
             }
@@ -81,19 +95,22 @@ public static class QueryableProjectionScopeExtensions
         Expression source,
         Type sourceType)
     {
+        var elementType = GetElementType(sourceType) ?? scope.RuntimeType;
+        var selector = CreateMemberInitLambda(scope, elementType);
+
         var selection = Expression.Call(
             typeof(Enumerable),
             nameof(Enumerable.Select),
             [
                 scope.RuntimeType,
-                scope.RuntimeType
+                elementType
             ],
             source,
-            scope.CreateMemberInitLambda());
+            selector);
 
         if (sourceType.IsArray)
         {
-            return ToArray(scope, selection);
+            return ToArray(selection, elementType);
         }
 
         if (TryGetSetType(sourceType, out var setType))
@@ -101,27 +118,40 @@ public static class QueryableProjectionScopeExtensions
             return ToSet(selection, setType);
         }
 
-        return ToList(scope, selection);
+        return ToList(selection, elementType);
     }
 
-    private static Expression ToArray(QueryableProjectionScope scope, Expression source)
+    private static Expression CreateMemberInitLambda(
+        QueryableProjectionScope scope,
+        Type targetType)
+    {
+        var projection = scope.CreateMemberInit();
+        if (targetType != scope.RuntimeType)
+        {
+            projection = Expression.Convert(projection, targetType);
+        }
+
+        return Expression.Lambda(projection, scope.Parameter);
+    }
+
+    private static Expression ToArray(Expression source, Type elementType)
     {
         return Expression.Call(
             typeof(Enumerable),
             nameof(Enumerable.ToArray),
             [
-                scope.RuntimeType
+                elementType
             ],
             source);
     }
 
-    private static Expression ToList(QueryableProjectionScope scope, Expression source)
+    private static Expression ToList(Expression source, Type elementType)
     {
         return Expression.Call(
             typeof(Enumerable),
             nameof(Enumerable.ToList),
             [
-                scope.RuntimeType
+                elementType
             ],
             source);
     }
@@ -170,5 +200,20 @@ public static class QueryableProjectionScopeExtensions
 
         setType = null;
         return false;
+    }
+
+    private static Type? GetElementType(Type type)
+    {
+        if (type.IsArray)
+        {
+            return type.GetElementType();
+        }
+
+        if (type.IsGenericType)
+        {
+            return type.GetGenericArguments()[0];
+        }
+
+        return null;
     }
 }
