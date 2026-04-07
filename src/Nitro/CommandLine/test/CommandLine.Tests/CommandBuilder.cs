@@ -175,10 +175,14 @@ internal sealed class CommandBuilder
 
         if (_interactionMode is InteractionMode.JsonOutput)
         {
+            testConsole.Profile.Capabilities.Ansi = false;
+            errorConsole.Profile.Capabilities.Ansi = false;
             arguments.AddRange(["--output", "json"]);
         }
         else if (_interactionMode is InteractionMode.NonInteractive)
         {
+            testConsole.Profile.Capabilities.Ansi = false;
+            errorConsole.Profile.Capabilities.Ansi = false;
             testConsole.Profile.Capabilities.Interactive = false;
         }
         else
