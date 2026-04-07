@@ -94,8 +94,7 @@ public static class MessageBusHostBuilderExtensions
         this IMessageBusHostBuilder builder,
         IJsonTypeInfoResolver resolver)
     {
-        builder.ConfigureMessageBus(h => h.ConfigureServices(
-            services => services.AddSingleton(resolver)));
+        builder.ConfigureMessageBus(h => h.ConfigureServices(services => services.AddSingleton(resolver)));
         return builder;
     }
 
@@ -128,7 +127,8 @@ public static class MessageBusHostBuilderExtensions
     /// <returns>The builder for method chaining.</returns>
     public static IMessageBusHostBuilder AddSaga<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TSaga>(
-        this IMessageBusHostBuilder builder) where TSaga : Saga, new()
+        this IMessageBusHostBuilder builder)
+        where TSaga : Saga, new()
     {
         builder.ConfigureMessageBus(static h => h.AddSaga<TSaga>());
         return builder;

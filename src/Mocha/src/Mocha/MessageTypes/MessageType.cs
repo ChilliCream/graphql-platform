@@ -18,8 +18,10 @@ public sealed class MessageType
 
     private IMessageSerializerRegistry _serializerRegistry = null!;
 
-    private ImmutableDictionary<MessageContentType, IMessageSerializer> _serializer
-        = ImmutableDictionary<MessageContentType, IMessageSerializer>.Empty;
+    private ImmutableDictionary<MessageContentType, IMessageSerializer> _serializer = ImmutableDictionary<
+        MessageContentType,
+        IMessageSerializer
+    >.Empty;
 
     /// <summary>
     /// Gets the URN-based identity string that uniquely identifies this message type on the wire.
@@ -123,7 +125,14 @@ public sealed class MessageType
     /// Completes initialization by resolving the full type hierarchy and registering enclosed message types.
     /// </summary>
     /// <param name="context">The messaging configuration context.</param>
-    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "GetInterfaces is called on statically-referenced message types registered at startup.")]
+    [UnconditionalSuppressMessage(
+        "Trimming",
+        "IL2075",
+        Justification = "Reflection path only executes when _enclosedTypes is null (non-AOT). AOT users provide enclosed types via source generator.")]
+    [UnconditionalSuppressMessage(
+        "Trimming",
+        "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code",
+        Justification = "Reflection path only executes when _enclosedTypes is null (non-AOT). AOT users provide enclosed types via source generator.")]
     public void Complete(IMessagingConfigurationContext context)
     {
         var enclosedMessageTypes = ImmutableArray.CreateBuilder<MessageType>();
@@ -167,10 +176,10 @@ public sealed class MessageType
                 }
             }
 
-            var interfaces = RuntimeType.GetInterfaces();
-            foreach (var interfaceType in interfaces)
+            foreach (var interfaceType in RuntimeType.GetInterfaces())
             {
-                if (interfaceType.IsGenericType && interfaceType.GetGenericTypeDefinition() == typeof(IEventRequest<>))
+                if (interfaceType.IsGenericType
+                    && interfaceType.GetGenericTypeDefinition() == typeof(IEventRequest<>))
                 {
                     var responseType = interfaceType.GetGenericArguments()[0];
                     context.Messages.GetOrAdd(context, responseType);
@@ -200,7 +209,7 @@ public sealed class MessageType
             EnclosedMessageIdentities.IsDefaultOrEmpty ? null : EnclosedMessageIdentities);
     }
 
-    [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "Metadata read on statically-referenced types is AOT-safe.")]
+    [RequiresUnreferencedCode("Uses GetInterfaces and BaseType traversal which may reference trimmed types.")]
     private static List<Type> GetAllTypesInHierarchy(Type type, IMessagingConfigurationContext context)
     {
         var interfaces = type.GetInterfaces();
