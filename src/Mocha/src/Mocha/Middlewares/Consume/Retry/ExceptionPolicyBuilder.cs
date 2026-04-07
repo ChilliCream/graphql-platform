@@ -1,8 +1,9 @@
 namespace Mocha;
 
 internal sealed class ExceptionPolicyBuilder<TException>
-    : IExceptionPolicyBuilder<TException>, IAfterRetryBuilder, IAfterRedeliveryBuilder
-    where TException : Exception
+    : IExceptionPolicyBuilder<TException>
+    , IAfterRetryBuilder
+    , IAfterRedeliveryBuilder where TException : Exception
 {
     private readonly ExceptionPolicyRule _rule;
     private readonly List<ExceptionPolicyRule> _rules;
@@ -13,27 +14,6 @@ internal sealed class ExceptionPolicyBuilder<TException>
         _rule = rule;
         _rules = rules;
     }
-
-    private void EnsureCommitted()
-    {
-        if (!_committed)
-        {
-            // Replace any existing rule for the same exception type and predicate.
-            for (var i = _rules.Count - 1; i >= 0; i--)
-            {
-                if (_rules[i].ExceptionType == _rule.ExceptionType
-                    && _rules[i].Predicate == _rule.Predicate)
-                {
-                    _rules.RemoveAt(i);
-                }
-            }
-
-            _rules.Add(_rule);
-            _committed = true;
-        }
-    }
-
-    // IExceptionPolicyBuilder<TException>
 
     public void Discard()
     {
@@ -98,11 +78,7 @@ internal sealed class ExceptionPolicyBuilder<TException>
     public IAfterRetryBuilder Retry(TimeSpan[] intervals)
     {
         EnsureCommitted();
-        _rule.Retry = new RetryPolicyConfig
-        {
-            Intervals = intervals,
-            Attempts = intervals.Length
-        };
+        _rule.Retry = new RetryPolicyConfig { Intervals = intervals, Attempts = intervals.Length };
         _rule.Redelivery = new RedeliveryPolicyConfig { Enabled = false };
         return this;
     }
@@ -192,5 +168,22 @@ internal sealed class ExceptionPolicyBuilder<TException>
         _rule.Terminal = TerminalAction.DeadLetter;
     }
 
-    // IAfterRedeliveryBuilder.ThenDeadLetter() is the same method
+    private void EnsureCommitted()
+    {
+        if (!_committed)
+        {
+            // Replace any existing rule for the same exception type and predicate.
+            for (var i = _rules.Count - 1; i >= 0; i--)
+            {
+                if (_rules[i].ExceptionType == _rule.ExceptionType
+                    && _rules[i].Predicate == _rule.Predicate)
+                {
+                    _rules.RemoveAt(i);
+                }
+            }
+
+            _rules.Add(_rule);
+            _committed = true;
+        }
+    }
 }
