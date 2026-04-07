@@ -280,7 +280,7 @@ public abstract class SchemasCommandTestBase(NitroCommandFixture fixture) : Comm
     {
         var deploymentMock = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment>(
             MockBehavior.Strict);
-        MockErrorFactory.SetupSchemaDeploymentWithInvalidGraphQLSchemaError(deploymentMock);
+        MockErrorFactory.SetupSchemaDeployment(deploymentMock);
 
         return new OnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_WaitForApproval(
             "WaitForApproval",

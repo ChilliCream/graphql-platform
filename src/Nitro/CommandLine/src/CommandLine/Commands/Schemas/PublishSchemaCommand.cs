@@ -212,7 +212,7 @@ internal sealed class PublishSchemaCommand : Command
                                             deploymentErrorTree.AddNode(e.Message);
                                             break;
                                         case ISchemaChangeViolationError e:
-                                            deploymentErrorTree.AddSchemaChanges(e.Changes.OfType<ISchemaChange>());
+                                            deploymentErrorTree.AddSchemaVersionChangeViolations(e);
                                             break;
                                         case IInvalidGraphQLSchemaError e:
                                             deploymentErrorTree.AddGraphQLSchemaErrors(e);

@@ -284,8 +284,8 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
             │   └── ✓ Validation request created (ID: request-1).
             ├── Validating
             │   └── ✕ Validation failed.
-            │       └── Operation 'abc123'
-            │           └── Field 'foo' does not exist.
+            │       └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
+            │           └── foo (10:10)
             └── ✕ Failed to validate the client.
             """);
         result.StdErr.MatchInlineSnapshot(

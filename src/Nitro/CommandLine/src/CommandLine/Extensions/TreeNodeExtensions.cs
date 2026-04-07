@@ -16,16 +16,27 @@ internal static class TreeNodeExtensions
         this IHasTreeNodes node,
         ISchemaVersionChangeViolationError error)
     {
-        return node.AddSchemaChanges(error.Changes.OfType<ISchemaChange>());
+        var schemaChangesNode = node.AddNode("GraphQL schema changes");
+        return schemaChangesNode.AddSchemaChanges(error.Changes.OfType<ISchemaChange>());
+    }
+
+    public static IHasTreeNodes AddSchemaVersionChangeViolations(
+        this IHasTreeNodes node,
+        ISchemaChangeViolationError error)
+    {
+        var schemaChangesNode = node.AddNode("GraphQL schema changes");
+        return schemaChangesNode.AddSchemaChanges(error.Changes.OfType<ISchemaChange>());
     }
 
     public static IHasTreeNodes AddGraphQLSchemaErrors(
         this IHasTreeNodes node,
         IInvalidGraphQLSchemaError error)
     {
+        var schemaErrorsNode = node.AddNode("Invalid GraphQL schema");
+
         foreach (var query in error.Errors)
         {
-            node.AddNode($"[red]{query.Message.EscapeMarkup()}[/] [grey]{query.Code}[/]");
+            schemaErrorsNode.AddNode($"[red]{query.Message.EscapeMarkup()}[/] [grey]{query.Code}[/]");
         }
 
         return node;

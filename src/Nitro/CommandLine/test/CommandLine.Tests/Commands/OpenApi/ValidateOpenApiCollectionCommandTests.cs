@@ -265,8 +265,8 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             ├── Validating
             │   └── ✕ Validation failed.
             │       └── OpenAPI collection 'petstore' (ID: collection-1)
-            │           └── Endpoint 'GET /pets'
-            │               └── Invalid schema. (10:5)
+            │           └── Endpoint 'GET /fail'
+            │               └── The field `person` does not exist on the type `Query`. (1:14)
             └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(

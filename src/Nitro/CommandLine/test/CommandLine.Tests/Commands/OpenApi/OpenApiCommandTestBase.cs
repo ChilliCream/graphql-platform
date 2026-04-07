@@ -392,7 +392,7 @@ public abstract class OpenApiCommandTestBase(NitroCommandFixture fixture) : Comm
     {
         var deploymentMock = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment>(
             MockBehavior.Strict);
-        MockErrorFactory.SetupOpenApiCollectionDeploymentWithValidationError(deploymentMock);
+        MockErrorFactory.SetupOpenApiCollectionDeployment(deploymentMock);
 
         return new PublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_WaitForApproval(
             "WaitForApproval",

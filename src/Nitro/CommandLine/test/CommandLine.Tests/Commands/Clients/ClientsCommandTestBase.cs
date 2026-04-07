@@ -515,7 +515,7 @@ public abstract class ClientsCommandTestBase(NitroCommandFixture fixture) : Comm
     {
         var deploymentMock = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment>(
             MockBehavior.Strict);
-        MockErrorFactory.SetupClientDeploymentWithPersistedQueryValidationError(deploymentMock);
+        MockErrorFactory.SetupClientDeployment(deploymentMock);
 
         return new OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_WaitForApproval(
             "WaitForApproval",

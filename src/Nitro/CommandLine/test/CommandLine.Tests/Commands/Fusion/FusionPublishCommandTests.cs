@@ -649,15 +649,29 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Claimed deployment slot.
             ├── Validating configuration against 'dev'
             │   └── ✕ Failed to validate the new configuration.
-            │       ├── Field 'Query.foo' has no type. SCHEMA_ERROR
-            │       ├── Client 'test-client' (ID: client-1)
-            │       │   └── Operation 'abc123'
+            │       ├── GraphQL schema changes
+            │       │   ├── ✕ Directive foo was modified
+            │       │   │   ├── ✓ Directive location FieldDefinition added
+            │       │   │   └── ✕ Directive location Field removed
+            │       │   ├── ✕ Object type Foo was modified
+            │       │   │   ├── ✓ Field Foo.bar of type String! was added
+            │       │   │   └── ✕ Field Foo.baz of type Int! was removed
+            │       │   ├── ! Enum Status was modified
+            │       │   │   ├── ! Enum value Status.ACTIVE was added
+            │       │   │   └── ✕ Enum value Status.DELETED was removed
+            │       │   ├── ✓ Type system member NewType was added.
+            │       │   └── ✕ Type system member OldType was removed.
+            │       ├── Invalid GraphQL schema
+            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │       ├── Client 'TestClient' (ID: client-1)
+            │       │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
+            │       │       └── foo (10:10)
             │       ├── OpenAPI collection 'petstore' (ID: collection-1)
-            │       │   └── Endpoint 'GET /pets'
-            │       │       └── Invalid schema. (10:5)
+            │       │   └── Endpoint 'GET /fail'
+            │       │       └── The field `person` does not exist on the type `Query`. (1:14)
             │       ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
-            │       │   └── Tool 'test-tool'
-            │       │       └── Invalid MCP schema. (5:3)
+            │       │   └── Tool 'Fail'
+            │       │       └── The field `person` does not exist on the type `Query`. (1:14)
             │       └── An unexpected error occurred.
             └── ✕ Failed to publish Fusion configuration.
             """);
@@ -704,15 +718,29 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Claimed deployment slot.
             ├── Validating configuration against 'dev'
             │   └── ✕ Failed to validate the new configuration.
-            │       ├── Field 'Query.foo' has no type. SCHEMA_ERROR
-            │       ├── Client 'test-client' (ID: client-1)
-            │       │   └── Operation 'abc123'
+            │       ├── GraphQL schema changes
+            │       │   ├── ✕ Directive foo was modified
+            │       │   │   ├── ✓ Directive location FieldDefinition added
+            │       │   │   └── ✕ Directive location Field removed
+            │       │   ├── ✕ Object type Foo was modified
+            │       │   │   ├── ✓ Field Foo.bar of type String! was added
+            │       │   │   └── ✕ Field Foo.baz of type Int! was removed
+            │       │   ├── ! Enum Status was modified
+            │       │   │   ├── ! Enum value Status.ACTIVE was added
+            │       │   │   └── ✕ Enum value Status.DELETED was removed
+            │       │   ├── ✓ Type system member NewType was added.
+            │       │   └── ✕ Type system member OldType was removed.
+            │       ├── Invalid GraphQL schema
+            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │       ├── Client 'TestClient' (ID: client-1)
+            │       │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
+            │       │       └── foo (10:10)
             │       ├── OpenAPI collection 'petstore' (ID: collection-1)
-            │       │   └── Endpoint 'GET /pets'
-            │       │       └── Invalid schema. (10:5)
+            │       │   └── Endpoint 'GET /fail'
+            │       │       └── The field `person` does not exist on the type `Query`. (1:14)
             │       ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
-            │       │   └── Tool 'test-tool'
-            │       │       └── Invalid MCP schema. (5:3)
+            │       │   └── Tool 'Fail'
+            │       │       └── The field `person` does not exist on the type `Query`. (1:14)
             │       └── An unexpected error occurred.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
@@ -760,9 +788,17 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Claimed deployment slot.
             ├── Uploading configuration to 'dev'
             │   ├── ! Validation failed.
-            │   │   └── OpenAPI collection 'petstore' (ID: collection-1)
-            │   │       └── Endpoint 'GET /pets'
-            │   │           └── Invalid schema. (10:5)
+            │   │   ├── Invalid GraphQL schema
+            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │   │   ├── Client 'TestClient' (ID: client-1)
+            │   │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
+            │   │   │       └── foo (10:10)
+            │   │   ├── OpenAPI collection 'petstore' (ID: collection-1)
+            │   │   │   └── Endpoint 'GET /fail'
+            │   │   │       └── The field `person` does not exist on the type `Query`. (1:14)
+            │   │   └── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
+            │   │       └── Tool 'Fail'
+            │   │           └── The field `person` does not exist on the type `Query`. (1:14)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             │   ├── Your request has been approved.
             │   └── ✓ Uploaded configuration.
@@ -814,9 +850,17 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Claimed deployment slot.
             ├── Uploading configuration to 'dev'
             │   ├── ! Validation failed.
-            │   │   └── OpenAPI collection 'petstore' (ID: collection-1)
-            │   │       └── Endpoint 'GET /pets'
-            │   │           └── Invalid schema. (10:5)
+            │   │   ├── Invalid GraphQL schema
+            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │   │   ├── Client 'TestClient' (ID: client-1)
+            │   │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
+            │   │   │       └── foo (10:10)
+            │   │   ├── OpenAPI collection 'petstore' (ID: collection-1)
+            │   │   │   └── Endpoint 'GET /fail'
+            │   │   │       └── The field `person` does not exist on the type `Query`. (1:14)
+            │   │   └── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
+            │   │       └── Tool 'Fail'
+            │   │           └── The field `person` does not exist on the type `Query`. (1:14)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             │   └── ✕ Failed to upload the new configuration.
             └── ✕ Failed to publish Fusion configuration.
@@ -964,7 +1008,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Validated configuration.
             ├── Uploading configuration to 'dev'
             │   └── ✕ Failed to upload the new configuration.
-            │       ├── Field 'Query.foo' has no type. SCHEMA_ERROR
+            │       ├── Invalid GraphQL schema
+            │       │   └── Field 'Query.foo' has no type. SCHEMA_ERROR
             │       └── An error occurred.
             └── ✕ Failed to publish Fusion configuration.
             """);
@@ -1587,15 +1632,29 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
             │   └── ✕ Failed to validate the new configuration.
-            │       ├── Field 'Query.foo' has no type. SCHEMA_ERROR
-            │       ├── Client 'test-client' (ID: client-1)
-            │       │   └── Operation 'abc123'
+            │       ├── GraphQL schema changes
+            │       │   ├── ✕ Directive foo was modified
+            │       │   │   ├── ✓ Directive location FieldDefinition added
+            │       │   │   └── ✕ Directive location Field removed
+            │       │   ├── ✕ Object type Foo was modified
+            │       │   │   ├── ✓ Field Foo.bar of type String! was added
+            │       │   │   └── ✕ Field Foo.baz of type Int! was removed
+            │       │   ├── ! Enum Status was modified
+            │       │   │   ├── ! Enum value Status.ACTIVE was added
+            │       │   │   └── ✕ Enum value Status.DELETED was removed
+            │       │   ├── ✓ Type system member NewType was added.
+            │       │   └── ✕ Type system member OldType was removed.
+            │       ├── Invalid GraphQL schema
+            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │       ├── Client 'TestClient' (ID: client-1)
+            │       │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
+            │       │       └── foo (10:10)
             │       ├── OpenAPI collection 'petstore' (ID: collection-1)
-            │       │   └── Endpoint 'GET /pets'
-            │       │       └── Invalid schema. (10:5)
+            │       │   └── Endpoint 'GET /fail'
+            │       │       └── The field `person` does not exist on the type `Query`. (1:14)
             │       ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
-            │       │   └── Tool 'test-tool'
-            │       │       └── Invalid MCP schema. (5:3)
+            │       │   └── Tool 'Fail'
+            │       │       └── The field `person` does not exist on the type `Query`. (1:14)
             │       └── An unexpected error occurred.
             └── ✕ Failed to publish Fusion configuration.
             """);
@@ -1647,15 +1706,29 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
             │   └── ✕ Failed to validate the new configuration.
-            │       ├── Field 'Query.foo' has no type. SCHEMA_ERROR
-            │       ├── Client 'test-client' (ID: client-1)
-            │       │   └── Operation 'abc123'
+            │       ├── GraphQL schema changes
+            │       │   ├── ✕ Directive foo was modified
+            │       │   │   ├── ✓ Directive location FieldDefinition added
+            │       │   │   └── ✕ Directive location Field removed
+            │       │   ├── ✕ Object type Foo was modified
+            │       │   │   ├── ✓ Field Foo.bar of type String! was added
+            │       │   │   └── ✕ Field Foo.baz of type Int! was removed
+            │       │   ├── ! Enum Status was modified
+            │       │   │   ├── ! Enum value Status.ACTIVE was added
+            │       │   │   └── ✕ Enum value Status.DELETED was removed
+            │       │   ├── ✓ Type system member NewType was added.
+            │       │   └── ✕ Type system member OldType was removed.
+            │       ├── Invalid GraphQL schema
+            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │       ├── Client 'TestClient' (ID: client-1)
+            │       │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
+            │       │       └── foo (10:10)
             │       ├── OpenAPI collection 'petstore' (ID: collection-1)
-            │       │   └── Endpoint 'GET /pets'
-            │       │       └── Invalid schema. (10:5)
+            │       │   └── Endpoint 'GET /fail'
+            │       │       └── The field `person` does not exist on the type `Query`. (1:14)
             │       ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
-            │       │   └── Tool 'test-tool'
-            │       │       └── Invalid MCP schema. (5:3)
+            │       │   └── Tool 'Fail'
+            │       │       └── The field `person` does not exist on the type `Query`. (1:14)
             │       └── An unexpected error occurred.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
@@ -1755,9 +1828,17 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Composed new configuration.
             ├── Uploading configuration to 'dev'
             │   ├── ! Validation failed.
-            │   │   └── OpenAPI collection 'petstore' (ID: collection-1)
-            │   │       └── Endpoint 'GET /pets'
-            │   │           └── Invalid schema. (10:5)
+            │   │   ├── Invalid GraphQL schema
+            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │   │   ├── Client 'TestClient' (ID: client-1)
+            │   │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
+            │   │   │       └── foo (10:10)
+            │   │   ├── OpenAPI collection 'petstore' (ID: collection-1)
+            │   │   │   └── Endpoint 'GET /fail'
+            │   │   │       └── The field `person` does not exist on the type `Query`. (1:14)
+            │   │   └── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
+            │   │       └── Tool 'Fail'
+            │   │           └── The field `person` does not exist on the type `Query`. (1:14)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             │   ├── Your request has been approved.
             │   └── ✓ Uploaded configuration.
@@ -1814,9 +1895,17 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Composed new configuration.
             ├── Uploading configuration to 'dev'
             │   ├── ! Validation failed.
-            │   │   └── OpenAPI collection 'petstore' (ID: collection-1)
-            │   │       └── Endpoint 'GET /pets'
-            │   │           └── Invalid schema. (10:5)
+            │   │   ├── Invalid GraphQL schema
+            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │   │   ├── Client 'TestClient' (ID: client-1)
+            │   │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
+            │   │   │       └── foo (10:10)
+            │   │   ├── OpenAPI collection 'petstore' (ID: collection-1)
+            │   │   │   └── Endpoint 'GET /fail'
+            │   │   │       └── The field `person` does not exist on the type `Query`. (1:14)
+            │   │   └── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
+            │   │       └── Tool 'Fail'
+            │   │           └── The field `person` does not exist on the type `Query`. (1:14)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             │   └── ✕ Failed to upload the new configuration.
             └── ✕ Failed to publish Fusion configuration.
@@ -1979,7 +2068,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Validated configuration.
             ├── Uploading configuration to 'dev'
             │   └── ✕ Failed to upload the new configuration.
-            │       ├── Field 'Query.foo' has no type. SCHEMA_ERROR
+            │       ├── Invalid GraphQL schema
+            │       │   └── Field 'Query.foo' has no type. SCHEMA_ERROR
             │       └── An error occurred.
             └── ✕ Failed to publish Fusion configuration.
             """);
@@ -2714,15 +2804,29 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
             │   └── ✕ Failed to validate the new configuration.
-            │       ├── Field 'Query.foo' has no type. SCHEMA_ERROR
-            │       ├── Client 'test-client' (ID: client-1)
-            │       │   └── Operation 'abc123'
+            │       ├── GraphQL schema changes
+            │       │   ├── ✕ Directive foo was modified
+            │       │   │   ├── ✓ Directive location FieldDefinition added
+            │       │   │   └── ✕ Directive location Field removed
+            │       │   ├── ✕ Object type Foo was modified
+            │       │   │   ├── ✓ Field Foo.bar of type String! was added
+            │       │   │   └── ✕ Field Foo.baz of type Int! was removed
+            │       │   ├── ! Enum Status was modified
+            │       │   │   ├── ! Enum value Status.ACTIVE was added
+            │       │   │   └── ✕ Enum value Status.DELETED was removed
+            │       │   ├── ✓ Type system member NewType was added.
+            │       │   └── ✕ Type system member OldType was removed.
+            │       ├── Invalid GraphQL schema
+            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │       ├── Client 'TestClient' (ID: client-1)
+            │       │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
+            │       │       └── foo (10:10)
             │       ├── OpenAPI collection 'petstore' (ID: collection-1)
-            │       │   └── Endpoint 'GET /pets'
-            │       │       └── Invalid schema. (10:5)
+            │       │   └── Endpoint 'GET /fail'
+            │       │       └── The field `person` does not exist on the type `Query`. (1:14)
             │       ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
-            │       │   └── Tool 'test-tool'
-            │       │       └── Invalid MCP schema. (5:3)
+            │       │   └── Tool 'Fail'
+            │       │       └── The field `person` does not exist on the type `Query`. (1:14)
             │       └── An unexpected error occurred.
             └── ✕ Failed to publish Fusion configuration.
             """);
@@ -2776,15 +2880,29 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
             │   └── ✕ Failed to validate the new configuration.
-            │       ├── Field 'Query.foo' has no type. SCHEMA_ERROR
-            │       ├── Client 'test-client' (ID: client-1)
-            │       │   └── Operation 'abc123'
+            │       ├── GraphQL schema changes
+            │       │   ├── ✕ Directive foo was modified
+            │       │   │   ├── ✓ Directive location FieldDefinition added
+            │       │   │   └── ✕ Directive location Field removed
+            │       │   ├── ✕ Object type Foo was modified
+            │       │   │   ├── ✓ Field Foo.bar of type String! was added
+            │       │   │   └── ✕ Field Foo.baz of type Int! was removed
+            │       │   ├── ! Enum Status was modified
+            │       │   │   ├── ! Enum value Status.ACTIVE was added
+            │       │   │   └── ✕ Enum value Status.DELETED was removed
+            │       │   ├── ✓ Type system member NewType was added.
+            │       │   └── ✕ Type system member OldType was removed.
+            │       ├── Invalid GraphQL schema
+            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │       ├── Client 'TestClient' (ID: client-1)
+            │       │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
+            │       │       └── foo (10:10)
             │       ├── OpenAPI collection 'petstore' (ID: collection-1)
-            │       │   └── Endpoint 'GET /pets'
-            │       │       └── Invalid schema. (10:5)
+            │       │   └── Endpoint 'GET /fail'
+            │       │       └── The field `person` does not exist on the type `Query`. (1:14)
             │       ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
-            │       │   └── Tool 'test-tool'
-            │       │       └── Invalid MCP schema. (5:3)
+            │       │   └── Tool 'Fail'
+            │       │       └── The field `person` does not exist on the type `Query`. (1:14)
             │       └── An unexpected error occurred.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
@@ -2888,9 +3006,17 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Composed new configuration.
             ├── Uploading configuration to 'dev'
             │   ├── ! Validation failed.
-            │   │   └── OpenAPI collection 'petstore' (ID: collection-1)
-            │   │       └── Endpoint 'GET /pets'
-            │   │           └── Invalid schema. (10:5)
+            │   │   ├── Invalid GraphQL schema
+            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │   │   ├── Client 'TestClient' (ID: client-1)
+            │   │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
+            │   │   │       └── foo (10:10)
+            │   │   ├── OpenAPI collection 'petstore' (ID: collection-1)
+            │   │   │   └── Endpoint 'GET /fail'
+            │   │   │       └── The field `person` does not exist on the type `Query`. (1:14)
+            │   │   └── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
+            │   │       └── Tool 'Fail'
+            │   │           └── The field `person` does not exist on the type `Query`. (1:14)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             │   ├── Your request has been approved.
             │   └── ✓ Uploaded configuration.
@@ -2949,9 +3075,17 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Composed new configuration.
             ├── Uploading configuration to 'dev'
             │   ├── ! Validation failed.
-            │   │   └── OpenAPI collection 'petstore' (ID: collection-1)
-            │   │       └── Endpoint 'GET /pets'
-            │   │           └── Invalid schema. (10:5)
+            │   │   ├── Invalid GraphQL schema
+            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │   │   ├── Client 'TestClient' (ID: client-1)
+            │   │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
+            │   │   │       └── foo (10:10)
+            │   │   ├── OpenAPI collection 'petstore' (ID: collection-1)
+            │   │   │   └── Endpoint 'GET /fail'
+            │   │   │       └── The field `person` does not exist on the type `Query`. (1:14)
+            │   │   └── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
+            │   │       └── Tool 'Fail'
+            │   │           └── The field `person` does not exist on the type `Query`. (1:14)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             │   └── ✕ Failed to upload the new configuration.
             └── ✕ Failed to publish Fusion configuration.
@@ -3120,7 +3254,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Validated configuration.
             ├── Uploading configuration to 'dev'
             │   └── ✕ Failed to upload the new configuration.
-            │       ├── Field 'Query.foo' has no type. SCHEMA_ERROR
+            │       ├── Invalid GraphQL schema
+            │       │   └── Field 'Query.foo' has no type. SCHEMA_ERROR
             │       └── An error occurred.
             └── ✕ Failed to publish Fusion configuration.
             """);

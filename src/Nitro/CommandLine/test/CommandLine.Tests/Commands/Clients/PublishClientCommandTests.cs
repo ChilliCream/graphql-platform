@@ -285,8 +285,8 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
             │   └── ✕ Processing failed.
-            │       └── Operation 'abc123'
-            │           └── Field 'foo' does not exist.
+            │       └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
+            │           └── foo (10:10)
             └── ✕ Failed to publish a new client version.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -359,8 +359,8 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
             │   ├── ! Validation failed.
-            │   │   └── Operation 'abc123'
-            │   │       └── Field 'foo' does not exist.
+            │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
+            │   │       └── foo (10:10)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             │   ├── Your request has been approved.
             │   └── ✓ Published successfully.
@@ -401,8 +401,8 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
             │   ├── ! Validation failed.
-            │   │   └── Operation 'abc123'
-            │   │       └── Field 'foo' does not exist.
+            │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
+            │   │       └── foo (10:10)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             │   └── ✕ Processing failed.
             └── ✕ Failed to publish a new client version.

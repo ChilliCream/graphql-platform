@@ -371,7 +371,31 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
             │   └── ✓ Publish request created (ID: request-id).
             ├── Processing
             │   ├── ! Validation failed.
-            │   │   └── Field 'Query.foo' has no type. SCHEMA_ERROR
+            │   │   ├── Invalid GraphQL schema
+            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │   │   ├── GraphQL schema changes
+            │   │   │   ├── ✕ Directive foo was modified
+            │   │   │   │   ├── ✓ Directive location FieldDefinition added
+            │   │   │   │   └── ✕ Directive location Field removed
+            │   │   │   ├── ✕ Object type Foo was modified
+            │   │   │   │   ├── ✓ Field Foo.bar of type String! was added
+            │   │   │   │   └── ✕ Field Foo.baz of type Int! was removed
+            │   │   │   ├── ! Enum Status was modified
+            │   │   │   │   ├── ! Enum value Status.ACTIVE was added
+            │   │   │   │   └── ✕ Enum value Status.DELETED was removed
+            │   │   │   ├── ✓ Type system member NewType was added.
+            │   │   │   └── ✕ Type system member OldType was removed.
+            │   │   ├── Client 'TestClient' (ID: client-1)
+            │   │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
+            │   │   │       └── foo (10:10)
+            │   │   ├── OpenAPI collection 'petstore' (ID: collection-1)
+            │   │   │   └── Endpoint 'GET /fail'
+            │   │   │       └── The field `person` does not exist on the type `Query`. (1:14)
+            │   │   ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
+            │   │   │   └── Tool 'Fail'
+            │   │   │       └── The field `person` does not exist on the type `Query`. (1:14)
+            │   │   ├── There was a syntax error in your schema document.
+            │   │   └── Operations are not allowed in a schema document.
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             │   ├── Your request has been approved.
             │   └── ✓ Published successfully.
@@ -412,7 +436,31 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
             │   └── ✓ Publish request created (ID: request-id).
             ├── Processing
             │   ├── ! Validation failed.
-            │   │   └── Field 'Query.foo' has no type. SCHEMA_ERROR
+            │   │   ├── Invalid GraphQL schema
+            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │   │   ├── GraphQL schema changes
+            │   │   │   ├── ✕ Directive foo was modified
+            │   │   │   │   ├── ✓ Directive location FieldDefinition added
+            │   │   │   │   └── ✕ Directive location Field removed
+            │   │   │   ├── ✕ Object type Foo was modified
+            │   │   │   │   ├── ✓ Field Foo.bar of type String! was added
+            │   │   │   │   └── ✕ Field Foo.baz of type Int! was removed
+            │   │   │   ├── ! Enum Status was modified
+            │   │   │   │   ├── ! Enum value Status.ACTIVE was added
+            │   │   │   │   └── ✕ Enum value Status.DELETED was removed
+            │   │   │   ├── ✓ Type system member NewType was added.
+            │   │   │   └── ✕ Type system member OldType was removed.
+            │   │   ├── Client 'TestClient' (ID: client-1)
+            │   │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
+            │   │   │       └── foo (10:10)
+            │   │   ├── OpenAPI collection 'petstore' (ID: collection-1)
+            │   │   │   └── Endpoint 'GET /fail'
+            │   │   │       └── The field `person` does not exist on the type `Query`. (1:14)
+            │   │   ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
+            │   │   │   └── Tool 'Fail'
+            │   │   │       └── The field `person` does not exist on the type `Query`. (1:14)
+            │   │   ├── There was a syntax error in your schema document.
+            │   │   └── Operations are not allowed in a schema document.
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             │   └── ✕ Processing failed.
             └── ✕ Failed to publish a new schema version.

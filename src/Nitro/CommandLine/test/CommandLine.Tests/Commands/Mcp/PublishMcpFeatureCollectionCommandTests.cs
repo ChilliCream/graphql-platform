@@ -359,8 +359,8 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             ├── Processing
             │   ├── ! Validation failed.
             │   │   └── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
-            │   │       └── Tool 'test-tool'
-            │   │           └── Invalid tool definition. (5:3)
+            │   │       └── Tool 'Fail'
+            │   │           └── The field `person` does not exist on the type `Query`. (1:14)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             │   ├── Your request has been approved.
             │   └── ✓ Published successfully.
@@ -402,8 +402,8 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             ├── Processing
             │   ├── ! Validation failed.
             │   │   └── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
-            │   │       └── Tool 'test-tool'
-            │   │           └── Invalid tool definition. (5:3)
+            │   │       └── Tool 'Fail'
+            │   │           └── The field `person` does not exist on the type `Query`. (1:14)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             │   └── ✕ Processing failed.
             └── ✕ Failed to publish a new MCP feature collection version.

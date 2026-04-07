@@ -3,37 +3,158 @@ using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests;
 
-/// <summary>
-/// Provides shared factory methods for creating fully-populated mock error objects
-/// used across multiple test base classes.
-/// </summary>
 internal static class MockErrorFactory
 {
-    /// <summary>
-    /// Sets up <see cref="IOpenApiCollectionValidationError"/> on the given mock,
-    /// including a "petstore" collection with a "GET /pets" endpoint and a document error.
-    /// </summary>
+    #region Individual Error Setup Methods
+
+    public static void SetupInvalidGraphQLSchemaError<T>(Mock<T> mock) where T : class
+    {
+        var schemaErrorEntry = new Mock<
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Errors>(
+            MockBehavior.Strict);
+        schemaErrorEntry.SetupGet(x => x.Message)
+            .Returns("There is no object type implementing interface `InterfaceWithoutImplementation`.");
+        schemaErrorEntry.SetupGet(x => x.Code).Returns("SCHEMA_INTERFACE_NO_IMPL");
+
+        mock.As<IInvalidGraphQLSchemaError>()
+            .SetupGet(x => x.__typename)
+            .Returns("InvalidGraphQLSchemaError");
+        mock.As<IInvalidGraphQLSchemaError>()
+            .SetupGet(x => x.Message)
+            .Returns("The schema document contains logical errors and does not comply with the GraphQL specification.");
+        mock.As<IInvalidGraphQLSchemaError>()
+            .SetupGet(x => x.Errors)
+            .Returns(new[] { schemaErrorEntry.Object });
+    }
+
+    public static void SetupOperationsAreNotAllowedError<T>(Mock<T> mock) where T : class
+    {
+        mock.As<IOperationsAreNotAllowedError>()
+            .SetupGet(x => x.__typename)
+            .Returns("OperationsAreNotAllowedError");
+        mock.As<IOperationsAreNotAllowedError>()
+            .SetupGet(x => x.Message)
+            .Returns("Operations are not allowed in a schema document.");
+    }
+
+    public static void SetupSchemaVersionSyntaxError<T>(Mock<T> mock) where T : class
+    {
+        mock.As<ISchemaVersionSyntaxError>()
+            .SetupGet(x => x.__typename)
+            .Returns("SchemaVersionSyntaxError");
+        mock.As<ISchemaVersionSyntaxError>()
+            .SetupGet(x => x.Message)
+            .Returns("There was a syntax error in your schema document.");
+        mock.As<ISchemaVersionSyntaxError>()
+            .SetupGet(x => x.Column)
+            .Returns(1);
+        mock.As<ISchemaVersionSyntaxError>()
+            .SetupGet(x => x.Position)
+            .Returns(1);
+        mock.As<ISchemaVersionSyntaxError>()
+            .SetupGet(x => x.Line)
+            .Returns(1);
+    }
+
+    public static void SetupPersistedQueryValidationError<T>(Mock<T> mock) where T : class
+    {
+        var location = new Mock<
+            IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Queries_Errors_Locations>(
+            MockBehavior.Strict);
+        location.SetupGet(x => x.Line).Returns(10);
+        location.SetupGet(x => x.Column).Returns(10);
+
+        var queryError = new Mock<
+            IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Queries_Errors>(
+            MockBehavior.Strict);
+        queryError.SetupGet(x => x.Message).Returns("foo");
+        queryError.SetupGet(x => x.Code).Returns("bar");
+        queryError.SetupGet(x => x.Path).Returns("asd");
+        queryError.SetupGet(x => x.Locations).Returns(new[] { location.Object });
+
+        var pqClient = new Mock<
+            IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Client>(
+            MockBehavior.Strict);
+        pqClient.SetupGet(x => x.Name).Returns("TestClient");
+        pqClient.SetupGet(x => x.Id).Returns("client-1");
+
+        var pqQuery = new Mock<
+            IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Queries>(
+            MockBehavior.Strict);
+        pqQuery.SetupGet(x => x.Hash)
+            .Returns("6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59");
+        pqQuery.SetupGet(x => x.Message).Returns("def");
+        pqQuery.SetupGet(x => x.DeployedTags).Returns(new[] { "1.0.0" });
+        pqQuery.SetupGet(x => x.Errors).Returns(new[] { queryError.Object });
+
+        mock.As<IPersistedQueryValidationError>()
+            .SetupGet(x => x.Message)
+            .Returns("There were persisted queries that failed");
+        mock.As<IPersistedQueryValidationError>()
+            .SetupGet(x => x.Client)
+            .Returns(pqClient.Object);
+        mock.As<IPersistedQueryValidationError>()
+            .SetupGet(x => x.Queries)
+            .Returns(new[] { pqQuery.Object });
+    }
+
+    public static void SetupClientPersistedQueryValidationError<T>(Mock<T> mock) where T : class
+    {
+        var location = new Mock<
+            IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Queries_Errors_Locations>(
+            MockBehavior.Strict);
+        location.SetupGet(x => x.Line).Returns(10);
+        location.SetupGet(x => x.Column).Returns(10);
+
+        var queryError = new Mock<
+            IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Queries_Errors>(
+            MockBehavior.Strict);
+        queryError.SetupGet(x => x.Message).Returns("foo");
+        queryError.SetupGet(x => x.Code).Returns("bar");
+        queryError.SetupGet(x => x.Path).Returns("asd");
+        queryError.SetupGet(x => x.Locations).Returns(new[] { location.Object });
+
+        var pqQuery = new Mock<
+            IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Queries>(
+            MockBehavior.Strict);
+        pqQuery.SetupGet(x => x.Hash)
+            .Returns("6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59");
+        pqQuery.SetupGet(x => x.Message).Returns("def");
+        pqQuery.SetupGet(x => x.DeployedTags).Returns(new[] { "1.0.0" });
+        pqQuery.SetupGet(x => x.Errors).Returns(new[] { queryError.Object });
+
+        mock.As<IPersistedQueryValidationError>()
+            .SetupGet(x => x.Message)
+            .Returns("There were persisted queries that failed");
+        mock.As<IPersistedQueryValidationError>()
+            .SetupGet(x => x.Client)
+            .Returns((IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Client?)null);
+        mock.As<IPersistedQueryValidationError>()
+            .SetupGet(x => x.Queries)
+            .Returns(new[] { pqQuery.Object });
+    }
+
     public static void SetupOpenApiCollectionValidationError<T>(Mock<T> mock) where T : class
     {
         var location = new Mock<
             IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_Locations_1>(
             MockBehavior.Strict);
-        location.SetupGet(x => x.Line).Returns(10);
-        location.SetupGet(x => x.Column).Returns(5);
+        location.SetupGet(x => x.Line).Returns(1);
+        location.SetupGet(x => x.Column).Returns(14);
 
         var docError = new Mock<
             IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_OpenApiCollectionValidationDocumentError>(
             MockBehavior.Strict);
-        docError.SetupGet(x => x.Code).Returns("INVALID");
-        docError.SetupGet(x => x.Message).Returns("Invalid schema.");
-        docError.SetupGet(x => x.Path).Returns("/paths/~1pets");
+        docError.SetupGet(x => x.Code).Returns((string?)null);
+        docError.SetupGet(x => x.Message).Returns("The field `person` does not exist on the type `Query`.");
+        docError.SetupGet(x => x.Path).Returns((string?)null);
         docError.SetupGet(x => x.Locations).Returns(new[] { location.Object });
 
         var endpoint = new Mock<
             IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_OpenApiCollectionValidationEndpoint>(
             MockBehavior.Strict);
         endpoint.As<IOpenApiCollectionValidationEndpoint>().SetupGet(x => x.HttpMethod).Returns("GET");
-        endpoint.As<IOpenApiCollectionValidationEndpoint>().SetupGet(x => x.Route).Returns("/pets");
+        endpoint.As<IOpenApiCollectionValidationEndpoint>().SetupGet(x => x.Route).Returns("/fail");
         IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_1[]
             entityErrors = [docError.Object];
         endpoint.As<IOpenApiCollectionValidationEntity_OpenApiCollectionValidationEndpoint>()
@@ -58,20 +179,11 @@ internal static class MockErrorFactory
                 { colValidation.Object });
     }
 
-    /// <summary>
-    /// Sets up <see cref="IMcpFeatureCollectionValidationError"/> on the given mock,
-    /// including an "mcp-collection" collection with a "test-tool" tool and a document error.
-    /// Uses "Invalid MCP schema." as the document error message.
-    /// </summary>
     public static void SetupMcpFeatureCollectionValidationError<T>(Mock<T> mock) where T : class
     {
-        SetupMcpFeatureCollectionValidationError(mock, "Invalid MCP schema.");
+        SetupMcpFeatureCollectionValidationError(mock, "The field `person` does not exist on the type `Query`.");
     }
 
-    /// <summary>
-    /// Sets up <see cref="IMcpFeatureCollectionValidationError"/> on the given mock,
-    /// including an "mcp-collection" collection with a "test-tool" tool and a document error.
-    /// </summary>
     public static void SetupMcpFeatureCollectionValidationError<T>(
         Mock<T> mock,
         string docErrorMessage) where T : class
@@ -79,21 +191,21 @@ internal static class MockErrorFactory
         var location = new Mock<
             IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_Locations>(
             MockBehavior.Strict);
-        location.SetupGet(x => x.Line).Returns(5);
-        location.SetupGet(x => x.Column).Returns(3);
+        location.SetupGet(x => x.Line).Returns(1);
+        location.SetupGet(x => x.Column).Returns(14);
 
         var docError = new Mock<
             IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_McpFeatureCollectionValidationDocumentError>(
             MockBehavior.Strict);
-        docError.SetupGet(x => x.Code).Returns("INVALID");
+        docError.SetupGet(x => x.Code).Returns((string?)null);
         docError.SetupGet(x => x.Message).Returns(docErrorMessage);
-        docError.SetupGet(x => x.Path).Returns("/tools/test");
+        docError.SetupGet(x => x.Path).Returns((string?)null);
         docError.SetupGet(x => x.Locations).Returns(new[] { location.Object });
 
         var tool = new Mock<
             IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_McpFeatureCollectionValidationTool>(
             MockBehavior.Strict);
-        tool.As<IMcpFeatureCollectionValidationTool>().SetupGet(x => x.Name).Returns("test-tool");
+        tool.As<IMcpFeatureCollectionValidationTool>().SetupGet(x => x.Name).Returns("Fail");
         IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors[]
             entityErrors = [docError.Object];
         tool.As<IMcpFeatureCollectionValidationEntity_McpFeatureCollectionValidationTool>()
@@ -118,80 +230,35 @@ internal static class MockErrorFactory
                 { colValidation.Object });
     }
 
-    /// <summary>
-    /// Sets up <see cref="IInvalidGraphQLSchemaError"/> on the given mock,
-    /// with a single schema error entry ("Field 'Query.foo' has no type.").
-    /// </summary>
-    public static void SetupInvalidGraphQLSchemaError<T>(Mock<T> mock) where T : class
-    {
-        var schemaErrorEntry = new Mock<
-            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Errors>(
-            MockBehavior.Strict);
-        schemaErrorEntry.SetupGet(x => x.Message).Returns("Field 'Query.foo' has no type.");
-        schemaErrorEntry.SetupGet(x => x.Code).Returns("SCHEMA_ERROR");
-
-        mock.As<IInvalidGraphQLSchemaError>()
-            .SetupGet(x => x.__typename)
-            .Returns("InvalidGraphQLSchemaError");
-        mock.As<IInvalidGraphQLSchemaError>()
-            .SetupGet(x => x.Message)
-            .Returns("Invalid GraphQL schema.");
-        mock.As<IInvalidGraphQLSchemaError>()
-            .SetupGet(x => x.Errors)
-            .Returns(new[] { schemaErrorEntry.Object });
-    }
-
-    /// <summary>
-    /// Sets up <see cref="IPersistedQueryValidationError"/> on the given mock,
-    /// with a "test-client" client and a single query ("abc123" / "Query failed.").
-    /// This variant is used in Fusion and Schemas test bases.
-    /// </summary>
-    public static void SetupPersistedQueryValidationError<T>(Mock<T> mock) where T : class
-    {
-        var pqClient = new Mock<
-            IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Client>(
-            MockBehavior.Strict);
-        pqClient.SetupGet(x => x.Name).Returns("test-client");
-        pqClient.SetupGet(x => x.Id).Returns("client-1");
-
-        var pqQuery = new Mock<
-            IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Queries>(
-            MockBehavior.Strict);
-        pqQuery.SetupGet(x => x.Hash).Returns("abc123");
-        pqQuery.SetupGet(x => x.Message).Returns("Query failed.");
-        pqQuery.SetupGet(x => x.DeployedTags).Returns(Array.Empty<string>());
-        pqQuery.SetupGet(x => x.Errors).Returns(Array
-            .Empty<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Queries_Errors>());
-
-        mock.As<IPersistedQueryValidationError>()
-            .SetupGet(x => x.Message)
-            .Returns("Persisted query validation failed.");
-        mock.As<IPersistedQueryValidationError>()
-            .SetupGet(x => x.Client)
-            .Returns(pqClient.Object);
-        mock.As<IPersistedQueryValidationError>()
-            .SetupGet(x => x.Queries)
-            .Returns(new[] { pqQuery.Object });
-    }
-
-    /// <summary>
-    /// Sets up <see cref="ISchemaVersionChangeViolationError"/> on the given mock,
-    /// with an empty changes list.
-    /// </summary>
     public static void SetupSchemaChangeViolationError<T>(Mock<T> mock) where T : class
     {
+        var changes = CreateSchemaChangeMocks();
+
+        // Set up for validation contexts (ISchemaVersionChangeViolationError)
         mock.As<ISchemaVersionChangeViolationError>()
             .SetupGet(x => x.__typename)
             .Returns("SchemaVersionChangeViolationError");
         mock.As<ISchemaVersionChangeViolationError>()
             .SetupGet(x => x.Changes)
-            .Returns(Array
-                .Empty<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes>());
+            .Returns(changes
+                .Select(c =>
+                    (IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes)
+                    c.Object)
+                .ToArray());
+
+        // Set up for deployment contexts (ISchemaChangeViolationError)
+        mock.As<ISchemaChangeViolationError>()
+            .SetupGet(x => x.Message)
+            .Returns("Schema change violations detected.");
+        mock.As<ISchemaChangeViolationError>()
+            .SetupGet(x => x.Changes)
+            .Returns(changes
+                .Select(c =>
+                    (IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes)
+                    c.Object)
+                .ToArray());
     }
 
-    /// <summary>
-    /// Sets up <see cref="IUnexpectedProcessingError"/> on the given mock.
-    /// </summary>
     public static void SetupUnexpectedProcessingError<T>(
         Mock<T> mock,
         string message = "An unexpected error occurred.") where T : class
@@ -204,78 +271,356 @@ internal static class MockErrorFactory
             .Returns(message);
     }
 
-    /// <summary>
-    /// Sets up <see cref="IPersistedQueryValidationError"/> on the given mock,
-    /// with no client and a single query that has a query-level error.
-    /// This variant is used in the Clients test base.
-    /// </summary>
-    public static void SetupClientPersistedQueryValidationError<T>(Mock<T> mock) where T : class
+    #endregion
+
+    #region Schema Change Mock Helpers
+
+    private static List<Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes>>
+        CreateSchemaChangeMocks()
     {
-        var queryErrorMock = new Mock<
-            IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Queries_Errors>(
-            MockBehavior.Strict);
-        queryErrorMock.SetupGet(x => x.Message).Returns("Field 'foo' does not exist.");
-        queryErrorMock.SetupGet(x => x.Code).Returns("FIELD_NOT_FOUND");
-        queryErrorMock.SetupGet(x => x.Path).Returns((string?)null);
-        queryErrorMock.SetupGet(x => x.Locations)
-            .Returns((IReadOnlyList<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Queries_Errors_Locations>?)null);
+        var changes = new List<Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes>>();
 
-        var queryMock = new Mock<
-            IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Queries>(
-            MockBehavior.Strict);
-        queryMock.SetupGet(x => x.Message).Returns("Query abc123 is invalid.");
-        queryMock.SetupGet(x => x.Hash).Returns("abc123");
-        queryMock.SetupGet(x => x.DeployedTags).Returns(new List<string>());
-        queryMock.SetupGet(x => x.Errors).Returns(new[] { queryErrorMock.Object });
+        // 1. DirectiveModifiedChange with sub-changes
+        changes.Add(CreateDirectiveModifiedChange());
 
-        mock.As<IPersistedQueryValidationError>()
-            .SetupGet(x => x.Message)
-            .Returns("Validation failed for persisted queries.");
-        mock.As<IPersistedQueryValidationError>()
-            .SetupGet(x => x.Client)
-            .Returns((IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Client?)null);
-        mock.As<IPersistedQueryValidationError>()
-            .SetupGet(x => x.Queries)
-            .Returns(new[] { queryMock.Object });
+        // 2. ObjectModifiedChange with sub-changes
+        changes.Add(CreateObjectModifiedChange());
+
+        // 3. EnumModifiedChange with sub-changes
+        changes.Add(CreateEnumModifiedChange());
+
+        // 4. TypeSystemMemberAddedChange
+        changes.Add(CreateTypeSystemMemberAddedChange());
+
+        // 5. TypeSystemMemberRemovedChange
+        changes.Add(CreateTypeSystemMemberRemovedChange());
+
+        return changes;
     }
 
-    /// <summary>
-    /// Sets up <see cref="ISchemaDeployment"/> on the given mock with a single
-    /// <see cref="IInvalidGraphQLSchemaError"/> deployment error.
-    /// Used for schema version publish wait-for-approval events.
-    /// </summary>
-    public static void SetupSchemaDeploymentWithInvalidGraphQLSchemaError<T>(Mock<T> mock) where T : class
+    private static Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes>
+        CreateDirectiveModifiedChange()
     {
-        var schemaErrorEntry = new Mock<
-            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Errors>(
+        // Sub-change: DirectiveLocationAdded (FIELD_DEFINITION, Safe)
+        var locationAdded = new Mock<
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes>(
             MockBehavior.Strict);
-        schemaErrorEntry.SetupGet(x => x.Message).Returns("Field 'Query.foo' has no type.");
-        schemaErrorEntry.SetupGet(x => x.Code).Returns("SCHEMA_ERROR");
+        locationAdded
+            .As<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes_Changes>();
+        locationAdded.As<IDirectiveLocationAdded>()
+            .SetupGet(x => x.Severity).Returns(SchemaChangeSeverity.Safe);
+        locationAdded.As<IDirectiveLocationAdded>()
+            .SetupGet(x => x.Location).Returns(DirectiveLocation.FieldDefinition);
+        locationAdded.As<IDirectiveLocationAdded>()
+            .SetupGet(x => x.__typename).Returns("DirectiveLocationAdded");
+        locationAdded.As<ISchemaChange>()
+            .SetupGet(x => x.Severity).Returns(SchemaChangeSeverity.Safe);
 
-        var errorMock = new Mock<
+        // Sub-change: DirectiveLocationRemoved (FIELD, Breaking)
+        var locationRemoved = new Mock<
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes>(
+            MockBehavior.Strict);
+        locationRemoved
+            .As<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes_Changes>();
+        locationRemoved.As<IDirectiveLocationRemoved>()
+            .SetupGet(x => x.Severity).Returns(SchemaChangeSeverity.Breaking);
+        locationRemoved.As<IDirectiveLocationRemoved>()
+            .SetupGet(x => x.Location).Returns(DirectiveLocation.Field);
+        locationRemoved.As<IDirectiveLocationRemoved>()
+            .SetupGet(x => x.__typename).Returns("DirectiveLocationRemoved");
+        locationRemoved.As<ISchemaChange>()
+            .SetupGet(x => x.Severity).Returns(SchemaChangeSeverity.Breaking);
+
+        var subChanges = new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes[]
+        {
+            locationAdded.Object, locationRemoved.Object
+        };
+
+        var change = new Mock<
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes>(
+            MockBehavior.Strict);
+        change
+            .As<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes>();
+        change.As<IDirectiveModifiedChange>()
+            .SetupGet(x => x.Severity).Returns(SchemaChangeSeverity.Breaking);
+        change.As<IDirectiveModifiedChange>()
+            .SetupGet(x => x.Coordinate).Returns("foo");
+        change.As<IDirectiveModifiedChange>()
+            .SetupGet(x => x.__typename).Returns("DirectiveModifiedChange");
+        change.As<IDirectiveModifiedChange>()
+            .SetupGet(x => x.Changes).Returns(subChanges);
+        change.As<ISchemaChange>()
+            .SetupGet(x => x.Severity).Returns(SchemaChangeSeverity.Breaking);
+        change.SetupGet(x => x.__typename).Returns("DirectiveModifiedChange");
+
+        return change;
+    }
+
+    private static Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes>
+        CreateObjectModifiedChange()
+    {
+        // Sub-change: FieldAddedChange (Foo.bar, type String!, Safe)
+        var fieldAdded = new Mock<
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_4>(
+            MockBehavior.Strict);
+        fieldAdded
+            .As<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes_Changes_4>();
+        fieldAdded.As<IFieldAddedChange>()
+            .SetupGet(x => x.Severity).Returns(SchemaChangeSeverity.Safe);
+        fieldAdded.As<IFieldAddedChange>()
+            .SetupGet(x => x.Coordinate).Returns("Foo.bar");
+        fieldAdded.As<IFieldAddedChange>()
+            .SetupGet(x => x.TypeName).Returns("String!");
+        fieldAdded.As<IFieldAddedChange>()
+            .SetupGet(x => x.FieldName).Returns("bar");
+        fieldAdded.As<ISchemaChange>()
+            .SetupGet(x => x.Severity).Returns(SchemaChangeSeverity.Safe);
+
+        // Sub-change: FieldRemovedChange (Foo.baz, type Int!, Breaking)
+        var fieldRemoved = new Mock<
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_4>(
+            MockBehavior.Strict);
+        fieldRemoved
+            .As<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes_Changes_4>();
+        fieldRemoved.As<IFieldRemovedChange>()
+            .SetupGet(x => x.Severity).Returns(SchemaChangeSeverity.Breaking);
+        fieldRemoved.As<IFieldRemovedChange>()
+            .SetupGet(x => x.Coordinate).Returns("Foo.baz");
+        fieldRemoved.As<IFieldRemovedChange>()
+            .SetupGet(x => x.TypeName).Returns("Int!");
+        fieldRemoved.As<IFieldRemovedChange>()
+            .SetupGet(x => x.FieldName).Returns("baz");
+        fieldRemoved.As<ISchemaChange>()
+            .SetupGet(x => x.Severity).Returns(SchemaChangeSeverity.Breaking);
+
+        var subChanges = new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_4[]
+        {
+            fieldAdded.Object, fieldRemoved.Object
+        };
+
+        var change = new Mock<
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes>(
+            MockBehavior.Strict);
+        change
+            .As<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes>();
+        change.As<IObjectModifiedChange>()
+            .SetupGet(x => x.Severity).Returns(SchemaChangeSeverity.Breaking);
+        change.As<IObjectModifiedChange>()
+            .SetupGet(x => x.Coordinate).Returns("Foo");
+        change.As<IObjectModifiedChange>()
+            .SetupGet(x => x.__typename).Returns("ObjectModifiedChange");
+        change.As<IObjectModifiedChange>()
+            .SetupGet(x => x.Changes).Returns(subChanges);
+        change.As<ISchemaChange>()
+            .SetupGet(x => x.Severity).Returns(SchemaChangeSeverity.Breaking);
+        change.SetupGet(x => x.__typename).Returns("ObjectModifiedChange");
+
+        return change;
+    }
+
+    private static Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes>
+        CreateEnumModifiedChange()
+    {
+        // Sub-change: EnumValueAdded (Status.ACTIVE, Dangerous)
+        var enumAdded = new Mock<
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_1>(
+            MockBehavior.Strict);
+        enumAdded
+            .As<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes_Changes_1>();
+        enumAdded.As<IEnumValueAdded>()
+            .SetupGet(x => x.Severity).Returns(SchemaChangeSeverity.Dangerous);
+        enumAdded.As<IEnumValueAdded>()
+            .SetupGet(x => x.Coordinate).Returns("Status.ACTIVE");
+        enumAdded.As<ISchemaChange>()
+            .SetupGet(x => x.Severity).Returns(SchemaChangeSeverity.Dangerous);
+
+        // Sub-change: EnumValueRemoved (Status.DELETED, Breaking)
+        var enumRemoved = new Mock<
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_1>(
+            MockBehavior.Strict);
+        enumRemoved
+            .As<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes_Changes_1>();
+        enumRemoved.As<IEnumValueRemoved>()
+            .SetupGet(x => x.Severity).Returns(SchemaChangeSeverity.Breaking);
+        enumRemoved.As<IEnumValueRemoved>()
+            .SetupGet(x => x.Coordinate).Returns("Status.DELETED");
+        enumRemoved.As<ISchemaChange>()
+            .SetupGet(x => x.Severity).Returns(SchemaChangeSeverity.Breaking);
+
+        var subChanges = new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes_Changes_1[]
+        {
+            enumAdded.Object, enumRemoved.Object
+        };
+
+        var change = new Mock<
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes>(
+            MockBehavior.Strict);
+        change
+            .As<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes>();
+        change.As<IEnumModifiedChange>()
+            .SetupGet(x => x.Severity).Returns(SchemaChangeSeverity.Dangerous);
+        change.As<IEnumModifiedChange>()
+            .SetupGet(x => x.Coordinate).Returns("Status");
+        change.As<IEnumModifiedChange>()
+            .SetupGet(x => x.__typename).Returns("EnumModifiedChange");
+        change.As<IEnumModifiedChange>()
+            .SetupGet(x => x.Changes).Returns(subChanges);
+        change.As<ISchemaChange>()
+            .SetupGet(x => x.Severity).Returns(SchemaChangeSeverity.Dangerous);
+        change.SetupGet(x => x.__typename).Returns("EnumModifiedChange");
+
+        return change;
+    }
+
+    private static Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes>
+        CreateTypeSystemMemberAddedChange()
+    {
+        var change = new Mock<
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes>(
+            MockBehavior.Strict);
+        change
+            .As<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes>();
+        change.As<ITypeSystemMemberAddedChange>()
+            .SetupGet(x => x.Severity).Returns(SchemaChangeSeverity.Safe);
+        change.As<ITypeSystemMemberAddedChange>()
+            .SetupGet(x => x.Coordinate).Returns("NewType");
+        change.As<ITypeSystemMemberAddedChange>()
+            .SetupGet(x => x.__typename).Returns("TypeSystemMemberAddedChange");
+        change.As<ISchemaChange>()
+            .SetupGet(x => x.Severity).Returns(SchemaChangeSeverity.Safe);
+        change.SetupGet(x => x.__typename).Returns("TypeSystemMemberAddedChange");
+
+        return change;
+    }
+
+    private static Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes>
+        CreateTypeSystemMemberRemovedChange()
+    {
+        var change = new Mock<
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes>(
+            MockBehavior.Strict);
+        change
+            .As<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes>();
+        change.As<ITypeSystemMemberRemovedChange>()
+            .SetupGet(x => x.Severity).Returns(SchemaChangeSeverity.Breaking);
+        change.As<ITypeSystemMemberRemovedChange>()
+            .SetupGet(x => x.Coordinate).Returns("OldType");
+        change.As<ITypeSystemMemberRemovedChange>()
+            .SetupGet(x => x.__typename).Returns("TypeSystemMemberRemovedChange");
+        change.As<ISchemaChange>()
+            .SetupGet(x => x.Severity).Returns(SchemaChangeSeverity.Breaking);
+        change.SetupGet(x => x.__typename).Returns("TypeSystemMemberRemovedChange");
+
+        return change;
+    }
+
+    #endregion
+
+    #region Deployment Setup Methods
+
+    public static void SetupSchemaDeployment<T>(Mock<T> mock) where T : class
+    {
+        // 1. InvalidGraphQLSchemaError
+        var invalidGraphql = new Mock<
             IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_4>(
             MockBehavior.Strict);
-        errorMock.As<IInvalidGraphQLSchemaError>()
-            .SetupGet(x => x.__typename)
-            .Returns("InvalidGraphQLSchemaError");
-        errorMock.As<IInvalidGraphQLSchemaError>()
-            .SetupGet(x => x.Message)
-            .Returns("Invalid GraphQL schema.");
-        errorMock.As<IInvalidGraphQLSchemaError>()
-            .SetupGet(x => x.Errors)
-            .Returns(new[] { schemaErrorEntry.Object });
+        SetupInvalidGraphQLSchemaError(invalidGraphql);
+
+        // 2. SchemaChangeViolationError
+        var schemaChange = new Mock<
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_4>(
+            MockBehavior.Strict);
+        SetupSchemaChangeViolationError(schemaChange);
+
+        // 3. PersistedQueryValidationError
+        var pqError = new Mock<
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_4>(
+            MockBehavior.Strict);
+        SetupPersistedQueryValidationError(pqError);
+
+        // 4. OpenApiCollectionValidationError
+        var openApiError = new Mock<
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_4>(
+            MockBehavior.Strict);
+        SetupOpenApiCollectionValidationError(openApiError);
+
+        // 5. McpFeatureCollectionValidationError
+        var mcpError = new Mock<
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_4>(
+            MockBehavior.Strict);
+        SetupMcpFeatureCollectionValidationError(mcpError);
+
+        // 6. SchemaVersionSyntaxError
+        var syntaxError = new Mock<
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_4>(
+            MockBehavior.Strict);
+        SetupSchemaVersionSyntaxError(syntaxError);
+
+        // 7. OperationsAreNotAllowedError
+        var opsError = new Mock<
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_4>(
+            MockBehavior.Strict);
+        SetupOperationsAreNotAllowedError(opsError);
 
         mock.As<ISchemaDeployment>()
             .SetupGet(x => x.Errors)
-            .Returns(new[] { errorMock.Object });
+            .Returns(new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_4[]
+            {
+                invalidGraphql.Object,
+                schemaChange.Object,
+                pqError.Object,
+                openApiError.Object,
+                mcpError.Object,
+                syntaxError.Object,
+                opsError.Object
+            });
     }
 
-    /// <summary>
-    /// Sets up <see cref="IClientDeployment"/> on the given mock with a single
-    /// <see cref="IPersistedQueryValidationError"/> deployment error (client variant).
-    /// Used for client version publish wait-for-approval events.
-    /// </summary>
-    public static void SetupClientDeploymentWithPersistedQueryValidationError<T>(Mock<T> mock) where T : class
+    public static void SetupFusionDeployment<T>(Mock<T> mock) where T : class
+    {
+        // 1. InvalidGraphQLSchemaError
+        var invalidGraphql = new Mock<
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_1>(
+            MockBehavior.Strict);
+        SetupInvalidGraphQLSchemaError(invalidGraphql);
+
+        // 2. SchemaChangeViolationError
+        var schemaChange = new Mock<
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_1>(
+            MockBehavior.Strict);
+        SetupSchemaChangeViolationError(schemaChange);
+
+        // 3. PersistedQueryValidationError
+        var pqError = new Mock<
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_1>(
+            MockBehavior.Strict);
+        SetupPersistedQueryValidationError(pqError);
+
+        // 4. OpenApiCollectionValidationError
+        var openApiError = new Mock<
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_1>(
+            MockBehavior.Strict);
+        SetupOpenApiCollectionValidationError(openApiError);
+
+        // 5. McpFeatureCollectionValidationError
+        var mcpError = new Mock<
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_1>(
+            MockBehavior.Strict);
+        SetupMcpFeatureCollectionValidationError(mcpError);
+
+        mock.As<IFusionConfigurationDeployment>()
+            .SetupGet(x => x.Errors)
+            .Returns(new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_1[]
+            {
+                invalidGraphql.Object,
+                schemaChange.Object,
+                pqError.Object,
+                openApiError.Object,
+                mcpError.Object
+            });
+    }
+
+    public static void SetupClientDeployment<T>(Mock<T> mock) where T : class
     {
         var deploymentErrorMock = new Mock<
             IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors>(
@@ -287,12 +632,7 @@ internal static class MockErrorFactory
             .Returns(new[] { deploymentErrorMock.Object });
     }
 
-    /// <summary>
-    /// Sets up <see cref="IOpenApiCollectionDeployment"/> on the given mock with a single
-    /// <see cref="IOpenApiCollectionValidationError"/> deployment error.
-    /// Used for OpenAPI collection publish wait-for-approval events.
-    /// </summary>
-    public static void SetupOpenApiCollectionDeploymentWithValidationError<T>(Mock<T> mock) where T : class
+    public static void SetupOpenApiCollectionDeployment<T>(Mock<T> mock) where T : class
     {
         var errorMock = new Mock<
             IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_3>(
@@ -304,14 +644,9 @@ internal static class MockErrorFactory
             .Returns(new[] { errorMock.Object });
     }
 
-    /// <summary>
-    /// Sets up <see cref="IMcpFeatureCollectionDeployment"/> on the given mock with a single
-    /// <see cref="IMcpFeatureCollectionValidationError"/> deployment error.
-    /// Used for MCP feature collection publish wait-for-approval events.
-    /// </summary>
-    public static void SetupMcpFeatureCollectionDeploymentWithValidationError<T>(
+    public static void SetupMcpFeatureCollectionDeployment<T>(
         Mock<T> mock,
-        string docErrorMessage = "Invalid tool definition.") where T : class
+        string docErrorMessage = "The field `person` does not exist on the type `Query`.") where T : class
     {
         var errorMock = new Mock<
             IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_2>(
@@ -323,21 +658,5 @@ internal static class MockErrorFactory
             .Returns(new[] { errorMock.Object });
     }
 
-    /// <summary>
-    /// Sets up <see cref="IFusionConfigurationDeployment"/> on the given mock with a single
-    /// <see cref="IOpenApiCollectionValidationError"/> deployment error.
-    /// Used for Fusion publish wait-for-approval events.
-    /// </summary>
-    public static void SetupFusionDeploymentWithOpenApiCollectionValidationError<T>(Mock<T> mock) where T : class
-    {
-        var errorMock = new Mock<
-            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_OpenApiCollectionValidationError>(
-            MockBehavior.Strict);
-        SetupOpenApiCollectionValidationError(errorMock);
-
-        mock.As<IFusionConfigurationDeployment>()
-            .SetupGet(x => x.Errors)
-            .Returns(new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_1[]
-                { errorMock.Object });
-    }
+    #endregion
 }

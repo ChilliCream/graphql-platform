@@ -282,8 +282,8 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             ├── Validating
             │   └── ✕ Validation failed.
             │       └── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
-            │           └── Tool 'test-tool'
-            │               └── Invalid tool definition. (5:3)
+            │           └── Tool 'Fail'
+            │               └── Invalid tool definition. (1:14)
             └── ✕ Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(

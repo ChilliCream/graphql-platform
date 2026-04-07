@@ -498,7 +498,7 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
         CreateWaitForApprovalEventWithErrors()
     {
         var deploymentMock = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_FusionConfigurationDeployment>(MockBehavior.Strict);
-        MockErrorFactory.SetupFusionDeploymentWithOpenApiCollectionValidationError(deploymentMock);
+        MockErrorFactory.SetupFusionDeployment(deploymentMock);
 
         var mock = new Mock<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_WaitForApproval>(MockBehavior.Strict);
         mock.SetupGet(x => x.Deployment).Returns(deploymentMock.Object);

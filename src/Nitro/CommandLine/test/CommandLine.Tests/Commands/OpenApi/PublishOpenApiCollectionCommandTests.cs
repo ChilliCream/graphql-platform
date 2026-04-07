@@ -359,8 +359,8 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             ├── Processing
             │   ├── ! Validation failed.
             │   │   └── OpenAPI collection 'petstore' (ID: collection-1)
-            │   │       └── Endpoint 'GET /pets'
-            │   │           └── Invalid schema. (10:5)
+            │   │       └── Endpoint 'GET /fail'
+            │   │           └── The field `person` does not exist on the type `Query`. (1:14)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             │   ├── Your request has been approved.
             │   └── ✓ Published successfully.
@@ -402,8 +402,8 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             ├── Processing
             │   ├── ! Validation failed.
             │   │   └── OpenAPI collection 'petstore' (ID: collection-1)
-            │   │       └── Endpoint 'GET /pets'
-            │   │           └── Invalid schema. (10:5)
+            │   │       └── Endpoint 'GET /fail'
+            │   │           └── The field `person` does not exist on the type `Query`. (1:14)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             │   └── ✕ Processing failed.
             └── ✕ Failed to publish a new OpenAPI collection version.

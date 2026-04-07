@@ -349,7 +349,7 @@ public abstract class McpCommandTestBase(NitroCommandFixture fixture) : CommandT
     {
         var deploymentMock = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment>(
             MockBehavior.Strict);
-        MockErrorFactory.SetupMcpFeatureCollectionDeploymentWithValidationError(deploymentMock);
+        MockErrorFactory.SetupMcpFeatureCollectionDeployment(deploymentMock);
 
         return new PublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_WaitForApproval(
             "WaitForApproval",
