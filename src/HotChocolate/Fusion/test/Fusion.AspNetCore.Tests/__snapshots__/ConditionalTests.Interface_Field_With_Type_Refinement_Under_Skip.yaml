@@ -2,23 +2,27 @@ title: Interface_Field_With_Type_Refinement_Under_Skip
 request:
   document: |
     query(
-      $skip: Boolean!
+      $skip1: Boolean!
+        $skip2: Boolean!
     ) {
       abstractTypes {
         upvotes
         ... on Discussion {
           score
         }
-        ... @skip(if: $skip) {
-          ... on Author {
-            score
+        ... @skip(if: $skip1) {
+          ... @skip(if: $skip2) {
+            ... on Author {
+              score
+            }
           }
         }
       }
     }
   variables: |
     {
-      "skip": true
+      "skip1": true,
+      "skip2": true
     }
 response:
   body: |
@@ -70,20 +74,25 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_c37553a4_1(
-              $skip: Boolean!
+            query Op_2c04e967_1(
+              $skip1: Boolean!
+                $skip2: Boolean!
             ) {
               abstractTypes {
                 __typename
-                ... on Author @skip(if: $skip) {
-                  id
+                ... @skip(if: $skip1) {
+                  __typename
+                  ... on Author @skip(if: $skip2) {
+                    id
+                  }
                 }
                 id
               }
             }
           variables: |
             {
-              "skip": true
+              "skip1": true,
+              "skip2": true
             }
         response:
           results:
@@ -138,7 +147,7 @@ sourceSchemas:
           kind: OperationBatch
           items:
             - document: |
-                query Op_c37553a4_2(
+                query Op_2c04e967_2(
                   $__fusion_1_id: ID!
                 ) {
                   discussionById(id: $__fusion_1_id) {
@@ -156,7 +165,7 @@ sourceSchemas:
                   }
                 ]
             - document: |
-                query Op_c37553a4_5(
+                query Op_2c04e967_5(
                   $__fusion_4_id: ID!
                 ) {
                   discussionById(id: $__fusion_4_id) {
@@ -239,7 +248,7 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Op_c37553a4_3(
+            query Op_2c04e967_3(
               $__fusion_2_id: ID!
             ) {
               authorById(id: $__fusion_2_id) {
@@ -266,7 +275,8 @@ operationPlan:
   operation:
     - document: |
         query(
-          $skip: Boolean!
+          $skip1: Boolean!
+            $skip2: Boolean!
         ) {
           abstractTypes {
             __typename @fusion__requirement
@@ -276,13 +286,15 @@ operationPlan:
               score
               id @fusion__requirement
             }
-            ... on Author @skip(if: $skip) {
-              score
-              id @fusion__requirement
+            ... @skip(if: $skip1) {
+              ... on Author @skip(if: $skip2) {
+                score
+                id @fusion__requirement
+              }
             }
           }
         }
-      hash: c37553a43ab326faf465e4b233a62261
+      hash: 2c04e9678504894af47de4bcb5c4f3b1
       searchSpace: 1
       expandedNodes: 2
   nodes:
@@ -290,24 +302,29 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_c37553a4_1(
-          $skip: Boolean!
+        query Op_2c04e967_1(
+          $skip1: Boolean!
+            $skip2: Boolean!
         ) {
           abstractTypes {
             __typename
-            ... on Author @skip(if: $skip) {
-              id
+            ... @skip(if: $skip1) {
+              __typename
+              ... on Author @skip(if: $skip2) {
+                id
+              }
             }
             id
           }
         }
       forwardedVariables:
-        - skip
+        - skip1
+        - skip2
     - id: 2
       type: Operation
       schema: B
       operation: |
-        query Op_c37553a4_2(
+        query Op_2c04e967_2(
           $__fusion_1_id: ID!
         ) {
           discussionById(id: $__fusion_1_id) {
@@ -328,7 +345,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_c37553a4_5(
+        query Op_2c04e967_5(
           $__fusion_4_id: ID!
         ) {
           discussionById(id: $__fusion_4_id) {
@@ -348,7 +365,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query Op_c37553a4_3(
+        query Op_2c04e967_3(
           $__fusion_2_id: ID!
         ) {
           authorById(id: $__fusion_2_id) {
@@ -369,7 +386,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query Op_c37553a4_4(
+        query Op_2c04e967_4(
           $__fusion_3_id: ID!
         ) {
           authorById(id: $__fusion_3_id) {
@@ -384,7 +401,9 @@ operationPlan:
           selectionMap: >-
             id
       conditions:
-        - variable: $skip
+        - variable: $skip1
+          passingValue: false
+        - variable: $skip2
           passingValue: false
       dependencies:
         - id: 1

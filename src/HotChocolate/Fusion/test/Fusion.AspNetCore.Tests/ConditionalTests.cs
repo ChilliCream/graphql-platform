@@ -2227,21 +2227,23 @@ public class ConditionalTests : FusionTestBase
 
         var request = new OperationRequest(
             """
-            query($skip: Boolean!) {
+            query($skip1: Boolean!, $skip2: Boolean!) {
               abstractTypes {
                 upvotes
                 ... on Discussion {
                   score
                 }
-                ... @skip(if: $skip) {
-                  ... on Author {
-                    score
+                ... @skip(if: $skip1) {
+                  ... @skip(if: $skip2) {
+                    ... on Author {
+                      score
+                    }
                   }
                 }
               }
             }
             """,
-            variables: new Dictionary<string, object?> { ["skip"] = true });
+            variables: new Dictionary<string, object?> { ["skip1"] = true, ["skip2"] = true });
 
         using var result = await client.PostAsync(
             request,
