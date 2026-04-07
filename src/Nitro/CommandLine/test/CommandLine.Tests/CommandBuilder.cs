@@ -12,7 +12,6 @@ using ChilliCream.Nitro.Client.PersonalAccessTokens;
 using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.Client.Workspaces;
-using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using Microsoft.Extensions.DependencyInjection;
@@ -103,22 +102,16 @@ internal sealed class CommandBuilder
     public async Task<CommandResult> ExecuteAsync(
         CancellationToken cancellationToken = default)
     {
-        var context = CreateContext();
+        var context = CreateNonInteractiveContext();
 
         return await context.ExecuteAsync(cancellationToken);
     }
 
     public InteractiveCommand Start()
     {
-        var context = CreateContext();
+        var context = CreateInteractiveContext();
 
-        if (context.Console is not TestConsole testConsole
-            || !testConsole.Profile.Capabilities.Interactive)
-        {
-            throw new InvalidOperationException();
-        }
-
-        return new InteractiveCommand(context, testConsole);
+        return new InteractiveCommand(context, (TestConsole)context.Console);
     }
 
     private static Session CreateSession(Workspace? workspace)
@@ -151,55 +144,68 @@ internal sealed class CommandBuilder
             .AddSingleton(Mock.Of<IWorkspacesClient>());
     }
 
-    private CommandContext CreateContext()
+    private CommandContext CreateNonInteractiveContext()
     {
         var stdOutWriter = new StringWriter();
         var stdErrWriter = new StringWriter();
+
+        var outConsole = AnsiConsole.Create(new AnsiConsoleSettings
+        {
+            Ansi = AnsiSupport.No,
+            Out = new AnsiConsoleOutput(stdOutWriter)
+        });
+        outConsole.Profile.Width = 10_000;
+
+        var errConsole = AnsiConsole.Create(new AnsiConsoleSettings
+        {
+            Ansi = AnsiSupport.No,
+            Out = new AnsiConsoleOutput(stdErrWriter)
+        });
+        errConsole.Profile.Width = 10_000;
+
         var arguments = _arguments.ToList();
 
-        IAnsiConsole testConsole;
-        IAnsiConsole errorConsole;
-
-        if (_interactionMode is InteractionMode.NonInteractive or InteractionMode.JsonOutput)
+        if (_interactionMode is InteractionMode.JsonOutput)
         {
-            testConsole = AnsiConsole.Create(new AnsiConsoleSettings
-            {
-                Ansi = AnsiSupport.No,
-                Out = new AnsiConsoleOutput(stdOutWriter)
-            });
-            testConsole.Profile.Width = 10_000;
-
-            errorConsole = AnsiConsole.Create(new AnsiConsoleSettings
-            {
-                Ansi = AnsiSupport.No,
-                Out = new AnsiConsoleOutput(stdErrWriter)
-            });
-            errorConsole.Profile.Width = 10_000;
-
-            if (_interactionMode is InteractionMode.JsonOutput)
-            {
-                arguments.AddRange(["--output", "json"]);
-            }
-            else
-            {
-                testConsole.Profile.Capabilities.Interactive = false;
-            }
+            arguments.AddRange(["--output", "json"]);
+        }
+        else if (_interactionMode is InteractionMode.NonInteractive)
+        {
+            outConsole.Profile.Capabilities.Interactive = false;
         }
         else
         {
-            var tc = new TestConsole();
-            tc.Profile.Out = new AnsiConsoleOutput(stdOutWriter);
-            tc.Profile.Width = 10_000;
-            tc.Profile.Capabilities.Interactive = true;
-            testConsole = tc;
-
-            var ec = new TestConsole();
-            ec.Profile.Out = new AnsiConsoleOutput(stdErrWriter);
-            ec.Profile.Width = 10_000;
-            errorConsole = ec;
+            outConsole.Profile.Capabilities.Interactive = true;
         }
 
-        var console = new NitroConsole(testConsole, errorConsole, _environmentVariableProviderMock.Object);
+        return CreateContext(stdOutWriter, stdErrWriter, outConsole, errConsole, arguments);
+    }
+
+    private CommandContext CreateInteractiveContext()
+    {
+        var stdOutWriter = new StringWriter();
+        var stdErrWriter = new StringWriter();
+
+        var outConsole = new TestConsole();
+        outConsole.Profile.Out = new AnsiConsoleOutput(stdOutWriter);
+        outConsole.Profile.Width = 10_000;
+        outConsole.Profile.Capabilities.Interactive = true;
+
+        var errConsole = new TestConsole();
+        errConsole.Profile.Out = new AnsiConsoleOutput(stdErrWriter);
+        errConsole.Profile.Width = 10_000;
+
+        return CreateContext(stdOutWriter, stdErrWriter, outConsole, errConsole, [.._arguments]);
+    }
+
+    private CommandContext CreateContext(
+        StringWriter stdOutWriter,
+        StringWriter stdErrWriter,
+        IAnsiConsole outConsole,
+        IAnsiConsole errConsole,
+        List<string> arguments)
+    {
+        var console = new NitroConsole(outConsole, errConsole, _environmentVariableProviderMock.Object);
 
         _services.AddSingleton<INitroConsole>(console);
 
@@ -210,7 +216,7 @@ internal sealed class CommandBuilder
         return new CommandContext(
             stdOutWriter,
             stdErrWriter,
-            testConsole,
+            outConsole,
             rootCommand,
             arguments,
             services);
