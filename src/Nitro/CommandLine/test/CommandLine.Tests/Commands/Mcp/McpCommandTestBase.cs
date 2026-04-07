@@ -339,9 +339,7 @@ public abstract class McpCommandTestBase(NitroCommandFixture fixture) : CommandT
     {
         var errorMock = new Mock<IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_Errors>(
             MockBehavior.Strict);
-        errorMock.As<IUnexpectedProcessingError>()
-            .SetupGet(x => x.Message)
-            .Returns("Something went wrong during publish.");
+        MockErrorFactory.SetupUnexpectedProcessingError(errorMock, "Something went wrong during publish.");
 
         return CreateMcpFeatureCollectionPublishFailedEvent(errorMock.Object);
     }
@@ -349,17 +347,9 @@ public abstract class McpCommandTestBase(NitroCommandFixture fixture) : CommandT
     protected static IPublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate
         CreateMcpFeatureCollectionPublishWaitForApprovalEventWithErrors()
     {
-        var errorMock = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_2>(
-            MockBehavior.Strict);
-        errorMock.As<IMcpFeatureCollectionValidationError>()
-            .SetupGet(x => x.Collections)
-            .Returns(Array.Empty<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections>());
-
         var deploymentMock = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment>(
             MockBehavior.Strict);
-        deploymentMock.As<IMcpFeatureCollectionDeployment>()
-            .SetupGet(x => x.Errors)
-            .Returns(new[] { errorMock.Object });
+        MockErrorFactory.SetupMcpFeatureCollectionDeploymentWithValidationError(deploymentMock);
 
         return new PublishMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionPublishingUpdate_WaitForApproval(
             "WaitForApproval",
@@ -408,51 +398,10 @@ public abstract class McpCommandTestBase(NitroCommandFixture fixture) : CommandT
     protected static IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate
         CreateMcpFeatureCollectionValidationFailedEventWithErrors()
     {
-        var location = new Mock<
-            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_Locations>(
-            MockBehavior.Strict);
-        location.SetupGet(x => x.Line).Returns(5);
-        location.SetupGet(x => x.Column).Returns(3);
-
-        var docError = new Mock<
-            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_McpFeatureCollectionValidationDocumentError>(
-            MockBehavior.Strict);
-        docError.SetupGet(x => x.Code).Returns("INVALID");
-        docError.SetupGet(x => x.Message).Returns("Invalid tool definition.");
-        docError.SetupGet(x => x.Path).Returns("/tools/test");
-        docError.SetupGet(x => x.Locations).Returns(new[] { location.Object });
-
-        var tool = new Mock<
-            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_McpFeatureCollectionValidationTool>(
-            MockBehavior.Strict);
-        tool.As<IMcpFeatureCollectionValidationTool>().SetupGet(x => x.Name).Returns("test-tool");
-        IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors[]
-            entityErrors = [docError.Object];
-        tool.As<IMcpFeatureCollectionValidationEntity_McpFeatureCollectionValidationTool>()
-            .SetupGet(x => x.Errors).Returns(entityErrors);
-        tool.As<IMcpFeatureCollectionValidationEntity>().SetupGet(x => x.Errors).Returns(entityErrors);
-
-        var mcpCol = new Mock<
-            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_McpFeatureCollection>(
-            MockBehavior.Strict);
-        mcpCol.SetupGet(x => x.Name).Returns("mcp-collection");
-        mcpCol.SetupGet(x => x.Id).Returns("mcp-1");
-
-        var colValidation = new Mock<
-            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_McpFeatureCollectionValidationCollection>(
-            MockBehavior.Strict);
-        colValidation.SetupGet(x => x.McpFeatureCollection).Returns(mcpCol.Object);
-        colValidation.SetupGet(x => x.Entities)
-            .Returns(new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities[]
-                { tool.Object });
-
         var errorMock = new Mock<
             IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate_Errors>(
             MockBehavior.Strict);
-        errorMock.As<IMcpFeatureCollectionValidationError>()
-            .SetupGet(x => x.Collections)
-            .Returns(new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections[]
-                { colValidation.Object });
+        MockErrorFactory.SetupMcpFeatureCollectionValidationError(errorMock, "Invalid tool definition.");
 
         return CreateMcpFeatureCollectionValidationFailedEvent(errorMock.Object);
     }

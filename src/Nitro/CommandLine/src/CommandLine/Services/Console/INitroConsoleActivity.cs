@@ -6,6 +6,8 @@ internal interface INitroConsoleActivity : IAsyncDisposable
 {
     void Update(string message, ActivityUpdateKind kind = ActivityUpdateKind.Regular);
 
+    void Update(string message, IRenderable details, ActivityUpdateKind kind = ActivityUpdateKind.Regular);
+
     void Warning(string message);
 
     void Success(string message);

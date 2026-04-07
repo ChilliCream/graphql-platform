@@ -449,95 +449,27 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
     {
         // 1. SchemaVersionChangeViolationError (empty changes list)
         var schemaViolation = new Mock<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_SchemaVersionChangeViolationError>(MockBehavior.Strict);
-        schemaViolation.SetupGet(x => x.__typename).Returns("SchemaVersionChangeViolationError");
-        schemaViolation.SetupGet(x => x.Changes).Returns(Array.Empty<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_Changes>());
+        MockErrorFactory.SetupSchemaChangeViolationError(schemaViolation);
 
         // 2. InvalidGraphQLSchemaError with one error entry
-        var schemaErrorEntry = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Errors>(MockBehavior.Strict);
-        schemaErrorEntry.SetupGet(x => x.Message).Returns("Field 'Query.foo' has no type.");
-        schemaErrorEntry.SetupGet(x => x.Code).Returns("SCHEMA_ERROR");
-
         var graphqlError = new Mock<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_InvalidGraphQLSchemaError_1>(MockBehavior.Strict);
-        graphqlError.SetupGet(x => x.__typename).Returns("InvalidGraphQLSchemaError");
-        graphqlError.SetupGet(x => x.Message).Returns("Invalid GraphQL schema.");
-        graphqlError.SetupGet(x => x.Errors).Returns(new[] { schemaErrorEntry.Object });
+        MockErrorFactory.SetupInvalidGraphQLSchemaError(graphqlError);
 
         // 3. PersistedQueryValidationError with a client and query
-        var pqClient = new Mock<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Client>(MockBehavior.Strict);
-        pqClient.SetupGet(x => x.Name).Returns("test-client");
-        pqClient.SetupGet(x => x.Id).Returns("client-1");
-
-        var pqQuery = new Mock<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Queries>(MockBehavior.Strict);
-        pqQuery.SetupGet(x => x.Hash).Returns("abc123");
-        pqQuery.SetupGet(x => x.Message).Returns("Query failed.");
-        pqQuery.SetupGet(x => x.DeployedTags).Returns(Array.Empty<string>());
-        pqQuery.SetupGet(x => x.Errors).Returns(Array.Empty<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Queries_Errors>());
-
         var pqError = new Mock<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_PersistedQueryValidationError>(MockBehavior.Strict);
-        pqError.SetupGet(x => x.Message).Returns("Persisted query validation failed.");
-        pqError.SetupGet(x => x.Client).Returns(pqClient.Object);
-        pqError.SetupGet(x => x.Queries).Returns(new[] { pqQuery.Object });
+        MockErrorFactory.SetupPersistedQueryValidationError(pqError);
 
         // 4. OpenApiCollectionValidationError with an endpoint entity
-        var openApiLocation = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_Locations_1>(MockBehavior.Strict);
-        openApiLocation.SetupGet(x => x.Line).Returns(10);
-        openApiLocation.SetupGet(x => x.Column).Returns(5);
-
-        var openApiDocError = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_OpenApiCollectionValidationDocumentError>(MockBehavior.Strict);
-        openApiDocError.SetupGet(x => x.Code).Returns("INVALID");
-        openApiDocError.SetupGet(x => x.Message).Returns("Invalid schema.");
-        openApiDocError.SetupGet(x => x.Path).Returns("/paths/~1pets");
-        openApiDocError.SetupGet(x => x.Locations).Returns(new[] { openApiLocation.Object });
-
-        var openApiEndpoint = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_OpenApiCollectionValidationEndpoint>(MockBehavior.Strict);
-        openApiEndpoint.As<IOpenApiCollectionValidationEndpoint>().SetupGet(x => x.HttpMethod).Returns("GET");
-        openApiEndpoint.As<IOpenApiCollectionValidationEndpoint>().SetupGet(x => x.Route).Returns("/pets");
-        IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_1[] openApiEntityErrors = [openApiDocError.Object];
-        openApiEndpoint.As<IOpenApiCollectionValidationEntity_OpenApiCollectionValidationEndpoint>().SetupGet(x => x.Errors).Returns(openApiEntityErrors);
-        openApiEndpoint.As<IOpenApiCollectionValidationEntity>().SetupGet(x => x.Errors).Returns(openApiEntityErrors);
-
-        var openApiCol = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_OpenApiCollection>(MockBehavior.Strict);
-        openApiCol.SetupGet(x => x.Name).Returns("petstore");
-        openApiCol.SetupGet(x => x.Id).Returns("collection-1");
-
-        var openApiColValidation = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_OpenApiCollectionValidationCollection>(MockBehavior.Strict);
-        openApiColValidation.SetupGet(x => x.OpenApiCollection).Returns(openApiCol.Object);
-        openApiColValidation.SetupGet(x => x.Entities).Returns(new[] { openApiEndpoint.Object });
-
         var openApiError = new Mock<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_OpenApiCollectionValidationError>(MockBehavior.Strict);
-        openApiError.SetupGet(x => x.Collections).Returns(new[] { openApiColValidation.Object });
+        MockErrorFactory.SetupOpenApiCollectionValidationError(openApiError);
 
         // 5. McpFeatureCollectionValidationError with a tool entity
-        var mcpDocError = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_McpFeatureCollectionValidationDocumentError>(MockBehavior.Strict);
-        mcpDocError.SetupGet(x => x.Code).Returns("INVALID");
-        mcpDocError.SetupGet(x => x.Message).Returns("Invalid MCP schema.");
-        mcpDocError.SetupGet(x => x.Path).Returns("/tools/test");
-        var mcpLocation = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_Locations>(MockBehavior.Strict);
-        mcpLocation.SetupGet(x => x.Line).Returns(5);
-        mcpLocation.SetupGet(x => x.Column).Returns(3);
-        mcpDocError.SetupGet(x => x.Locations).Returns(new[] { mcpLocation.Object });
-
-        var mcpTool = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_McpFeatureCollectionValidationTool>(MockBehavior.Strict);
-        mcpTool.As<IMcpFeatureCollectionValidationTool>().SetupGet(x => x.Name).Returns("test-tool");
-        IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors[] mcpEntityErrors = [mcpDocError.Object];
-        mcpTool.As<IMcpFeatureCollectionValidationEntity_McpFeatureCollectionValidationTool>().SetupGet(x => x.Errors).Returns(mcpEntityErrors);
-        mcpTool.As<IMcpFeatureCollectionValidationEntity>().SetupGet(x => x.Errors).Returns(mcpEntityErrors);
-
-        var mcpCol = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_McpFeatureCollection>(MockBehavior.Strict);
-        mcpCol.SetupGet(x => x.Name).Returns("mcp-collection");
-        mcpCol.SetupGet(x => x.Id).Returns("mcp-1");
-
-        var mcpColValidation = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_McpFeatureCollectionValidationCollection>(MockBehavior.Strict);
-        mcpColValidation.SetupGet(x => x.McpFeatureCollection).Returns(mcpCol.Object);
-        mcpColValidation.SetupGet(x => x.Entities).Returns(new[] { mcpTool.Object });
-
         var mcpError = new Mock<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_McpFeatureCollectionValidationError>(MockBehavior.Strict);
-        mcpError.SetupGet(x => x.Collections).Returns(new[] { mcpColValidation.Object });
+        MockErrorFactory.SetupMcpFeatureCollectionValidationError(mcpError);
 
         // 6. UnexpectedProcessingError
         var unexpectedError = new Mock<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_Errors_UnexpectedProcessingError_1>(MockBehavior.Strict);
-        unexpectedError.SetupGet(x => x.__typename).Returns("UnexpectedProcessingError");
-        unexpectedError.SetupGet(x => x.Message).Returns("An unexpected error occurred.");
+        MockErrorFactory.SetupUnexpectedProcessingError(unexpectedError);
 
         // Assemble the event with all errors
         var mock = new Mock<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_FusionConfigurationValidationFailed>(MockBehavior.Strict);
@@ -565,41 +497,11 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
     protected static IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged
         CreateWaitForApprovalEventWithErrors()
     {
-        // OpenAPI collection error with an endpoint entity
-        var openApiLocation = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_Locations_1>(MockBehavior.Strict);
-        openApiLocation.SetupGet(x => x.Line).Returns(10);
-        openApiLocation.SetupGet(x => x.Column).Returns(5);
-
-        var openApiDocError = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_OpenApiCollectionValidationDocumentError>(MockBehavior.Strict);
-        openApiDocError.SetupGet(x => x.Code).Returns("INVALID");
-        openApiDocError.SetupGet(x => x.Message).Returns("Invalid schema.");
-        openApiDocError.SetupGet(x => x.Path).Returns("/paths/~1pets");
-        openApiDocError.SetupGet(x => x.Locations).Returns(new[] { openApiLocation.Object });
-
-        var openApiEndpoint = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_OpenApiCollectionValidationEndpoint>(MockBehavior.Strict);
-        openApiEndpoint.As<IOpenApiCollectionValidationEndpoint>().SetupGet(x => x.HttpMethod).Returns("GET");
-        openApiEndpoint.As<IOpenApiCollectionValidationEndpoint>().SetupGet(x => x.Route).Returns("/pets");
-        IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_1[] openApiEntityErrors = [openApiDocError.Object];
-        openApiEndpoint.As<IOpenApiCollectionValidationEntity_OpenApiCollectionValidationEndpoint>().SetupGet(x => x.Errors).Returns(openApiEntityErrors);
-        openApiEndpoint.As<IOpenApiCollectionValidationEntity>().SetupGet(x => x.Errors).Returns(openApiEntityErrors);
-
-        var openApiCollection = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_OpenApiCollection>(MockBehavior.Strict);
-        openApiCollection.SetupGet(x => x.Name).Returns("petstore");
-        openApiCollection.SetupGet(x => x.Id).Returns("collection-1");
-
-        var openApiCollectionValidation = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_OpenApiCollectionValidationCollection>(MockBehavior.Strict);
-        openApiCollectionValidation.SetupGet(x => x.OpenApiCollection).Returns(openApiCollection.Object);
-        openApiCollectionValidation.SetupGet(x => x.Entities).Returns(new[] { openApiEndpoint.Object });
-
-        var openApiError = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_OpenApiCollectionValidationError>(MockBehavior.Strict);
-        openApiError.SetupGet(x => x.Collections).Returns(new[] { openApiCollectionValidation.Object });
-
-        // Deployment with the error
-        var deployment = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_FusionConfigurationDeployment>(MockBehavior.Strict);
-        deployment.SetupGet(x => x.Errors).Returns(new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_1[] { openApiError.Object });
+        var deploymentMock = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_FusionConfigurationDeployment>(MockBehavior.Strict);
+        MockErrorFactory.SetupFusionDeploymentWithOpenApiCollectionValidationError(deploymentMock);
 
         var mock = new Mock<IOnFusionConfigurationPublishingTaskChanged_OnFusionConfigurationPublishingTaskChanged_WaitForApproval>(MockBehavior.Strict);
-        mock.SetupGet(x => x.Deployment).Returns(deployment.Object);
+        mock.SetupGet(x => x.Deployment).Returns(deploymentMock.Object);
         return mock.Object;
     }
 

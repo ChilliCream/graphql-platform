@@ -24,6 +24,19 @@ internal sealed class NitroConsoleActivity(
         console.MarkupLine(prefix + "├── " + glyph + message);
     }
 
+    public void Update(string message, IRenderable details, ActivityUpdateKind kind = ActivityUpdateKind.Regular)
+    {
+        var glyph = kind switch
+        {
+            ActivityUpdateKind.Warning => Glyphs.ExclamationMark.Space(),
+            ActivityUpdateKind.Waiting => Glyphs.Clock.Space(),
+            ActivityUpdateKind.Success => Glyphs.Check.Space(),
+            _ => ""
+        };
+        console.MarkupLine(prefix + "├── " + glyph + message);
+        WriteIndented(details, prefix + "│   ");
+    }
+
     public void Warning(string message)
     {
         Complete(Glyphs.ExclamationMark.Space() + message);

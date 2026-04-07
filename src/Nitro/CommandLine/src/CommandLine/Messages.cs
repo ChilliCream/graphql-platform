@@ -68,4 +68,7 @@ internal static class Messages
         "Your request has been approved.";
 
     public const string PublishedSuccessfully = "Published successfully.";
+
+    public static string QueuedAtPosition(int position)
+        => $"Your request is queued at position {position}.";
 }

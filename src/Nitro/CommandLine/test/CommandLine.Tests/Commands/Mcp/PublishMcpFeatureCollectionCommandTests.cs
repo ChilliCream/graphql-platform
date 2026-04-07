@@ -357,9 +357,13 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
-            │   └── ✕ Processing failed.
+            │   ├── ! Validation failed.
+            │   │   └── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
+            │   │       └── Tool 'test-tool'
+            │   │           └── Invalid tool definition. (5:3)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             │   ├── Your request has been approved.
+            │   └── ✓ Published successfully.
             └── ✓ Published new MCP feature collection version 'v1' to stage 'dev'.
             """);
     }
@@ -396,8 +400,12 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
-            │   └── ✕ Processing failed.
+            │   ├── ! Validation failed.
+            │   │   └── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
+            │   │       └── Tool 'test-tool'
+            │   │           └── Invalid tool definition. (5:3)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
+            │   └── ✕ Processing failed.
             └── ✕ Failed to publish a new MCP feature collection version.
             """);
         Assert.Equal(1, result.ExitCode);

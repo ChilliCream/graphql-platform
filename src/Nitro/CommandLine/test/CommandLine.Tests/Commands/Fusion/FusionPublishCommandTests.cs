@@ -759,12 +759,13 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Uploading configuration to 'dev'
-            │   └── ✕ Failed to upload the new configuration.
-            │       └── OpenAPI collection 'petstore' (ID: collection-1)
-            │           └── Endpoint 'GET /pets'
-            │               └── Invalid schema. (10:5)
+            │   ├── ! Validation failed.
+            │   │   └── OpenAPI collection 'petstore' (ID: collection-1)
+            │   │       └── Endpoint 'GET /pets'
+            │   │           └── Invalid schema. (10:5)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             │   ├── Your request has been approved.
+            │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
             """);
         var schema = await GetFusionSchemaAsync(capturedStream);
@@ -812,11 +813,12 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Uploading configuration to 'dev'
-            │   └── ✕ Failed to upload the new configuration.
-            │       └── OpenAPI collection 'petstore' (ID: collection-1)
-            │           └── Endpoint 'GET /pets'
-            │               └── Invalid schema. (10:5)
+            │   ├── ! Validation failed.
+            │   │   └── OpenAPI collection 'petstore' (ID: collection-1)
+            │   │       └── Endpoint 'GET /pets'
+            │   │           └── Invalid schema. (10:5)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
+            │   └── ✕ Failed to upload the new configuration.
             └── ✕ Failed to publish Fusion configuration.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -1752,12 +1754,13 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Uploading configuration to 'dev'
-            │   └── ✕ Failed to upload the new configuration.
-            │       └── OpenAPI collection 'petstore' (ID: collection-1)
-            │           └── Endpoint 'GET /pets'
-            │               └── Invalid schema. (10:5)
+            │   ├── ! Validation failed.
+            │   │   └── OpenAPI collection 'petstore' (ID: collection-1)
+            │   │       └── Endpoint 'GET /pets'
+            │   │           └── Invalid schema. (10:5)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             │   ├── Your request has been approved.
+            │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
             """);
         var schema = await GetFusionSchemaAsync(capturedStream);
@@ -1810,11 +1813,12 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Uploading configuration to 'dev'
-            │   └── ✕ Failed to upload the new configuration.
-            │       └── OpenAPI collection 'petstore' (ID: collection-1)
-            │           └── Endpoint 'GET /pets'
-            │               └── Invalid schema. (10:5)
+            │   ├── ! Validation failed.
+            │   │   └── OpenAPI collection 'petstore' (ID: collection-1)
+            │   │       └── Endpoint 'GET /pets'
+            │   │           └── Invalid schema. (10:5)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
+            │   └── ✕ Failed to upload the new configuration.
             └── ✕ Failed to publish Fusion configuration.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -2883,12 +2887,13 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Uploading configuration to 'dev'
-            │   └── ✕ Failed to upload the new configuration.
-            │       └── OpenAPI collection 'petstore' (ID: collection-1)
-            │           └── Endpoint 'GET /pets'
-            │               └── Invalid schema. (10:5)
+            │   ├── ! Validation failed.
+            │   │   └── OpenAPI collection 'petstore' (ID: collection-1)
+            │   │       └── Endpoint 'GET /pets'
+            │   │           └── Invalid schema. (10:5)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             │   ├── Your request has been approved.
+            │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
             """);
         var schema = await GetFusionSchemaAsync(capturedStream);
@@ -2943,11 +2948,12 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Uploading configuration to 'dev'
-            │   └── ✕ Failed to upload the new configuration.
-            │       └── OpenAPI collection 'petstore' (ID: collection-1)
-            │           └── Endpoint 'GET /pets'
-            │               └── Invalid schema. (10:5)
+            │   ├── ! Validation failed.
+            │   │   └── OpenAPI collection 'petstore' (ID: collection-1)
+            │   │       └── Endpoint 'GET /pets'
+            │   │           └── Invalid schema. (10:5)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
+            │   └── ✕ Failed to upload the new configuration.
             └── ✕ Failed to publish Fusion configuration.
             """);
         Assert.Equal(1, result.ExitCode);

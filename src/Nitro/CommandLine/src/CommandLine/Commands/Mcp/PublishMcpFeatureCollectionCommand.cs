@@ -130,7 +130,7 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
                     switch (update)
                     {
                         case IProcessingTaskIsQueued v:
-                            child.Update($"Queued at position {v.QueuePosition}.");
+                            child.Update(Messages.QueuedAtPosition(v.QueuePosition), ActivityUpdateKind.Waiting);
                             break;
 
                         case IMcpFeatureCollectionVersionPublishFailed { Errors: var errors }:
@@ -189,7 +189,7 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
                                     }
                                 }
 
-                                child.Fail(approvalErrorTree);
+                                child.Update(Messages.ValidationFailed, approvalErrorTree, ActivityUpdateKind.Warning);
                             }
 
                             child.Update(Messages.WaitingForApproval, ActivityUpdateKind.Waiting);

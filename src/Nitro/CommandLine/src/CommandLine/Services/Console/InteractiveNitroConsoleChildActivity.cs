@@ -23,6 +23,19 @@ internal sealed class InteractiveNitroConsoleChildActivity(
         tree.AddChild(entry, message, state);
     }
 
+    public void Update(string message, IRenderable details, ActivityUpdateKind kind = ActivityUpdateKind.Regular)
+    {
+        var state = kind switch
+        {
+            ActivityUpdateKind.Warning => ActivityState.Warning,
+            ActivityUpdateKind.Waiting => ActivityState.Waiting,
+            ActivityUpdateKind.Success => ActivityState.Completed,
+            _ => ActivityState.Info
+        };
+        var child = tree.AddChild(entry, message, state);
+        tree.SetEntryDetails(child, details);
+    }
+
     public void Warning(string message)
     {
         if (_completed)

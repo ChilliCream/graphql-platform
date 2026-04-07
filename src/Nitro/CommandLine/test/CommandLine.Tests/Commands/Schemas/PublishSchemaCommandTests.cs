@@ -370,9 +370,11 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-id).
             ├── Processing
-            │   └── ✕ Processing failed.
+            │   ├── ! Validation failed.
+            │   │   └── Field 'Query.foo' has no type. SCHEMA_ERROR
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             │   ├── Your request has been approved.
+            │   └── ✓ Published successfully.
             └── ✓ Published new schema version 'v1' to stage 'dev'.
             """);
     }
@@ -409,8 +411,10 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-id).
             ├── Processing
-            │   └── ✕ Processing failed.
+            │   ├── ! Validation failed.
+            │   │   └── Field 'Query.foo' has no type. SCHEMA_ERROR
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
+            │   └── ✕ Processing failed.
             └── ✕ Failed to publish a new schema version.
             """);
         Assert.Equal(1, result.ExitCode);

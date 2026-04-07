@@ -513,15 +513,9 @@ public abstract class ClientsCommandTestBase(NitroCommandFixture fixture) : Comm
     protected static IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate
         CreateClientVersionPublishWaitForApprovalEventWithErrors()
     {
-        var deploymentErrorMock = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors>(
-            MockBehavior.Strict);
-        SetupPersistedQueryValidationError(deploymentErrorMock);
-
         var deploymentMock = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment>(
             MockBehavior.Strict);
-        deploymentMock.As<IClientDeployment>()
-            .SetupGet(x => x.Errors)
-            .Returns(new[] { deploymentErrorMock.Object });
+        MockErrorFactory.SetupClientDeploymentWithPersistedQueryValidationError(deploymentMock);
 
         return new OnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_WaitForApproval(
             "WaitForApproval",
@@ -534,37 +528,9 @@ public abstract class ClientsCommandTestBase(NitroCommandFixture fixture) : Comm
     {
         var errorMock = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Errors>(
             MockBehavior.Strict);
-        SetupPersistedQueryValidationError(errorMock);
+        MockErrorFactory.SetupClientPersistedQueryValidationError(errorMock);
 
         return errorMock.Object;
-    }
-
-    private static void SetupPersistedQueryValidationError<T>(Mock<T> mock) where T : class
-    {
-        var queryErrorMock = new Mock<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Queries_Errors>(
-            MockBehavior.Strict);
-        queryErrorMock.SetupGet(x => x.Message).Returns("Field 'foo' does not exist.");
-        queryErrorMock.SetupGet(x => x.Code).Returns("FIELD_NOT_FOUND");
-        queryErrorMock.SetupGet(x => x.Path).Returns((string?)null);
-        queryErrorMock.SetupGet(x => x.Locations)
-            .Returns((IReadOnlyList<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Queries_Errors_Locations>?)null);
-
-        var queryMock = new Mock<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Queries>(
-            MockBehavior.Strict);
-        queryMock.SetupGet(x => x.Message).Returns("Query abc123 is invalid.");
-        queryMock.SetupGet(x => x.Hash).Returns("abc123");
-        queryMock.SetupGet(x => x.DeployedTags).Returns(new List<string>());
-        queryMock.SetupGet(x => x.Errors).Returns(new[] { queryErrorMock.Object });
-
-        mock.As<IPersistedQueryValidationError>()
-            .SetupGet(x => x.Message)
-            .Returns("Validation failed for persisted queries.");
-        mock.As<IPersistedQueryValidationError>()
-            .SetupGet(x => x.Client)
-            .Returns((IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors_Client?)null);
-        mock.As<IPersistedQueryValidationError>()
-            .SetupGet(x => x.Queries)
-            .Returns(new[] { queryMock.Object });
     }
 
     #endregion
@@ -610,7 +576,7 @@ public abstract class ClientsCommandTestBase(NitroCommandFixture fixture) : Comm
     {
         var errorMock = new Mock<IOnClientVersionValidationUpdated_OnClientVersionValidationUpdate_Errors>(
             MockBehavior.Strict);
-        SetupPersistedQueryValidationError(errorMock);
+        MockErrorFactory.SetupClientPersistedQueryValidationError(errorMock);
 
         return CreateClientVersionValidationFailedEvent(errorMock.Object);
     }

@@ -366,7 +366,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
         result.AssertSuccess(
             """
             Publishing Fusion configuration
-            ├── Queued at position 2.
+            ├── ⏳ Your request is queued at position 2.
             └── ✓ Published Fusion configuration.
             """);
         var schema = await GetFusionSchemaAsync(capturedStream);

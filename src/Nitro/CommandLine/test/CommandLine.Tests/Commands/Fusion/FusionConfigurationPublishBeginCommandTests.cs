@@ -262,7 +262,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests(NitroCommandFixt
         result.AssertSuccess(
             """
             Requesting deployment slot for stage 'dev' of API 'api-1'
-            ├── Queued at position 3.
+            ├── ⏳ Your request is queued at position 3.
             └── ✕ Failed to request a deployment slot.
 
             {

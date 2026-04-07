@@ -357,9 +357,13 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
-            │   └── ✕ Processing failed.
+            │   ├── ! Validation failed.
+            │   │   └── OpenAPI collection 'petstore' (ID: collection-1)
+            │   │       └── Endpoint 'GET /pets'
+            │   │           └── Invalid schema. (10:5)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             │   ├── Your request has been approved.
+            │   └── ✓ Published successfully.
             └── ✓ Published new OpenAPI collection version 'v1' to stage 'dev'.
             """);
     }
@@ -396,8 +400,12 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             ├── Starting publish request
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
-            │   └── ✕ Processing failed.
+            │   ├── ! Validation failed.
+            │   │   └── OpenAPI collection 'petstore' (ID: collection-1)
+            │   │       └── Endpoint 'GET /pets'
+            │   │           └── Invalid schema. (10:5)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
+            │   └── ✕ Processing failed.
             └── ✕ Failed to publish a new OpenAPI collection version.
             """);
         Assert.Equal(1, result.ExitCode);

@@ -81,7 +81,7 @@ internal static class FusionPublishHelpers
             switch (@event)
             {
                 case IProcessingTaskIsQueued v:
-                    activity.Update($"Queued at position {v.QueuePosition}.");
+                    activity.Update(Messages.QueuedAtPosition(v.QueuePosition), ActivityUpdateKind.Waiting);
                     break;
 
                 case IFusionConfigurationPublishingFailed v:
@@ -205,7 +205,7 @@ internal static class FusionPublishHelpers
             switch (@event)
             {
                 case IProcessingTaskIsQueued v:
-                    activity.Update($"Queued at position {v.QueuePosition}.");
+                    activity.Update(Messages.QueuedAtPosition(v.QueuePosition), ActivityUpdateKind.Waiting);
                     break;
 
                 case IFusionConfigurationPublishingFailed v:
@@ -276,7 +276,7 @@ internal static class FusionPublishHelpers
                             }
                         }
 
-                        activity.Fail(errorTree);
+                        activity.Update(Messages.ValidationFailed, errorTree, ActivityUpdateKind.Warning);
                     }
 
                     activity.Update(Messages.WaitingForApproval, ActivityUpdateKind.Waiting);

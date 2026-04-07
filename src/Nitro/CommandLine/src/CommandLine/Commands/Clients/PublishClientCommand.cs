@@ -131,8 +131,7 @@ internal sealed class PublishClientCommand : Command
                     switch (update)
                     {
                         case IProcessingTaskIsQueued v:
-                            child.Update(
-                                $"Your request is queued. The current position in the queue is {v.QueuePosition}.");
+                            child.Update(Messages.QueuedAtPosition(v.QueuePosition), ActivityUpdateKind.Waiting);
                             break;
 
                         case IClientVersionPublishFailed { Errors: var errors }:
@@ -192,11 +191,15 @@ internal sealed class PublishClientCommand : Command
                                     }
                                 }
 
-                                child.Fail(approvalErrorTree);
+                                child.Update(
+                                    Messages.ValidationFailed,
+                                    approvalErrorTree,
+                                    ActivityUpdateKind.Warning);
                             }
 
                             child.Update(
-                                Messages.WaitingForApproval, ActivityUpdateKind.Waiting);
+                                Messages.WaitingForApproval,
+                                ActivityUpdateKind.Waiting);
                             break;
 
                         case IProcessingTaskApproved:

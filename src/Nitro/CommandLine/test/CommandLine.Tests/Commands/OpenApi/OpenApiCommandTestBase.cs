@@ -382,9 +382,7 @@ public abstract class OpenApiCommandTestBase(NitroCommandFixture fixture) : Comm
     {
         var errorMock = new Mock<IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_Errors>(
             MockBehavior.Strict);
-        errorMock.As<IUnexpectedProcessingError>()
-            .SetupGet(x => x.Message)
-            .Returns("Something went wrong during publish.");
+        MockErrorFactory.SetupUnexpectedProcessingError(errorMock, "Something went wrong during publish.");
 
         return CreateOpenApiCollectionPublishFailedEvent(errorMock.Object);
     }
@@ -392,17 +390,9 @@ public abstract class OpenApiCommandTestBase(NitroCommandFixture fixture) : Comm
     protected static IPublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate
         CreateOpenApiCollectionPublishWaitForApprovalEventWithErrors()
     {
-        var errorMock = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_3>(
-            MockBehavior.Strict);
-        errorMock.As<IOpenApiCollectionValidationError>()
-            .SetupGet(x => x.Collections)
-            .Returns(Array.Empty<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_1>());
-
         var deploymentMock = new Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment>(
             MockBehavior.Strict);
-        deploymentMock.As<IOpenApiCollectionDeployment>()
-            .SetupGet(x => x.Errors)
-            .Returns(new[] { errorMock.Object });
+        MockErrorFactory.SetupOpenApiCollectionDeploymentWithValidationError(deploymentMock);
 
         return new PublishOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionPublishingUpdate_WaitForApproval(
             "WaitForApproval",
@@ -451,52 +441,10 @@ public abstract class OpenApiCommandTestBase(NitroCommandFixture fixture) : Comm
     protected static IValidateOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionValidationUpdate
         CreateOpenApiCollectionValidationFailedEventWithErrors()
     {
-        var location = new Mock<
-            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_Locations_1>(
-            MockBehavior.Strict);
-        location.SetupGet(x => x.Line).Returns(10);
-        location.SetupGet(x => x.Column).Returns(5);
-
-        var docError = new Mock<
-            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_OpenApiCollectionValidationDocumentError>(
-            MockBehavior.Strict);
-        docError.SetupGet(x => x.Code).Returns("INVALID");
-        docError.SetupGet(x => x.Message).Returns("Invalid schema.");
-        docError.SetupGet(x => x.Path).Returns("/paths/~1pets");
-        docError.SetupGet(x => x.Locations).Returns(new[] { location.Object });
-
-        var endpoint = new Mock<
-            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_OpenApiCollectionValidationEndpoint>(
-            MockBehavior.Strict);
-        endpoint.As<IOpenApiCollectionValidationEndpoint>().SetupGet(x => x.HttpMethod).Returns("GET");
-        endpoint.As<IOpenApiCollectionValidationEndpoint>().SetupGet(x => x.Route).Returns("/pets");
-        IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_1[]
-            entityErrors = [docError.Object];
-        endpoint.As<IOpenApiCollectionValidationEntity_OpenApiCollectionValidationEndpoint>()
-            .SetupGet(x => x.Errors).Returns(entityErrors);
-        endpoint.As<IOpenApiCollectionValidationEntity>().SetupGet(x => x.Errors).Returns(entityErrors);
-
-        var openApiCol = new Mock<
-            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_OpenApiCollection>(
-            MockBehavior.Strict);
-        openApiCol.SetupGet(x => x.Name).Returns("petstore");
-        openApiCol.SetupGet(x => x.Id).Returns("collection-1");
-
-        var colValidation = new Mock<
-            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_OpenApiCollectionValidationCollection>(
-            MockBehavior.Strict);
-        colValidation.SetupGet(x => x.OpenApiCollection).Returns(openApiCol.Object);
-        colValidation.SetupGet(x => x.Entities)
-            .Returns(new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_1[]
-                { endpoint.Object });
-
         var errorMock = new Mock<
             IValidateOpenApiCollectionCommandSubscription_OnOpenApiCollectionVersionValidationUpdate_Errors>(
             MockBehavior.Strict);
-        errorMock.As<IOpenApiCollectionValidationError>()
-            .SetupGet(x => x.Collections)
-            .Returns(new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_1[]
-                { colValidation.Object });
+        MockErrorFactory.SetupOpenApiCollectionValidationError(errorMock);
 
         return CreateOpenApiCollectionValidationFailedEvent(errorMock.Object);
     }

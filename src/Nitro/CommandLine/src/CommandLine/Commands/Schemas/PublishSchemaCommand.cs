@@ -130,8 +130,7 @@ internal sealed class PublishSchemaCommand : Command
                     switch (update)
                     {
                         case IProcessingTaskIsQueued v:
-                            child.Update(
-                                $"Your request is queued. The current position in the queue is {v.QueuePosition}.");
+                            child.Update(Messages.QueuedAtPosition(v.QueuePosition), ActivityUpdateKind.Waiting);
                             break;
 
                         case ISchemaVersionPublishFailed { Errors: var schemaErrors }:
@@ -230,7 +229,10 @@ internal sealed class PublishSchemaCommand : Command
                                     }
                                 }
 
-                                child.Fail(deploymentErrorTree);
+                                child.Update(
+                                    Messages.ValidationFailed,
+                                    deploymentErrorTree,
+                                    ActivityUpdateKind.Warning);
                             }
 
                             child.Update(
