@@ -1,4 +1,6 @@
+using System.Collections.Immutable;
 using HotChocolate.Fusion.Execution.Clients;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion;
 
@@ -222,5 +224,148 @@ public class ApolloFederationConnectorTests
         Assert.NotSame(result1, result2);
         // but the content should be equivalent since the source text is the same
         Assert.Equal(result1.OperationText, result2.OperationText);
+    }
+
+    [Fact]
+    public void Rewrite_EntityLookup_Should_IncludeInlineFragment()
+    {
+        // arrange
+        var lookupFields = new Dictionary<string, LookupFieldInfo>
+        {
+            ["productById"] = new LookupFieldInfo
+            {
+                EntityTypeName = "Product",
+                ArgumentToKeyFieldMap = new Dictionary<string, string> { ["id"] = "id" }
+            }
+        };
+        var rewriter = new FederationQueryRewriter(lookupFields);
+
+        const string sourceText = """
+            query GetProduct($__fusion_1_id: ID!) {
+              productById(id: $__fusion_1_id) {
+                id
+                name
+                price
+              }
+            }
+            """;
+
+        // act
+        var result = rewriter.GetOrRewrite(sourceText, 77777UL);
+
+        // assert
+        Assert.True(result.IsEntityLookup);
+        Assert.NotNull(result.InlineFragment);
+        Assert.Equal("Product", result.InlineFragment!.TypeCondition!.Name.Value);
+
+        var selectionNames = result.InlineFragment.SelectionSet.Selections
+            .OfType<FieldNode>()
+            .Select(f => f.Name.Value)
+            .ToArray();
+        Assert.Contains("id", selectionNames);
+        Assert.Contains("name", selectionNames);
+        Assert.Contains("price", selectionNames);
+    }
+
+    [Fact]
+    public void Rewrite_Passthrough_Should_HaveNullInlineFragment()
+    {
+        // arrange
+        var lookupFields = new Dictionary<string, LookupFieldInfo>();
+        var rewriter = new FederationQueryRewriter(lookupFields);
+
+        const string sourceText = """
+            query {
+              topProducts { id name }
+            }
+            """;
+
+        // act
+        var result = rewriter.GetOrRewrite(sourceText, 88888UL);
+
+        // assert
+        Assert.False(result.IsEntityLookup);
+        Assert.Null(result.InlineFragment);
+    }
+
+    [Fact]
+    public void BuildCombinedEntityQuery_Should_ProduceAliasedEntitiesQuery()
+    {
+        // arrange
+        var productLookup = new Dictionary<string, LookupFieldInfo>
+        {
+            ["productById"] = new LookupFieldInfo
+            {
+                EntityTypeName = "Product",
+                ArgumentToKeyFieldMap = new Dictionary<string, string> { ["id"] = "id" }
+            }
+        };
+        var userLookup = new Dictionary<string, LookupFieldInfo>
+        {
+            ["userByEmail"] = new LookupFieldInfo
+            {
+                EntityTypeName = "User",
+                ArgumentToKeyFieldMap = new Dictionary<string, string> { ["email"] = "email" }
+            }
+        };
+
+        var productRewriter = new FederationQueryRewriter(productLookup);
+        var userRewriter = new FederationQueryRewriter(userLookup);
+
+        var productOp = productRewriter.GetOrRewrite(
+            """
+            query($__fusion_1_id: ID!) {
+              productById(id: $__fusion_1_id) { id name price }
+            }
+            """,
+            1UL);
+
+        var userOp = userRewriter.GetOrRewrite(
+            """
+            query($__fusion_1_email: String!) {
+              userByEmail(email: $__fusion_1_email) { email name }
+            }
+            """,
+            2UL);
+
+        var requests = ImmutableArray.Create(
+            new SourceSchemaClientRequest
+            {
+                Node = null!,
+                SchemaName = "test",
+                OperationType = OperationType.Query,
+                OperationSourceText = productOp.OperationText,
+                OperationHash = 1UL,
+                Variables = []
+            },
+            new SourceSchemaClientRequest
+            {
+                Node = null!,
+                SchemaName = "test",
+                OperationType = OperationType.Query,
+                OperationSourceText = userOp.OperationText,
+                OperationHash = 2UL,
+                Variables = []
+            });
+
+        var rewrittenOps = new[] { productOp, userOp };
+
+        // act
+        var (queryText, variablesJson) =
+            ApolloFederationSourceSchemaClient.BuildCombinedEntityQuery(requests, rewrittenOps);
+
+        // assert — query structure
+        Assert.Contains("$r0: [_Any!]!", queryText);
+        Assert.Contains("$r1: [_Any!]!", queryText);
+        Assert.Contains("____request0: _entities(representations: $r0)", queryText);
+        Assert.Contains("____request1: _entities(representations: $r1)", queryText);
+        Assert.Contains("... on Product", queryText);
+        Assert.Contains("... on User", queryText);
+
+        // assert — variables structure
+        Assert.Contains("\"r0\"", variablesJson);
+        Assert.Contains("\"r1\"", variablesJson);
+        Assert.Contains("\"__typename\":\"Product\"", variablesJson);
+        Assert.Contains("\"__typename\":\"User\"", variablesJson);
     }
 }

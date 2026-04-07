@@ -7,6 +7,7 @@ using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Transport;
 using HotChocolate.Fusion.Transport.Http;
+using HotChocolate.Language;
 using HotChocolate.Text.Json;
 
 namespace HotChocolate.Fusion.Execution.Clients;
@@ -75,17 +76,401 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        for (var i = 0; i < requests.Length; i++)
+        // Single request: use the simple path (no aliasing needed).
+        if (requests.Length == 1)
         {
-            var request = requests[i];
-            var response = await ExecuteAsync(context, request, cancellationToken)
+            var response = await ExecuteAsync(context, requests[0], cancellationToken)
                 .ConfigureAwait(false);
 
             await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken)
                 .ConfigureAwait(false))
             {
-                yield return new BatchStreamResult(i, result);
+                yield return new BatchStreamResult(0, result);
             }
+
+            yield break;
+        }
+
+        // Rewrite each request and classify as entity lookup or passthrough.
+        var rewrittenOps = new RewrittenOperation[requests.Length];
+        var allEntityLookups = true;
+
+        for (var i = 0; i < requests.Length; i++)
+        {
+            var rewritten = _queryRewriter.GetOrRewrite(
+                requests[i].OperationSourceText,
+                requests[i].OperationHash);
+            rewrittenOps[i] = rewritten;
+
+            if (!rewritten.IsEntityLookup)
+            {
+                allEntityLookups = false;
+            }
+        }
+
+        // If any request is a passthrough, fall back to sequential execution
+        // for all requests. Batching passthrough queries with entity lookups
+        // requires variable namespace merging which is deferred for now.
+        if (!allEntityLookups)
+        {
+            for (var i = 0; i < requests.Length; i++)
+            {
+                var response = await ExecuteAsync(context, requests[i], cancellationToken)
+                    .ConfigureAwait(false);
+
+                await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken)
+                    .ConfigureAwait(false))
+                {
+                    yield return new BatchStreamResult(i, result);
+                }
+            }
+
+            yield break;
+        }
+
+        // All requests are entity lookups: build one combined aliased query.
+        await foreach (var batchResult in ExecuteBatchedEntityLookupsAsync(
+            requests, rewrittenOps, cancellationToken).ConfigureAwait(false))
+        {
+            yield return batchResult;
+        }
+    }
+
+    private async IAsyncEnumerable<BatchStreamResult> ExecuteBatchedEntityLookupsAsync(
+        ImmutableArray<SourceSchemaClientRequest> requests,
+        RewrittenOperation[] rewrittenOps,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        // 1. Build the combined query AST and variables JSON.
+        var (combinedQueryText, combinedVariablesJson) =
+            BuildCombinedEntityQuery(requests, rewrittenOps);
+
+        // 2. Build the variable segment for the HTTP request.
+        var variablesBytes = Encoding.UTF8.GetBytes(combinedVariablesJson);
+        var buffer = new ChunkedArrayWriter();
+        var span = buffer.GetSpan(variablesBytes.Length);
+        variablesBytes.CopyTo(span);
+        buffer.Advance(variablesBytes.Length);
+        var variableSegment = JsonSegment.Create(buffer, 0, variablesBytes.Length);
+        var variableValues = new VariableValues(CompactPath.Root, variableSegment);
+
+        // 3. Send the combined request.
+        var operationRequest = new OperationRequest(
+            combinedQueryText,
+            id: null,
+            operationName: null,
+            onError: null,
+            variables: variableValues,
+            extensions: JsonSegment.Empty);
+
+        var httpRequest = new GraphQLHttpRequest(operationRequest);
+        var httpResponse = await _httpClient.SendAsync(httpRequest, cancellationToken)
+            .ConfigureAwait(false);
+
+        // 4. Parse the response and yield per-request results.
+        SourceResultDocument? sourceDocument = null;
+
+        try
+        {
+            sourceDocument = await httpResponse.ReadAsResultAsync(cancellationToken)
+                .ConfigureAwait(false);
+
+            if (!sourceDocument.Root.TryGetProperty("data"u8, out var dataElement)
+                || dataElement.ValueKind != JsonValueKind.Object)
+            {
+                // No data in response: yield the raw result for the first request.
+                var path = requests[0].Variables.IsDefaultOrEmpty
+                    ? CompactPath.Root
+                    : requests[0].Variables[0].Path;
+                yield return new BatchStreamResult(0, new SourceSchemaResult(path, sourceDocument));
+                sourceDocument = null; // ownership transferred
+                yield break;
+            }
+
+            for (var i = 0; i < requests.Length; i++)
+            {
+                var aliasName = $"____request{i}";
+                var aliasNameBytes = Encoding.UTF8.GetBytes(aliasName);
+                var lookupFieldName = rewrittenOps[i].LookupFieldName!;
+                var variables = requests[i].Variables;
+
+                if (!dataElement.TryGetProperty(aliasNameBytes, out var aliasElement)
+                    || aliasElement.ValueKind != JsonValueKind.Array)
+                {
+                    // Alias not found or not an array: yield an empty-data result.
+                    var emptyJson = $"{{\"data\":{{\"{lookupFieldName}\":null}}}}";
+                    var emptyBytes = Encoding.UTF8.GetBytes(emptyJson);
+                    var emptyDoc = SourceResultDocument.Parse(emptyBytes, emptyBytes.Length);
+
+                    var path = variables.IsDefaultOrEmpty
+                        ? CompactPath.Root
+                        : variables[0].Path;
+                    yield return new BatchStreamResult(i, new SourceSchemaResult(path, emptyDoc));
+                    continue;
+                }
+
+                var entityCount = aliasElement.GetArrayLength();
+
+                for (var j = 0; j < entityCount; j++)
+                {
+                    var entity = aliasElement[j];
+                    var entityJson = BuildWrappedEntityJson(lookupFieldName, entity);
+                    var entityBytes = Encoding.UTF8.GetBytes(entityJson);
+                    var entityDocument = SourceResultDocument.Parse(entityBytes, entityBytes.Length);
+
+                    CompactPath resultPath;
+                    ImmutableArray<CompactPath> additionalPaths;
+
+                    if (variables.IsDefaultOrEmpty || j >= variables.Length)
+                    {
+                        resultPath = CompactPath.Root;
+                        additionalPaths = [];
+                    }
+                    else
+                    {
+                        resultPath = variables[j].Path;
+                        additionalPaths = variables[j].AdditionalPaths;
+                    }
+
+                    yield return additionalPaths.IsDefaultOrEmpty
+                        ? new BatchStreamResult(i, new SourceSchemaResult(resultPath, entityDocument))
+                        : new BatchStreamResult(i, new SourceSchemaResult(resultPath, entityDocument, additionalPaths: additionalPaths));
+                }
+            }
+        }
+        finally
+        {
+            sourceDocument?.Dispose();
+            httpResponse.Dispose();
+            buffer.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Builds a combined aliased <c>_entities</c> query and variables JSON from
+    /// multiple entity lookup requests. Each request gets a unique alias
+    /// (<c>____request0</c>, <c>____request1</c>, ...) and a unique variable
+    /// name (<c>$r0</c>, <c>$r1</c>, ...).
+    /// </summary>
+    internal static (string QueryText, string VariablesJson) BuildCombinedEntityQuery(
+        ImmutableArray<SourceSchemaClientRequest> requests,
+        RewrittenOperation[] rewrittenOps)
+    {
+        var variableDefinitions = new List<VariableDefinitionNode>(requests.Length);
+        var fieldNodes = new List<ISelectionNode>(requests.Length);
+
+        for (var i = 0; i < requests.Length; i++)
+        {
+            var rewritten = rewrittenOps[i];
+            var varName = $"r{i}";
+            var aliasName = $"____request{i}";
+
+            // Variable definition: $r{i}: [_Any!]!
+            variableDefinitions.Add(new VariableDefinitionNode(
+                location: null,
+                new VariableNode(varName),
+                description: null,
+                type: new NonNullTypeNode(
+                    new ListTypeNode(
+                        new NonNullTypeNode(
+                            new NamedTypeNode("_Any")))),
+                defaultValue: null,
+                directives: []));
+
+            // Field: ____request{i}: _entities(representations: $r{i}) { ... on EntityType { ... } }
+            var inlineFragment = rewritten.InlineFragment
+                ?? new InlineFragmentNode(
+                    location: null,
+                    typeCondition: new NamedTypeNode(rewritten.EntityTypeName!),
+                    directives: [],
+                    selectionSet: new SelectionSetNode(Array.Empty<ISelectionNode>()));
+
+            fieldNodes.Add(new FieldNode(
+                location: null,
+                new NameNode("_entities"),
+                alias: new NameNode(aliasName),
+                directives: [],
+                arguments: [new ArgumentNode("representations", new VariableNode(varName))],
+                selectionSet: new SelectionSetNode([inlineFragment])));
+        }
+
+        var operation = new OperationDefinitionNode(
+            location: null,
+            name: null,
+            description: null,
+            operation: OperationType.Query,
+            variableDefinitions: variableDefinitions,
+            directives: [],
+            selectionSet: new SelectionSetNode(fieldNodes));
+
+        var document = new DocumentNode([operation]);
+        var queryText = document.ToString(indented: true);
+
+        // Build the combined variables JSON.
+        var variablesJson = BuildCombinedVariablesJson(requests, rewrittenOps);
+
+        return (queryText, variablesJson);
+    }
+
+    /// <summary>
+    /// Builds the combined variables JSON object for a batched entity query.
+    /// Each request's representations are written under a <c>r{i}</c> key.
+    /// </summary>
+    private static string BuildCombinedVariablesJson(
+        ImmutableArray<SourceSchemaClientRequest> requests,
+        RewrittenOperation[] rewrittenOps)
+    {
+        using var stream = new MemoryStream();
+        using var writer = new Utf8JsonWriter(stream);
+
+        writer.WriteStartObject();
+
+        for (var i = 0; i < requests.Length; i++)
+        {
+            var varName = $"r{i}";
+            var rewritten = rewrittenOps[i];
+
+            writer.WritePropertyName(varName);
+
+            // Write the representations array for this request.
+            WriteRepresentationsArray(
+                writer,
+                requests[i].Variables,
+                rewritten.EntityTypeName!,
+                rewritten.VariableToKeyFieldMap);
+        }
+
+        writer.WriteEndObject();
+        writer.Flush();
+
+        return Encoding.UTF8.GetString(stream.ToArray());
+    }
+
+    /// <summary>
+    /// Writes a JSON array of entity representations for the given variable sets.
+    /// Extracted from <see cref="BuildRepresentationsJson"/> to allow reuse
+    /// in the combined variables builder.
+    /// </summary>
+    private static void WriteRepresentationsArray(
+        Utf8JsonWriter writer,
+        ImmutableArray<VariableValues> variableSets,
+        string entityTypeName,
+        IReadOnlyDictionary<string, string> variableToKeyFieldMap)
+    {
+        writer.WriteStartArray();
+
+        if (variableSets.IsDefaultOrEmpty)
+        {
+            writer.WriteStartObject();
+            writer.WriteString("__typename", entityTypeName);
+            writer.WriteEndObject();
+        }
+        else
+        {
+            for (var i = 0; i < variableSets.Length; i++)
+            {
+                writer.WriteStartObject();
+                writer.WriteString("__typename", entityTypeName);
+
+                var values = variableSets[i].Values;
+
+                if (!values.IsEmpty)
+                {
+                    var sequence = values.AsSequence();
+                    var reader = new Utf8JsonReader(sequence);
+
+                    if (reader.Read() && reader.TokenType == JsonTokenType.StartObject)
+                    {
+                        while (reader.Read() && reader.TokenType == JsonTokenType.PropertyName)
+                        {
+                            var propertyName = reader.GetString()!;
+                            reader.Read();
+
+                            if (variableToKeyFieldMap.TryGetValue(propertyName, out var keyFieldName))
+                            {
+                                writer.WritePropertyName(keyFieldName);
+                                WriteCurrentValue(writer, ref reader);
+                            }
+                            else
+                            {
+                                reader.Skip();
+                            }
+                        }
+                    }
+                }
+
+                writer.WriteEndObject();
+            }
+        }
+
+        writer.WriteEndArray();
+    }
+
+    /// <summary>
+    /// Builds a JSON wrapper for a single entity result:
+    /// <c>{"data": {"&lt;fieldName&gt;": &lt;entity&gt;}}</c>.
+    /// </summary>
+    private static string BuildWrappedEntityJson(string fieldName, SourceResultElement entity)
+    {
+        using var stream = new MemoryStream();
+        using var writer = new Utf8JsonWriter(stream);
+
+        writer.WriteStartObject();
+        writer.WritePropertyName("data");
+        writer.WriteStartObject();
+        writer.WritePropertyName(fieldName);
+        WriteSourceResultElement(writer, entity);
+        writer.WriteEndObject();
+        writer.WriteEndObject();
+
+        writer.Flush();
+        return Encoding.UTF8.GetString(stream.ToArray());
+    }
+
+    private static void WriteSourceResultElement(Utf8JsonWriter writer, SourceResultElement element)
+    {
+        switch (element.ValueKind)
+        {
+            case JsonValueKind.Object:
+                writer.WriteStartObject();
+                foreach (var property in element.EnumerateObject())
+                {
+                    writer.WritePropertyName(property.Name);
+                    WriteSourceResultElement(writer, property.Value);
+                }
+                writer.WriteEndObject();
+                break;
+
+            case JsonValueKind.Array:
+                writer.WriteStartArray();
+                foreach (var item in element.EnumerateArray())
+                {
+                    WriteSourceResultElement(writer, item);
+                }
+                writer.WriteEndArray();
+                break;
+
+            case JsonValueKind.String:
+                writer.WriteStringValue(element.GetString());
+                break;
+
+            case JsonValueKind.Number:
+                writer.WriteRawValue(element.GetRawText());
+                break;
+
+            case JsonValueKind.True:
+                writer.WriteBooleanValue(true);
+                break;
+
+            case JsonValueKind.False:
+                writer.WriteBooleanValue(false);
+                break;
+
+            case JsonValueKind.Null:
+            case JsonValueKind.Undefined:
+            default:
+                writer.WriteNullValue();
+                break;
         }
     }
 
@@ -168,57 +553,9 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
         using var stream = new MemoryStream();
         using var writer = new Utf8JsonWriter(stream);
 
-        writer.WriteStartArray();
+        WriteRepresentationsArray(writer, variableSets, entityTypeName, variableToKeyFieldMap);
 
-        if (variableSets.IsDefaultOrEmpty)
-        {
-            // Single empty representation with just __typename.
-            writer.WriteStartObject();
-            writer.WriteString("__typename", entityTypeName);
-            writer.WriteEndObject();
-        }
-        else
-        {
-            for (var i = 0; i < variableSets.Length; i++)
-            {
-                writer.WriteStartObject();
-                writer.WriteString("__typename", entityTypeName);
-
-                var values = variableSets[i].Values;
-
-                if (!values.IsEmpty)
-                {
-                    // Parse the variable values JSON to extract key fields.
-                    var sequence = values.AsSequence();
-                    var reader = new Utf8JsonReader(sequence);
-
-                    if (reader.Read() && reader.TokenType == JsonTokenType.StartObject)
-                    {
-                        while (reader.Read() && reader.TokenType == JsonTokenType.PropertyName)
-                        {
-                            var propertyName = reader.GetString()!;
-                            reader.Read(); // advance to value
-
-                            if (variableToKeyFieldMap.TryGetValue(propertyName, out var keyFieldName))
-                            {
-                                writer.WritePropertyName(keyFieldName);
-                                WriteCurrentValue(writer, ref reader);
-                            }
-                            else
-                            {
-                                reader.Skip();
-                            }
-                        }
-                    }
-                }
-
-                writer.WriteEndObject();
-            }
-        }
-
-        writer.WriteEndArray();
         writer.Flush();
-
         return Encoding.UTF8.GetString(stream.ToArray());
     }
 
@@ -463,7 +800,8 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
                 var entity = entitiesElement[i];
 
                 // Build a wrapper: {"data": {"<lookupFieldName>": <entity>}}
-                var entityJson = BuildWrappedEntityJson(lookupFieldName, entity);
+                var entityJson = ApolloFederationSourceSchemaClient.BuildWrappedEntityJson(
+                    lookupFieldName, entity);
                 var entityBytes = Encoding.UTF8.GetBytes(entityJson);
                 var entityDocument = SourceResultDocument.Parse(entityBytes, entityBytes.Length);
 
@@ -487,70 +825,6 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
             }
 
             sourceDocument.Dispose();
-        }
-
-        private static string BuildWrappedEntityJson(string fieldName, SourceResultElement entity)
-        {
-            using var stream = new MemoryStream();
-            using var writer = new Utf8JsonWriter(stream);
-
-            writer.WriteStartObject();
-            writer.WritePropertyName("data");
-            writer.WriteStartObject();
-            writer.WritePropertyName(fieldName);
-            WriteSourceResultElement(writer, entity);
-            writer.WriteEndObject();
-            writer.WriteEndObject();
-
-            writer.Flush();
-            return Encoding.UTF8.GetString(stream.ToArray());
-        }
-
-        private static void WriteSourceResultElement(Utf8JsonWriter writer, SourceResultElement element)
-        {
-            switch (element.ValueKind)
-            {
-                case JsonValueKind.Object:
-                    writer.WriteStartObject();
-                    foreach (var property in element.EnumerateObject())
-                    {
-                        writer.WritePropertyName(property.Name);
-                        WriteSourceResultElement(writer, property.Value);
-                    }
-                    writer.WriteEndObject();
-                    break;
-
-                case JsonValueKind.Array:
-                    writer.WriteStartArray();
-                    foreach (var item in element.EnumerateArray())
-                    {
-                        WriteSourceResultElement(writer, item);
-                    }
-                    writer.WriteEndArray();
-                    break;
-
-                case JsonValueKind.String:
-                    writer.WriteStringValue(element.GetString());
-                    break;
-
-                case JsonValueKind.Number:
-                    writer.WriteRawValue(element.GetRawText());
-                    break;
-
-                case JsonValueKind.True:
-                    writer.WriteBooleanValue(true);
-                    break;
-
-                case JsonValueKind.False:
-                    writer.WriteBooleanValue(false);
-                    break;
-
-                case JsonValueKind.Null:
-                case JsonValueKind.Undefined:
-                default:
-                    writer.WriteNullValue();
-                    break;
-            }
         }
 
         public override void Dispose()

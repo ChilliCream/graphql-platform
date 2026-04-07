@@ -144,7 +144,8 @@ internal sealed class FederationQueryRewriter
             IsEntityLookup = true,
             EntityTypeName = lookupInfo.EntityTypeName,
             VariableToKeyFieldMap = variableToKeyFieldMap,
-            LookupFieldName = lookupField.Name.Value
+            LookupFieldName = lookupField.Name.Value,
+            InlineFragment = inlineFragment
         };
     }
 

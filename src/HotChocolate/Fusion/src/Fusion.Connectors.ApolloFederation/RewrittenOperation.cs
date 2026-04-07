@@ -1,3 +1,5 @@
+using HotChocolate.Language;
+
 namespace HotChocolate.Fusion.Execution.Clients;
 
 /// <summary>
@@ -40,4 +42,11 @@ internal sealed class RewrittenOperation
     /// <c>null</c> for passthrough queries.
     /// </summary>
     public required string? LookupFieldName { get; init; }
+
+    /// <summary>
+    /// Gets the inline fragment for this entity type
+    /// (e.g. <c>... on Product { id name }</c>). Used when building batched
+    /// aliased queries. <c>null</c> for passthrough queries.
+    /// </summary>
+    public InlineFragmentNode? InlineFragment { get; init; }
 }

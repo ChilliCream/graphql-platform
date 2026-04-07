@@ -220,6 +220,61 @@ public class SchemaTransformationIntegrationTests
         json.MatchSnapshot(extension: ".json");
     }
 
+    [Fact]
+    public async Task BatchedEntitiesQuery_Should_ResolveMultipleEntityTypes()
+    {
+        // arrange: build Federation subgraph with Product and User entities
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddApolloFederation()
+            .AddQueryType<Query>()
+            .AddType<Product>()
+            .AddType<User>()
+            .BuildRequestExecutorAsync();
+
+        // Build a combined aliased query like the connector would
+        const string batchedQuery = """
+            query($r0: [_Any!]!, $r1: [_Any!]!) {
+              ____request0: _entities(representations: $r0) {
+                ... on Product { id name price }
+              }
+              ____request1: _entities(representations: $r1) {
+                ... on User { email name }
+              }
+            }
+            """;
+
+        var request = OperationRequestBuilder
+            .New()
+            .SetDocument(batchedQuery)
+            .SetVariableValues(new Dictionary<string, object?>
+            {
+                ["r0"] = new List<object?>
+                {
+                    new Dictionary<string, object?> { ["__typename"] = "Product", ["id"] = 1 },
+                    new Dictionary<string, object?> { ["__typename"] = "Product", ["id"] = 2 }
+                },
+                ["r1"] = new List<object?>
+                {
+                    new Dictionary<string, object?> { ["__typename"] = "User", ["email"] = "test@example.com" }
+                }
+            })
+            .Build();
+
+        // act
+        var result = await executor.ExecuteAsync(request);
+
+        // assert
+        var json = result.ToJson();
+        Assert.Contains("____request0", json);
+        Assert.Contains("____request1", json);
+        Assert.Contains("Product 1", json);
+        Assert.Contains("Product 2", json);
+        Assert.Contains("User test@example.com", json);
+
+        json.MatchSnapshot(extension: ".json");
+    }
+
     [Key("id")]
     [ReferenceResolver(EntityResolver = nameof(ResolveById))]
     public sealed class Product
