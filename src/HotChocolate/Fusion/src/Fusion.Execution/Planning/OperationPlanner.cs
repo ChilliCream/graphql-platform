@@ -159,7 +159,8 @@ public sealed partial class OperationPlanner
                 operationDefinition,
                 planSteps,
                 searchSpace,
-                expandedNodes);
+                expandedNodes,
+                cancellationToken);
 
             if (eventSourceEnabled)
             {
@@ -212,7 +213,7 @@ public sealed partial class OperationPlanner
         // that are already worse. If it cannot finish a full plan, it returns null and the planner
         // continues without that early shortcut.
         var bestCompletePlan = TryBuildGreedyCompletePlan(possiblePlans, cancellationToken);
-        var bestCompletePlanCost = bestCompletePlan is null ? double.PositiveInfinity : bestCompletePlan.PathCost;
+        var bestCompletePlanCost = bestCompletePlan?.PathCost ?? double.PositiveInfinity;
 
         while (possiblePlans.TryDequeue(out var current, out _))
         {
