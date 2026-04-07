@@ -225,13 +225,6 @@ public abstract class CommandTestBase
         return stream;
     }
 
-    protected void SetupOpenReadStreamByPath(string path, byte[] content)
-    {
-        var stream = new MemoryStream(content);
-        _files.Add(stream);
-        _fileSystemMock.Setup(x => x.OpenReadStream(path)).Returns(stream);
-    }
-
     protected void SetupGlobMatch(string[] results)
     {
         var absoluteResults = results
@@ -239,7 +232,7 @@ public abstract class CommandTestBase
             .ToArray();
 
         _fileSystemMock
-            .Setup(x => x.GlobMatch(It.IsAny<IEnumerable<string>>(), It.IsAny<IEnumerable<string>?>()))
+            .Setup(x => x.GlobMatch(It.IsAny<IEnumerable<string>>(), It.IsAny<IEnumerable<string>?>(), It.IsAny<string?>()))
             .Returns(absoluteResults);
     }
 

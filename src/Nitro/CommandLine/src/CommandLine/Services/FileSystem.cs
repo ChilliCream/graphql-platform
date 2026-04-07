@@ -1,4 +1,3 @@
-using ChilliCream.Nitro.CommandLine.Helpers;
 using Microsoft.Extensions.FileSystemGlobbing;
 using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 
@@ -47,11 +46,13 @@ internal sealed class FileSystem : IFileSystem
 
     public IEnumerable<string> GlobMatch(
         IEnumerable<string> patterns,
-        IEnumerable<string>? excludes = null)
+        IEnumerable<string>? excludes = null,
+        string? workingDirectory = null)
     {
         var results = new List<string>();
         var relativePatterns = new List<string>();
         var excludeList = excludes?.ToList();
+        workingDirectory ??= GetCurrentDirectory();
 
         foreach (var pattern in patterns)
         {
@@ -84,7 +85,6 @@ internal sealed class FileSystem : IFileSystem
 
         if (relativePatterns.Count > 0)
         {
-            var cwd = GetCurrentDirectory();
             var matcher = new Matcher();
             matcher.AddIncludePatterns(relativePatterns);
 
@@ -95,9 +95,20 @@ internal sealed class FileSystem : IFileSystem
 
             var result = matcher.Execute(
                 new DirectoryInfoWrapper(
-                    new DirectoryInfo(cwd)));
+                    new DirectoryInfo(workingDirectory)));
 
-            results.AddRange(result.Files.Select(f => Path.Combine(cwd, f.Path)));
+            results.AddRange(result.Files.Select(f =>
+            {
+                var path = f.Path;
+                if (!Path.IsPathRooted(path))
+                {
+                    return Path.Combine(workingDirectory, path);
+                }
+                else
+                {
+                    return path;
+                }
+            }));
         }
 
         return results.Distinct().OrderBy(f => f, StringComparer.Ordinal);

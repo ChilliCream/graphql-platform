@@ -38,6 +38,18 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
         }
         """;
 
+    protected async Task<string> GetFusionSchemaAsync(MemoryStream stream)
+    {
+        using var archive = FusionArchive.Open(stream);
+
+        var config = await archive.TryGetGatewayConfigurationAsync(
+            WellKnownVersions.LatestGatewayFormatVersion);
+        Assert.NotNull(config);
+        await using var schemaStream = await config.OpenReadSchemaAsync();
+        using var reader = new StreamReader(schemaStream);
+        return await reader.ReadToEndAsync();
+    }
+
     protected void SetupSourceSchemaDownload(string version = Tag)
     {
         FusionConfigurationClientMock
@@ -224,7 +236,7 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
         SetupPublishingTaskSubscription(events);
     }
 
-    protected CapturedUpload SetupFusionConfigurationUploadMutation(
+    protected MemoryStream SetupFusionConfigurationUploadMutation(
         params ICommitFusionConfigurationPublish_CommitFusionConfigurationPublish_Errors[] errors)
     {
         var archiveStream = new MemoryStream();
@@ -241,7 +253,7 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
             })
             .ReturnsAsync(() => CreateCommitFusionArchivePayload(errors));
 
-        return new CapturedUpload(archiveStream);
+        return archiveStream;
     }
 
     protected void SetupSourceSchemaDownloadException()

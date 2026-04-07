@@ -54,8 +54,9 @@ internal sealed class FusionMigrateCommand : Command
         console.WriteLine($"Searching for '{sourceFileName}' files in '{workingDirectory}'...");
 
         var sourceFiles = fileSystem.GlobMatch(
-            [$"{workingDirectory}/**/{sourceFileName}"],
-            ["**/bin/**", "**/obj/**"])
+            [$"**/{sourceFileName}"],
+            ["**/bin/**", "**/obj/**"],
+                workingDirectory)
             .ToArray();
 
         if (sourceFiles.Length == 0)
@@ -75,9 +76,8 @@ internal sealed class FusionMigrateCommand : Command
 
             if (fileSystem.FileExists(targetFile))
             {
-                var relativePath = Path.GetRelativePath(workingDirectory, targetFile);
                 console.MarkupLineInterpolated(
-                    $"[yellow]Skipping[/] [grey]{relativePath}[/] (already exists)");
+                    $"[yellow]Skipping[/] [grey]{targetFile.EscapeMarkup()}[/] (already exists)");
                 continue;
             }
 
@@ -85,14 +85,6 @@ internal sealed class FusionMigrateCommand : Command
 
             using var document = FusionMigrationHelpers.MigrateSubgraphConfig(sourceJson);
             var root = document.RootElement;
-
-            if (root.TryGetProperty("name", out var nameElement)
-                && nameElement.GetString() is "")
-            {
-                var relativePath = Path.GetRelativePath(workingDirectory, targetFile);
-                console.MarkupLineInterpolated(
-                    $"[grey]{relativePath}[/] [yellow]needs to define a 'name'.[/]");
-            }
 
             await using var stream = fileSystem.CreateFile(targetFile);
             await using var writer = new Utf8JsonWriter(stream, new JsonWriterOptions
@@ -117,9 +109,8 @@ internal sealed class FusionMigrateCommand : Command
 
         foreach (var sourceFile in migratedFiles)
         {
-            var relativePath = Path.GetRelativePath(workingDirectory, sourceFile);
             console.MarkupLineInterpolated(
-                $"[grey]{relativePath}[/] -> [green]{targetFileName}[/]");
+                $"[grey]{sourceFile.EscapeMarkup()}[/] -> [green]{targetFileName}[/]");
         }
 
         return ExitCodes.Success;

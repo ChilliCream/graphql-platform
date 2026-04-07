@@ -24,5 +24,6 @@ internal interface IFileSystem
     // Glob
     IEnumerable<string> GlobMatch(
         IEnumerable<string> patterns,
-        IEnumerable<string>? excludes = null);
+        IEnumerable<string>? excludes = null,
+        string? workingDirectory = null);
 }

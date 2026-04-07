@@ -1,6 +1,7 @@
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
 // TODO: The success cases need to be tested and asserted
+// TODO: Test composition failing
 public sealed class FusionSettingsSetCommandTests(NitroCommandFixture fixture) : FusionCommandTestBase(fixture)
 {
     [Fact]
