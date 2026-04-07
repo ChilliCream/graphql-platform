@@ -89,22 +89,30 @@ internal sealed class NitroConsoleChildActivity(
 
     private void WriteIndented(IRenderable renderable, string linePrefix)
     {
-        var writer = new StringWriter();
-        var tempConsole = AnsiConsole.Create(new AnsiConsoleSettings
-        {
-            Ansi = AnsiSupport.No,
-            Out = new AnsiConsoleOutput(writer)
-        });
-        tempConsole.Write(renderable);
+        var options = RenderOptions.Create(console, console.Profile.Capabilities);
+        var segments = renderable.Render(options, console.Profile.Width);
 
-        var output = writer.ToString();
-        foreach (var line in output.TrimEnd().Split('\n'))
+        var lineBuffer = new System.Text.StringBuilder();
+
+        foreach (var segment in segments)
         {
-            var trimmed = line.TrimEnd('\r');
-            if (trimmed.Length > 0)
+            if (segment.IsLineBreak)
             {
-                console.MarkupLine(linePrefix + trimmed.EscapeMarkup());
+                if (lineBuffer.Length > 0)
+                {
+                    console.MarkupLine(linePrefix + lineBuffer.ToString().EscapeMarkup());
+                    lineBuffer.Clear();
+                }
             }
+            else
+            {
+                lineBuffer.Append(segment.Text);
+            }
+        }
+
+        if (lineBuffer.Length > 0)
+        {
+            console.MarkupLine(linePrefix + lineBuffer.ToString().EscapeMarkup());
         }
     }
 }
