@@ -29,9 +29,8 @@ public abstract partial class Saga<TState> where TState : SagaStateBase
 
         _logger = context.Services.GetRequiredService<ILogger<Saga<TState>>>();
         Name = definition.Name ?? throw new SagaInitializationException(this, "Saga name is not defined.");
-        StateSerializer =
-            PreBuiltStateSerializer
-            ?? definition.StateSerializer?.Invoke(context.Services)
+        StateSerializer ??=
+            definition.StateSerializer?.Invoke(context.Services)
             ?? context.Services.GetRequiredService<ISagaStateSerializerFactory>().GetSerializer(typeof(TState));
 
         var duringAnyTransitions = InitializeTransitions(definition.DuringAny!);

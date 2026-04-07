@@ -37,13 +37,7 @@ public abstract partial class Saga : IFeatureProvider
     /// <summary>
     /// Gets the serializer used to persist and restore saga state.
     /// </summary>
-    public ISagaStateSerializer StateSerializer { get; protected set; } = null!;
-
-    /// <summary>
-    /// Gets or sets a pre-built state serializer provided by the source generator.
-    /// When set, the saga uses this serializer instead of resolving one from the factory.
-    /// </summary>
-    internal ISagaStateSerializer? PreBuiltStateSerializer { get; set; }
+    public ISagaStateSerializer StateSerializer { get; protected internal set; } = null!;
 
     /// <summary>
     /// Gets the logical name of this saga, used for logging, diagnostics, and state store identification.

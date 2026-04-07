@@ -86,7 +86,7 @@ public partial class MessageBusBuilder : IMessageBusBuilder
                         inner(d);
                         configure(d);
                     }
-                    : configure;
+                : configure;
             }
 
             return this;
@@ -221,7 +221,7 @@ public partial class MessageBusBuilder : IMessageBusBuilder
         var serializer = configuration.Serializer;
         var enclosedTypes = configuration.EnclosedTypes;
 
-        Action<IMessageTypeDescriptor> configure = descriptor =>
+        var configure = (IMessageTypeDescriptor descriptor) =>
         {
             descriptor.AddSerializer(serializer);
 
@@ -460,7 +460,7 @@ public partial class MessageBusBuilder : IMessageBusBuilder
 
             if (reg.StateSerializer is not null)
             {
-                saga.PreBuiltStateSerializer = reg.StateSerializer;
+                saga.StateSerializer = reg.StateSerializer;
             }
 
             sagas.Add(saga);
