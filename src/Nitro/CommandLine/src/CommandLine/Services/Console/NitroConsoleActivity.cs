@@ -3,7 +3,11 @@ using Spectre.Console.Rendering;
 
 namespace ChilliCream.Nitro.CommandLine;
 
-internal sealed class NitroConsoleActivity(INitroConsole console, string failureMessage)
+internal sealed class NitroConsoleActivity(
+    INitroConsole console,
+    string failureMessage,
+    string prefix,
+    INitroConsoleActivity? parent)
     : INitroConsoleActivity
 {
     private bool _completed;
@@ -17,7 +21,7 @@ internal sealed class NitroConsoleActivity(INitroConsole console, string failure
             ActivityUpdateKind.Success => Glyphs.Check.Space(),
             _ => ""
         };
-        console.MarkupLine("├── " + glyph + message);
+        console.MarkupLine(prefix + "├── " + glyph + message);
     }
 
     public void Warning(string message)
@@ -42,8 +46,8 @@ internal sealed class NitroConsoleActivity(INitroConsole console, string failure
             return;
         }
 
-        console.MarkupLine("└── " + Glyphs.Cross.Space() + failureMessage);
-        WriteIndented(details, "    ");
+        console.MarkupLine(prefix + "└── " + Glyphs.Cross.Space() + failureMessage);
+        WriteIndented(details, prefix + "    ");
         _completed = true;
     }
 
@@ -52,23 +56,28 @@ internal sealed class NitroConsoleActivity(INitroConsole console, string failure
         Fail(failureMessage);
     }
 
-    public ValueTask FailAllAsync()
+    public async ValueTask FailAllAsync()
     {
         Fail();
-        return default;
+
+        if (parent is not null)
+        {
+            await parent.FailAllAsync();
+        }
     }
 
     public INitroConsoleActivity StartChildActivity(string title, string failureMessage)
     {
-        console.MarkupLine("├── " + title);
-        return new NitroConsoleChildActivity(console, failureMessage, "│   ", this);
+        console.MarkupLine(prefix + "├── " + title);
+        return new NitroConsoleActivity(console, failureMessage, prefix + "│   ", this);
     }
 
-    public ValueTask DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
-        Fail();
-
-        return default;
+        if (!_completed)
+        {
+            await FailAllAsync();
+        }
     }
 
     private void Complete(string message)
@@ -78,8 +87,7 @@ internal sealed class NitroConsoleActivity(INitroConsole console, string failure
             return;
         }
 
-        console.MarkupLine("└── " + message);
-
+        console.MarkupLine(prefix + "└── " + message);
         _completed = true;
     }
 
@@ -89,8 +97,7 @@ internal sealed class NitroConsoleActivity(INitroConsole console, string failure
         string failureMessage)
     {
         console.MarkupLine(title);
-
-        return new NitroConsoleActivity(console, failureMessage);
+        return new NitroConsoleActivity(console, failureMessage, "", null);
     }
 
     private void WriteIndented(IRenderable renderable, string linePrefix)
