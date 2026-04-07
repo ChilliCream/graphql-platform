@@ -887,63 +887,37 @@ public sealed partial class OperationPlanner
         // correct wrapping structure (preserving inline fragments with directives).
         if (selectionSet is not null
             && TryFindAncestorStepForRequirement(
-                internalOperation, steps, index, workItemSelectionSet.Id,
-                out var ancestorStep, out var ancestorStepIndex,
-                out var ancestorSSId, out var ancestorType, out var wrappingNodes))
+                internalOperation,
+                steps,
+                index,
+                workItemSelectionSet.Id) is { } ancestorMatch
+            && processed.Add(ancestorMatch.Step.SchemaName!)
+            && !lookup.SchemaName.Equals(ancestorMatch.Step.SchemaName))
         {
-            var schemaName = ancestorStep.SchemaName!;
-            if (processed.Add(schemaName) && !lookup.SchemaName.Equals(schemaName))
+            if (TryInlineIntoAncestorStep(
+                ancestorMatch,
+                selectionSet,
+                workItemSelectionSet.Path,
+                lookupStepId,
+                index,
+                ref steps,
+                out var unresolvable))
             {
-                var wrappedSelections = BuildWrappedSelections(wrappingNodes, selectionSet);
+                selectionSet = null;
 
-                var input = new SelectionSetPartitionerInput
+                if (!unresolvable.IsEmpty)
                 {
-                    SchemaName = schemaName,
-                    SelectionSet = new SelectionSet(
-                        ancestorSSId,
-                        wrappedSelections,
-                        ancestorType,
-                        workItemSelectionSet.Path),
-                    SelectionSetIndex = index
-                };
-
-                var (resolvable, unresolvable, _, _) = _partitioner.Partition(input);
-
-                if (resolvable is { Selections.Count: > 0 })
-                {
-                    var operation = InlineSelections(
-                        ancestorStep.Definition,
-                        index,
-                        ancestorType,
-                        ancestorSSId,
-                        resolvable);
-
-                    EnsureAllSelectionSetsRegistered(operation.SelectionSet, index);
-
-                    var updatedStep = ancestorStep with
+                    var top = unresolvable.Peek();
+                    if (top.SelectionSet.Id == ancestorMatch.SelectionSetId)
                     {
-                        Definition = operation,
-                        SelectionSets = SelectionSetIndexer.CreateIdSet(operation.SelectionSet, index),
-                        Dependents = ancestorStep.Dependents.Add(lookupStepId)
-                    };
-
-                    steps = steps.SetItem(ancestorStepIndex, updatedStep);
-                    selectionSet = null;
-
-                    if (!unresolvable.IsEmpty)
-                    {
-                        var top = unresolvable.Peek();
-                        if (top.SelectionSet.Id == ancestorSSId)
-                        {
-                            unresolvable = unresolvable.Pop(out top);
-                            selectionSet = top.SelectionSet.Node;
-                        }
-
-                        backlog = backlog.PushUnresolvable(
-                            unresolvable,
-                            current.SchemaName,
-                            GetOperationStepDepth(current, ancestorStep.Id));
+                        unresolvable = unresolvable.Pop(out top);
+                        selectionSet = top.SelectionSet.Node;
                     }
+
+                    backlog = backlog.PushUnresolvable(
+                        unresolvable,
+                        current.SchemaName,
+                        GetOperationStepDepth(current, ancestorMatch.Step.Id));
                 }
             }
         }
@@ -1810,75 +1784,40 @@ public sealed partial class OperationPlanner
         // correct wrapping structure (preserving inline fragments with directives).
         if (requirements is not null
             && TryFindAncestorStepForRequirement(
-                current.InternalOperationDefinition, steps, index, workItem.Selection.SelectionSetId,
-                out var ancestorStep, out var ancestorStepIndex,
-                out var ancestorSSId, out var ancestorType, out var wrappingNodes))
+                current.InternalOperationDefinition,
+                steps,
+                index,
+                workItem.Selection.SelectionSetId) is { } ancestorMatch
+            && currentStep.Id != ancestorMatch.Step.Id
+            && !ancestorMatch.Step.DependsOn(currentStep, steps))
         {
-            if (currentStep.Id != ancestorStep.Id
-                && !ancestorStep.DependsOn(currentStep, steps))
+            if (TryInlineIntoAncestorStep(
+                ancestorMatch, requirements, workItem.Selection.Path,
+                workItem.StepId, index, ref steps, out var unresolvable,
+                resolvableRegistrationId: workItem.Selection.SelectionSetId))
             {
-                var wrappedSelections = BuildWrappedSelections(wrappingNodes, requirements);
+                requirements = null;
 
-                var input = new SelectionSetPartitionerInput
+                if (!unresolvable.IsEmpty)
                 {
-                    SchemaName = ancestorStep.SchemaName!,
-                    SelectionSet = new SelectionSet(
-                        ancestorSSId,
-                        wrappedSelections,
-                        ancestorType,
-                        workItem.Selection.Path),
-                    SelectionSetIndex = index
-                };
-
-                var (resolvable, unresolvable, _, _) = _partitioner.Partition(input);
-
-                if (resolvable is { Selections.Count: > 0 })
-                {
-                    if (resolvable != requirements)
+                    var top = unresolvable.Peek();
+                    if (top.SelectionSet.Id == workItem.Selection.SelectionSetId)
                     {
-                        index.Register(workItem.Selection.SelectionSetId, resolvable);
+                        unresolvable = unresolvable.Pop(out top);
+                        requirements = top.SelectionSet.Node;
                     }
 
-                    var operation = InlineSelections(
-                        ancestorStep.Definition,
-                        index,
-                        ancestorType,
-                        ancestorSSId,
-                        resolvable);
-
-                    EnsureAllSelectionSetsRegistered(operation.SelectionSet, index);
-
-                    var updatedStep = ancestorStep with
+                    foreach (var entry in unresolvable.Reverse())
                     {
-                        Definition = operation,
-                        SelectionSets = SelectionSetIndexer.CreateIdSet(operation.SelectionSet, index),
-                        Dependents = ancestorStep.Dependents.Add(workItem.StepId)
-                    };
-
-                    steps = steps.SetItem(ancestorStepIndex, updatedStep);
-                    requirements = null;
-
-                    if (!unresolvable.IsEmpty)
-                    {
-                        var top = unresolvable.Peek();
-                        if (top.SelectionSet.Id == workItem.Selection.SelectionSetId)
-                        {
-                            unresolvable = unresolvable.Pop(out top);
-                            requirements = top.SelectionSet.Node;
-                        }
-
-                        foreach (var entry in unresolvable.Reverse())
-                        {
-                            backlog = backlog.Push(
-                                new OperationWorkItem(
-                                    OperationWorkItemKind.Lookup,
-                                    entry.SelectionSet,
-                                    FromSchema: current.SchemaName)
-                                {
-                                    ParentDepth = GetOperationStepDepth(current, ancestorStep.Id),
-                                    Conditions = entry.Conditions
-                                });
-                        }
+                        backlog = backlog.Push(
+                            new OperationWorkItem(
+                                OperationWorkItemKind.Lookup,
+                                entry.SelectionSet,
+                                FromSchema: current.SchemaName)
+                            {
+                                ParentDepth = GetOperationStepDepth(current, ancestorMatch.Step.Id),
+                                Conditions = entry.Conditions
+                            });
                     }
                 }
             }
@@ -2136,68 +2075,34 @@ public sealed partial class OperationPlanner
         return false;
     }
 
-    private bool TryFindAncestorStepForRequirement(
+    private AncestorStepMatch? TryFindAncestorStepForRequirement(
         OperationDefinitionNode internalOperation,
         ImmutableList<PlanStep> steps,
         SelectionSetIndexBuilder index,
-        uint targetSSId,
-        out OperationPlanStep ancestorStep,
-        out int ancestorStepIndex,
-        out uint ancestorSSId,
-        out ITypeDefinition ancestorType,
-        out List<InlineFragmentNode> wrappingNodes)
+        uint targetSelectionSetId)
     {
-        ancestorStep = default!;
-        ancestorStepIndex = -1;
-        ancestorSSId = 0;
-        ancestorType = default!;
-        wrappingNodes = default!;
-
         // Walk the internal operation AST depth-first, tracking:
         // - A stack of (SelectionSetNode, ISelectionNode?, ITypeDefinition) from root to current
         // - The current type at each level
         var path = new List<(SelectionSetNode SelectionSet, ISelectionNode? ConnectingNode, ITypeDefinition Type)>();
         var rootType = _schema.GetOperationType(internalOperation.Operation);
 
-        if (!WalkSelectionSet(
+        return WalkSelectionSet(
             internalOperation.SelectionSet, rootType, path,
-            _schema, steps, index, targetSSId,
-            out var foundStep, out var foundStepIndex,
-            out var foundSSId, out var foundType, out var foundWrapping))
-        {
-            return false;
-        }
+            _schema, steps, index, targetSelectionSetId);
 
-        ancestorStep = foundStep;
-        ancestorStepIndex = foundStepIndex;
-        ancestorSSId = foundSSId;
-        ancestorType = foundType;
-        wrappingNodes = foundWrapping;
-        return true;
-
-        static bool WalkSelectionSet(
+        static AncestorStepMatch? WalkSelectionSet(
             SelectionSetNode selectionSet,
             ITypeDefinition currentType,
             List<(SelectionSetNode SelectionSet, ISelectionNode? ConnectingNode, ITypeDefinition Type)> path,
             FusionSchemaDefinition schema,
             ImmutableList<PlanStep> steps,
             SelectionSetIndexBuilder index,
-            uint targetSSId,
-            out OperationPlanStep foundStep,
-            out int foundStepIndex,
-            out uint foundSSId,
-            out ITypeDefinition foundType,
-            out List<InlineFragmentNode> foundWrapping)
+            uint targetSelectionSetId)
         {
-            foundStep = default!;
-            foundStepIndex = -1;
-            foundSSId = 0;
-            foundType = default!;
-            foundWrapping = default!;
+            var selectionSetId = index.GetId(selectionSet);
 
-            var ssId = index.GetId(selectionSet);
-
-            if (ssId == targetSSId)
+            if (selectionSetId == targetSelectionSetId)
             {
                 // Found the target. Trace back to find the deepest ancestor SS ID
                 // that exists in any step's SelectionSets.
@@ -2211,42 +2116,37 @@ public sealed partial class OperationPlanner
                         continue;
                     }
 
-                    var candidateSSId = index.GetId(entry.SelectionSet);
+                    var candidateSelectionSetId = index.GetId(entry.SelectionSet);
 
                     for (var s = 0; s < steps.Count; s++)
                     {
                         if (steps[s] is OperationPlanStep step
-                            && step.SelectionSets.Contains(candidateSSId)
+                            && step.SelectionSets.Contains(candidateSelectionSetId)
                             && !string.IsNullOrEmpty(step.SchemaName))
                         {
-                            foundStep = step;
-                            foundStepIndex = s;
-                            foundSSId = candidateSSId;
-                            foundType = entry.Type;
-
                             // Collect intermediate InlineFragmentNodes between ancestor and target
-                            foundWrapping = [];
+                            var ancestorFragments = new List<InlineFragmentNode>();
                             for (var j = i + 1; j < path.Count; j++)
                             {
                                 if (path[j].ConnectingNode is InlineFragmentNode fragment)
                                 {
-                                    foundWrapping.Add(fragment);
+                                    ancestorFragments.Add(fragment);
                                 }
                             }
 
-                            return true;
+                            return new AncestorStepMatch(step, s, candidateSelectionSetId, entry.Type, ancestorFragments);
                         }
                     }
                 }
 
-                return false;
+                return null;
             }
 
             foreach (var selection in selectionSet.Selections)
             {
                 switch (selection)
                 {
-                    case FieldNode fieldNode when fieldNode.SelectionSet is not null:
+                    case FieldNode { SelectionSet: not null } fieldNode:
                         if (currentType is FusionComplexTypeDefinition complexType
                             && complexType.Fields.TryGetField(
                                 fieldNode.Name.Value,
@@ -2255,13 +2155,12 @@ public sealed partial class OperationPlanner
                         {
                             var fieldType = field.Type.NamedType();
                             path.Add((selectionSet, fieldNode, currentType));
-                            if (WalkSelectionSet(
+                            var result = WalkSelectionSet(
                                 fieldNode.SelectionSet, fieldType, path,
-                                schema, steps, index, targetSSId,
-                                out foundStep, out foundStepIndex,
-                                out foundSSId, out foundType, out foundWrapping))
+                                schema, steps, index, targetSelectionSetId);
+                            if (result is not null)
                             {
-                                return true;
+                                return result;
                             }
                             path.RemoveAt(path.Count - 1);
                         }
@@ -2273,32 +2172,90 @@ public sealed partial class OperationPlanner
                             : currentType;
 
                         path.Add((selectionSet, inlineFragment, currentType));
-                        if (WalkSelectionSet(
+                        var fragmentResult = WalkSelectionSet(
                             inlineFragment.SelectionSet, fragmentType, path,
-                            schema, steps, index, targetSSId,
-                            out foundStep, out foundStepIndex,
-                            out foundSSId, out foundType, out foundWrapping))
+                            schema, steps, index, targetSelectionSetId);
+                        if (fragmentResult is not null)
                         {
-                            return true;
+                            return fragmentResult;
                         }
                         path.RemoveAt(path.Count - 1);
                         break;
                 }
             }
 
-            return false;
+            return null;
         }
     }
 
-    private static SelectionSetNode BuildWrappedSelections(
-        List<InlineFragmentNode> wrappingNodes,
+    private bool TryInlineIntoAncestorStep(
+        AncestorStepMatch match,
+        SelectionSetNode requirements,
+        SelectionPath path,
+        int dependentStepId,
+        SelectionSetIndexBuilder index,
+        ref ImmutableList<PlanStep> steps,
+        out ImmutableStack<ConditionedSelectionSet> unresolvable,
+        uint? resolvableRegistrationId = null)
+    {
+        unresolvable = ImmutableStack<ConditionedSelectionSet>.Empty;
+
+        var wrappedSelections = WrapSelectionsInFragments(match.AncestorFragments, requirements);
+
+        var input = new SelectionSetPartitionerInput
+        {
+            SchemaName = match.Step.SchemaName!,
+            SelectionSet = new SelectionSet(
+                match.SelectionSetId,
+                wrappedSelections,
+                match.Type,
+                path),
+            SelectionSetIndex = index
+        };
+
+        var (resolvable, partitionUnresolvable, _, _) = _partitioner.Partition(input);
+
+        if (resolvable is not { Selections.Count: > 0 })
+        {
+            return false;
+        }
+
+        if (resolvableRegistrationId is { } registrationId && resolvable != requirements)
+        {
+            index.Register(registrationId, resolvable);
+        }
+
+        var operation = InlineSelections(
+            match.Step.Definition,
+            index,
+            match.Type,
+            match.SelectionSetId,
+            resolvable);
+
+        EnsureAllSelectionSetsRegistered(operation.SelectionSet, index);
+
+        var updatedStep = match.Step with
+        {
+            Definition = operation,
+            SelectionSets = SelectionSetIndexer.CreateIdSet(operation.SelectionSet, index),
+            Dependents = match.Step.Dependents.Add(dependentStepId)
+        };
+
+        steps = steps.SetItem(match.StepIndex, updatedStep);
+        unresolvable = partitionUnresolvable;
+
+        return true;
+    }
+
+    private static SelectionSetNode WrapSelectionsInFragments(
+        List<InlineFragmentNode> ancestorFragments,
         SelectionSetNode requirements)
     {
         var current = requirements;
 
-        for (var i = wrappingNodes.Count - 1; i >= 0; i--)
+        for (var i = ancestorFragments.Count - 1; i >= 0; i--)
         {
-            var wrapper = wrappingNodes[i];
+            var wrapper = ancestorFragments[i];
             current = new SelectionSetNode(
             [
                 new InlineFragmentNode(
@@ -2321,7 +2278,7 @@ public sealed partial class OperationPlanner
 
         while (stack.Count > 0)
         {
-            var current = stack[stack.Count - 1];
+            var current = stack[^1];
             stack.RemoveAt(stack.Count - 1);
 
             if (!index.IsRegistered(current))
@@ -2344,6 +2301,13 @@ public sealed partial class OperationPlanner
             }
         }
     }
+
+    private readonly record struct AncestorStepMatch(
+        OperationPlanStep Step,
+        int StepIndex,
+        uint SelectionSetId,
+        ITypeDefinition Type,
+        List<InlineFragmentNode> AncestorFragments);
 
     private readonly record struct PlanResult(
         OperationDefinitionNode InternalOperationDefinition,
