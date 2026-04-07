@@ -56,7 +56,7 @@ internal sealed class ValidateClientCommand : Command
 
         if (!fileSystem.FileExists(operationsFilePath))
         {
-            throw new ExitException(ErrorMessages.OperationsFileDoesNotExist(operationsFilePath));
+            throw new ExitException(Messages.OperationsFileDoesNotExist(operationsFilePath));
         }
 
         await using (var rootActivity = console.StartActivity(
@@ -90,8 +90,8 @@ internal sealed class ValidateClientCommand : Command
                             IValidateClientVersion_ValidateClient_Errors_ClientNotFoundError err => err.Message,
                             IValidateClientVersion_ValidateClient_Errors_StageNotFoundError err => err.Message,
                             IValidateClientVersion_ValidateClient_Errors_InvalidSourceMetadataInputError err => err.Message,
-                            IError err => ErrorMessages.UnexpectedMutationError(err),
-                            _ => ErrorMessages.UnexpectedMutationError()
+                            IError err => Messages.UnexpectedMutationError(err),
+                            _ => Messages.UnexpectedMutationError()
                         };
 
                         console.Error.WriteErrorLine(errorMessage);

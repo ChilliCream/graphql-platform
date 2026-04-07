@@ -57,7 +57,7 @@ internal sealed class UploadClientCommand : Command
 
         if (!fileSystem.FileExists(operationsFilePath))
         {
-            throw new ExitException(ErrorMessages.OperationsFileDoesNotExist(operationsFilePath));
+            throw new ExitException(Messages.OperationsFileDoesNotExist(operationsFilePath));
         }
 
         await using (var activity = console.StartActivity(
@@ -87,8 +87,8 @@ internal sealed class UploadClientCommand : Command
                         IUploadClient_UploadClient_Errors_ConcurrentOperationError err => err.Message,
                         IUploadClient_UploadClient_Errors_InvalidPersistedQueryError err => err.Message,
                         IUploadClient_UploadClient_Errors_InvalidSourceMetadataInputError err => err.Message,
-                        IError err => ErrorMessages.UnexpectedMutationError(err),
-                        _ => ErrorMessages.UnexpectedMutationError()
+                        IError err => Messages.UnexpectedMutationError(err),
+                        _ => Messages.UnexpectedMutationError()
                     };
 
                     console.Error.WriteErrorLine(errorMessage);

@@ -103,8 +103,8 @@ internal sealed class PublishClientCommand : Command
                             IPublishClientVersion_PublishClient_Errors_StageNotFoundError err => err.Message,
                             IPublishClientVersion_PublishClient_Errors_ClientVersionNotFoundError err => err.Message,
                             IPublishClientVersion_PublishClient_Errors_InvalidSourceMetadataInputError err => err.Message,
-                            IError err => ErrorMessages.UnexpectedMutationError(err),
-                            _ => ErrorMessages.UnexpectedMutationError()
+                            IError err => Messages.UnexpectedMutationError(err),
+                            _ => Messages.UnexpectedMutationError()
                         };
 
                         console.Error.WriteErrorLine(errorMessage);
@@ -196,7 +196,7 @@ internal sealed class PublishClientCommand : Command
                             }
 
                             child.Update(
-                                "Your request is waiting for approval. Check Nitro to approve the request.", ActivityUpdateKind.Waiting);
+                                Messages.WaitingForApproval, ActivityUpdateKind.Waiting);
                             break;
 
                         case IProcessingTaskApproved:

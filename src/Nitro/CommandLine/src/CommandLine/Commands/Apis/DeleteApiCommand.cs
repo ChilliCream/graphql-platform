@@ -72,8 +72,8 @@ internal sealed class DeleteApiCommand : Command
             {
                 var errorMessage = mutationError switch
                 {
-                    IError err => ErrorMessages.UnexpectedMutationError(err),
-                    _ => ErrorMessages.UnexpectedMutationError()
+                    IError err => Messages.UnexpectedMutationError(err),
+                    _ => Messages.UnexpectedMutationError()
                 };
 
                 console.Error.WriteErrorLine(errorMessage);

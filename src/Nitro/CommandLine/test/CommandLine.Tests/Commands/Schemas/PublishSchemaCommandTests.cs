@@ -371,7 +371,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
             │   └── ✓ Publish request created (ID: request-id).
             ├── Processing
             │   └── ✕ Processing failed.
-            │   ├── Your request is waiting for approval. Check Nitro to approve the request.
+            │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             │   ├── Your request has been approved.
             └── ✓ Published new schema version 'v1' to stage 'dev'.
             """);
@@ -410,7 +410,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
             │   └── ✓ Publish request created (ID: request-id).
             ├── Processing
             │   └── ✕ Processing failed.
-            │   ├── Your request is waiting for approval. Check Nitro to approve the request.
+            │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             └── ✕ Failed to publish a new schema version.
             """);
         Assert.Equal(1, result.ExitCode);

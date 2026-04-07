@@ -36,8 +36,8 @@ internal static class SchemaHelpers
                     IApiNotFoundError err => err.Message,
                     IStageNotFoundError err => err.Message,
                     ISchemaNotFoundError err => err.Message,
-                    IError err => ErrorMessages.UnexpectedMutationError(err),
-                    _ => ErrorMessages.UnexpectedMutationError()
+                    IError err => Messages.UnexpectedMutationError(err),
+                    _ => Messages.UnexpectedMutationError()
                 };
 
                 console.Error.WriteErrorLine(errorMessage);
@@ -115,7 +115,7 @@ internal static class SchemaHelpers
                     break;
 
                 default:
-                    activity.Update(ErrorMessages.UnknownServerResponse, ActivityUpdateKind.Warning);
+                    activity.Update(Messages.UnknownServerResponse, ActivityUpdateKind.Warning);
                     break;
             }
         }

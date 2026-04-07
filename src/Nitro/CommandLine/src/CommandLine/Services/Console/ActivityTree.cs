@@ -186,7 +186,7 @@ internal sealed class ActivityTree : Renderable
                 break;
 
             case ActivityState.Waiting:
-                segments.Add(new Segment("🕐", new Style(Color.Blue, decoration: Decoration.Bold)));
+                segments.Add(new Segment("⏳", new Style(Color.Blue, decoration: Decoration.Bold)));
                 segments.Add(new Segment(" "));
                 break;
 

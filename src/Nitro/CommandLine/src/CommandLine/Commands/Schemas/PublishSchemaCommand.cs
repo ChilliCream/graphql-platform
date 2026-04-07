@@ -102,8 +102,8 @@ internal sealed class PublishSchemaCommand : Command
                             IApiNotFoundError err => err.Message,
                             IStageNotFoundError err => err.Message,
                             ISchemaNotFoundError err => err.Message,
-                            IError err => ErrorMessages.UnexpectedMutationError(err),
-                            _ => ErrorMessages.UnexpectedMutationError()
+                            IError err => Messages.UnexpectedMutationError(err),
+                            _ => Messages.UnexpectedMutationError()
                         };
 
                         console.Error.WriteErrorLine(errorMessage);
@@ -234,7 +234,8 @@ internal sealed class PublishSchemaCommand : Command
                             }
 
                             child.Update(
-                                "Your request is waiting for approval. Check Nitro to approve the request.");
+                                Messages.WaitingForApproval,
+                                ActivityUpdateKind.Waiting);
                             break;
 
                         case IProcessingTaskApproved:

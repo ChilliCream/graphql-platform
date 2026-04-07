@@ -85,8 +85,8 @@ internal sealed class DeleteStageCommand : Command
                         IApiNotFoundError err => err.Message,
                         IStageNotFoundError err => err.Message,
                         IUnauthorizedOperation err => err.Message,
-                        IError err => ErrorMessages.UnexpectedMutationError(err),
-                        _ => ErrorMessages.UnexpectedMutationError()
+                        IError err => Messages.UnexpectedMutationError(err),
+                        _ => Messages.UnexpectedMutationError()
                     };
 
                     console.Error.WriteErrorLine(errorMessage);

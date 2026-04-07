@@ -214,10 +214,10 @@ file static class ClientExtensions
                             errorTree.AddErrorMessage(e.Message);
                             break;
                         case IError e:
-                            errorTree.AddErrorMessage(ErrorMessages.UnexpectedMutationError(e));
+                            errorTree.AddErrorMessage(Messages.UnexpectedMutationError(e));
                             break;
                         default:
-                            errorTree.AddErrorMessage(ErrorMessages.UnexpectedMutationError());
+                            errorTree.AddErrorMessage(Messages.UnexpectedMutationError());
                             break;
                     }
                 }

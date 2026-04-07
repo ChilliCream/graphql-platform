@@ -104,7 +104,7 @@ internal sealed class FusionSettingsSetCommand : Command
 
         if (!fileSystem.FileExists(archiveFile))
         {
-            throw new ExitException(ErrorMessages.ArchiveFileDoesNotExist(archiveFile));
+            throw new ExitException(Messages.ArchiveFileDoesNotExist(archiveFile));
         }
 
         using var archive = FusionArchive.Open(archiveFile, mode: FusionArchiveMode.Update);

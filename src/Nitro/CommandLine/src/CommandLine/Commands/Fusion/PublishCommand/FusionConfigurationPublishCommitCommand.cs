@@ -38,7 +38,7 @@ internal sealed class FusionConfigurationPublishCommitCommand : Command
             parseResult.GetValue(Opt<OptionalRequestIdOption>.Instance) ??
             await FusionConfigurationPublishingState.GetRequestId(fileSystem, ct) ??
             throw new ExitException(
-                ErrorMessages.NoFusionRequestId);
+                Messages.NoFusionRequestId);
 
         var archiveFile =
             parseResult.GetRequiredValue(Opt<FusionArchiveFileOption>.Instance);
@@ -50,7 +50,7 @@ internal sealed class FusionConfigurationPublishCommitCommand : Command
 
         if (!fileSystem.FileExists(archiveFile))
         {
-            throw new ExitException(ErrorMessages.ArchiveFileDoesNotExist(archiveFile));
+            throw new ExitException(Messages.ArchiveFileDoesNotExist(archiveFile));
         }
 
         var committed = false;

@@ -37,7 +37,7 @@ internal sealed class FusionConfigurationPublishCancelCommand : Command
             parseResult.GetValue(Opt<OptionalRequestIdOption>.Instance) ??
             await FusionConfigurationPublishingState.GetRequestId(fileSystem, cancellationToken) ??
             throw new ExitException(
-                ErrorMessages.NoFusionRequestId);
+                Messages.NoFusionRequestId);
 
         await using (var activity = console.StartActivity(
             "Canceling publication",
@@ -54,8 +54,8 @@ internal sealed class FusionConfigurationPublishCancelCommand : Command
                         IUnauthorizedOperation err => err.Message,
                         IFusionConfigurationRequestNotFoundError err => err.Message,
                         IInvalidProcessingStateTransitionError err => err.Message,
-                        IError err => ErrorMessages.UnexpectedMutationError(err),
-                        _ => ErrorMessages.UnexpectedMutationError()
+                        IError err => Messages.UnexpectedMutationError(err),
+                        _ => Messages.UnexpectedMutationError()
                     };
 
                     console.Error.WriteErrorLine(errorMessage);

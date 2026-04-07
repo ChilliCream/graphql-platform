@@ -74,7 +74,7 @@ internal sealed class CreateApiCommand : Command
                     var errorMessage = mutationError switch
                     {
                         IError mutationErrorDetail => "Unexpected mutation error: " + mutationErrorDetail.Message,
-                        _ => ErrorMessages.UnexpectedMutationError()
+                        _ => Messages.UnexpectedMutationError()
                     };
 
                     console.Error.WriteErrorLine(errorMessage);

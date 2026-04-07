@@ -94,8 +94,8 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
                             IInvalidSourceMetadataInputError err => err.Message,
                             IStageNotFoundError err => err.Message,
                             IOpenApiCollectionNotFoundError err => err.Message,
-                            IError err => ErrorMessages.UnexpectedMutationError(err),
-                            _ => ErrorMessages.UnexpectedMutationError()
+                            IError err => Messages.UnexpectedMutationError(err),
+                            _ => Messages.UnexpectedMutationError()
                         };
 
                         console.Error.WriteErrorLine(errorMessage);
@@ -132,7 +132,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
                                         errorTree.AddOpenApiCollectionValidationErrors(e);
                                         break;
                                     case IOpenApiCollectionValidationArchiveError e:
-                                        errorTree.AddErrorMessage(ErrorMessages.InvalidArchive(e.Message));
+                                        errorTree.AddErrorMessage(Messages.InvalidArchive(e.Message));
                                         break;
                                     case IUnexpectedProcessingError e:
                                         errorTree.AddErrorMessage(e.Message);
@@ -160,7 +160,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
                             break;
 
                         default:
-                            child.Update(ErrorMessages.UnknownServerResponse, ActivityUpdateKind.Warning);
+                            child.Update(Messages.UnknownServerResponse, ActivityUpdateKind.Warning);
                             break;
                     }
                 }

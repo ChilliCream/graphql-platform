@@ -38,7 +38,7 @@ internal sealed class FusionConfigurationPublishStartCommand : Command
             parseResult.GetValue(Opt<OptionalRequestIdOption>.Instance) ??
             await FusionConfigurationPublishingState.GetRequestId(fileSystem, cancellationToken) ??
             throw new ExitException(
-                ErrorMessages.NoFusionRequestId);
+                Messages.NoFusionRequestId);
 
         await using (var activity = console.StartActivity(
             "Starting composition",

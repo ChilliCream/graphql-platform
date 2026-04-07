@@ -10,5 +10,5 @@ internal static class Glyphs
 
     public const string ExclamationMark = "[yellow bold]![/]";
 
-    public const string Clock = "[blue bold]🕐[/]";
+    public const string Clock = "⏳";
 }

@@ -60,7 +60,7 @@ internal sealed class UploadSchemaCommand : Command
 
         if (!fileSystem.FileExists(schemaFilePath))
         {
-            throw new ExitException(ErrorMessages.SchemaFileDoesNotExist(schemaFilePath));
+            throw new ExitException(Messages.SchemaFileDoesNotExist(schemaFilePath));
         }
 
         await using (var activity = console.StartActivity(
@@ -89,8 +89,8 @@ internal sealed class UploadSchemaCommand : Command
                         IDuplicatedTagError err => err.Message,
                         IConcurrentOperationError err => err.Message,
                         IApiNotFoundError err => err.Message,
-                        IError err => ErrorMessages.UnexpectedMutationError(err),
-                        _ => ErrorMessages.UnexpectedMutationError()
+                        IError err => Messages.UnexpectedMutationError(err),
+                        _ => Messages.UnexpectedMutationError()
                     };
 
                     console.Error.WriteErrorLine(errorMessage);

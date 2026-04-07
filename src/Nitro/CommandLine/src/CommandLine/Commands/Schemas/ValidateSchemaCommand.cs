@@ -55,7 +55,7 @@ internal sealed class ValidateSchemaCommand : Command
 
         if (!fileSystem.FileExists(schemaFilePath))
         {
-            throw new ExitException(ErrorMessages.SchemaFileDoesNotExist(schemaFilePath));
+            throw new ExitException(Messages.SchemaFileDoesNotExist(schemaFilePath));
         }
 
         await using var activity = console.StartActivity(

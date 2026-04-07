@@ -32,7 +32,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
         var requestId =
             parseResult.GetValue(Opt<OptionalRequestIdOption>.Instance) ??
             await FusionConfigurationPublishingState.GetRequestId(fileSystem, cancellationToken) ??
-            throw new ExitException(ErrorMessages.NoFusionRequestId);
+            throw new ExitException(Messages.NoFusionRequestId);
 
         var archiveFile =
             parseResult.GetRequiredValue(Opt<FusionArchiveFileOption>.Instance);
@@ -44,7 +44,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
 
         if (!fileSystem.FileExists(archiveFile))
         {
-            throw new ExitException(ErrorMessages.ArchiveFileDoesNotExist(archiveFile));
+            throw new ExitException(Messages.ArchiveFileDoesNotExist(archiveFile));
         }
 
         await using (var activity = console.StartActivity(

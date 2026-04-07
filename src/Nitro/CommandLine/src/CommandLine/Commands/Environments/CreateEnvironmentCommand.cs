@@ -63,8 +63,8 @@ internal sealed class CreateEnvironmentCommand : Command
                     {
                         ICreateEnvironmentCommandMutation_PushWorkspaceChanges_Errors_UnauthorizedOperation err => err.Message,
                         ICreateEnvironmentCommandMutation_PushWorkspaceChanges_Errors_ChangeStructureInvalid err => err.Message,
-                        IError err => ErrorMessages.UnexpectedMutationError(err),
-                        _ => ErrorMessages.UnexpectedMutationError()
+                        IError err => Messages.UnexpectedMutationError(err),
+                        _ => Messages.UnexpectedMutationError()
                     };
 
                     console.Error.WriteErrorLine(errorMessage);

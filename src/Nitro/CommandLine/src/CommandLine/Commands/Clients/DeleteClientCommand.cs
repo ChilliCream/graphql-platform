@@ -105,8 +105,8 @@ internal sealed class DeleteClientCommand : Command
                     {
                         IDeleteClientByIdCommandMutation_DeleteClientById_Errors_ClientNotFoundError err => err.Message,
                         IDeleteClientByIdCommandMutation_DeleteClientById_Errors_UnauthorizedOperation err => err.Message,
-                        IError err => ErrorMessages.UnexpectedMutationError(err),
-                        _ => ErrorMessages.UnexpectedMutationError()
+                        IError err => Messages.UnexpectedMutationError(err),
+                        _ => Messages.UnexpectedMutationError()
                     };
 
                     console.Error.WriteErrorLine(errorMessage);

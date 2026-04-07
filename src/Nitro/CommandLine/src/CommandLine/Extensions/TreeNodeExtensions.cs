@@ -120,7 +120,7 @@ internal static class TreeNodeExtensions
                     }
                     else
                     {
-                        entityNode.AddNode(ErrorMessages.UnknownServerResponse);
+                        entityNode.AddNode(Messages.UnknownServerResponse);
                     }
                 }
             }
@@ -171,7 +171,7 @@ internal static class TreeNodeExtensions
                     }
                     else
                     {
-                        entityNode.AddNode(ErrorMessages.UnknownServerResponse);
+                        entityNode.AddNode(Messages.UnknownServerResponse);
                     }
                 }
             }

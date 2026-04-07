@@ -361,7 +361,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
             │   └── ✕ Processing failed.
             │       └── Operation 'abc123'
             │           └── Field 'foo' does not exist.
-            │   ├── 🕐 Your request is waiting for approval. Check Nitro to approve the request.
+            │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             │   ├── Your request has been approved.
             └── ✓ Published new client version 'v1' to stage 'dev'.
             """);
@@ -402,7 +402,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
             │   └── ✕ Processing failed.
             │       └── Operation 'abc123'
             │           └── Field 'foo' does not exist.
-            │   ├── 🕐 Your request is waiting for approval. Check Nitro to approve the request.
+            │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             └── ✕ Failed to publish a new client version.
             """);
         Assert.Equal(1, result.ExitCode);

@@ -2,7 +2,7 @@ using ChilliCream.Nitro.Client;
 
 namespace ChilliCream.Nitro.CommandLine;
 
-internal static class ErrorMessages
+internal static class Messages
 {
     public static string InvalidArchive(string message)
         => "The server received an invalid archive. "
@@ -30,4 +30,7 @@ internal static class ErrorMessages
 
     public const string NoFusionRequestId =
         "No request ID was provided and no request ID was found in the cache. Please provide a request ID.";
+
+    public const string WaitingForApproval =
+        "Waiting for approval. Approve in Nitro to continue.";
 }

@@ -70,7 +70,7 @@ internal sealed class FusionUploadCommand : Command
 
         if (!fileSystem.FileExists(sourceSchemaFile))
         {
-            throw new ExitException(ErrorMessages.SchemaFileDoesNotExist(sourceSchemaFile));
+            throw new ExitException(Messages.SchemaFileDoesNotExist(sourceSchemaFile));
         }
 
         var (_, sourceText, settings) = await FusionComposeCommand.ReadSourceSchemaAsync(
@@ -106,9 +106,9 @@ internal sealed class FusionUploadCommand : Command
                         IInvalidSourceMetadataInputError err => err.Message,
                         IDuplicatedTagError err => err.Message,
                         IConcurrentOperationError err => err.Message,
-                        IInvalidFusionSourceSchemaArchiveError err => ErrorMessages.InvalidArchive(err.Message),
-                        IError err => ErrorMessages.UnexpectedMutationError(err),
-                        _ => ErrorMessages.UnexpectedMutationError()
+                        IInvalidFusionSourceSchemaArchiveError err => Messages.InvalidArchive(err.Message),
+                        IError err => Messages.UnexpectedMutationError(err),
+                        _ => Messages.UnexpectedMutationError()
                     };
 
                     console.Error.WriteErrorLine(errorMessage);

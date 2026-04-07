@@ -75,7 +75,7 @@ internal sealed class CreateMockCommand : Command
 
         if (!fileSystem.FileExists(extensionFile))
         {
-            throw new ExitException(ErrorMessages.ExtensionFileDoesNotExist(extensionFile));
+            throw new ExitException(Messages.ExtensionFileDoesNotExist(extensionFile));
         }
 
         if (!Path.IsPathRooted(baseSchemaFile))
@@ -85,7 +85,7 @@ internal sealed class CreateMockCommand : Command
 
         if (!fileSystem.FileExists(baseSchemaFile))
         {
-            throw new ExitException(ErrorMessages.SchemaFileDoesNotExist(baseSchemaFile));
+            throw new ExitException(Messages.SchemaFileDoesNotExist(baseSchemaFile));
         }
 
         await using (var activity = console.StartActivity(
@@ -115,8 +115,8 @@ internal sealed class CreateMockCommand : Command
                         IMockSchemaNonUniqueNameError err => err.Message,
                         IUnauthorizedOperation err => err.Message,
                         IValidationError err => err.Message,
-                        IError err => ErrorMessages.UnexpectedMutationError(err),
-                        _ => ErrorMessages.UnexpectedMutationError()
+                        IError err => Messages.UnexpectedMutationError(err),
+                        _ => Messages.UnexpectedMutationError()
                     };
 
                     console.Error.WriteErrorLine(errorMessage);

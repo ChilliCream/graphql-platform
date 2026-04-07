@@ -102,8 +102,8 @@ internal sealed class PublishOpenApiCollectionCommand : Command
                             IStageNotFoundError err => err.Message,
                             IOpenApiCollectionNotFoundError err => err.Message,
                             IOpenApiCollectionVersionNotFoundError err => err.Message,
-                            IError err => ErrorMessages.UnexpectedMutationError(err),
-                            _ => ErrorMessages.UnexpectedMutationError()
+                            IError err => Messages.UnexpectedMutationError(err),
+                            _ => Messages.UnexpectedMutationError()
                         };
 
                         console.Error.WriteErrorLine(errorMessage);
@@ -192,7 +192,7 @@ internal sealed class PublishOpenApiCollectionCommand : Command
                                 child.Fail(approvalErrorTree);
                             }
 
-                            child.Update("Waiting for approval. Approve in Nitro to continue.", ActivityUpdateKind.Waiting);
+                            child.Update(Messages.WaitingForApproval, ActivityUpdateKind.Waiting);
                             break;
 
                         case IProcessingTaskApproved:
@@ -200,7 +200,7 @@ internal sealed class PublishOpenApiCollectionCommand : Command
                             break;
 
                         default:
-                            child.Update(ErrorMessages.UnknownServerResponse, ActivityUpdateKind.Warning);
+                            child.Update(Messages.UnknownServerResponse, ActivityUpdateKind.Warning);
                             break;
                     }
                 }

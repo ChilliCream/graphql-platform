@@ -96,7 +96,7 @@ internal sealed class FusionValidateCommand : Command
 
             if (!fileSystem.FileExists(archiveFile))
             {
-                throw new ExitException(ErrorMessages.ArchiveFileDoesNotExist(archiveFile));
+                throw new ExitException(Messages.ArchiveFileDoesNotExist(archiveFile));
             }
 
             await using var archiveStream = fileSystem.OpenReadStream(archiveFile);
@@ -118,7 +118,7 @@ internal sealed class FusionValidateCommand : Command
 
                 if (!fileSystem.FileExists(sourceSchemaFile))
                 {
-                    throw new ExitException(ErrorMessages.SchemaFileDoesNotExist(sourceSchemaFile));
+                    throw new ExitException(Messages.SchemaFileDoesNotExist(sourceSchemaFile));
                 }
             }
 

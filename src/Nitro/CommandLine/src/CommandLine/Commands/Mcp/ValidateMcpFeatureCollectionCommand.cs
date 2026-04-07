@@ -102,8 +102,8 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
                             IInvalidSourceMetadataInputError err => err.Message,
                             IStageNotFoundError err => err.Message,
                             IMcpFeatureCollectionNotFoundError err => err.Message,
-                            IError err => ErrorMessages.UnexpectedMutationError(err),
-                            _ => ErrorMessages.UnexpectedMutationError()
+                            IError err => Messages.UnexpectedMutationError(err),
+                            _ => Messages.UnexpectedMutationError()
                         };
 
                         console.Error.WriteErrorLine(errorMessage);
@@ -140,7 +140,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
                                         errorTree.AddMcpFeatureCollectionValidationErrors(e);
                                         break;
                                     case IMcpFeatureCollectionValidationArchiveError e:
-                                        errorTree.AddErrorMessage(ErrorMessages.InvalidArchive(e.Message));
+                                        errorTree.AddErrorMessage(Messages.InvalidArchive(e.Message));
                                         break;
                                     case IUnexpectedProcessingError e:
                                         errorTree.AddErrorMessage(e.Message);
@@ -168,7 +168,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
                             break;
 
                         default:
-                            child.Update(ErrorMessages.UnknownServerResponse, ActivityUpdateKind.Warning);
+                            child.Update(Messages.UnknownServerResponse, ActivityUpdateKind.Warning);
                             break;
                     }
                 }

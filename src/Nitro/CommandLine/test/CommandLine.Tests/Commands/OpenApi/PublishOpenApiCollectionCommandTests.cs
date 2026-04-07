@@ -358,7 +358,7 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
             │   └── ✕ Processing failed.
-            │   ├── 🕐 Waiting for approval. Approve in Nitro to continue.
+            │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             │   ├── Approved. Processing...
             └── ✓ Published new OpenAPI collection version 'v1' to stage 'dev'.
             """);
@@ -397,7 +397,7 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             │   └── ✓ Publish request created (ID: request-1).
             ├── Processing
             │   └── ✕ Processing failed.
-            │   ├── 🕐 Waiting for approval. Approve in Nitro to continue.
+            │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             └── ✕ Failed to publish a new OpenAPI collection version.
             """);
         Assert.Equal(1, result.ExitCode);

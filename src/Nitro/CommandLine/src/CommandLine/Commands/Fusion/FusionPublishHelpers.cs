@@ -51,8 +51,8 @@ internal static class FusionPublishHelpers
                     IStageNotFoundError err => err.Message,
                     ISubgraphInvalidError err => err.Message,
                     IInvalidProcessingStateTransitionError err => err.Message,
-                    IError err => ErrorMessages.UnexpectedMutationError(err),
-                    _ => ErrorMessages.UnexpectedMutationError()
+                    IError err => Messages.UnexpectedMutationError(err),
+                    _ => Messages.UnexpectedMutationError()
                 };
 
                 console.Error.WriteErrorLine(errorMessage);
@@ -127,7 +127,7 @@ internal static class FusionPublishHelpers
                     break;
 
                 default:
-                    activity.Update(ErrorMessages.UnknownServerResponse, ActivityUpdateKind.Warning);
+                    activity.Update(Messages.UnknownServerResponse, ActivityUpdateKind.Warning);
                     break;
             }
         }
@@ -155,8 +155,8 @@ internal static class FusionPublishHelpers
                     IUnauthorizedOperation err => err.Message,
                     IFusionConfigurationRequestNotFoundError err => err.Message,
                     IInvalidProcessingStateTransitionError err => err.Message,
-                    IError err => ErrorMessages.UnexpectedMutationError(err),
-                    _ => ErrorMessages.UnexpectedMutationError()
+                    IError err => Messages.UnexpectedMutationError(err),
+                    _ => Messages.UnexpectedMutationError()
                 };
 
                 console.Error.WriteErrorLine(errorMessage);
@@ -187,8 +187,8 @@ internal static class FusionPublishHelpers
                     IUnauthorizedOperation err => err.Message,
                     IFusionConfigurationRequestNotFoundError err => err.Message,
                     IInvalidProcessingStateTransitionError err => err.Message,
-                    IError err => ErrorMessages.UnexpectedMutationError(err),
-                    _ => ErrorMessages.UnexpectedMutationError()
+                    IError err => Messages.UnexpectedMutationError(err),
+                    _ => Messages.UnexpectedMutationError()
                 };
 
                 console.Error.WriteErrorLine(errorMessage);
@@ -279,7 +279,7 @@ internal static class FusionPublishHelpers
                         activity.Fail(errorTree);
                     }
 
-                    activity.Update("Waiting for approval. Approve in Nitro to continue.", ActivityUpdateKind.Waiting);
+                    activity.Update(Messages.WaitingForApproval, ActivityUpdateKind.Waiting);
                     break;
 
                 case IProcessingTaskApproved:
@@ -287,7 +287,7 @@ internal static class FusionPublishHelpers
                     break;
 
                 default:
-                    activity.Update(ErrorMessages.UnknownServerResponse, ActivityUpdateKind.Warning);
+                    activity.Update(Messages.UnknownServerResponse, ActivityUpdateKind.Warning);
                     break;
             }
         }
@@ -319,8 +319,8 @@ internal static class FusionPublishHelpers
                     IUnauthorizedOperation err => err.Message,
                     IFusionConfigurationRequestNotFoundError err => err.Message,
                     IInvalidProcessingStateTransitionError err => err.Message,
-                    IError err => ErrorMessages.UnexpectedMutationError(err),
-                    _ => ErrorMessages.UnexpectedMutationError()
+                    IError err => Messages.UnexpectedMutationError(err),
+                    _ => Messages.UnexpectedMutationError()
                 };
 
                 console.Error.WriteErrorLine(errorMessage);
@@ -390,7 +390,7 @@ internal static class FusionPublishHelpers
                     break;
 
                 default:
-                    activity.Update(ErrorMessages.UnknownServerResponse, ActivityUpdateKind.Warning);
+                    activity.Update(Messages.UnknownServerResponse, ActivityUpdateKind.Warning);
                     break;
             }
         }

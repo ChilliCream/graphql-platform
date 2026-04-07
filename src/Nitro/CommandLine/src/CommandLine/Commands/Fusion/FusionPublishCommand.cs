@@ -141,7 +141,7 @@ internal sealed class FusionPublishCommand : Command
 
             if (!fileSystem.FileExists(archiveFile))
             {
-                throw new ExitException(ErrorMessages.ArchiveFileDoesNotExist(archiveFile));
+                throw new ExitException(Messages.ArchiveFileDoesNotExist(archiveFile));
             }
 
             await using var activity = StartPublishActivity(console, stageName, apiId, force);
@@ -166,7 +166,7 @@ internal sealed class FusionPublishCommand : Command
 
                 if (!fileSystem.FileExists(sourceSchemaFile))
                 {
-                    throw new ExitException(ErrorMessages.SchemaFileDoesNotExist(sourceSchemaFile));
+                    throw new ExitException(Messages.SchemaFileDoesNotExist(sourceSchemaFile));
                 }
             }
 
@@ -424,8 +424,8 @@ internal sealed class FusionPublishCommand : Command
                                     IUnauthorizedOperation err => err.Message,
                                     IFusionConfigurationRequestNotFoundError err => err.Message,
                                     IInvalidProcessingStateTransitionError err => err.Message,
-                                    IError err => ErrorMessages.UnexpectedMutationError(err),
-                                    _ => ErrorMessages.UnexpectedMutationError()
+                                    IError err => Messages.UnexpectedMutationError(err),
+                                    _ => Messages.UnexpectedMutationError()
                                 };
 
                                 console.Error.WriteErrorLine(errorMessage);

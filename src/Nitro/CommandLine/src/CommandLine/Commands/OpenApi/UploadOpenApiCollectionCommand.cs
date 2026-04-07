@@ -87,9 +87,9 @@ internal sealed class UploadOpenApiCollectionCommand : Command
                         IUploadOpenApiCollectionCommandMutation_UploadOpenApiCollection_Errors_InvalidSourceMetadataInputError err => err.Message,
                         IDuplicatedTagError err => err.Message,
                         IConcurrentOperationError err => err.Message,
-                        IInvalidOpenApiCollectionArchiveError err => ErrorMessages.InvalidArchive(err.Message),
-                        IError err => ErrorMessages.UnexpectedMutationError(err),
-                        _ => ErrorMessages.UnexpectedMutationError()
+                        IInvalidOpenApiCollectionArchiveError err => Messages.InvalidArchive(err.Message),
+                        IError err => Messages.UnexpectedMutationError(err),
+                        _ => Messages.UnexpectedMutationError()
                     };
 
                     console.Error.WriteErrorLine(errorMessage);

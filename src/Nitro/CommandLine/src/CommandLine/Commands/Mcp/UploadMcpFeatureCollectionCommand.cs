@@ -97,9 +97,9 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
                         IDuplicatedTagError err => err.Message,
                         IConcurrentOperationError err => err.Message,
                         IInvalidMcpFeatureCollectionArchiveError err =>
-                            ErrorMessages.InvalidArchive(err.Message),
-                        IError err => ErrorMessages.UnexpectedMutationError(err),
-                        _ => ErrorMessages.UnexpectedMutationError()
+                            Messages.InvalidArchive(err.Message),
+                        IError err => Messages.UnexpectedMutationError(err),
+                        _ => Messages.UnexpectedMutationError()
                     };
 
                     console.Error.WriteErrorLine(errorMessage);

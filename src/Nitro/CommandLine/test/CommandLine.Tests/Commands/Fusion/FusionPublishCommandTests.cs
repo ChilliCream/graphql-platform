@@ -763,7 +763,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       └── OpenAPI collection 'petstore' (ID: collection-1)
             │           └── Endpoint 'GET /pets'
             │               └── Invalid schema. (10:5)
-            │   ├── 🕐 Waiting for approval. Approve in Nitro to continue.
+            │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             │   ├── Approved. Processing...
             └── ✓ Published configuration 'v1' to 'dev'.
             """);
@@ -816,7 +816,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       └── OpenAPI collection 'petstore' (ID: collection-1)
             │           └── Endpoint 'GET /pets'
             │               └── Invalid schema. (10:5)
-            │   ├── 🕐 Waiting for approval. Approve in Nitro to continue.
+            │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             └── ✕ Failed to publish Fusion configuration.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -1756,7 +1756,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       └── OpenAPI collection 'petstore' (ID: collection-1)
             │           └── Endpoint 'GET /pets'
             │               └── Invalid schema. (10:5)
-            │   ├── 🕐 Waiting for approval. Approve in Nitro to continue.
+            │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             │   ├── Approved. Processing...
             └── ✓ Published configuration 'v1' to 'dev'.
             """);
@@ -1814,7 +1814,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       └── OpenAPI collection 'petstore' (ID: collection-1)
             │           └── Endpoint 'GET /pets'
             │               └── Invalid schema. (10:5)
-            │   ├── 🕐 Waiting for approval. Approve in Nitro to continue.
+            │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             └── ✕ Failed to publish Fusion configuration.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -2887,7 +2887,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       └── OpenAPI collection 'petstore' (ID: collection-1)
             │           └── Endpoint 'GET /pets'
             │               └── Invalid schema. (10:5)
-            │   ├── 🕐 Waiting for approval. Approve in Nitro to continue.
+            │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             │   ├── Approved. Processing...
             └── ✓ Published configuration 'v1' to 'dev'.
             """);
@@ -2947,7 +2947,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       └── OpenAPI collection 'petstore' (ID: collection-1)
             │           └── Endpoint 'GET /pets'
             │               └── Invalid schema. (10:5)
-            │   ├── 🕐 Waiting for approval. Approve in Nitro to continue.
+            │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             └── ✕ Failed to publish Fusion configuration.
             """);
         Assert.Equal(1, result.ExitCode);
