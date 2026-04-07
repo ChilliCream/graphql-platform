@@ -27,6 +27,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
               -s, --source-schema <source-schema>            One or more source schemas that should be included in the composition. Source schemas can either be just a name ('example') or a name and a version ('example@1.0.0'). If no version is specified the value of the '--tag' option is taken as the source schema version.
               -f, --source-schema-file <source-schema-file>  One or more paths to a source schema file (.graphqls) or directory containing a source schema file
               -a, --archive, --configuration <archive>       The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
+              --legacy-v1-archive <legacy-v1-archive>        The path to a Fusion v1 archive file. This option is only intended to be used during the migration from Fusion v1 to Fusion v2+.
               --force                                        Skip confirmation prompts for deletes and overwrites
               --wait-for-approval                            Wait for the deployment to be approved before completing [env: NITRO_WAIT_FOR_APPROVAL]
               -w, --working-directory <working-directory>    Set the working directory for the command
@@ -168,6 +169,70 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         result.StdErr.MatchInlineSnapshot(
             """
             The options '--source-schema', '--source-schema-file', and '--archive' are mutually exclusive.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Archive_And_LegacyArchive_ReturnsError(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--archive",
+            ArchiveFile,
+            "--legacy-v1-archive",
+            LegacyArchiveFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The options '--archive' and '--legacy-v1-archive' are mutually exclusive.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task WithLegacyArchive_FileDoesNotExist_ReturnsError(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "publish",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--tag",
+            Tag,
+            "--source-schema",
+            SourceSchema,
+            "--legacy-v1-archive",
+            LegacyArchiveFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Legacy archive file '/some/working/directory/fusion-v1.fgp' does not exist.
             """);
         Assert.Equal(1, result.ExitCode);
     }

@@ -24,6 +24,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               --api-id <api-id> (REQUIRED)                   The ID of the API [env: NITRO_API_ID]
               --stage <stage> (REQUIRED)                     The name of the stage [env: NITRO_STAGE]
               -a, --archive, --configuration <archive>       The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
+              --legacy-v1-archive <legacy-v1-archive>        The path to a Fusion v1 archive file. This option is only intended to be used during the migration from Fusion v1 to Fusion v2+.
               -f, --source-schema-file <source-schema-file>  One or more paths to a source schema file (.graphqls) or directory containing a source schema file
               --cloud-url <cloud-url>                        The URL of the Nitro backend (only needed for self-hosted or dedicated deployments) [env: NITRO_CLOUD_URL] [default: api.chillicream.com]
               --api-key <api-key>                            The API key used for authentication [env: NITRO_API_KEY]
@@ -146,6 +147,66 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         result.StdErr.MatchInlineSnapshot(
             """
             Missing one of the required options '--source-schema-file' or '--archive'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task Archive_And_LegacyArchive_ReturnsError(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "validate",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--archive",
+            ArchiveFile,
+            "--legacy-v1-archive",
+            LegacyArchiveFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            The options '--archive' and '--legacy-v1-archive' are mutually exclusive.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Theory]
+    [InlineData(InteractionMode.Interactive)]
+    [InlineData(InteractionMode.NonInteractive)]
+    [InlineData(InteractionMode.JsonOutput)]
+    public async Task WithLegacyArchive_FileDoesNotExist_ReturnsError(InteractionMode mode)
+    {
+        // arrange
+        SetupInteractionMode(mode);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "validate",
+            "--api-id",
+            ApiId,
+            "--stage",
+            Stage,
+            "--source-schema-file",
+            SourceSchemaFile,
+            "--legacy-v1-archive",
+            LegacyArchiveFile);
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Legacy archive file '/some/working/directory/fusion-v1.fgp' does not exist.
             """);
         Assert.Equal(1, result.ExitCode);
     }

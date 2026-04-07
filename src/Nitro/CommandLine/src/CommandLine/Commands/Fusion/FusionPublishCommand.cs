@@ -38,6 +38,7 @@ internal sealed class FusionPublishCommand : Command
         Options.Add(Opt<OptionalSourceSchemaIdentifierListOption>.Instance);
         Options.Add(Opt<OptionalSourceSchemaFileListOption>.Instance);
         Options.Add(Opt<OptionalFusionArchiveFileOption>.Instance);
+        Options.Add(Opt<OptionalLegacyFusionArchiveFileOption>.Instance);
         Options.Add(Opt<OptionalForceOption>.Instance);
         Options.Add(Opt<OptionalWaitForApprovalOption>.Instance);
         Options.Add(Opt<WorkingDirectoryOption>.Instance);
@@ -90,6 +91,8 @@ internal sealed class FusionPublishCommand : Command
             parseResult.GetValue(Opt<OptionalSourceSchemaIdentifierListOption>.Instance) ?? [];
         var archiveFile =
             parseResult.GetValue(Opt<OptionalFusionArchiveFileOption>.Instance);
+        var legacyArchiveFile =
+            parseResult.GetValue(Opt<OptionalLegacyFusionArchiveFileOption>.Instance);
         var force = parseResult.GetValue(Opt<OptionalForceOption>.Instance);
         var waitForApproval = parseResult.GetValue(Opt<OptionalWaitForApprovalOption>.Instance);
         var stageName = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
@@ -121,9 +124,29 @@ internal sealed class FusionPublishCommand : Command
 
         if (archiveFile is not null)
         {
+            if (legacyArchiveFile is not null)
+            {
+                throw new ExitException(
+                    $"The options '{FusionArchiveFileOption.OptionName}' and '{OptionalLegacyFusionArchiveFileOption.OptionName}' are mutually exclusive.");
+            }
+
             return await PublishFusionConfigurationWithArchiveAsync();
         }
-        else if (sourceSchemaFiles.Count > 0)
+
+        if (legacyArchiveFile is not null)
+        {
+            if (!Path.IsPathRooted(legacyArchiveFile))
+            {
+                legacyArchiveFile = Path.Combine(workingDirectory, legacyArchiveFile);
+            }
+
+            if (!fileSystem.FileExists(legacyArchiveFile))
+            {
+                throw new ExitException(Messages.LegacyArchiveFileDoesNotExist(legacyArchiveFile));
+            }
+        }
+
+        if (sourceSchemaFiles.Count > 0)
         {
             return await PublishFusionConfigurationWithSourceSchemaFilesAsync();
         }

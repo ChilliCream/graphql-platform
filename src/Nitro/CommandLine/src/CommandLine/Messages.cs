@@ -21,6 +21,8 @@ internal static class Messages
 
     public static string ArchiveFileDoesNotExist(string path) => $"Archive file '{path}' does not exist.";
 
+    public static string LegacyArchiveFileDoesNotExist(string path) => $"Legacy archive file '{path}' does not exist.";
+
     public static string OperationsFileDoesNotExist(string path) => $"Operations file '{path}' does not exist.";
 
     public static string ExtensionFileDoesNotExist(string path) => $"Extension file '{path}' does not exist.";

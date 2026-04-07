@@ -15,6 +15,7 @@ namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : SchemasCommandTestBase(fixture)
 {
     protected const string ArchiveFile = "fusion.far";
+    protected const string LegacyArchiveFile = "fusion-v1.fgp";
     protected const string SourceSchemaFile = "products/schema.graphqls";
     protected const string SourceSchemaSettingsFile = "products/schema-settings.json";
     protected const string SourceSchema = "products";

@@ -16,6 +16,7 @@ internal sealed class FusionComposeCommand : Command
 
         Options.Add(Opt<OptionalSourceSchemaFileListOption>.Instance);
         Options.Add(Opt<OptionalFusionArchiveFileOption>.Instance);
+        Options.Add(Opt<OptionalLegacyFusionArchiveFileOption>.Instance);
         Options.Add(Opt<FusionEnvironmentOption>.Instance);
         Options.Add(Opt<EnableGlobalObjectIdentificationOption>.Instance);
         Options.Add(Opt<IncludeSatisfiabilityPathsOption>.Instance);
@@ -57,6 +58,8 @@ internal sealed class FusionComposeCommand : Command
             Opt<IncludeSatisfiabilityPathsOption>.Instance);
         var watchMode = parseResult.GetValue(Opt<WatchModeOption>.Instance);
         var tagsToExclude = parseResult.GetValue(Opt<OptionalExcludeTagListOption>.Instance);
+        var legacyArchiveFile =
+            parseResult.GetValue(Opt<OptionalLegacyFusionArchiveFileOption>.Instance);
         archiveFile ??= workingDirectory;
 
         if (fileSystem.DirectoryExists(archiveFile))
@@ -66,6 +69,19 @@ internal sealed class FusionComposeCommand : Command
         else if (!Path.IsPathRooted(archiveFile))
         {
             archiveFile = Path.Combine(workingDirectory, archiveFile);
+        }
+
+        if (legacyArchiveFile is not null)
+        {
+            if (!Path.IsPathRooted(legacyArchiveFile))
+            {
+                legacyArchiveFile = Path.Combine(workingDirectory, legacyArchiveFile);
+            }
+
+            if (!fileSystem.FileExists(legacyArchiveFile))
+            {
+                throw new ExitException(Messages.LegacyArchiveFileDoesNotExist(legacyArchiveFile));
+            }
         }
 
         if (sourceSchemaFiles.Count == 0)

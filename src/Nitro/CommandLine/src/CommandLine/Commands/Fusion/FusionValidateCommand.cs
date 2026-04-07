@@ -27,6 +27,7 @@ internal sealed class FusionValidateCommand : Command
         Options.Add(Opt<ApiIdOption>.Instance);
         Options.Add(Opt<StageNameOption>.Instance);
         Options.Add(Opt<OptionalFusionArchiveFileOption>.Instance);
+        Options.Add(Opt<OptionalLegacyFusionArchiveFileOption>.Instance);
         Options.Add(Opt<OptionalSourceSchemaFileListOption>.Instance);
         this.AddGlobalNitroOptions();
 
@@ -58,6 +59,7 @@ internal sealed class FusionValidateCommand : Command
         var stageName = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
         var apiId = parseResult.GetRequiredValue(Opt<ApiIdOption>.Instance);
         var archiveFile = parseResult.GetValue(Opt<OptionalFusionArchiveFileOption>.Instance);
+        var legacyArchiveFile = parseResult.GetValue(Opt<OptionalLegacyFusionArchiveFileOption>.Instance);
         var sourceSchemaFiles =
             parseResult.GetValue(Opt<OptionalSourceSchemaFileListOption>.Instance) ?? [];
 
@@ -80,10 +82,29 @@ internal sealed class FusionValidateCommand : Command
 
         if (archiveFile is not null)
         {
+            if (legacyArchiveFile is not null)
+            {
+                throw new ExitException(
+                    $"The options '{FusionArchiveFileOption.OptionName}' and '{OptionalLegacyFusionArchiveFileOption.OptionName}' are mutually exclusive.");
+            }
+
             return await ValidateWithArchive();
         }
         else
         {
+            if (legacyArchiveFile is not null)
+            {
+                if (!Path.IsPathRooted(legacyArchiveFile))
+                {
+                    legacyArchiveFile = Path.Combine(fileSystem.GetCurrentDirectory(), legacyArchiveFile);
+                }
+
+                if (!fileSystem.FileExists(legacyArchiveFile))
+                {
+                    throw new ExitException(Messages.LegacyArchiveFileDoesNotExist(legacyArchiveFile));
+                }
+            }
+
             return await ValidateWithSourceSchemaFiles();
         }
 
