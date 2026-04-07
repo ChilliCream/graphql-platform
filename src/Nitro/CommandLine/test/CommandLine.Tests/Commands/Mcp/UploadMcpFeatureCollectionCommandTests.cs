@@ -238,7 +238,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
             "**/*.graphql");
 
         // assert
-        Assert.True(capturedStream.Length > 0);
+        await AssertMcpFeatureCollectionArchive(capturedStream);
         result.AssertSuccess(
             """
             Uploading new MCP feature collection version 'v1' for collection 'mcp-1'

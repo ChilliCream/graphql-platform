@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Mcp;
+using HotChocolate.Adapters.Mcp.Packaging;
 using Moq;
 using Moq.Language;
 
@@ -15,6 +16,15 @@ public abstract class McpCommandTestBase(NitroCommandFixture fixture) : CommandT
     {
         SetupGlobMatch(["prompt.mcp-prompt.json"]);
         SetupOpenReadStream("prompt.mcp-prompt.json", "{}"u8.ToArray());
+    }
+
+    protected static async Task AssertMcpFeatureCollectionArchive(Stream stream)
+    {
+        using var archive = McpFeatureCollectionArchive.Open(stream, leaveOpen: true);
+
+        var prompt = await archive.TryGetPromptAsync("prompt.mcp-prompt");
+        Assert.NotNull(prompt);
+        Assert.Equal("{}", prompt.Settings.RootElement.ToString());
     }
 
     protected void SetupEmptyMcpDefinitionFiles()
@@ -393,6 +403,58 @@ public abstract class McpCommandTestBase(NitroCommandFixture fixture) : CommandT
         return new ValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate_ValidationInProgress(
             "ValidationInProgress",
             ProcessingState.Processing);
+    }
+
+    protected static IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate
+        CreateMcpFeatureCollectionValidationFailedEventWithErrors()
+    {
+        var location = new Mock<
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_Locations>(
+            MockBehavior.Strict);
+        location.SetupGet(x => x.Line).Returns(5);
+        location.SetupGet(x => x.Column).Returns(3);
+
+        var docError = new Mock<
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors_McpFeatureCollectionValidationDocumentError>(
+            MockBehavior.Strict);
+        docError.SetupGet(x => x.Code).Returns("INVALID");
+        docError.SetupGet(x => x.Message).Returns("Invalid tool definition.");
+        docError.SetupGet(x => x.Path).Returns("/tools/test");
+        docError.SetupGet(x => x.Locations).Returns(new[] { location.Object });
+
+        var tool = new Mock<
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_McpFeatureCollectionValidationTool>(
+            MockBehavior.Strict);
+        tool.As<IMcpFeatureCollectionValidationTool>().SetupGet(x => x.Name).Returns("test-tool");
+        IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities_Errors[]
+            entityErrors = [docError.Object];
+        tool.As<IMcpFeatureCollectionValidationEntity_McpFeatureCollectionValidationTool>()
+            .SetupGet(x => x.Errors).Returns(entityErrors);
+        tool.As<IMcpFeatureCollectionValidationEntity>().SetupGet(x => x.Errors).Returns(entityErrors);
+
+        var mcpCol = new Mock<
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_McpFeatureCollection>(
+            MockBehavior.Strict);
+        mcpCol.SetupGet(x => x.Name).Returns("mcp-collection");
+        mcpCol.SetupGet(x => x.Id).Returns("mcp-1");
+
+        var colValidation = new Mock<
+            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_McpFeatureCollectionValidationCollection>(
+            MockBehavior.Strict);
+        colValidation.SetupGet(x => x.McpFeatureCollection).Returns(mcpCol.Object);
+        colValidation.SetupGet(x => x.Entities)
+            .Returns(new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections_Entities[]
+                { tool.Object });
+
+        var errorMock = new Mock<
+            IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate_Errors>(
+            MockBehavior.Strict);
+        errorMock.As<IMcpFeatureCollectionValidationError>()
+            .SetupGet(x => x.Collections)
+            .Returns(new IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections[]
+                { colValidation.Object });
+
+        return CreateMcpFeatureCollectionValidationFailedEvent(errorMock.Object);
     }
 
     #endregion

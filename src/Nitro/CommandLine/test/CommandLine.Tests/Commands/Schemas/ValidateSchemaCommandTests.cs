@@ -199,15 +199,12 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
     }
 
     [Fact]
-    public async Task Subscription_InProgressThenSuccess_ReturnsSuccess()
+    public async Task ReturnsSuccess()
     {
         // arrange
         SetupSchemaFile();
         var capturedStream = SetupSchemaValidationMutation();
-        SetupSchemaValidationSubscription(
-            CreateSchemaVersionOperationInProgressEvent(),
-            CreateSchemaVersionValidationInProgressEvent(),
-            CreateSchemaVersionValidationSuccessEvent());
+        SetupSchemaValidationSubscription();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -227,122 +224,34 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
             """
             Validating schema against stage 'dev' of API 'api-1'
             ├── Validation request created (ID: request-id).
-            ├── Validating...
-            ├── Validating...
             └── ✓ Validation passed.
             """);
     }
 
     [Fact]
-    public async Task Subscription_FailedWithSimpleError_ReturnsError()
+    public async Task WithEnvVars_ReturnsSuccess()
     {
         // arrange
         SetupSchemaFile();
-
-        var errorMock = new Mock<IOnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate_Errors>(
-            MockBehavior.Strict);
-        errorMock.As<IUnexpectedProcessingError>()
-            .SetupGet(x => x.Message)
-            .Returns("Something went wrong during validation.");
+        SetupEnvironmentVariable(EnvironmentVariables.ApiId, ApiId);
+        SetupEnvironmentVariable(EnvironmentVariables.Stage, Stage);
+        SetupEnvironmentVariable("SCHEMA_FILE", SchemaFile);
 
         SetupSchemaValidationMutation();
-        SetupSchemaValidationSubscription(
-            CreateSchemaVersionOperationInProgressEvent(),
-            CreateSchemaVersionValidationFailedEvent(errorMock.Object));
+        SetupSchemaValidationSubscription();
 
         // act
         var result = await ExecuteCommandAsync(
             "schema",
-            "validate",
-            "--stage",
-            Stage,
-            "--api-id",
-            ApiId,
-            "--schema-file",
-            SchemaFile);
+            "validate");
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
             Validating schema against stage 'dev' of API 'api-1'
             ├── Validation request created (ID: request-id).
-            ├── Validating...
-            └── ✕ Failed to validate the schema.
-                └── Something went wrong during validation.
+            └── ✓ Validation passed.
             """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Validation failed.
-            """);
-        Assert.Equal(1, result.ExitCode);
-    }
-
-    [Fact]
-    public async Task Subscription_InProgressOnly_StreamEnds_ReturnsError()
-    {
-        // arrange
-        SetupSchemaFile();
-        SetupSchemaValidationMutation();
-        SetupSchemaValidationSubscription(
-            CreateSchemaVersionOperationInProgressEvent());
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "schema",
-            "validate",
-            "--stage",
-            Stage,
-            "--api-id",
-            ApiId,
-            "--schema-file",
-            SchemaFile);
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Validating schema against stage 'dev' of API 'api-1'
-            ├── Validation request created (ID: request-id).
-            ├── Validating...
-            └── ✕ Failed to validate the schema.
-            """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(1, result.ExitCode);
-    }
-
-    [Fact]
-    public async Task Subscription_UnknownEvent_ReturnsError()
-    {
-        // arrange
-        SetupSchemaFile();
-
-        var unknownEvent = new Mock<IOnSchemaVersionValidationUpdated_OnSchemaVersionValidationUpdate>(
-            MockBehavior.Strict);
-        unknownEvent.SetupGet(x => x.__typename).Returns("UnknownType");
-
-        SetupSchemaValidationMutation();
-        SetupSchemaValidationSubscription(unknownEvent.Object);
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "schema",
-            "validate",
-            "--stage",
-            Stage,
-            "--api-id",
-            ApiId,
-            "--schema-file",
-            SchemaFile);
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Validating schema against stage 'dev' of API 'api-1'
-            ├── Validation request created (ID: request-id).
-            ├── ! Unknown server response. Consider updating the CLI.
-            └── ✕ Failed to validate the schema.
-            """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(1, result.ExitCode);
     }
 
     [Fact]

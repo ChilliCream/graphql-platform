@@ -2,7 +2,6 @@ using ChilliCream.Nitro.Client;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
-// TODO: precompose files that can be used to setup downlaods and stuff
 // TODO: Assert composition result is uploaded
 public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : FusionCommandTestBase(fixture)
 {
@@ -204,7 +203,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         result.AssertSuccess(
             """
             Validating Fusion configuration against stage 'dev' of API 'api-1'
-            ├── Validation request created (ID: request-id)
+            ├── Validation request created (ID: request-id).
             └── ✓ Validation passed.
             """);
     }
@@ -232,7 +231,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         result.AssertSuccess(
             """
             Validating Fusion configuration against stage 'dev' of API 'api-1'
-            ├── Validation request created (ID: request-id)
+            ├── Validation request created (ID: request-id).
             └── ✓ Validation passed.
             """);
     }
@@ -325,12 +324,12 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Fusion configuration validation failed.
+            Validation failed.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
             Validating Fusion configuration against stage 'dev' of API 'api-1'
-            ├── Validation request created (ID: request-id)
+            ├── Validation request created (ID: request-id).
             ├── Validating...
             ├── Validating...
             └── ✕ Failed to validate the Fusion configuration.
@@ -340,9 +339,10 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
                 ├── OpenAPI collection 'petstore' (ID: collection-1)
                 │   └── Endpoint 'GET /pets'
                 │       └── Invalid schema. (10:5)
-                └── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
-                    └── Tool 'test-tool'
-                        └── Invalid MCP schema. (5:3)
+                ├── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
+                │   └── Tool 'test-tool'
+                │       └── Invalid MCP schema. (5:3)
+                └── An unexpected error occurred.
             """);
         Assert.Equal(1, result.ExitCode);
     }

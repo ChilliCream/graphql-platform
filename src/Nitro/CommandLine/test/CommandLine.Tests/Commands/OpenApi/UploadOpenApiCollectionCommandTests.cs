@@ -225,7 +225,7 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
             "*.graphql");
 
         // assert
-        Assert.True(capturedStream.Length > 0);
+        await AssertOpenApiCollectionArchive(capturedStream);
         result.AssertSuccess(
             """
             Uploading new OpenAPI collection version 'v1' for collection 'oa-1'

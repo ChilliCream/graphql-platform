@@ -36,34 +36,39 @@ internal static class CommandExtensions
                     + "If you are running a self-hosted instance, check your ingress controller body-size limits, "
                     + "reverse proxy settings, or load balancer request size limits.");
             }
-            catch (NitroClientHttpRequestException exception)
+            catch (NitroClientHttpRequestException ex)
             {
-                var message = exception.StatusCode is null
+                var message = ex.StatusCode is null
                     ? "The server returned an unexpected HTTP status code."
-                    : $"The server returned an unexpected HTTP status code ({(int)exception.StatusCode} - {exception.StatusCode})";
+                    : $"The server returned an unexpected HTTP status code ({(int)ex.StatusCode} - {ex.StatusCode})";
 
                 console.Error.WriteErrorLine(message);
             }
-            catch (NitroClientGraphQLException exception)
-            {
-                var message = string.IsNullOrEmpty(exception.Code)
-                    ? $"The server returned an unexpected GraphQL error: {exception.ErrorMessage.EscapeMarkup()}"
-                    : $"The server returned an unexpected GraphQL error: {exception.ErrorMessage.EscapeMarkup()} ({exception.Code})";
-
-                console.Error.WriteErrorLine(message);
-            }
-            catch (NitroClientException exception)
+            catch (NitroClientGraphQLException ex) when (ex.Code == "HC0067")
             {
                 console.Error.WriteErrorLine(
-                    $"There was an unexpected client error: {exception.Message.EscapeMarkup()}");
+                    "The server rejected the persisted operation of the command. Make sure your Nitro backend is on the latest version.");
+            }
+            catch (NitroClientGraphQLException ex)
+            {
+                var message = string.IsNullOrEmpty(ex.Code)
+                    ? $"The server returned an unexpected GraphQL error: {ex.ErrorMessage.EscapeMarkup()}"
+                    : $"The server returned an unexpected GraphQL error: {ex.ErrorMessage.EscapeMarkup()} ({ex.Code})";
+
+                console.Error.WriteErrorLine(message);
+            }
+            catch (NitroClientException ex)
+            {
+                console.Error.WriteErrorLine(
+                    $"There was an unexpected client error: {ex.Message.EscapeMarkup()}");
             }
             catch (Exception ex) when (ex is OperationCanceledException or TaskCanceledException)
             {
                 // No message needed for cancellation.
             }
-            catch (Exception exception)
+            catch (Exception ex)
             {
-                console.Error.WriteErrorLine($"There was an unexpected error: {exception.Message.EscapeMarkup()}");
+                console.Error.WriteErrorLine($"There was an unexpected error: {ex.Message.EscapeMarkup()}");
             }
 
             return ExitCodes.Error;

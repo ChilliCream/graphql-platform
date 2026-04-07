@@ -6,6 +6,7 @@ using ChilliCream.Nitro.CommandLine.Commands.Fusion;
 using ChilliCream.Nitro.CommandLine.Tests.Commands.Schemas;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Packaging;
+using HotChocolate.Fusion.SourceSchema.Packaging;
 using Moq;
 using Moq.Language;
 
@@ -72,7 +73,7 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
 
     protected void SetupArchiveFile()
     {
-        var stream = new MemoryStream(); // await CreateFusionArchiveStreamAsync();
+        var stream = CreateFusionArchiveStream();
 
         SetupFile(ArchiveFile, stream);
     }
@@ -163,7 +164,7 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
                 version,
                 archiveFormat,
             It.IsAny<CancellationToken>()))
-            .Returns(async () => await CreateFusionArchiveStreamAsync(version, archiveFormat));
+            .ReturnsAsync(() => CreateFusionArchiveStream(archiveFormat));
     }
 
     protected void SetupMissingFusionConfigurationDownload(
@@ -331,6 +332,19 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
             .ReturnsAsync(() => CreateUploadSourceSchemaPayload(errors));
 
         return capturedStream;
+    }
+
+    protected static async Task AssertFusionSourceSchemaArchive(Stream stream)
+    {
+        using var archive = FusionSourceSchemaArchive.Open(stream, leaveOpen: true);
+
+        var settings = await archive.TryGetSettingsAsync();
+        Assert.NotNull(settings);
+        Assert.Equal(SourceSchemaSettings, settings.RootElement.ToString());
+
+        var schema = await archive.TryGetSchemaAsync();
+        Assert.True(schema.HasValue);
+        Assert.Equal(SourceSchemaText, Encoding.UTF8.GetString(schema.Value.Span));
     }
 
     protected void SetupUploadSourceSchemaMutationException()
@@ -619,12 +633,28 @@ public abstract class FusionCommandTestBase(NitroCommandFixture fixture) : Schem
         _setup.Returns(events.ToAsyncEnumerable());
     }
 
-    private async Task<MemoryStream> CreateFusionArchiveStreamAsync(
-        string version = "2.0.0",
+    private static MemoryStream CreateFusionArchiveStream(
         string archiveFormat = ArchiveFormats.Far)
     {
-        // TODO: Properly fill this
-        return new MemoryStream();
+        var extension = archiveFormat switch
+        {
+            ArchiveFormats.Far => ".far",
+            ArchiveFormats.Fgp => ".fgp",
+            _ => throw new ArgumentException($"Unknown archive format: {archiveFormat}")
+        };
+
+        var path = Path.Combine(
+            AppContext.BaseDirectory,
+            "__resources__",
+            "fusion-archives",
+            $"gateway{extension}");
+
+        var memoryStream = new MemoryStream();
+        using var fileStream = File.OpenRead(path);
+        fileStream.CopyTo(memoryStream);
+        memoryStream.Position = 0;
+
+        return memoryStream;
     }
 
     private async Task<Stream> CreateSourceSchemaArchiveStreamAsync(

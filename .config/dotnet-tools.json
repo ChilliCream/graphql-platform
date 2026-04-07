@@ -22,13 +22,6 @@
         "nuke"
       ],
       "rollForward": false
-    },
-    "chillicream.nitro.cli": {
-      "version": "1.2.7",
-      "commands": [
-        "nitro"
-      ],
-      "rollForward": false
     }
   }
 }

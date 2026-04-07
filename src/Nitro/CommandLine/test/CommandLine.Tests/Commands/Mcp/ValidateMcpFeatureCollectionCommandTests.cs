@@ -182,15 +182,12 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
     }
 
     [Fact]
-    public async Task Subscription_InProgressThenSuccess_ReturnsSuccess()
+    public async Task ReturnsSuccess()
     {
         // arrange
         SetupMcpDefinitionFiles();
         var capturedStream = SetupValidateMcpFeatureCollectionMutation();
-        SetupValidateMcpFeatureCollectionSubscription(
-            CreateMcpFeatureCollectionValidationOperationInProgressEvent(),
-            CreateMcpFeatureCollectionValidationInProgressEvent(),
-            CreateMcpFeatureCollectionValidationSuccessEvent());
+        SetupValidateMcpFeatureCollectionSubscription();
 
         // act
         var result = await ExecuteCommandAsync(
@@ -206,7 +203,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             "**/*.graphql");
 
         // assert
-        Assert.True(capturedStream.Length > 0);
+        await AssertMcpFeatureCollectionArchive(capturedStream);
         result.AssertSuccess(
             """
             Validating MCP feature collection against stage 'dev'
@@ -214,70 +211,53 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             ├── Starting validation request
             │   └── ✓ Validation request created (ID: request-1).
             ├── Validating
-            │   ├── Validating...
-            │   ├── Validating...
             │   └── ✓ Validation passed.
             └── ✓ Validated MCP feature collection against stage 'dev'.
             """);
     }
 
     [Fact]
-    public async Task Subscription_FailedWithSimpleError_ReturnsError()
+    public async Task WithEnvVars_ReturnsSuccess()
     {
         // arrange
         SetupMcpDefinitionFiles();
-        var errorMock = new Mock<IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate_Errors>(
-            MockBehavior.Strict);
-        errorMock.As<IUnexpectedProcessingError>()
-            .SetupGet(x => x.Message)
-            .Returns("Something went wrong during validation.");
+        SetupEnvironmentVariable(EnvironmentVariables.McpFeatureCollectionId, McpFeatureCollectionId);
+        SetupEnvironmentVariable(EnvironmentVariables.Stage, Stage);
 
-        SetupValidateMcpFeatureCollectionMutation();
-        SetupValidateMcpFeatureCollectionSubscription(
-            CreateMcpFeatureCollectionValidationOperationInProgressEvent(),
-            CreateMcpFeatureCollectionValidationFailedEvent(errorMock.Object));
+        var capturedStream = SetupValidateMcpFeatureCollectionMutation();
+        SetupValidateMcpFeatureCollectionSubscription();
 
         // act
         var result = await ExecuteCommandAsync(
             "mcp",
             "validate",
-            "--stage",
-            Stage,
-            "--mcp-feature-collection-id",
-            McpFeatureCollectionId,
             "--prompt-pattern",
             "**/*.json",
             "--tool-pattern",
             "**/*.graphql");
 
         // assert
-        result.StdOut.MatchInlineSnapshot(
+        await AssertMcpFeatureCollectionArchive(capturedStream);
+        result.AssertSuccess(
             """
             Validating MCP feature collection against stage 'dev'
             ├── Found 1 prompt(s) and 1 tool(s).
             ├── Starting validation request
             │   └── ✓ Validation request created (ID: request-1).
             ├── Validating
-            │   ├── Validating...
-            │   └── ✕ Validation failed.
-            │       └── Something went wrong during validation.
-            └── ✕ Failed to validate the MCP feature collection.
+            │   └── ✓ Validation passed.
+            └── ✓ Validated MCP feature collection against stage 'dev'.
             """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            MCP feature collection validation failed.
-            """);
-        Assert.Equal(1, result.ExitCode);
     }
 
     [Fact]
-    public async Task Subscription_InProgressOnly_StreamEnds_ReturnsError()
+    public async Task BreakingChanges_ReturnsError()
     {
         // arrange
         SetupMcpDefinitionFiles();
         SetupValidateMcpFeatureCollectionMutation();
         SetupValidateMcpFeatureCollectionSubscription(
-            CreateMcpFeatureCollectionValidationOperationInProgressEvent());
+            CreateMcpFeatureCollectionValidationFailedEventWithErrors());
 
         // act
         var result = await ExecuteCommandAsync(
@@ -300,141 +280,10 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             ├── Starting validation request
             │   └── ✓ Validation request created (ID: request-1).
             ├── Validating
-            │   ├── Validating...
             │   └── ✕ Validation failed.
-            └── ✕ Failed to validate the MCP feature collection.
-            """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(1, result.ExitCode);
-    }
-
-    [Fact]
-    public async Task Subscription_UnknownEvent_ReturnsError()
-    {
-        // arrange
-        SetupMcpDefinitionFiles();
-        var unknownEvent = new Mock<IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate>(
-            MockBehavior.Strict);
-        unknownEvent.SetupGet(x => x.__typename).Returns("UnknownType");
-
-        SetupValidateMcpFeatureCollectionMutation();
-        SetupValidateMcpFeatureCollectionSubscription(unknownEvent.Object);
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "mcp",
-            "validate",
-            "--stage",
-            Stage,
-            "--mcp-feature-collection-id",
-            McpFeatureCollectionId,
-            "--prompt-pattern",
-            "**/*.json",
-            "--tool-pattern",
-            "**/*.graphql");
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Validating MCP feature collection against stage 'dev'
-            ├── Found 1 prompt(s) and 1 tool(s).
-            ├── Starting validation request
-            │   └── ✓ Validation request created (ID: request-1).
-            ├── Validating
-            │   ├── ! Unknown server response. Consider updating the CLI.
-            │   └── ✕ Validation failed.
-            └── ✕ Failed to validate the MCP feature collection.
-            """);
-        Assert.Empty(result.StdErr);
-        Assert.Equal(1, result.ExitCode);
-    }
-
-    [Fact]
-    public async Task Subscription_FailedWithValidationError_ReturnsError()
-    {
-        // arrange
-        SetupMcpDefinitionFiles();
-        var validationError = new Mock<IValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate_Errors>(
-            MockBehavior.Strict);
-        validationError.As<IMcpFeatureCollectionValidationError>()
-            .SetupGet(x => x.Collections)
-            .Returns(Array.Empty<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Collections>());
-
-        SetupValidateMcpFeatureCollectionMutation();
-        SetupValidateMcpFeatureCollectionSubscription(
-            CreateMcpFeatureCollectionValidationOperationInProgressEvent(),
-            CreateMcpFeatureCollectionValidationFailedEvent(validationError.Object));
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "mcp",
-            "validate",
-            "--stage",
-            Stage,
-            "--mcp-feature-collection-id",
-            McpFeatureCollectionId,
-            "--prompt-pattern",
-            "**/*.json",
-            "--tool-pattern",
-            "**/*.graphql");
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Validating MCP feature collection against stage 'dev'
-            ├── Found 1 prompt(s) and 1 tool(s).
-            ├── Starting validation request
-            │   └── ✓ Validation request created (ID: request-1).
-            ├── Validating
-            │   ├── Validating...
-            │   └── ✕ Validation failed.
-            └── ✕ Failed to validate the MCP feature collection.
-            """);
-        result.StdErr.MatchInlineSnapshot(
-            """
-            MCP feature collection validation failed.
-            """);
-        Assert.Equal(1, result.ExitCode);
-    }
-
-    [Fact]
-    public async Task Subscription_FailedWithTimeoutError_ReturnsError()
-    {
-        // arrange
-        SetupMcpDefinitionFiles();
-        var timeoutError = new ValidateMcpFeatureCollectionCommandSubscription_OnMcpFeatureCollectionVersionValidationUpdate_Errors_ProcessingTimeoutError(
-            "ProcessingTimeoutError",
-            "The validation timed out.");
-
-        SetupValidateMcpFeatureCollectionMutation();
-        SetupValidateMcpFeatureCollectionSubscription(
-            CreateMcpFeatureCollectionValidationOperationInProgressEvent(),
-            CreateMcpFeatureCollectionValidationFailedEvent(timeoutError));
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "mcp",
-            "validate",
-            "--stage",
-            Stage,
-            "--mcp-feature-collection-id",
-            McpFeatureCollectionId,
-            "--prompt-pattern",
-            "**/*.json",
-            "--tool-pattern",
-            "**/*.graphql");
-
-        // assert
-        result.StdOut.MatchInlineSnapshot(
-            """
-            Validating MCP feature collection against stage 'dev'
-            ├── Found 1 prompt(s) and 1 tool(s).
-            ├── Starting validation request
-            │   └── ✓ Validation request created (ID: request-1).
-            ├── Validating
-            │   ├── Validating...
-            │   └── ✕ Validation failed.
-            │       └── The validation timed out.
+            │       └── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
+            │           └── Tool 'test-tool'
+            │               └── Invalid tool definition. (5:3)
             └── ✕ Failed to validate the MCP feature collection.
             """);
         result.StdErr.MatchInlineSnapshot(
