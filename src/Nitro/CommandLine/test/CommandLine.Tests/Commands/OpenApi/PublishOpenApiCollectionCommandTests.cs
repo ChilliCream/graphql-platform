@@ -359,7 +359,7 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             ├── Processing
             │   └── ✕ Processing failed.
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            │   ├── Approved. Processing...
+            │   ├── Your request has been approved.
             └── ✓ Published new OpenAPI collection version 'v1' to stage 'dev'.
             """);
     }

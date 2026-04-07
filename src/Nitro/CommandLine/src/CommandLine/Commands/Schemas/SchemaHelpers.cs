@@ -100,18 +100,18 @@ internal static class SchemaHelpers
 
                     await activity.FailAllAsync();
 
-                    console.Error.WriteErrorLine("Validation failed.");
+                    console.Error.WriteErrorLine(Messages.ValidationFailed);
 
                     return false;
 
                 case ISchemaVersionValidationSuccess:
-                    activity.Success("Validation passed.");
+                    activity.Success(Messages.ValidationPassed);
 
                     return true;
 
                 case IOperationInProgress:
                 case IValidationInProgress:
-                    activity.Update("Validating...");
+                    activity.Update(Messages.Validating);
                     break;
 
                 default:

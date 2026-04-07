@@ -485,7 +485,7 @@ internal sealed class FusionPublishCommand : Command
 
         if (force)
         {
-            activity.Update("Force push is enabled.", ActivityUpdateKind.Warning);
+            activity.Update(Messages.ForcePushEnabled, ActivityUpdateKind.Warning);
         }
 
         return activity;

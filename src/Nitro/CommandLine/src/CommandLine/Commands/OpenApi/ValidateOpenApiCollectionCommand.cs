@@ -72,8 +72,8 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
             string requestId;
 
             await using (var child = rootActivity.StartChildActivity(
-                "Starting validation request",
-                "Failed to start the validation request."))
+                Messages.StartingValidationRequest,
+                Messages.FailedToStartValidationRequest))
             {
                 var validationRequest = await client.StartOpenApiCollectionValidationAsync(
                     openApiCollectionId,
@@ -114,8 +114,8 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
             }
 
             await using (var child = rootActivity.StartChildActivity(
-                "Validating",
-                "Validation failed."))
+                Messages.ValidatingActivity,
+                Messages.ValidationFailed))
             {
                 await foreach (var update in client.SubscribeToOpenApiCollectionValidationAsync(requestId, ct))
                 {
@@ -150,13 +150,13 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
                             throw new ExitException("OpenAPI collection validation failed.");
 
                         case IOpenApiCollectionVersionValidationSuccess:
-                            child.Success("Validation passed.");
+                            child.Success(Messages.ValidationPassed);
                             rootActivity.Success($"Validated OpenAPI collection against stage '{stage.EscapeMarkup()}'.");
                             return ExitCodes.Success;
 
                         case IOperationInProgress:
                         case IValidationInProgress:
-                            child.Update("Validating...");
+                            child.Update(Messages.Validating);
                             break;
 
                         default:

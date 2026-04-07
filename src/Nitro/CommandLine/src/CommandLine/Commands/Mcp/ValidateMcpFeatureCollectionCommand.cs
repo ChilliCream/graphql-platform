@@ -80,8 +80,8 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
             string requestId;
 
             await using (var child = rootActivity.StartChildActivity(
-                "Starting validation request",
-                "Failed to start the validation request."))
+                Messages.StartingValidationRequest,
+                Messages.FailedToStartValidationRequest))
             {
                 var validationRequest = await client.StartMcpFeatureCollectionValidationAsync(
                     mcpFeatureCollectionId,
@@ -122,8 +122,8 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
             }
 
             await using (var child = rootActivity.StartChildActivity(
-                "Validating",
-                "Validation failed."))
+                Messages.ValidatingActivity,
+                Messages.ValidationFailed))
             {
                 await foreach (var update in client.SubscribeToMcpFeatureCollectionValidationAsync(requestId, ct))
                 {
@@ -158,13 +158,13 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
                             throw new ExitException("MCP feature collection validation failed.");
 
                         case IMcpFeatureCollectionVersionValidationSuccess:
-                            child.Success("Validation passed.");
+                            child.Success(Messages.ValidationPassed);
                             rootActivity.Success($"Validated MCP feature collection against stage '{stage.EscapeMarkup()}'.");
                             return ExitCodes.Success;
 
                         case IOperationInProgress:
                         case IValidationInProgress:
-                            child.Update("Validating...");
+                            child.Update(Messages.Validating);
                             break;
 
                         default:

@@ -359,7 +359,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             ├── Processing
             │   └── ✕ Processing failed.
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            │   ├── Approved. Processing...
+            │   ├── Your request has been approved.
             └── ✓ Published new MCP feature collection version 'v1' to stage 'dev'.
             """);
     }

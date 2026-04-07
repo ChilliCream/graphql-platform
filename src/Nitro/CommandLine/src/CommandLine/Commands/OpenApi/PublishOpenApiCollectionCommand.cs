@@ -71,14 +71,14 @@ internal sealed class PublishOpenApiCollectionCommand : Command
         {
             if (force)
             {
-                rootActivity.Update("Force push is enabled.", ActivityUpdateKind.Warning);
+                rootActivity.Update(Messages.ForcePushEnabled, ActivityUpdateKind.Warning);
             }
 
             string requestId;
 
             await using (var child = rootActivity.StartChildActivity(
-                "Starting publish request",
-                "Failed to start publish request."))
+                Messages.StartingPublishRequest,
+                Messages.FailedToStartPublishRequest))
             {
                 var publishRequest = await client.StartOpenApiCollectionPublishAsync(
                     openApiCollectionId,
@@ -122,8 +122,8 @@ internal sealed class PublishOpenApiCollectionCommand : Command
             }
 
             await using (var child = rootActivity.StartChildActivity(
-                "Processing",
-                "Processing failed."))
+                Messages.ProcessingActivity,
+                Messages.ProcessingFailed))
             {
                 await foreach (var update in client.SubscribeToOpenApiCollectionPublishAsync(requestId, ct))
                 {
@@ -162,16 +162,16 @@ internal sealed class PublishOpenApiCollectionCommand : Command
                             throw new ExitException("OpenAPI collection publish failed.");
 
                         case IOpenApiCollectionVersionPublishSuccess:
-                            child.Success("Published successfully.");
+                            child.Success(Messages.PublishedSuccessfully);
                             rootActivity.Success($"Published new OpenAPI collection version '{tag.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}'.");
                             return ExitCodes.Success;
 
                         case IProcessingTaskIsReady:
-                            child.Update("Ready.");
+                            child.Update(Messages.RequestReadyForProcessing);
                             break;
 
                         case IOperationInProgress:
-                            child.Update("Processing...");
+                            child.Update(Messages.RequestBeingProcessed);
                             break;
 
                         case IWaitForApproval waitForApprovalEvent:
@@ -196,7 +196,7 @@ internal sealed class PublishOpenApiCollectionCommand : Command
                             break;
 
                         case IProcessingTaskApproved:
-                            child.Update("Approved. Processing...");
+                            child.Update(Messages.RequestApproved);
                             break;
 
                         default:

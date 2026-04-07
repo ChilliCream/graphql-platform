@@ -66,8 +66,8 @@ internal sealed class ValidateClientCommand : Command
             string requestId;
 
             await using (var child = rootActivity.StartChildActivity(
-                "Starting validation request",
-                "Failed to start the validation request."))
+                Messages.StartingValidationRequest,
+                Messages.FailedToStartValidationRequest))
             {
                 await using var stream = fileSystem.OpenReadStream(operationsFilePath);
 
@@ -110,8 +110,8 @@ internal sealed class ValidateClientCommand : Command
             }
 
             await using (var child = rootActivity.StartChildActivity(
-                "Validating",
-                "Validation failed."))
+                Messages.ValidatingActivity,
+                Messages.ValidationFailed))
             {
                 await foreach (var update in client.SubscribeToClientValidationAsync(requestId, ct))
                 {
@@ -143,19 +143,18 @@ internal sealed class ValidateClientCommand : Command
                             throw new ExitException("Client validation failed.");
 
                         case IClientVersionValidationSuccess:
-                            child.Success("Validation passed.");
+                            child.Success(Messages.ValidationPassed);
                             rootActivity.Success($"Validated client against stage '{stage.EscapeMarkup()}'.");
 
                             return ExitCodes.Success;
 
                         case IOperationInProgress:
                         case IValidationInProgress:
-                            child.Update("Validating...");
+                            child.Update(Messages.Validating);
                             break;
 
                         default:
-                            child.Update(
-                                "Warning: Received an unknown server response. Ensure your CLI is on the latest version.", ActivityUpdateKind.Warning);
+                            child.Update(Messages.UnknownServerResponse, ActivityUpdateKind.Warning);
                             break;
                     }
                 }

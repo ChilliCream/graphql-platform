@@ -764,7 +764,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │           └── Endpoint 'GET /pets'
             │               └── Invalid schema. (10:5)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            │   ├── Approved. Processing...
+            │   ├── Your request has been approved.
             └── ✓ Published configuration 'v1' to 'dev'.
             """);
         var schema = await GetFusionSchemaAsync(capturedStream);
@@ -1757,7 +1757,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │           └── Endpoint 'GET /pets'
             │               └── Invalid schema. (10:5)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            │   ├── Approved. Processing...
+            │   ├── Your request has been approved.
             └── ✓ Published configuration 'v1' to 'dev'.
             """);
         var schema = await GetFusionSchemaAsync(capturedStream);
@@ -2888,7 +2888,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │           └── Endpoint 'GET /pets'
             │               └── Invalid schema. (10:5)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            │   ├── Approved. Processing...
+            │   ├── Your request has been approved.
             └── ✓ Published configuration 'v1' to 'dev'.
             """);
         var schema = await GetFusionSchemaAsync(capturedStream);
@@ -3326,6 +3326,16 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
                 @fusion__field(schema: REVIEWS)
               tag2Field: String
                 @fusion__field(schema: REVIEWS)
+            }
+
+            enum CacheControlScope
+              @fusion__type(schema: REVIEWS) {
+              "The value to cache is specific to a single user."
+              PRIVATE
+                @fusion__enumValue(schema: REVIEWS)
+              "The value to cache is not tied to a single user."
+              PUBLIC
+                @fusion__enumValue(schema: REVIEWS)
             }
 
             "The fusion__Schema enum is a generated type used within an execution schema document to refer to a source schema in a type-safe manner."

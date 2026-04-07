@@ -233,23 +233,23 @@ internal static class FusionPublishHelpers
                     return committed;
 
                 case IProcessingTaskIsReady:
-                    activity.Update("Ready.");
+                    activity.Update(Messages.RequestReadyForProcessing);
                     break;
 
                 case IFusionConfigurationValidationFailed:
-                    activity.Update("Validation failed. Check errors in Nitro.");
+                    activity.Update(Messages.ValidationFailed);
                     break;
 
                 case IFusionConfigurationValidationSuccess:
-                    activity.Update("Validation passed.");
+                    activity.Update(Messages.ValidationPassed);
                     break;
 
                 case IValidationInProgress:
-                    activity.Update("Validating...");
+                    activity.Update(Messages.Validating);
                     break;
 
                 case IOperationInProgress:
-                    activity.Update("Processing...");
+                    activity.Update(Messages.RequestBeingProcessed);
                     break;
 
                 case IWaitForApproval waitForApprovalEvent:
@@ -283,7 +283,7 @@ internal static class FusionPublishHelpers
                     break;
 
                 case IProcessingTaskApproved:
-                    activity.Update("Approved. Processing...");
+                    activity.Update(Messages.RequestApproved);
                     break;
 
                 default:
@@ -386,7 +386,7 @@ internal static class FusionPublishHelpers
                 case IValidationInProgress:
                 case IWaitForApproval:
                 case IProcessingTaskApproved:
-                    // activity.Update("Validating...");
+                    // activity.Update(Messages.Validating);
                     break;
 
                 default:
