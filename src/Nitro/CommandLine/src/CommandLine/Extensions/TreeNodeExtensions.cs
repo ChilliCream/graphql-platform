@@ -9,7 +9,7 @@ internal static class TreeNodeExtensions
         this IHasTreeNodes node,
         string message)
     {
-        return node.AddNode($"[red]{message.EscapeMarkup()}[/]");
+        return node.AddNode(message.EscapeMarkup().AsError());
     }
 
     public static IHasTreeNodes AddSchemaVersionChangeViolations(
@@ -32,11 +32,11 @@ internal static class TreeNodeExtensions
         this IHasTreeNodes node,
         IInvalidGraphQLSchemaError error)
     {
-        var schemaErrorsNode = node.AddNode("Invalid GraphQL schema");
+        var schemaErrorsNode = node.AddErrorMessage("Invalid GraphQL schema");
 
-        foreach (var query in error.Errors)
+        foreach (var schemaError in error.Errors)
         {
-            schemaErrorsNode.AddNode($"[red]{query.Message.EscapeMarkup()}[/] [grey]{query.Code}[/]");
+            schemaErrorsNode.AddNode($"{schemaError.Message.AsError()} [dim]{schemaError.Code}[/]");
         }
 
         return node;
@@ -47,27 +47,9 @@ internal static class TreeNodeExtensions
         IPersistedQueryValidationError error)
     {
         var client = error.Client;
-        var clientNode = node.AddNode($"Client '{client?.Name.EscapeMarkup()}' (ID: {client?.Id})");
+        var clientNode = node.AddNode($"Client '{client?.Name.EscapeMarkup()}' [dim](ID: {client?.Id})[/]");
 
-        foreach (var operation in error.Queries)
-        {
-            var publishingInfo = operation.DeployedTags.Count > 0
-                ? $" (Deployed tags: {string.Join(",", operation.DeployedTags)})"
-                : "";
-
-            var operationNode = clientNode.AddNode($"Operation '{operation.Hash}'{publishingInfo}");
-
-            foreach (var err in operation.Errors)
-            {
-                var errorLocation = string.Empty;
-                if (err.Locations is { Count: > 0 } locations)
-                {
-                    errorLocation = $"({locations[0].Line}:{locations[0].Column})";
-                }
-
-                operationNode.AddNode($"{err.Message.EscapeMarkup()} {errorLocation}");
-            }
-        }
+        AddPersistedQueryValidationErrors(clientNode, error);
 
         return node;
     }
@@ -79,7 +61,7 @@ internal static class TreeNodeExtensions
         foreach (var operation in error.Queries)
         {
             var publishingInfo = operation.DeployedTags.Count > 0
-                ? $" (Deployed tags: {string.Join(",", operation.DeployedTags)})"
+                ? $" [dim](Deployed tags: {string.Join(",", operation.DeployedTags)})[/]"
                 : "";
 
             var operationNode = node.AddNode($"Operation '{operation.Hash}'{publishingInfo}");
@@ -89,10 +71,10 @@ internal static class TreeNodeExtensions
                 var errorLocation = string.Empty;
                 if (err.Locations is { Count: > 0 } locations)
                 {
-                    errorLocation = $"({locations[0].Line}:{locations[0].Column})";
+                    errorLocation = $" [dim]({locations[0].Line}:{locations[0].Column})[/]";
                 }
 
-                operationNode.AddNode($"{err.Message.EscapeMarkup()} {errorLocation}");
+                operationNode.AddNode(err.Message.AsError() + errorLocation);
             }
         }
 
@@ -107,7 +89,7 @@ internal static class TreeNodeExtensions
         {
             var openApiCollection = collectionError.OpenApiCollection;
             var collectionNode = node.AddNode(
-                $"OpenAPI collection '{openApiCollection?.Name.EscapeMarkup()}' (ID: {openApiCollection?.Id})");
+                $"OpenAPI collection '{openApiCollection?.Name.EscapeMarkup()}' [dim](ID: {openApiCollection?.Id})[/]");
 
             foreach (var entity in collectionError.Entities)
             {
@@ -120,14 +102,14 @@ internal static class TreeNodeExtensions
                         var errorLocation = string.Empty;
                         if (documentError.Locations is { Count: > 0 } locations)
                         {
-                            errorLocation = $"({locations[0].Line}:{locations[0].Column})";
+                            errorLocation = $" [dim]({locations[0].Line}:{locations[0].Column})[/]";
                         }
 
-                        entityNode.AddNode($"{documentError.Message.EscapeMarkup()} {errorLocation}");
+                        entityNode.AddNode(documentError.Message.AsError() + errorLocation);
                     }
                     else if (entityError is IOpenApiCollectionValidationEntityValidationError entityValidationError)
                     {
-                        entityNode.AddNode(entityValidationError.Message.EscapeMarkup());
+                        entityNode.AddErrorMessage(entityValidationError.Message);
                     }
                     else
                     {
@@ -158,7 +140,7 @@ internal static class TreeNodeExtensions
         {
             var mcpFeatureCollection = collectionError.McpFeatureCollection;
             var collectionNode = node.AddNode(
-                $"MCP Feature Collection '{mcpFeatureCollection?.Name.EscapeMarkup()}' (ID: {mcpFeatureCollection?.Id})");
+                $"MCP Feature Collection '{mcpFeatureCollection?.Name.EscapeMarkup()}' [dim](ID: {mcpFeatureCollection?.Id})[/]");
 
             foreach (var entity in collectionError.Entities)
             {
@@ -171,14 +153,14 @@ internal static class TreeNodeExtensions
                         var errorLocation = string.Empty;
                         if (documentError.Locations is { Count: > 0 } locations)
                         {
-                            errorLocation = $"({locations[0].Line}:{locations[0].Column})";
+                            errorLocation = $" [dim]({locations[0].Line}:{locations[0].Column})[/]";
                         }
 
-                        entityNode.AddNode($"{documentError.Message.EscapeMarkup()} {errorLocation}");
+                        entityNode.AddNode(documentError.Message.AsError() + errorLocation);
                     }
                     else if (entityError is IMcpFeatureCollectionValidationEntityValidationError entityValidationError)
                     {
-                        entityNode.AddNode(entityValidationError.Message.EscapeMarkup());
+                        entityNode.AddErrorMessage(entityValidationError.Message);
                     }
                     else
                     {

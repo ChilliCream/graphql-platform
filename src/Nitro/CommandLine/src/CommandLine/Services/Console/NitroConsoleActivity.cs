@@ -21,6 +21,10 @@ internal sealed class NitroConsoleActivity(
             ActivityUpdateKind.Success => Glyphs.Check.Space(),
             _ => ""
         };
+        if (kind == ActivityUpdateKind.Warning)
+        {
+            message = message.AsWarning();
+        }
         console.MarkupLine(prefix + "├── " + glyph + message);
     }
 
@@ -33,13 +37,17 @@ internal sealed class NitroConsoleActivity(
             ActivityUpdateKind.Success => Glyphs.Check.Space(),
             _ => ""
         };
+        if (kind == ActivityUpdateKind.Warning)
+        {
+            message = message.AsWarning();
+        }
         console.MarkupLine(prefix + "├── " + glyph + message);
         WriteIndented(details, prefix + "│   ");
     }
 
     public void Warning(string message)
     {
-        Complete(Glyphs.ExclamationMark.Space() + message);
+        Complete(Glyphs.ExclamationMark.Space() + message.AsWarning());
     }
 
     public void Success(string message)
@@ -49,7 +57,7 @@ internal sealed class NitroConsoleActivity(
 
     public void Fail(string message)
     {
-        Complete(Glyphs.Cross.Space() + message);
+        Complete(Glyphs.Cross.Space() + message.AsError());
     }
 
     public void Fail(IRenderable details)
@@ -59,7 +67,7 @@ internal sealed class NitroConsoleActivity(
             return;
         }
 
-        console.MarkupLine(prefix + "└── " + Glyphs.Cross.Space() + failureMessage);
+        console.MarkupLine(prefix + "└── " + Glyphs.Cross.Space() + failureMessage.AsError());
         WriteIndented(details, prefix + "    ");
         _completed = true;
     }
