@@ -91,7 +91,13 @@ internal sealed class ActivityTree : Renderable
 
         RenderIcon(segments, entry);
 
-        segments.Add(new Segment(entry.Text));
+        var textStyle = entry.State switch
+        {
+            ActivityState.Failed => new Style(Color.Red),
+            ActivityState.Warning => new Style(Color.Yellow),
+            _ => Style.Plain
+        };
+        segments.Add(new Segment(entry.Text, textStyle));
         segments.Add(Segment.LineBreak);
 
         for (var i = 0; i < entry.Children.Count; i++)

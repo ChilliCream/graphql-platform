@@ -12,7 +12,10 @@ internal sealed class NitroConsoleActivity(
 {
     private bool _completed;
 
-    public void Update(string message, ActivityUpdateKind kind = ActivityUpdateKind.Regular)
+    public void Update(
+        string message,
+        ActivityUpdateKind kind = ActivityUpdateKind.Regular,
+        IRenderable? details = null)
     {
         var glyph = kind switch
         {
@@ -21,25 +24,20 @@ internal sealed class NitroConsoleActivity(
             ActivityUpdateKind.Success => Glyphs.Check.Space(),
             _ => ""
         };
-        console.MarkupLine(prefix + "├── " + glyph + message);
-    }
-
-    public void Update(string message, IRenderable details, ActivityUpdateKind kind = ActivityUpdateKind.Regular)
-    {
-        var glyph = kind switch
+        if (kind == ActivityUpdateKind.Warning)
         {
-            ActivityUpdateKind.Warning => Glyphs.ExclamationMark.Space(),
-            ActivityUpdateKind.Waiting => Glyphs.Clock.Space(),
-            ActivityUpdateKind.Success => Glyphs.Check.Space(),
-            _ => ""
-        };
+            message = message.AsWarning();
+        }
         console.MarkupLine(prefix + "├── " + glyph + message);
-        WriteIndented(details, prefix + "│   ");
+        if (details is not null)
+        {
+            WriteIndented(details, prefix + "│   ");
+        }
     }
 
     public void Warning(string message)
     {
-        Complete(Glyphs.ExclamationMark.Space() + message);
+        Complete(Glyphs.ExclamationMark.Space() + message.AsWarning());
     }
 
     public void Success(string message)
@@ -49,7 +47,7 @@ internal sealed class NitroConsoleActivity(
 
     public void Fail(string message)
     {
-        Complete(Glyphs.Cross.Space() + message);
+        Complete(Glyphs.Cross.Space() + message.AsError());
     }
 
     public void Fail(IRenderable details)
@@ -59,7 +57,7 @@ internal sealed class NitroConsoleActivity(
             return;
         }
 
-        console.MarkupLine(prefix + "└── " + Glyphs.Cross.Space() + failureMessage);
+        console.MarkupLine(prefix + "└── " + Glyphs.Cross.Space() + failureMessage.AsError());
         WriteIndented(details, prefix + "    ");
         _completed = true;
     }
@@ -115,8 +113,15 @@ internal sealed class NitroConsoleActivity(
 
     private void WriteIndented(IRenderable renderable, string linePrefix)
     {
+        var availableWidth = console.Profile.Width - linePrefix.Length;
+
+        if (availableWidth <= 0)
+        {
+            return;
+        }
+
         var options = RenderOptions.Create(console, console.Profile.Capabilities);
-        var segments = renderable.Render(options, console.Profile.Width);
+        var segments = renderable.Render(options, availableWidth);
 
         var lineBuffer = new System.Text.StringBuilder();
 

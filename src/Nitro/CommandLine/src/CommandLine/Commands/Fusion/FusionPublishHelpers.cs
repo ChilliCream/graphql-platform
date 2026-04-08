@@ -276,7 +276,7 @@ internal static class FusionPublishHelpers
                             }
                         }
 
-                        activity.Update(Messages.ValidationFailed, errorTree, ActivityUpdateKind.Warning);
+                        activity.Update(Messages.ValidationFailed, ActivityUpdateKind.Warning, errorTree);
                     }
 
                     activity.Update(Messages.WaitingForApproval, ActivityUpdateKind.Waiting);
