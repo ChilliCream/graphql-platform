@@ -13,6 +13,7 @@ using ChilliCream.Nitro.Client.PersonalAccessTokens;
 using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.Client.Workspaces;
+using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -96,11 +97,11 @@ public abstract class CommandTestBase
 
         var outConsole = new TestConsole();
         outConsole.Profile.Out = new AnsiConsoleOutput(stdOutWriter);
-        outConsole.Profile.Width = 10_000;
+        outConsole.Profile.Width = Constants.DefaultPrintWidth;
 
         var errConsole = new TestConsole();
         errConsole.Profile.Out = new AnsiConsoleOutput(stdErrWriter);
-        errConsole.Profile.Width = 10_000;
+        errConsole.Profile.Width = Constants.DefaultPrintWidth;
 
         if (_interactionMode is InteractionMode.JsonOutput)
         {
@@ -153,12 +154,12 @@ public abstract class CommandTestBase
 
         var outConsole = new TestConsole();
         outConsole.Profile.Out = new AnsiConsoleOutput(stdOutWriter);
-        outConsole.Profile.Width = 10_000;
+        outConsole.Profile.Width = Constants.DefaultPrintWidth;
         outConsole.Profile.Capabilities.Interactive = true;
 
         var errConsole = new TestConsole();
         errConsole.Profile.Out = new AnsiConsoleOutput(stdErrWriter);
-        errConsole.Profile.Width = 10_000;
+        errConsole.Profile.Width = Constants.DefaultPrintWidth;
 
         var console = new NitroConsole(outConsole, errConsole, _environmentVariableProviderMock.Object);
         var services = BuildServices(console);

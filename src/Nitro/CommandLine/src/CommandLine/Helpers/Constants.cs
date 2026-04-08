@@ -2,6 +2,8 @@ namespace ChilliCream.Nitro.CommandLine.Helpers;
 
 internal static class Constants
 {
+    public const int DefaultPrintWidth = 1_000;
+
     // 5 Minutes
     public const int DefaultTimeoutSec = 60 * 5;
 

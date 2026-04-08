@@ -115,8 +115,15 @@ internal sealed class NitroConsoleActivity(
 
     private void WriteIndented(IRenderable renderable, string linePrefix)
     {
+        var availableWidth = console.Profile.Width - linePrefix.Length;
+
+        if (availableWidth <= 0)
+        {
+            return;
+        }
+
         var options = RenderOptions.Create(console, console.Profile.Capabilities);
-        var segments = renderable.Render(options, console.Profile.Width);
+        var segments = renderable.Render(options, availableWidth);
 
         var lineBuffer = new System.Text.StringBuilder();
 
