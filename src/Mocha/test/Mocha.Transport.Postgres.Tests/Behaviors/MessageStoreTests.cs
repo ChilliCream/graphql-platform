@@ -27,6 +27,7 @@ public class MessageStoreTests
             "{\"key\":\"value\"}"u8.ToArray(),
             """{"messageId":"msg-1"}"""u8.ToArray(),
             "test-queue",
+            null,
             CancellationToken.None);
 
         // assert
@@ -54,7 +55,7 @@ public class MessageStoreTests
         var consumerId = Guid.NewGuid();
         await RegisterConsumerAsync(db, consumerId);
 
-        await messageStore.SendAsync("{}"u8.ToArray(), null, "read-queue", CancellationToken.None);
+        await messageStore.SendAsync("{}"u8.ToArray(), null, "read-queue", null, CancellationToken.None);
 
         // act
         using var batch = await messageStore.ReadMessagesAsync(10, "read-queue", consumerId, CancellationToken.None);
@@ -76,7 +77,7 @@ public class MessageStoreTests
         var consumerId = Guid.NewGuid();
         await RegisterConsumerAsync(db, consumerId);
 
-        await messageStore.SendAsync("{}"u8.ToArray(), null, "del-queue", CancellationToken.None);
+        await messageStore.SendAsync("{}"u8.ToArray(), null, "del-queue", null, CancellationToken.None);
         using var batch = await messageStore.ReadMessagesAsync(10, "del-queue", consumerId, CancellationToken.None);
         var messageId = batch.Messages[0].TransportMessageId;
 
@@ -105,7 +106,7 @@ public class MessageStoreTests
         var consumerId = Guid.NewGuid();
         await RegisterConsumerAsync(db, consumerId);
 
-        await messageStore.SendAsync("{}"u8.ToArray(), null, "release-queue", CancellationToken.None);
+        await messageStore.SendAsync("{}"u8.ToArray(), null, "release-queue", null, CancellationToken.None);
         using var batch = await messageStore.ReadMessagesAsync(10, "release-queue", consumerId, CancellationToken.None);
         var messageId = batch.Messages[0].TransportMessageId;
 
@@ -134,7 +135,7 @@ public class MessageStoreTests
         var consumerId = Guid.NewGuid();
         await RegisterConsumerAsync(db, consumerId);
 
-        await messageStore.SendAsync("{}"u8.ToArray(), null, "error-queue", CancellationToken.None);
+        await messageStore.SendAsync("{}"u8.ToArray(), null, "error-queue", null, CancellationToken.None);
         using var batch = await messageStore.ReadMessagesAsync(10, "error-queue", consumerId, CancellationToken.None);
         var messageId = batch.Messages[0].TransportMessageId;
 
@@ -167,7 +168,7 @@ public class MessageStoreTests
         var consumerId = Guid.NewGuid();
         await RegisterConsumerAsync(db, consumerId);
 
-        await messageStore.SendAsync("{}"u8.ToArray(), null, "accum-queue", CancellationToken.None);
+        await messageStore.SendAsync("{}"u8.ToArray(), null, "accum-queue", null, CancellationToken.None);
         using var batch = await messageStore.ReadMessagesAsync(10, "accum-queue", consumerId, CancellationToken.None);
         var messageId = batch.Messages[0].TransportMessageId;
 
@@ -207,7 +208,7 @@ public class MessageStoreTests
         await CreateSubscriptionAsync(db, "events", "sub-2");
 
         // act
-        await messageStore.PublishAsync("{}"u8.ToArray(), null, "events", CancellationToken.None);
+        await messageStore.PublishAsync("{}"u8.ToArray(), null, "events", null, CancellationToken.None);
 
         // assert
         await using var conn = new NpgsqlConnection(db.ConnectionString);
@@ -230,7 +231,7 @@ public class MessageStoreTests
         var consumerId = Guid.NewGuid();
         await RegisterConsumerAsync(db, consumerId);
 
-        await messageStore.SendAsync("{}"u8.ToArray(), null, "maxdc-queue", CancellationToken.None);
+        await messageStore.SendAsync("{}"u8.ToArray(), null, "maxdc-queue", null, CancellationToken.None);
 
         // act
         using var batch = await messageStore.ReadMessagesAsync(10, "maxdc-queue", consumerId, CancellationToken.None);
@@ -266,7 +267,7 @@ public class MessageStoreTests
         await CreateTopicAsync(db, "lonely-topic");
 
         // act
-        await messageStore.PublishAsync("{}"u8.ToArray(), null, "lonely-topic", CancellationToken.None);
+        await messageStore.PublishAsync("{}"u8.ToArray(), null, "lonely-topic", null, CancellationToken.None);
 
         // assert
         await using var conn = new NpgsqlConnection(db.ConnectionString);
@@ -291,7 +292,7 @@ public class MessageStoreTests
         await RegisterConsumerAsync(db, consumer1);
         await RegisterConsumerAsync(db, consumer2);
 
-        await messageStore.SendAsync("{}"u8.ToArray(), null, "lock-queue", CancellationToken.None);
+        await messageStore.SendAsync("{}"u8.ToArray(), null, "lock-queue", null, CancellationToken.None);
 
         // act - consumer 1 reads the message (locks it)
         using var batch1 = await messageStore.ReadMessagesAsync(10, "lock-queue", consumer1, CancellationToken.None);
@@ -315,7 +316,7 @@ public class MessageStoreTests
         var consumerId = Guid.NewGuid();
         await RegisterConsumerAsync(db, consumerId);
 
-        await messageStore.SendAsync("{}"u8.ToArray(), null, "exceed-queue", CancellationToken.None);
+        await messageStore.SendAsync("{}"u8.ToArray(), null, "exceed-queue", null, CancellationToken.None);
 
         // Set max_delivery_count to 1 so first read exceeds it
         await using (var conn = new NpgsqlConnection(db.ConnectionString))
@@ -348,7 +349,7 @@ public class MessageStoreTests
 
         for (var i = 0; i < 5; i++)
         {
-            await messageStore.SendAsync("{}"u8.ToArray(), null, "batch-queue", CancellationToken.None);
+            await messageStore.SendAsync("{}"u8.ToArray(), null, "batch-queue", null, CancellationToken.None);
         }
 
         // act - read only 2
@@ -370,7 +371,7 @@ public class MessageStoreTests
         var consumerId = Guid.NewGuid();
         await RegisterConsumerAsync(db, consumerId);
 
-        await messageStore.SendAsync("{}"u8.ToArray(), null, "redeliver-queue", CancellationToken.None);
+        await messageStore.SendAsync("{}"u8.ToArray(), null, "redeliver-queue", null, CancellationToken.None);
 
         // first read
         using var batch1 = await messageStore.ReadMessagesAsync(
@@ -416,7 +417,7 @@ public class MessageStoreTests
         var (connectionManager, messageStore) = await CreateStoreAsync(db);
         await CreateQueueAsync(db, "future-queue");
 
-        await messageStore.SendAsync("{}"u8.ToArray(), null, "future-queue", CancellationToken.None);
+        await messageStore.SendAsync("{}"u8.ToArray(), null, "future-queue", null, CancellationToken.None);
 
         // Set a future scheduled_time
         var scheduledTime = DateTime.UtcNow.AddMinutes(5);

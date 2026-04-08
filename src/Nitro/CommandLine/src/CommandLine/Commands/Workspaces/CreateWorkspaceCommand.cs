@@ -1,12 +1,11 @@
-using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces.Options;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
+using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Workspaces;
 
@@ -15,71 +14,85 @@ internal sealed class CreateWorkspaceCommand : Command
     public CreateWorkspaceCommand() : base("create")
     {
         Description =
-            "Creates a new workspace";
+            "Create a new workspace.";
 
-        AddOption(Opt<SetAsDefaultWorkspaceOption>.Instance);
-        AddOption(Opt<WorkspaceNameOption>.Instance);
+        Options.Add(Opt<WorkspaceNameOption>.Instance);
+        Options.Add(Opt<SetAsDefaultWorkspaceOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Bind.FromServiceProvider<ISessionService>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples("workspace create --name \"my-workspace\"");
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
-    public static async Task<int> ExecuteAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
-        ISessionService sessionService,
+    private static async Task<int> ExecuteAsync(
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken ct)
     {
-        console.WriteLine();
-        console.WriteLine("Creating a workspace");
-        console.WriteLine();
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IWorkspacesClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        var name = await context.OptionOrAskAsync("Name", Opt<WorkspaceNameOption>.Instance, ct);
+        parseResult.AssertHasAuthentication(sessionService);
 
-        var asDefault = false;
-        var session = sessionService.Session;
+        var name = await console
+            .PromptAsync("Name", defaultValue: null, parseResult, Opt<WorkspaceNameOption>.Instance, ct);
 
-        if (console.IsHumanReadable() && session is not null)
-        {
-            asDefault = await context.OptionOrConfirmAsync(
-                "Set as default workspace",
+        var asDefault = await console
+            .ConfirmAsync(
+                parseResult,
                 Opt<SetAsDefaultWorkspaceOption>.Instance,
+                "Set as default workspace?",
                 ct);
-        }
 
-        var input = new CreateWorkspaceInput { Name = name };
-        var result =
-            await client.CreateWorkspaceCommandMutation.ExecuteAsync(input, ct);
-
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        console.PrintErrorsAndExit(data.CreateWorkspace.Errors);
-
-        if (data.CreateWorkspace.Workspace is not { } createdWorkspace)
+        await using (var activity = console.StartActivity(
+            $"Creating workspace '{name.EscapeMarkup()}'",
+            "Failed to create the workspace."))
         {
-            throw new ExitException("Could not create workspace.");
+            var createdWorkspace = await client.CreateWorkspaceAsync(name, ct);
+
+            if (createdWorkspace.Errors?.Count > 0)
+            {
+                activity.Fail();
+
+                foreach (var error in createdWorkspace.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        IUnauthorizedOperation err => err.Message,
+                        IValidationError err => err.Message,
+                        IError err => Messages.UnexpectedMutationError(err),
+                        _ => Messages.UnexpectedMutationError()
+                    };
+
+                    console.Error.WriteErrorLine(errorMessage);
+                }
+
+                return ExitCodes.Error;
+            }
+
+            if (createdWorkspace.Workspace is not IWorkspaceDetailPrompt_Workspace workspaceDetail)
+            {
+                throw MutationReturnedNoData();
+            }
+
+            activity.Success($"Created workspace '{name.EscapeMarkup()}'.");
+
+            resultHolder.SetResult(new ObjectResult(WorkspaceDetailPrompt.From(workspaceDetail).ToObject()));
+
+            if (asDefault)
+            {
+                var workspace = new Workspace(workspaceDetail.Id, workspaceDetail.Name);
+
+                await sessionService.SelectWorkspaceAsync(workspace, ct);
+
+                console.WriteLine($"{workspaceDetail.Name.EscapeMarkup()} set as default workspace");
+            }
+
+            return ExitCodes.Success;
         }
-
-        console.OkLine($"Workspace {createdWorkspace.Name.AsHighlight()} created");
-
-        context.SetResult(WorkspaceDetailPrompt.From(result.Data!.CreateWorkspace.Workspace!)
-            .ToObject());
-
-        if (asDefault)
-        {
-            var workspace = new Workspace(createdWorkspace.Id, createdWorkspace.Name);
-
-            await sessionService.SelectWorkspaceAsync(workspace, ct);
-
-            console.OkLine($"{createdWorkspace.Name.AsHighlight()} set as default workspace");
-        }
-
-        return ExitCodes.Success;
     }
 }

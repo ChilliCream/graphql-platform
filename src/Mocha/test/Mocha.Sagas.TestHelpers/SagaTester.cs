@@ -73,8 +73,8 @@ public sealed class SagaTester<T> where T : SagaStateBase
             ResponseAddress = new Uri($"queue://test/{SagaTester.Defaults.ReplyEndpoint}")
         };
 
-        context.Features.GetOrSet<MessageParsingFeature>().Message = @event;
-        context.Features.GetOrSet<SagaFeature>().Store = Store;
+        context.Features.Configure<MessageParsingFeature>(f => f.Message = @event);
+        context.Features.Configure<SagaFeature>(f => f.Store = Store);
 
         if (State != null)
         {

@@ -12,12 +12,10 @@ internal sealed class PersonalAccessTokenCommand : Command
 {
     public PersonalAccessTokenCommand() : base("pat")
     {
-        Description = "Manage personal access tokens";
+        Description = "Manage personal access tokens.";
 
-        this.AddNitroCloudDefaultOptions();
-
-        AddCommand(new CreatePersonalAccessTokenCommand());
-        AddCommand(new RevokePersonalAccessTokenCommand());
-        AddCommand(new ListPersonalAccessTokenCommand());
+        Subcommands.Add(new CreatePersonalAccessTokenCommand());
+        Subcommands.Add(new RevokePersonalAccessTokenCommand());
+        Subcommands.Add(new ListPersonalAccessTokenCommand());
     }
 }

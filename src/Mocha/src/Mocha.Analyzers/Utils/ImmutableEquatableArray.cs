@@ -18,7 +18,7 @@ public sealed class ImmutableEquatableArray<T> : IEquatable<ImmutableEquatableAr
     /// <summary>
     /// Gets an empty <see cref="ImmutableEquatableArray{T}"/>.
     /// </summary>
-    public static ImmutableEquatableArray<T> Empty { get; } = new(ImmutableArray.Create<T>());
+    public static ImmutableEquatableArray<T> Empty { get; } = new([]);
 
     private readonly ImmutableArray<T> _values;
 

@@ -66,6 +66,7 @@ public static class Extensions
                 tracing
                     .AddSource(builder.Environment.ApplicationName)
                     .AddSource("Mocha")
+                    .AddSource("Mocha.*")
                     .AddAspNetCoreInstrumentation(tracing =>
                         // Exclude health check requests from tracing
                         tracing.Filter = context =>

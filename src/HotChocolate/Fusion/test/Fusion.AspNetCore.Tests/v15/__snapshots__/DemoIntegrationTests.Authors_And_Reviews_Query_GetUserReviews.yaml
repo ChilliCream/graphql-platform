@@ -116,6 +116,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query GetUser_6e80578a_1 {
               users {
@@ -145,6 +146,7 @@ sourceSchemas:
                 }
               }
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
             query GetUser_6e80578a_3(
               $__fusion_2_id: ID!
@@ -306,6 +308,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
             query GetUser_6e80578a_2(
               $__fusion_1_id: ID!

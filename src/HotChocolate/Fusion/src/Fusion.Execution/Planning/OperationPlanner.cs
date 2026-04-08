@@ -199,7 +199,8 @@ public sealed partial class OperationPlanner
                 planSteps,
                 searchSpace,
                 expandedNodes,
-                deferredGroups);
+                deferredGroups,
+                cancellationToken);
 
             if (eventSourceEnabled)
             {
@@ -252,7 +253,7 @@ public sealed partial class OperationPlanner
         // that are already worse. If it cannot finish a full plan, it returns null and the planner
         // continues without that early shortcut.
         var bestCompletePlan = TryBuildGreedyCompletePlan(possiblePlans, cancellationToken);
-        var bestCompletePlanCost = bestCompletePlan is null ? double.PositiveInfinity : bestCompletePlan.PathCost;
+        var bestCompletePlanCost = bestCompletePlan?.PathCost ?? double.PositiveInfinity;
 
         while (possiblePlans.TryDequeue(out var current, out _))
         {
@@ -490,6 +491,7 @@ public sealed partial class OperationPlanner
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
             var backlog = current.Backlog;
 
             if (backlog.IsEmpty)
@@ -917,6 +919,46 @@ public sealed partial class OperationPlanner
             if (selectionSet is null)
             {
                 break;
+            }
+        }
+
+        // Fallback: if no candidate step was found via exact selection set ID match,
+        // walk the internal operation AST to find the nearest ancestor step and the
+        // correct wrapping structure (preserving inline fragments with directives).
+        if (selectionSet is not null
+            && TryFindAncestorStepForRequirement(
+                internalOperation,
+                steps,
+                index,
+                workItemSelectionSet.Id) is { } ancestorMatch
+            && processed.Add(ancestorMatch.Step.SchemaName!)
+            && !lookup.SchemaName.Equals(ancestorMatch.Step.SchemaName))
+        {
+            if (TryInlineIntoAncestorStep(
+                ancestorMatch,
+                selectionSet,
+                workItemSelectionSet.Path,
+                lookupStepId,
+                index,
+                ref steps,
+                out var unresolvable))
+            {
+                selectionSet = null;
+
+                if (!unresolvable.IsEmpty)
+                {
+                    var top = unresolvable.Peek();
+                    if (top.SelectionSet.Id == ancestorMatch.SelectionSetId)
+                    {
+                        unresolvable = unresolvable.Pop(out top);
+                        selectionSet = top.SelectionSet.Node;
+                    }
+
+                    backlog = backlog.PushUnresolvable(
+                        unresolvable,
+                        current.SchemaName,
+                        GetOperationStepDepth(current, ancestorMatch.Step.Id));
+                }
             }
         }
 
@@ -1777,6 +1819,50 @@ public sealed partial class OperationPlanner
             }
         }
 
+        // Fallback: if no candidate step was found via exact selection set ID match,
+        // walk the internal operation AST to find the nearest ancestor step and the
+        // correct wrapping structure (preserving inline fragments with directives).
+        if (requirements is not null
+            && TryFindAncestorStepForRequirement(
+                current.InternalOperationDefinition,
+                steps,
+                index,
+                workItem.Selection.SelectionSetId) is { } ancestorMatch
+            && currentStep.Id != ancestorMatch.Step.Id
+            && !ancestorMatch.Step.DependsOn(currentStep, steps))
+        {
+            if (TryInlineIntoAncestorStep(
+                ancestorMatch, requirements, workItem.Selection.Path,
+                workItem.StepId, index, ref steps, out var unresolvable,
+                resolvableRegistrationId: workItem.Selection.SelectionSetId))
+            {
+                requirements = null;
+
+                if (!unresolvable.IsEmpty)
+                {
+                    var top = unresolvable.Peek();
+                    if (top.SelectionSet.Id == workItem.Selection.SelectionSetId)
+                    {
+                        unresolvable = unresolvable.Pop(out top);
+                        requirements = top.SelectionSet.Node;
+                    }
+
+                    foreach (var entry in unresolvable.Reverse())
+                    {
+                        backlog = backlog.Push(
+                            new OperationWorkItem(
+                                OperationWorkItemKind.Lookup,
+                                entry.SelectionSet,
+                                FromSchema: current.SchemaName)
+                            {
+                                ParentDepth = GetOperationStepDepth(current, ancestorMatch.Step.Id),
+                                Conditions = entry.Conditions
+                            });
+                    }
+                }
+            }
+        }
+
         return requirements;
     }
 
@@ -2028,6 +2114,248 @@ public sealed partial class OperationPlanner
 
         return false;
     }
+
+    private AncestorStepMatch? TryFindAncestorStepForRequirement(
+        OperationDefinitionNode internalOperation,
+        ImmutableList<PlanStep> steps,
+        SelectionSetIndexBuilder index,
+        uint targetSelectionSetId)
+    {
+        // Walk the internal operation AST depth-first, tracking:
+        // - A stack of (SelectionSetNode, ISelectionNode?, ITypeDefinition) from root to current
+        // - The current type at each level
+        var path = new List<(SelectionSetNode SelectionSet, ISelectionNode? ConnectingNode, ITypeDefinition Type)>();
+        var rootType = _schema.GetOperationType(internalOperation.Operation);
+
+        return WalkSelectionSet(
+            internalOperation.SelectionSet, rootType, path,
+            _schema, steps, index, targetSelectionSetId);
+
+        static AncestorStepMatch? WalkSelectionSet(
+            SelectionSetNode selectionSet,
+            ITypeDefinition currentType,
+            List<(SelectionSetNode SelectionSet, ISelectionNode? ConnectingNode, ITypeDefinition Type)> path,
+            FusionSchemaDefinition schema,
+            ImmutableList<PlanStep> steps,
+            SelectionSetIndexBuilder index,
+            uint targetSelectionSetId)
+        {
+            var selectionSetId = index.GetId(selectionSet);
+
+            if (selectionSetId == targetSelectionSetId)
+            {
+                // Found the target. Trace back to find the deepest ancestor SS ID
+                // that exists in any step's SelectionSets.
+                for (var i = path.Count - 1; i >= 0; i--)
+                {
+                    var entry = path[i];
+
+                    // If a FieldNode is the connecting node, this is a different nesting level
+                    if (entry.ConnectingNode is FieldNode)
+                    {
+                        continue;
+                    }
+
+                    var candidateSelectionSetId = index.GetId(entry.SelectionSet);
+
+                    for (var s = 0; s < steps.Count; s++)
+                    {
+                        if (steps[s] is OperationPlanStep step
+                            && step.SelectionSets.Contains(candidateSelectionSetId)
+                            && !string.IsNullOrEmpty(step.SchemaName))
+                        {
+                            // Collect intermediate InlineFragmentNodes between ancestor and target
+                            var ancestorFragments = new List<InlineFragmentNode>();
+                            for (var j = i + 1; j < path.Count; j++)
+                            {
+                                if (path[j].ConnectingNode is InlineFragmentNode fragment)
+                                {
+                                    ancestorFragments.Add(fragment);
+                                }
+                            }
+
+                            return new AncestorStepMatch(step, s, candidateSelectionSetId, entry.Type, ancestorFragments);
+                        }
+                    }
+                }
+
+                return null;
+            }
+
+            foreach (var selection in selectionSet.Selections)
+            {
+                switch (selection)
+                {
+                    case FieldNode { SelectionSet: not null } fieldNode:
+                        if (currentType is FusionComplexTypeDefinition complexType
+                            && complexType.Fields.TryGetField(
+                                fieldNode.Name.Value,
+                                allowInaccessibleFields: true,
+                                out var field))
+                        {
+                            var fieldType = field.Type.NamedType();
+                            path.Add((selectionSet, fieldNode, currentType));
+                            var result = WalkSelectionSet(
+                                fieldNode.SelectionSet, fieldType, path,
+                                schema, steps, index, targetSelectionSetId);
+                            if (result is not null)
+                            {
+                                return result;
+                            }
+                            path.RemoveAt(path.Count - 1);
+                        }
+                        break;
+
+                    case InlineFragmentNode inlineFragment:
+                        var fragmentType = inlineFragment.TypeCondition is not null
+                            ? schema.Types[inlineFragment.TypeCondition.Name.Value]
+                            : currentType;
+
+                        path.Add((selectionSet, inlineFragment, currentType));
+                        var fragmentResult = WalkSelectionSet(
+                            inlineFragment.SelectionSet, fragmentType, path,
+                            schema, steps, index, targetSelectionSetId);
+                        if (fragmentResult is not null)
+                        {
+                            return fragmentResult;
+                        }
+                        path.RemoveAt(path.Count - 1);
+                        break;
+                }
+            }
+
+            return null;
+        }
+    }
+
+    private bool TryInlineIntoAncestorStep(
+        AncestorStepMatch match,
+        SelectionSetNode requirements,
+        SelectionPath path,
+        int dependentStepId,
+        SelectionSetIndexBuilder index,
+        ref ImmutableList<PlanStep> steps,
+        out ImmutableStack<ConditionedSelectionSet> unresolvable,
+        uint? resolvableRegistrationId = null)
+    {
+        unresolvable = ImmutableStack<ConditionedSelectionSet>.Empty;
+
+        var wrappedSelections = WrapSelectionsInFragments(match.AncestorFragments, requirements);
+
+        // Register the wrapped selection set nodes in the index before partitioning,
+        // so the partitioner can resolve their IDs via GetId.
+        if (wrappedSelections != requirements)
+        {
+            index.Register(match.SelectionSetId, wrappedSelections);
+            EnsureAllSelectionSetsRegistered(wrappedSelections, index);
+        }
+
+        var input = new SelectionSetPartitionerInput
+        {
+            SchemaName = match.Step.SchemaName!,
+            SelectionSet = new SelectionSet(
+                match.SelectionSetId,
+                wrappedSelections,
+                match.Type,
+                path),
+            SelectionSetIndex = index
+        };
+
+        var (resolvable, partitionUnresolvable, _, _) = _partitioner.Partition(input);
+
+        if (resolvable is not { Selections.Count: > 0 })
+        {
+            return false;
+        }
+
+        if (resolvableRegistrationId is { } registrationId && resolvable != requirements)
+        {
+            index.Register(registrationId, resolvable);
+        }
+
+        var operation = InlineSelections(
+            match.Step.Definition,
+            index,
+            match.Type,
+            match.SelectionSetId,
+            resolvable);
+
+        EnsureAllSelectionSetsRegistered(operation.SelectionSet, index);
+
+        var updatedStep = match.Step with
+        {
+            Definition = operation,
+            SelectionSets = SelectionSetIndexer.CreateIdSet(operation.SelectionSet, index),
+            Dependents = match.Step.Dependents.Add(dependentStepId)
+        };
+
+        steps = steps.SetItem(match.StepIndex, updatedStep);
+        unresolvable = partitionUnresolvable;
+
+        return true;
+    }
+
+    private static SelectionSetNode WrapSelectionsInFragments(
+        List<InlineFragmentNode> ancestorFragments,
+        SelectionSetNode requirements)
+    {
+        var current = requirements;
+
+        for (var i = ancestorFragments.Count - 1; i >= 0; i--)
+        {
+            var wrapper = ancestorFragments[i];
+            current = new SelectionSetNode(
+            [
+                new InlineFragmentNode(
+                    null,
+                    wrapper.TypeCondition,
+                    wrapper.Directives,
+                    current)
+            ]);
+        }
+
+        return current;
+    }
+
+    private static void EnsureAllSelectionSetsRegistered(
+        SelectionSetNode selectionSet,
+        SelectionSetIndexBuilder index)
+    {
+        var stack = new List<SelectionSetNode>();
+        stack.Add(selectionSet);
+
+        while (stack.Count > 0)
+        {
+            var current = stack[^1];
+            stack.RemoveAt(stack.Count - 1);
+
+            if (!index.IsRegistered(current))
+            {
+                index.Register(current);
+            }
+
+            foreach (var selection in current.Selections)
+            {
+                switch (selection)
+                {
+                    case FieldNode { SelectionSet: { } fieldSelectionSet }:
+                        stack.Add(fieldSelectionSet);
+                        break;
+
+                    case InlineFragmentNode { SelectionSet: { } fragmentSelectionSet }:
+                        stack.Add(fragmentSelectionSet);
+                        break;
+                }
+            }
+        }
+    }
+
+    private readonly record struct AncestorStepMatch(
+        OperationPlanStep Step,
+        int StepIndex,
+        uint SelectionSetId,
+        ITypeDefinition Type,
+        List<InlineFragmentNode> AncestorFragments);
 
     private readonly record struct PlanResult(
         OperationDefinitionNode InternalOperationDefinition,

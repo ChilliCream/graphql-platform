@@ -4,13 +4,13 @@ namespace HotChocolate.Fusion.Execution.Clients;
 
 internal sealed class DefaultSourceSchemaClientScopeFactory : ISourceSchemaClientScopeFactory
 {
-    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ISourceSchemaClientFactory[] _clientFactories;
 
-    public DefaultSourceSchemaClientScopeFactory(IHttpClientFactory httpClientFactory)
+    public DefaultSourceSchemaClientScopeFactory(ISourceSchemaClientFactory[] clientFactories)
     {
-        ArgumentNullException.ThrowIfNull(httpClientFactory);
+        ArgumentNullException.ThrowIfNull(clientFactories);
 
-        _httpClientFactory = httpClientFactory;
+        _clientFactories = clientFactories;
     }
 
     public ISourceSchemaClientScope CreateScope(ISchemaDefinition schemaDefinition)
@@ -24,6 +24,6 @@ internal sealed class DefaultSourceSchemaClientScopeFactory : ISourceSchemaClien
                 nameof(schemaDefinition));
         }
 
-        return new DefaultSourceSchemaClientScope(schema, _httpClientFactory);
+        return new DefaultSourceSchemaClientScope(schema, _clientFactories);
     }
 }

@@ -73,6 +73,7 @@
   </Folder>
   <Folder Name="/HotChocolate/Caching/" />
   <Folder Name="/HotChocolate/Caching/src/">
+    <Project Path="HotChocolate/Caching/src/Caching.Core/HotChocolate.Caching.Core.csproj" />
     <Project Path="HotChocolate/Caching/src/Caching.Memory/HotChocolate.Caching.Memory.csproj" />
     <Project Path="HotChocolate/Caching/src/Caching/HotChocolate.Caching.csproj" />
   </Folder>
@@ -213,8 +214,10 @@
     <Project Path="HotChocolate/Fusion/src/Fusion.Aspire/HotChocolate.Fusion.Aspire.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.AspNetCore/HotChocolate.Fusion.AspNetCore.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.Composition/HotChocolate.Fusion.Composition.csproj" />
+    <Project Path="HotChocolate/Fusion/src/Fusion.Caching/HotChocolate.Fusion.Caching.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.Diagnostics/HotChocolate.Fusion.Diagnostics.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.Execution.Types/HotChocolate.Fusion.Execution.Types.csproj" />
+    <Project Path="HotChocolate/Fusion/src/Fusion.Connectors.InMemory/HotChocolate.Fusion.Connectors.InMemory.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.Execution/HotChocolate.Fusion.Execution.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.Language/HotChocolate.Fusion.Language.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.Packaging/HotChocolate.Fusion.Packaging.csproj" />
@@ -224,6 +227,8 @@
   <Folder Name="/HotChocolate/Fusion/test/">
     <Project Path="HotChocolate/Fusion/test/Fusion.AspNetCore.Tests/HotChocolate.Fusion.AspNetCore.Tests.csproj" />
     <Project Path="HotChocolate/Fusion/test/Fusion.Composition.Tests/HotChocolate.Fusion.Composition.Tests.csproj" />
+    <Project Path="HotChocolate/Fusion/test/Fusion.Connectors.InMemory.Tests/HotChocolate.Fusion.Connectors.InMemory.Tests.csproj" />
+    <Project Path="HotChocolate/Fusion/test/Fusion.Caching.Tests/HotChocolate.Fusion.Caching.Tests.csproj" />
     <Project Path="HotChocolate/Fusion/test/Fusion.Diagnostics.Tests/HotChocolate.Fusion.Diagnostics.Tests.csproj" />
     <Project Path="HotChocolate/Fusion/test/Fusion.EventSources.Tests/HotChocolate.Fusion.EventSources.Tests.csproj" />
     <Project Path="HotChocolate/Fusion/test/Fusion.Execution.Tests/HotChocolate.Fusion.Execution.Tests.csproj" />
@@ -384,6 +389,7 @@
   <Folder Name="/Nitro/CommandLine/" />
   <Folder Name="/Nitro/CommandLine/src/">
     <Project Path="Nitro/CommandLine/src/CommandLine/Nitro.CommandLine.csproj" />
+    <Project Path="Nitro/CommandLine/src/ChilliCream.Nitro.Client/ChilliCream.Nitro.Client.csproj" />
     <Project Path="Nitro/CommandLine/src/CommandLine.FusionCompatibility/Nitro.CommandLine.FusionCompatibility.csproj" />
   </Folder>
   <Folder Name="/Nitro/CommandLine/test/">

@@ -204,6 +204,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Large_62d57bc0_1 {
               users {
@@ -237,6 +238,7 @@ sourceSchemas:
                 }
               }
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
             query Large_62d57bc0_5(
               $__fusion_4_id: ID!
@@ -408,6 +410,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
             query Large_62d57bc0_2(
               $__fusion_1_id: ID!
@@ -596,6 +599,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
             query Large_62d57bc0_4(
               $__fusion_3_id: ID!
@@ -737,6 +741,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
             query Large_62d57bc0_3(
               $__fusion_2_id: ID!

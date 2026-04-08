@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Mocha.Features;
 
@@ -213,8 +214,7 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
 
     /// <inheritdoc />
     /// <exception cref="InvalidOperationException">Thrown when the saga has not been initialized.</exception>
-    public override IReadOnlyDictionary<string, SagaState> States
-        => _states ?? throw ThrowHelper.SagaNotInitialized();
+    public override IReadOnlyDictionary<string, SagaState> States => _states ?? throw ThrowHelper.SagaNotInitialized();
 
     /// <inheritdoc />
     public override Type StateType => typeof(TState);
@@ -237,7 +237,7 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
 
         var @event = context.GetMessage();
 
-        using var _ = OpenTelemetry.Source.StartActivity($"Processing {Name}: {@event!.GetType().Name}");
+        using var _ = OpenTelemetry.Source.StartActivity($"{Name} process {@event!.GetType().Name}");
 
         TState? state;
         if (context.TryGetSagaId(@event, out var correlationId))
@@ -257,6 +257,23 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
             _logger!.CreatedSagaState(Name, state.Id);
 
             await OnEnterStateAsync(state, _initialState, context);
+
+            // Schedule timeout if configured
+            if (Configuration.Timeout is { } timeout)
+            {
+                var bus = context.GetBus();
+
+                var timeProvider = context.Services.GetService<TimeProvider>() ?? TimeProvider.System;
+
+                var scheduledTime = timeProvider.GetUtcNow().Add(timeout);
+
+                var result = await bus.ScheduleSendAsync(new SagaTimedOutEvent(state.Id), scheduledTime, ct);
+
+                if (result.Token is not null)
+                {
+                    state.TimeoutToken = result.Token;
+                }
+            }
         }
 
         await OnHandleTransitionAsync(state, @event, context);
@@ -272,7 +289,7 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
             }
         }
 
-        using var __ = OpenTelemetry.Source.StartActivity("persist saga state");
+        using var __ = OpenTelemetry.Source.StartActivity($"{Name} persist");
 
         await context.GetSagaFeature().Store.SaveAsync(this, state, ct);
 
@@ -294,7 +311,7 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
     {
         var eventType = @event.GetType();
 
-        using var _ = OpenTelemetry.Source.StartActivity($"Creating Saga by event {eventType.Name}");
+        using var _ = OpenTelemetry.Source.StartActivity($"{Name} create {eventType.Name}");
 
         if (!_initialState.Transitions.TryGetValue(eventType, out var transition))
         {
@@ -345,7 +362,7 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
 
         var currentState = GetCurrentState(state);
 
-        using var _ = OpenTelemetry.Source.StartActivity($"Handle {eventType.Name} in {currentState.State}");
+        using var _ = OpenTelemetry.Source.StartActivity($"{Name} transition {eventType.Name}");
 
         var firstEvent = eventType;
         SagaTransition? transition;
@@ -383,7 +400,7 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
     /// <param name="context">The consume context providing runtime services and cancellation.</param>
     protected virtual async Task OnEnterStateAsync(TState state, SagaState nextState, IConsumeContext context)
     {
-        using var _ = OpenTelemetry.Source.StartActivity($"Enter {nextState.State}");
+        using var _ = OpenTelemetry.Source.StartActivity($"{Name} enter {nextState.State}");
 
         var ct = context.CancellationToken;
 
@@ -397,12 +414,24 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
 
         if (nextState.IsFinal)
         {
+            if (state.TimeoutToken is { } timeoutToken)
+            {
+                try
+                {
+                    await context.GetBus().CancelScheduledMessageAsync(timeoutToken, ct);
+                }
+                catch (Exception ex)
+                {
+                    _logger?.FailedToCancelScheduledMessage(ex, timeoutToken, Name!, state.Id);
+                }
+            }
+
             if (nextState.Response is not null
                 && state.Metadata.TryGet(SagaContextData.ReplyAddress, out var replyTo)
                 && state.Metadata.TryGet(SagaContextData.CorrelationId, out var correlationId)
                 && Uri.TryCreate(replyTo, UriKind.Absolute, out var replyAddress))
             {
-                using var __ = OpenTelemetry.Source.StartActivity($"Reply to {replyTo}");
+                using var __ = OpenTelemetry.Source.StartActivity($"{Name} reply");
 
                 var response = nextState.Response.Factory(state);
 
@@ -602,4 +631,12 @@ internal static partial class Logs
 
     [LoggerMessage(LogLevel.Information, "Saga completed {SagaName} {SagaId}")]
     public static partial void SagaCompleted(this ILogger logger, string sagaName, Guid sagaId);
+
+    [LoggerMessage(LogLevel.Warning, "Failed to cancel scheduled message {Token} for saga {SagaName} ({SagaId})")]
+    public static partial void FailedToCancelScheduledMessage(
+        this ILogger logger,
+        Exception ex,
+        string token,
+        string sagaName,
+        Guid sagaId);
 }

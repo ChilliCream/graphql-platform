@@ -1,11 +1,12 @@
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
+using ChilliCream.Nitro.CommandLine.Helpers;
 using static System.Environment.SpecialFolder;
 using static System.Environment.SpecialFolderOption;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Configuration;
 
-internal class ConfigurationService : IConfigurationService
+internal class ConfigurationService(IFileSystem fileSystem) : IConfigurationService
 {
     private static readonly string s_configFolder =
         Path.Combine(Environment.GetFolderPath(ApplicationData, Create), "nitro");
@@ -20,11 +21,11 @@ internal class ConfigurationService : IConfigurationService
             var config = default(T);
 
             var configFile = Path.Combine(s_configFolder, T.FileName);
-            if (File.Exists(configFile))
+            if (fileSystem.FileExists(configFile))
             {
                 try
                 {
-                    await using var stream = File.OpenRead(configFile);
+                    await using var stream = fileSystem.OpenReadStream(configFile);
 
                     config = await JsonSerializer
                         .DeserializeAsync(
@@ -67,8 +68,8 @@ internal class ConfigurationService : IConfigurationService
             await EnsureConfigFile<T>(cancellationToken);
 
             var configFile = Path.Combine(s_configFolder, T.FileName);
-            File.Delete(configFile);
-            await using var stream = File.OpenWrite(configFile);
+            fileSystem.DeleteFile(configFile);
+            await using var stream = fileSystem.CreateFile(configFile);
 
             await JsonSerializer.SerializeAsync(
                 stream,
@@ -86,26 +87,26 @@ internal class ConfigurationService : IConfigurationService
     public Task ResetAsync<T>(CancellationToken cancellationToken) where T : IConfigurationFile
     {
         var configFile = Path.Combine(s_configFolder, T.FileName);
-        if (File.Exists(configFile))
+        if (fileSystem.FileExists(configFile))
         {
-            File.Delete(configFile);
+            fileSystem.DeleteFile(configFile);
         }
 
         return Task.CompletedTask;
     }
 
-    private static async Task EnsureConfigFile<T>(CancellationToken cancellationToken)
+    private async Task EnsureConfigFile<T>(CancellationToken cancellationToken)
         where T : IConfigurationFile
     {
-        if (!Directory.Exists(s_configFolder))
+        if (!fileSystem.DirectoryExists(s_configFolder))
         {
-            Directory.CreateDirectory(s_configFolder);
+            fileSystem.CreateDirectory(s_configFolder);
         }
 
         var configFile = Path.Combine(s_configFolder, T.FileName);
-        if (!File.Exists(configFile) && T.Default is not null)
+        if (!fileSystem.FileExists(configFile) && T.Default is not null)
         {
-            await using var stream = File.OpenWrite(configFile);
+            await using var stream = fileSystem.CreateFile(configFile);
             await JsonSerializer
                 .SerializeAsync(stream, T.Default, T.TypeInfo, cancellationToken: cancellationToken);
         }

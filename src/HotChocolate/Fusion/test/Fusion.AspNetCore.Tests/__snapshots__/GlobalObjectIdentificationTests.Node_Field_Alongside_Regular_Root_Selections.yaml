@@ -57,6 +57,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query testQuery_a938b4c5_3(
               $id: ID!
@@ -85,6 +86,7 @@ sourceSchemas:
                 }
               }
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query testQuery_a938b4c5_4 {
               viewer {

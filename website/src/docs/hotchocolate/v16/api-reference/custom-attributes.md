@@ -57,6 +57,12 @@ These attributes configure data loading and resolver behavior.
 | `[Cost]`     | `HotChocolate.CostAnalysis` | Sets the cost weight for a field, used by the cost analyzer to calculate query complexity. |
 | `[ListSize]` | `HotChocolate.CostAnalysis` | Declares the expected list size for a field, used by the cost analyzer.                    |
 
+# Caching Attributes
+
+| Attribute             | Namespace              | Description                                                                                |
+| --------------------- | ---------------------- | ------------------------------------------------------------------------------------------ |
+| `[CacheControl(...)]` | `HotChocolate.Caching` | Declares HTTP cache policy hints (`@cacheControl`) for `Cache-Control` and `Vary` headers. |
+
 # Identity Attributes
 
 | Attribute | Namespace      | Description                                                                                          |

@@ -14,6 +14,16 @@
         "https://api.nuget.org/v3/index.json",
         "--yes"
       ]
-    }
+    },
+    "lighthouse": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@danielsogl/lighthouse-mcp@latest"]
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    },
   }
 }

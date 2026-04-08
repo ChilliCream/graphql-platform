@@ -85,6 +85,27 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
     }
 
     [Fact]
+    public async Task Http_Get_With_Missing_Required_Query_Parameter()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query SearchProducts($text: String, $first: Int!)
+              @http(method: GET, route: "/products/search", queryParameters: ["text", "first"]) {
+              searchProductsPaginated(text: $text, first: $first)
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var response = await client.GetAsync("/products/search?text=Chair");
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
     public async Task Http_Get_Without_Query_Parameter_That_Has_Default_Value()
     {
         // arrange
@@ -154,6 +175,48 @@ public abstract class HttpEndpointIntegrationTestBase : OpenApiTestBase
 
         // act
         var response = await client.GetAsync("/users-details?userName=true");
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Http_Get_With_Query_Parameter_Float_Value()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query SearchProducts($text: String, $minPrice: Float)
+              @http(method: GET, route: "/search", queryParameters: ["text", "minPrice"]) {
+              searchProducts(text: $text, minPrice: $minPrice)
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var response = await client.GetAsync("/search?text=Bed&minPrice=500");
+
+        // assert
+        response.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Http_Get_With_Query_Parameter_Float_Value_With_Decimals()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query SearchProducts($text: String, $minPrice: Float)
+              @http(method: GET, route: "/search", queryParameters: ["text", "minPrice"]) {
+              searchProducts(text: $text, minPrice: $minPrice)
+            }
+            """);
+        var server = CreateTestServer(storage);
+        var client = server.CreateClient();
+
+        // act
+        var response = await client.GetAsync("/search?text=Bed&minPrice=500.99");
 
         // assert
         response.MatchSnapshot();

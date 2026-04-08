@@ -444,6 +444,10 @@ If you need the old behavior, use can still use the non-generic `ID`-attribute a
 
 Previously the `TryConfigure` or `OnConfigure` methods carried a non-nullable parameter of the member the descriptor attribute was annotated to. With the new source generator we moved away from pure reflection based APIs. This means that when you use the source generator
 
+## HotChocolate.Fusion.SourceSchema
+
+The `HotChocolate.Fusion.SourceSchema` package has been removed and you can safely remove any references to it from your project. The `[Internal]`, `[Lookup]`, `[Is]`, and `[Require]` attributes have moved to the `HotChocolate.Types` package under the `HotChocolate.Types.Composite` namespace. You don't need to install `HotChocolate.Types` separately — it's already included in the `HotChocolate.AspNetCore` meta-package.
+
 ## Merged Assemblies HotChocolate.Types, HotChocolate.Execution, HotChocolate.Fetching
 
 With Hot Chocolate 16 we introduced a lot more abstractions, meaning we pulled out abstractions of the type system or the execution into separate libraries. But at the same time we simplified the implementation of the type system and the execution by moving the implementations of HotChocolate.Execution and HotChocolate.Fetching into HotChocolate.Types. This allowed us to simplify the implementation and make it more efficient.

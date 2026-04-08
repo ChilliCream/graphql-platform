@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Mocha.Features;
 
 namespace Mocha;
 
@@ -43,6 +44,11 @@ public sealed class MessageType
     public MessageContentType? DefaultContentType { get; private set; }
 
     /// <summary>
+    /// Gets the feature collection associated with this message type, providing transport-specific extensibility.
+    /// </summary>
+    public IFeatureCollection Features { get; private set; } = FeatureCollection.Empty;
+
+    /// <summary>
     /// Gets a value indicating whether the underlying CLR type is an interface.
     /// </summary>
     public bool IsInterface { get; private set; }
@@ -70,6 +76,8 @@ public sealed class MessageType
         IsInterface = RuntimeType.IsInterface;
         IsInternal = configuration.IsInternal;
         DefaultContentType = configuration.DefaultContentType;
+
+        Features = configuration.GetFeatures().ToReadOnly();
 
         _serializerRegistry =
             context.Messages.Serializers ?? throw new InvalidOperationException("Serializer registry is required");

@@ -84,10 +84,10 @@ using MochaQuickStart;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Register the message bus, handler, and transport
+// Register the message bus, handlers, and transport
 builder.Services
     .AddMessageBus()
-    .AddEventHandler<OrderPlacedHandler>()
+    .AddMochaQuickStart() // source-generated - discovers all handlers in this assembly
     .AddInMemory();
 
 var app = builder.Build();
@@ -111,7 +111,7 @@ app.Run();
 Each registration line has a single responsibility:
 
 - `AddMessageBus()` - registers the bus runtime and core services into DI.
-- `AddEventHandler<OrderPlacedHandler>()` - registers your handler so the bus routes `OrderPlaced` events to it.
+- `AddMochaQuickStart()` - source-generated method that discovers and registers all handlers in this assembly. Named after the project - to customize the name, see [Handler Registration](/docs/mocha/v1/handler-registration).
 - `AddInMemory()` - adds the InMemory transport; messages stay in-process.
 
 # Publish and verify
@@ -143,7 +143,7 @@ info: MochaQuickStart.OrderPlacedHandler[0]
 
 If you see that log line, it worked.
 
-## What just happened?
+## What happened?
 
 Your POST request hit the `/orders` endpoint, which called `PublishAsync` on `IMessageBus`. The bus serialized the `OrderPlaced` record and handed it to the InMemory transport. The transport delivered it to the registered receive endpoint, which ran the message through the pipeline and invoked `HandleAsync` on your `OrderPlacedHandler`. The log line you see is proof the full path executed: publisher to bus to transport to handler.
 

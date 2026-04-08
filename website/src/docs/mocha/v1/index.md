@@ -7,7 +7,7 @@ description: "Mocha is a messaging framework for .NET that provides a message bu
 // Inter-service messaging via the message bus
 builder.Services
     .AddMessageBus()
-    .AddEventHandler<OrderPlacedHandler>()
+    .AddOrderService() // source-generated handler registration
     .AddRabbitMQ();
 
 // In-process CQRS via the mediator
@@ -33,20 +33,21 @@ The framework is handler-first in both cases. You implement handler interfaces, 
 
 These terms appear throughout the documentation. They are defined once here and used consistently everywhere.
 
-| Term          | Definition                                                                                                                                                                                                                              |
-| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Message**   | A plain C# record representing business data. The unit of communication between handlers and services.                                                                                                                                  |
-| **Event**     | A message published via `PublishAsync`. Represents something that happened. Multiple handlers can receive an event.                                                                                                                     |
-| **Request**   | A message sent via `SendAsync` or `RequestAsync`. When sent with `RequestAsync`, the sender awaits a typed response. When sent with `SendAsync`, it is fire-and-forget.                                                                 |
-| **Handler**   | A class implementing a Mocha handler interface that processes a specific message type.                                                                                                                                                  |
-| **Consumer**  | The processing unit that wraps a handler or custom logic. Mocha builds consumers automatically from handlers, or you can implement `IConsumer<T>` or `Consumer<T>` directly.                                                            |
-| **Endpoint**  | A named, addressable unit in the messaging topology. Each endpoint has a transport address, a middleware pipeline, and a kind (default, error, skipped, or reply). Receive endpoints consume messages; dispatch endpoints produce them. |
-| **Transport** | The infrastructure layer connecting Mocha to a message broker, such as RabbitMQ or an in-process channel.                                                                                                                               |
-| **Pipeline**  | The chain of middleware that processes a message from the transport through to the handler.                                                                                                                                             |
-| **Saga**      | A long-running stateful workflow that coordinates multiple messages and transitions across services.                                                                                                                                    |
-| **Mediator**  | An in-process dispatcher that routes commands, queries, and notifications to their handlers without a transport layer. Source-generated at compile time.                                                                                |
-| **Command**   | A mediator message representing an action. Implements `ICommand` (void) or `ICommand<TResponse>` (with response). Dispatched via `SendAsync`.                                                                                           |
-| **Query**     | A mediator message representing a read operation. Implements `IQuery<TResponse>`. Dispatched via `QueryAsync`.                                                                                                                          |
+| Term                 | Definition                                                                                                                                                                                                                              |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Message**          | A plain C# record representing business data. The unit of communication between handlers and services.                                                                                                                                  |
+| **Event**            | A message published via `PublishAsync`. Represents something that happened. Multiple handlers can receive an event.                                                                                                                     |
+| **Request**          | A message sent via `SendAsync` or `RequestAsync`. When sent with `RequestAsync`, the sender awaits a typed response. When sent with `SendAsync`, it is fire-and-forget.                                                                 |
+| **Handler**          | A class implementing a Mocha handler interface that processes a specific message type.                                                                                                                                                  |
+| **Consumer**         | The processing unit that wraps a handler or custom logic. Mocha builds consumers automatically from handlers, or you can implement `IConsumer<T>` or `Consumer<T>` directly.                                                            |
+| **Endpoint**         | A named, addressable unit in the messaging topology. Each endpoint has a transport address, a middleware pipeline, and a kind (default, error, skipped, or reply). Receive endpoints consume messages; dispatch endpoints produce them. |
+| **Transport**        | The infrastructure layer connecting Mocha to a message broker, such as RabbitMQ or an in-process channel.                                                                                                                               |
+| **Pipeline**         | The chain of middleware that processes a message from the transport through to the handler.                                                                                                                                             |
+| **Saga**             | A long-running stateful workflow that coordinates multiple messages and transitions across services.                                                                                                                                    |
+| **Mediator**         | An in-process dispatcher that routes commands, queries, and notifications to their handlers without a transport layer. Source-generated at compile time.                                                                                |
+| **Source generator** | A Roslyn analyzer that discovers handlers and sagas at compile time and generates typed registration code. Used by both the [mediator](/docs/mocha/v1/mediator) and the [message bus](/docs/mocha/v1/handler-registration).             |
+| **Command**          | A mediator message representing an action. Implements `ICommand` (void) or `ICommand<TResponse>` (with response). Dispatched via `SendAsync`.                                                                                           |
+| **Query**            | A mediator message representing a read operation. Implements `IQuery<TResponse>`. Dispatched via `QueryAsync`.                                                                                                                          |
 
 # Architecture
 

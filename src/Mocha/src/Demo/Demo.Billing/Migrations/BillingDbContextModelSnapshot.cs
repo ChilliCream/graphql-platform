@@ -257,6 +257,51 @@ namespace HotChocolate.Demo.Billing.Migrations
                     b.ToTable("outbox_messages", (string)null);
                 });
 
+            modelBuilder.Entity("Mocha.Scheduling.ScheduledMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<JsonDocument>("Envelope")
+                        .IsRequired()
+                        .HasColumnType("json")
+                        .HasColumnName("envelope");
+
+                    b.Property<JsonDocument>("LastError")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("last_error");
+
+                    b.Property<int>("MaxAttempts")
+                        .HasColumnType("integer")
+                        .HasColumnName("max_attempts");
+
+                    b.Property<DateTime>("ScheduledTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("scheduled_time");
+
+                    b.Property<int>("TimesSent")
+                        .HasColumnType("integer")
+                        .HasColumnName("times_sent");
+
+                    b.HasKey("Id")
+                        .HasName("ix_scheduled_messages_primary_key");
+
+                    b.HasIndex("ScheduledTime")
+                        .HasDatabaseName("ix_scheduled_messages_scheduled_time")
+                        .HasFilter("\"times_sent\" < \"max_attempts\"");
+
+                    b.HasIndex("TimesSent")
+                        .HasDatabaseName("ix_scheduled_messages_times_sent");
+
+                    b.ToTable("scheduled_messages", (string)null);
+                });
+
             modelBuilder.Entity("Demo.Billing.Entities.Payment", b =>
                 {
                     b.HasOne("Demo.Billing.Entities.Invoice", "Invoice")

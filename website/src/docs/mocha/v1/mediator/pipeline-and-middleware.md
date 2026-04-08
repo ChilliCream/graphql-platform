@@ -64,10 +64,10 @@ SendAsync(PlaceOrderCommand)
 The pipeline is built from two delegate types:
 
 ```csharp
-// The terminal pipeline delegate — each step in the chain has this shape
+// The terminal pipeline delegate - each step in the chain has this shape
 public delegate ValueTask MediatorDelegate(IMediatorContext context);
 
-// The factory that creates a middleware — runs once per message type at startup
+// The factory that creates a middleware - runs once per message type at startup
 public delegate MediatorDelegate MediatorMiddleware(
     MediatorMiddlewareFactoryContext context,
     MediatorDelegate next);
@@ -259,7 +259,6 @@ public static class TransactionMiddleware
                     try
                     {
                         await next(ctx);
-                        await db.SaveChangesAsync(ctx.CancellationToken);
                         await tx.CommitAsync(ctx.CancellationToken);
                     }
                     catch
@@ -462,11 +461,10 @@ The middleware (key: `"EntityFrameworkTransaction"`):
 1. Checks at compile time whether the pipeline is for a command. Queries and notifications are excluded by default - the middleware is not present in their pipelines at all.
 2. Begins a database transaction
 3. Calls the next middleware or handler
-4. Calls `SaveChangesAsync` on success
-5. Commits the transaction
-6. Rolls back on any exception
+4. Commits the transaction on success
+5. Rolls back on any exception
 
-Your command handlers do not need to call `SaveChangesAsync` or manage transactions - the middleware handles both.
+Your command handlers are responsible for calling `SaveChangesAsync` to persist their changes. The middleware handles the transaction lifecycle - your handlers do not need to call `BeginTransactionAsync`, `CommitAsync`, or `RollbackAsync`.
 
 ## Customizing transaction scope
 

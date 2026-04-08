@@ -30,7 +30,7 @@ public class DocumentCacheTests
     {
         // arrange
         var executorEvictedResetEvent = new ManualResetEventSlim(false);
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
         var services =
             new ServiceCollection()

@@ -44,6 +44,7 @@ sourceSchemas:
       union SearchResult = User | Product
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_e8751f64_1 {
               search {
@@ -89,6 +90,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
             query Op_e8751f64_3(
               $__fusion_2_id: ID!
@@ -127,6 +129,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_e8751f64_4(
               $__fusion_3_id: ID!

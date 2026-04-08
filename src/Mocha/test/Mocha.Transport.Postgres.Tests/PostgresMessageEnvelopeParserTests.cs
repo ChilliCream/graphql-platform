@@ -332,6 +332,36 @@ public class PostgresMessageEnvelopeParserTests
         Assert.Equal("TestMessage", envelope.MessageType);
     }
 
+    [Fact]
+    public void Parse_Should_ExtractScheduledTime_When_HeaderPresent()
+    {
+        // arrange
+        var item = CreateMessageItem(headers: new { scheduledTime = "2026-06-01T12:00:00Z" });
+
+        // act
+        var envelope = _parser.Parse(item);
+
+        // assert
+        Assert.NotNull(envelope.ScheduledTime);
+        Assert.Equal(2026, envelope.ScheduledTime!.Value.Year);
+        Assert.Equal(6, envelope.ScheduledTime.Value.Month);
+        Assert.Equal(1, envelope.ScheduledTime.Value.Day);
+        Assert.Equal(12, envelope.ScheduledTime.Value.Hour);
+    }
+
+    [Fact]
+    public void Parse_Should_ReturnNullScheduledTime_When_HeaderAbsent()
+    {
+        // arrange
+        var item = CreateMessageItem(headers: new { messageId = "msg-no-schedule" });
+
+        // act
+        var envelope = _parser.Parse(item);
+
+        // assert
+        Assert.Null(envelope.ScheduledTime);
+    }
+
     private static PostgresMessageItem CreateMessageItem(
         object? headers = null,
         byte[]? body = null,

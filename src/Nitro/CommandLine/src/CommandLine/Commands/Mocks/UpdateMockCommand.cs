@@ -1,66 +1,73 @@
-using System.CommandLine.Invocation;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Apis;
+using ChilliCream.Nitro.Client.Mocks;
+using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Arguments;
-using ChilliCream.Nitro.CommandLine.Client;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Mocks.Components;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
+using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
-using StrawberryShake;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mocks;
 
-public sealed class UpdateMockCommand : Command
+internal sealed class UpdateMockCommand : Command
 {
-    public UpdateMockCommand()
-        : base("update")
+    public UpdateMockCommand() : base("update")
     {
-        Description = "Updates a mock schema with a new schema and extension file.";
+        Description = "Update a mock schema with a new schema and extension file.";
 
-        AddOption(Opt<OptionalExtensionFileOption>.Instance);
-        AddOption(Opt<OptionalBaseSchemaFileOption>.Instance);
-        AddOption(Opt<OptionalDownstreamUrlOption>.Instance);
-        AddOption(Opt<OptionalMockSchemaNameOption>.Instance);
-        AddArgument(Opt<OptionalIdArgument>.Instance);
+        Options.Add(Opt<OptionalExtensionFileOption>.Instance);
+        Options.Add(Opt<OptionalBaseSchemaFileOption>.Instance);
+        Options.Add(Opt<OptionalDownstreamUrlOption>.Instance);
+        Options.Add(Opt<OptionalMockSchemaNameOption>.Instance);
+        Arguments.Add(Opt<OptionalIdArgument>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Bind.FromServiceProvider<ISessionService>(),
-            Bind.FromServiceProvider<IHttpClientFactory>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples(
+            """
+            mock update "<mock-schema-id>" \
+              --extension "./extension.graphql" \
+              --schema "./schema.graphqls"
+            """);
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
-        ISessionService sessionService,
-        IHttpClientFactory clientFactory,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken cancellationToken)
     {
-        var extensionFile = context.ParseResult.GetValueForOption(Opt<OptionalExtensionFileOption>.Instance);
-        var baseSchemaFile = context.ParseResult.GetValueForOption(Opt<OptionalBaseSchemaFileOption>.Instance);
-        var downstreamUrl = context.ParseResult.GetValueForOption(Opt<OptionalDownstreamUrlOption>.Instance);
-        var mockSchemaName = context.ParseResult.GetValueForOption(Opt<OptionalMockSchemaNameOption>.Instance);
-        var mockSchemaId = context.ParseResult.GetValueForArgument(Opt<OptionalIdArgument>.Instance);
+        var console = services.GetRequiredService<INitroConsole>();
+        var apisClient = services.GetRequiredService<IApisClient>();
+        var client = services.GetRequiredService<IMocksClient>();
+        var fileSystem = services.GetRequiredService<IFileSystem>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
+
+        parseResult.AssertHasAuthentication(sessionService);
+
+        var extensionFile = parseResult.GetValue(Opt<OptionalExtensionFileOption>.Instance);
+        var baseSchemaFile = parseResult.GetValue(Opt<OptionalBaseSchemaFileOption>.Instance);
+        var downstreamUrl = parseResult.GetValue(Opt<OptionalDownstreamUrlOption>.Instance);
+        var mockSchemaName = parseResult.GetValue(Opt<OptionalMockSchemaNameOption>.Instance);
+        var mockSchemaId = parseResult.GetValue(Opt<OptionalIdArgument>.Instance);
 
         if (string.IsNullOrWhiteSpace(mockSchemaId))
         {
-            if (!console.IsHumanReadable())
+            if (!console.IsInteractive)
             {
-                throw Exit("The mock schema ID is required in non-interactive mode.");
+                throw MissingRequiredOption("id");
             }
 
-            var workspaceId = context.RequireWorkspaceId();
+            var workspaceId = parseResult.GetWorkspaceId(sessionService);
 
             var selectedApi = await SelectApiPrompt
-                .New(client, workspaceId)
+                .New(apisClient, workspaceId)
                 .RenderAsync(console, cancellationToken);
 
             if (selectedApi?.Id is null)
@@ -73,54 +80,85 @@ public sealed class UpdateMockCommand : Command
                 .RenderAsync(console, cancellationToken);
 
             mockSchemaId = selectedMock?.Id ?? throw new ExitException("No mock schema selected.");
-
-            await console
-                .Status()
-                .Spinner(Spinner.Known.BouncingBar)
-                .SpinnerStyle(Style.Parse("green bold"))
-                .StartAsync("Create and initialize new mock...", CreateNewMock);
-        }
-        else
-        {
-            await CreateNewMock(null);
         }
 
-        return ExitCodes.Success;
-
-        async Task CreateNewMock(StatusContext? ctx)
+        if (extensionFile is not null)
         {
-            console.Log("Creating mock...");
-
-            var result = await client.UpdateMockSchema.ExecuteAsync(
-                mockSchemaId,
-                baseSchemaFile is not null
-                    ? new Upload(FileHelpers.CreateFileStream(baseSchemaFile), "schema.graphql")
-                    : null,
-                downstreamUrl is not null
-                    ? downstreamUrl
-                    : null,
-                extensionFile is not null
-                    ? new Upload(FileHelpers.CreateFileStream(extensionFile), "extension.graphql")
-                    : null,
-                mockSchemaName is not null
-                    ? mockSchemaName
-                    : null,
-                cancellationToken);
-
-            console.EnsureNoErrors(result);
-            var data = console.EnsureData(result);
-            console.PrintErrorsAndExit(data.UpdateMockSchema.Errors);
-
-            if (data.UpdateMockSchema.MockSchema?.Id is null)
+            if (!Path.IsPathRooted(extensionFile))
             {
-                throw new ExitException("Creating mock schema failed.");
+                extensionFile = Path.Combine(fileSystem.GetCurrentDirectory(), extensionFile);
             }
 
-            console.Log("Mock schema created.");
+            if (!fileSystem.FileExists(extensionFile))
+            {
+                throw new ExitException(Messages.ExtensionFileDoesNotExist(extensionFile));
+            }
+        }
 
-            context
-                .SetResult(MockSchemaDetailPrompt.From(data.UpdateMockSchema.MockSchema)
-                    .ToObject());
+        if (baseSchemaFile is not null)
+        {
+            if (!Path.IsPathRooted(baseSchemaFile))
+            {
+                baseSchemaFile = Path.Combine(fileSystem.GetCurrentDirectory(), baseSchemaFile);
+            }
+
+            if (!fileSystem.FileExists(baseSchemaFile))
+            {
+                throw new ExitException(Messages.SchemaFileDoesNotExist(baseSchemaFile));
+            }
+        }
+
+        await using (var activity = console.StartActivity(
+            $"Updating mock schema '{mockSchemaId.EscapeMarkup()}'",
+            "Failed to update the mock schema."))
+        {
+            await using var baseSchemaStream = baseSchemaFile is null
+                ? null
+                : fileSystem.OpenReadStream(baseSchemaFile);
+            await using var extensionStream = extensionFile is null
+                ? null
+                : fileSystem.OpenReadStream(extensionFile);
+
+            var updatedMock = await client.UpdateMockSchemaAsync(
+                mockSchemaId,
+                baseSchemaStream,
+                downstreamUrl,
+                extensionStream,
+                mockSchemaName,
+                cancellationToken);
+
+            if (updatedMock.Errors?.Count > 0)
+            {
+                activity.Fail();
+
+                foreach (var error in updatedMock.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        IMockSchemaNotFoundError err => err.Message,
+                        IMockSchemaNonUniqueNameError err => err.Message,
+                        IUnauthorizedOperation err => err.Message,
+                        IValidationError err => err.Message,
+                        IError err => Messages.UnexpectedMutationError(err),
+                        _ => Messages.UnexpectedMutationError()
+                    };
+
+                    console.Error.WriteErrorLine(errorMessage);
+                }
+
+                return ExitCodes.Error;
+            }
+
+            if (updatedMock.MockSchema is not IMockSchemaDetailPrompt mockSchema)
+            {
+                throw MutationReturnedNoData();
+            }
+
+            activity.Success($"Updated mock schema '{mockSchemaId.EscapeMarkup()}'.");
+
+            resultHolder.SetResult(new ObjectResult(MockSchemaDetailPrompt.From(mockSchema).ToObject()));
+
+            return ExitCodes.Success;
         }
     }
 }
