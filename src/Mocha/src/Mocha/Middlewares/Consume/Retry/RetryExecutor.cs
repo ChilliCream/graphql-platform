@@ -77,24 +77,10 @@ internal static class RetryExecutor
 
                 if (delay > TimeSpan.Zero)
                 {
-                    await DelayAsync(timeProvider, delay, cancellationToken);
+                    await Task.Delay(delay, timeProvider, cancellationToken).ConfigureAwait(false);
                 }
             }
         }
-    }
-
-    private static async Task DelayAsync(TimeProvider timeProvider, TimeSpan delay, CancellationToken cancellationToken)
-    {
-        var tcs = new TaskCompletionSource();
-        await using var timer = timeProvider.CreateTimer(
-            static s => ((TaskCompletionSource)s!).TrySetResult(),
-            tcs,
-            delay,
-            Timeout.InfiniteTimeSpan);
-        await using var registration = cancellationToken.Register(
-            static s => ((TaskCompletionSource)s!).TrySetCanceled(),
-            tcs);
-        await tcs.Task.ConfigureAwait(false);
     }
 
     internal static TimeSpan CalculateDelay(int attempt, RetryPolicyConfig config)

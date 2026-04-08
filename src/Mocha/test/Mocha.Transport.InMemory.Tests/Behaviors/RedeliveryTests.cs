@@ -78,7 +78,7 @@ public sealed class RedeliveryTests
     [Fact]
     public async Task Redelivery_Should_PassThrough_When_Disabled()
     {
-        // arrange  no exception policy configured, so retry and redelivery are both no-ops
+        // arrange — no exception policy configured, so retry and redelivery are both no-ops
         var counter = new InvocationCounter();
 
         await using var provider = await new ServiceCollection()

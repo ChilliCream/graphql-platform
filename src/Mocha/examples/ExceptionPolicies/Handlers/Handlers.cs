@@ -29,7 +29,7 @@ public class ProcessPaymentHandler : IEventHandler<ProcessPayment>
 
 /// <summary>
 /// Receives a message with an invalid payload.
-/// Policy: DeadLetter immediately  the message is permanently bad.
+/// Policy: DeadLetter immediately — the message is permanently bad.
 /// </summary>
 public class ValidateOrderHandler : IEventHandler<ValidateOrder>
 {
@@ -42,7 +42,7 @@ public class ValidateOrderHandler : IEventHandler<ValidateOrder>
 
 /// <summary>
 /// Detects a duplicate message that was already processed.
-/// Policy: Discard silently  no retry, no dead-letter.
+/// Policy: Discard silently — no retry, no dead-letter.
 /// </summary>
 public class DeduplicateMessageHandler : IEventHandler<DeduplicateMessage>
 {
@@ -71,7 +71,7 @@ public class CallExternalApiHandler : IEventHandler<CallExternalApi>
 
 /// <summary>
 /// Service with an expired auth token.
-/// Policy: Redeliver only (skip retry)  immediate retry won't help.
+/// Policy: Redeliver only (skip retry) — immediate retry won't help.
 /// </summary>
 public class RefreshAuthTokenHandler : IEventHandler<RefreshAuthToken>
 {
@@ -110,7 +110,7 @@ public class ProcessBatchHandler : IEventHandler<ProcessBatch>
 
 /// <summary>
 /// Ingests telemetry data from a device, encountering various HTTP errors.
-/// Policy: Conditional  different behavior for 404, 429, and 503 status codes.
+/// Policy: Conditional — different behavior for 404, 429, and 503 status codes.
 /// </summary>
 public class IngestTelemetryHandler : IEventHandler<IngestTelemetry>
 {

@@ -22,7 +22,7 @@ internal static class RedeliveryExecutor
         // Match exception against policy rules.
         var rule = ExceptionPolicyMatcher.Match(rules, exception);
 
-        // No matching rule  no policy for this exception.
+        // No matching rule — no policy for this exception.
         if (rule is null)
         {
             return RedeliveryDecision.Rethrow;

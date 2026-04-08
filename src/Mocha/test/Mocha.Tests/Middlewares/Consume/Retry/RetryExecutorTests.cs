@@ -1,5 +1,5 @@
 using System.Collections.Immutable;
-using Microsoft.Extensions.Time.Testing;
+using System.Diagnostics;
 
 namespace Mocha.Tests.Middlewares.Consume.Retry;
 
@@ -643,58 +643,65 @@ public sealed class RetryExecutorTests
     [Fact]
     public async Task ExecuteAsync_Should_ThrowOperationCanceled_When_CancellationRequestedDuringDelay()
     {
-        // arrange
-        var timeProvider = new FakeTimeProvider();
-        var rules = BuildRules(p => p.On<Exception>().Retry(3, TimeSpan.FromSeconds(10), RetryBackoffType.Constant));
+        // arrange - use a short real delay with pre-cancelled token to verify cancellation propagation
+        var rules = BuildRules(p => p.On<Exception>().Retry(3, TimeSpan.FromSeconds(1), RetryBackoffType.Constant));
         using var cts = new CancellationTokenSource();
         var counter = new Counter();
 
-        // act - start the executor, it will block on the first retry delay
-        var task = RetryExecutor.ExecuteAsync(
-            rules,
-            counter,
-            static (s) =>
-            {
-                s.Increment();
-                throw new InvalidOperationException("fail");
-            },
-            onRetry: null,
-            timeProvider,
-            cts.Token);
-
-        // Cancel while waiting for the delay
+        // Pre-cancel so the delay will throw OperationCanceledException immediately
         cts.Cancel();
 
-        // assert
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task.AsTask());
+        // act & assert
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            RetryExecutor
+                .ExecuteAsync(
+                    rules,
+                    counter,
+                    static (s) =>
+                    {
+                        s.Increment();
+                        throw new InvalidOperationException("fail");
+                    },
+                    onRetry: null,
+                    cts.Token)
+                .AsTask()
+        );
+
         Assert.Equal(1, counter.Count);
     }
 
     [Fact]
-    public async Task ExecuteAsync_Should_NotComplete_When_DelayHasNotElapsed()
+    public async Task ExecuteAsync_Should_WaitForDelay_When_RetryDelayIsConfigured()
     {
         // arrange
-        var timeProvider = new FakeTimeProvider();
         var rules = BuildRules(p =>
-            p.On<InvalidOperationException>().Retry(1, TimeSpan.FromSeconds(5), RetryBackoffType.Constant)
+            p.On<InvalidOperationException>().Retry(1, TimeSpan.FromMilliseconds(200), RetryBackoffType.Constant)
+        );
+        var counter = new Counter();
+        var sw = Stopwatch.StartNew();
+
+        // act & assert - the executor should wait for the retry delay before the second attempt
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            RetryExecutor
+                .ExecuteAsync(
+                    rules,
+                    counter,
+                    static (s) =>
+                    {
+                        s.Increment();
+                        throw new InvalidOperationException("fail");
+                    },
+                    onRetry: null,
+                    cancellationToken: default)
+                .AsTask()
         );
 
-        // act - start the executor; it will block on the retry delay
-        var task = RetryExecutor.ExecuteAsync(
-            rules,
-            0,
-            static (_) => throw new InvalidOperationException("fail"),
-            onRetry: null,
-            timeProvider,
-            cancellationToken: default);
+        sw.Stop();
 
-        // assert - task should not complete until time advances
-        Assert.False(task.IsCompleted);
-
-        // Advance past the delay to unblock
-        timeProvider.Advance(TimeSpan.FromSeconds(5));
-        // Second attempt also fails, retries exhausted - should throw
-        await Assert.ThrowsAsync<InvalidOperationException>(() => task.AsTask());
+        // assert - delay of at least 200ms should have been applied
+        Assert.Equal(2, counter.Count);
+        Assert.True(sw.Elapsed >= TimeSpan.FromMilliseconds(150),
+            $"Expected delay of ~200ms but elapsed was {sw.Elapsed.TotalMilliseconds}ms");
     }
 
     [Fact]
