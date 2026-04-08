@@ -132,25 +132,25 @@ internal static class CompositeSchemaBuilder
 
         // Register the @defer directive so the gateway's validation accepts it.
         // The gateway manages @defer itself (it does not pass it to subgraphs).
-        if (!directiveDefinitions.ContainsKey(DirectiveNames.Defer.Name))
+        if (options.EnableDefer && !directiveDefinitions.ContainsKey(Defer.Name))
         {
             var deferDirectiveNode = new DirectiveDefinitionNode(
                 null,
-                new HotChocolate.Language.NameNode(DirectiveNames.Defer.Name),
+                new HotChocolate.Language.NameNode(Defer.Name),
                 null,
                 false,
                 new[]
                 {
                     new InputValueDefinitionNode(
                         null,
-                        new HotChocolate.Language.NameNode(DirectiveNames.Defer.Arguments.If),
+                        new HotChocolate.Language.NameNode(Defer.Arguments.If),
                         null,
                         new NamedTypeNode("Boolean"),
                         new BooleanValueNode(true),
                         []),
                     new InputValueDefinitionNode(
                         null,
-                        new HotChocolate.Language.NameNode(DirectiveNames.Defer.Arguments.Label),
+                        new HotChocolate.Language.NameNode(Defer.Arguments.Label),
                         null,
                         new NamedTypeNode("String"),
                         null,
@@ -159,7 +159,7 @@ internal static class CompositeSchemaBuilder
                 new HotChocolate.Language.NameNode[] { new("INLINE_FRAGMENT"), new("FRAGMENT_SPREAD") });
 
             directiveTypes.Add(CreateDirectiveType(deferDirectiveNode));
-            directiveDefinitions.Add(DirectiveNames.Defer.Name, deferDirectiveNode);
+            directiveDefinitions.Add(Defer.Name, deferDirectiveNode);
         }
 
         features ??= new FeatureCollection();

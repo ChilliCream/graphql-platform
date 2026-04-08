@@ -58,6 +58,20 @@ public sealed class OperationPlannerOptions
     } = true;
 
     /// <summary>
+    /// Gets or sets whether <c>@defer</c> support is enabled in the planner.
+    /// When disabled, the planner skips defer processing entirely.
+    /// </summary>
+    public bool EnableDefer
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+            field = value;
+        }
+    } = true;
+
+    /// <summary>
     /// Gets or sets how aggressively structurally-identical operations are merged
     /// to reduce downstream request count. Cycle safety is always enforced regardless
     /// of this setting.

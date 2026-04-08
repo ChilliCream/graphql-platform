@@ -168,6 +168,23 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
     }
 
     /// <summary>
+    /// Gets or sets whether <c>@defer</c> is enabled.
+    /// When <c>false</c>, the <c>@defer</c> directive is not exposed in the schema
+    /// and deferred execution is disabled.
+    /// <c>true</c> by default.
+    /// </summary>
+    public bool EnableDefer
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    } = true;
+
+    /// <summary>
     /// Clones the options into a new mutable instance.
     /// </summary>
     /// <returns>
@@ -185,7 +202,8 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
             DefaultErrorHandlingMode = DefaultErrorHandlingMode,
             LazyInitialization = LazyInitialization,
             NodeIdSerializerFormat = NodeIdSerializerFormat,
-            ApplySerializeAsToScalars = ApplySerializeAsToScalars
+            ApplySerializeAsToScalars = ApplySerializeAsToScalars,
+            EnableDefer = EnableDefer
         };
     }
 

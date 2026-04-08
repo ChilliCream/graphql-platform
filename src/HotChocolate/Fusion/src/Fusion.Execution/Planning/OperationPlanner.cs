@@ -102,7 +102,7 @@ public sealed partial class OperationPlanner
             DeferSplitResult? deferSplit = null;
             var mainOperationDefinition = operationDefinition;
 
-            if (DeferOperationRewriter.HasDeferDirective(operationDefinition))
+            if (_options.EnableDefer && DeferOperationRewriter.HasDeferDirective(operationDefinition))
             {
                 var rewriter = new DeferOperationRewriter();
                 var splitResult = rewriter.Split(operationDefinition);

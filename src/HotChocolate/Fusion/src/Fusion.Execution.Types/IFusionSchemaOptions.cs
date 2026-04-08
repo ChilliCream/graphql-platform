@@ -9,4 +9,11 @@ public interface IFusionSchemaOptions
     /// Applies the @serializeAs directive to scalar types that specify a serialization format.
     /// </summary>
     bool ApplySerializeAsToScalars { get; }
+
+    /// <summary>
+    /// Gets whether <c>@defer</c> is enabled.
+    /// When <c>false</c>, the <c>@defer</c> directive is not exposed in the schema
+    /// and deferred execution is disabled.
+    /// </summary>
+    bool EnableDefer { get; }
 }
