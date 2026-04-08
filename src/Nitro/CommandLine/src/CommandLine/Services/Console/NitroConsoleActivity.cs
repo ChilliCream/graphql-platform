@@ -14,7 +14,7 @@ internal sealed class NitroConsoleActivity(
 
     public void Update(
         string message,
-        ActivityUpdateKind? kind = ActivityUpdateKind.Regular,
+        ActivityUpdateKind kind = ActivityUpdateKind.Regular,
         IRenderable? details = null)
     {
         var glyph = kind switch

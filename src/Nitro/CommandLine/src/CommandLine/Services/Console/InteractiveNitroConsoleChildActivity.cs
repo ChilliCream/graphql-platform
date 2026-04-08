@@ -13,7 +13,7 @@ internal sealed class InteractiveNitroConsoleChildActivity(
 
     public void Update(
         string message,
-        ActivityUpdateKind? kind = ActivityUpdateKind.Regular,
+        ActivityUpdateKind kind = ActivityUpdateKind.Regular,
         IRenderable? details = null)
     {
         var state = kind switch

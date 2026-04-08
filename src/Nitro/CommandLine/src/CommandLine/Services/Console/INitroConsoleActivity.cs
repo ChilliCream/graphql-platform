@@ -4,7 +4,7 @@ namespace ChilliCream.Nitro.CommandLine;
 
 internal interface INitroConsoleActivity : IAsyncDisposable
 {
-    void Update(string message, ActivityUpdateKind? kind = ActivityUpdateKind.Regular, IRenderable? details = null);
+    void Update(string message, ActivityUpdateKind kind = ActivityUpdateKind.Regular, IRenderable? details = null);
 
     void Warning(string message);
 
