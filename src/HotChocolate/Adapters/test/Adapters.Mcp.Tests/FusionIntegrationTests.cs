@@ -162,6 +162,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
         }
 
         var app = webAppBuilder.Build();
+        app.UseRouting();
         app.UseHeaderPropagation();
         app.UseAuthentication();
         app.MapGraphQLMcp();
@@ -205,6 +206,7 @@ public sealed class FusionIntegrationTests : IntegrationTestBase
         }
 
         var app = webAppBuilder.Build();
+        app.UseRouting();
         app.UseAuthentication();
         app.MapGraphQL();
         app.Start();

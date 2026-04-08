@@ -139,6 +139,7 @@ public sealed class CoreIntegrationTests : IntegrationTestBase
         }
 
         var app = webAppBuilder.Build();
+        app.UseRouting();
         app.UseAuthentication();
         app.MapGraphQLMcp();
         app.Start();

@@ -2,6 +2,8 @@ using System.Net;
 using System.Net.Http.Json;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Tests.Utilities;
+using HotChocolate.Transport;
+using HotChocolate.Transport.Http;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.TestHost;
@@ -1122,30 +1124,30 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
         });
         request.Headers.Add("Accept", "multipart/mixed; incrementalSpec=v0.1");
 
-        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var httpResponse = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var response = new GraphQLHttpResponse(httpResponse);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal("multipart/mixed", response.Content.Headers.ContentType?.MediaType);
-
-        var content = await response.Content.ReadAsStringAsync();
 
         Snapshot
             .Create()
-            .Add(content, "Response")
+            .Add(response)
             .MatchInline(
                 """
-
-                ---
-                Content-Type: application/json; charset=utf-8
-
-                {"data":{"product":{"name":"Abc","description":"Abc desc"}},"hasNext":true}
-                ---
-                Content-Type: application/json; charset=utf-8
-
-                {"incremental":[{"data":{"product":{"name":"Abc","description":"Abc desc","reviews":[{"rating":5}]}},"path":[],"label":"foo"}],"hasNext":false}
-                -----
-
+                {
+                  "data": {
+                    "product": {
+                      "name": "Abc",
+                      "description": "Abc desc",
+                      "reviews": [
+                        {
+                          "rating": 5
+                        }
+                      ]
+                    }
+                  }
+                }
                 """);
     }
 
@@ -1180,23 +1182,31 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
         });
         request.Headers.Add("Accept", "text/event-stream; incrementalSpec=v0.1");
 
-        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var httpResponse = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var response = new GraphQLHttpResponse(httpResponse);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal("text/event-stream", response.Content.Headers.ContentType?.MediaType);
 
-        var content = await response.Content.ReadAsStringAsync();
-
-        Assert.Contains(
-            "\"data\":{\"product\":{\"name\":\"Abc\",\"description\":\"Abc desc\"}}",
-            content,
-            StringComparison.Ordinal);
-        Assert.Contains(
-            "\"incremental\":[{\"data\":{\"product\":{\"name\":\"Abc\",\"description\":\"Abc desc\",\"reviews\":[{\"rating\":5}]}},\"path\":[],\"label\":\"foo\"}]",
-            content,
-            StringComparison.Ordinal);
-        Assert.Contains("event: complete", content, StringComparison.Ordinal);
+        Snapshot
+            .Create()
+            .Add(response)
+            .MatchInline(
+                """
+                {
+                  "data": {
+                    "product": {
+                      "name": "Abc",
+                      "description": "Abc desc",
+                      "reviews": [
+                        {
+                          "rating": 5
+                        }
+                      ]
+                    }
+                  }
+                }
+                """);
     }
 
     [Fact]
@@ -1230,22 +1240,30 @@ public class DeferOverHttpTests(TestServerFactory serverFactory) : ServerTestBas
         });
         request.Headers.Add("Accept", "application/jsonl; incrementalSpec=v0.1");
 
-        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var httpResponse = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        using var response = new GraphQLHttpResponse(httpResponse);
 
         // assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal("application/jsonl", response.Content.Headers.ContentType?.MediaType);
-
-        var content = await response.Content.ReadAsStringAsync();
 
         Snapshot
             .Create()
-            .Add(content, "Response")
+            .Add(response)
             .MatchInline(
                 """
-                {"data":{"product":{"name":"Abc","description":"Abc desc"}},"hasNext":true}
-                {"incremental":[{"data":{"product":{"name":"Abc","description":"Abc desc","reviews":[{"rating":5}]}},"path":[],"label":"foo"}],"hasNext":false}
-
+                {
+                  "data": {
+                    "product": {
+                      "name": "Abc",
+                      "description": "Abc desc",
+                      "reviews": [
+                        {
+                          "rating": 5
+                        }
+                      ]
+                    }
+                  }
+                }
                 """);
     }
 
