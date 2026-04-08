@@ -210,11 +210,11 @@ public sealed class SourceSchemaMergerInterfaceTests : SourceSchemaMergerTestBas
 
             type Query
                 @fusion__type(schema: A) {
-                productById(id: ID!
-                    @fusion__inputField(schema: A)): Product
+                productById(
+                    id: ID! @fusion__inputField(schema: A)): Product
                     @fusion__field(schema: A)
-                productByName(name: String!
-                    @fusion__inputField(schema: A)): Product
+                productByName(
+                    name: String! @fusion__inputField(schema: A)): Product
                     @fusion__field(schema: A)
             }
 
@@ -264,8 +264,8 @@ public sealed class SourceSchemaMergerInterfaceTests : SourceSchemaMergerTestBas
 
             type Query
                 @fusion__type(schema: A) {
-                animalById(id: ID!
-                    @fusion__inputField(schema: A)): Animal
+                animalById(
+                    id: ID! @fusion__inputField(schema: A)): Animal
                     @fusion__field(schema: A)
             }
 
@@ -273,8 +273,8 @@ public sealed class SourceSchemaMergerInterfaceTests : SourceSchemaMergerTestBas
                 @fusion__type(schema: A)
                 @fusion__implements(schema: A, interface: "Animal")
                 @fusion__lookup(schema: A, key: "id", field: "catById(id: ID!): Cat", map: ["id"], path: "animalById", internal: false) {
-                catById(id: ID!
-                    @fusion__inputField(schema: A)): Cat
+                catById(
+                    id: ID! @fusion__inputField(schema: A)): Cat
                     @fusion__field(schema: A)
                 id: ID!
                     @fusion__field(schema: A)
@@ -284,8 +284,8 @@ public sealed class SourceSchemaMergerInterfaceTests : SourceSchemaMergerTestBas
                 @fusion__type(schema: A)
                 @fusion__implements(schema: A, interface: "Animal")
                 @fusion__lookup(schema: A, key: "id", field: "dogById(id: ID!): Dog", map: ["id"], path: "animalById", internal: false) {
-                dogById(id: ID!
-                    @fusion__inputField(schema: A)): Dog
+                dogById(
+                    id: ID! @fusion__inputField(schema: A)): Dog
                     @fusion__field(schema: A)
                 id: ID!
                     @fusion__field(schema: A)

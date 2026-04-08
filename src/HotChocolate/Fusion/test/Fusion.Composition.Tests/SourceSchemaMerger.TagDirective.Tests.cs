@@ -122,11 +122,8 @@ public sealed class SourceSchemaMergerTagDirectiveTests : SourceSchemaMergerTest
                 @tag(name: "b")
                 @fusion__type(schema: A)
                 @fusion__type(schema: B) {
-                field(arg: Int
-                    @tag(name: "a")
-                    @tag(name: "b")
-                    @fusion__inputField(schema: A)
-                    @fusion__inputField(schema: B)): Int
+                field(
+                    arg: Int @tag(name: "a") @tag(name: "b") @fusion__inputField(schema: A) @fusion__inputField(schema: B)): Int
                     @tag(name: "a")
                     @tag(name: "b")
                     @fusion__field(schema: A)
@@ -138,11 +135,8 @@ public sealed class SourceSchemaMergerTagDirectiveTests : SourceSchemaMergerTest
                 @tag(name: "b")
                 @fusion__type(schema: A)
                 @fusion__type(schema: B) {
-                field(arg: Int
-                    @tag(name: "a")
-                    @tag(name: "b")
-                    @fusion__inputField(schema: A)
-                    @fusion__inputField(schema: B)): Int
+                field(
+                    arg: Int @tag(name: "a") @tag(name: "b") @fusion__inputField(schema: A) @fusion__inputField(schema: B)): Int
                     @tag(name: "a")
                     @tag(name: "b")
                     @fusion__field(schema: A)

@@ -5,8 +5,8 @@ schema {
 type Query {
   fruitById(id: ID!): Fruit
     @lookup
-  personByAddressId(id: ID!
-    @is(field: "address.id")): Person
+  personByAddressId(
+    id: ID! @is(field: "address.id")): Person
     @lookup
   personById(id: ID!): Person
     @lookup
@@ -18,8 +18,8 @@ type Query {
     @lookup
   productByIdAndCategoryId(categoryId: Int id: ID!): Product
     @lookup
-  productByIdOrCategoryId(idOrCategoryId: IdOrCategoryIdInput!
-    @is(field: "{ id } | { categoryId }")): Product
+  productByIdOrCategoryId(
+    idOrCategoryId: IdOrCategoryIdInput! @is(field: "{ id } | { categoryId }")): Product
     @lookup
 }
 

@@ -41,7 +41,5 @@ type Query {
 type Product
   @key(fields: "id") {
   id: ID!
-  price: Float
-    @external
 }
 ```

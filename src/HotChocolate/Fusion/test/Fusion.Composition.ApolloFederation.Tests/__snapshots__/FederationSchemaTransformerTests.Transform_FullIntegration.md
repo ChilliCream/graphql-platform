@@ -86,7 +86,5 @@ type User
   @key(fields: "id") {
   id: ID!
   totalProductsCreated: Int
-  username: String
-    @external
 }
 ```

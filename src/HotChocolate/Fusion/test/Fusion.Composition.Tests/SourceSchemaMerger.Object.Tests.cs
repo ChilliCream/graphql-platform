@@ -249,11 +249,11 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
 
             type Query
                 @fusion__type(schema: A) {
-                productById(id: ID!
-                    @fusion__inputField(schema: A)): Product
+                productById(
+                    id: ID! @fusion__inputField(schema: A)): Product
                     @fusion__field(schema: A)
-                productByName(name: String!
-                    @fusion__inputField(schema: A)): Product
+                productByName(
+                    name: String! @fusion__inputField(schema: A)): Product
                     @fusion__field(schema: A)
                 version: Int
                     @fusion__field(schema: A)
@@ -303,11 +303,11 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
 
             type Query
                 @fusion__type(schema: A) {
-                productById(id: ID!
-                    @fusion__inputField(schema: A)): Product
+                productById(
+                    id: ID! @fusion__inputField(schema: A)): Product
                     @fusion__field(schema: A)
-                productBySku(sku: String!
-                    @fusion__inputField(schema: A)): Product
+                productBySku(
+                    sku: String! @fusion__inputField(schema: A)): Product
                     @fusion__field(schema: A)
             }
 
@@ -317,8 +317,8 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
                 @fusion__lookup(schema: A, key: "sku", field: "productBySku(sku: String!): Product", map: ["sku"], path: null, internal: false) {
                 id: ID!
                     @fusion__field(schema: A)
-                price(regionName: String!
-                    @fusion__inputField(schema: A)): ProductPrice
+                price(
+                    regionName: String! @fusion__inputField(schema: A)): ProductPrice
                     @fusion__field(schema: A)
             }
 
@@ -372,8 +372,8 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
                 @fusion__type(schema: A) {
                 lookups1: Lookups1!
                     @fusion__field(schema: A)
-                productById(id: ID!
-                    @fusion__inputField(schema: A)): Product
+                productById(
+                    id: ID! @fusion__inputField(schema: A)): Product
                     @fusion__field(schema: A)
             }
 
@@ -381,15 +381,15 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
                 @fusion__type(schema: A) {
                 lookups2: Lookups2!
                     @fusion__field(schema: A)
-                productBySku(sku: String!
-                    @fusion__inputField(schema: A)): Product
+                productBySku(
+                    sku: String! @fusion__inputField(schema: A)): Product
                     @fusion__field(schema: A)
             }
 
             type Lookups2
                 @fusion__type(schema: A) {
-                productByName(name: String!
-                    @fusion__inputField(schema: A)): Product
+                productByName(
+                    name: String! @fusion__inputField(schema: A)): Product
                     @fusion__field(schema: A)
             }
 
@@ -433,8 +433,8 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
 
             type Query
                 @fusion__type(schema: A) {
-                personByAddressId(id: ID!
-                    @fusion__inputField(schema: A)): Person
+                personByAddressId(
+                    id: ID! @fusion__inputField(schema: A)): Person
                     @fusion__field(schema: A)
             }
 
@@ -490,11 +490,11 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
             type Query
                 @fusion__type(schema: A)
                 @fusion__type(schema: B) {
-                personById(id: ID!
-                    @fusion__inputField(schema: A)): Person
+                personById(
+                    id: ID! @fusion__inputField(schema: A)): Person
                     @fusion__field(schema: A)
-                personBySku(sku: String!
-                    @fusion__inputField(schema: B)): Person
+                personBySku(
+                    sku: String! @fusion__inputField(schema: B)): Person
                     @fusion__field(schema: B)
             }
 
@@ -535,9 +535,9 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
 
             type Query
                 @fusion__type(schema: A) {
-                productByIdAndCategoryId(categoryId: Int
-                    @fusion__inputField(schema: A) id: ID!
-                    @fusion__inputField(schema: A)): Product!
+                productByIdAndCategoryId(
+                    categoryId: Int @fusion__inputField(schema: A)
+                    id: ID! @fusion__inputField(schema: A)): Product!
                     @fusion__field(schema: A)
             }
 
@@ -598,16 +598,16 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
 
             type Query
                 @fusion__type(schema: A) {
-                brand1(by: BrandByInput1!
-                    @fusion__inputField(schema: A)): Brand
+                brand1(
+                    by: BrandByInput1! @fusion__inputField(schema: A)): Brand
                     @fusion__field(schema: A)
-                brand2(and: BrandByInput1!
-                    @fusion__inputField(schema: A) name: String!
-                    @fusion__inputField(schema: A)): Brand
+                brand2(
+                    and: BrandByInput1! @fusion__inputField(schema: A)
+                    name: String! @fusion__inputField(schema: A)): Brand
                     @fusion__field(schema: A)
-                brand3(and: BrandByInput2!
-                    @fusion__inputField(schema: A) by: BrandByInput1!
-                    @fusion__inputField(schema: A)): Brand
+                brand3(
+                    and: BrandByInput2! @fusion__inputField(schema: A)
+                    by: BrandByInput1! @fusion__inputField(schema: A)): Brand
                     @fusion__field(schema: A)
             }
 
@@ -713,8 +713,8 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
             type Query
                 @fusion__type(schema: A) {
                 "Fetches a product"
-                productById("The product id" id: ID!
-                    @fusion__inputField(schema: A)): Product
+                productById(
+                    id: ID! @fusion__inputField(schema: A)): Product
                     @fusion__field(schema: A)
             }
 

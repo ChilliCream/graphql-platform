@@ -232,8 +232,8 @@ public sealed class SourceSchemaMergerUnionTests : SourceSchemaMergerTestBase
 
             type Query
                 @fusion__type(schema: A) {
-                animalById(id: ID!
-                    @fusion__inputField(schema: A)): Animal
+                animalById(
+                    id: ID! @fusion__inputField(schema: A)): Animal
                     @fusion__field(schema: A)
             }
 
@@ -287,24 +287,24 @@ public sealed class SourceSchemaMergerUnionTests : SourceSchemaMergerTestBase
 
             type Query
                 @fusion__type(schema: A) {
-                animalById(id: ID!
-                    @fusion__inputField(schema: A)): Animal
+                animalById(
+                    id: ID! @fusion__inputField(schema: A)): Animal
                     @fusion__field(schema: A)
             }
 
             type Cat
                 @fusion__type(schema: A)
                 @fusion__lookup(schema: A, key: "id", field: "catById(id: ID!): Cat", map: ["id"], path: "animalById", internal: false) {
-                catById(id: ID!
-                    @fusion__inputField(schema: A)): Cat
+                catById(
+                    id: ID! @fusion__inputField(schema: A)): Cat
                     @fusion__field(schema: A)
             }
 
             type Dog
                 @fusion__type(schema: A)
                 @fusion__lookup(schema: A, key: "id", field: "dogById(id: ID!): Dog", map: ["id"], path: "animalById", internal: false) {
-                dogById(id: ID!
-                    @fusion__inputField(schema: A)): Dog
+                dogById(
+                    id: ID! @fusion__inputField(schema: A)): Dog
                     @fusion__field(schema: A)
             }
 

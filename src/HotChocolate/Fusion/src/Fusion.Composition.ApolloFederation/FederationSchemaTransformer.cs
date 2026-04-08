@@ -51,6 +51,7 @@ public static class FederationSchemaTransformer
         GenerateLookupFields.Apply(schema);
         RewriteKeyDirectives.Apply(schema);
         TransformRequiresToRequire.Apply(schema);
+        RemoveExternalFields.Apply(schema);
 
         return SchemaFormatter.FormatAsString(schema);
     }

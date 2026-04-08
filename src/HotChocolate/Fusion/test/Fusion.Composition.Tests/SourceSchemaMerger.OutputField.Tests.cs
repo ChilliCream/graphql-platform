@@ -30,9 +30,8 @@ public sealed class SourceSchemaMergerOutputFieldTests : SourceSchemaMergerTestB
                 @fusion__type(schema: A)
                 @fusion__type(schema: B) {
                 "Computes a discount as a percentage of the product's list price."
-                discountPercentage(percent: Int = 10
-                    @fusion__inputField(schema: A)
-                    @fusion__inputField(schema: B)): Int
+                discountPercentage(
+                    percent: Int = 10 @fusion__inputField(schema: A) @fusion__inputField(schema: B)): Int
                     @fusion__field(schema: A, sourceType: "Int!")
                     @fusion__field(schema: B)
             }
@@ -94,10 +93,8 @@ public sealed class SourceSchemaMergerOutputFieldTests : SourceSchemaMergerTestB
             type Product
                 @fusion__type(schema: A)
                 @fusion__type(schema: B) {
-                discountPercentage(percent: Int
-                    @fusion__inputField(schema: A)
-                    @fusion__inputField(schema: B)
-                    @fusion__inaccessible): Int
+                discountPercentage(
+                    percent: Int @fusion__inputField(schema: A) @fusion__inputField(schema: B) @fusion__inaccessible): Int
                     @fusion__field(schema: A)
                     @fusion__field(schema: B)
             }

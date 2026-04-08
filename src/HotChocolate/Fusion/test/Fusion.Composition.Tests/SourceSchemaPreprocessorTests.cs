@@ -531,8 +531,8 @@ public sealed class SourceSchemaPreprocessorTests
                 @lookup
               productById(id: ID!): Product
                 @lookup
-              productByName(productName: String!
-                @is(field: "name")): Product
+              productByName(
+                productName: String! @is(field: "name")): Product
                 @lookup
             }
 
