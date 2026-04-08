@@ -51,8 +51,10 @@ directive @key(fields: FieldSet!, resolvable: Boolean = true) repeatable on OBJE
 
 "Links definitions within the document to external schemas."
 directive @link(
-  "Gets imported specification url." url: String!
-  "Gets optional list of imported element names." import: [String!]
+  "Gets imported specification url."
+  url: String!
+  "Gets optional list of imported element names."
+  import: [String!]
 ) repeatable on SCHEMA
 
 "Used to annotate the expected returned fieldset from a field on a base type that is guaranteed to be selectable by the federation gateway."

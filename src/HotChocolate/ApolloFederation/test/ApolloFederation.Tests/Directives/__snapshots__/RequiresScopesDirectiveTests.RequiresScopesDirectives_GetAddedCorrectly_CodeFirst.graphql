@@ -29,13 +29,16 @@ directive @key(fields: FieldSet!, resolvable: Boolean = true) repeatable on OBJE
 
 "Links definitions within the document to external schemas."
 directive @link(
-  "Gets imported specification url." url: String!
-  "Gets optional list of imported element names." import: [String!]
+  "Gets imported specification url."
+  url: String!
+  "Gets optional list of imported element names."
+  import: [String!]
 ) repeatable on SCHEMA
 
 "Indicates to composition that the target element is accessible only to the authenticated supergraph users with the appropriate JWT scopes."
 directive @requiresScopes(
-  "Retrieves list of a list of required JWT scopes." scopes: [[String!]!]!
+  "Retrieves list of a list of required JWT scopes."
+  scopes: [[String!]!]!
 ) on SCALAR | OBJECT | FIELD_DEFINITION | INTERFACE | ENUM
 
 "Scalar representing a set of fields."

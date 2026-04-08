@@ -26,13 +26,16 @@ directive @key(fields: FieldSet!, resolvable: Boolean = true) repeatable on OBJE
 
 "Links definitions within the document to external schemas."
 directive @link(
-  "Gets imported specification url." url: String!
-  "Gets optional list of imported element names." import: [String!]
+  "Gets imported specification url."
+  url: String!
+  "Gets optional list of imported element names."
+  import: [String!]
 ) repeatable on SCHEMA
 
 "Indicates to composition that the target element is restricted based on authorization policies."
 directive @policy(
-  "Retrieves list of a list of authorization policies to evaluate." policies: [[String!]!]!
+  "Retrieves list of a list of authorization policies to evaluate."
+  policies: [[String!]!]!
 ) on SCALAR | OBJECT | FIELD_DEFINITION | INTERFACE | ENUM
 
 "Scalar representing a set of fields."

@@ -10,6 +10,8 @@ type Query {
 
 "Sets the stability level of an opt-in feature."
 directive @optInFeatureStability(
-  "The name of the feature for which to set the stability." feature: String!
-  "The stability level of the feature." stability: String!
+  "The name of the feature for which to set the stability."
+  feature: String!
+  "The stability level of the feature."
+  stability: String!
 ) repeatable on SCHEMA

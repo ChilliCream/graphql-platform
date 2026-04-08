@@ -23,10 +23,14 @@ type Address {
 
 type Author implements Entity & Node {
   books(
-    "Returns the first _n_ elements from the list." first: Int
-    "Returns the elements in the list that come after the specified cursor." after: String
-    "Returns the last _n_ elements from the list." last: Int
-    "Returns the elements in the list that come before the specified cursor." before: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
   ): BooksConnection
   "This is some information."
   someInfo: String
@@ -64,10 +68,14 @@ type Book implements Node & Entity @shareable {
   id: ID!
   author: Author
   chapter(
-    "Returns the first _n_ elements from the list." first: Int
-    "Returns the elements in the list that come after the specified cursor." after: String
-    "Returns the last _n_ elements from the list." last: Int
-    "Returns the elements in the list that come before the specified cursor." before: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
   ): ChapterConnection
   idAndTitle: String!
   bookUri: String!
@@ -147,19 +155,27 @@ type Query {
   "Lookup nodes by a list of IDs."
   nodes("The list of node IDs." ids: [ID!]!): [Node]!
   authors(
-    "Returns the first _n_ elements from the list." first: Int
-    "Returns the elements in the list that come after the specified cursor." after: String
-    "Returns the last _n_ elements from the list." last: Int
-    "Returns the elements in the list that come before the specified cursor." before: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
   ): AuthorsConnection
   authorById(id: ID!): Author
   addressById(id: Int!): Address
   queryFieldCollocatedWithAuthor: String!
   books(
-    "Returns the first _n_ elements from the list." first: Int
-    "Returns the elements in the list that come after the specified cursor." after: String
-    "Returns the last _n_ elements from the list." last: Int
-    "Returns the elements in the list that come before the specified cursor." before: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
   ): BooksConnection
   bookById(id: Int!): Book
   staticField: String!

@@ -112,23 +112,33 @@ type PageInfo {
 
 type Query {
   letters(
-    "Returns the first _n_ elements from the list." first: Int
-    "Returns the elements in the list that come after the specified cursor." after: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
   ): LettersConnection
   explicitType(
-    "Returns the first _n_ elements from the list." first: Int
-    "Returns the elements in the list that come after the specified cursor." after: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
   ): ExplicitTypeConnection
   nestedObjectList(
-    "Returns the first _n_ elements from the list." first: Int
-    "Returns the elements in the list that come after the specified cursor." after: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
   ): NestedObjectListConnection
   extendedTypeRef(
-    "Returns the first _n_ elements from the list." first: Int
-    "Returns the elements in the list that come after the specified cursor." after: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
   ): ExtendedTypeRefConnection
   extendedTypeRefNested(
-    "Returns the first _n_ elements from the list." first: Int
-    "Returns the elements in the list that come after the specified cursor." after: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
   ): ExtendedTypeRefNestedConnection
 }

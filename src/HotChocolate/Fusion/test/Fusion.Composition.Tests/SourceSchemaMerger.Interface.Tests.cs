@@ -186,22 +186,11 @@ public sealed class SourceSchemaMergerInterfaceTests : SourceSchemaMergerTestBas
               query: Query
             }
 
-<<<<<<< Updated upstream
-            type Query
-                @fusion__type(schema: A) {
-                productById(id: ID!
-                    @fusion__inputField(schema: A)): Product
-                    @fusion__field(schema: A)
-                productByName(name: String!
-                    @fusion__inputField(schema: A)): Product
-                    @fusion__field(schema: A)
-=======
             type Query @fusion__type(schema: A) {
               productById(id: ID! @fusion__inputField(schema: A)): Product
                 @fusion__field(schema: A)
               productByName(name: String! @fusion__inputField(schema: A)): Product
                 @fusion__field(schema: A)
->>>>>>> Stashed changes
             }
 
             interface Product
@@ -246,35 +235,6 @@ public sealed class SourceSchemaMergerInterfaceTests : SourceSchemaMergerTestBas
               query: Query
             }
 
-<<<<<<< Updated upstream
-            type Query
-                @fusion__type(schema: A) {
-                animalById(id: ID!
-                    @fusion__inputField(schema: A)): Animal
-                    @fusion__field(schema: A)
-            }
-
-            type Cat implements Animal
-                @fusion__type(schema: A)
-                @fusion__implements(schema: A, interface: "Animal")
-                @fusion__lookup(schema: A, key: "id", field: "catById(id: ID!): Cat", map: ["id"], path: "animalById", internal: false) {
-                catById(id: ID!
-                    @fusion__inputField(schema: A)): Cat
-                    @fusion__field(schema: A)
-                id: ID!
-                    @fusion__field(schema: A)
-            }
-
-            type Dog implements Animal
-                @fusion__type(schema: A)
-                @fusion__implements(schema: A, interface: "Animal")
-                @fusion__lookup(schema: A, key: "id", field: "dogById(id: ID!): Dog", map: ["id"], path: "animalById", internal: false) {
-                dogById(id: ID!
-                    @fusion__inputField(schema: A)): Dog
-                    @fusion__field(schema: A)
-                id: ID!
-                    @fusion__field(schema: A)
-=======
             type Query @fusion__type(schema: A) {
               animalById(id: ID! @fusion__inputField(schema: A)): Animal
                 @fusion__field(schema: A)
@@ -294,7 +254,6 @@ public sealed class SourceSchemaMergerInterfaceTests : SourceSchemaMergerTestBas
               @fusion__lookup(schema: A, key: "id", field: "dogById(id: ID!): Dog", map: ["id"], path: "animalById", internal: false) {
               dogById(id: ID! @fusion__inputField(schema: A)): Dog @fusion__field(schema: A)
               id: ID! @fusion__field(schema: A)
->>>>>>> Stashed changes
             }
 
             interface Animal

@@ -119,22 +119,8 @@ public sealed class SourceSchemaMergerTagDirectiveTests : SourceSchemaMergerTest
               ): Int
                 @tag(name: "a")
                 @tag(name: "b")
-<<<<<<< Updated upstream
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field(arg: Int
-                    @tag(name: "a")
-                    @tag(name: "b")
-                    @fusion__inputField(schema: A)
-                    @fusion__inputField(schema: B)): Int
-                    @tag(name: "a")
-                    @tag(name: "b")
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-=======
                 @fusion__field(schema: A)
                 @fusion__field(schema: B)
->>>>>>> Stashed changes
             }
 
             interface FooInterface
@@ -147,22 +133,8 @@ public sealed class SourceSchemaMergerTagDirectiveTests : SourceSchemaMergerTest
               ): Int
                 @tag(name: "a")
                 @tag(name: "b")
-<<<<<<< Updated upstream
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field(arg: Int
-                    @tag(name: "a")
-                    @tag(name: "b")
-                    @fusion__inputField(schema: A)
-                    @fusion__inputField(schema: B)): Int
-                    @tag(name: "a")
-                    @tag(name: "b")
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-=======
                 @fusion__field(schema: A)
                 @fusion__field(schema: B)
->>>>>>> Stashed changes
             }
 
             union FooUnion

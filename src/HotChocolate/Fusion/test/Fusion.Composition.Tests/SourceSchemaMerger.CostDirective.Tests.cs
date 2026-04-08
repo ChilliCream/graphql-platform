@@ -65,24 +65,8 @@ public sealed class SourceSchemaMergerCostDirectiveTests : SourceSchemaMergerTes
                 @cost(weight: "1")
                 @fusion__cost(schema: A, weight: "1.0")
                 @fusion__cost(schema: B, weight: "1.0")
-<<<<<<< Updated upstream
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field(argument: Int
-                    @cost(weight: "1")
-                    @fusion__cost(schema: A, weight: "1.0")
-                    @fusion__cost(schema: B, weight: "1.0")
-                    @fusion__inputField(schema: A)
-                    @fusion__inputField(schema: B)): Int
-                    @cost(weight: "1")
-                    @fusion__cost(schema: A, weight: "1.0")
-                    @fusion__cost(schema: B, weight: "1.0")
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-=======
                 @fusion__field(schema: A)
                 @fusion__field(schema: B)
->>>>>>> Stashed changes
             }
 
             input Input @fusion__type(schema: A) @fusion__type(schema: B) {

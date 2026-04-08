@@ -102,33 +102,53 @@ type PageInfo {
 
 type Query {
   letters(
-    "Returns the first _n_ elements from the list." first: Int
-    "Returns the elements in the list that come after the specified cursor." after: String
-    "Returns the last _n_ elements from the list." last: Int
-    "Returns the elements in the list that come before the specified cursor." before: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
   ): LettersConnection
   explicitType(
-    "Returns the first _n_ elements from the list." first: Int
-    "Returns the elements in the list that come after the specified cursor." after: String
-    "Returns the last _n_ elements from the list." last: Int
-    "Returns the elements in the list that come before the specified cursor." before: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
   ): ExplicitTypeConnection
   nestedObjectList(
-    "Returns the first _n_ elements from the list." first: Int
-    "Returns the elements in the list that come after the specified cursor." after: String
-    "Returns the last _n_ elements from the list." last: Int
-    "Returns the elements in the list that come before the specified cursor." before: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
   ): NestedObjectListConnection
   extendedTypeRef(
-    "Returns the first _n_ elements from the list." first: Int
-    "Returns the elements in the list that come after the specified cursor." after: String
-    "Returns the last _n_ elements from the list." last: Int
-    "Returns the elements in the list that come before the specified cursor." before: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
   ): ExtendedTypeRefConnection
   extendedTypeRefNested(
-    "Returns the first _n_ elements from the list." first: Int
-    "Returns the elements in the list that come after the specified cursor." after: String
-    "Returns the last _n_ elements from the list." last: Int
-    "Returns the elements in the list that come before the specified cursor." before: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
   ): ExtendedTypeRefNestedConnection
 }

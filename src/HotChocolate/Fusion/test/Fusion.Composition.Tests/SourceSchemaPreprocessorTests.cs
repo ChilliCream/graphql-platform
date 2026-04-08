@@ -525,19 +525,9 @@ public sealed class SourceSchemaPreprocessorTests
             }
 
             type Query {
-<<<<<<< Updated upstream
-              node(id: ID!): Node
-                @lookup
-              productById(id: ID!): Product
-                @lookup
-              productByName(productName: String!
-                @is(field: "name")): Product
-                @lookup
-=======
               node(id: ID!): Node @lookup
               productById(id: ID!): Product @lookup
               productByName(productName: String! @is(field: "name")): Product @lookup
->>>>>>> Stashed changes
             }
 
             type Product implements Node @key(fields: "id") @key(fields: "name") {

@@ -22,5 +22,6 @@ enum Enum {
 
 "Indicates that the given field, argument, input field, or enum value requires giving explicit consent before being used."
 directive @requiresOptIn(
-  "The name of the feature that requires opt in." feature: String!
+  "The name of the feature that requires opt in."
+  feature: String!
 ) repeatable on FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM_VALUE | INPUT_FIELD_DEFINITION

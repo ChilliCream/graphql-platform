@@ -366,7 +366,15 @@ public sealed partial class SyntaxSerializer
             {
                 writer.WriteLine();
                 writer.WriteIndent();
-                VisitArgumentValueDefinition(argument, writer);
+
+                if (argument.Description is { })
+                {
+                    writer.WriteStringValue(argument.Description);
+                    writer.WriteLine();
+                    writer.WriteIndent();
+                }
+
+                WriteInputValueDefinition(argument, writer);
             }
 
             writer.WriteLine();

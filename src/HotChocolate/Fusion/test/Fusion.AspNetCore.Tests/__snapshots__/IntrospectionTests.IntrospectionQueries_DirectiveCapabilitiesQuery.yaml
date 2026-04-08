@@ -69,7 +69,8 @@ sourceSchemas:
       type Query @test(arg: "value") {
         "Object field description"
         posts(
-          "Argument description" filter: PostsFilter
+          "Argument description"
+          filter: PostsFilter
           first: Int! = 5 @test(arg: "value")
           hidden: Boolean @deprecated(reason: "No longer supported")
         ): [Post]

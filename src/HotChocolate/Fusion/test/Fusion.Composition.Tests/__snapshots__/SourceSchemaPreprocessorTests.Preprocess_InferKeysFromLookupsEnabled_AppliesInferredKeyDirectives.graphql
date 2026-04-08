@@ -3,26 +3,6 @@ schema {
 }
 
 type Query {
-<<<<<<< Updated upstream
-  fruitById(id: ID!): Fruit
-    @lookup
-  personByAddressId(id: ID!
-    @is(field: "address.id")): Person
-    @lookup
-  personById(id: ID!): Person
-    @lookup
-  petById(id: ID!): Pet
-    @lookup
-  productById(id: ID!): Product
-    @lookup
-  productByIdAgain(id: ID!): Product
-    @lookup
-  productByIdAndCategoryId(categoryId: Int id: ID!): Product
-    @lookup
-  productByIdOrCategoryId(idOrCategoryId: IdOrCategoryIdInput!
-    @is(field: "{ id } | { categoryId }")): Product
-    @lookup
-=======
   fruitById(id: ID!): Fruit @lookup
   personByAddressId(id: ID! @is(field: "address.id")): Person @lookup
   personById(id: ID!): Person @lookup
@@ -33,7 +13,6 @@ type Query {
   productByIdOrCategoryId(
     idOrCategoryId: IdOrCategoryIdInput! @is(field: "{ id } | { categoryId }")
   ): Product @lookup
->>>>>>> Stashed changes
 }
 
 type Address {

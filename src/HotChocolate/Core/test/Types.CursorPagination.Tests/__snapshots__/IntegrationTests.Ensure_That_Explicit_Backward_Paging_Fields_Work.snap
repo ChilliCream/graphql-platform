@@ -4,8 +4,10 @@ schema {
 
 type BackwardQuery {
   foos(
-    "Returns the first _n_ elements from the list." first: Int
-    "Returns the elements in the list that come after the specified cursor." after: String
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
   ): FoosConnection
 }
 
