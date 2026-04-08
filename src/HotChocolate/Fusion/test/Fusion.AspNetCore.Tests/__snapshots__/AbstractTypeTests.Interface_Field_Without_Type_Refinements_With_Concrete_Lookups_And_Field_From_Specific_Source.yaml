@@ -118,7 +118,6 @@ sourceSchemas:
               $__fusion_1_id: ID!
             ) {
               discussionById(id: $__fusion_1_id) {
-                __typename
                 totalVotes
               }
             }
@@ -132,7 +131,6 @@ sourceSchemas:
               {
                 "data": {
                   "discussionById": {
-                    "__typename": "Discussion",
                     "totalVotes": 123
                   }
                 }
@@ -170,7 +168,6 @@ operationPlan:
           $__fusion_1_id: ID!
         ) {
           discussionById(id: $__fusion_1_id) {
-            __typename
             totalVotes
           }
         }
@@ -191,7 +188,6 @@ operationPlan:
           $__fusion_2_id: ID!
         ) {
           commentById(id: $__fusion_2_id) {
-            __typename
             totalVotes
           }
         }

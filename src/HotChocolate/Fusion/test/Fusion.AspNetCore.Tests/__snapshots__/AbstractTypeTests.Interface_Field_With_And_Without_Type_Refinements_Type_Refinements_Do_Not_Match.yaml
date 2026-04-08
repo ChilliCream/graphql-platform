@@ -119,7 +119,6 @@ sourceSchemas:
               $__fusion_1_id: ID!
             ) {
               discussionById(id: $__fusion_1_id) {
-                __typename
                 upvotes
                 ... on Discussion {
                   score
@@ -142,7 +141,6 @@ sourceSchemas:
               {
                 "data": {
                   "discussionById": {
-                    "__typename": "Discussion",
                     "upvotes": 123,
                     "score": 123
                   }
@@ -152,7 +150,6 @@ sourceSchemas:
               {
                 "data": {
                   "discussionById": {
-                    "__typename": "Discussion",
                     "upvotes": 123,
                     "score": 123
                   }
@@ -190,7 +187,6 @@ sourceSchemas:
               $__fusion_2_id: ID!
             ) {
               authorById(id: $__fusion_2_id) {
-                __typename
                 upvotes
               }
             }
@@ -204,7 +200,6 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "__typename": "Author",
                     "upvotes": 123
                   }
                 }
@@ -244,7 +239,6 @@ operationPlan:
           $__fusion_1_id: ID!
         ) {
           discussionById(id: $__fusion_1_id) {
-            __typename
             upvotes
             ... on Discussion {
               score
@@ -267,7 +261,6 @@ operationPlan:
           $__fusion_2_id: ID!
         ) {
           authorById(id: $__fusion_2_id) {
-            __typename
             upvotes
           }
         }

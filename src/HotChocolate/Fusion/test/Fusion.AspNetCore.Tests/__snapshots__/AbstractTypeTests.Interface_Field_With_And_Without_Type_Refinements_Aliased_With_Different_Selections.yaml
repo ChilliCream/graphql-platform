@@ -158,7 +158,6 @@ sourceSchemas:
               $__fusion_2_id: ID!
             ) {
               discussionById(id: $__fusion_2_id) {
-                __typename
                 upvotes
                 ... on Discussion {
                   score
@@ -181,7 +180,6 @@ sourceSchemas:
               {
                 "data": {
                   "discussionById": {
-                    "__typename": "Discussion",
                     "upvotes": 123,
                     "score": 123
                   }
@@ -191,7 +189,6 @@ sourceSchemas:
               {
                 "data": {
                   "discussionById": {
-                    "__typename": "Discussion",
                     "upvotes": 123,
                     "score": 123
                   }
@@ -226,33 +223,23 @@ sourceSchemas:
     interactions:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
-          kind: OperationBatch
-          items:
-            - document: |
-                query Op_2bff8025_2(
-                  $__fusion_1_id: ID!
-                ) {
-                  authorById(id: $__fusion_1_id) {
-                    upvotes
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_1_id": "QXV0aG9yOjU="
-                }
-            - document: |
-                query Op_2bff8025_4(
-                  $__fusion_3_id: ID!
-                ) {
-                  authorById(id: $__fusion_3_id) {
-                    __typename
-                    upvotes
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_3_id": "QXV0aG9yOjI="
-                }
+          document: |
+            query Op_2bff8025_2(
+              $__fusion_1_id: ID!
+            ) {
+              authorById(id: $__fusion_1_id) {
+                upvotes
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "QXV0aG9yOjU="
+              },
+              {
+                "__fusion_1_id": "QXV0aG9yOjI="
+              }
+            ]
         response:
           contentType: application/jsonl; charset=utf-8
           results:
@@ -268,7 +255,6 @@ sourceSchemas:
               {
                 "data": {
                   "authorById": {
-                    "__typename": "Author",
                     "upvotes": 123
                   }
                 }
@@ -318,7 +304,7 @@ operationPlan:
           }
         }
     - id: 2
-      type: Operation
+      type: OperationBatch
       schema: C
       operation: |
         query Op_2bff8025_2(
@@ -329,31 +315,12 @@ operationPlan:
           }
         }
       source: $.authorById
-      target: $.b<Author>
+      targets:
+        - $.b<Author>
+        - $.abstractTypes<Author>
       batchingGroupId: 2
       requirements:
         - name: __fusion_1_id
-          selectionMap: >-
-            id
-      dependencies:
-        - id: 1
-    - id: 4
-      type: Operation
-      schema: C
-      operation: |
-        query Op_2bff8025_4(
-          $__fusion_3_id: ID!
-        ) {
-          authorById(id: $__fusion_3_id) {
-            __typename
-            upvotes
-          }
-        }
-      source: $.authorById
-      target: $.abstractTypes<Author>
-      batchingGroupId: 2
-      requirements:
-        - name: __fusion_3_id
           selectionMap: >-
             id
       dependencies:
@@ -366,7 +333,6 @@ operationPlan:
           $__fusion_2_id: ID!
         ) {
           discussionById(id: $__fusion_2_id) {
-            __typename
             upvotes
             ... on Discussion {
               score

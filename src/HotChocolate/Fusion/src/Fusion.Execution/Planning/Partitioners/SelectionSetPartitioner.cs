@@ -126,16 +126,18 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                     var fragmentConditions = ExtractDirectiveConditions(inlineFragmentNode.Directives);
                     var savedCount = context.PushConditions(fragmentConditions);
 
-                    var (resolvable, unresolvable) =
-                        RewriteFragmentNode(
-                            context,
-                            type,
-                            inlineFragmentNode,
-                            providedSelectionSetNode);
+                    {
+                        var (resolvable, unresolvable) =
+                            RewriteFragmentNode(
+                                context,
+                                type,
+                                inlineFragmentNode,
+                                providedSelectionSetNode);
+
+                        CompleteSelection(inlineFragmentNode, resolvable, unresolvable, i);
+                    }
 
                     context.PopConditions(savedCount);
-
-                    CompleteSelection(inlineFragmentNode, resolvable, unresolvable, i);
                     break;
                 }
             }
@@ -161,13 +163,6 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 var currentPath = context.BuildPath();
                 var currentConditions = context.SnapshotConditions();
                 MergeChildUnresolvableEntries(context, currentPath, currentConditions, unresolvableSelections);
-            }
-
-            if (isAbstractType && !unresolvableSelections.Any(IsTypeNameSelection))
-            {
-                unresolvableSelections = [
-                    new FieldNode(IntrospectionFieldNames.TypeName),
-                    ..unresolvableSelections];
             }
 
             var unresolvableSelectionSet = new SelectionSetNode(unresolvableSelections);
