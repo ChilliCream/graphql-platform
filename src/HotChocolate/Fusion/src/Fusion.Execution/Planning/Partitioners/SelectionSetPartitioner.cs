@@ -275,7 +275,7 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         ExecutionNodeCondition[] currentConditions,
         List<ISelectionNode> unresolvableSelections)
     {
-        var keep = ImmutableStack<ConditionedSelectionSet>.Empty;
+        List<ConditionedSelectionSet>? kept = null;
         var anyMerged = false;
 
         foreach (var entry in context.Unresolvable)
@@ -299,13 +299,25 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             }
             else
             {
-                keep = keep.Push(entry);
+                kept ??= [];
+                kept.Add(entry);
             }
         }
 
         if (anyMerged)
         {
-            context.Unresolvable = keep;
+            // Rebuild the stack in reverse so the original ordering is preserved,
+            // since ImmutableStack enumeration is LIFO.
+            var stack = ImmutableStack<ConditionedSelectionSet>.Empty;
+            if (kept is not null)
+            {
+                for (var i = kept.Count - 1; i >= 0; i--)
+                {
+                    stack = stack.Push(kept[i]);
+                }
+            }
+
+            context.Unresolvable = stack;
         }
     }
 

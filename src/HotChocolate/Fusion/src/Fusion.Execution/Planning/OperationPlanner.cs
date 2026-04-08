@@ -2202,6 +2202,14 @@ public sealed partial class OperationPlanner
 
         var wrappedSelections = WrapSelectionsInFragments(match.AncestorFragments, requirements);
 
+        // Register the wrapped selection set nodes in the index before partitioning,
+        // so the partitioner can resolve their IDs via GetId.
+        if (wrappedSelections != requirements)
+        {
+            index.Register(match.SelectionSetId, wrappedSelections);
+            EnsureAllSelectionSetsRegistered(wrappedSelections, index);
+        }
+
         var input = new SelectionSetPartitionerInput
         {
             SchemaName = match.Step.SchemaName!,
