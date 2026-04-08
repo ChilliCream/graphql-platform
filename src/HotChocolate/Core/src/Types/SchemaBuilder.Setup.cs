@@ -27,6 +27,8 @@ public partial class SchemaBuilder
             return Create(builder, schema, context);
         }
 
+        [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2072",
+            Justification = "Type interceptor types are registered by the framework and preserved at runtime.")]
         public static Schema Create(
             SchemaBuilder builder,
             LazySchema lazySchema,

@@ -1,7 +1,10 @@
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 
 namespace HotChocolate.Execution.Processing;
 
+[UnconditionalSuppressMessage("AOT", "IL2067",
+    Justification = "Resolver types are statically referenced in schema definitions.")]
 internal sealed class ResolverProvider : IDisposable
 {
     private readonly ConcurrentDictionary<Type, object> _instances = new();

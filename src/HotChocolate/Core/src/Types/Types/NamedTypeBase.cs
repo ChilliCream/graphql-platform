@@ -129,7 +129,9 @@ public abstract class NamedTypeBase<TConfiguration>
         }
         else if (RuntimeType != typeof(object))
         {
+#pragma warning disable IL2055, IL3050
             TypeIdentity = typeDefinitionOrIdentity.MakeGenericType(RuntimeType);
+#pragma warning restore IL2055, IL3050
         }
     }
 

@@ -1,5 +1,6 @@
 #nullable disable
 
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -245,6 +246,8 @@ public static class ReflectionUtils
         return members;
     }
 
+    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2070",
+        Justification = "Properties are retrieved from types registered with the schema and preserved at runtime.")]
     private static void AddProperties(
         Func<string, bool> exists,
         Action<string, PropertyInfo> add,
@@ -269,6 +272,10 @@ public static class ReflectionUtils
         return member.IsDefined(typeof(GraphQLIgnoreAttribute));
     }
 
+    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2070",
+        Justification = "The method searches the type hierarchy for the best matching method which is already discovered.")]
+    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2075",
+        Justification = "BaseType traversal for method resolution on types already discovered by the schema.")]
     private static MethodInfo GetBestMatchingMethod(
         Type type, MethodInfo method)
     {
@@ -296,6 +303,10 @@ public static class ReflectionUtils
         return method;
     }
 
+    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2070",
+        Justification = "The method searches the type hierarchy for the best matching property which is already discovered.")]
+    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2075",
+        Justification = "BaseType traversal for property resolution on types already discovered by the schema.")]
     private static PropertyInfo GetBestMatchingProperty(
         Type type, PropertyInfo property)
     {
@@ -321,6 +332,8 @@ public static class ReflectionUtils
         return property;
     }
 
+    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2070",
+        Justification = "Properties are retrieved from types registered with the schema and preserved at runtime.")]
     public static ILookup<string, PropertyInfo> CreatePropertyLookup(
         this Type type)
     {

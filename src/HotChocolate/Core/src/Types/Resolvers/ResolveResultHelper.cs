@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Resolvers.Expressions;
@@ -5,6 +6,10 @@ using static System.Linq.Expressions.Expression;
 
 namespace HotChocolate.Resolvers;
 
+[UnconditionalSuppressMessage("ReflectionAnalysis", "IL2060",
+    Justification = "The generic methods being specialized have no trimming constraints on their type parameters.")]
+[UnconditionalSuppressMessage("AOT", "IL3050",
+    Justification = "This helper builds expression trees at schema initialization time and is only used in JIT-compatible environments.")]
 internal static class ResolveResultHelper
 {
     private static readonly MethodInfo s_awaitTaskHelper =

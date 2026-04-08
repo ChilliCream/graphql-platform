@@ -187,7 +187,9 @@ internal sealed class InterfaceCompletionTypeInterceptor : TypeInterceptor
             return;
         }
 
+#pragma warning disable IL2070
         foreach (var interfaceType in runtimeType.GetInterfaces())
+#pragma warning restore IL2070
         {
             if (allInterfaces.Contains(interfaceType))
             {

@@ -11,6 +11,8 @@ internal sealed class DefaultTypeDiscoveryHandler(ITypeInspector typeInspector) 
     private ITypeInspector TypeInspector { get; } =
         typeInspector ?? throw new ArgumentNullException(nameof(typeInspector));
 
+    [UnconditionalSuppressMessage("AOT", "IL3050",
+        Justification = "Schema types are well-known generic types created via MakeGenericType during schema initialization.")]
     public override bool TryInferType(
         TypeReference typeReference,
         TypeDiscoveryInfo typeInfo,

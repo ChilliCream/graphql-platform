@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
@@ -55,6 +56,10 @@ internal sealed class GlobalStateParameterExpressionBuilder
             : BuildGetter(parameter, key, contextData);
     }
 
+    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2060",
+        Justification = "The state helper methods have no trimming constraints on their type parameters.")]
+    [UnconditionalSuppressMessage("AOT", "IL3050",
+        Justification = "This method builds expression trees at schema initialization time and is only used in JIT-compatible environments.")]
     private static Expression BuildSetter(
         ParameterInfo parameter,
         ConstantExpression key,
@@ -72,6 +77,10 @@ internal sealed class GlobalStateParameterExpressionBuilder
             key);
     }
 
+    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2060",
+        Justification = "The state helper methods have no trimming constraints on their type parameters.")]
+    [UnconditionalSuppressMessage("AOT", "IL3050",
+        Justification = "This method builds expression trees at schema initialization time and is only used in JIT-compatible environments.")]
     private static Expression BuildGetter(
         ParameterInfo parameter,
         ConstantExpression key,

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Configuration;
 using HotChocolate.Features;
 using HotChocolate.Properties;
@@ -129,6 +130,8 @@ public static partial class SchemaBuilderExtensions
     /// <returns>
     /// The schema builder instance.
     /// </returns>
+    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2067",
+        Justification = "Convention types are registered by the framework and preserved at runtime.")]
     public static ISchemaBuilder AddConvention(
         this ISchemaBuilder builder,
         Type convention,
@@ -336,6 +339,8 @@ public static partial class SchemaBuilderExtensions
     /// <exception cref="ArgumentException">
     /// Thrown when the convention type is not supported.
     /// </exception>
+    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2067",
+        Justification = "Convention types are registered by the framework and preserved at runtime.")]
     public static ISchemaBuilder TryAddConvention(
         this ISchemaBuilder builder,
         Type convention,

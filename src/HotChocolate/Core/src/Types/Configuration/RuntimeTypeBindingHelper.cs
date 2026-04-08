@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Internal;
 
 namespace HotChocolate.Configuration;
@@ -17,6 +18,8 @@ internal static class RuntimeTypeBindingHelper
             && runtimeType.ElementType is { Source: { } elementType }
             && elementType == typeof(byte);
 
+    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2070",
+        Justification = "The type's interfaces are preserved because the type is part of the schema type system.")]
     private static bool IsDictionary(Type type)
     {
         if (typeof(IDictionary).IsAssignableFrom(type))

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Features;
@@ -483,7 +484,11 @@ public static partial class SchemaBuilderExtensions
         string? typeName = null)
         => AddResolver(builder, typeof(T), typeName);
 
-    public static ISchemaBuilder AddRootResolver(this ISchemaBuilder builder, Type resolverType)
+    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2070",
+        Justification = "Resolver types are registered by the framework and their properties are preserved at runtime.")]
+    public static ISchemaBuilder AddRootResolver(
+        this ISchemaBuilder builder,
+        Type resolverType)
     {
         if (resolverType is { IsClass: true } or { IsInterface: true })
         {

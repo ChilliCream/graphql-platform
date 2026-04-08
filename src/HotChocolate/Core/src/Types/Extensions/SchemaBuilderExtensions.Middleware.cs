@@ -1,10 +1,13 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate;
 
 public static partial class SchemaBuilderExtensions
 {
-    public static ISchemaBuilder Use<TMiddleware>(
+    public static ISchemaBuilder Use<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)]
+        TMiddleware>(
         this ISchemaBuilder builder)
         where TMiddleware : class
     {
@@ -12,7 +15,9 @@ public static partial class SchemaBuilderExtensions
             FieldClassMiddlewareFactory.Create<TMiddleware>());
     }
 
-    public static ISchemaBuilder Use<TMiddleware>(
+    public static ISchemaBuilder Use<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)]
+        TMiddleware>(
         this ISchemaBuilder builder,
         Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
         where TMiddleware : class
@@ -32,7 +37,9 @@ public static partial class SchemaBuilderExtensions
                     n, fieldReference, middleware(n))));
     }
 
-    public static ISchemaBuilder Map<TMiddleware>(
+    public static ISchemaBuilder Map<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)]
+        TMiddleware>(
         this ISchemaBuilder builder,
         FieldReference fieldReference)
         where TMiddleware : class
@@ -48,7 +55,9 @@ public static partial class SchemaBuilderExtensions
                 }));
     }
 
-    public static ISchemaBuilder Map<TMiddleware>(
+    public static ISchemaBuilder Map<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)]
+        TMiddleware>(
         this ISchemaBuilder builder,
         FieldReference fieldReference,
         Func<IServiceProvider, FieldDelegate, TMiddleware> factory)

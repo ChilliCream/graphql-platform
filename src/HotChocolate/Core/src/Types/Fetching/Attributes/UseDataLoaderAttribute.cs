@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using HotChocolate.Types.Descriptors;
@@ -14,6 +15,10 @@ public sealed class UseDataLoaderAttribute : ObjectFieldDescriptorAttribute
         Order = order;
     }
 
+    [UnconditionalSuppressMessage("AOT", "IL3050",
+        Justification = "DataLoader types are statically referenced in schema definitions.")]
+    [UnconditionalSuppressMessage("AOT", "IL2077",
+        Justification = "DataLoader types are statically referenced in schema definitions.")]
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,

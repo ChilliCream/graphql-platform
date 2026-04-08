@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Internal;
@@ -62,6 +63,10 @@ internal class ScopedStateParameterExpressionBuilder
     protected virtual string? GetKey(ParameterInfo parameter)
         => parameter.GetCustomAttribute<ScopedStateAttribute>()!.Key;
 
+    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2060",
+        Justification = "The state helper methods have no trimming constraints on their type parameters.")]
+    [UnconditionalSuppressMessage("AOT", "IL3050",
+        Justification = "This method builds expression trees at schema initialization time and is only used in JIT-compatible environments.")]
     protected Expression BuildSetter(
         ParameterInfo parameter,
         ConstantExpression key,
@@ -79,6 +84,10 @@ internal class ScopedStateParameterExpressionBuilder
             key);
     }
 
+    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2060",
+        Justification = "The state helper methods have no trimming constraints on their type parameters.")]
+    [UnconditionalSuppressMessage("AOT", "IL3050",
+        Justification = "This method builds expression trees at schema initialization time and is only used in JIT-compatible environments.")]
     protected Expression BuildGetter(
         ParameterInfo parameter,
         ConstantExpression key,

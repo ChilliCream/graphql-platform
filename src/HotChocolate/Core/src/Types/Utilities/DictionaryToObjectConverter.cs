@@ -1,6 +1,7 @@
 #nullable disable
 
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Internal;
 
 namespace HotChocolate.Utilities;
@@ -21,6 +22,8 @@ public sealed class DictionaryToObjectConverter(ITypeConverter converter)
         return context.Object;
     }
 
+    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2072",
+        Justification = "Object types created here are user-provided runtime types registered with the schema.")]
     protected override void VisitObject(
         IReadOnlyDictionary<string, object> dictionary,
         ConverterContext context)
@@ -55,6 +58,8 @@ public sealed class DictionaryToObjectConverter(ITypeConverter converter)
         }
     }
 
+    [UnconditionalSuppressMessage("AOT", "IL3050",
+        Justification = "MakeGenericType for List<> is safe as the element types are preserved by the schema type system.")]
     protected override void VisitList(
         IReadOnlyList<object> list,
         ConverterContext context)

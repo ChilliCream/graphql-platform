@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using GreenDonut;
 using HotChocolate;
 using HotChocolate.Execution;
@@ -157,7 +158,9 @@ public static class RequestExecutorServiceCollectionExtensions
         return builder;
     }
 
-    public static IServiceCollection AddBatchDispatcher<T>(this IServiceCollection services)
+    public static IServiceCollection AddBatchDispatcher<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
+        this IServiceCollection services)
         where T : class, IBatchDispatcher
     {
         services.RemoveAll<IBatchDispatcher>();
@@ -165,7 +168,9 @@ public static class RequestExecutorServiceCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection AddBatchScheduler<T>(this IServiceCollection services)
+    public static IServiceCollection AddBatchScheduler<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
+        this IServiceCollection services)
         where T : class, IBatchScheduler
     {
         services.RemoveAll<IBatchScheduler>();

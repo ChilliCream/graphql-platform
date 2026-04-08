@@ -9,6 +9,10 @@ public partial class DefaultTypeConverter : ITypeConverter
     private readonly ConcurrentDictionary<(Type, Type), ChangeType> _converters = new();
     private readonly List<IChangeTypeProvider> _changeTypeProvider = [];
 
+    [UnconditionalSuppressMessage("AOT", "IL3050",
+        Justification = "ListTypeConverter is used for runtime type conversion and requires dynamic code by design.")]
+    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2026",
+        Justification = "ListTypeConverter is used for runtime type conversion and requires unreferenced code by design.")]
     public DefaultTypeConverter(IEnumerable<IChangeTypeProvider>? providers = null)
     {
         if (providers is not null)
@@ -37,6 +41,8 @@ public partial class DefaultTypeConverter : ITypeConverter
         return converted;
     }
 
+    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2067",
+        Justification = "Activator.CreateInstance is only used to create default value type instances for null source values.")]
     public bool TryConvert(Type from, Type to, object? source, out object? converted, out Exception? conversionException)
     {
         ArgumentNullException.ThrowIfNull(from);

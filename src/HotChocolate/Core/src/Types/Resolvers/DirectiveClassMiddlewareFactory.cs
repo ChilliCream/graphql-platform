@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
@@ -23,7 +24,7 @@ internal static class DirectiveClassMiddlewareFactory
     private static readonly PropertyInfo s_services =
         typeof(IResolverContext).GetProperty(nameof(IResolverContext.Services))!;
 
-    internal static DirectiveMiddleware Create<TMiddleware>()
+    internal static DirectiveMiddleware Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>()
         where TMiddleware : class
     {
         var sync = new object();
@@ -71,12 +72,16 @@ internal static class DirectiveClassMiddlewareFactory
         };
     }
 
+    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2060",
+        Justification = "The Create<TMiddleware> method's generic constraints are satisfied at runtime by the middleware type.")]
+    [UnconditionalSuppressMessage("AOT", "IL3050",
+        Justification = "This method uses MakeGenericMethod to instantiate a generic factory method and is only used in JIT-compatible environments.")]
     internal static DirectiveMiddleware Create(Type middlewareType)
         => (DirectiveMiddleware)s_createGeneric
             .MakeGenericMethod(middlewareType)
             .Invoke(null, [])!;
 
-    internal static DirectiveMiddleware Create<TMiddleware>(
+    internal static DirectiveMiddleware Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>(
         Func<IServiceProvider, FieldDelegate, TMiddleware> activate)
         where TMiddleware : class
     {
