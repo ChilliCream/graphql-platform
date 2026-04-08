@@ -225,10 +225,11 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
     {
         IFeatureCollection? features = null;
 
-        if (request.RequiresFileUpload)
+        if (request.RequiresFileUpload
+            && context.RequestContext.Features.Get<IFileLookup>() is { } fileLookup)
         {
             features = new FeatureCollection();
-            features.Set(context.RequestContext.Features.GetRequired<IFileLookup>());
+            features.Set(fileLookup);
         }
 
         if (request.Variables.Length == 0)
