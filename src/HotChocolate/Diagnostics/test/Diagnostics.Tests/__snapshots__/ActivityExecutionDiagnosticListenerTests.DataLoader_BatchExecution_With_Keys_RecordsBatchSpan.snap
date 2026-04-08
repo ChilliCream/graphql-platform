@@ -132,15 +132,58 @@
             {
               "OperationName": "GraphQL DataLoader Dispatch",
               "DisplayName": "GraphQL DataLoader Dispatch",
-              "Status": "Unset",
-              "tags": [],
-              "event": [],
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "dataloader_dispatch"
+                }
+              ],
+              "event": [
+                {
+                  "Name": "BatchEvaluated",
+                  "Tags": [
+                    {
+                      "Key": "openBatches",
+                      "Value": 1
+                    }
+                  ]
+                },
+                {
+                  "Name": "BatchDispatched",
+                  "Tags": [
+                    {
+                      "Key": "dispatchedBatches",
+                      "Value": 1
+                    }
+                  ]
+                }
+              ],
               "activities": [
                 {
                   "OperationName": "GraphQL DataLoader Batch CustomDataLoader",
                   "DisplayName": "GraphQL DataLoader Batch CustomDataLoader",
-                  "Status": "Unset",
-                  "tags": [],
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "dataloader_batch"
+                    },
+                    {
+                      "Key": "graphql.dataloader.name",
+                      "Value": "CustomDataLoader"
+                    },
+                    {
+                      "Key": "graphql.dataloader.batch.size",
+                      "Value": 1
+                    },
+                    {
+                      "Key": "graphql.dataloader.batch.keys",
+                      "Value": [
+                        "abc"
+                      ]
+                    }
+                  ],
                   "event": []
                 }
               ]

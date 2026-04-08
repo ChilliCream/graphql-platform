@@ -59,8 +59,10 @@ public class ServiceTypeTests
 
                 "Links definitions within the document to external schemas."
                 directive @link(
-                  "Gets imported specification url." url: String!
-                  "Gets optional list of imported element names." import: [String!]
+                  "Gets imported specification url."
+                  url: String!
+                  "Gets optional list of imported element names."
+                  import: [String!]
                 ) repeatable on SCHEMA
 
                 "Scalar representing a set of fields."
@@ -120,8 +122,10 @@ public class ServiceTypeTests
 
                 "Links definitions within the document to external schemas."
                 directive @link(
-                  "Gets imported specification url." url: String!
-                  "Gets optional list of imported element names." import: [String!]
+                  "Gets imported specification url."
+                  url: String!
+                  "Gets optional list of imported element names."
+                  import: [String!]
                 ) repeatable on SCHEMA
 
                 "Scalar representing a set of fields."
