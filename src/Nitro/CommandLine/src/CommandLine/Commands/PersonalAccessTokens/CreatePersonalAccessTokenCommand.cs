@@ -1,10 +1,12 @@
-using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.PersonalAccessTokens;
+using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens.Components;
+using ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens.Options;
 using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens;
@@ -13,72 +15,89 @@ internal sealed class CreatePersonalAccessTokenCommand : Command
 {
     public CreatePersonalAccessTokenCommand() : base("create")
     {
-        Description = "Creates a new personal access token";
+        Description = "Create a new personal access token.";
 
-        AddOption(Opt<OptionalDescriptionOption>.Instance);
-        AddOption(Opt<ExpiresOption>.Instance);
+        Options.Add(Opt<OptionalPersonalAccessTokenDescriptionOption>.Instance);
+        Options.Add(Opt<ExpiresOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples(
+            """
+            pat create \
+              --description "CI/CD token" \
+              --expires "30"
+            """);
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken ct)
     {
-        console.WriteLine();
-        console.WriteLine("Creating a pat key");
-        console.WriteLine();
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IPersonalAccessTokensClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        var description = await context
-            .OptionOrAskAsync(
+        parseResult.AssertHasAuthentication(sessionService);
+
+        var description = await console
+            .PromptAsync(
                 "Description of the Personal Access Token",
-                Opt<OptionalDescriptionOption>.Instance,
+                defaultValue: null,
+                parseResult,
+                Opt<OptionalPersonalAccessTokenDescriptionOption>.Instance,
                 ct);
 
-        var expires = context.ParseResult.GetValueForOption(Opt<ExpiresOption>.Instance);
+        var expires = parseResult.GetValue(Opt<ExpiresOption>.Instance);
 
         var expiresAt = DateTimeOffset.UtcNow.AddDays(expires);
 
-        var input =
-            new CreatePersonalAccessTokenInput { Description = description, ExpiresAt = expiresAt };
-
-        var result = await client.CreatePersonalAccessTokenCommandMutation
-            .ExecuteAsync(input, ct);
-
-        console.EnsureNoErrors(result);
-
-        var data = console.EnsureData(result);
-
-        console.PrintErrorsAndExit(data.CreatePersonalAccessToken.Errors);
-
-        var changeResult = data.CreatePersonalAccessToken.Result;
-        if (changeResult is null)
+        await using (var activity = console.StartActivity(
+            "Creating personal access token",
+            "Failed to create the personal access token."))
         {
-            throw Exit("Could not create pat.");
-        }
+            var data = await client.CreatePersonalAccessTokenAsync(description, expiresAt, ct);
 
-        console.OkLine(
-            $"Secret: {changeResult.Secret.AsHighlight()} {"This secret will not be available later!"
-                .AsDescription()}");
+            if (data.Errors?.Count > 0)
+            {
+                activity.Fail();
 
-        if (changeResult.Token is IPersonalAccessTokenDetailPrompt_PersonalAccessToken detail)
-        {
-            context.SetResult(
+                foreach (var error in data.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        IUnauthorizedOperation err => err.Message,
+                        IError err => Messages.UnexpectedMutationError(err),
+                        _ => Messages.UnexpectedMutationError()
+                    };
+
+                    console.Error.WriteErrorLine(errorMessage);
+                }
+
+                return ExitCodes.Error;
+            }
+
+            var result = data.Result;
+            if (result is null)
+            {
+                throw MutationReturnedNoData();
+            }
+
+            activity.Success($"Created personal access token '{description.EscapeMarkup()}'.");
+
+            resultHolder.SetResult(new ObjectResult(
                 new CreatePersonalAccessTokenCommandResult
                 {
-                    Secret = changeResult.Secret,
-                    Details = PersonalAccessTokenDetailPrompt.From(detail).ToObject()
-                });
-        }
+                    Secret = result.Secret,
+                    Details = PersonalAccessTokenDetailPrompt.From(result.Token).ToObject()
+                }));
 
-        return ExitCodes.Success;
+            return ExitCodes.Success;
+        }
     }
 
     public class CreatePersonalAccessTokenCommandResult

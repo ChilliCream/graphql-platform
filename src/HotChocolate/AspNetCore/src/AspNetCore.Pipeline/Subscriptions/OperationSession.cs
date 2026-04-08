@@ -2,7 +2,6 @@
 using System.Diagnostics.CodeAnalysis;
 #endif
 using HotChocolate.Language;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
 
@@ -39,6 +38,9 @@ internal sealed class OperationSession : IOperationSession
 
     public void BeginExecute(GraphQLRequest request, CancellationToken cancellationToken)
         => _ = SendResultsAsync(request, cancellationToken);
+
+    public void BeginExecuteBatch(GraphQLRequest[] requests, CancellationToken cancellationToken)
+        => _ = SendBatchResultsAsync(requests, cancellationToken);
 
     private async Task SendResultsAsync(GraphQLRequest request, CancellationToken cancellationToken)
     {
@@ -127,6 +129,78 @@ internal sealed class OperationSession : IOperationSession
             Complete();
 
             request.Dispose();
+        }
+    }
+
+    private async Task SendBatchResultsAsync(GraphQLRequest[] requests, CancellationToken cancellationToken)
+    {
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _ct);
+        var ct = cts.Token;
+        var completeTry = false;
+
+        try
+        {
+            var operationRequests = new IOperationRequest[requests.Length];
+
+            for (var i = 0; i < requests.Length; i++)
+            {
+                var requestBuilder = CreateRequestBuilder(requests[i]);
+                await _interceptor.OnRequestAsync(_session, Id, requestBuilder, ct);
+                operationRequests[i] = requestBuilder.Build();
+            }
+
+            var batch = new OperationRequestBatch(operationRequests);
+            await using var responseStream = await _executorSession.ExecuteBatchAsync(batch, ct);
+
+            await foreach (var item in responseStream.ReadResultsAsync().WithCancellation(ct))
+            {
+                try
+                {
+                    // use the original cancellation token here to keep the websocket open for other streams.
+                    await SendResultMessageAsync(item, cancellationToken);
+                }
+                finally
+                {
+                    await item.DisposeAsync();
+                }
+            }
+
+            completeTry = true;
+
+            if (!ct.IsCancellationRequested)
+            {
+                await _session.Protocol.SendCompleteMessageAsync(_session, Id, ct);
+            }
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            // the operation was canceled so we do nothing
+        }
+        catch (Exception ex)
+        {
+            if (!completeTry)
+            {
+                await TrySendErrorMessageAsync(ex, ct);
+            }
+        }
+        finally
+        {
+            try
+            {
+                await _interceptor.OnCompleteAsync(_session, Id, cancellationToken);
+            }
+            catch
+            {
+                // we will just ignore any user exceptions here so we can graciously close
+                // the subscription out.
+            }
+
+            Complete();
+
+            foreach (var request in requests)
+            {
+                request.Dispose();
+            }
         }
     }
 

@@ -1,10 +1,9 @@
-using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Apis;
+using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Apis.Options;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static System.StringSplitOptions;
@@ -16,85 +15,105 @@ internal sealed class CreateApiCommand : Command
 {
     public CreateApiCommand() : base("create")
     {
-        Description = "Creates a new API";
+        Description = "Create a new API.";
 
-        AddOption(Opt<ApiPathOption>.Instance);
-        AddOption(Opt<ApiNameOption>.Instance);
-        AddOption(Opt<WorkspaceIdOption>.Instance);
-        AddOption(Opt<ApiKindOption>.Instance);
+        Options.Add(Opt<ApiPathOption>.Instance);
+        Options.Add(Opt<ApiNameOption>.Instance);
+        Options.Add(Opt<OptionalWorkspaceIdOption>.Instance);
+        Options.Add(Opt<ApiKindOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples(
+            """
+            api create --name "my-api"
+            """);
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken ct)
     {
-        var workspaceId = context.RequireWorkspaceId();
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IApisClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        console.WriteLine();
-        console.WriteLine("Creating a api");
-        console.WriteLine();
+        parseResult.AssertHasAuthentication(sessionService);
 
-        var name = await context.OptionOrAskAsync("Name", Opt<ApiNameOption>.Instance, ct);
-        var pathResult = await context
-            .OptionOrAskAsync(
+        var workspaceId = parseResult.GetWorkspaceId(sessionService);
+
+        var name = await console.PromptAsync("Name", defaultValue: null, parseResult, Opt<ApiNameOption>.Instance, ct);
+        var pathResult = await console
+            .PromptAsync(
                 "Path [dim](e.g. /foo/bar)[/]",
-                Opt<ApiPathOption>.Instance,
                 defaultValue: "/",
+                parseResult,
+                Opt<ApiPathOption>.Instance,
                 ct);
 
         var path = pathResult.Split("/", TrimEntries | RemoveEmptyEntries);
 
-        var kind = context.GetApiKind();
+        var kind = GetApiKind(parseResult);
 
-        var result = await client.CreateApiCommandMutation
-            .ExecuteAsync(workspaceId, path, name, kind, ct);
-
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        console.PrintErrorsAndExit(data.PushWorkspaceChanges.Errors);
-
-        var changeResult = data.PushWorkspaceChanges.Changes?.SingleOrDefault();
-        if (changeResult is null)
+        await using (var activity = console.StartActivity(
+            $"Creating API '{name.EscapeMarkup()}'",
+            "Failed to create the API."))
         {
-            throw Exit("Could not create api.");
+            var payload = await client.CreateApiAsync(workspaceId, path, name, kind, ct);
+
+            if (payload.Errors?.Count > 0)
+            {
+                activity.Fail();
+
+                foreach (var mutationError in payload.Errors)
+                {
+                    var errorMessage = mutationError switch
+                    {
+                        IError mutationErrorDetail => "Unexpected mutation error: " + mutationErrorDetail.Message,
+                        _ => Messages.UnexpectedMutationError()
+                    };
+
+                    console.Error.WriteErrorLine(errorMessage);
+                    return ExitCodes.Error;
+                }
+            }
+
+            var changeResult = payload.Changes?.SingleOrDefault();
+            if (changeResult is null)
+            {
+                throw MutationReturnedNoData();
+            }
+
+            if (changeResult.Error is IError error)
+            {
+                activity.Fail();
+                console.Error.WriteErrorLine(error.Message);
+                return ExitCodes.Error;
+            }
+
+            if (changeResult.Result is not ICreateApiCommandMutation_Api result)
+            {
+                throw MutationReturnedNoData();
+            }
+
+            activity.Success($"Created API '{name.EscapeMarkup()}'.");
+
+            if (result is IApiDetailPrompt_Api detail)
+            {
+                resultHolder.SetResult(new ObjectResult(ApiDetailPrompt.From(detail).ToObject()));
+            }
+
+            return ExitCodes.Success;
         }
-
-        if (changeResult.Error is IError error)
-        {
-            throw Exit(error.Message);
-        }
-
-        if (changeResult.Result is not ICreateApiCommandMutation_Api api)
-        {
-            throw Exit("Could not create api.");
-        }
-
-        console.OkLine(
-            $"Api [dim]{string.Join('/', api.Path)}[/]/{api.Name.AsHighlight()} created");
-
-        if (changeResult.Result is IApiDetailPrompt_Api detail)
-        {
-            context.SetResult(ApiDetailPrompt.From(detail).ToObject());
-        }
-
-        return ExitCodes.Success;
     }
-}
 
-file static class Extensions
-{
-    public static ApiKind? GetApiKind(this InvocationContext context)
+    private static ApiKind? GetApiKind(ParseResult parseResult)
     {
-        var kind = context.ParseResult.GetValueForOption(Opt<ApiKindOption>.Instance);
+        var kind = parseResult.GetValue(Opt<ApiKindOption>.Instance);
 
         return kind switch
         {

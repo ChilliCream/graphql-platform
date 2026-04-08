@@ -1,0 +1,282 @@
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using HotChocolate.Language;
+
+namespace HotChocolate.Fusion.Execution.Nodes;
+
+public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNode>
+{
+    private bool _isSealed;
+    private IOperationPlanNode[] _dependents = [];
+    private IOperationPlanNode[] _dependencies = [];
+    private IOperationPlanNode[] _optionalDependencies = [];
+    private int _dependentCount;
+    private int _dependencyCount;
+    private int _optionalDependencyCount;
+
+    /// <summary>
+    /// The unique id of this execution node.
+    /// </summary>
+    public abstract int Id { get; }
+
+    /// <summary>
+    /// The type of this execution node.
+    /// </summary>
+    public abstract ExecutionNodeType Type { get; }
+
+    /// <summary>
+    /// The conditions that need to be met to execute this node.
+    /// </summary>
+    public abstract ReadOnlySpan<ExecutionNodeCondition> Conditions { get; }
+
+    /// <summary>
+    /// Gets the name of the source schema that this execution node operates in.
+    /// Returns <c>null</c> for nodes that are not bound to a specific source schema,
+    /// or whose schema is determined dynamically at runtime.
+    /// </summary>
+    public abstract string? SchemaName { get; }
+
+    /// <summary>
+    /// Gets the execution nodes that depend on this node to be completed
+    /// before they can be executed.
+    /// </summary>
+    public ReadOnlySpan<IOperationPlanNode> Dependents => _dependents;
+
+    /// <summary>
+    /// Gets the execution nodes that this operation depends on (required).
+    /// </summary>
+    public ReadOnlySpan<IOperationPlanNode> Dependencies => _dependencies;
+
+    /// <summary>
+    /// Gets the execution nodes that this operation optionally depends on.
+    /// When an optional dependency is skipped or failed this node still gets executed.
+    /// </summary>
+    public ReadOnlySpan<IOperationPlanNode> OptionalDependencies => _optionalDependencies;
+
+#pragma warning disable CA2012
+    public void BeginExecute(
+        OperationPlanContext context,
+        CancellationToken cancellationToken = default)
+        => _ = ExecuteAsync(context, cancellationToken);
+#pragma warning restore CA2012
+
+    private async ValueTask ExecuteAsync(
+        OperationPlanContext context,
+        CancellationToken cancellationToken = default)
+    {
+        var start = Stopwatch.GetTimestamp();
+        var scope = CreateScope(context);
+        var activity = Activity.Current;
+        ExecutionStatus status;
+        Exception? error = null;
+
+        try
+        {
+            if (IsSkipped(context))
+            {
+                status = ExecutionStatus.Skipped;
+            }
+            else
+            {
+                status = await OnExecuteAsync(context, cancellationToken).ConfigureAwait(false);
+            }
+        }
+        catch (Exception ex)
+        {
+            OnError(context, scope, ex);
+            error = ex;
+            status = ExecutionStatus.Failed;
+        }
+        finally
+        {
+            scope?.Dispose();
+        }
+
+        var result = new ExecutionNodeResult(
+            Id,
+            activity,
+            status,
+            Stopwatch.GetElapsedTime(start),
+            error,
+            context.GetDependentsToExecute(this),
+            context.GetSkippedDefinitions(this),
+            context.GetVariableValueSets(this),
+            context.GetTransportDetails(this));
+
+        context.CompleteNode(result);
+    }
+
+    protected abstract ValueTask<ExecutionStatus> OnExecuteAsync(
+        OperationPlanContext context,
+        CancellationToken cancellationToken = default);
+
+    protected virtual IDisposable? CreateScope(OperationPlanContext context) => null;
+
+    protected virtual void OnError(OperationPlanContext context, IDisposable? scope, Exception error)
+        => context.DiagnosticEvents.ExecutionNodeError(context, this, error);
+
+    protected void EnqueueDependentForExecution(OperationPlanContext context, ExecutionNode dependent)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(dependent);
+
+        context.EnqueueForExecution(this, dependent);
+    }
+
+    internal void AddDependency(IOperationPlanNode node)
+    {
+        ExpectMutable();
+
+        ArgumentNullException.ThrowIfNull(node);
+
+        if (node.Equals(this))
+        {
+            throw new InvalidOperationException("An operation cannot depend on itself.");
+        }
+
+        if (_dependencies.Length == 0)
+        {
+            _dependencies = new IOperationPlanNode[4];
+        }
+
+        if (_dependencyCount == _dependencies.Length)
+        {
+            Array.Resize(ref _dependencies, _dependencyCount * 2);
+        }
+
+        _dependencies[_dependencyCount++] = node;
+    }
+
+    internal void AddDependent(IOperationPlanNode node)
+    {
+        ExpectMutable();
+
+        ArgumentNullException.ThrowIfNull(node);
+
+        if (node.Equals(this))
+        {
+            throw new InvalidOperationException("An operation cannot depend on itself.");
+        }
+
+        if (_dependents.Length == 0)
+        {
+            _dependents = new IOperationPlanNode[4];
+        }
+
+        if (_dependentCount == _dependents.Length)
+        {
+            Array.Resize(ref _dependents, _dependentCount * 2);
+        }
+
+        _dependents[_dependentCount++] = node;
+    }
+
+    internal void AddOptionalDependency(IOperationPlanNode node)
+    {
+        ExpectMutable();
+
+        ArgumentNullException.ThrowIfNull(node);
+
+        if (node.Equals(this))
+        {
+            throw new InvalidOperationException("An operation cannot depend on itself.");
+        }
+
+        if (_optionalDependencies.Length == 0)
+        {
+            _optionalDependencies = new IOperationPlanNode[4];
+        }
+
+        if (_optionalDependencyCount == _optionalDependencies.Length)
+        {
+            Array.Resize(ref _optionalDependencies, _optionalDependencyCount * 2);
+        }
+
+        _optionalDependencies[_optionalDependencyCount++] = node;
+    }
+
+    protected internal void Seal()
+    {
+        ExpectMutable();
+
+        if (_dependencies.Length > _dependencyCount)
+        {
+            Array.Resize(ref _dependencies, _dependencyCount);
+        }
+
+        if (_dependents.Length > _dependentCount)
+        {
+            Array.Resize(ref _dependents, _dependentCount);
+        }
+
+        if (_optionalDependencies.Length > _optionalDependencyCount)
+        {
+            Array.Resize(ref _optionalDependencies, _optionalDependencyCount);
+        }
+
+        Array.Sort(_dependencies, static (a, b) => a.Id.CompareTo(b.Id));
+        Array.Sort(_dependents, static (a, b) => a.Id.CompareTo(b.Id));
+        Array.Sort(_optionalDependencies, static (a, b) => a.Id.CompareTo(b.Id));
+
+        OnSealingNode();
+
+        _isSealed = true;
+    }
+
+    protected virtual void OnSealingNode()
+    {
+    }
+
+    protected void ExpectMutable()
+    {
+        if (_isSealed)
+        {
+            throw new InvalidOperationException("The operation execution node is already sealed.");
+        }
+    }
+
+    public bool Equals(ExecutionNode? other)
+    {
+        if (other is null)
+        {
+            return false;
+        }
+
+        return Id == other.Id;
+    }
+
+    public override bool Equals(object? obj)
+        => Equals(obj as ExecutionNode);
+
+    public override int GetHashCode()
+        => Id;
+
+    protected virtual bool IsSkipped(OperationPlanContext context)
+    {
+        if (Conditions.IsEmpty)
+        {
+            return false;
+        }
+
+        ref var condition = ref MemoryMarshal.GetReference(Conditions);
+        ref var end = ref Unsafe.Add(ref condition, Conditions.Length);
+
+        while (Unsafe.IsAddressLessThan(ref condition, ref end))
+        {
+            if (!context.Variables.TryGetValue<BooleanValueNode>(condition.VariableName, out var booleanValueNode))
+            {
+                throw ThrowHelper.MissingBooleanVariable(condition.VariableName);
+            }
+
+            if (booleanValueNode.Value != condition.PassingValue)
+            {
+                return true;
+            }
+
+            condition = ref Unsafe.Add(ref condition, 1)!;
+        }
+
+        return false;
+    }
+}

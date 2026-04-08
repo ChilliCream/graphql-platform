@@ -253,8 +253,7 @@ public ref struct Utf8GraphQLRequestParser
                     {
                         "PROPAGATE" => ErrorHandlingMode.Propagate,
                         "NULL" => ErrorHandlingMode.Null,
-                        "HALT" => ErrorHandlingMode.Halt,
-                        _ => null
+                        _ => throw ThrowHelper.UnknownOnErrorValue(mode)
                     };
                 }
                 else if (reader.TokenType == JsonTokenType.Null)
@@ -328,7 +327,7 @@ public ref struct Utf8GraphQLRequestParser
             && TryExtractHash(extensions, out var hash))
         {
             documentId = new OperationDocumentId(hash);
-            documentHash = new OperationDocumentHash(hash, _hashProvider!.Name, _hashProvider.Format);
+            documentHash = new OperationDocumentHash(hash, _hashProvider!.AlgorithmName, _hashProvider.Format);
         }
 
         // Parse the GraphQL document if provided

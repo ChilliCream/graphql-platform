@@ -5,6 +5,7 @@ import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeExternalLinks from "rehype-external-links";
+import rehypeMermaid from "rehype-mermaid";
 import rehypeRaw from "rehype-raw";
 
 // Custom components that render as block-level elements (divs).
@@ -23,6 +24,7 @@ const BLOCK_COMPONENTS = [
   "apichoicetabs-minimalapis",
   "apichoicetabs-regular",
   "tabgroups",
+  "topologyvisualization",
   "warning",
 ];
 
@@ -200,6 +202,7 @@ function rehypeOptimizedImages() {
 }
 
 const rehypePlugins = [
+  [rehypeMermaid, { strategy: "pre-mermaid" }],
   rehypeRaw,
   rehypeUnwrapBlockComponents,
   rehypeOptimizedImages,
@@ -265,6 +268,7 @@ const SELF_CLOSING_COMPONENTS = [
   "Video",
   "PackageInstallation",
   "SurveyPrompt",
+  "TopologyVisualization",
 ];
 
 function expandSelfClosingTags(source: string): string {
@@ -300,6 +304,18 @@ function replaceDottedComponents(source: string): string {
     result = result.replaceAll(`<${dotted}/>`, `<${hyphenated}/>`);
   }
   return result;
+}
+
+// Rename <Code> to <ExampleCode> to avoid conflict with the HTML <code> element.
+// When using format:"md" with rehype-raw, tag names are lowercased per the HTML spec,
+// so <Code> becomes <code>. Since <code> is a standard inline HTML element, the parser
+// cannot nest block content inside it, causing tab content to spill out.
+function renameCodeComponent(source: string): string {
+  return source
+    .replaceAll("<Code>", "<ExampleCode>")
+    .replaceAll("</Code>", "</ExampleCode>")
+    .replaceAll("<Code ", "<ExampleCode ")
+    .replaceAll("<Code/>", "<ExampleCode/>");
 }
 
 export function extractHeadings(
@@ -369,7 +385,9 @@ function resolveImagePaths(source: string, originPath: string): string {
 export async function compileMdxContent(source: string, originPath = "") {
   const cleaned = resolveImagePaths(
     fixJsxAttributes(
-      expandSelfClosingTags(replaceDottedComponents(stripImports(source)))
+      expandSelfClosingTags(
+        renameCodeComponent(replaceDottedComponents(stripImports(source)))
+      )
     ),
     originPath
   );

@@ -1,12 +1,7 @@
-using System.Reactive;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using ChilliCream.Nitro.CommandLine.Client;
-using ChilliCream.Nitro.CommandLine.Configuration;
+using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
-using StrawberryShake;
-using static ChilliCream.Nitro.CommandLine.ThrowHelper;
+using ChilliCream.Nitro.CommandLine.Services;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Schemas;
 
@@ -14,129 +9,71 @@ internal sealed class ValidateSchemaCommand : Command
 {
     public ValidateSchemaCommand() : base("validate")
     {
-        Description = "Validates a schema against a stage";
+        Description = "Validate a schema against a stage.";
 
-        AddOption(Opt<StageNameOption>.Instance);
-        AddOption(Opt<ApiIdOption>.Instance);
-        AddOption(Opt<SchemaFileOption>.Instance);
+        Options.Add(Opt<ApiIdOption>.Instance);
+        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<SchemaFileOption>.Instance);
+        Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Opt<StageNameOption>.Instance,
-            Opt<ApiIdOption>.Instance,
-            Opt<SchemaFileOption>.Instance,
-            Bind.FromServiceProvider<CancellationToken>());
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples(
+            """
+            schema validate \
+              --api-id "<api-id>" \
+              --stage "dev" \
+              --schema-file ./schema.graphqls
+            """);
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        IAnsiConsole console,
-        IApiClient client,
-        string stage,
-        string apiId,
-        FileInfo schemaFile,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken ct)
     {
-        console.Title($"Validate to {stage.EscapeMarkup()}");
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<ISchemasClient>();
+        var fileSystem = services.GetRequiredService<IFileSystem>();
+        var sessionService = services.GetRequiredService<ISessionService>();
 
-        var isValid = false;
+        parseResult.AssertHasAuthentication(sessionService);
 
-        if (console.IsHumanReadable())
+        var stage = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
+        var apiId = parseResult.GetRequiredValue(Opt<ApiIdOption>.Instance);
+        var schemaFilePath = parseResult.GetRequiredValue(Opt<SchemaFileOption>.Instance);
+        var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
+
+        var source = SourceMetadataParser.Parse(sourceMetadataJson);
+
+        if (!Path.IsPathRooted(schemaFilePath))
         {
-            await console
-                .Status()
-                .Spinner(Spinner.Known.BouncingBar)
-                .SpinnerStyle(Style.Parse("green bold"))
-                .StartAsync("Validating...", ValidateSchema);
+            schemaFilePath = Path.Combine(fileSystem.GetCurrentDirectory(), schemaFilePath);
         }
-        else
+
+        if (!fileSystem.FileExists(schemaFilePath))
         {
-            await ValidateSchema(null);
+            throw new ExitException(Messages.SchemaFileDoesNotExist(schemaFilePath));
         }
+
+        await using var activity = console.StartActivity(
+            $"Validating schema against stage '{stage.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'",
+            "Failed to validate the schema.");
+
+        await using var stream = fileSystem.OpenReadStream(schemaFilePath);
+
+        var isValid = await SchemaHelpers.ValidateSchemaAsync(
+            activity,
+            console,
+            client,
+            apiId,
+            stage,
+            stream,
+            source,
+            ct);
 
         return isValid ? ExitCodes.Success : ExitCodes.Error;
-
-        async Task ValidateSchema(StatusContext? ctx)
-        {
-            console.Log("Initialized");
-            console.Log($"Reading file [blue]{schemaFile.FullName.EscapeMarkup()}[/]");
-
-            var stream = FileHelpers.CreateFileStream(schemaFile);
-
-            var input = new ValidateSchemaInput
-            {
-                ApiId = apiId,
-                Stage = stage,
-                Schema = new Upload(stream, "operations.graphql")
-            };
-
-            console.Log("Create validation request");
-
-            var requestId = await ValidateAsync(console, client, input, ct);
-
-            console.Log($"Validation request created [grey](ID: {requestId.EscapeMarkup()})[/]");
-
-            using var stopSignal = new Subject<Unit>();
-
-            var subscription = client.OnSchemaVersionValidationUpdated
-                .Watch(requestId, ExecutionStrategy.NetworkOnly)
-                .TakeUntil(stopSignal);
-
-            await foreach (var x in subscription.ToAsyncEnumerable().WithCancellation(ct))
-            {
-                if (x.Errors is { Count: > 0 } errors)
-                {
-                    console.PrintErrorsAndExit(errors);
-                    throw Exit("No request id returned");
-                }
-
-                switch (x.Data?.OnSchemaVersionValidationUpdate)
-                {
-                    case ISchemaVersionValidationFailed { Errors: var schemaErrors }:
-                        console.WriteLine("The schema is invalid:");
-                        console.PrintErrorsAndExit(schemaErrors);
-                        stopSignal.OnNext(Unit.Default);
-                        break;
-
-                    case ISchemaVersionValidationSuccess:
-                        isValid = true;
-                        stopSignal.OnNext(Unit.Default);
-
-                        console.Success("Schema validation succeeded.");
-                        break;
-
-                    case IOperationInProgress:
-                    case IValidationInProgress:
-                        ctx?.Status("The validation is in progress.");
-                        break;
-
-                    default:
-                        ctx?.Status(
-                            "This is an unknown response, upgrade Nitro CLI to the latest version.");
-                        break;
-                }
-            }
-        }
-    }
-
-    private static async Task<string> ValidateAsync(
-        IAnsiConsole console,
-        IApiClient client,
-        ValidateSchemaInput input,
-        CancellationToken ct)
-    {
-        var result = await client.ValidateSchemaVersion.ExecuteAsync(input, ct);
-
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        console.PrintErrorsAndExit(data.ValidateSchema.Errors);
-
-        if (data.ValidateSchema.Id is null)
-        {
-            throw new ExitException("Could not create validation request!");
-        }
-
-        return data.ValidateSchema.Id;
     }
 }

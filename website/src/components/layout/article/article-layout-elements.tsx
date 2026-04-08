@@ -92,6 +92,7 @@ export const ArticleWrapper = styled.div`
   display: flex;
   grid-row: 1;
   grid-column: 3 / 4;
+  min-width: 0;
   overflow: visible;
 
   ${IsSmallDesktop(`
@@ -105,6 +106,7 @@ export const ArticleWrapper = styled.div`
 
 export const ArticleContainer = styled.div`
   padding: 20px 40px 0;
+  min-width: 0;
   overflow: visible;
 
   ${IsPhablet(`

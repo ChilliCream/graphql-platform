@@ -271,9 +271,29 @@ jobs:
           flags: unittests
           fail_ci_if_error: true
 
+  validate-nitro-client:
+    name: Validate Nitro Client
+    runs-on: ubuntu-latest
+    needs: check-changes
+    if: needs.check-changes.outputs.src_changes == 'true'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+        with:
+          show-progress: false
+
+      - name: Validate Client
+        uses: ChilliCream/nitro-client-validate@v16.0.0-rc.1.14
+        with:
+          client-id: ${{ secrets.NITRO_API_CLIENT_ID }}
+          operations-file: src/Nitro/CommandLine/src/ChilliCream.Nitro.Client/persisted/operations.json
+          stage: Dev
+          api-key: ${{ secrets.NITRO_API_KEY }}
+          comment-mode: "review"
+
   ci-status-check:
     name: "CI Status Check"
-    needs: [library-tests, website-tests]
+    needs: [library-tests, website-tests, validate-nitro-client]
     if: always()
     runs-on: ubuntu-latest
     steps:

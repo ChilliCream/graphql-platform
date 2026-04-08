@@ -22,7 +22,11 @@
     <InternalsVisibleTo Include="HotChocolate.Fusion.Execution" />
     <InternalsVisibleTo Include="HotChocolate.Execution.Abstractions" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Execution.Benchmarks" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Execution.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.AspNetCore.Tests" />
     <InternalsVisibleTo Include="ChilliCream.Nitro.Fusion" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.InMemory" />
+    <InternalsVisibleTo Include="HotChocolate.Utilities.Tests" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">

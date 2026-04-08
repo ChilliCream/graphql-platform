@@ -10,6 +10,7 @@
     <AssemblyName>nitro</AssemblyName>
     <PackageId>ChilliCream.Nitro.CommandLine</PackageId>
     <IsPackable>true</IsPackable>
+    <NoWarn>$(NoWarn);CS0618</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
@@ -21,18 +22,20 @@
     <Using Include="ChilliCream.Nitro.CommandLine" />
     <Using Include="Microsoft.Extensions.DependencyInjection" />
     <Using Include="Spectre.Console" />
+    <Using Include="System.Linq" />
     <Using Include="System.CommandLine" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ChilliCream.Nitro.Client\ChilliCream.Nitro.Client.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Adapters\src\Adapters.Mcp.Core\HotChocolate.Adapters.Mcp.Core.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Adapters\src\Adapters.Mcp.Packaging\HotChocolate.Adapters.Mcp.Packaging.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Adapters\src\Adapters.OpenApi.Core\HotChocolate.Adapters.OpenApi.Core.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Adapters\src\Adapters.OpenApi.Packaging\HotChocolate.Adapters.OpenApi.Packaging.csproj" />
-    <ProjectReference Include="..\..\..\..\HotChocolate\Fusion-vnext\src\Fusion.AspNetCore\HotChocolate.Fusion.AspNetCore.csproj" />
-    <ProjectReference Include="..\..\..\..\HotChocolate\Fusion-vnext\src\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
-    <ProjectReference Include="..\..\..\..\HotChocolate\Fusion-vnext\src\Fusion.Packaging\HotChocolate.Fusion.Packaging.csproj" />
-    <ProjectReference Include="..\..\..\..\HotChocolate\Fusion-vnext\src\Fusion.SourceSchema.Packaging\HotChocolate.Fusion.SourceSchema.Packaging.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Fusion\src\Fusion.AspNetCore\HotChocolate.Fusion.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Fusion\src\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Fusion\src\Fusion.Packaging\HotChocolate.Fusion.Packaging.csproj" />
+    <ProjectReference Include="..\..\..\..\HotChocolate\Fusion\src\Fusion.SourceSchema.Packaging\HotChocolate.Fusion.SourceSchema.Packaging.csproj" />
     <ProjectReference Include="..\..\..\..\StrawberryShake\Client\src\Core\StrawberryShake.Core.csproj" />
     <ProjectReference Include="..\..\..\..\StrawberryShake\Client\src\Transport.Http\StrawberryShake.Transport.Http.csproj" />
     <ProjectReference Include="..\CommandLine.FusionCompatibility\Nitro.CommandLine.FusionCompatibility.csproj" />
@@ -44,25 +47,17 @@
     <PackageReference Include="Microsoft.AspNetCore.HeaderPropagation" />
     <PackageReference Include="Spectre.Console" />
     <PackageReference Include="Spectre.Console.Json" />
-    <PackageReference Include="System.Commandline" VersionOverride="2.0.0-beta4.22272.1" />
+    <PackageReference Include="System.CommandLine" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
-    <PackageReference Include="System.Linq.Async" />
     <PackageReference Include="System.Reactive" />
   </ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Update="Properties\CommandLineResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>CommandLineResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <PackageReference Include="System.Linq.Async" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Update="Properties\CommandLineResources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>CommandLineResources.resx</DependentUpon>
-    </Compile>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
+    <PackageReference Include="System.Linq.Async" />
   </ItemGroup>
 
 </Project>

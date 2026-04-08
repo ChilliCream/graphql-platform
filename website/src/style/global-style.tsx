@@ -318,12 +318,9 @@ export const GlobalStyle = createGlobalStyle`
     margin-bottom: 16px;
   }
 
-  /* Inline code style */
+  /* Inline code style (handled by prism-style.tsx) */
   :not(pre) > code {
     border: 1px solid ${THEME_COLORS.boxBorder};
-    border-radius: var(--button-border-box);
-    background-color: initial;
-    color: ${THEME_COLORS.text};
   }
 
   a.anchor {

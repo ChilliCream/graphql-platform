@@ -1,0 +1,532 @@
+title: Require_Data_In_Context
+request:
+  document: |
+    query Requires {
+      reviews {
+        body
+        author {
+          name
+          birthdate
+        }
+        product {
+          name
+          deliveryEstimate(zip: "12345") {
+            min
+            max
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "reviews": [
+          {
+            "body": "Review: UmV2aWV3OjE=",
+            "author": {
+              "name": "User: VXNlcjo0",
+              "birthdate": "User: VXNlcjo0"
+            },
+            "product": {
+              "name": "Product: UHJvZHVjdDo1",
+              "deliveryEstimate": {
+                "min": 123,
+                "max": 123
+              }
+            }
+          },
+          {
+            "body": "Review: UmV2aWV3OjI=",
+            "author": {
+              "name": "User: VXNlcjo2",
+              "birthdate": "User: VXNlcjo2"
+            },
+            "product": {
+              "name": "Product: UHJvZHVjdDo3",
+              "deliveryEstimate": {
+                "min": 123,
+                "max": 123
+              }
+            }
+          },
+          {
+            "body": "Review: UmV2aWV3OjM=",
+            "author": {
+              "name": "User: VXNlcjo4",
+              "birthdate": "User: VXNlcjo4"
+            },
+            "product": {
+              "name": "Product: UHJvZHVjdDo5",
+              "deliveryEstimate": {
+                "min": 123,
+                "max": 123
+              }
+            }
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        userById(id: ID!): User!
+        users: [User!]!
+        testWithTwoArgumentsDifferingNullability(first: Int! second: Int): String!
+      }
+
+      type User implements Node {
+        id: ID!
+        name: String!
+        username: String!
+        birthdate: String!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Requires_beac16b7_4(
+              $__fusion_3_id: ID!
+            ) {
+              node(id: $__fusion_3_id) {
+                __typename
+                ... on User {
+                  name
+                  birthdate
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_3_id": "VXNlcjo0"
+              },
+              {
+                "__fusion_3_id": "VXNlcjo2"
+              },
+              {
+                "__fusion_3_id": "VXNlcjo4"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjo0",
+                    "birthdate": "User: VXNlcjo0"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjo2",
+                    "birthdate": "User: VXNlcjo2"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "User",
+                    "name": "User: VXNlcjo4",
+                    "birthdate": "User: VXNlcjo4"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Product implements Node {
+        id: ID!
+        reviews: [Review!]!
+        reviewCount: Int!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        reviews: [Review!]!
+      }
+
+      type Review implements Node {
+        id: ID!
+        body: String!
+        author: User!
+        product: Product!
+      }
+
+      type User implements Node {
+        id: ID!
+        reviews: [Review!]!
+        errorField: String @error
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Requires_beac16b7_1 {
+              reviews {
+                body
+                author {
+                  id
+                }
+                product {
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "reviews": [
+                    {
+                      "body": "Review: UmV2aWV3OjE=",
+                      "author": {
+                        "id": "VXNlcjo0"
+                      },
+                      "product": {
+                        "id": "UHJvZHVjdDo1"
+                      }
+                    },
+                    {
+                      "body": "Review: UmV2aWV3OjI=",
+                      "author": {
+                        "id": "VXNlcjo2"
+                      },
+                      "product": {
+                        "id": "UHJvZHVjdDo3"
+                      }
+                    },
+                    {
+                      "body": "Review: UmV2aWV3OjM=",
+                      "author": {
+                        "id": "VXNlcjo4"
+                      },
+                      "product": {
+                        "id": "UHJvZHVjdDo5"
+                      }
+                    }
+                  ]
+                }
+              }
+  - name: C
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Product implements Node {
+        id: ID!
+        name: String!
+        size: Int! @shareable
+        weight: Int! @shareable
+        repeat(num: Int!): String!
+        repeatData(data: RepeatDataInput!): RepeatDataPayload!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        productById(id: ID!): Product @lookup @shareable
+        topProducts(first: Int!): [Product!]!
+      }
+
+      type RepeatDataData {
+        num: Int!
+      }
+
+      type RepeatDataPayload {
+        data: RepeatDataData!
+      }
+
+      input RepeatDataDataInput {
+        num: Int!
+      }
+
+      input RepeatDataInput {
+        data: RepeatDataDataInput!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Requires_beac16b7_3(
+              $__fusion_2_id: ID!
+            ) {
+              productById(id: $__fusion_2_id) {
+                name
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_id": "UHJvZHVjdDo1"
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDo3"
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDo5"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "name": "Product: UHJvZHVjdDo1"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "name": "Product: UHJvZHVjdDo3"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "name": "Product: UHJvZHVjdDo5"
+                  }
+                }
+              }
+  - name: D
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type DeliveryEstimate {
+        min: Int!
+        max: Int!
+      }
+
+      type Product implements Node {
+        id: ID!
+        size: Int! @shareable
+        weight: Int! @shareable
+        deliveryEstimate(size: Int weight: Int zip: String!): DeliveryEstimate!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Requires_beac16b7_2(
+              $__fusion_1_id: ID!
+            ) {
+              node(id: $__fusion_1_id) {
+                __typename
+                ... on Product {
+                  deliveryEstimate(zip: "12345") {
+                    min
+                    max
+                  }
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "UHJvZHVjdDo1"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDo3"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDo5"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "deliveryEstimate": {
+                      "min": 123,
+                      "max": 123
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "deliveryEstimate": {
+                      "min": 123,
+                      "max": 123
+                    }
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "deliveryEstimate": {
+                      "min": 123,
+                      "max": 123
+                    }
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query Requires {
+          reviews {
+            body
+            author {
+              name
+              birthdate
+              id @fusion__requirement
+            }
+            product {
+              name
+              deliveryEstimate(zip: "12345") {
+                min
+                max
+              }
+              id @fusion__requirement
+            }
+          }
+        }
+      name: Requires
+      hash: beac16b73cdc2003ae293980af039c1b
+      searchSpace: 2
+      expandedNodes: 3
+  nodes:
+    - id: 1
+      type: Operation
+      schema: B
+      operation: |
+        query Requires_beac16b7_1 {
+          reviews {
+            body
+            author {
+              id
+            }
+            product {
+              id
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: D
+      operation: |
+        query Requires_beac16b7_2(
+          $__fusion_1_id: ID!
+        ) {
+          node(id: $__fusion_1_id) {
+            __typename
+            ... on Product {
+              deliveryEstimate(zip: "12345") {
+                min
+                max
+              }
+            }
+          }
+        }
+      source: $.node<Product>
+      target: $.reviews.product
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 3
+      type: Operation
+      schema: C
+      operation: |
+        query Requires_beac16b7_3(
+          $__fusion_2_id: ID!
+        ) {
+          productById(id: $__fusion_2_id) {
+            name
+          }
+        }
+      source: $.productById
+      target: $.reviews.product
+      requirements:
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1
+    - id: 4
+      type: Operation
+      schema: A
+      operation: |
+        query Requires_beac16b7_4(
+          $__fusion_3_id: ID!
+        ) {
+          node(id: $__fusion_3_id) {
+            __typename
+            ... on User {
+              name
+              birthdate
+            }
+          }
+        }
+      source: $.node<User>
+      target: $.reviews.author
+      requirements:
+        - name: __fusion_3_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

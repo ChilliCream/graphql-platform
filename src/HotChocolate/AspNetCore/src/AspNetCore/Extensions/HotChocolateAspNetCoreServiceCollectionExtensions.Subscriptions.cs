@@ -5,6 +5,7 @@ using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.Apollo;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Language;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection;
@@ -91,7 +92,10 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
             s => s.AddSingleton<IProtocolHandler>(
                 sp => new GraphQLOverWebSocketProtocolHandler(
                     sp.GetRequiredService<ISocketSessionInterceptor>(),
-                    sp.GetRequiredService<IWebSocketPayloadFormatter>())));
+                    sp.GetRequiredService<IWebSocketPayloadFormatter>(),
+                    sp.GetRequiredService<IDocumentCache>(),
+                    sp.GetRequiredService<IDocumentHashProvider>(),
+                    sp.GetRequiredService<ParserOptions>())));
 
     /// <summary>
     /// Adds a custom WebSocket payload formatter to the DI.

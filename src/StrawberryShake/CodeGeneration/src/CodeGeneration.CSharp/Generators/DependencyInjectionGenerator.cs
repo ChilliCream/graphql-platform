@@ -32,6 +32,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         DateSerializer,
         DateTimeSerializer,
         DecimalSerializer,
+        DurationSerializer,
         FloatSerializer,
         IdSerializer,
         IntSerializer,
@@ -41,7 +42,6 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         LongSerializer,
         ShortSerializer,
         StringSerializer,
-        TimeSpanSerializer,
         UnsignedByteSerializer,
         UnsignedIntSerializer,
         UnsignedLongSerializer,
@@ -56,6 +56,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         ["Guid"] = UUIDSerializer,
         ["Json"] = AnySerializer,
         ["JSON"] = AnySerializer,
+        ["TimeSpan"] = DurationSerializer,
         ["Uri"] = UriSerializer,
         ["Url"] = UrlSerializer,
         ["Uuid"] = UUIDSerializer

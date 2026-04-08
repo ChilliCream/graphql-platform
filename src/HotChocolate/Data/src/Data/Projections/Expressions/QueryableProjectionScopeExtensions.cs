@@ -41,14 +41,28 @@ public static class QueryableProjectionScopeExtensions
         if (scope.HasAbstractTypes())
         {
             Expression lastValue = Expression.Default(scope.RuntimeType);
+            var sourceInstance = scope.Instance.Peek();
 
             foreach (var val in scope.GetAbstractTypes())
             {
-                var ctor = Expression.New(val.Key);
-                Expression memberInit = Expression.MemberInit(ctor, val.Value);
+                Expression memberInit;
+
+                // If a type condition only selects non-bindable fields like __typename,
+                // creating `new TDerived()` is evaluatable and gets parameterized as a
+                // constant by EF. Reuse the source instance instead so the branch
+                // remains query-parameter dependent.
+                if (val.Value.Count == 0)
+                {
+                    memberInit = Expression.Convert(sourceInstance, val.Key);
+                }
+                else
+                {
+                    var ctor = Expression.New(val.Key);
+                    memberInit = Expression.MemberInit(ctor, val.Value);
+                }
 
                 lastValue = Expression.Condition(
-                    Expression.TypeIs(scope.Instance.Peek(), val.Key),
+                    Expression.TypeIs(sourceInstance, val.Key),
                     Expression.Convert(memberInit, scope.RuntimeType),
                     lastValue);
             }

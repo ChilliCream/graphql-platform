@@ -374,7 +374,7 @@ public class BsonTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ foo(input: [ \"foo\" ]) }");
+            "{ foo(input: [\"foo\"]) }");
 
         // assert
         result.MatchSnapshot();
@@ -398,7 +398,7 @@ public class BsonTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ foo(input: [ { a: \"foo\" } ]) }");
+            "{ foo(input: [{ a: \"foo\" }]) }");
 
         // assert
         result.MatchSnapshot();

@@ -26,7 +26,7 @@ type Person implements Node @authorize(policy: "READ_PERSON", apply: AFTER_RESOL
 
 type Query @foo @authorize(policy: "QUERY", apply: VALIDATION) @authorize(policy: "QUERY2") {
   "Fetches an object given its ID."
-  node("ID of the object." id: ID!): Node @lookup @shareable @cost(weight: "10") @authorize(policy: "READ_NODE", apply: VALIDATION)
+  node("ID of the object." id: ID!): Node @cost(weight: "10") @authorize(policy: "READ_NODE", apply: VALIDATION)
   "Lookup nodes by a list of IDs."
   nodes("The list of node IDs." ids: [ID!]!): [Node]! @cost(weight: "10") @authorize(policy: "READ_NODE", apply: VALIDATION)
   null: String @authorize(policy: "NULL", apply: AFTER_RESOLVER)
@@ -58,34 +58,9 @@ enum ApplyPolicy {
 directive @allowAnonymous repeatable on FIELD_DEFINITION
 
 "The authorize directive."
-directive @authorize("The name of the authorization policy that determines access to the annotated resource." policy: String "Roles that are allowed to access the annotated resource." roles: [String!] "Defines when when the authorize directive shall be applied.By default the authorize directives are applied during the validation phase." apply: ApplyPolicy! = BEFORE_RESOLVER) repeatable on OBJECT | FIELD_DEFINITION
+directive @authorize("The name of the authorization policy that determines access to the annotated resource." policy: String "Roles that are allowed to access the annotated resource." roles: [String!] "Defines when the authorize directive shall be applied. By default the authorize directive is applied before the resolver is executed." apply: ApplyPolicy! = BEFORE_RESOLVER) repeatable on OBJECT | FIELD_DEFINITION
 
 "The purpose of the `cost` directive is to define a `weight` for GraphQL types, fields, and arguments. Static analysis can use these weights when calculating the overall cost of a query or response."
 directive @cost("The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc." weight: String!) on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
 
 directive @foo on OBJECT
-
-"""
-The @lookup directive is used within a source schema to specify output fields
-that can be used by the distributed GraphQL executor to resolve an entity by
-a stable key.
-"""
-directive @lookup on FIELD_DEFINITION
-
-"""
-By default, only a single source schema is allowed to contribute
-a particular field to an object type.
-
-            
-This prevents source schemas from inadvertently defining similarly named
-fields that are not semantically equivalent.
-
-            
-Fields must be explicitly marked as @shareable to allow multiple source
-schemas to define them, ensuring that the decision to serve a field from
-more than one source schema is intentional and coordinated.
-
-
-directive @shareable repeatable on OBJECT | FIELD_DEFINITION
-"""
-directive @shareable repeatable on OBJECT | FIELD_DEFINITION

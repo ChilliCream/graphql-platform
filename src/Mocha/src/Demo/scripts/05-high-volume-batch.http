@@ -1,0 +1,54 @@
+### High-Volume Batch Processing Demo
+### Dispatches thousands of BulkOrderEvents processed in batches of 500.
+### The BulkOrderBatchHandler aggregates each batch into a RevenueSummary row.
+### With 2000 events and MaxBatchSize=500, expect ~4 revenue summaries (CompletionMode=Size).
+
+@catalogUrl = http://localhost:5133
+@billingUrl = http://localhost:5042
+
+### ============================================
+### Step 1: Dispatch 2000 events
+### ============================================
+
+### Fire 2000 BulkOrderEvents (default count)
+POST {{catalogUrl}}/api/orders/bulk
+Content-Type: application/json
+
+{
+  "count": 2000
+}
+
+###
+
+### ============================================
+### Step 2: Check batch results (wait a few seconds for processing)
+### ============================================
+
+### Should show ~4 revenue summaries with OrderCount=500, CompletionMode=Size
+GET {{billingUrl}}/api/revenue-summaries
+
+###
+
+### Latest revenue summary
+GET {{billingUrl}}/api/revenue-summaries/latest
+
+###
+
+### ============================================
+### Step 3 (optional): Try a larger burst - 5000 events → ~10 batches
+### ============================================
+
+### Fire 5000 BulkOrderEvents
+POST {{catalogUrl}}/api/orders/bulk
+Content-Type: application/json
+
+{
+  "count": 5000
+}
+
+###
+
+### Check summaries again
+GET {{billingUrl}}/api/revenue-summaries
+
+###

@@ -29,55 +29,91 @@ internal static class MiddlewareFactory
         };
     }
 
+    internal static Func<RequestDelegate, RequestDelegate> CreateConcurrencyGateMiddleware(
+        int? maxConcurrentRequests)
+    {
+        if (maxConcurrentRequests is null or <= 0)
+        {
+            return next => next;
+        }
+
+        var semaphore = new SemaphoreSlim(maxConcurrentRequests.Value, maxConcurrentRequests.Value);
+
+        return next => async context =>
+        {
+            if (context.WebSockets.IsWebSocketRequest)
+            {
+                await next(context);
+                return;
+            }
+
+            await semaphore.WaitAsync(context.RequestAborted);
+
+            try
+            {
+                await next(context);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        };
+    }
+
     internal static Func<RequestDelegate, RequestDelegate> CreateWebSocketSubscriptionMiddleware(
-        HttpRequestExecutorProxy executor)
+        HttpRequestExecutorProxy executor,
+        GraphQLServerOptions serverOptions)
     {
         return next =>
         {
-            var middleware = new WebSocketSubscriptionMiddleware(next, executor);
+            var middleware = new WebSocketSubscriptionMiddleware(next, executor, serverOptions);
             return context => middleware.InvokeAsync(context);
         };
     }
 
     internal static Func<RequestDelegate, RequestDelegate> CreateHttpPostMiddleware(
-        HttpRequestExecutorProxy executor)
+        HttpRequestExecutorProxy executor,
+        GraphQLServerOptions serverOptions)
     {
         return next =>
         {
-            var middleware = new HttpPostMiddleware(next, executor);
+            var middleware = new HttpPostMiddleware(next, executor, serverOptions);
             return context => middleware.InvokeAsync(context);
         };
     }
 
     internal static Func<RequestDelegate, RequestDelegate> CreateHttpMultipartMiddleware(
         HttpRequestExecutorProxy executor,
+        GraphQLServerOptions serverOptions,
         IOptions<FormOptions> formOptions)
     {
         return next =>
         {
-            var middleware = new HttpMultipartMiddleware(next, executor, formOptions);
+            var middleware = new HttpMultipartMiddleware(next, executor, serverOptions, formOptions);
             return context => middleware.InvokeAsync(context);
         };
     }
 
     internal static Func<RequestDelegate, RequestDelegate> CreateHttpGetMiddleware(
-        HttpRequestExecutorProxy executor)
+        HttpRequestExecutorProxy executor,
+        GraphQLServerOptions serverOptions)
     {
         return next =>
         {
-            var middleware = new HttpGetMiddleware(next, executor);
+            var middleware = new HttpGetMiddleware(next, executor, serverOptions);
             return context => middleware.InvokeAsync(context);
         };
     }
 
     internal static Func<RequestDelegate, RequestDelegate> CreateHttpGetSchemaMiddleware(
         HttpRequestExecutorProxy executor,
+        GraphQLServerOptions serverOptions,
         PathString path,
         MiddlewareRoutingType routingType)
     {
         return next =>
         {
-            var middleware = new HttpGetSchemaMiddleware(next, executor, path, routingType);
+            var middleware = new HttpGetSchemaMiddleware(next, executor, serverOptions, path, routingType);
             return context => middleware.InvokeAsync(context);
         };
     }

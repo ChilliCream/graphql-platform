@@ -1,0 +1,147 @@
+title: Mutation_Returned_Viewer_Can_Resolve_Field_From_Another_Subgraph
+request:
+  document: |
+    mutation {
+      doSomething {
+        something
+        viewer {
+          subgraphA
+          subgraphB
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "doSomething": {
+          "something": 123,
+          "viewer": {
+            "subgraphA": "subgraphA",
+            "subgraphB": "subgraphB"
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+        mutation: Mutation
+      }
+
+      type DoSomethingPayload {
+        something: Int!
+        viewer: Viewer!
+      }
+
+      type Mutation {
+        doSomething: DoSomethingPayload!
+      }
+
+      type Query {
+        viewer: Viewer! @shareable
+      }
+
+      type Viewer {
+        subgraphA: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            mutation Op_f2f24951_1 {
+              doSomething {
+                something
+                viewer {
+                  subgraphA
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "doSomething": {
+                    "something": 123,
+                    "viewer": {
+                      "subgraphA": "subgraphA"
+                    }
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        viewer: Viewer! @shareable
+      }
+
+      type Viewer {
+        subgraphB: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_f2f24951_2 {
+              viewer {
+                subgraphB
+              }
+            }
+          variables: |
+            {}
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "viewer": {
+                    "subgraphB": "subgraphB"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        mutation {
+          doSomething {
+            something
+            viewer {
+              subgraphA
+              subgraphB
+            }
+          }
+        }
+      hash: f2f2495103ab7ab2216433f4deb197bf
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        mutation Op_f2f24951_1 {
+          doSomething {
+            something
+            viewer {
+              subgraphA
+            }
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_f2f24951_2 {
+          viewer {
+            subgraphB
+          }
+        }
+      source: $.viewer
+      target: $.doSomething.viewer

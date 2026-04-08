@@ -1,0 +1,76 @@
+operation:
+  - document: |
+      {
+        first {
+          id
+          id @fusion__requirement
+          rating
+          deliveryEstimate
+        }
+        second {
+          id
+          id @fusion__requirement
+          rating
+          deliveryEstimate
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 2
+    expandedNodes: 5
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        first {
+          id
+        }
+        second {
+          id
+        }
+      }
+  - id: 2
+    type: OperationBatch
+    schema: b
+    operation: |
+      query Op_123456789101112_2(
+        $__fusion_1_id: ID!
+      ) {
+        productById(id: $__fusion_1_id) {
+          rating
+        }
+      }
+    source: $.productById
+    targets:
+      - $.second
+      - $.first
+    batchingGroupId: 2
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 3
+    type: OperationBatch
+    schema: c
+    operation: |
+      query Op_123456789101112_3(
+        $__fusion_2_id: ID!
+      ) {
+        productById(id: $__fusion_2_id) {
+          deliveryEstimate
+        }
+      }
+    source: $.productById
+    targets:
+      - $.second
+      - $.first
+    batchingGroupId: 3
+    requirements:
+      - name: __fusion_2_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1

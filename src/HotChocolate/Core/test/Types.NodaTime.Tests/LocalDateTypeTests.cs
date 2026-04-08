@@ -1,128 +1,303 @@
 using System.Globalization;
-using System.Text;
 using System.Text.Json;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Text.Json;
+using Microsoft.Extensions.DependencyInjection;
 using NodaTime;
-using NodaTime.Text;
 
-namespace HotChocolate.Types.NodaTime.Tests;
+namespace HotChocolate.Types.NodaTime;
 
-public class LocalDateTypeIntegrationTests
+public sealed class LocalDateTypeTests
 {
     [Fact]
-    public void CoerceInputLiteral()
+    public void Ensure_Type_Name_Is_Correct()
     {
+        // arrange
+        // act
         var type = new LocalDateType();
-        var inputValue = new StringValueNode("2020-02-20");
-        var runtimeValue = type.CoerceInputLiteral(inputValue);
-        Assert.Equal(new LocalDate(2020, 2, 20), Assert.IsType<LocalDate>(runtimeValue));
+
+        // assert
+        Assert.Equal("LocalDate", type.Name);
     }
 
     [Fact]
-    public void CoerceInputLiteral_Invalid_Value_Throws()
+    public void CoerceInputLiteral()
     {
+        // arrange
         var type = new LocalDateType();
-        var valueLiteral = new StringValueNode("2020-02-20T17:42:59");
-        Action error = () => type.CoerceInputLiteral(valueLiteral);
-        Assert.Throws<LeafCoercionException>(error);
+        var literal = new StringValueNode("2018-06-29");
+        var expectedLocalDate = new LocalDate(2018, 6, 29);
+
+        // act
+        var localDate = type.CoerceInputLiteral(literal);
+
+        // assert
+        Assert.Equal(expectedLocalDate, localDate);
+    }
+
+    [Theory]
+    [MemberData(nameof(ValidLocalDateScalarStrings))]
+    public void CoerceInputLiteral_Valid_Formats(string dateTime, LocalDate result)
+    {
+        // arrange
+        var type = new LocalDateType();
+        var literal = new StringValueNode(dateTime);
+
+        // act
+        var localDate = (LocalDate?)type.CoerceInputLiteral(literal);
+
+        // assert
+        Assert.Equal(result, localDate);
+    }
+
+    [InlineData("en-US")]
+    [InlineData("en-AU")]
+    [InlineData("en-GB")]
+    [InlineData("de-CH")]
+    [InlineData("de-de")]
+    [Theory]
+    public void CoerceInputLiteral_DifferentCulture(string cultureName)
+    {
+        // arrange
+        Thread.CurrentThread.CurrentCulture =
+            CultureInfo.GetCultureInfo(cultureName);
+
+        var type = new LocalDateType();
+        var literal = new StringValueNode("2018-06-29");
+        var expectedLocalDate = new LocalDate(2018, 6, 29);
+
+        // act
+        var localDate = (LocalDate)type.CoerceInputLiteral(literal);
+
+        // assert
+        Assert.Equal(expectedLocalDate, localDate);
+    }
+
+    [Theory]
+    [MemberData(nameof(InvalidLocalDateScalarStrings))]
+    public void CoerceInputLiteral_Invalid_Format(string localDate)
+    {
+        // arrange
+        var type = new LocalDateType();
+        var literal = new StringValueNode(localDate);
+
+        // act
+        void Action() => type.CoerceInputLiteral(literal);
+
+        // assert
+        Assert.Equal(
+            "LocalDate cannot coerce the given literal of type `StringValue` to a runtime value.",
+            Assert.Throws<LeafCoercionException>(Action).Message);
     }
 
     [Fact]
     public void CoerceInputValue()
     {
+        // arrange
         var type = new LocalDateType();
-        var inputValue = ParseInputValue("\"2020-02-20\"");
+        var inputValue = JsonDocument.Parse("\"2018-06-11\"").RootElement;
+        var expectedLocalDate = new LocalDate(2018, 6, 11);
+
+        // act
         var runtimeValue = type.CoerceInputValue(inputValue, null!);
-        Assert.Equal(new LocalDate(2020, 2, 20), Assert.IsType<LocalDate>(runtimeValue));
+
+        // assert
+        Assert.Equal(expectedLocalDate, runtimeValue);
     }
 
     [Fact]
-    public void CoerceInputValue_Invalid_Value_Throws()
+    public void CoerceInputValue_Invalid_Format()
     {
+        // arrange
         var type = new LocalDateType();
-        var inputValue = ParseInputValue("\"2020-02-20T17:42:59\"");
-        Action error = () => type.CoerceInputValue(inputValue, null!);
-        Assert.Throws<LeafCoercionException>(error);
+        var inputValue = JsonDocument.Parse("\"abc\"").RootElement;
+
+        // act
+        void Action() => type.CoerceInputValue(inputValue, null!);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
     public void CoerceOutputValue()
     {
+        // arrange
         var type = new LocalDateType();
+        var localDate = new LocalDate(2018, 6, 11);
+
+        // act
         var operation = CommonTestExtensions.CreateOperation();
         var resultDocument = new ResultDocument(operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
-        type.CoerceOutputValue(new LocalDate(2020, 2, 20), resultValue);
-        Assert.Equal("2020-02-20", resultValue.GetString());
+        type.CoerceOutputValue(localDate, resultValue);
+
+        // assert
+        resultValue.MatchInlineSnapshot("\"2018-06-11\"");
     }
 
     [Fact]
-    public void CoerceOutputValue_Invalid_Value_Throws()
+    public void CoerceOutputValue_Invalid_Format()
     {
+        // arrange
         var type = new LocalDateType();
+
+        // act
         var operation = CommonTestExtensions.CreateOperation();
         var resultDocument = new ResultDocument(operation, 0);
         var resultValue = resultDocument.Data.GetProperty("first");
-        Action error = () => type.CoerceOutputValue("2020-02-20", resultValue);
-        Assert.Throws<LeafCoercionException>(error);
+        void Action() => type.CoerceOutputValue(123, resultValue);
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
     public void ValueToLiteral()
     {
+        // arrange
         var type = new LocalDateType();
-        var valueLiteral = type.ValueToLiteral(new LocalDate(2020, 2, 20));
-        Assert.Equal("\"2020-02-20\"", valueLiteral.ToString());
+        var localDate = new LocalDate(2018, 6, 11);
+        const string expectedLiteralValue = "2018-06-11";
+
+        // act
+        var stringLiteral = type.ValueToLiteral(localDate);
+
+        // assert
+        Assert.Equal(expectedLiteralValue, Assert.IsType<StringValueNode>(stringLiteral).Value);
     }
 
     [Fact]
-    public void ValueToLiteral_Invalid_Value_Throws()
+    public void ParseLiteral()
     {
+        // arrange
         var type = new LocalDateType();
-        Action error = () => type.ValueToLiteral("2020-02-20");
-        Assert.Throws<LeafCoercionException>(error);
+        var literal = new StringValueNode("2018-06-29");
+        var expectedLocalDate = new LocalDate(2018, 6, 29);
+
+        // act
+        var dateOnly = type.CoerceInputLiteral(literal);
+
+        // assert
+        Assert.Equal(expectedLocalDate, Assert.IsType<LocalDate>(dateOnly));
     }
 
     [Fact]
-    public void PatternEmpty_ThrowSchemaException()
+    public void ParseLiteral_InvalidValue()
     {
-        static object Call() => new LocalDateType([]);
-        Assert.Throws<SchemaException>(Call);
+        // arrange
+        var type = new LocalDateType();
+
+        // act
+        void Action() => type.CoerceInputLiteral(new IntValueNode(123));
+
+        // assert
+        Assert.Throws<LeafCoercionException>(Action);
     }
 
     [Fact]
-    public void LocalDateType_DescriptionKnownPatterns_MatchesSnapshot()
+    public async Task Integration_SingleRuntimeType()
     {
-        var localDateType = new LocalDateType(LocalDatePattern.Iso, LocalDatePattern.FullRoundtrip);
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(b => b.Name(OperationTypeNames.Query))
+            .AddType(typeof(QuerySingleRuntimeType))
+            .AddNodaTime()
+            .BuildRequestExecutorAsync();
 
-        localDateType.Description.MatchInlineSnapshot(
+        // act
+        var result =
+            await executor.ExecuteAsync("""{ localDate(input: "9999-12-31") }""");
+
+        // assert
+        result.MatchInlineSnapshot(
             """
-            LocalDate represents a date within the calendar, with no reference to a particular time zone or time of day.
-
-            Allowed patterns:
-            - `YYYY-MM-DD`
-            - `YYYY-MM-DD (calendar)`
-
-            Examples:
-            - `2000-01-01`
-            - `2000-01-01 (ISO)`
+            {
+              "data": {
+                "localDate": "9999-12-31"
+              }
+            }
             """);
     }
 
     [Fact]
-    public void LocalDateType_DescriptionUnknownPatterns_MatchesSnapshot()
+    public async Task Integration_TwoRuntimeTypes()
     {
-        var localDateType = new LocalDateType(
-            LocalDatePattern.Create("MM", CultureInfo.InvariantCulture));
+        // arrange
+        var executor = await new ServiceCollection()
+            .AddGraphQL()
+            .AddQueryType(b => b.Name(OperationTypeNames.Query))
+            .AddType(typeof(QueryTwoRuntimeTypes))
+            .AddNodaTime()
+            .BuildRequestExecutorAsync();
 
-        localDateType.Description.MatchInlineSnapshot(
-            "LocalDate represents a date within the calendar, with no reference to a particular time zone or time of day.");
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                localDate1(input: "9999-12-31")
+                localDate2(input: "9999-12-31")
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "localDate1": "9999-12-31",
+                "localDate2": "9999-12-31"
+              }
+            }
+            """);
     }
 
-    private static JsonElement ParseInputValue(string sourceText)
+    [QueryType]
+    private static class QuerySingleRuntimeType
     {
-        var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(sourceText));
-        return JsonElement.ParseValue(ref reader);
+        public static LocalDate GetLocalDate(LocalDate input) => input;
+    }
+
+    [QueryType]
+    private static class QueryTwoRuntimeTypes
+    {
+        public static DateOnly GetLocalDate1(DateOnly input) => input;
+
+        public static LocalDate GetLocalDate2(LocalDate input) => input;
+    }
+
+    public static TheoryData<string, LocalDate> ValidLocalDateScalarStrings()
+    {
+        return new TheoryData<string, LocalDate>
+        {
+            // https://scalars.graphql.org/chillicream/local-date.html#sec-Input-spec.Examples (Valid input values)
+            {
+                "2000-12-24",
+                new LocalDate(2000, 12, 24)
+            }
+        };
+    }
+
+    public static TheoryData<string> InvalidLocalDateScalarStrings()
+    {
+        return
+        [
+            // https://scalars.graphql.org/chillicream/local-date.html#sec-Input-spec.Examples (Invalid input values)
+            // Contains time component.
+            "2023-12-24T15:30:00",
+            // Invalid month (13).
+            "2023-13-01",
+            // Invalid day (32).
+            "2023-12-32",
+            // Month and day must be zero-padded.
+            "2023-2-5",
+            // Invalid separator.
+            "2023/12/24",
+            // ReSharper disable once GrammarMistakeInComment
+            // Invalid date (February 30th).
+            "2023-02-30"
+        ];
     }
 }

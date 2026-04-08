@@ -1,12 +1,11 @@
-using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
-using ChilliCream.Nitro.CommandLine.Commands.Apis.Inputs;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Apis;
+using ChilliCream.Nitro.Client.OpenApi;
 using ChilliCream.Nitro.CommandLine.Commands.OpenApi.Components;
 using ChilliCream.Nitro.CommandLine.Commands.OpenApi.Options;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi;
@@ -15,56 +14,81 @@ internal sealed class CreateOpenApiCollectionCommand : Command
 {
     public CreateOpenApiCollectionCommand() : base("create")
     {
-        Description = "Creates a new OpenAPI collection";
+        Description = "Create a new OpenAPI collection.";
 
-        AddOption(Opt<OptionalApiIdOption>.Instance);
-        AddOption(Opt<OpenApiCollectionNameOption>.Instance);
+        Options.Add(Opt<OptionalApiIdOption>.Instance);
+        Options.Add(Opt<OpenApiCollectionNameOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples(
+            """
+            openapi create \
+              --name "my-collection" \
+              --api-id "<api-id>"
+            """);
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken cancellationToken)
     {
-        console.WriteLine();
-        console.WriteLine("Creating an OpenAPI collection");
-        console.WriteLine();
+        var console = services.GetRequiredService<INitroConsole>();
+        var apisClient = services.GetRequiredService<IApisClient>();
+        var client = services.GetRequiredService<IOpenApiClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        const string apiMessage = "For which api do you want to create an OpenAPI collection?";
-        var apiId = await context.GetOrSelectApiId(apiMessage);
+        parseResult.AssertHasAuthentication(sessionService);
 
-        var name = await context
-            .OptionOrAskAsync("Name", Opt<OpenApiCollectionNameOption>.Instance, cancellationToken);
+        const string apiMessage = "For which API do you want to create an OpenAPI collection?";
+        var apiId = await console.GetOrPromptForApiIdAsync(apiMessage, parseResult, apisClient, sessionService, cancellationToken);
 
-        var input = new CreateOpenApiCollectionInput { Name = name, ApiId = apiId };
-        var result =
-            await client.CreateOpenApiCollectionCommandMutation.ExecuteAsync(input, cancellationToken);
+        var name = await console
+            .PromptAsync("Name", defaultValue: null, parseResult, Opt<OpenApiCollectionNameOption>.Instance, cancellationToken);
 
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        console.PrintErrorsAndExit(data.CreateOpenApiCollection.Errors);
-
-        var createdOpenApiCollection = data.CreateOpenApiCollection.OpenApiCollection;
-        if (createdOpenApiCollection is null)
+        await using (var activity = console.StartActivity(
+            $"Creating OpenAPI collection '{name.EscapeMarkup()}' for API '{apiId.EscapeMarkup()}'",
+            "Failed to create the OpenAPI collection."))
         {
-            throw Exit("Could not create OpenAPI collection.");
+            var data = await client.CreateOpenApiCollectionAsync(
+                apiId,
+                name,
+                cancellationToken);
+
+            if (data.Errors?.Count > 0)
+            {
+                activity.Fail();
+
+                foreach (var error in data.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        IApiNotFoundError err => err.Message,
+                        IUnauthorizedOperation err => err.Message,
+                        IError err => Messages.UnexpectedMutationError(err),
+                        _ => Messages.UnexpectedMutationError()
+                    };
+
+                    console.Error.WriteErrorLine(errorMessage);
+                }
+
+                return ExitCodes.Error;
+            }
+
+            if (data.OpenApiCollection is not IOpenApiCollectionDetailPrompt_OpenApiCollection detail)
+            {
+                throw MutationReturnedNoData();
+            }
+
+            activity.Success($"Created OpenAPI collection '{name.EscapeMarkup()}'.");
+
+            resultHolder.SetResult(new ObjectResult(OpenApiCollectionDetailPrompt.From(detail).ToObject()));
+
+            return ExitCodes.Success;
         }
-
-        console.OkLine($"OpenAPI collection {createdOpenApiCollection.Name.AsHighlight()} created.");
-
-        if (createdOpenApiCollection is IOpenApiCollectionDetailPrompt_OpenApiCollection detail)
-        {
-            context.SetResult(OpenApiCollectionDetailPrompt.From(detail).ToObject([]));
-        }
-
-        return ExitCodes.Success;
     }
 }

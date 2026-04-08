@@ -40,7 +40,9 @@ internal sealed class NextMessage : IDataMessage
             documentOwner,
             TryGetProperty(payload, Utf8MessageProperties.DataProp),
             TryGetProperty(payload, Utf8MessageProperties.ErrorsProp),
-            TryGetProperty(payload, Utf8MessageProperties.ExtensionsProp));
+            TryGetProperty(payload, Utf8MessageProperties.ExtensionsProp),
+            TryGetInt32Property(payload, Utf8MessageProperties.RequestIndexProp),
+            TryGetInt32Property(payload, Utf8MessageProperties.VariableIndexProp));
 
         return new NextMessage(id, result);
     }
@@ -49,4 +51,9 @@ internal sealed class NextMessage : IDataMessage
         => element.TryGetProperty(name, out var property)
             ? property
             : default;
+
+    private static int? TryGetInt32Property(JsonElement element, ReadOnlySpan<byte> name)
+        => element.TryGetProperty(name, out var property) && property.ValueKind == JsonValueKind.Number
+            ? property.GetInt32()
+            : null;
 }

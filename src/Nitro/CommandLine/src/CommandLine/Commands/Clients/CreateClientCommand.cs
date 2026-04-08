@@ -1,12 +1,12 @@
-using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
-using ChilliCream.Nitro.CommandLine.Commands.Apis.Inputs;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Apis;
+using ChilliCream.Nitro.Client.Clients;
+using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Options;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
@@ -15,57 +15,82 @@ internal sealed class CreateClientCommand : Command
 {
     public CreateClientCommand() : base("create")
     {
-        Description = "Creates a new client";
+        Description = "Create a new client.";
 
-        AddOption(Opt<OptionalApiIdOption>.Instance);
-        AddOption(Opt<ClientNameOption>.Instance);
+        Options.Add(Opt<OptionalApiIdOption>.Instance);
+        Options.Add(Opt<ClientNameOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples(
+            """
+            client create \
+              --name "my-client" \
+              --api-id "<api-id>"
+            """);
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken cancellationToken)
     {
-        console.WriteLine();
-        console.WriteLine("Creating a client");
-        console.WriteLine();
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IClientsClient>();
+        var apisClient = services.GetRequiredService<IApisClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        const string apiMessage = "For which api do you want to create a client?";
-        var apiId = await context.GetOrSelectApiId(apiMessage);
+        parseResult.AssertHasAuthentication(sessionService);
 
-        var name = await context
-            .OptionOrAskAsync("Name", Opt<ClientNameOption>.Instance, cancellationToken);
+        var apiId = await console.GetOrPromptForApiIdAsync(
+            "For which API do you want to create a client?",
+            parseResult,
+            apisClient,
+            sessionService,
+            cancellationToken);
 
-        var input = new CreateClientInput { Name = name, ApiId = apiId };
-        var result =
-            await client.CreateClientCommandMutation.ExecuteAsync(input, cancellationToken);
+        var name = await console
+            .PromptAsync("Name", defaultValue: null, parseResult, Opt<ClientNameOption>.Instance, cancellationToken);
 
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        console.PrintErrorsAndExit(data.CreateClient.Errors);
-
-        var createdClient = data.CreateClient.Client;
-        if (createdClient is null)
+        await using (var activity = console.StartActivity(
+            $"Creating client '{name.EscapeMarkup()}' for API '{apiId.EscapeMarkup()}'",
+            "Failed to create the client."))
         {
-            throw Exit("Could not create api.");
+            var data = await client.CreateClientAsync(apiId, name, cancellationToken);
+
+            if (data.Errors?.Count > 0)
+            {
+                activity.Fail();
+
+                foreach (var error in data.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        ICreateClientCommandMutation_CreateClient_Errors_ApiNotFoundError err => err.Message,
+                        ICreateClientCommandMutation_CreateClient_Errors_UnauthorizedOperation err => err.Message,
+                        IError err => Messages.UnexpectedMutationError(err),
+                        _ => Messages.UnexpectedMutationError()
+                    };
+
+                    console.Error.WriteErrorLine(errorMessage);
+                }
+
+                return ExitCodes.Error;
+            }
+
+            if (data.Client is not IClientDetailPrompt_Client createdClient)
+            {
+                throw MutationReturnedNoData();
+            }
+
+            activity.Success($"Created client '{name.EscapeMarkup()}'.");
+
+            resultHolder.SetResult(new ObjectResult(ClientDetailPrompt.From(createdClient).ToObject()));
+
+            return ExitCodes.Success;
         }
-
-        console.OkLine($"Client {createdClient.Name.AsHighlight()} created.");
-
-        if (createdClient is IClientDetailPrompt_Client detail)
-        {
-            var formatted = await ClientDetailPrompt.From(detail, client).ToObject([]);
-            context.SetResult(formatted);
-        }
-
-        return ExitCodes.Success;
     }
 }

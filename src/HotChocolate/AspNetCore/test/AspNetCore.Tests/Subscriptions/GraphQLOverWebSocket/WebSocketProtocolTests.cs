@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using HotChocolate.AspNetCore.Formatters;
@@ -6,6 +7,9 @@ using HotChocolate.AspNetCore.Subscriptions.Protocols;
 using HotChocolate.AspNetCore.Subscriptions.Protocols.GraphQLOverWebSocket;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.AspNetCore.Tests.Utilities.Subscriptions.GraphQLOverWebSocket;
+using HotChocolate.Execution;
+using HotChocolate.Language;
+using HotChocolate.PersistedOperations;
 using HotChocolate.Subscriptions.Diagnostics;
 using HotChocolate.Text.Json;
 using HotChocolate.Transport.Formatters;
@@ -69,15 +73,13 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
             {
                 // arrange
                 using var testServer = CreateStarWarsServer(
-                    configureConventions: mapping => mapping.WithOptions(
-                        new GraphQLServerOptions
+                    configureServices: s => s
+                        .AddGraphQL()
+                        .ModifyServerOptions(o =>
                         {
-                            Sockets =
-                            {
-                                ConnectionInitializationTimeout =
-                                    TimeSpan.FromMilliseconds(1000),
-                                KeepAliveInterval = TimeSpan.FromMilliseconds(150)
-                            }
+                            o.Sockets.ConnectionInitializationTimeout =
+                                TimeSpan.FromMilliseconds(1000);
+                            o.Sockets.KeepAliveInterval = TimeSpan.FromMilliseconds(150);
                         }));
                 var client = CreateWebSocketClient(testServer);
                 using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
@@ -103,14 +105,13 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
             {
                 // arrange
                 using var testServer = CreateStarWarsServer(
-                    configureConventions: mapping => mapping.WithOptions(
-                        new GraphQLServerOptions
+                    configureServices: s => s
+                        .AddGraphQL()
+                        .ModifyServerOptions(o =>
                         {
-                            Sockets =
-                            {
-                                ConnectionInitializationTimeout = TimeSpan.FromMilliseconds(50),
-                                KeepAliveInterval = TimeSpan.FromMilliseconds(150)
-                            }
+                            o.Sockets.ConnectionInitializationTimeout =
+                                TimeSpan.FromMilliseconds(50);
+                            o.Sockets.KeepAliveInterval = TimeSpan.FromMilliseconds(150);
                         }));
                 var client = CreateWebSocketClient(testServer);
 
@@ -257,12 +258,12 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 const string subscriptionId = "abc";
 
                 // act
-                await webSocket.SendSubscribeAsync(subscriptionId, payload, ct);
-
-                while (diagnostics.Subscribed is not 1)
-                {
-                    await Task.Delay(10, ct);
-                }
+                await SendSubscribeAndWaitForRegistrationAsync(
+                    webSocket,
+                    subscriptionId,
+                    payload,
+                    diagnostics.WaitForSubscribedAsync,
+                    ct);
 
                 await testServer.SendPostRequestAsync(
                     new ClientQueryRequest
@@ -286,6 +287,72 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 await snapshot.Add(message).MatchAsync(ct);
             });
     }
+
+    [Fact]
+    public Task Subscribe_With_PersistedQuery_Extension_Only_Works()
+        => TryTest(
+            async ct =>
+            {
+                // arrange
+                var storage = new OperationStorage();
+                var hashProvider = new MD5DocumentHashProvider(HashFormat.Base64);
+                var diagnostics = new SubscriptionTestDiagnostics();
+                const string query = "subscription { onReview(episode: NEW_HOPE) { stars } }";
+                var hash = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(query)).Value;
+                storage.AddOperation(hash, query);
+
+                using var testServer = CreateStarWarsServer(
+                    configureServices: services => services
+                        .AddGraphQLServer()
+                        .AddMD5DocumentHashProvider(HashFormat.Base64)
+                        .AddDiagnosticEventListener(_ => diagnostics)
+                        .ConfigureSchemaServices(c => c.AddSingleton<IOperationDocumentStorage>(storage)),
+                    output: output);
+                var client = CreateWebSocketClient(testServer);
+                using var webSocket = await ConnectToServerAsync(client, ct);
+
+                var subscribeMessage = JsonSerializer.Serialize(
+                    new
+                    {
+                        type = "subscribe",
+                        id = "abc",
+                        payload = new
+                        {
+                            extensions = new Dictionary<string, object?>
+                            {
+                                ["persistedQuery"] = new Dictionary<string, object?>
+                                {
+                                    ["version"] = 1,
+                                    [hashProvider.Name] = hash
+                                }
+                            }
+                        }
+                    });
+
+                // act
+                await webSocket.SendMessageAsync(subscribeMessage, ct);
+                await diagnostics.WaitForSubscribedAsync(ct);
+
+                await testServer.SendPostRequestAsync(
+                    new ClientQueryRequest
+                    {
+                        Query =
+                            """
+                            mutation {
+                                createReview(episode: NEW_HOPE review: {
+                                    commentary: "foo"
+                                    stars: 5
+                                }) {
+                                    stars
+                                }
+                            }
+                            """
+                    });
+
+                // assert
+                var message = await WaitForMessage(webSocket, Messages.Next, ct);
+                Assert.NotNull(message);
+            });
 
     [Fact]
     public Task Subscribe_Id_Not_Unique()
@@ -395,7 +462,12 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 var payload = new SubscribePayload(
                     "subscription { onReview(episode: NEW_HOPE) { stars } }");
                 const string subscriptionId = "abc";
-                await webSocket.SendSubscribeAsync(subscriptionId, payload, ct);
+                await SendSubscribeAndWaitForRegistrationAsync(
+                    webSocket,
+                    subscriptionId,
+                    payload,
+                    diagnostics.WaitForSubscribedAsync,
+                    ct);
 
                 await testServer.SendPostRequestAsync(
                     new ClientQueryRequest
@@ -435,11 +507,9 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                     });
 
                 // assert
-                var message = await WaitForMessage(webSocket, Messages.Next, ct);
-
-                Assert.Null(message);
-                Assert.True(diagnostics.UnsubscribeInvoked, "UnsubscribeInvoked is false");
-                Assert.True(diagnostics.CloseInvoked, "CloseInvoked is false");
+                Assert.True(await AssertNoMessage(webSocket, Messages.Next, ct));
+                await diagnostics.WaitForUnsubscribeAsync(ct);
+                await diagnostics.WaitForCloseAsync(ct);
             });
     }
 
@@ -463,7 +533,12 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 var payload = new SubscribePayload(
                     "subscription { onReview(episode: NEW_HOPE) { stars } }");
                 const string subscriptionId = "abc";
-                await webSocket.SendSubscribeAsync(subscriptionId, payload, ct);
+                await SendSubscribeAndWaitForRegistrationAsync(
+                    webSocket,
+                    subscriptionId,
+                    payload,
+                    diagnostics.WaitForSubscribedAsync,
+                    ct);
 
                 await testServer.SendPostRequestAsync(
                     new ClientQueryRequest
@@ -495,9 +570,8 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
 
                 // assert
                 await WaitForMessage(webSocket, Messages.Complete, ct);
-
-                Assert.True(diagnostics.UnsubscribeInvoked, "UnsubscribeInvoked is false");
-                Assert.True(diagnostics.CloseInvoked, "CloseInvoked is false");
+                await diagnostics.WaitForUnsubscribeAsync(ct);
+                await diagnostics.WaitForCloseAsync(ct);
             });
     }
 
@@ -528,10 +602,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                     await webSocket.SendSubscribeAsync(i.ToString(), payload, ct);
                 }
 
-                while (diagnostics.Subscribed < 100)
-                {
-                    await Task.Delay(10, ct);
-                }
+                await diagnostics.WaitForSubscribedAsync(100, ct);
 
                 output.WriteLine($"Subscribed in {stopwatch.ElapsedMilliseconds}ms");
 
@@ -569,8 +640,8 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                     await WaitForMessage(webSocket, Messages.Complete, ct);
                 }
 
-                Assert.True(diagnostics.UnsubscribeInvoked, "UnsubscribeInvoked is false");
-                Assert.True(diagnostics.CloseInvoked, "CloseInvoked is false");
+                await diagnostics.WaitForUnsubscribeAsync(ct);
+                await diagnostics.WaitForCloseAsync(ct);
             });
     }
 
@@ -842,58 +913,32 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
             async ct =>
             {
                 // arrange
+                var diagnostics = new SubscriptionTestDiagnostics();
                 var subscriptionRequest = new OperationRequest(
                     "subscription { onReview(episode: NEW_HOPE) { stars } }");
 
-                using var testServer = CreateStarWarsServer(output: output);
+                using var testServer = CreateStarWarsServer(
+                    configureServices: services => services
+                        .AddGraphQL()
+                        .AddDiagnosticEventListener(_ => diagnostics),
+                    output: output);
                 var webSocketClient = CreateWebSocketClient(testServer);
                 using var webSocket = await webSocketClient.ConnectAsync(SubscriptionUri, ct);
 
                 var client = await SocketClient.ConnectAsync(webSocket, ct);
 
                 // act
-                // ... subscribe
                 var socketResult = await client.ExecuteAsync(subscriptionRequest, ct);
+                await diagnostics.WaitForSubscribedAsync(ct);
 
-                try
-                {
-                    // ... we wait a second so we are fully subscribed ...
-                    await socketResult.ReadResultsAsync()
-                        .GetAsyncEnumerator(ct)
-                        .MoveNextAsync()
-                        .AsTask()
-                        .WaitAsync(TimeSpan.FromSeconds(1), ct);
-                }
-                catch (TimeoutException)
-                {
-                    // ... we deliberately time out here so we get back in control ...
-                }
-
-                // ... next we complete the subscription from the client-side ... essentially cancel it.
                 socketResult.Dispose();
+                await diagnostics.WaitForUnsubscribeAsync(ct);
 
-                // ... now we wait another second to let the server unsubscribe cleanly ...
-                await Task.Delay(500, ct);
-
-                // ... we resubscribe to ensure the connection is still alive with no errors ...
                 socketResult = await client.ExecuteAsync(subscriptionRequest, ct);
+                await diagnostics.WaitForSubscribedAsync(2, ct);
 
-                try
-                {
-                    // ... we wait again ...
-                    await socketResult.ReadResultsAsync()
-                        .GetAsyncEnumerator(ct)
-                        .MoveNextAsync()
-                        .AsTask()
-                        .WaitAsync(TimeSpan.FromSeconds(1), ct);
-                }
-                catch (TimeoutException)
-                {
-                    // ... we deliberately time out here so we get back in control ...
-                }
-
-                // ... and dispose of it once more.
                 socketResult.Dispose();
+                await diagnostics.WaitForUnsubscribeAsync(2, ct);
             });
     }
 
@@ -926,12 +971,12 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 const string subscriptionId = "abc";
 
                 // act
-                await webSocket.SendSubscribeAsync(subscriptionId, payload, ct);
-
-                while (diagnostics.Subscribed is not 1)
-                {
-                    await Task.Delay(10, ct);
-                }
+                await SendSubscribeAndWaitForRegistrationAsync(
+                    webSocket,
+                    subscriptionId,
+                    payload,
+                    diagnostics.WaitForSubscribedAsync,
+                    ct);
 
                 await testServer.SendPostRequestAsync(
                     new ClientQueryRequest
@@ -958,6 +1003,31 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 var messageOnReview = messageData.GetProperty("onReview");
                 Assert.False(messageOnReview.TryGetProperty("commentary", out _));
             });
+
+    private sealed class OperationStorage : IOperationDocumentStorage
+    {
+        private readonly Dictionary<string, OperationDocument> _cache =
+            new(StringComparer.Ordinal);
+
+        public ValueTask<IOperationDocument?> TryReadAsync(
+            OperationDocumentId documentId,
+            CancellationToken cancellationToken = default)
+            => _cache.TryGetValue(documentId.Value, out var value)
+                ? new ValueTask<IOperationDocument?>(value)
+                : new ValueTask<IOperationDocument?>(default(IOperationDocument));
+
+        public ValueTask SaveAsync(
+            OperationDocumentId documentId,
+            IOperationDocument document,
+            CancellationToken cancellationToken = default)
+            => throw new NotImplementedException();
+
+        public void AddOperation(string key, string sourceText)
+        {
+            var doc = new OperationDocument(Utf8GraphQLParser.Parse(sourceText));
+            _cache.Add(key, doc);
+        }
+    }
 
     private class AuthInterceptor : DefaultSocketSessionInterceptor
     {
@@ -1021,7 +1091,13 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
 
     public sealed class SubscriptionTestDiagnostics : SubscriptionDiagnosticEventsListener
     {
+        private readonly object _sync = new();
+        private readonly List<(int Count, TaskCompletionSource Signal)> _subscribedSignals = [];
+        private readonly List<(int Count, TaskCompletionSource Signal)> _unsubscribeSignals = [];
+        private readonly List<(int Count, TaskCompletionSource Signal)> _closeSignals = [];
         private int _subscribed;
+        private int _unsubscribeCount;
+        private int _closeCount;
 
         public int Subscribed => _subscribed;
 
@@ -1031,13 +1107,90 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
 
         public override void SubscribeSuccess(string topicName)
         {
-            Interlocked.Increment(ref _subscribed);
+            var subscribed = Interlocked.Increment(ref _subscribed);
+            SignalCompleted(_subscribedSignals, subscribed);
         }
 
         public override void Unsubscribe(string topicName, int shard, int subscribers)
-            => UnsubscribeInvoked = true;
+        {
+            UnsubscribeInvoked = true;
+            var unsubscribeCount = Interlocked.Increment(ref _unsubscribeCount);
+            SignalCompleted(_unsubscribeSignals, unsubscribeCount);
+        }
 
         public override void Close(string topicName)
-            => CloseInvoked = true;
+        {
+            CloseInvoked = true;
+            var closeCount = Interlocked.Increment(ref _closeCount);
+            SignalCompleted(_closeSignals, closeCount);
+        }
+
+        public Task WaitForSubscribedAsync(CancellationToken cancellationToken)
+            => WaitForSubscribedAsync(1, cancellationToken);
+
+        public Task WaitForSubscribedAsync(int count, CancellationToken cancellationToken)
+            => WaitForSignalAsync(_subscribedSignals, count, _subscribed, cancellationToken);
+
+        public Task WaitForUnsubscribeAsync(CancellationToken cancellationToken)
+            => WaitForUnsubscribeAsync(1, cancellationToken);
+
+        public Task WaitForUnsubscribeAsync(int count, CancellationToken cancellationToken)
+            => WaitForSignalAsync(_unsubscribeSignals, count, _unsubscribeCount, cancellationToken);
+
+        public Task WaitForCloseAsync(CancellationToken cancellationToken)
+            => WaitForCloseAsync(1, cancellationToken);
+
+        public Task WaitForCloseAsync(int count, CancellationToken cancellationToken)
+            => WaitForSignalAsync(_closeSignals, count, _closeCount, cancellationToken);
+
+        private Task WaitForSignalAsync(
+            List<(int Count, TaskCompletionSource Signal)> signals,
+            int count,
+            int currentCount,
+            CancellationToken cancellationToken)
+        {
+            if (currentCount >= count)
+            {
+                return Task.CompletedTask;
+            }
+
+            TaskCompletionSource signal;
+
+            lock (_sync)
+            {
+                if (GetCurrentCount(signals) >= count)
+                {
+                    return Task.CompletedTask;
+                }
+
+                signal = new(TaskCreationOptions.RunContinuationsAsynchronously);
+                signals.Add((count, signal));
+            }
+
+            return signal.Task.WaitAsync(cancellationToken);
+        }
+
+        private int GetCurrentCount(List<(int Count, TaskCompletionSource Signal)> signals)
+            => ReferenceEquals(signals, _subscribedSignals)
+                ? _subscribed
+                : ReferenceEquals(signals, _unsubscribeSignals)
+                    ? _unsubscribeCount
+                    : _closeCount;
+
+        private void SignalCompleted(List<(int Count, TaskCompletionSource Signal)> signals, int count)
+        {
+            TaskCompletionSource[] ready;
+
+            lock (_sync)
+            {
+                ready = [.. signals.Where(t => t.Count <= count).Select(t => t.Signal)];
+                signals.RemoveAll(t => t.Count <= count);
+            }
+
+            foreach (var signal in ready)
+            {
+                signal.TrySetResult();
+            }
+        }
     }
 }

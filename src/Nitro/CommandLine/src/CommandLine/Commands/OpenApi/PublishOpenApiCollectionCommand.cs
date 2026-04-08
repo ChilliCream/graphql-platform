@@ -1,12 +1,9 @@
-using System.Reactive;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.OpenApi;
+using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Commands.OpenApi.Options;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
-using StrawberryShake;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi;
@@ -15,164 +12,203 @@ internal sealed class PublishOpenApiCollectionCommand : Command
 {
     public PublishOpenApiCollectionCommand() : base("publish")
     {
-        Description = "Publish an OpenAPI collection version to an stage";
+        Description = "Publish an OpenAPI collection version to a stage.";
 
-        AddOption(Opt<TagOption>.Instance);
-        AddOption(Opt<StageNameOption>.Instance);
-        AddOption(Opt<OpenApiCollectionIdOption>.Instance);
-        AddOption(Opt<ForceOption>.Instance);
-        AddOption(Opt<OptionalWaitForApprovalOption>.Instance);
+        Options.Add(Opt<OpenApiCollectionIdOption>.Instance);
+        Options.Add(Opt<TagOption>.Instance);
+        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<OptionalForceOption>.Instance);
+        Options.Add(Opt<OptionalWaitForApprovalOption>.Instance);
+        Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Opt<TagOption>.Instance,
-            Opt<StageNameOption>.Instance,
-            Opt<OpenApiCollectionIdOption>.Instance,
-            Opt<ForceOption>.Instance,
-            Opt<OptionalWaitForApprovalOption>.Instance,
-            Bind.FromServiceProvider<CancellationToken>());
+        Validators.Add(result =>
+        {
+            var forceResult = result.GetResult(Opt<OptionalForceOption>.Instance);
+            var waitResult = result.GetResult(Opt<OptionalWaitForApprovalOption>.Instance);
+
+            if (forceResult is { Implicit: false } && waitResult is { Implicit: false })
+            {
+                result.AddError(
+                    "The '--force' and '--wait-for-approval' options are mutually exclusive.");
+            }
+        });
+
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples(
+            """
+            openapi publish \
+              --openapi-collection-id "<collection-id>" \
+              --stage "dev" \
+              --tag "v1"
+            """);
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        IAnsiConsole console,
-        IApiClient client,
-        string tag,
-        string stage,
-        string openApiCollectionId,
-        bool force,
-        bool waitForApproval,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken ct)
     {
-        console.Title(
-            $"Publish OpenAPI collection with tag {tag.EscapeMarkup()} to {stage.EscapeMarkup()}");
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IOpenApiClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
 
-        var committed = false;
+        parseResult.AssertHasAuthentication(sessionService);
 
-        if (console.IsHumanReadable())
+        var tag = parseResult.GetRequiredValue(Opt<TagOption>.Instance);
+        var stage = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
+        var openApiCollectionId = parseResult.GetRequiredValue(Opt<OpenApiCollectionIdOption>.Instance);
+        var force = parseResult.GetValue(Opt<OptionalForceOption>.Instance);
+        var waitForApproval = parseResult.GetValue(Opt<OptionalWaitForApprovalOption>.Instance);
+        var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
+        var source = SourceMetadataParser.Parse(sourceMetadataJson);
+
+        await using (var rootActivity = console.StartActivity(
+            $"Publishing new OpenAPI collection version '{tag.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}'",
+            "Failed to publish a new OpenAPI collection version."))
         {
-            await console
-                .Status()
-                .Spinner(Spinner.Known.BouncingBar)
-                .SpinnerStyle(Style.Parse("green bold"))
-                .StartAsync("Publishing...", PublishOpenApiCollection);
-        }
-        else
-        {
-            await PublishOpenApiCollection(null);
-        }
-
-        return committed ? ExitCodes.Success : ExitCodes.Error;
-
-        async Task PublishOpenApiCollection(StatusContext? ctx)
-        {
-            var input = new PublishOpenApiCollectionInput
-            {
-                OpenApiCollectionId = openApiCollectionId,
-                Stage = stage,
-                Tag = tag,
-                WaitForApproval = waitForApproval
-            };
-
             if (force)
             {
-                input = input with { Force = true };
-                console.Log("[yellow]Force push is enabled[/]");
+                rootActivity.Update(Messages.ForcePushEnabled, ActivityUpdateKind.Warning);
             }
 
-            console.Log("Create publish request");
+            string requestId;
 
-            var requestId = await PublishOpenApiCollectionAsync(console, client, input, ct);
-
-            console.Log($"Publish request created [grey](ID: {requestId.EscapeMarkup()})[/]");
-
-            using var stopSignal = new Subject<Unit>();
-
-            var subscription = client.PublishOpenApiCollectionCommandSubscription
-                .Watch(requestId, ExecutionStrategy.NetworkOnly)
-                .TakeUntil(stopSignal);
-
-            await foreach (var x in subscription.ToAsyncEnumerable().WithCancellation(ct))
+            await using (var child = rootActivity.StartChildActivity(
+                Messages.StartingPublishRequest,
+                Messages.FailedToStartPublishRequest))
             {
-                if (x.Errors is { Count: > 0 } errors)
+                var publishRequest = await client.StartOpenApiCollectionPublishAsync(
+                    openApiCollectionId,
+                    stage,
+                    tag,
+                    force,
+                    waitForApproval,
+                    source,
+                    ct);
+
+                if (publishRequest.Errors?.Count > 0)
                 {
-                    console.PrintErrorsAndExit(errors);
-                    throw Exit("No request id returned");
-                }
+                    await child.FailAllAsync();
 
-                switch (x.Data?.OnOpenApiCollectionVersionPublishingUpdate)
-                {
-                    case IProcessingTaskIsQueued v:
-                        ctx?.Status(
-                            $"Your request is queued. The current position in the queue is {v.QueuePosition}.");
-                        break;
-
-                    case IOpenApiCollectionVersionPublishFailed { Errors: var openApiCollectionErrors }:
-                        console.WriteLine("OpenAPI collection publish failed");
-                        console.PrintErrorsAndExit(openApiCollectionErrors);
-                        stopSignal.OnNext(Unit.Default);
-                        break;
-
-                    case IOpenApiCollectionVersionPublishSuccess:
-                        committed = true;
-                        stopSignal.OnNext(Unit.Default);
-
-                        console.Success("Successfully published OpenAPI collection!");
-                        break;
-
-                    case IProcessingTaskIsReady:
-                        console.Success("Your request is ready for processing.");
-                        break;
-
-                    case IOperationInProgress:
-                        ctx?.Status("Your request is in progress.");
-                        break;
-
-                    case IWaitForApproval e:
-                        if (e.Deployment is
-                            IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_OpenApiCollectionDeployment
-                            deployment)
+                    foreach (var error in publishRequest.Errors)
+                    {
+                        var errorMessage = error switch
                         {
-                            console.PrintErrors(deployment.Errors);
-                        }
+                            IUnauthorizedOperation err => err.Message,
+                            IInvalidSourceMetadataInputError err => err.Message,
+                            IStageNotFoundError err => err.Message,
+                            IOpenApiCollectionNotFoundError err => err.Message,
+                            IOpenApiCollectionVersionNotFoundError err => err.Message,
+                            IError err => Messages.UnexpectedMutationError(err),
+                            _ => Messages.UnexpectedMutationError()
+                        };
 
-                        ctx?.Status(
-                            "The processing of your request is waiting for approval. Check Nitro to approve the request.");
-                        break;
+                        console.Error.WriteErrorLine(errorMessage);
+                    }
 
-                    case IProcessingTaskApproved:
-                        ctx?.Status("The processing of your request is approved.");
-
-                        break;
-
-                    default:
-                        ctx?.Status(
-                            "This is an unknown response, upgrade Nitro CLI to the latest version.");
-                        break;
+                    return ExitCodes.Error;
                 }
+
+                if (publishRequest.Id is not { } id)
+                {
+                    throw MutationReturnedNoData();
+                }
+
+                requestId = id;
+                child.Success($"Publish request created (ID: {requestId.EscapeMarkup()}).");
+            }
+
+            await using (var child = rootActivity.StartChildActivity(
+                Messages.ProcessingActivity,
+                Messages.ProcessingFailed))
+            {
+                await foreach (var update in client.SubscribeToOpenApiCollectionPublishAsync(requestId, ct))
+                {
+                    switch (update)
+                    {
+                        case IProcessingTaskIsQueued v:
+                            child.Update(Messages.QueuedAtPosition(v.QueuePosition), ActivityUpdateKind.Waiting);
+                            break;
+
+                        case IOpenApiCollectionVersionPublishFailed { Errors: var errors }:
+                            var errorTree = new Tree("");
+
+                            foreach (var error in errors)
+                            {
+                                switch (error)
+                                {
+                                    case IOpenApiCollectionValidationError e:
+                                        errorTree.AddOpenApiCollectionValidationErrors(e);
+                                        break;
+                                    case IConcurrentOperationError e:
+                                        errorTree.AddErrorMessage(e.Message);
+                                        break;
+                                    case IUnexpectedProcessingError e:
+                                        errorTree.AddErrorMessage(e.Message);
+                                        break;
+                                    case IProcessingTimeoutError e:
+                                        errorTree.AddErrorMessage(e.Message);
+                                        break;
+                                }
+                            }
+
+                            child.Fail(errorTree);
+
+                            await child.FailAllAsync();
+
+                            throw new ExitException("OpenAPI collection publish failed.");
+
+                        case IOpenApiCollectionVersionPublishSuccess:
+                            child.Success(Messages.PublishedSuccessfully);
+                            rootActivity.Success($"Published new OpenAPI collection version '{tag.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}'.");
+                            return ExitCodes.Success;
+
+                        case IProcessingTaskIsReady:
+                            child.Update(Messages.RequestReadyForProcessing);
+                            break;
+
+                        case IOperationInProgress:
+                            child.Update(Messages.RequestBeingProcessed);
+                            break;
+
+                        case IWaitForApproval waitForApprovalEvent:
+                            if (waitForApprovalEvent.Deployment is IOpenApiCollectionDeployment deployment)
+                            {
+                                var approvalErrorTree = new Tree("");
+
+                                foreach (var error in deployment.Errors)
+                                {
+                                    switch (error)
+                                    {
+                                        case IOpenApiCollectionValidationError e:
+                                            approvalErrorTree.AddOpenApiCollectionValidationErrors(e);
+                                            break;
+                                    }
+                                }
+
+                                child.Update(Messages.ValidationFailed, ActivityUpdateKind.Warning, approvalErrorTree);
+                            }
+
+                            child.Update(Messages.WaitingForApproval, ActivityUpdateKind.Waiting);
+                            break;
+
+                        case IProcessingTaskApproved:
+                            child.Update(Messages.RequestApproved);
+                            break;
+
+                        default:
+                            child.Update(Messages.UnknownServerResponse, ActivityUpdateKind.Warning);
+                            break;
+                    }
+                }
+
+                child.Fail();
             }
         }
-    }
 
-    private static async Task<string> PublishOpenApiCollectionAsync(
-        IAnsiConsole console,
-        IApiClient client,
-        PublishOpenApiCollectionInput input,
-        CancellationToken ct)
-    {
-        var result =
-            await client.PublishOpenApiCollectionCommandMutation.ExecuteAsync(input, ct);
-
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        console.PrintErrorsAndExit(data.PublishOpenApiCollection.Errors);
-
-        if (data.PublishOpenApiCollection.Id is null)
-        {
-            throw new ExitException("Could not create publish request!");
-        }
-
-        return data.PublishOpenApiCollection.Id;
+        return ExitCodes.Error;
     }
 }

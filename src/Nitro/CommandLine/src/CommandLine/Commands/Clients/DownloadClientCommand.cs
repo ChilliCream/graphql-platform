@@ -1,108 +1,107 @@
 using System.Text.Json;
-using ChilliCream.Nitro.CommandLine.Client;
-using ChilliCream.Nitro.CommandLine.Configuration;
+using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Configuration;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
+using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
 
 internal sealed class DownloadClientCommand : Command
 {
-    public DownloadClientCommand()
-        : base("download")
+    public DownloadClientCommand() : base("download")
     {
-        Description = "Download the queries from a stage";
+        Description = "Download the queries from a stage.";
 
-        AddOption(Opt<ApiIdOption>.Instance);
-        AddOption(Opt<StageNameOption>.Instance);
-        AddOption(Opt<FileSystemOutputOptions>.Instance);
-        AddOption(Opt<ClientFormatOption>.Instance);
+        Options.Add(Opt<ApiIdOption>.Instance);
+        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<FileSystemOutputOptions>.Instance);
+        Options.Add(Opt<ClientFormatOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Bind.FromServiceProvider<IHttpClientFactory>(),
-            Opt<ApiIdOption>.Instance,
-            Opt<StageNameOption>.Instance,
-            Opt<FileSystemOutputOptions>.Instance,
-            Opt<ClientFormatOption>.Instance,
-            Bind.FromServiceProvider<CancellationToken>());
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples(
+            """
+            client download \
+              --api-id "<api-id>" \
+              --stage "dev" \
+              --path ./operations.json
+            """);
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        IAnsiConsole console,
-        IApiClient client,
-        IHttpClientFactory clientFactory,
-        string apiId,
-        string stageName,
-        FileSystemInfo output,
-        string format,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken ct)
     {
-        console.Title("Download persisted queries");
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IClientsClient>();
+        var fileSystem = services.GetRequiredService<IFileSystem>();
+        var sessionService = services.GetRequiredService<ISessionService>();
 
-        if (console.IsHumanReadable())
+        parseResult.AssertHasAuthentication(sessionService);
+
+        var apiId = parseResult.GetRequiredValue(Opt<ApiIdOption>.Instance);
+        var stageName = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
+        var output = parseResult.GetRequiredValue(Opt<FileSystemOutputOptions>.Instance);
+        var format = parseResult.GetRequiredValue(Opt<ClientFormatOption>.Instance);
+
+        if (!Path.IsPathRooted(output))
         {
-            await console
-                .Status()
-                .Spinner(Spinner.Known.BouncingBar)
-                .SpinnerStyle(Style.Parse("green bold"))
-                .StartAsync("Fetching Queries...", UploadClient);
+            output = Path.Combine(fileSystem.GetCurrentDirectory(), output);
         }
-        else
+
+        var stream = await client.DownloadPersistedQueriesAsync(apiId, stageName, ct);
+
+        if (stream is null)
         {
-            await UploadClient(null);
+            throw new ExitException($"Could not find a published client on stage '{stageName}'.");
         }
 
-        return ExitCodes.Success;
-
-        async Task UploadClient(StatusContext? ctx)
+        await using (stream)
         {
-            using var httpClient = clientFactory.CreateClient(ApiClient.ClientName);
-
-            var encodedApiId = Uri.EscapeDataString(apiId);
-            var encodedStageName = Uri.EscapeDataString(stageName);
-
-            using var response = await httpClient.GetAsync(
-                $"/api/v1/apis/{encodedApiId}/persistedQueries?stage={encodedStageName}",
+            var queries = JsonSerializer.DeserializeAsyncEnumerable(
+                stream,
+                NitroCLIJsonContext.Default.PersistedQueryStreamResult,
                 ct);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new ExitException($"Could not find a published client on stage {stageName}");
-            }
-
-            await using var stream = await response.Content.ReadAsStreamAsync(ct);
-            var queries = JsonSerializer
-                .DeserializeAsyncEnumerable(stream, NitroCLIJsonContext.Default.PersistedQueryStreamResult, ct);
 
             switch (format)
             {
                 case ClientFormat.Folder:
-                    await WriteToFolder(console, output, queries);
+                    await WriteToFolder(fileSystem, output, queries);
                     break;
 
                 case ClientFormat.Relay:
-                    await WriteToRelayJson(output, queries);
+                    await WriteToRelayJson(fileSystem, output, queries);
                     break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(format), format, null);
             }
         }
+
+        console.WriteLine($"Downloaded client to '{output.EscapeMarkup()}'.");
+
+        return ExitCodes.Success;
     }
 
     private static async Task WriteToRelayJson(
-        FileSystemInfo output,
+        IFileSystem fileSystem,
+        string outputPath,
         IAsyncEnumerable<PersistedQueryStreamResult?> queries)
     {
-        if (File.Exists(output.FullName))
+        if (fileSystem.FileExists(outputPath))
         {
-            File.Delete(output.FullName);
+            fileSystem.DeleteFile(outputPath);
         }
 
-        await using var fileStream = File.OpenWrite(output.FullName);
-        await using var utf8Writer = new Utf8JsonWriter(fileStream);
+        await using var fileStream = fileSystem.CreateFile(outputPath);
+        await using var utf8Writer = new Utf8JsonWriter(fileStream, new JsonWriterOptions { Indented = true });
         utf8Writer.WriteStartObject();
+
         await foreach (var query in queries)
         {
             if (query is null)
@@ -120,13 +119,13 @@ internal sealed class DownloadClientCommand : Command
     }
 
     private static async Task WriteToFolder(
-        IAnsiConsole console,
-        FileSystemInfo output,
+        IFileSystem fileSystem,
+        string outputPath,
         IAsyncEnumerable<PersistedQueryStreamResult?> queries)
     {
-        if (!output.Exists)
+        if (!fileSystem.DirectoryExists(outputPath))
         {
-            Directory.CreateDirectory(output.FullName);
+            fileSystem.CreateDirectory(outputPath);
         }
 
         await foreach (var query in queries)
@@ -138,20 +137,17 @@ internal sealed class DownloadClientCommand : Command
 
             foreach (var documentId in query.DocumentIds)
             {
-                var path = Path.Combine(output.FullName, $"{documentId}.graphql");
-                var fileInfo = new FileInfo(path);
-                if (fileInfo.Exists)
+                var path = Path.Combine(outputPath, $"{documentId}.graphql");
+                if (fileSystem.FileExists(path))
                 {
-                    fileInfo.Delete();
+                    fileSystem.DeleteFile(path);
                 }
 
-                await using var fileStream = fileInfo.OpenWrite();
+                await using var fileStream = fileSystem.CreateFile(path);
                 await using var writer = new StreamWriter(fileStream);
                 await writer.WriteAsync(query.Content);
             }
         }
-
-        console.Success($"Downloaded client to {output.FullName}");
     }
 }
 

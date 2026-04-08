@@ -1,0 +1,21 @@
+{
+  "activities": [
+    {
+      "OperationName": "GraphQL Operation",
+      "DisplayName": "GraphQL Operation",
+      "Status": "Error",
+      "tags": [
+        {
+          "Key": "graphql.errors.count",
+          "Value": 1
+        }
+      ],
+      "event": [
+        {
+          "Name": "UntrustedDocumentRejected",
+          "Tags": []
+        }
+      ]
+    }
+  ]
+}

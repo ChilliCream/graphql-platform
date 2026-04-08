@@ -15,6 +15,7 @@ namespace HotChocolate.Execution.Processing;
 internal sealed partial class OperationContext
 {
     private readonly IFactory<ResolverTask> _resolverTaskFactory;
+    private readonly IFactory<BatchResolverTask> _batchResolverTaskFactory;
     private readonly BranchTracker _branchTracker = new();
     private readonly WorkScheduler _workScheduler;
     private readonly DeferExecutionCoordinator _deferExecutionCoordinator = new();
@@ -38,14 +39,17 @@ internal sealed partial class OperationContext
     private int _branchId;
     private int _variableIndex;
     private object? _rootValue;
+    private bool _propagateNullValues;
     private bool _isInitialized;
 
     public OperationContext(
         IFactory<ResolverTask> resolverTaskFactory,
+        IFactory<BatchResolverTask> batchResolverTaskFactory,
         ITypeConverter typeConverter,
         AggregateServiceScopeInitializer serviceScopeInitializer)
     {
         _resolverTaskFactory = resolverTaskFactory;
+        _batchResolverTaskFactory = batchResolverTaskFactory;
         _workScheduler = new WorkScheduler(this);
         _currentWorkScheduler = _workScheduler;
         _currentBranchTracker = _branchTracker;
@@ -83,6 +87,10 @@ internal sealed partial class OperationContext
         _resolveQueryRootValue = resolveQueryRootValue;
         _batchDispatcher = batchDispatcher;
         _variableIndex = variableIndex;
+
+        var errorHandlingMode = _requestContext.Request.ErrorHandlingMode
+            ?? _schema.GetOptions().DefaultErrorHandlingMode;
+        _propagateNullValues = errorHandlingMode is Language.ErrorHandlingMode.Propagate;
 
         IncludeFlags = operation.CreateIncludeFlags(variables);
         DeferFlags = operation.CreateDeferFlags(variables);
@@ -125,6 +133,7 @@ internal sealed partial class OperationContext
         _currentBranchTracker = context._currentBranchTracker;
         _currentWorkScheduler = context._currentWorkScheduler;
         _currentDeferExecutionCoordinator = context._currentDeferExecutionCoordinator;
+        _propagateNullValues = context._propagateNullValues;
         _branchId = executionBranchId;
         _isInitialized = true;
 
@@ -175,6 +184,7 @@ internal sealed partial class OperationContext
             _resolveQueryRootValue = null!;
             _batchDispatcher = null!;
             _branchId = int.MinValue;
+            _propagateNullValues = false;
             _isInitialized = false;
             Result.Reset();
         }

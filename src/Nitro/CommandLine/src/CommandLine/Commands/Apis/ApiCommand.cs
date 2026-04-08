@@ -12,14 +12,12 @@ internal sealed class ApiCommand : Command
 {
     public ApiCommand() : base("api")
     {
-        Description = "Manage APIs";
+        Description = "Manage APIs.";
 
-        this.AddNitroCloudDefaultOptions();
-
-        AddCommand(new CreateApiCommand());
-        AddCommand(new DeleteApiCommand());
-        AddCommand(new ListApiCommand());
-        AddCommand(new ShowApiCommand());
-        AddCommand(new SetApiSettingsApiCommand());
+        Subcommands.Add(new CreateApiCommand());
+        Subcommands.Add(new DeleteApiCommand());
+        Subcommands.Add(new ListApiCommand());
+        Subcommands.Add(new ShowApiCommand());
+        Subcommands.Add(new SetApiSettingsApiCommand());
     }
 }

@@ -280,9 +280,7 @@ public static class SyntaxWriterExtensions
         }
         else
         {
-            writer.WriteSpace();
             writer.WriteMany(node.Items, (n, w) => w.WriteValue(n, indented));
-            writer.WriteSpace();
         }
 
         writer.Write(']');

@@ -1,0 +1,59 @@
+{
+  "activities": [
+    {
+      "OperationName": "ExecuteHttpRequest",
+      "DisplayName": "GraphQL HTTP POST",
+      "Status": "Ok",
+      "tags": [
+        {
+          "Key": "graphql.http.kind",
+          "Value": "HttpPost"
+        },
+        {
+          "Key": "graphql.schema.name",
+          "Value": "_Default"
+        }
+      ],
+      "event": [],
+      "activities": [
+        {
+          "OperationName": "Parse HTTP Request",
+          "DisplayName": "Parse HTTP Request",
+          "Status": "Error",
+          "tags": [],
+          "event": [
+            {
+              "Name": "exception",
+              "Tags": [
+                {
+                  "Key": "graphql.error.message",
+                  "Value": "Found a NameStart character `d` (100) following a number, which is disallowed."
+                },
+                {
+                  "Key": "graphql.error.code",
+                  "Value": "HC0011"
+                },
+                {
+                  "Key": "graphql.error.locations",
+                  "Value": [
+                    {
+                      "line": 4,
+                      "column": 13
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "OperationName": "Format HTTP Response",
+          "DisplayName": "Format HTTP Response",
+          "Status": "Ok",
+          "tags": [],
+          "event": []
+        }
+      ]
+    }
+  ]
+}

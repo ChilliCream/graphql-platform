@@ -1,6 +1,7 @@
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate;
@@ -171,6 +172,14 @@ public interface IReadOnlySchemaOptions
     bool EnableTag { get; }
 
     /// <summary>
+    /// Enables opt-in features functionality, including the <c>@requiresOptIn</c> and
+    /// <c>@optInFeatureStability</c> directives. When enabled, schema elements can be marked as
+    /// requiring explicit opt-in, and introspection queries can filter results based on opted-in
+    /// features.
+    /// </summary>
+    bool EnableOptInFeatures { get; }
+
+    /// <summary>
     /// Specifies the default dependency injection scope for query fields.
     /// </summary>
     DependencyInjectionScope DefaultQueryDependencyInjectionScope { get; }
@@ -222,4 +231,9 @@ public interface IReadOnlySchemaOptions
     /// Applies the @serializeAs directive to scalar types that specify a serialization format.
     /// </summary>
     bool ApplySerializeAsToScalars { get; }
+
+    /// <summary>
+    /// Gets the default error handling mode for null propagation.
+    /// </summary>
+    ErrorHandlingMode DefaultErrorHandlingMode { get; }
 }

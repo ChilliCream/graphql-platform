@@ -1,0 +1,185 @@
+title: Authors_And_Reviews_AutoCompose
+request:
+  document: |
+    {
+      users {
+        id
+      }
+      reviews {
+        body
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "users": [
+          {
+            "id": "VXNlcjox"
+          },
+          {
+            "id": "VXNlcjoy"
+          },
+          {
+            "id": "VXNlcjoz"
+          }
+        ],
+        "reviews": [
+          {
+            "body": "Review: UmV2aWV3OjE="
+          },
+          {
+            "body": "Review: UmV2aWV3OjI="
+          },
+          {
+            "body": "Review: UmV2aWV3OjM="
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        userById(id: ID!): User!
+        users: [User!]!
+        testWithTwoArgumentsDifferingNullability(first: Int! second: Int): String!
+      }
+
+      type User implements Node {
+        id: ID!
+        name: String!
+        username: String!
+        birthdate: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_cd73759d_2 {
+              users {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "users": [
+                    {
+                      "id": "VXNlcjox"
+                    },
+                    {
+                      "id": "VXNlcjoy"
+                    },
+                    {
+                      "id": "VXNlcjoz"
+                    }
+                  ]
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Product implements Node {
+        id: ID!
+        reviews: [Review!]!
+        reviewCount: Int!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        reviews: [Review!]!
+      }
+
+      type Review implements Node {
+        id: ID!
+        body: String!
+        author: User!
+        product: Product!
+      }
+
+      type User implements Node {
+        id: ID!
+        reviews: [Review!]!
+        errorField: String @error
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_cd73759d_1 {
+              reviews {
+                body
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "reviews": [
+                    {
+                      "body": "Review: UmV2aWV3OjE="
+                    },
+                    {
+                      "body": "Review: UmV2aWV3OjI="
+                    },
+                    {
+                      "body": "Review: UmV2aWV3OjM="
+                    }
+                  ]
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          users {
+            id
+          }
+          reviews {
+            body
+          }
+        }
+      hash: cd73759d80c767bd54369a8b397afe15
+      searchSpace: 2
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: B
+      operation: |
+        query Op_cd73759d_1 {
+          reviews {
+            body
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: A
+      operation: |
+        query Op_cd73759d_2 {
+          users {
+            id
+          }
+        }
