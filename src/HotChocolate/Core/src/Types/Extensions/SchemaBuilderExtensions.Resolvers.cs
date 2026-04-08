@@ -484,8 +484,11 @@ public static partial class SchemaBuilderExtensions
         string? typeName = null)
         => AddResolver(builder, typeof(T), typeName);
 
-    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2070",
-        Justification = "Resolver types are registered by the framework and their properties are preserved at runtime.")]
+    [UnconditionalSuppressMessage(
+        "ReflectionAnalysis",
+        "IL2070",
+        Justification =
+            "Resolver types are registered by the framework and their properties are preserved at runtime.")]
     public static ISchemaBuilder AddRootResolver(
         this ISchemaBuilder builder,
         Type resolverType)

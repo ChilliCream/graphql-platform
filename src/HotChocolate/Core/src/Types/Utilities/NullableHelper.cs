@@ -118,8 +118,11 @@ internal readonly struct NullableHelper
         return null;
     }
 
-    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2075",
-        Justification = "NullableFlags is a well-known compiler-generated field on NullableAttribute.")]
+    [UnconditionalSuppressMessage(
+        "ReflectionAnalysis",
+        "IL2075",
+        Justification =
+            "NullableFlags is a well-known compiler-generated field on NullableAttribute.")]
     private static NullableAttribute? GetNullableAttribute(
         MethodInfo method)
     {

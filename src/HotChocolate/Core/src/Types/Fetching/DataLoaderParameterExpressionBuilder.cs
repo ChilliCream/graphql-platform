@@ -22,10 +22,16 @@ public sealed class DataLoaderParameterExpressionBuilder : CustomParameterExpres
     public override bool CanHandle(ParameterInfo parameter)
         => typeof(IDataLoader).IsAssignableFrom(parameter.ParameterType);
 
-    [UnconditionalSuppressMessage("AOT", "IL2060",
-        Justification = "MakeGenericMethod is used with types known from resolver parameter metadata.")]
-    [UnconditionalSuppressMessage("AOT", "IL3050",
-        Justification = "MakeGenericMethod is used with types known from resolver parameter metadata.")]
+    [UnconditionalSuppressMessage(
+        "AOT",
+        "IL2060",
+        Justification =
+            "MakeGenericMethod is used with types known from resolver parameter metadata.")]
+    [UnconditionalSuppressMessage(
+        "AOT",
+        "IL3050",
+        Justification =
+            "MakeGenericMethod is used with types known from resolver parameter metadata.")]
     public override Expression Build(ParameterExpressionBuilderContext context)
         => Expression.Call(
             s_dataLoader.MakeGenericMethod(context.Parameter.ParameterType),

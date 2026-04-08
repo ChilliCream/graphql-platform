@@ -12,10 +12,17 @@ namespace HotChocolate.Resolvers;
 /// using expression trees. The compiled delegate has no reflection overhead
 /// at execution time.
 /// </summary>
-[UnconditionalSuppressMessage("ReflectionAnalysis", "IL2060",
-    Justification = "The generic methods being specialized have no trimming constraints on their type parameters.")]
-[UnconditionalSuppressMessage("AOT", "IL3050",
-    Justification = "This compiler builds expression trees at schema initialization time and is only used in JIT-compatible environments.")]
+[UnconditionalSuppressMessage(
+    "ReflectionAnalysis",
+    "IL2060",
+    Justification =
+        "The generic methods being specialized have no trimming constraints on their type parameters.")]
+[UnconditionalSuppressMessage(
+    "AOT",
+    "IL3050",
+    Justification =
+        "This compiler builds expression trees at schema initialization time and is only used in JIT-compatible "
+        + "environments.")]
 internal static class BatchResolverCompiler
 {
     private static readonly MethodInfo s_parent =

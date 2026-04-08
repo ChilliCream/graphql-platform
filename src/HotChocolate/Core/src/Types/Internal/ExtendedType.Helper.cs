@@ -76,8 +76,11 @@ public sealed partial class ExtendedType
         private static bool ImplementsListInterface(Type type) =>
             GetInnerListType(type) is not null;
 
-        [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2070",
-            Justification = "The type's interfaces are preserved because they are part of the schema type system.")]
+        [UnconditionalSuppressMessage(
+            "ReflectionAnalysis",
+            "IL2070",
+            Justification =
+                "The type's interfaces are preserved because they are part of the schema type system.")]
         internal static Type? GetInnerListType(Type type)
         {
             var typeDefinition = type.IsGenericType ? type.GetGenericTypeDefinition() : null;

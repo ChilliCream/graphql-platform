@@ -99,8 +99,11 @@ internal sealed class DataLoaderRootFieldTypeInterceptor : TypeInterceptor
             && field.ResultType != typeof(object);
     }
 
-    [UnconditionalSuppressMessage("AOT", "IL2075",
-        Justification = "DataLoader service types are statically referenced in DI registrations.")]
+    [UnconditionalSuppressMessage(
+        "AOT",
+        "IL2075",
+        Justification =
+            "DataLoader service types are statically referenced in DI registrations.")]
     private HashSet<Type> GetDataLoaderValueTypes()
     {
         if (_dataLoaderValueTypes is not null)

@@ -252,7 +252,9 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
 
         if (enumType != typeof(object) && enumType.IsEnum)
         {
-#pragma warning disable IL3050 // Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling - Enum.GetValues requires dynamic code but this is an override of a public interface method.
+// Enum.GetValues requires dynamic code but the enum type
+// is schema-registered and guaranteed to be available.
+#pragma warning disable IL3050
             return Enum.GetValues(enumType).Cast<object>();
 #pragma warning restore IL3050
         }

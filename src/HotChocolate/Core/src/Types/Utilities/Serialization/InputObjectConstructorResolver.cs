@@ -7,8 +7,11 @@ namespace HotChocolate.Utilities.Serialization;
 
 internal static class InputObjectConstructorResolver
 {
-    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2070",
-        Justification = "Input object types are registered with the schema and their constructors are preserved at runtime.")]
+    [UnconditionalSuppressMessage(
+        "ReflectionAnalysis",
+        "IL2070",
+        Justification =
+            "Input object types are registered with the schema and their constructors are preserved at runtime.")]
     public static ConstructorInfo? GetCompatibleConstructor<T>(
         Type type,
         FieldCollection<T> fields,

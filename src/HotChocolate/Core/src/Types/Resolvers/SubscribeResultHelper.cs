@@ -7,10 +7,17 @@ using static System.Linq.Expressions.Expression;
 
 namespace HotChocolate.Resolvers;
 
-[UnconditionalSuppressMessage("ReflectionAnalysis", "IL2060",
-    Justification = "The generic methods being specialized have no trimming constraints on their type parameters.")]
-[UnconditionalSuppressMessage("AOT", "IL3050",
-    Justification = "This helper builds expression trees at schema initialization time and is only used in JIT-compatible environments.")]
+[UnconditionalSuppressMessage(
+    "ReflectionAnalysis",
+    "IL2060",
+    Justification =
+        "The generic methods being specialized have no trimming constraints on their type parameters.")]
+[UnconditionalSuppressMessage(
+    "AOT",
+    "IL3050",
+    Justification =
+        "This helper builds expression trees at schema initialization time and is only used in JIT-compatible "
+        + "environments.")]
 internal static class SubscribeResultHelper
 {
     private static readonly MethodInfo s_awaitTaskSourceStreamGeneric =

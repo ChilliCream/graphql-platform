@@ -246,10 +246,16 @@ internal partial class MiddlewareContext : IMiddlewareContext
     IResolverContext IResolverContext.Clone()
         => Clone();
 
-    [UnconditionalSuppressMessage("AOT", "IL2026",
-        Justification = "JSON serialization of extensions is inherently dynamic.")]
-    [UnconditionalSuppressMessage("AOT", "IL3050",
-        Justification = "JSON serialization of extensions is inherently dynamic.")]
+    [UnconditionalSuppressMessage(
+        "AOT",
+        "IL2026",
+        Justification =
+            "JSON serialization of extensions is inherently dynamic.")]
+    [UnconditionalSuppressMessage(
+        "AOT",
+        "IL3050",
+        Justification =
+            "JSON serialization of extensions is inherently dynamic.")]
     private sealed class OperationResultBuilderFacade : IOperationResultBuilder
     {
         public OperationContext Context { get; set; } = null!;

@@ -24,8 +24,11 @@ public class NullableTypeConverter : IChangeTypeProvider
         return false;
     }
 
-    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2026",
-        Justification = "The type is always Nullable<T> which is well-known to the trimmer.")]
+    [UnconditionalSuppressMessage(
+        "ReflectionAnalysis",
+        "IL2026",
+        Justification =
+            "The type is always Nullable<T> which is well-known to the trimmer.")]
     private Type GetUnderlyingNullableType(Type type)
     {
         if (type.IsValueType && type.IsGenericType

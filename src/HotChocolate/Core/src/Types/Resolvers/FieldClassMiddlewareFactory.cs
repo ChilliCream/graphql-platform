@@ -47,10 +47,17 @@ public static class FieldClassMiddlewareFactory
         };
     }
 
-    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2060",
-        Justification = "The Create<TMiddleware> method's generic constraints are satisfied at runtime by the middleware type.")]
-    [UnconditionalSuppressMessage("AOT", "IL3050",
-        Justification = "This method uses MakeGenericMethod to instantiate a generic factory method and is only used in JIT-compatible environments.")]
+    [UnconditionalSuppressMessage(
+        "ReflectionAnalysis",
+        "IL2060",
+        Justification =
+            "The Create<TMiddleware> method's generic constraints are satisfied at runtime by the middleware type.")]
+    [UnconditionalSuppressMessage(
+        "AOT",
+        "IL3050",
+        Justification =
+            "This method uses MakeGenericMethod to instantiate a generic factory method and is only used in "
+            + "JIT-compatible environments.")]
     public static FieldMiddleware Create(
         Type middlewareType,
         params (Type Service, object Instance)[] services)

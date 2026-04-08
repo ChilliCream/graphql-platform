@@ -35,10 +35,17 @@ internal sealed class ParentParameterExpressionBuilder
     public bool CanHandle(ParameterDescriptor parameter)
         => typeof(ParentAttribute) == parameter.Type;
 
-    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2060",
-        Justification = "The Parent<T> method has no trimming constraints on its type parameter.")]
-    [UnconditionalSuppressMessage("AOT", "IL3050",
-        Justification = "This method builds expression trees at schema initialization time and is only used in JIT-compatible environments.")]
+    [UnconditionalSuppressMessage(
+        "ReflectionAnalysis",
+        "IL2060",
+        Justification =
+            "The Parent<T> method has no trimming constraints on its type parameter.")]
+    [UnconditionalSuppressMessage(
+        "AOT",
+        "IL3050",
+        Justification =
+            "This method builds expression trees at schema initialization time and is only used in JIT-compatible "
+            + "environments.")]
     public Expression Build(ParameterExpressionBuilderContext context)
     {
         var parameterType = context.Parameter.ParameterType;

@@ -22,8 +22,11 @@ internal static class PropertyTreeBuilder
         return typeNode;
     }
 
-    [UnconditionalSuppressMessage("AOT", "IL2072",
-        Justification = "Property types are walked recursively from a root type that is statically known.")]
+    [UnconditionalSuppressMessage(
+        "AOT",
+        "IL2072",
+        Justification =
+            "Property types are walked recursively from a root type that is statically known.")]
     private static void CollectProperties(
         TypeNode parent,
         SchemaCoordinate fieldCoordinate,

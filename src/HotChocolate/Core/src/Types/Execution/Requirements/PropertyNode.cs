@@ -3,8 +3,11 @@ using System.Reflection;
 
 namespace HotChocolate.Execution.Requirements;
 
-[UnconditionalSuppressMessage("AOT", "IL2072",
-    Justification = "Property types are inspected from types that are statically known in the schema.")]
+[UnconditionalSuppressMessage(
+    "AOT",
+    "IL2072",
+    Justification =
+        "Property types are inspected from types that are statically known in the schema.")]
 internal sealed class PropertyNode : TypeContainer
 {
     public PropertyNode(PropertyInfo property, List<TypeNode>? nodes = null) : base(nodes)

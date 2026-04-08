@@ -72,10 +72,17 @@ internal static class DirectiveClassMiddlewareFactory
         };
     }
 
-    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2060",
-        Justification = "The Create<TMiddleware> method's generic constraints are satisfied at runtime by the middleware type.")]
-    [UnconditionalSuppressMessage("AOT", "IL3050",
-        Justification = "This method uses MakeGenericMethod to instantiate a generic factory method and is only used in JIT-compatible environments.")]
+    [UnconditionalSuppressMessage(
+        "ReflectionAnalysis",
+        "IL2060",
+        Justification =
+            "The Create<TMiddleware> method's generic constraints are satisfied at runtime by the middleware type.")]
+    [UnconditionalSuppressMessage(
+        "AOT",
+        "IL3050",
+        Justification =
+            "This method uses MakeGenericMethod to instantiate a generic factory method and is only used in "
+            + "JIT-compatible environments.")]
     internal static DirectiveMiddleware Create(Type middlewareType)
         => (DirectiveMiddleware)s_createGeneric
             .MakeGenericMethod(middlewareType)
