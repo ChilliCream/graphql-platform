@@ -11,19 +11,10 @@ internal sealed class InteractiveNitroConsoleChildActivity(
 {
     private bool _completed;
 
-    public void Update(string message, ActivityUpdateKind kind = ActivityUpdateKind.Regular)
-    {
-        var state = kind switch
-        {
-            ActivityUpdateKind.Warning => ActivityState.Warning,
-            ActivityUpdateKind.Waiting => ActivityState.Waiting,
-            ActivityUpdateKind.Success => ActivityState.Completed,
-            _ => ActivityState.Info
-        };
-        tree.AddChild(entry, message, state);
-    }
-
-    public void Update(string message, IRenderable details, ActivityUpdateKind kind = ActivityUpdateKind.Regular)
+    public void Update(
+        string message,
+        ActivityUpdateKind kind = ActivityUpdateKind.Regular,
+        IRenderable? details = null)
     {
         var state = kind switch
         {
@@ -33,7 +24,10 @@ internal sealed class InteractiveNitroConsoleChildActivity(
             _ => ActivityState.Info
         };
         var child = tree.AddChild(entry, message, state);
-        tree.SetEntryDetails(child, details);
+        if (details is not null)
+        {
+            tree.SetEntryDetails(child, details);
+        }
     }
 
     public void Warning(string message)

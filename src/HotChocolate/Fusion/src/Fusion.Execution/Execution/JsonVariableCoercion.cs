@@ -345,7 +345,8 @@ internal ref struct JsonVariableCoercion
         {
             if (element.ValueKind is JsonValueKind.String
                 && element.GetString() is { Length: > 0 } fileKey
-                && _context.Features.GetRequired<IFileLookup>().TryGetFile(fileKey, out _))
+                && _context.Features.Get<IFileLookup>() is { } fileLookup
+                && fileLookup.TryGetFile(fileKey, out _))
             {
                 value = new StringValueNode($"$.file({fileKey})");
                 error = null;

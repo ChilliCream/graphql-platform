@@ -189,7 +189,7 @@ internal sealed class PublishOpenApiCollectionCommand : Command
                                     }
                                 }
 
-                                child.Update(Messages.ValidationFailed, approvalErrorTree, ActivityUpdateKind.Warning);
+                                child.Update(Messages.ValidationFailed, ActivityUpdateKind.Warning, approvalErrorTree);
                             }
 
                             child.Update(Messages.WaitingForApproval, ActivityUpdateKind.Waiting);

@@ -32,15 +32,28 @@ public static class Program
         services.AddSingleton<INitroClientContextProvider>(sp => sp.GetRequiredService<NitroClientContext>());
         services.AddNitroClients();
 
+        var outConsole = AnsiConsole.Console;
         var errorConsole = AnsiConsole.Create(new AnsiConsoleSettings
         {
             Out = new AnsiConsoleOutput(Console.Error)
         });
 
+        // When output is not a terminal (CI, pipes), Spectre.Console defaults
+        // to 80 chars width. Use a wide width so the consumer handles wrapping.
+        if (Console.IsOutputRedirected)
+        {
+            outConsole.Profile.Width = Constants.DefaultPrintWidth;
+        }
+
+        if (Console.IsErrorRedirected)
+        {
+            errorConsole.Profile.Width = Constants.DefaultPrintWidth;
+        }
+
         services
             .AddSingleton<INitroConsole>(sp =>
                 new NitroConsole(
-                    AnsiConsole.Console,
+                    outConsole,
                     errorConsole,
                     sp.GetRequiredService<IEnvironmentVariableProvider>()));
 
