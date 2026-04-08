@@ -368,19 +368,19 @@ public sealed class InMemorySourceSchemaClient : ISourceSchemaClient
         SourceSchemaClientRequest request,
         int variableIndex,
         out CompactPath path,
-        out ImmutableArray<CompactPath> additionalPaths)
+        out CompactPathSegment additionalPaths)
     {
         if (request.Variables.Length == 0)
         {
             path = CompactPath.Root;
-            additionalPaths = [];
+            additionalPaths = default;
             return true;
         }
 
         if ((uint)variableIndex >= (uint)request.Variables.Length)
         {
             path = CompactPath.Root;
-            additionalPaths = [];
+            additionalPaths = default;
             return false;
         }
 

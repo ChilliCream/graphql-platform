@@ -13,6 +13,7 @@ namespace HotChocolate.Fusion.Execution.Clients;
 /// </summary>
 public sealed class SourceSchemaErrors
 {
+    private static readonly ArrayPool<object> s_objectPool = ArrayPool<object>.Shared;
     /// <summary>
     /// Gets the collection of errors that are not associated with specific GraphQL field paths.
     /// </summary>
@@ -64,9 +65,9 @@ public sealed class SourceSchemaErrors
                 continue;
             }
 
-            var rented = ArrayPool<object>.Shared.Rent(error.Path.Length);
+            var rented = s_objectPool.Rent(error.Path.Length);
             var pathSegments = rented.AsSpan(0, error.Path.Length);
-            error.Path.ToList(pathSegments);
+            error.Path.CopyTo(pathSegments);
             var lastPathIndex = pathSegments.Length - 1;
 
             try
@@ -95,7 +96,7 @@ public sealed class SourceSchemaErrors
             finally
             {
                 pathSegments.Clear();
-                ArrayPool<object>.Shared.Return(rented);
+                s_objectPool.Return(rented);
             }
         }
 

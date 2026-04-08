@@ -1,5 +1,4 @@
 using System.Buffers;
-using System.Runtime.InteropServices;
 using HotChocolate.Fusion.Text.Json;
 
 namespace HotChocolate.Fusion.Execution.Results;
@@ -7,7 +6,7 @@ namespace HotChocolate.Fusion.Execution.Results;
 /// <summary>
 /// A flat, allocation-free accumulator for additional CompactPath entries
 /// that replaces per-slot List&lt;CompactPath&gt; with ArrayPool-rented buffers.
-/// Stores (slotIndex, path) pairs and produces ImmutableArray&lt;CompactPath&gt;
+/// Stores (slotIndex, path) pairs and produces <see cref="CompactPathSegment"/>
 /// per slot via counting sort in ApplyTo.
 /// </summary>
 internal ref struct AdditionalPathAccumulator
@@ -63,21 +62,21 @@ internal ref struct AdditionalPathAccumulator
             offsets[i] = offsets[i - 1] + counts[i - 1];
         }
 
-        // Scatter paths into sorted order.
+        // Scatter paths into a single shared array in sorted order.
         var writePos = slotCount <= 256
             ? stackalloc int[slotCount]
             : new int[slotCount];
         offsets.CopyTo(writePos);
 
-        var sorted = ArrayPool<CompactPath>.Shared.Rent(_count);
+        var shared = new CompactPath[_count];
 
         for (var i = 0; i < _count; i++)
         {
             var idx = _slotIndices![i];
-            sorted[writePos[idx]++] = _paths![i];
+            shared[writePos[idx]++] = _paths![i];
         }
 
-        // Build ImmutableArray for each non-empty slot from contiguous slices.
+        // Build CompactPathSegment for each non-empty slot from contiguous slices.
         for (var slot = 0; slot < slotCount; slot++)
         {
             if (counts[slot] == 0)
@@ -85,15 +84,11 @@ internal ref struct AdditionalPathAccumulator
                 continue;
             }
 
-            var array = sorted.AsSpan(offsets[slot], counts[slot]).ToArray();
             variableValueSets[slot] = variableValueSets[slot] with
             {
-                AdditionalPaths = ImmutableCollectionsMarshal.AsImmutableArray(array)
+                AdditionalPaths = new CompactPathSegment(shared, offsets[slot], counts[slot])
             };
         }
-
-        sorted.AsSpan(0, _count).Clear();
-        ArrayPool<CompactPath>.Shared.Return(sorted);
     }
 
     private void Grow()
