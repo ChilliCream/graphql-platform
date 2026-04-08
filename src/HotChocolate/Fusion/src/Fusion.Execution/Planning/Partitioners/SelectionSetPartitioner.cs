@@ -283,18 +283,27 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             var entryPath = entry.SelectionSet.Path;
 
             // A child entry has exactly one more segment than the current path,
-            // and that extra segment is an InlineFragment.
+            // and that extra segment is an InlineFragment. The child's conditions must
+            // start with the parent's conditions (prefix check), because the Unresolvable
+            // stack is shared across sibling fragments and may contain entries from
+            // unconditional siblings that must not inherit the parent's conditions.
             if (entryPath.Length == currentPath.Length + 1
                 && entryPath[entryPath.Length - 1].Kind == SelectionPathSegmentKind.InlineFragment
                 && currentPath.IsParentOfOrSame(entryPath)
-                && currentConditions.SequenceEqual(entry.Conditions))
+                && IsConditionPrefix(currentConditions, entry.Conditions))
             {
                 var typeName = entryPath[entryPath.Length - 1].Name;
+                var selectionSet = WrapInExtraConditions(
+                    context,
+                    entry.SelectionSet.Node,
+                    entry.Conditions,
+                    currentConditions.Length);
+
                 unresolvableSelections.Add(new InlineFragmentNode(
                     null,
                     new NamedTypeNode(typeName),
                     [],
-                    entry.SelectionSet.Node));
+                    selectionSet));
                 anyMerged = true;
             }
             else
@@ -319,6 +328,59 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
 
             context.Unresolvable = stack;
         }
+    }
+
+    /// <summary>
+    /// Checks whether <paramref name="prefix"/> is a prefix of <paramref name="conditions"/>.
+    /// Conditions accumulate as the partitioner recurses deeper, so a child entry's conditions
+    /// always start with the parent's conditions followed by any additional ones. However,
+    /// the Unresolvable stack is shared across sibling fragments, so entries from unconditional
+    /// siblings may have fewer conditions than the current parent scope.
+    /// </summary>
+    private static bool IsConditionPrefix(
+        ExecutionNodeCondition[] prefix,
+        ExecutionNodeCondition[] conditions)
+    {
+        if (conditions.Length < prefix.Length)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < prefix.Length; i++)
+        {
+            if (!ReferenceEquals(prefix[i], conditions[i]))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Wraps a selection set in inline fragments for each extra condition directive
+    /// beyond the parent's conditions. This preserves the conditional semantics
+    /// within the merged selection set rather than as node-level conditions.
+    /// </summary>
+    private static SelectionSetNode WrapInExtraConditions(
+        Context context,
+        SelectionSetNode selectionSet,
+        ExecutionNodeCondition[] conditions,
+        int startIndex)
+    {
+        for (var i = conditions.Length - 1; i >= startIndex; i--)
+        {
+            selectionSet = new SelectionSetNode([
+                new InlineFragmentNode(
+                    null,
+                    null,
+                    [conditions[i].Directive!],
+                    selectionSet)
+            ]);
+            context.SelectionSetIndexBuilder.Register(selectionSet);
+        }
+
+        return selectionSet;
     }
 
     private (FieldNode?, FieldNode?) RewriteFieldNode(
