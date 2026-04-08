@@ -263,12 +263,12 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
     }
 
     /// <summary>
-    /// Creates a new list representing the current <see cref="Path"/>.
+    /// Copies the segments of the current <see cref="Path"/> into the provided span.
     /// </summary>
-    /// <returns>
-    /// Returns a new list representing the current <see cref="Path"/>.
-    /// </returns>
-    public void ToList(Span<object> path)
+    /// <param name="path">
+    /// The destination span. Must be at least <see cref="Length"/> elements long.
+    /// </param>
+    public void CopyTo(Span<object> path)
     {
         if (IsRoot)
         {

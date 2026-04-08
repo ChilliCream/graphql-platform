@@ -1,7 +1,11 @@
+using System.Buffers;
+
 namespace HotChocolate.Fusion.Execution.Results;
 
 internal static class PathUtilities
 {
+    private static readonly ArrayPool<object> _objectPool = ArrayPool<object>.Shared;
+
     public static bool IsPathInSubtree(Path path, Path subtreeRoot, bool includeSelf)
     {
         if (path.Length < subtreeRoot.Length
@@ -15,20 +19,33 @@ internal static class PathUtilities
             return includeSelf || !path.IsRoot;
         }
 
-        var pathSegments = path.ToList();
-        var subtreeSegments = subtreeRoot.ToList();
+        var pathBuffer = _objectPool.Rent(path.Length);
+        var subtreeBuffer = _objectPool.Rent(subtreeRoot.Length);
 
-        for (var i = 0; i < subtreeSegments.Count; i++)
+        try
         {
-            var left = subtreeSegments[i];
-            var right = pathSegments[i];
+            var pathSpan = pathBuffer.AsSpan(0, path.Length);
+            var subtreeSpan = subtreeBuffer.AsSpan(0, subtreeRoot.Length);
 
-            if (!Equals(left, right))
+            path.CopyTo(pathSpan);
+            subtreeRoot.CopyTo(subtreeSpan);
+
+            for (var i = 0; i < subtreeSpan.Length; i++)
             {
-                return false;
+                if (!Equals(pathSpan[i], subtreeSpan[i]))
+                {
+                    return false;
+                }
             }
-        }
 
-        return true;
+            return true;
+        }
+        finally
+        {
+            pathBuffer.AsSpan(0, path.Length).Clear();
+            _objectPool.Return(pathBuffer);
+            subtreeBuffer.AsSpan(0, subtreeRoot.Length).Clear();
+            _objectPool.Return(subtreeBuffer);
+        }
     }
 }
