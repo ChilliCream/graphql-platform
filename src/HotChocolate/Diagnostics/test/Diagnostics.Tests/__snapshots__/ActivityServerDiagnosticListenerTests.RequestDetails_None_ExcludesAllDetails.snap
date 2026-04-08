@@ -3,6 +3,7 @@
     {
       "OperationName": "ExecuteHttpRequest",
       "DisplayName": "GraphQL HTTP POST",
+      "Kind": "Internal",
       "Status": "Ok",
       "tags": [
         {
@@ -19,6 +20,7 @@
         {
           "OperationName": "Parse HTTP Request",
           "DisplayName": "Parse HTTP Request",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [],
           "event": []
@@ -26,6 +28,7 @@
         {
           "OperationName": "GraphQL Operation",
           "DisplayName": "query",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
@@ -41,7 +44,7 @@
               "Value": "md5:9335388c19fd2e230b6294a596d13a93"
             },
             {
-              "Key": "graphql.errors.count",
+              "Key": "graphql.error.count",
               "Value": 0
             }
           ],
@@ -59,6 +62,7 @@
             {
               "OperationName": "GraphQL Document Validation",
               "DisplayName": "GraphQL Document Validation",
+              "Kind": "Internal",
               "Status": "Ok",
               "tags": [
                 {
@@ -75,6 +79,7 @@
             {
               "OperationName": "GraphQL Complexity Analysis",
               "DisplayName": "GraphQL Complexity Analysis",
+              "Kind": "Internal",
               "Status": "Ok",
               "tags": [
                 {
@@ -95,6 +100,7 @@
             {
               "OperationName": "GraphQL Operation Planning",
               "DisplayName": "GraphQL Operation Planning",
+              "Kind": "Internal",
               "Status": "Ok",
               "tags": [
                 {
@@ -119,6 +125,7 @@
             {
               "OperationName": "GraphQL Variable Coercion",
               "DisplayName": "GraphQL Variable Coercion",
+              "Kind": "Internal",
               "Status": "Ok",
               "tags": [
                 {
@@ -143,6 +150,7 @@
             {
               "OperationName": "GraphQL Operation Execution",
               "DisplayName": "GraphQL Operation Execution",
+              "Kind": "Internal",
               "Status": "Ok",
               "tags": [
                 {
@@ -167,6 +175,7 @@
                 {
                   "OperationName": "Query.hero",
                   "DisplayName": "Query.hero",
+                  "Kind": "Internal",
                   "Status": "Ok",
                   "tags": [
                     {
@@ -203,6 +212,7 @@
         {
           "OperationName": "Format HTTP Response",
           "DisplayName": "Format HTTP Response",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [],
           "event": []

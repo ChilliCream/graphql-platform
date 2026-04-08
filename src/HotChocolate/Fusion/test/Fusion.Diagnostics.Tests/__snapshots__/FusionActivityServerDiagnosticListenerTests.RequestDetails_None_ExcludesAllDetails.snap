@@ -3,6 +3,7 @@
     {
       "OperationName": "ExecuteHttpRequest",
       "DisplayName": "GraphQL HTTP POST",
+      "Kind": "Internal",
       "Status": "Ok",
       "tags": [
         {
@@ -19,6 +20,7 @@
         {
           "OperationName": "Parse HTTP Request",
           "DisplayName": "Parse HTTP Request",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [],
           "event": []
@@ -26,6 +28,7 @@
         {
           "OperationName": "GraphQL Operation",
           "DisplayName": "query",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
@@ -41,7 +44,7 @@
               "Value": "md5:111e40f921c6c6a35bc7eb0e3873630e"
             },
             {
-              "Key": "graphql.errors.count",
+              "Key": "graphql.error.count",
               "Value": 0
             }
           ],
@@ -59,6 +62,7 @@
             {
               "OperationName": "GraphQL Document Validation",
               "DisplayName": "GraphQL Document Validation",
+              "Kind": "Internal",
               "Status": "Ok",
               "tags": [
                 {
@@ -75,6 +79,7 @@
             {
               "OperationName": "GraphQL Operation Planning",
               "DisplayName": "GraphQL Operation Planning",
+              "Kind": "Internal",
               "Status": "Ok",
               "tags": [
                 {
@@ -99,6 +104,7 @@
             {
               "OperationName": "GraphQL Variable Coercion",
               "DisplayName": "GraphQL Variable Coercion",
+              "Kind": "Internal",
               "Status": "Ok",
               "tags": [
                 {
@@ -123,6 +129,7 @@
             {
               "OperationName": "GraphQL Operation Execution",
               "DisplayName": "GraphQL Operation Execution",
+              "Kind": "Internal",
               "Status": "Ok",
               "tags": [
                 {
@@ -147,6 +154,7 @@
                 {
                   "OperationName": "GraphQL Step Execution",
                   "DisplayName": "GraphQL Step Execution",
+                  "Kind": "Internal",
                   "Status": "Ok",
                   "tags": [
                     {
@@ -186,7 +194,7 @@
                       "Value": "GetGreeting_111e40f9_1"
                     },
                     {
-                      "Key": "graphql.source.operation.kind",
+                      "Key": "graphql.source.operation.type",
                       "Value": "query"
                     },
                     {
@@ -194,7 +202,34 @@
                       "Value": "sha256:107e4091ec962487f26df0844464aa76452bc9039d604d80523fc66325c088bc"
                     }
                   ],
-                  "event": []
+                  "event": [],
+                  "activities": [
+                    {
+                      "OperationName": "query",
+                      "DisplayName": "query",
+                      "Kind": "Client",
+                      "Status": "Ok",
+                      "tags": [
+                        {
+                          "Key": "graphql.operation.type",
+                          "Value": "query"
+                        },
+                        {
+                          "Key": "graphql.operation.name",
+                          "Value": "GetGreeting_111e40f9_1"
+                        },
+                        {
+                          "Key": "graphql.document.hash",
+                          "Value": "sha256:00692b6fbeb8014bcc1eb8932d5924dc0c5e5ea3e158e34979ec322c2e1b3c40"
+                        },
+                        {
+                          "Key": "graphql.source.name",
+                          "Value": "a"
+                        }
+                      ],
+                      "event": []
+                    }
+                  ]
                 }
               ]
             }
@@ -203,6 +238,7 @@
         {
           "OperationName": "Format HTTP Response",
           "DisplayName": "Format HTTP Response",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [],
           "event": []

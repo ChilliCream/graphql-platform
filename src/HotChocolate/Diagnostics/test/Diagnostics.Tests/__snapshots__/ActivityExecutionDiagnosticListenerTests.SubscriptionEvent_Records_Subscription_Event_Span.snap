@@ -3,6 +3,7 @@
     {
       "OperationName": "GraphQL Operation",
       "DisplayName": "subscription",
+      "Kind": "Internal",
       "Status": "Ok",
       "tags": [
         {
@@ -32,6 +33,7 @@
         {
           "OperationName": "GraphQL Document Parsing",
           "DisplayName": "GraphQL Document Parsing",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
@@ -44,6 +46,7 @@
         {
           "OperationName": "GraphQL Document Validation",
           "DisplayName": "GraphQL Document Validation",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
@@ -60,6 +63,7 @@
         {
           "OperationName": "GraphQL Operation Planning",
           "DisplayName": "GraphQL Operation Planning",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
@@ -84,6 +88,7 @@
         {
           "OperationName": "GraphQL Operation Execution",
           "DisplayName": "GraphQL Operation Execution",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
@@ -108,6 +113,7 @@
             {
               "OperationName": "GraphQL Subscription Event",
               "DisplayName": "GraphQL Subscription Event",
+              "Kind": "Internal",
               "Status": "Ok",
               "tags": [
                 {
@@ -136,6 +142,7 @@
                 {
                   "OperationName": "SimpleSubscription.onMessage",
                   "DisplayName": "SimpleSubscription.onMessage",
+                  "Kind": "Internal",
                   "Status": "Ok",
                   "tags": [
                     {

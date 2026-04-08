@@ -3,6 +3,7 @@
     {
       "OperationName": "GraphQL Operation",
       "DisplayName": "query",
+      "Kind": "Internal",
       "Status": "Error",
       "tags": [
         {
@@ -22,8 +23,12 @@
           "Value": "query SayHelloOperation {\n  causeFatalError\n}"
         },
         {
-          "Key": "graphql.errors.count",
+          "Key": "graphql.error.count",
           "Value": 1
+        },
+        {
+          "Key": "error.type",
+          "Value": "EXECUTION_ERROR"
         }
       ],
       "event": [
@@ -40,6 +45,7 @@
         {
           "OperationName": "GraphQL Document Parsing",
           "DisplayName": "GraphQL Document Parsing",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
@@ -52,6 +58,7 @@
         {
           "OperationName": "GraphQL Document Validation",
           "DisplayName": "GraphQL Document Validation",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
@@ -68,6 +75,7 @@
         {
           "OperationName": "GraphQL Operation Planning",
           "DisplayName": "GraphQL Operation Planning",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
@@ -92,6 +100,7 @@
         {
           "OperationName": "GraphQL Operation Execution",
           "DisplayName": "GraphQL Operation Execution",
+          "Kind": "Internal",
           "Status": "Error",
           "tags": [
             {
@@ -109,6 +118,10 @@
             {
               "Key": "graphql.document.hash",
               "Value": "md5:851fb754d9ba6b5cc5a55ebcbea2621d"
+            },
+            {
+              "Key": "error.type",
+              "Value": "EXECUTION_ERROR"
             }
           ],
           "event": [],
@@ -116,6 +129,7 @@
             {
               "OperationName": "GraphQL Step Execution",
               "DisplayName": "GraphQL Step Execution",
+              "Kind": "Internal",
               "Status": "Ok",
               "tags": [
                 {
@@ -155,7 +169,7 @@
                   "Value": "SayHelloOperation_851fb754_1"
                 },
                 {
-                  "Key": "graphql.source.operation.kind",
+                  "Key": "graphql.source.operation.type",
                   "Value": "query"
                 },
                 {
@@ -163,7 +177,34 @@
                   "Value": "sha256:1b35e9142c2e8235f31d2b3ae0de3d2ba54692a7aa6481803c3841fd135f4c4c"
                 }
               ],
-              "event": []
+              "event": [],
+              "activities": [
+                {
+                  "OperationName": "query",
+                  "DisplayName": "query",
+                  "Kind": "Client",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.operation.type",
+                      "Value": "query"
+                    },
+                    {
+                      "Key": "graphql.operation.name",
+                      "Value": "SayHelloOperation_851fb754_1"
+                    },
+                    {
+                      "Key": "graphql.document.hash",
+                      "Value": "sha256:1b35e9142c2e8235f31d2b3ae0de3d2ba54692a7aa6481803c3841fd135f4c4c"
+                    },
+                    {
+                      "Key": "graphql.source.name",
+                      "Value": "a"
+                    }
+                  ],
+                  "event": []
+                }
+              ]
             }
           ]
         }

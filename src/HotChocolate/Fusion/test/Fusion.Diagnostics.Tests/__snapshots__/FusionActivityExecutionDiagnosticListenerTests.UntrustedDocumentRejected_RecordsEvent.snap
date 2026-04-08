@@ -3,11 +3,16 @@
     {
       "OperationName": "GraphQL Operation",
       "DisplayName": "GraphQL Operation",
+      "Kind": "Internal",
       "Status": "Error",
       "tags": [
         {
-          "Key": "graphql.errors.count",
+          "Key": "graphql.error.count",
           "Value": 1
+        },
+        {
+          "Key": "error.type",
+          "Value": "EXECUTION_ERROR"
         }
       ],
       "event": [

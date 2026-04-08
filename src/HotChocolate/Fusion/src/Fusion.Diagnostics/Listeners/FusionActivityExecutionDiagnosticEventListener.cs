@@ -54,6 +54,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
 
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddException(error);
+            activity.SetErrorType(error);
 
             enricher.EnrichRequestError(context, error, activity);
         }
@@ -66,7 +67,15 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
             var activity = span.Activity;
 
             activity.SetStatus(ActivityStatusCode.Error);
-            activity.AddGraphQLError(error);
+
+            string? opType = null, opName = null;
+            if (context.GetOperationPlan() is { Operation: var operation })
+            {
+                opType = SemanticConventions.GraphQL.Operation.TypeValues[operation.Definition.Operation];
+                opName = operation.Name;
+            }
+
+            activity.AddGraphQLError(error, opType, opName);
 
             enricher.EnrichRequestError(context, error, activity);
         }
@@ -114,9 +123,16 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
 
         activity.SetStatus(ActivityStatusCode.Error);
 
+        string? opType = null, opName = null;
+        if (context.GetOperationPlan() is { Operation: var operation })
+        {
+            opType = SemanticConventions.GraphQL.Operation.TypeValues[operation.Definition.Operation];
+            opName = operation.Name;
+        }
+
         foreach (var error in errors)
         {
-            activity.AddGraphQLError(error);
+            activity.AddGraphQLError(error, opType, opName);
         }
 
         enricher.EnrichValidationErrors(context, errors, activity);
@@ -184,6 +200,23 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         string schemaName)
         => ExecuteNode(context, node, schemaName);
 
+    public override IDisposable ExecuteSourceSchemaRequest(
+        OperationPlanContext context,
+        OperationExecutionNode node,
+        string schemaName)
+    {
+        var span = ExecuteSourceSchemaRequestSpan.Start(Source, context, node, schemaName, enricher);
+
+        if (span is null)
+        {
+            return EmptyScope;
+        }
+
+        enricher.EnrichSourceSchemaRequest(context, node, schemaName, span.Activity);
+
+        return span;
+    }
+
     public override IDisposable ExecuteOperationBatchNode(
         OperationPlanContext context,
         OperationBatchExecutionNode node,
@@ -225,6 +258,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         {
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddException(error);
+            activity.SetErrorType(error);
 
             enricher.EnrichExecutionNodeError(context, node, error, activity);
         }
@@ -240,6 +274,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         {
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddException(error);
+            activity.SetErrorType(error);
 
             enricher.EnrichSourceSchemaTransportError(context, node, schemaName, error, activity);
         }
@@ -255,6 +290,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         {
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddException(error);
+            activity.SetErrorType(error);
 
             enricher.EnrichSourceSchemaStoreError(context, node, schemaName, error, activity);
         }
@@ -302,6 +338,7 @@ internal sealed class FusionActivityExecutionDiagnosticEventListener(
         {
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddException(exception);
+            activity.SetErrorType(exception);
 
             enricher.EnrichSubscriptionEventError(
                 context,

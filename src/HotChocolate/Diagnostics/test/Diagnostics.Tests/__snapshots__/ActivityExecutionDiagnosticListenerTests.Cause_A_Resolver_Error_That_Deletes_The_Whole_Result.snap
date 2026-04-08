@@ -3,6 +3,7 @@
     {
       "OperationName": "GraphQL Operation",
       "DisplayName": "query",
+      "Kind": "Internal",
       "Status": "Error",
       "tags": [
         {
@@ -22,8 +23,12 @@
           "Value": "query SayHelloOperation {\n  causeFatalError\n}"
         },
         {
-          "Key": "graphql.errors.count",
+          "Key": "graphql.error.count",
           "Value": 1
+        },
+        {
+          "Key": "error.type",
+          "Value": "EXECUTION_ERROR"
         }
       ],
       "event": [
@@ -40,6 +45,7 @@
         {
           "OperationName": "GraphQL Document Parsing",
           "DisplayName": "GraphQL Document Parsing",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
@@ -52,6 +58,7 @@
         {
           "OperationName": "GraphQL Document Validation",
           "DisplayName": "GraphQL Document Validation",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
@@ -68,6 +75,7 @@
         {
           "OperationName": "GraphQL Operation Planning",
           "DisplayName": "GraphQL Operation Planning",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
@@ -92,6 +100,7 @@
         {
           "OperationName": "GraphQL Operation Execution",
           "DisplayName": "GraphQL Operation Execution",
+          "Kind": "Internal",
           "Status": "Error",
           "tags": [
             {
@@ -109,6 +118,10 @@
             {
               "Key": "graphql.document.hash",
               "Value": "md5:851fb754d9ba6b5cc5a55ebcbea2621d"
+            },
+            {
+              "Key": "error.type",
+              "Value": "EXECUTION_ERROR"
             }
           ],
           "event": [],
@@ -116,6 +129,7 @@
             {
               "OperationName": "SimpleQuery.causeFatalError",
               "DisplayName": "SimpleQuery.causeFatalError",
+              "Kind": "Internal",
               "Status": "Error",
               "tags": [
                 {
@@ -141,11 +155,15 @@
                 {
                   "Key": "graphql.selection.field.parent_type",
                   "Value": "SimpleQuery"
+                },
+                {
+                  "Key": "error.type",
+                  "Value": "GRAPHQL_ERROR"
                 }
               ],
               "event": [
                 {
-                  "Name": "exception",
+                  "Name": "graphql.error",
                   "Tags": [
                     {
                       "Key": "graphql.error.message",
@@ -154,6 +172,14 @@
                     {
                       "Key": "graphql.error.path",
                       "Value": "causeFatalError"
+                    },
+                    {
+                      "Key": "graphql.operation.type",
+                      "Value": "query"
+                    },
+                    {
+                      "Key": "graphql.operation.name",
+                      "Value": "SayHelloOperation"
                     }
                   ]
                 }

@@ -3,6 +3,7 @@
     {
       "OperationName": "ExecuteHttpRequest",
       "DisplayName": "GraphQL HTTP POST",
+      "Kind": "Internal",
       "Status": "Ok",
       "tags": [
         {
@@ -19,11 +20,17 @@
         {
           "OperationName": "Parse HTTP Request",
           "DisplayName": "Parse HTTP Request",
+          "Kind": "Internal",
           "Status": "Error",
-          "tags": [],
+          "tags": [
+            {
+              "Key": "error.type",
+              "Value": "HC0011"
+            }
+          ],
           "event": [
             {
-              "Name": "exception",
+              "Name": "graphql.error",
               "Tags": [
                 {
                   "Key": "graphql.error.message",
@@ -49,6 +56,7 @@
         {
           "OperationName": "Format HTTP Response",
           "DisplayName": "Format HTTP Response",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [],
           "event": []

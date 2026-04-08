@@ -74,7 +74,7 @@ internal sealed class ExecutePlanNodeSpan(
         }
 
         activity.SetTag(GraphQL.Source.Operation.Name, operation.Name);
-        activity.SetTag(GraphQL.Source.Operation.Kind, GraphQL.Operation.TypeValues[operation.Type]);
+        activity.SetTag(GraphQL.Source.Operation.Type, GraphQL.Operation.TypeValues[operation.Type]);
         activity.SetTag(GraphQL.Source.Operation.Hash, $"sha256:{operation.Hash}");
     }
 }

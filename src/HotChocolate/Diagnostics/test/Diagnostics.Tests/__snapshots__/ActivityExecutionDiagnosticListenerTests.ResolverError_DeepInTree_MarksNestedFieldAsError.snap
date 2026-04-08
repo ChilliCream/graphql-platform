@@ -3,6 +3,7 @@
     {
       "OperationName": "GraphQL Operation",
       "DisplayName": "GraphQL Operation",
+      "Kind": "Internal",
       "Status": "Error",
       "tags": [
         {
@@ -14,8 +15,12 @@
           "Value": "{\n  deep {\n    deeper {\n      deeps {\n        deeper {\n          causeFatalError\n        }\n      }\n    }\n  }\n}"
         },
         {
-          "Key": "graphql.errors.count",
+          "Key": "graphql.error.count",
           "Value": 1
+        },
+        {
+          "Key": "error.type",
+          "Value": "EXECUTION_ERROR"
         }
       ],
       "event": [],
@@ -23,6 +28,7 @@
         {
           "OperationName": "GraphQL Document Parsing",
           "DisplayName": "GraphQL Document Parsing",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
@@ -35,6 +41,7 @@
         {
           "OperationName": "GraphQL Document Validation",
           "DisplayName": "GraphQL Document Validation",
+          "Kind": "Internal",
           "Status": "Error",
           "tags": [
             {
@@ -44,11 +51,15 @@
             {
               "Key": "graphql.document.hash",
               "Value": "md5:2bf0466e723c1bad3a65089b6fb0dbfc"
+            },
+            {
+              "Key": "error.type",
+              "Value": "GRAPHQL_ERROR"
             }
           ],
           "event": [
             {
-              "Name": "exception",
+              "Name": "graphql.error",
               "Tags": [
                 {
                   "Key": "graphql.error.message",

@@ -244,6 +244,7 @@ internal sealed class ExecuteHttpRequestSpan(
     {
         Activity.SetStatus(ActivityStatusCode.Error);
         Activity.AddException(exception);
+        Activity.SetErrorType(exception);
 
         enricher.EnrichHttpRequestError(httpContext, exception, Activity);
     }

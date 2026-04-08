@@ -3,14 +3,19 @@
     {
       "OperationName": "GraphQL Operation",
       "DisplayName": "GraphQL Operation",
+      "Kind": "Internal",
       "Status": "Error",
       "tags": [
+        {
+          "Key": "error.type",
+          "Value": "HotChocolate.Language.SyntaxException"
+        },
         {
           "Key": "graphql.document.hash",
           "Value": "md5:bb507ba78696fc3c6ff3a17fb06784d5"
         },
         {
-          "Key": "graphql.errors.count",
+          "Key": "graphql.error.count",
           "Value": 1
         }
       ],
@@ -37,6 +42,7 @@
         {
           "OperationName": "GraphQL Document Parsing",
           "DisplayName": "GraphQL Document Parsing",
+          "Kind": "Internal",
           "Status": "Unset",
           "tags": [
             {

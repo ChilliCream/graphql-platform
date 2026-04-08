@@ -37,6 +37,11 @@ internal sealed class ExecuteOperationSpan(
         if (context.Result is null or OperationResult { Errors: [_, ..] })
         {
             Activity.SetStatus(ActivityStatusCode.Error);
+
+            if (Activity.GetTagItem(SemanticConventions.ErrorType) is null)
+            {
+                Activity.SetTag(SemanticConventions.ErrorType, "EXECUTION_ERROR");
+            }
         }
         else
         {

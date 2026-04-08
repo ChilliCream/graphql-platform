@@ -56,6 +56,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
 
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddException(error);
+            activity.SetErrorType(error);
 
             enricher.EnrichRequestError(context, error, activity);
         }
@@ -67,8 +68,15 @@ internal sealed class ActivityExecutionDiagnosticListener(
         {
             var activity = span.Activity;
 
+            string? opType = null, opName = null;
+            if (context.TryGetOperation(out var operation))
+            {
+                opType = SemanticConventions.GraphQL.Operation.TypeValues[operation.Kind];
+                opName = operation.Name;
+            }
+
             activity.SetStatus(ActivityStatusCode.Error);
-            activity.AddGraphQLError(error);
+            activity.AddGraphQLError(error, opType, opName);
 
             enricher.EnrichRequestError(context, error, activity);
         }
@@ -114,11 +122,18 @@ internal sealed class ActivityExecutionDiagnosticListener(
 
         var activity = span.Activity;
 
+        string? opType = null, opName = null;
+        if (context.TryGetOperation(out var operation))
+        {
+            opType = SemanticConventions.GraphQL.Operation.TypeValues[operation.Kind];
+            opName = operation.Name;
+        }
+
         activity.SetStatus(ActivityStatusCode.Error);
 
         foreach (var error in errors)
         {
-            activity.AddGraphQLError(error);
+            activity.AddGraphQLError(error, opType, opName);
         }
 
         enricher.EnrichValidationErrors(context, errors, activity);
@@ -233,8 +248,11 @@ internal sealed class ActivityExecutionDiagnosticListener(
         if (context.LocalContextData.TryGetValue(ResolveFieldSpanKey, out var value)
             && value is ResolveFieldSpan span)
         {
+            var opType = SemanticConventions.GraphQL.Operation.TypeValues[context.Operation.Kind];
+            var opName = context.Operation.Name;
+
             span.Activity.SetStatus(ActivityStatusCode.Error);
-            span.Activity.AddGraphQLError(error);
+            span.Activity.AddGraphQLError(error, opType, opName);
 
             enricher.EnrichResolverError(context, error, span.Activity);
         }
@@ -294,6 +312,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
         {
             activity.SetStatus(ActivityStatusCode.Error);
             activity.AddException(exception);
+            activity.SetErrorType(exception);
         }
     }
 

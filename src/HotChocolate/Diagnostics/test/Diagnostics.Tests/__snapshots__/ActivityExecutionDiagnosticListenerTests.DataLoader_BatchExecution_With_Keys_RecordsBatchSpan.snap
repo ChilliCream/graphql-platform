@@ -3,6 +3,7 @@
     {
       "OperationName": "GraphQL Operation",
       "DisplayName": "query",
+      "Kind": "Internal",
       "Status": "Ok",
       "tags": [
         {
@@ -14,7 +15,7 @@
           "Value": "md5:9b20745108c8de5afccc35cd56ead9fc"
         },
         {
-          "Key": "graphql.errors.count",
+          "Key": "graphql.error.count",
           "Value": 0
         }
       ],
@@ -32,6 +33,7 @@
         {
           "OperationName": "GraphQL Document Parsing",
           "DisplayName": "GraphQL Document Parsing",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
@@ -44,6 +46,7 @@
         {
           "OperationName": "GraphQL Document Validation",
           "DisplayName": "GraphQL Document Validation",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
@@ -60,6 +63,7 @@
         {
           "OperationName": "GraphQL Operation Planning",
           "DisplayName": "GraphQL Operation Planning",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
@@ -80,6 +84,7 @@
         {
           "OperationName": "GraphQL Operation Execution",
           "DisplayName": "GraphQL Operation Execution",
+          "Kind": "Internal",
           "Status": "Ok",
           "tags": [
             {
@@ -100,6 +105,7 @@
             {
               "OperationName": "SimpleQuery.dataLoader",
               "DisplayName": "SimpleQuery.dataLoader",
+              "Kind": "Internal",
               "Status": "Ok",
               "tags": [
                 {
@@ -132,6 +138,7 @@
             {
               "OperationName": "GraphQL DataLoader Dispatch",
               "DisplayName": "GraphQL DataLoader Dispatch",
+              "Kind": "Internal",
               "Status": "Ok",
               "tags": [
                 {
@@ -163,6 +170,7 @@
                 {
                   "OperationName": "GraphQL DataLoader Batch CustomDataLoader",
                   "DisplayName": "GraphQL DataLoader Batch CustomDataLoader",
+                  "Kind": "Internal",
                   "Status": "Ok",
                   "tags": [
                     {
