@@ -1,4 +1,4 @@
-title: Upload_Single_File
+title: Upload_Nullable_File
 request:
   contentType: multipart/form-data; boundary="f56524ab-5626-4955-b296-234a097b44f6"
   body: |
@@ -6,7 +6,7 @@ request:
     Content-Type: application/json; charset=utf-8
     Content-Disposition: form-data; name=operations
 
-    {"query":"query ($file: Upload!) {\n  singleUpload(file: $file) {\n    fileName\n    contentType\n    content\n  }\n}","variables":{"file":null}}
+    {"query":"query ($file: Upload) {\n  nullableUpload(file: $file) {\n    fileName\n    contentType\n    content\n  }\n}","variables":{"file":null}}
     --f56524ab-5626-4955-b296-234a097b44f6
     Content-Type: application/json; charset=utf-8
     Content-Disposition: form-data; name=map
@@ -22,7 +22,7 @@ response:
   body: |
     {
       "data": {
-        "singleUpload": {
+        "nullableUpload": {
           "fileName": "test.txt",
           "contentType": "text/plain",
           "content": "abc"
@@ -87,7 +87,7 @@ sourceSchemas:
             Content-Type: application/json; charset=utf-8
             Content-Disposition: form-data; name=operations
 
-            {"query":"query Op_6e1beb14_1(\n  $file: Upload!\n) {\n  singleUpload(file: $file) {\n    fileName\n    contentType\n    content\n  }\n}","variables":{"file":null}}
+            {"query":"query Op_86d793bb_1(\n  $file: Upload\n) {\n  nullableUpload(file: $file) {\n    fileName\n    contentType\n    content\n  }\n}","variables":{"file":null}}
             --f56524ab-5626-4955-b296-234a097b44f6
             Content-Type: application/json; charset=utf-8
             Content-Disposition: form-data; name=map
@@ -104,7 +104,7 @@ sourceSchemas:
             - |
               {
                 "data": {
-                  "singleUpload": {
+                  "nullableUpload": {
                     "fileName": "test.txt",
                     "contentType": "text/plain",
                     "content": "abc"
@@ -115,15 +115,15 @@ operationPlan:
   operation:
     - document: |
         query(
-          $file: Upload!
+          $file: Upload
         ) {
-          singleUpload(file: $file) {
+          nullableUpload(file: $file) {
             fileName
             contentType
             content
           }
         }
-      hash: 6e1beb142822946e961b9f062df288a0
+      hash: 86d793bbcd15485efc0a3ea8865ead65
       searchSpace: 1
       expandedNodes: 1
   nodes:
@@ -131,10 +131,10 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_6e1beb14_1(
-          $file: Upload!
+        query Op_86d793bb_1(
+          $file: Upload
         ) {
-          singleUpload(file: $file) {
+          nullableUpload(file: $file) {
             fileName
             contentType
             content
