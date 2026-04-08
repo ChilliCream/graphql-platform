@@ -53,49 +53,6 @@ public static class CoreExecutionResultExtensions
     extension(IExecutionResult result)
     {
         /// <summary>
-        /// Registers a cleanup task for execution resources bound to this execution result.
-        /// </summary>
-        /// <param name="clean">
-        /// A cleanup task that will be executed when this result is disposed.
-        /// </param>
-        public void RegisterForCleanup(Action clean)
-        {
-            ArgumentNullException.ThrowIfNull(clean);
-
-            result.RegisterForCleanup(() =>
-            {
-                clean();
-                return default;
-            });
-        }
-
-        /// <summary>
-        /// Registers a resource that needs to be disposed when the result is being disposed.
-        /// </summary>
-        /// <param name="disposable">
-        /// The resource that needs to be disposed.
-        /// </param>
-        public void RegisterForCleanup(IDisposable disposable)
-        {
-            ArgumentNullException.ThrowIfNull(disposable);
-
-            result.RegisterForCleanup(disposable.Dispose);
-        }
-
-        /// <summary>
-        /// Registers a resource that needs to be disposed when the result is being disposed.
-        /// </summary>
-        /// <param name="disposable">
-        /// The resource that needs to be disposed.
-        /// </param>
-        public void RegisterForCleanup(IAsyncDisposable disposable)
-        {
-            ArgumentNullException.ThrowIfNull(disposable);
-
-            result.RegisterForCleanup(disposable.DisposeAsync);
-        }
-
-        /// <summary>
         /// Defines if the specified <see cref="IExecutionResult"/> is a response stream.
         /// </summary>
         /// <returns>
