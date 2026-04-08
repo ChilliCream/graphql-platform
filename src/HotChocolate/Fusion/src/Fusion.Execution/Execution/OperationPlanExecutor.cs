@@ -326,6 +326,7 @@ internal sealed class OperationPlanExecutor
                 group.Operation,
                 group.RootNodes,
                 group.AllNodes,
+                [],
                 0,
                 0);
 

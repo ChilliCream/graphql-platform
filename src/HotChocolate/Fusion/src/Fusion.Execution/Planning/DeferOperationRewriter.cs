@@ -177,8 +177,29 @@ internal sealed class DeferOperationRewriter
                 // Now set the real operation on the descriptor
                 descriptor.Operation = deferredOperation;
 
+                // If conditional (@defer(if: $variable)), also keep the fragment
+                // inline in the main operation but with @skip(if: $variable).
+                // When defer is active (variable=true), @skip removes the fields
+                // from the main response. When defer is inactive (variable=false),
+                // @skip doesn't apply and the fields are fetched inline.
+                if (ifVariable is not null)
+                {
+                    var skipDirective = new DirectiveNode(
+                        null,
+                        new NameNode("skip"),
+                        [
+                            new ArgumentNode(
+                                null,
+                                new NameNode("if"),
+                                new VariableNode(new NameNode(ifVariable)))
+                        ]);
+
+                    selections.Add(
+                        strippedFragment.WithDirectives(
+                            [..strippedFragment.Directives, skipDirective]));
+                }
+
                 modified = true;
-                // Don't add this fragment to the main operation selections
                 continue;
             }
 

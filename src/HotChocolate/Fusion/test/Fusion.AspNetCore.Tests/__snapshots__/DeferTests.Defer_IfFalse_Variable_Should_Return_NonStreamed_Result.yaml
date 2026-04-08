@@ -1,0 +1,246 @@
+title: Defer_IfFalse_Variable_Should_Return_NonStreamed_Result
+request:
+  document: |
+    query GetUser(
+      $shouldDefer: Boolean!
+    ) {
+      user(id: "1") {
+        name
+        ... @defer(if: $shouldDefer, label: "reviews") {
+          reviews {
+            title
+            body
+          }
+        }
+      }
+    }
+  variables: |
+    {
+      "shouldDefer": false
+    }
+response:
+  body: |
+    {
+      "data": {
+        "user": {
+          "name": "User: VXNlcjox",
+          "reviews": [
+            {
+              "title": "Review: UmV2aWV3OjE=",
+              "body": "Review: UmV2aWV3OjE="
+            },
+            {
+              "title": "Review: UmV2aWV3OjI=",
+              "body": "Review: UmV2aWV3OjI="
+            },
+            {
+              "title": "Review: UmV2aWV3OjM=",
+              "body": "Review: UmV2aWV3OjM="
+            }
+          ]
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        user(id: ID!): User @lookup
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        name: String!
+        email: String!
+      }
+    interactions:
+      - request:
+          document: |
+            query GetUser_033679a6_1(
+              $shouldDefer: Boolean!
+            ) {
+              user(id: "1") {
+                name
+                ... @skip(if: $shouldDefer) {
+                  id
+                }
+              }
+            }
+          variables: |
+            {
+              "shouldDefer": false
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "user": {
+                    "name": "User: VXNlcjox",
+                    "id": "VXNlcjox"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        userById(id: ID!): User @lookup
+      }
+
+      type Review {
+        title: String!
+        body: String!
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        reviews: [Review!]!
+      }
+    interactions:
+      - request:
+          document: |
+            query GetUser_033679a6_2(
+              $__fusion_1_id: ID!
+            ) {
+              userById(id: $__fusion_1_id) {
+                reviews {
+                  title
+                  body
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "VXNlcjox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "reviews": [
+                      {
+                        "title": "Review: UmV2aWV3OjE=",
+                        "body": "Review: UmV2aWV3OjE="
+                      },
+                      {
+                        "title": "Review: UmV2aWV3OjI=",
+                        "body": "Review: UmV2aWV3OjI="
+                      },
+                      {
+                        "title": "Review: UmV2aWV3OjM=",
+                        "body": "Review: UmV2aWV3OjM="
+                      }
+                    ]
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query GetUser(
+          $shouldDefer: Boolean!
+        ) {
+          user(id: "1") {
+            name
+            ... @skip(if: $shouldDefer) {
+              reviews {
+                title
+                body
+              }
+              id @fusion__requirement
+            }
+          }
+        }
+      name: GetUser
+      hash: 033679a6deb9150ce9d5cd47bd725497
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query GetUser_033679a6_1(
+          $shouldDefer: Boolean!
+        ) {
+          user(id: "1") {
+            name
+            ... @skip(if: $shouldDefer) {
+              id
+            }
+          }
+        }
+      forwardedVariables:
+        - shouldDefer
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query GetUser_033679a6_2(
+          $__fusion_1_id: ID!
+        ) {
+          userById(id: $__fusion_1_id) {
+            reviews {
+              title
+              body
+            }
+          }
+        }
+      source: $.userById
+      target: $.user
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      conditions:
+        - variable: $shouldDefer
+          passingValue: false
+      dependencies:
+        - id: 1
+  deferredGroups:
+    - deferId: 0
+      label: reviews
+      path: $.user
+      ifVariable: $shouldDefer
+      nodes:
+        - id: 1
+          type: Operation
+          schema: A
+          operation: |
+            query GetUser_defer_1 {
+              user(id: "1") {
+                id
+              }
+            }
+        - id: 2
+          type: Operation
+          schema: B
+          operation: |
+            query GetUser_defer_2(
+              $__fusion_1_id: ID!
+            ) {
+              userById(id: $__fusion_1_id) {
+                reviews {
+                  title
+                  body
+                }
+              }
+            }
+          source: $.userById
+          target: $.user
+          requirements:
+            - name: __fusion_1_id
+              selectionMap: >-
+                id
+          dependencies:
+            - id: 1

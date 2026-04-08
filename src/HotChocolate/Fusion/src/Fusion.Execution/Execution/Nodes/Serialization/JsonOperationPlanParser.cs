@@ -52,6 +52,64 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         var nodes = ParseNodes(rootElement.GetProperty("nodes"), operation);
 
+        var deferredGroups = ImmutableArray<DeferredExecutionGroup>.Empty;
+
+        if (rootElement.TryGetProperty("deferredGroups", out var deferredGroupsElement))
+        {
+            var groupBuilder = ImmutableArray.CreateBuilder<DeferredExecutionGroup>();
+            var groupMap = new Dictionary<int, DeferredExecutionGroup>();
+
+            foreach (var groupElement in deferredGroupsElement.EnumerateArray())
+            {
+                var deferId = groupElement.GetProperty("deferId").GetInt32();
+
+                string? label = null;
+                if (groupElement.TryGetProperty("label", out var labelElement))
+                {
+                    label = labelElement.GetString();
+                }
+
+                var path = SelectionPath.Parse(groupElement.GetProperty("path").GetString()!);
+
+                string? ifVariable = null;
+                if (groupElement.TryGetProperty("ifVariable", out var ifVarElement))
+                {
+                    ifVariable = ifVarElement.GetString()!.TrimStart('$');
+                }
+
+                DeferredExecutionGroup? parent = null;
+                if (groupElement.TryGetProperty("parentId", out var parentIdElement))
+                {
+                    groupMap.TryGetValue(parentIdElement.GetInt32(), out parent);
+                }
+
+                var groupOperation = ParseOperation(groupElement.GetProperty("operation"));
+
+                var groupNodes = groupElement.TryGetProperty("nodes", out var groupNodesElement)
+                    ? ParseNodes(groupNodesElement, groupOperation)
+                    : ImmutableArray<ExecutionNode>.Empty;
+
+                var rootGroupNodes = groupNodes
+                    .Where(n => n.Dependencies.Length == 0 && n.OptionalDependencies.Length == 0)
+                    .ToImmutableArray();
+
+                var group = new DeferredExecutionGroup(
+                    deferId,
+                    label,
+                    path,
+                    ifVariable,
+                    parent,
+                    groupOperation,
+                    rootGroupNodes,
+                    groupNodes);
+
+                groupBuilder.Add(group);
+                groupMap[deferId] = group;
+            }
+
+            deferredGroups = groupBuilder.ToImmutable();
+        }
+
         // Root nodes are the entry points of the execution plan. A node is a
         // root when it has no dependencies at all, meaning the executor can
         // start it immediately without waiting for other nodes to finish.
@@ -60,6 +118,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             operation,
             [.. nodes.Where(n => n.Dependencies.Length == 0 && n.OptionalDependencies.Length == 0)],
             nodes,
+            deferredGroups,
             searchSpace,
             expandedNodes);
     }

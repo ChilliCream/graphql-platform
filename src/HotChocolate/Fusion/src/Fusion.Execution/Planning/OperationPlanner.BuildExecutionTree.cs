@@ -25,7 +25,7 @@ public sealed partial class OperationPlanner
         ImmutableList<PlanStep> planSteps,
         int searchSpace,
         int expandedNodes,
-        ImmutableArray<DeferredExecutionGroup> deferredGroups = default)
+        ImmutableArray<DeferredExecutionGroup> deferredGroups)
     {
         if (operation.IsIntrospectionOnly())
         {
@@ -37,7 +37,7 @@ public sealed partial class OperationPlanner
 
             var nodes = ImmutableArray.Create<ExecutionNode>(introspectionNode);
 
-            return OperationPlan.Create(operation, nodes, nodes, searchSpace, expandedNodes);
+            return OperationPlan.Create(operation, nodes, nodes, [], searchSpace, expandedNodes);
         }
 
         var ctx = new ExecutionPlanBuildContext();
@@ -74,7 +74,7 @@ public sealed partial class OperationPlanner
             node.Seal();
         }
 
-        return OperationPlan.Create(operation, rootNodes, allNodes, searchSpace, expandedNodes, deferredGroups);
+        return OperationPlan.Create(operation, rootNodes, allNodes, deferredGroups, searchSpace, expandedNodes);
     }
 
     private static ImmutableList<PlanStep> TransformPlanSteps(

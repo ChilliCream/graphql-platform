@@ -1,0 +1,210 @@
+title: Defer_Nested_Should_Return_Incremental_Response_In_Order
+request:
+  document: |
+    {
+      user(id: "1") {
+        name
+        ... @defer(label: "outer") {
+          email
+          ... @defer(label: "inner") {
+            address
+          }
+        }
+      }
+    }
+responseStream:
+  - body: |
+      {
+        "data": {
+          "user": {
+            "name": "User: VXNlcjox"
+          }
+        }
+      }
+  - body: |
+      {}
+  - body: |
+      {}
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        user(id: ID!): User @lookup
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        name: String!
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_d1db12b9_1 {
+              user(id: "1") {
+                name
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "user": {
+                    "name": "User: VXNlcjox"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "user": {
+                    "id": "VXNlcjox"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "user": {
+                    "id": "VXNlcjox"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        userById(id: ID!): User @lookup
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        email: String!
+        address: String!
+      }
+    interactions:
+      - request:
+          document: |
+            query Op_defer_2(
+              $__fusion_1_id: ID!
+            ) {
+              userById(id: $__fusion_1_id) {
+                email
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "VXNlcjox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "email": "User: VXNlcjox"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "address": "User: VXNlcjox"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          user(id: "1") {
+            name
+          }
+        }
+      hash: d1db12b9a5735063f8b816612efd3c53
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_d1db12b9_1 {
+          user(id: "1") {
+            name
+          }
+        }
+  deferredGroups:
+    - deferId: 0
+      label: outer
+      path: $.user
+      nodes:
+        - id: 1
+          type: Operation
+          schema: A
+          operation: |
+            query Op_defer_1 {
+              user(id: "1") {
+                id
+              }
+            }
+        - id: 2
+          type: Operation
+          schema: B
+          operation: |
+            query Op_defer_2(
+              $__fusion_1_id: ID!
+            ) {
+              userById(id: $__fusion_1_id) {
+                email
+              }
+            }
+          source: $.userById
+          target: $.user
+          requirements:
+            - name: __fusion_1_id
+              selectionMap: >-
+                id
+          dependencies:
+            - id: 1
+    - deferId: 1
+      label: inner
+      path: $.user
+      parentId: 0
+      nodes:
+        - id: 1
+          type: Operation
+          schema: A
+          operation: |
+            query Op_defer_1 {
+              user(id: "1") {
+                id
+              }
+            }
+        - id: 2
+          type: Operation
+          schema: B
+          operation: |
+            query Op_defer_2(
+              $__fusion_1_id: ID!
+            ) {
+              userById(id: $__fusion_1_id) {
+                address
+              }
+            }
+          source: $.userById
+          target: $.user
+          requirements:
+            - name: __fusion_1_id
+              selectionMap: >-
+                id
+          dependencies:
+            - id: 1

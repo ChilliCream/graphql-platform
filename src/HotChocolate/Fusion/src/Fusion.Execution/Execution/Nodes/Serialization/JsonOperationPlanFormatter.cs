@@ -83,6 +83,54 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WritePropertyName("nodes");
         WriteNodes(jsonWriter, plan.Operation, plan.AllNodes, trace);
 
+        if (!plan.DeferredGroups.IsDefaultOrEmpty)
+        {
+            jsonWriter.WritePropertyName("deferredGroups");
+            jsonWriter.WriteStartArray();
+
+            foreach (var group in plan.DeferredGroups)
+            {
+                jsonWriter.WriteStartObject();
+
+                jsonWriter.WritePropertyName("deferId");
+                jsonWriter.WriteNumberValue(group.DeferId);
+
+                if (group.Label is not null)
+                {
+                    jsonWriter.WritePropertyName("label");
+                    jsonWriter.WriteStringValue(group.Label);
+                }
+
+                jsonWriter.WritePropertyName("path");
+                jsonWriter.WriteStringValue(group.Path.ToString());
+
+                if (group.IfVariable is not null)
+                {
+                    jsonWriter.WritePropertyName("ifVariable");
+                    jsonWriter.WriteStringValue("$" + group.IfVariable);
+                }
+
+                if (group.Parent is not null)
+                {
+                    jsonWriter.WritePropertyName("parentId");
+                    jsonWriter.WriteNumberValue(group.Parent.DeferId);
+                }
+
+                jsonWriter.WritePropertyName("operation");
+                WriteOperation(jsonWriter, group.Operation);
+
+                if (!group.AllNodes.IsDefaultOrEmpty)
+                {
+                    jsonWriter.WritePropertyName("nodes");
+                    WriteNodes(jsonWriter, group.Operation, group.AllNodes, null);
+                }
+
+                jsonWriter.WriteEndObject();
+            }
+
+            jsonWriter.WriteEndArray();
+        }
+
         jsonWriter.WriteEndObject();
     }
 

@@ -98,7 +98,7 @@ public sealed partial class OperationPlanner
             //
             // PERF: For non-deferred operations (the common case), the only overhead is
             // the HasDeferDirective check which does a fast AST walk looking for @defer.
-            ImmutableArray<DeferredExecutionGroup> deferredGroups = default;
+            ImmutableArray<DeferredExecutionGroup> deferredGroups = [];
             DeferSplitResult? deferSplit = null;
             var mainOperationDefinition = operationDefinition;
 

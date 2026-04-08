@@ -25,27 +25,85 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             ExecutionNodeTrace? nodeTrace = null;
             trace?.Nodes.TryGetValue(node.Id, out nodeTrace);
 
-            switch (node)
+            WriteNode(node, nodeTrace, writer);
+        }
+
+        writer.Unindent();
+
+        if (!plan.DeferredGroups.IsDefaultOrEmpty)
+        {
+            writer.WriteLine("deferredGroups:");
+            writer.Indent();
+
+            foreach (var group in plan.DeferredGroups)
             {
-                case OperationExecutionNode operationNode:
-                    WriteOperationNode(operationNode, nodeTrace, writer);
-                    break;
-
-                case OperationBatchExecutionNode batchNode:
-                    WriteBatchExecutionNode(batchNode, nodeTrace, writer);
-                    break;
-
-                case IntrospectionExecutionNode introspectionNode:
-                    WriteIntrospectionNode(introspectionNode, nodeTrace, writer);
-                    break;
-
-                case NodeFieldExecutionNode nodeExecutionNode:
-                    WriteNodeFieldNode(nodeExecutionNode, nodeTrace, writer);
-                    break;
+                WriteDeferredGroup(group, writer);
             }
+
+            writer.Unindent();
         }
 
         return sb.ToString();
+    }
+
+    private static void WriteNode(ExecutionNode node, ExecutionNodeTrace? nodeTrace, CodeWriter writer)
+    {
+        switch (node)
+        {
+            case OperationExecutionNode operationNode:
+                WriteOperationNode(operationNode, nodeTrace, writer);
+                break;
+
+            case OperationBatchExecutionNode batchNode:
+                WriteBatchExecutionNode(batchNode, nodeTrace, writer);
+                break;
+
+            case IntrospectionExecutionNode introspectionNode:
+                WriteIntrospectionNode(introspectionNode, nodeTrace, writer);
+                break;
+
+            case NodeFieldExecutionNode nodeExecutionNode:
+                WriteNodeFieldNode(nodeExecutionNode, nodeTrace, writer);
+                break;
+        }
+    }
+
+    private static void WriteDeferredGroup(DeferredExecutionGroup group, CodeWriter writer)
+    {
+        writer.WriteLine("- deferId: {0}", group.DeferId);
+        writer.Indent();
+
+        if (group.Label is not null)
+        {
+            writer.WriteLine("label: {0}", group.Label);
+        }
+
+        writer.WriteLine("path: {0}", group.Path.ToString());
+
+        if (group.IfVariable is not null)
+        {
+            writer.WriteLine("ifVariable: ${0}", group.IfVariable);
+        }
+
+        if (group.Parent is not null)
+        {
+            writer.WriteLine("parentId: {0}", group.Parent.DeferId);
+        }
+
+        if (!group.AllNodes.IsDefaultOrEmpty)
+        {
+            writer.WriteLine("nodes:");
+            writer.Indent();
+
+            foreach (var node in group.AllNodes)
+            {
+                WriteNode(node, nodeTrace: null, writer);
+            }
+
+            writer.Unindent();
+        }
+
+        writer.Unindent();
     }
 
     private static void WriteOperation(

@@ -1,0 +1,163 @@
+title: Defer_With_Error_In_Deferred_Fragment_Should_Return_Error_In_Incremental_Payload
+request:
+  document: |
+    query GetUser {
+      user(id: "1") {
+        name
+        ... @defer(label: "email") {
+          email
+        }
+      }
+    }
+responseStream:
+  - body: |
+      {
+        "data": {
+          "user": {
+            "name": "User: VXNlcjox"
+          }
+        }
+      }
+  - body: |
+      {}
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        user(id: ID!): User @lookup
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        name: String!
+      }
+    interactions:
+      - request:
+          document: |
+            query GetUser_28690061_1 {
+              user(id: "1") {
+                name
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "user": {
+                    "name": "User: VXNlcjox"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "user": {
+                    "id": "VXNlcjox"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        userById(id: ID!): User @lookup
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        email: String! @error
+      }
+    interactions:
+      - request:
+          document: |
+            query GetUser_defer_2(
+              $__fusion_1_id: ID!
+            ) {
+              userById(id: $__fusion_1_id) {
+                email
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "VXNlcjox"
+            }
+        response:
+          results:
+            - |
+              {
+                "errors": [
+                  {
+                    "message": "Unexpected Execution Error",
+                    "path": [
+                      "userById",
+                      "email"
+                    ]
+                  }
+                ],
+                "data": {
+                  "userById": null
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query GetUser {
+          user(id: "1") {
+            name
+          }
+        }
+      name: GetUser
+      hash: 286900619fe56222f78d6a6c45482586
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query GetUser_28690061_1 {
+          user(id: "1") {
+            name
+          }
+        }
+  deferredGroups:
+    - deferId: 0
+      label: email
+      path: $.user
+      nodes:
+        - id: 1
+          type: Operation
+          schema: A
+          operation: |
+            query GetUser_defer_1 {
+              user(id: "1") {
+                id
+              }
+            }
+        - id: 2
+          type: Operation
+          schema: B
+          operation: |
+            query GetUser_defer_2(
+              $__fusion_1_id: ID!
+            ) {
+              userById(id: $__fusion_1_id) {
+                email
+              }
+            }
+          source: $.userById
+          target: $.user
+          requirements:
+            - name: __fusion_1_id
+              selectionMap: >-
+                id
+          dependencies:
+            - id: 1
