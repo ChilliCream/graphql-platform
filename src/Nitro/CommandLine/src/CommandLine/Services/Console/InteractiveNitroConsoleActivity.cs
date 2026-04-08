@@ -25,19 +25,10 @@ internal sealed class InteractiveNitroConsoleActivity : INitroConsoleActivity
         _refreshTimer = refreshTimer;
     }
 
-    public void Update(string message, ActivityUpdateKind kind = ActivityUpdateKind.Regular)
-    {
-        var state = kind switch
-        {
-            ActivityUpdateKind.Warning => ActivityState.Warning,
-            ActivityUpdateKind.Waiting => ActivityState.Waiting,
-            ActivityUpdateKind.Success => ActivityState.Completed,
-            _ => ActivityState.Info
-        };
-        _tree.AddChild(_rootEntry, message, state);
-    }
-
-    public void Update(string message, IRenderable details, ActivityUpdateKind kind = ActivityUpdateKind.Regular)
+    public void Update(
+        string message,
+        ActivityUpdateKind? kind = ActivityUpdateKind.Regular,
+        IRenderable? details = null)
     {
         var state = kind switch
         {
@@ -47,7 +38,10 @@ internal sealed class InteractiveNitroConsoleActivity : INitroConsoleActivity
             _ => ActivityState.Info
         };
         var child = _tree.AddChild(_rootEntry, message, state);
-        _tree.SetEntryDetails(child, details);
+        if (details is not null)
+        {
+            _tree.SetEntryDetails(child, details);
+        }
     }
 
     public void Warning(string message)

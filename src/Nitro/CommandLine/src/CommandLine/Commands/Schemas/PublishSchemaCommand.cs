@@ -231,8 +231,8 @@ internal sealed class PublishSchemaCommand : Command
 
                                 child.Update(
                                     Messages.ValidationFailed,
-                                    deploymentErrorTree,
-                                    ActivityUpdateKind.Warning);
+                                    ActivityUpdateKind.Warning,
+                                    deploymentErrorTree);
                             }
 
                             child.Update(

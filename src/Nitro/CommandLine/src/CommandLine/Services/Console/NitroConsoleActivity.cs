@@ -12,7 +12,10 @@ internal sealed class NitroConsoleActivity(
 {
     private bool _completed;
 
-    public void Update(string message, ActivityUpdateKind kind = ActivityUpdateKind.Regular)
+    public void Update(
+        string message,
+        ActivityUpdateKind? kind = ActivityUpdateKind.Regular,
+        IRenderable? details = null)
     {
         var glyph = kind switch
         {
@@ -26,23 +29,10 @@ internal sealed class NitroConsoleActivity(
             message = message.AsWarning();
         }
         console.MarkupLine(prefix + "├── " + glyph + message);
-    }
-
-    public void Update(string message, IRenderable details, ActivityUpdateKind kind = ActivityUpdateKind.Regular)
-    {
-        var glyph = kind switch
+        if (details is not null)
         {
-            ActivityUpdateKind.Warning => Glyphs.ExclamationMark.Space(),
-            ActivityUpdateKind.Waiting => Glyphs.Clock.Space(),
-            ActivityUpdateKind.Success => Glyphs.Check.Space(),
-            _ => ""
-        };
-        if (kind == ActivityUpdateKind.Warning)
-        {
-            message = message.AsWarning();
+            WriteIndented(details, prefix + "│   ");
         }
-        console.MarkupLine(prefix + "├── " + glyph + message);
-        WriteIndented(details, prefix + "│   ");
     }
 
     public void Warning(string message)
