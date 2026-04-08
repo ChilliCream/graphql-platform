@@ -15,7 +15,9 @@ internal sealed class DefaultTypeDiscoveryHandler(ITypeInspector typeInspector) 
         "AOT",
         "IL3050",
         Justification =
-            "Schema types are well-known generic types created via MakeGenericType during schema initialization.")]
+            "MakeGenericType is used for type identity during schema "
+            + "initialization. For AOT the source generator ensures "
+            + "concrete generic types are statically referenced.")]
     public override bool TryInferType(
         TypeReference typeReference,
         TypeDiscoveryInfo typeInfo,
