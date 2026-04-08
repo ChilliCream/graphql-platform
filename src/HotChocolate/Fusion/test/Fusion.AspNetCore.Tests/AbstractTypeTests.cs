@@ -603,6 +603,341 @@ public class AbstractTypeTests : FusionTestBase
     }
 
     [Fact]
+    public async Task Interface_Field_With_And_Without_Type_Refinements_All_Fields_On_Dedicated_Schemas()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              abstractTypes: [Votable]
+              node(id: ID!): Node @lookup @shareable
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            interface Votable @key(fields: "id") {
+              id: ID!
+            }
+
+            type Discussion implements Votable & Node @key(fields: "id") {
+              id: ID!
+            }
+
+            type Author implements Votable & Node @key(fields: "id") {
+              id: ID!
+            }
+            """);
+
+        using var serverB = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              discussionById(id: ID!): Discussion @lookup @shareable
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            interface Votable @key(fields: "id") {
+              id: ID!
+              upvotes: Int!
+              score: Int!
+            }
+
+            type Discussion implements Votable & Node @key(fields: "id") {
+              id: ID!
+              upvotes: Int!
+              score: Int!
+            }
+            """);
+
+        using var serverC = CreateSourceSchema(
+            "C",
+            """
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              authorById(id: ID!): Author @lookup @shareable
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            interface Votable @key(fields: "id") {
+              id: ID!
+              upvotes: Int!
+              score: Int!
+            }
+
+            type Author implements Votable & Node @key(fields: "id") {
+              id: ID!
+              upvotes: Int!
+              score: Int!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", serverA),
+            ("B", serverB),
+            ("C", serverC)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              abstractTypes {
+                upvotes
+                ... on Discussion {
+                  score
+                }
+                ... on Author {
+                  score
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Interface_Field_With_And_Without_Type_Refinements_Aliased_With_Different_Selections()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              abstractTypes: [Votable]
+              node(id: ID!): Node @lookup @shareable
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            interface Votable @key(fields: "id") {
+              id: ID!
+            }
+
+            type Discussion implements Votable & Node @key(fields: "id") {
+              id: ID!
+            }
+
+            type Author implements Votable & Node @key(fields: "id") {
+              id: ID!
+            }
+            """);
+
+        using var serverB = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              discussionById(id: ID!): Discussion @lookup @shareable
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            interface Votable @key(fields: "id") {
+              id: ID!
+              upvotes: Int!
+              score: Int!
+            }
+
+            type Discussion implements Votable & Node @key(fields: "id") {
+              id: ID!
+              upvotes: Int!
+              score: Int!
+            }
+            """);
+
+        using var serverC = CreateSourceSchema(
+            "C",
+            """
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              authorById(id: ID!): Author @lookup @shareable
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            interface Votable @key(fields: "id") {
+              id: ID!
+              upvotes: Int!
+              score: Int!
+            }
+
+            type Author implements Votable & Node @key(fields: "id") {
+              id: ID!
+              upvotes: Int!
+              score: Int!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", serverA),
+            ("B", serverB),
+            ("C", serverC)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              abstractTypes {
+                upvotes
+                ... on Discussion {
+                  score
+                }
+                ... on Author {
+                  someId: id
+                }
+              }
+              b: abstractTypes {
+                ... on Author {
+                  upvotes
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Interface_Field_With_And_Without_Type_Refinements_Type_Refinements_Do_Not_Match()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+              abstractTypes: [Votable]
+              node(id: ID!): Node @lookup @shareable
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            interface Votable @key(fields: "id") {
+              id: ID!
+            }
+
+            type Discussion implements Votable & Node @key(fields: "id") {
+              id: ID!
+            }
+
+            type Author implements Votable & Node @key(fields: "id") {
+              id: ID!
+            }
+            """);
+
+        using var serverB = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              discussionById(id: ID!): Discussion @lookup @shareable
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            interface Votable @key(fields: "id") {
+              id: ID!
+              upvotes: Int!
+            }
+
+            type Discussion implements Votable & Node @key(fields: "id") {
+              id: ID!
+              upvotes: Int!
+              score: Int!
+            }
+            """);
+
+        using var serverC = CreateSourceSchema(
+            "C",
+            """
+            type Query {
+              node(id: ID!): Node @lookup @shareable
+              authorById(id: ID!): Author @lookup @shareable
+            }
+
+            interface Node {
+              id: ID!
+            }
+
+            interface Votable @key(fields: "id") {
+              id: ID!
+              upvotes: Int!
+            }
+
+            type Author implements Votable & Node @key(fields: "id") {
+              id: ID!
+              upvotes: Int!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", serverA),
+            ("B", serverB),
+            ("C", serverC)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              abstractTypes {
+                upvotes
+                ... on Discussion {
+                  score
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
     public async Task Union_Field_With_Type_Refinements_And_Concrete_Lookups()
     {
         // arrange
