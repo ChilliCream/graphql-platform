@@ -1,9 +1,7 @@
 title: Typename_On_Query_Skip_False
 request:
   document: |
-    query(
-      $s: Boolean! = false
-    ) {
+    query($s: Boolean! = false) {
       __typename @skip(if: $s)
     }
 response:
@@ -62,7 +60,12 @@ sourceSchemas:
 
       type Query {
         bookById(id: Int!): Book! @lookup
-        books("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): BooksConnection
+        books(
+          "Returns the first _n_ elements from the list." first: Int
+          "Returns the elements in the list that come after the specified cursor." after: String
+          "Returns the last _n_ elements from the list." last: Int
+          "Returns the elements in the list that come before the specified cursor." before: String
+        ): BooksConnection
       }
   - name: B
     schema: |
@@ -113,14 +116,17 @@ sourceSchemas:
 
       type Query {
         authorById(id: Int!): Author! @internal @lookup
-        authors("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): AuthorsConnection
+        authors(
+          "Returns the first _n_ elements from the list." first: Int
+          "Returns the elements in the list that come after the specified cursor." after: String
+          "Returns the last _n_ elements from the list." last: Int
+          "Returns the elements in the list that come before the specified cursor." before: String
+        ): AuthorsConnection
       }
 operationPlan:
   operation:
     - document: |
-        query(
-          $s: Boolean! = false
-        ) {
+        query($s: Boolean! = false) {
           __typename @skip(if: $s)
         }
       hash: 7000d58c5a91379479dee99795ff88dd

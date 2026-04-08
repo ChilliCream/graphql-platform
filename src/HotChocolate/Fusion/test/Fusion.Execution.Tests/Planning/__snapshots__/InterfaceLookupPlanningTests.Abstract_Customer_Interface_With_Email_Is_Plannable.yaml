@@ -40,9 +40,7 @@ nodes:
     type: Operation
     schema: de
     operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_id: ID!
-      ) {
+      query Op_123456789101112_2($__fusion_1_id: ID!) {
         de_customerById(id: $__fusion_1_id) {
           __typename
           email
@@ -60,9 +58,7 @@ nodes:
     type: Operation
     schema: ch
     operation: |
-      query Op_123456789101112_3(
-        $__fusion_2_id: ID!
-      ) {
+      query Op_123456789101112_3($__fusion_2_id: ID!) {
         ch_customerById(id: $__fusion_2_id) {
           __typename
           email

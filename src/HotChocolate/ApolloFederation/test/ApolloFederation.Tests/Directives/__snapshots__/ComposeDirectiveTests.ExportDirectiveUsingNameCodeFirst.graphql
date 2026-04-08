@@ -1,4 +1,7 @@
-schema @composeDirective(name: "@custom") @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key", "@tag", "FieldSet", "@composeDirective"]) @link(url: "https://specs.custom.dev/custom/v1.0", import: ["@custom"]) {
+schema
+  @composeDirective(name: "@custom")
+  @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key", "@tag", "FieldSet", "@composeDirective"])
+  @link(url: "https://specs.custom.dev/custom/v1.0", import: ["@custom"]) {
   query: Query
 }
 
@@ -25,10 +28,13 @@ directive @composeDirective(name: String!) repeatable on SCHEMA
 directive @custom on FIELD_DEFINITION
 
 "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
-directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+directive @key(fields: FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
 
 "Links definitions within the document to external schemas."
-directive @link("Gets imported specification url." url: String! "Gets optional list of imported element names." import: [String!]) repeatable on SCHEMA
+directive @link(
+  "Gets imported specification url." url: String!
+  "Gets optional list of imported element names." import: [String!]
+) repeatable on SCHEMA
 
 "Scalar representing a set of fields."
 scalar FieldSet

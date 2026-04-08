@@ -18,7 +18,8 @@ fragment PriceInfo on Asset {
 
 query Crypto {
   ... on Query {
-    assetBySymbol(symbol: "BTC") @__execute(id: 2, kind: DEFAULT, type: COMPOSITE) {
+    assetBySymbol(symbol: "BTC")
+      @__execute(id: 2, kind: DEFAULT, type: COMPOSITE) {
       ... on Asset {
         price @__execute(id: 4, kind: DEFAULT, type: COMPOSITE) {
           ... on AssetPrice {

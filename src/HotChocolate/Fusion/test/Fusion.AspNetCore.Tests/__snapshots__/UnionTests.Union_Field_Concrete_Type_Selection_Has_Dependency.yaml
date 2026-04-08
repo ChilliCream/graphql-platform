@@ -106,9 +106,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_9f626641_3(
-              $__fusion_2_id: ID!
-            ) {
+            query testQuery_9f626641_3($__fusion_2_id: ID!) {
               productById(id: $__fusion_2_id) {
                 subgraph2
               }
@@ -189,9 +187,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query testQuery_9f626641_2(
-          $__fusion_1_id: ID!
-        ) {
+        query testQuery_9f626641_2($__fusion_1_id: ID!) {
           authorById(id: $__fusion_1_id) {
             subgraph3
           }
@@ -208,9 +204,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_9f626641_3(
-          $__fusion_2_id: ID!
-        ) {
+        query testQuery_9f626641_3($__fusion_2_id: ID!) {
           productById(id: $__fusion_2_id) {
             subgraph2
           }

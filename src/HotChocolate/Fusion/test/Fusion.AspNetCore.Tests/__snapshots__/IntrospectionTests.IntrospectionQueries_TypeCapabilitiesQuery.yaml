@@ -83,7 +83,11 @@ sourceSchemas:
       "Object type description"
       type Query @test(arg: "value") {
         "Object field description"
-        posts("Argument description" filter: PostsFilter first: Int! = 5 @test(arg: "value") hidden: Boolean @deprecated(reason: "No longer supported")): [Post]
+        posts(
+          "Argument description" filter: PostsFilter
+          first: Int! = 5 @test(arg: "value")
+          hidden: Boolean @deprecated(reason: "No longer supported")
+        ): [Post]
         userCreation: UserCreation
         votables: [Votable]! @deprecated(reason: "No longer supported")
         postById(postId: ID! @is(field: "id")): Post @lookup

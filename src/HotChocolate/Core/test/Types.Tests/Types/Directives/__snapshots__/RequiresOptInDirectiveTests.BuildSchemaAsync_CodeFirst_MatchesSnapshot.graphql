@@ -3,7 +3,11 @@ schema {
 }
 
 type Query {
-  field(argument: Int @requiresOptIn(feature: "objectFieldArgFeature1") @requiresOptIn(feature: "objectFieldArgFeature2")): Int @requiresOptIn(feature: "objectFieldFeature1") @requiresOptIn(feature: "objectFieldFeature2")
+  field(
+    argument: Int @requiresOptIn(feature: "objectFieldArgFeature1") @requiresOptIn(feature: "objectFieldArgFeature2")
+  ): Int
+    @requiresOptIn(feature: "objectFieldFeature1")
+    @requiresOptIn(feature: "objectFieldFeature2")
 }
 
 input Input {
@@ -11,8 +15,12 @@ input Input {
 }
 
 enum Enum {
-  VALUE @requiresOptIn(feature: "enumValueFeature1") @requiresOptIn(feature: "enumValueFeature2")
+  VALUE
+    @requiresOptIn(feature: "enumValueFeature1")
+    @requiresOptIn(feature: "enumValueFeature2")
 }
 
 "Indicates that the given field, argument, input field, or enum value requires giving explicit consent before being used."
-directive @requiresOptIn("The name of the feature that requires opt in." feature: String!) repeatable on FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM_VALUE | INPUT_FIELD_DEFINITION
+directive @requiresOptIn(
+  "The name of the feature that requires opt in." feature: String!
+) repeatable on FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM_VALUE | INPUT_FIELD_DEFINITION

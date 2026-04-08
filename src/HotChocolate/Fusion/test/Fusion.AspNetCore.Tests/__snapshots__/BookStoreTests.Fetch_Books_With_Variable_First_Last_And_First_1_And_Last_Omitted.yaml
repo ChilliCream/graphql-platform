@@ -1,10 +1,7 @@
 title: Fetch_Books_With_Variable_First_Last_And_First_1_And_Last_Omitted
 request:
   document: |
-    query GetBooks(
-      $first: Int
-        $last: Int
-    ) {
+    query GetBooks($first: Int, $last: Int) {
       books(first: $first, last: $last) {
         nodes {
           id
@@ -85,17 +82,19 @@ sourceSchemas:
 
       type Query {
         bookById(id: Int!): Book! @lookup
-        books("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): BooksConnection
+        books(
+          "Returns the first _n_ elements from the list." first: Int
+          "Returns the elements in the list that come after the specified cursor." after: String
+          "Returns the last _n_ elements from the list." last: Int
+          "Returns the elements in the list that come before the specified cursor." before: String
+        ): BooksConnection
         formatTitle(title: String!): String!
       }
     interactions:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query GetBooks_938ff9c0_1(
-              $first: Int
-                $last: Int
-            ) {
+            query GetBooks_938ff9c0_1($first: Int, $last: Int) {
               books(first: $first, last: $last) {
                 nodes {
                   id
@@ -179,15 +178,18 @@ sourceSchemas:
       type Query {
         bookById(id: Int!): Book! @internal @lookup
         authorById(id: Int!): Author! @internal @lookup
-        authors("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): AuthorsConnection
+        authors(
+          "Returns the first _n_ elements from the list." first: Int
+          "Returns the elements in the list that come after the specified cursor." after: String
+          "Returns the last _n_ elements from the list." last: Int
+          "Returns the elements in the list that come before the specified cursor." before: String
+        ): AuthorsConnection
       }
     interactions:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query GetBooks_938ff9c0_2(
-              $__fusion_1_id: Int!
-            ) {
+            query GetBooks_938ff9c0_2($__fusion_1_id: Int!) {
               authorById(id: $__fusion_1_id) {
                 name
               }
@@ -209,10 +211,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query GetBooks(
-          $first: Int
-            $last: Int
-        ) {
+        query GetBooks($first: Int, $last: Int) {
           books(first: $first, last: $last) {
             nodes {
               id
@@ -233,10 +232,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query GetBooks_938ff9c0_1(
-          $first: Int
-            $last: Int
-        ) {
+        query GetBooks_938ff9c0_1($first: Int, $last: Int) {
           books(first: $first, last: $last) {
             nodes {
               id
@@ -254,9 +250,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query GetBooks_938ff9c0_2(
-          $__fusion_1_id: Int!
-        ) {
+        query GetBooks_938ff9c0_2($__fusion_1_id: Int!) {
           authorById(id: $__fusion_1_id) {
             name
           }

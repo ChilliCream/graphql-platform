@@ -34,9 +34,7 @@ nodes:
     type: Operation
     schema: REVIEWS
     operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_id: ID!
-      ) {
+      query Op_123456789101112_2($__fusion_1_id: ID!) {
         productById(id: $__fusion_1_id) {
           reviews(first: 10) {
             nodes {
@@ -61,9 +59,7 @@ nodes:
     type: Operation
     schema: ACCOUNTS
     operation: |
-      query Op_123456789101112_3(
-        $__fusion_2_id: ID!
-      ) {
+      query Op_123456789101112_3($__fusion_2_id: ID!) {
         userById(id: $__fusion_2_id) {
           displayName
         }

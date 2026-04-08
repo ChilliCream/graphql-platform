@@ -1,4 +1,4 @@
-﻿schema {
+schema {
   query: Query
 }
 
@@ -37,5 +37,10 @@ type Person {
 }
 
 type Query {
-  items("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): ItemsConnection
+  items(
+    "Returns the first _n_ elements from the list." first: Int
+    "Returns the elements in the list that come after the specified cursor." after: String
+    "Returns the last _n_ elements from the list." last: Int
+    "Returns the elements in the list that come before the specified cursor." before: String
+  ): ItemsConnection
 }

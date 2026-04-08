@@ -24,7 +24,10 @@ enum ScalarSerializationType {
   LIST
 }
 
-directive @serializeAs("The primitive type a scalar is serialized to." type: [ScalarSerializationType!]! "The ECMA-262 regex pattern that the serialized scalar value conforms to." pattern: String) on SCALAR
+directive @serializeAs(
+  "The primitive type a scalar is serialized to." type: [ScalarSerializationType!]!
+  "The ECMA-262 regex pattern that the serialized scalar value conforms to." pattern: String
+) on SCALAR
 
 scalar Custom1 @serializeAs(type: STRING)
 

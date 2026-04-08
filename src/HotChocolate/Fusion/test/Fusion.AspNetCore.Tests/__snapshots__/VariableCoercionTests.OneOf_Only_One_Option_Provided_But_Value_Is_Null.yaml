@@ -1,9 +1,7 @@
 title: OneOf_Only_One_Option_Provided_But_Value_Is_Null
 request:
   document: |
-    query testQuery(
-      $pet: Pet!
-    ) {
+    query testQuery($pet: Pet!) {
       petName(input: $pet)
     }
   variables: |

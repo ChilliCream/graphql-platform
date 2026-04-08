@@ -26,10 +26,7 @@ nodes:
     type: Operation
     schema: inventory
     operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_price: Int
-          $__fusion_2_upc: String!
-      ) {
+      query Op_123456789101112_2($__fusion_1_price: Int, $__fusion_2_upc: String!) {
         productByUpc(upc: $__fusion_2_upc) {
           reducedPrice(price: $__fusion_1_price)
         }
@@ -51,10 +48,7 @@ nodes:
     type: Operation
     schema: inventory
     operation: |
-      query Op_123456789101112_5(
-        $__fusion_5_price: Int
-          $__fusion_6_upc: String!
-      ) {
+      query Op_123456789101112_5($__fusion_5_price: Int, $__fusion_6_upc: String!) {
         productByUpc(upc: $__fusion_6_upc) {
           isExpensive(price: $__fusion_5_price)
         }
@@ -76,9 +70,7 @@ nodes:
     type: Operation
     schema: products
     operation: |
-      query Op_123456789101112_3(
-        $__fusion_3_upc: String!
-      ) {
+      query Op_123456789101112_3($__fusion_3_upc: String!) {
         productByUpc(upc: $__fusion_3_upc) {
           price
           upc
@@ -97,9 +89,7 @@ nodes:
     type: Operation
     schema: products
     operation: |
-      query Op_123456789101112_4(
-        $__fusion_4_upc: String!
-      ) {
+      query Op_123456789101112_4($__fusion_4_upc: String!) {
         productByUpc(upc: $__fusion_4_upc) {
           upc
         }
@@ -117,9 +107,7 @@ nodes:
     type: Operation
     schema: products
     operation: |
-      query Op_123456789101112_6(
-        $__fusion_7_upc: String!
-      ) {
+      query Op_123456789101112_6($__fusion_7_upc: String!) {
         productByUpc(upc: $__fusion_7_upc) {
           price
         }
@@ -137,9 +125,7 @@ nodes:
     type: Operation
     schema: products
     operation: |
-      query Op_123456789101112_7(
-        $__fusion_8_upc: String!
-      ) {
+      query Op_123456789101112_7($__fusion_8_upc: String!) {
         productByUpc(upc: $__fusion_8_upc) {
           price(withDiscount: true)
         }

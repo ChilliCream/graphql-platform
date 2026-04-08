@@ -1,4 +1,5 @@
-schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key", "@provides", "@tag", "FieldSet"]) {
+schema
+  @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key", "@provides", "@tag", "FieldSet"]) {
   query: Query
 }
 
@@ -26,10 +27,13 @@ type _Service {
 union _Entity = Review
 
 "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
-directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+directive @key(fields: FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
 
 "Links definitions within the document to external schemas."
-directive @link("Gets imported specification url." url: String! "Gets optional list of imported element names." import: [String!]) repeatable on SCHEMA
+directive @link(
+  "Gets imported specification url." url: String!
+  "Gets optional list of imported element names." import: [String!]
+) repeatable on SCHEMA
 
 "Used to annotate the expected returned fieldset from a field on a base type that is guaranteed to be selectable by the federation gateway."
 directive @provides(fields: FieldSet!) on FIELD_DEFINITION

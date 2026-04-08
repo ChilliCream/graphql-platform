@@ -1,4 +1,5 @@
-schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@shareable", "@tag", "FieldSet"]) {
+schema
+  @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@shareable", "@tag", "FieldSet"]) {
   query: Query
 }
 
@@ -37,7 +38,12 @@ type PageInfo {
 }
 
 type Query {
-  addresses("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): AddressesConnection
+  addresses(
+    "Returns the first _n_ elements from the list." first: Int
+    "Returns the elements in the list that come after the specified cursor." after: String
+    "Returns the last _n_ elements from the list." last: Int
+    "Returns the elements in the list that come before the specified cursor." before: String
+  ): AddressesConnection
   _service: _Service!
 }
 
@@ -47,7 +53,10 @@ type _Service {
 }
 
 "Links definitions within the document to external schemas."
-directive @link("Gets imported specification url." url: String! "Gets optional list of imported element names." import: [String!]) repeatable on SCHEMA
+directive @link(
+  "Gets imported specification url." url: String!
+  "Gets optional list of imported element names." import: [String!]
+) repeatable on SCHEMA
 
 "Indicates that given object and/or field can be resolved by multiple subgraphs."
 directive @shareable repeatable on OBJECT | FIELD_DEFINITION

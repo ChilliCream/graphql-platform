@@ -21,7 +21,10 @@ enum SortEnumType {
 }
 
 "The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
-directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR
+directive @specifiedBy(
+  "The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!
+) on SCALAR
 
 "The `Long` scalar type represents a signed 64-bit integer."
-scalar Long @specifiedBy(url: "https://scalars.graphql.org/chillicream/long.html")
+scalar Long
+  @specifiedBy(url: "https://scalars.graphql.org/chillicream/long.html")

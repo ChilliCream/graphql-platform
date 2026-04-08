@@ -1,9 +1,7 @@
 title: NodeField_Skip_On_Shared_Selection
 request:
   document: |
-    query testQuery(
-      $skip: Boolean!
-    ) {
+    query testQuery($skip: Boolean!) {
       node(id: "RGlzY3Vzc2lvbjox") {
         id @skip(if: $skip)
         ... on Discussion {
@@ -47,9 +45,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_4a9f6178_3(
-              $skip: Boolean!
-            ) {
+            query testQuery_4a9f6178_3($skip: Boolean!) {
               node(id: "RGlzY3Vzc2lvbjox") {
                 __typename
                 ... on Discussion {
@@ -95,9 +91,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $skip: Boolean!
-        ) {
+        query testQuery($skip: Boolean!) {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename @fusion__requirement
             ... on Discussion {
@@ -121,9 +115,7 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query testQuery_4a9f6178_2(
-          $skip: Boolean!
-        ) {
+        query testQuery_4a9f6178_2($skip: Boolean!) {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename
             id @skip(if: $skip)
@@ -137,9 +129,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_4a9f6178_3(
-          $skip: Boolean!
-        ) {
+        query testQuery_4a9f6178_3($skip: Boolean!) {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename
             ... on Discussion {

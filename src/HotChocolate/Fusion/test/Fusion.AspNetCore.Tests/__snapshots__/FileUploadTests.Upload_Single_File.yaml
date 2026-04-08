@@ -73,7 +73,10 @@ sourceSchemas:
         LIST
       }
 
-      directive @serializeAs("The primitive type a scalar is serialized to." type: [ScalarSerializationType!]! "The ECMA-262 regex pattern that the serialized scalar value conforms to." pattern: String) on SCALAR
+      directive @serializeAs(
+        "The primitive type a scalar is serialized to." type: [ScalarSerializationType!]!
+        "The ECMA-262 regex pattern that the serialized scalar value conforms to." pattern: String
+      ) on SCALAR
 
       "The `Upload` scalar type represents a file upload."
       scalar Upload @serializeAs(type: STRING)
@@ -86,7 +89,7 @@ sourceSchemas:
             Content-Type: application/json; charset=utf-8
             Content-Disposition: form-data; name=operations
 
-            {"query":"query Op_6e1beb14_1(\n  $file: Upload!\n) {\n  singleUpload(file: $file) {\n    fileName\n    contentType\n    content\n  }\n}","variables":{"file":null}}
+            {"query":"query Op_6e1beb14_1($file: Upload!) {\n  singleUpload(file: $file) {\n    fileName\n    contentType\n    content\n  }\n}","variables":{"file":null}}
             --f56524ab-5626-4955-b296-234a097b44f6
             Content-Type: application/json; charset=utf-8
             Content-Disposition: form-data; name=map
@@ -113,9 +116,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query(
-          $file: Upload!
-        ) {
+        query($file: Upload!) {
           singleUpload(file: $file) {
             fileName
             contentType
@@ -130,9 +131,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_6e1beb14_1(
-          $file: Upload!
-        ) {
+        query Op_6e1beb14_1($file: Upload!) {
           singleUpload(file: $file) {
             fileName
             contentType

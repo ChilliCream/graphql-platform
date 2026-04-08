@@ -6,7 +6,10 @@ schema {
 "GetTypeDescription"
 type MutationNamingConvention_Named {
   "GetMemberDescription"
-  mutationField_Named("GetArgumentDescription" mutationArgument_Named: Int! "GetArgumentDescription" complexArgumentMutation_Named: InputObjectNamingConventionInput_Named!): ObjectNamingConvention_Named!
+  mutationField_Named(
+    "GetArgumentDescription" mutationArgument_Named: Int!
+    "GetArgumentDescription" complexArgumentMutation_Named: InputObjectNamingConventionInput_Named!
+  ): ObjectNamingConvention_Named!
 }
 
 "GetTypeDescription"
@@ -18,7 +21,10 @@ type ObjectNamingConvention_Named {
 "GetTypeDescription"
 type QueryNamingConvention_Named {
   "GetMemberDescription"
-  queryField_Named("GetArgumentDescription" queryArgument_Named: Int! "GetArgumentDescription" complexArgument_Named: InputObjectNamingConventionInput_Named!): ObjectNamingConvention_Named!
+  queryField_Named(
+    "GetArgumentDescription" queryArgument_Named: Int!
+    "GetArgumentDescription" complexArgument_Named: InputObjectNamingConventionInput_Named!
+  ): ObjectNamingConvention_Named!
 }
 
 "GetTypeDescription"
