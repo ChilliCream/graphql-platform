@@ -283,7 +283,7 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
         }
 
         var current = this;
-        var length = path.Length;
+        var length = Length;
 
         while (!current.IsRoot)
         {
