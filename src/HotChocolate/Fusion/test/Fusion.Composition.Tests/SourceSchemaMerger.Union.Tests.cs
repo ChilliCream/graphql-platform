@@ -25,33 +25,25 @@ public sealed class SourceSchemaMergerUnionTests : SourceSchemaMergerTestBase
                 """
             ],
             """
-            type Order
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                id: ID!
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type Order @fusion__type(schema: A) @fusion__type(schema: B) {
+              id: ID! @fusion__field(schema: A) @fusion__field(schema: B)
             }
 
-            type Product
-                @fusion__type(schema: A) {
-                id: ID!
-                    @fusion__field(schema: A)
+            type Product @fusion__type(schema: A) {
+              id: ID! @fusion__field(schema: A)
             }
 
-            type User
-                @fusion__type(schema: B) {
-                id: ID!
-                    @fusion__field(schema: B)
+            type User @fusion__type(schema: B) {
+              id: ID! @fusion__field(schema: B)
             }
 
             union SearchResult
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
-                @fusion__unionMember(schema: A, member: "Product")
-                @fusion__unionMember(schema: A, member: "Order")
-                @fusion__unionMember(schema: B, member: "Order")
-                @fusion__unionMember(schema: B, member: "User") = Product | Order | User
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @fusion__unionMember(schema: A, member: "Product")
+              @fusion__unionMember(schema: A, member: "Order")
+              @fusion__unionMember(schema: B, member: "Order")
+              @fusion__unionMember(schema: B, member: "User") = Product | Order | User
             """);
     }
 
@@ -76,20 +68,16 @@ public sealed class SourceSchemaMergerUnionTests : SourceSchemaMergerTestBase
                 """
             ],
             """
-            type User
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                id: ID!
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type User @fusion__type(schema: A) @fusion__type(schema: B) {
+              id: ID! @fusion__field(schema: A) @fusion__field(schema: B)
             }
 
             union SearchResult
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
-                @fusion__unionMember(schema: A, member: "User")
-                @fusion__unionMember(schema: B, member: "User")
-                @fusion__inaccessible = User
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @fusion__unionMember(schema: A, member: "User")
+              @fusion__unionMember(schema: B, member: "User")
+              @fusion__inaccessible = User
             """);
     }
 
@@ -115,20 +103,16 @@ public sealed class SourceSchemaMergerUnionTests : SourceSchemaMergerTestBase
                 """
             ],
             """
-            type User
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                id: ID!
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type User @fusion__type(schema: A) @fusion__type(schema: B) {
+              id: ID! @fusion__field(schema: A) @fusion__field(schema: B)
             }
 
             "The first non-empty description."
             union SearchResult
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
-                @fusion__unionMember(schema: A, member: "User")
-                @fusion__unionMember(schema: B, member: "User") = User
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @fusion__unionMember(schema: A, member: "User")
+              @fusion__unionMember(schema: B, member: "User") = User
             """);
     }
 
@@ -156,9 +140,7 @@ public sealed class SourceSchemaMergerUnionTests : SourceSchemaMergerTestBase
             ],
             // lang=text
             """
-            union SearchResult
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) =
+            union SearchResult @fusion__type(schema: A) @fusion__type(schema: B) =
             """);
     }
 
@@ -184,26 +166,20 @@ public sealed class SourceSchemaMergerUnionTests : SourceSchemaMergerTestBase
                 """
             ],
             """
-            type Order
-                @fusion__type(schema: A) {
-                id: ID!
-                    @fusion__field(schema: A)
+            type Order @fusion__type(schema: A) {
+              id: ID! @fusion__field(schema: A)
             }
 
-            type Product
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                id: ID!
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type Product @fusion__type(schema: A) @fusion__type(schema: B) {
+              id: ID! @fusion__field(schema: A) @fusion__field(schema: B)
             }
 
             union SearchResult
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
-                @fusion__unionMember(schema: A, member: "Product")
-                @fusion__unionMember(schema: B, member: "Product")
-                @fusion__unionMember(schema: A, member: "Order") = Product | Order
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @fusion__unionMember(schema: A, member: "Product")
+              @fusion__unionMember(schema: B, member: "Product")
+              @fusion__unionMember(schema: A, member: "Order") = Product | Order
             """);
     }
 
@@ -227,33 +203,35 @@ public sealed class SourceSchemaMergerUnionTests : SourceSchemaMergerTestBase
             ],
             """
             schema {
-                query: Query
+              query: Query
             }
 
+<<<<<<< Updated upstream
             type Query
                 @fusion__type(schema: A) {
                 animalById(id: ID!
                     @fusion__inputField(schema: A)): Animal
                     @fusion__field(schema: A)
+=======
+            type Query @fusion__type(schema: A) {
+              animalById(id: ID! @fusion__inputField(schema: A)): Animal
+                @fusion__field(schema: A)
+>>>>>>> Stashed changes
             }
 
-            type Cat
-                @fusion__type(schema: A) {
-                id: ID!
-                    @fusion__field(schema: A)
+            type Cat @fusion__type(schema: A) {
+              id: ID! @fusion__field(schema: A)
             }
 
-            type Dog
-                @fusion__type(schema: A) {
-                id: ID!
-                    @fusion__field(schema: A)
+            type Dog @fusion__type(schema: A) {
+              id: ID! @fusion__field(schema: A)
             }
 
             union Animal
-                @fusion__type(schema: A)
-                @fusion__unionMember(schema: A, member: "Dog")
-                @fusion__unionMember(schema: A, member: "Cat")
-                @fusion__lookup(schema: A, key: "id", field: "animalById(id: ID!): Animal", map: ["id"], path: null, internal: false) = Dog | Cat
+              @fusion__type(schema: A)
+              @fusion__unionMember(schema: A, member: "Dog")
+              @fusion__unionMember(schema: A, member: "Cat")
+              @fusion__lookup(schema: A, key: "id", field: "animalById(id: ID!): Animal", map: ["id"], path: null, internal: false) = Dog | Cat
             """);
     }
 
@@ -282,9 +260,10 @@ public sealed class SourceSchemaMergerUnionTests : SourceSchemaMergerTestBase
             ],
             """
             schema {
-                query: Query
+              query: Query
             }
 
+<<<<<<< Updated upstream
             type Query
                 @fusion__type(schema: A) {
                 animalById(id: ID!
@@ -306,13 +285,30 @@ public sealed class SourceSchemaMergerUnionTests : SourceSchemaMergerTestBase
                 dogById(id: ID!
                     @fusion__inputField(schema: A)): Dog
                     @fusion__field(schema: A)
+=======
+            type Query @fusion__type(schema: A) {
+              animalById(id: ID! @fusion__inputField(schema: A)): Animal
+                @fusion__field(schema: A)
+            }
+
+            type Cat
+              @fusion__type(schema: A)
+              @fusion__lookup(schema: A, key: "id", field: "catById(id: ID!): Cat", map: ["id"], path: "animalById", internal: false) {
+              catById(id: ID! @fusion__inputField(schema: A)): Cat @fusion__field(schema: A)
+            }
+
+            type Dog
+              @fusion__type(schema: A)
+              @fusion__lookup(schema: A, key: "id", field: "dogById(id: ID!): Dog", map: ["id"], path: "animalById", internal: false) {
+              dogById(id: ID! @fusion__inputField(schema: A)): Dog @fusion__field(schema: A)
+>>>>>>> Stashed changes
             }
 
             union Animal
-                @fusion__type(schema: A)
-                @fusion__unionMember(schema: A, member: "Dog")
-                @fusion__unionMember(schema: A, member: "Cat")
-                @fusion__lookup(schema: A, key: "id", field: "animalById(id: ID!): Animal", map: ["id"], path: null, internal: false) = Dog | Cat
+              @fusion__type(schema: A)
+              @fusion__unionMember(schema: A, member: "Dog")
+              @fusion__unionMember(schema: A, member: "Cat")
+              @fusion__lookup(schema: A, key: "id", field: "animalById(id: ID!): Animal", map: ["id"], path: null, internal: false) = Dog | Cat
             """);
     }
 }

@@ -26,16 +26,10 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
                 """
             ],
             """
-            type Product
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                id: ID!
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                name: String
-                    @fusion__field(schema: A)
-                price: Int
-                    @fusion__field(schema: B)
+            type Product @fusion__type(schema: A) @fusion__type(schema: B) {
+              id: ID! @fusion__field(schema: A) @fusion__field(schema: B)
+              name: String @fusion__field(schema: A)
+              price: Int @fusion__field(schema: B)
             }
             """);
     }
@@ -70,14 +64,9 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
             ],
             """
             "First Description"
-            type Order
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                id: ID!
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                total: Float
-                    @fusion__field(schema: B)
+            type Order @fusion__type(schema: A) @fusion__type(schema: B) {
+              id: ID! @fusion__field(schema: A) @fusion__field(schema: B)
+              total: Float @fusion__field(schema: B)
             }
             """);
     }
@@ -105,12 +94,9 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
                 """
             ],
             """
-            type Product
-                @fusion__type(schema: A) {
-                id: ID!
-                    @fusion__field(schema: A)
-                name: String
-                    @fusion__field(schema: A)
+            type Product @fusion__type(schema: A) {
+              id: ID! @fusion__field(schema: A)
+              name: String @fusion__field(schema: A)
             }
             """);
     }
@@ -137,12 +123,10 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
             ],
             """
             type Product
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
-                @fusion__inaccessible {
-                id: ID!
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @fusion__inaccessible {
+              id: ID! @fusion__field(schema: A) @fusion__field(schema: B)
             }
             """);
     }
@@ -187,37 +171,27 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
             ],
             """
             type Product implements I1 & I3
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
-                @fusion__implements(schema: A, interface: "I1")
-                @fusion__implements(schema: B, interface: "I1")
-                @fusion__implements(schema: B, interface: "I3") {
-                id: ID!
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @fusion__implements(schema: A, interface: "I1")
+              @fusion__implements(schema: B, interface: "I1")
+              @fusion__implements(schema: B, interface: "I3") {
+              id: ID! @fusion__field(schema: A) @fusion__field(schema: B)
             }
 
-            interface I1
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                id: ID!
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            interface I1 @fusion__type(schema: A) @fusion__type(schema: B) {
+              id: ID! @fusion__field(schema: A) @fusion__field(schema: B)
             }
 
             interface I2
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
-                @fusion__inaccessible {
-                id: ID!
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @fusion__inaccessible {
+              id: ID! @fusion__field(schema: A) @fusion__field(schema: B)
             }
 
-            interface I3
-                @fusion__type(schema: B) {
-                id: ID!
-                    @fusion__field(schema: B)
+            interface I3 @fusion__type(schema: B) {
+              id: ID! @fusion__field(schema: B)
             }
             """);
     }
@@ -244,9 +218,10 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
             ],
             """
             schema {
-                query: Query
+              query: Query
             }
 
+<<<<<<< Updated upstream
             type Query
                 @fusion__type(schema: A) {
                 productById(id: ID!
@@ -257,16 +232,22 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
                     @fusion__field(schema: A)
                 version: Int
                     @fusion__field(schema: A)
+=======
+            type Query @fusion__type(schema: A) {
+              productById(id: ID! @fusion__inputField(schema: A)): Product
+                @fusion__field(schema: A)
+              productByName(name: String! @fusion__inputField(schema: A)): Product
+                @fusion__field(schema: A)
+              version: Int @fusion__field(schema: A)
+>>>>>>> Stashed changes
             }
 
             type Product
-                @fusion__type(schema: A)
-                @fusion__lookup(schema: A, key: "id", field: "productById(id: ID!): Product", map: ["id"], path: null, internal: false)
-                @fusion__lookup(schema: A, key: "name", field: "productByName(name: String!): Product", map: ["name"], path: null, internal: false) {
-                id: ID!
-                    @fusion__field(schema: A)
-                name: String!
-                    @fusion__field(schema: A)
+              @fusion__type(schema: A)
+              @fusion__lookup(schema: A, key: "id", field: "productById(id: ID!): Product", map: ["id"], path: null, internal: false)
+              @fusion__lookup(schema: A, key: "name", field: "productByName(name: String!): Product", map: ["name"], path: null, internal: false) {
+              id: ID! @fusion__field(schema: A)
+              name: String! @fusion__field(schema: A)
             }
             """);
     }
@@ -298,9 +279,10 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
             ],
             """
             schema {
-                query: Query
+              query: Query
             }
 
+<<<<<<< Updated upstream
             type Query
                 @fusion__type(schema: A) {
                 productById(id: ID!
@@ -320,18 +302,31 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
                 price(regionName: String!
                     @fusion__inputField(schema: A)): ProductPrice
                     @fusion__field(schema: A)
+=======
+            type Query @fusion__type(schema: A) {
+              productById(id: ID! @fusion__inputField(schema: A)): Product
+                @fusion__field(schema: A)
+              productBySku(sku: String! @fusion__inputField(schema: A)): Product
+                @fusion__field(schema: A)
+            }
+
+            type Product
+              @fusion__type(schema: A)
+              @fusion__lookup(schema: A, key: "id", field: "productById(id: ID!): Product", map: ["id"], path: null, internal: false)
+              @fusion__lookup(schema: A, key: "sku", field: "productBySku(sku: String!): Product", map: ["sku"], path: null, internal: false) {
+              id: ID! @fusion__field(schema: A)
+              price(regionName: String! @fusion__inputField(schema: A)): ProductPrice
+                @fusion__field(schema: A)
+>>>>>>> Stashed changes
             }
 
             type ProductPrice
-                @fusion__type(schema: A)
-                @fusion__lookup(schema: A, key: "regionName", field: "price(regionName: String!): ProductPrice", map: ["regionName"], path: "productById", internal: false)
-                @fusion__lookup(schema: A, key: "regionName", field: "price(regionName: String!): ProductPrice", map: ["regionName"], path: "productBySku", internal: false) {
-                product: Product
-                    @fusion__field(schema: A)
-                regionName: String!
-                    @fusion__field(schema: A)
-                value: Float!
-                    @fusion__field(schema: A)
+              @fusion__type(schema: A)
+              @fusion__lookup(schema: A, key: "regionName", field: "price(regionName: String!): ProductPrice", map: ["regionName"], path: "productById", internal: false)
+              @fusion__lookup(schema: A, key: "regionName", field: "price(regionName: String!): ProductPrice", map: ["regionName"], path: "productBySku", internal: false) {
+              product: Product @fusion__field(schema: A)
+              regionName: String! @fusion__field(schema: A)
+              value: Float! @fusion__field(schema: A)
             }
             """);
     }
@@ -365,9 +360,10 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
             ],
             """
             schema {
-                query: Query
+              query: Query
             }
 
+<<<<<<< Updated upstream
             type Query
                 @fusion__type(schema: A) {
                 lookups1: Lookups1!
@@ -391,15 +387,31 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
                 productByName(name: String!
                     @fusion__inputField(schema: A)): Product
                     @fusion__field(schema: A)
+=======
+            type Query @fusion__type(schema: A) {
+              lookups1: Lookups1! @fusion__field(schema: A)
+              productById(id: ID! @fusion__inputField(schema: A)): Product
+                @fusion__field(schema: A)
+            }
+
+            type Lookups1 @fusion__type(schema: A) {
+              lookups2: Lookups2! @fusion__field(schema: A)
+              productBySku(sku: String! @fusion__inputField(schema: A)): Product
+                @fusion__field(schema: A)
+            }
+
+            type Lookups2 @fusion__type(schema: A) {
+              productByName(name: String! @fusion__inputField(schema: A)): Product
+                @fusion__field(schema: A)
+>>>>>>> Stashed changes
             }
 
             type Product
-                @fusion__type(schema: A)
-                @fusion__lookup(schema: A, key: "id", field: "productById(id: ID!): Product", map: ["id"], path: null, internal: false)
-                @fusion__lookup(schema: A, key: "sku", field: "productBySku(sku: String!): Product", map: ["sku"], path: "lookups1", internal: false)
-                @fusion__lookup(schema: A, key: "name", field: "productByName(name: String!): Product", map: ["name"], path: "lookups1.lookups2", internal: false) {
-                id: ID!
-                    @fusion__field(schema: A)
+              @fusion__type(schema: A)
+              @fusion__lookup(schema: A, key: "id", field: "productById(id: ID!): Product", map: ["id"], path: null, internal: false)
+              @fusion__lookup(schema: A, key: "sku", field: "productBySku(sku: String!): Product", map: ["sku"], path: "lookups1", internal: false)
+              @fusion__lookup(schema: A, key: "name", field: "productByName(name: String!): Product", map: ["name"], path: "lookups1.lookups2", internal: false) {
+              id: ID! @fusion__field(schema: A)
             }
             """);
     }
@@ -428,29 +440,31 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
             ],
             """
             schema {
-                query: Query
+              query: Query
             }
 
+<<<<<<< Updated upstream
             type Query
                 @fusion__type(schema: A) {
                 personByAddressId(id: ID!
                     @fusion__inputField(schema: A)): Person
                     @fusion__field(schema: A)
+=======
+            type Query @fusion__type(schema: A) {
+              personByAddressId(id: ID! @fusion__inputField(schema: A)): Person
+                @fusion__field(schema: A)
+>>>>>>> Stashed changes
             }
 
-            type Address
-                @fusion__type(schema: A) {
-                id: ID!
-                    @fusion__field(schema: A)
+            type Address @fusion__type(schema: A) {
+              id: ID! @fusion__field(schema: A)
             }
 
             type Person
-                @fusion__type(schema: A)
-                @fusion__lookup(schema: A, key: "address { id }", field: "personByAddressId(id: ID!): Person", map: ["address.id"], path: null, internal: false) {
-                address: Address
-                    @fusion__field(schema: A)
-                id: ID!
-                    @fusion__field(schema: A)
+              @fusion__type(schema: A)
+              @fusion__lookup(schema: A, key: "address { id }", field: "personByAddressId(id: ID!): Person", map: ["address.id"], path: null, internal: false) {
+              address: Address @fusion__field(schema: A)
+              id: ID! @fusion__field(schema: A)
             }
             """);
     }
@@ -484,9 +498,10 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
             ],
             """
             schema {
-                query: Query
+              query: Query
             }
 
+<<<<<<< Updated upstream
             type Query
                 @fusion__type(schema: A)
                 @fusion__type(schema: B) {
@@ -496,17 +511,22 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
                 personBySku(sku: String!
                     @fusion__inputField(schema: B)): Person
                     @fusion__field(schema: B)
+=======
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              personById(id: ID! @fusion__inputField(schema: A)): Person
+                @fusion__field(schema: A)
+              personBySku(sku: String! @fusion__inputField(schema: B)): Person
+                @fusion__field(schema: B)
+>>>>>>> Stashed changes
             }
 
             type Person
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
-                @fusion__lookup(schema: A, key: "id", field: "personById(id: ID!): Person", map: ["id"], path: null, internal: false)
-                @fusion__lookup(schema: B, key: "sku", field: "personBySku(sku: String!): Person", map: ["sku"], path: null, internal: false) {
-                id: ID!
-                    @fusion__field(schema: A)
-                sku: String!
-                    @fusion__field(schema: B)
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @fusion__lookup(schema: A, key: "id", field: "personById(id: ID!): Person", map: ["id"], path: null, internal: false)
+              @fusion__lookup(schema: B, key: "sku", field: "personBySku(sku: String!): Person", map: ["sku"], path: null, internal: false) {
+              id: ID! @fusion__field(schema: A)
+              sku: String! @fusion__field(schema: B)
             }
             """);
     }
@@ -530,24 +550,30 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
             ],
             """
             schema {
-                query: Query
+              query: Query
             }
 
+<<<<<<< Updated upstream
             type Query
                 @fusion__type(schema: A) {
                 productByIdAndCategoryId(categoryId: Int
                     @fusion__inputField(schema: A) id: ID!
                     @fusion__inputField(schema: A)): Product!
                     @fusion__field(schema: A)
+=======
+            type Query @fusion__type(schema: A) {
+              productByIdAndCategoryId(
+                categoryId: Int @fusion__inputField(schema: A)
+                id: ID! @fusion__inputField(schema: A)
+              ): Product! @fusion__field(schema: A)
+>>>>>>> Stashed changes
             }
 
             type Product
-                @fusion__type(schema: A)
-                @fusion__lookup(schema: A, key: "id categoryId", field: "productByIdAndCategoryId(id: ID! categoryId: Int): Product!", map: ["id", "categoryId"], path: null, internal: false) {
-                categoryId: Int
-                    @fusion__field(schema: A)
-                id: ID!
-                    @fusion__field(schema: A)
+              @fusion__type(schema: A)
+              @fusion__lookup(schema: A, key: "id categoryId", field: "productByIdAndCategoryId(id: ID! categoryId: Int): Product!", map: ["id", "categoryId"], path: null, internal: false) {
+              categoryId: Int @fusion__field(schema: A)
+              id: ID! @fusion__field(schema: A)
             }
             """);
     }
@@ -593,9 +619,10 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
             ],
             """
             schema {
-                query: Query
+              query: Query
             }
 
+<<<<<<< Updated upstream
             type Query
                 @fusion__type(schema: A) {
                 brand1(by: BrandByInput1!
@@ -609,44 +636,45 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
                     @fusion__inputField(schema: A) by: BrandByInput1!
                     @fusion__inputField(schema: A)): Brand
                     @fusion__field(schema: A)
+=======
+            type Query @fusion__type(schema: A) {
+              brand1(by: BrandByInput1! @fusion__inputField(schema: A)): Brand
+                @fusion__field(schema: A)
+              brand2(
+                and: BrandByInput1! @fusion__inputField(schema: A)
+                name: String! @fusion__inputField(schema: A)
+              ): Brand @fusion__field(schema: A)
+              brand3(
+                and: BrandByInput2! @fusion__inputField(schema: A)
+                by: BrandByInput1! @fusion__inputField(schema: A)
+              ): Brand @fusion__field(schema: A)
+>>>>>>> Stashed changes
             }
 
             type Brand
-                @fusion__type(schema: A)
-                @fusion__lookup(schema: A, key: "id", field: "brand1(by: BrandByInput1!): Brand", map: ["{ id }"], path: null, internal: false)
-                @fusion__lookup(schema: A, key: "key", field: "brand1(by: BrandByInput1!): Brand", map: ["{ key }"], path: null, internal: false)
-                @fusion__lookup(schema: A, key: "name id", field: "brand2(name: String! and: BrandByInput1!): Brand", map: ["name", "{ id }"], path: null, internal: false)
-                @fusion__lookup(schema: A, key: "name key", field: "brand2(name: String! and: BrandByInput1!): Brand", map: ["name", "{ key }"], path: null, internal: false)
-                @fusion__lookup(schema: A, key: "id name", field: "brand3(by: BrandByInput1! and: BrandByInput2!): Brand", map: ["{ id }", "{ name }"], path: null, internal: false)
-                @fusion__lookup(schema: A, key: "key name", field: "brand3(by: BrandByInput1! and: BrandByInput2!): Brand", map: ["{ key }", "{ name }"], path: null, internal: false)
-                @fusion__lookup(schema: A, key: "id title", field: "brand3(by: BrandByInput1! and: BrandByInput2!): Brand", map: ["{ id }", "{ title }"], path: null, internal: false)
-                @fusion__lookup(schema: A, key: "key title", field: "brand3(by: BrandByInput1! and: BrandByInput2!): Brand", map: ["{ key }", "{ title }"], path: null, internal: false) {
-                id: Int!
-                    @fusion__field(schema: A)
-                key: String!
-                    @fusion__field(schema: A)
-                name: String!
-                    @fusion__field(schema: A)
-                title: String
-                    @fusion__field(schema: A)
+              @fusion__type(schema: A)
+              @fusion__lookup(schema: A, key: "id", field: "brand1(by: BrandByInput1!): Brand", map: ["{ id }"], path: null, internal: false)
+              @fusion__lookup(schema: A, key: "key", field: "brand1(by: BrandByInput1!): Brand", map: ["{ key }"], path: null, internal: false)
+              @fusion__lookup(schema: A, key: "name id", field: "brand2(name: String! and: BrandByInput1!): Brand", map: ["name", "{ id }"], path: null, internal: false)
+              @fusion__lookup(schema: A, key: "name key", field: "brand2(name: String! and: BrandByInput1!): Brand", map: ["name", "{ key }"], path: null, internal: false)
+              @fusion__lookup(schema: A, key: "id name", field: "brand3(by: BrandByInput1! and: BrandByInput2!): Brand", map: ["{ id }", "{ name }"], path: null, internal: false)
+              @fusion__lookup(schema: A, key: "key name", field: "brand3(by: BrandByInput1! and: BrandByInput2!): Brand", map: ["{ key }", "{ name }"], path: null, internal: false)
+              @fusion__lookup(schema: A, key: "id title", field: "brand3(by: BrandByInput1! and: BrandByInput2!): Brand", map: ["{ id }", "{ title }"], path: null, internal: false)
+              @fusion__lookup(schema: A, key: "key title", field: "brand3(by: BrandByInput1! and: BrandByInput2!): Brand", map: ["{ key }", "{ title }"], path: null, internal: false) {
+              id: Int! @fusion__field(schema: A)
+              key: String! @fusion__field(schema: A)
+              name: String! @fusion__field(schema: A)
+              title: String @fusion__field(schema: A)
             }
 
-            input BrandByInput1
-                @oneOf
-                @fusion__type(schema: A) {
-                id: Int
-                    @fusion__inputField(schema: A)
-                key: String
-                    @fusion__inputField(schema: A)
+            input BrandByInput1 @oneOf @fusion__type(schema: A) {
+              id: Int @fusion__inputField(schema: A)
+              key: String @fusion__inputField(schema: A)
             }
 
-            input BrandByInput2
-                @oneOf
-                @fusion__type(schema: A) {
-                name: String
-                    @fusion__inputField(schema: A)
-                title: String
-                    @fusion__inputField(schema: A)
+            input BrandByInput2 @oneOf @fusion__type(schema: A) {
+              name: String @fusion__inputField(schema: A)
+              title: String @fusion__inputField(schema: A)
             }
             """);
     }
@@ -670,20 +698,17 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
             ],
             """
             schema {
-                query: Query
+              query: Query
             }
 
-            type Query
-                @fusion__type(schema: A) {
-                product: Product
-                    @fusion__field(schema: A)
+            type Query @fusion__type(schema: A) {
+              product: Product @fusion__field(schema: A)
             }
 
             type Product
-                @fusion__type(schema: A)
-                @fusion__lookup(schema: A, key: "id", field: "productById(id: ID!): Product", map: ["id"], path: null, internal: true) {
-                id: ID!
-                    @fusion__field(schema: A)
+              @fusion__type(schema: A)
+              @fusion__lookup(schema: A, key: "id", field: "productById(id: ID!): Product", map: ["id"], path: null, internal: true) {
+              id: ID! @fusion__field(schema: A)
             }
             """);
     }
@@ -707,22 +732,28 @@ public sealed class SourceSchemaMergerObjectTests : SourceSchemaMergerTestBase
             ],
             """
             schema {
-                query: Query
+              query: Query
             }
 
+<<<<<<< Updated upstream
             type Query
                 @fusion__type(schema: A) {
                 "Fetches a product"
                 productById("The product id" id: ID!
                     @fusion__inputField(schema: A)): Product
                     @fusion__field(schema: A)
+=======
+            type Query @fusion__type(schema: A) {
+              "Fetches a product"
+              productById(id: ID! @fusion__inputField(schema: A)): Product
+                @fusion__field(schema: A)
+>>>>>>> Stashed changes
             }
 
             type Product
-                @fusion__type(schema: A)
-                @fusion__lookup(schema: A, key: "id", field: "productById(id: ID!): Product", map: ["id"], path: null, internal: false) {
-                id: ID!
-                    @fusion__field(schema: A)
+              @fusion__type(schema: A)
+              @fusion__lookup(schema: A, key: "id", field: "productById(id: ID!): Product", map: ["id"], path: null, internal: false) {
+              id: ID! @fusion__field(schema: A)
             }
             """);
     }

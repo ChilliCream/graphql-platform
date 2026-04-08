@@ -36,9 +36,10 @@ public sealed class SourceSchemaMergerArgumentTests : SourceSchemaMergerTestBase
             ],
             """
             schema {
-                query: Query
+              query: Query
             }
 
+<<<<<<< Updated upstream
             type Query
                 @fusion__type(schema: A)
                 @fusion__type(schema: B) {
@@ -47,15 +48,17 @@ public sealed class SourceSchemaMergerArgumentTests : SourceSchemaMergerTestBase
                     @fusion__inputField(schema: B, sourceType: "ProductFilter")): [Product]
                     @fusion__field(schema: A)
                     @fusion__field(schema: B)
+=======
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              searchProducts(
+                filter: ProductFilter! @fusion__inputField(schema: A) @fusion__inputField(schema: B, sourceType: "ProductFilter")
+              ): [Product] @fusion__field(schema: A) @fusion__field(schema: B)
+>>>>>>> Stashed changes
             }
 
-            scalar Product
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
+            scalar Product @fusion__type(schema: A) @fusion__type(schema: B)
 
-            scalar ProductFilter
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
+            scalar ProductFilter @fusion__type(schema: A) @fusion__type(schema: B)
             """);
     }
 
@@ -81,9 +84,10 @@ public sealed class SourceSchemaMergerArgumentTests : SourceSchemaMergerTestBase
             ],
             """
             schema {
-                query: Query
+              query: Query
             }
 
+<<<<<<< Updated upstream
             type Query
                 @fusion__type(schema: A)
                 @fusion__type(schema: B) {
@@ -93,6 +97,12 @@ public sealed class SourceSchemaMergerArgumentTests : SourceSchemaMergerTestBase
                     @fusion__inaccessible): Int
                     @fusion__field(schema: A)
                     @fusion__field(schema: B)
+=======
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              field(
+                limit: Int @fusion__inputField(schema: A) @fusion__inputField(schema: B) @fusion__inaccessible
+              ): Int @fusion__field(schema: A) @fusion__field(schema: B)
+>>>>>>> Stashed changes
             }
             """);
     }
@@ -123,9 +133,10 @@ public sealed class SourceSchemaMergerArgumentTests : SourceSchemaMergerTestBase
             ],
             """
             schema {
-                query: Query
+              query: Query
             }
 
+<<<<<<< Updated upstream
             type Query
                 @fusion__type(schema: A)
                 @fusion__type(schema: B) {
@@ -134,6 +145,12 @@ public sealed class SourceSchemaMergerArgumentTests : SourceSchemaMergerTestBase
                     @fusion__inputField(schema: B)): Int
                     @fusion__field(schema: A)
                     @fusion__field(schema: B)
+=======
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              field(
+                limit: Int! = 10 @fusion__inputField(schema: A, sourceType: "Int") @fusion__inputField(schema: B)
+              ): Int @fusion__field(schema: A) @fusion__field(schema: B)
+>>>>>>> Stashed changes
             }
             """);
     }
@@ -162,6 +179,7 @@ public sealed class SourceSchemaMergerArgumentTests : SourceSchemaMergerTestBase
                 """
             ],
             """
+<<<<<<< Updated upstream
             type Product
                 @fusion__type(schema: A) {
                 delivery(zip: String!
@@ -172,18 +190,22 @@ public sealed class SourceSchemaMergerArgumentTests : SourceSchemaMergerTestBase
                     @fusion__field(schema: A)
                 id: ID!
                     @fusion__field(schema: A)
+=======
+            type Product @fusion__type(schema: A) {
+              delivery(zip: String! @fusion__inputField(schema: A)): DeliveryEstimates
+                @fusion__field(schema: A)
+                @fusion__requires(schema: A, requirements: "dimension { size weight }", field: "delivery(zip: String! size: Int! weight: Int!): DeliveryEstimates", map: [null, "dimension.size", "dimension.weight"])
+              dimension: ProductDimension! @fusion__field(schema: A)
+              id: ID! @fusion__field(schema: A)
+>>>>>>> Stashed changes
             }
 
-            type ProductDimension
-                @fusion__type(schema: A) {
-                size: Int!
-                    @fusion__field(schema: A)
-                weight: Int!
-                    @fusion__field(schema: A)
+            type ProductDimension @fusion__type(schema: A) {
+              size: Int! @fusion__field(schema: A)
+              weight: Int! @fusion__field(schema: A)
             }
 
-            scalar DeliveryEstimates
-                @fusion__type(schema: A)
+            scalar DeliveryEstimates @fusion__type(schema: A)
             """);
     }
 
@@ -208,6 +230,7 @@ public sealed class SourceSchemaMergerArgumentTests : SourceSchemaMergerTestBase
                 """
             ],
             """
+<<<<<<< Updated upstream
             type Product
                 @fusion__type(schema: A)
                 @fusion__type(schema: B) {
@@ -217,6 +240,12 @@ public sealed class SourceSchemaMergerArgumentTests : SourceSchemaMergerTestBase
                     @deprecated(reason: "Some reason")): [String]
                     @fusion__field(schema: A)
                     @fusion__field(schema: B)
+=======
+            type Product @fusion__type(schema: A) @fusion__type(schema: B) {
+              reviews(
+                filter: String @fusion__inputField(schema: A) @fusion__inputField(schema: B) @deprecated(reason: "Some reason")
+              ): [String] @fusion__field(schema: A) @fusion__field(schema: B)
+>>>>>>> Stashed changes
             }
             """);
     }
@@ -242,6 +271,7 @@ public sealed class SourceSchemaMergerArgumentTests : SourceSchemaMergerTestBase
                 """
             ],
             """
+<<<<<<< Updated upstream
             type Product
                 @fusion__type(schema: A)
                 @fusion__type(schema: B) {
@@ -251,6 +281,12 @@ public sealed class SourceSchemaMergerArgumentTests : SourceSchemaMergerTestBase
                     @deprecated(reason: "Some reason")): [String]
                     @fusion__field(schema: A)
                     @fusion__field(schema: B)
+=======
+            type Product @fusion__type(schema: A) @fusion__type(schema: B) {
+              reviews(
+                filter: String @fusion__inputField(schema: A) @fusion__inputField(schema: B) @deprecated(reason: "Some reason")
+              ): [String] @fusion__field(schema: A) @fusion__field(schema: B)
+>>>>>>> Stashed changes
             }
             """);
     }
@@ -276,6 +312,7 @@ public sealed class SourceSchemaMergerArgumentTests : SourceSchemaMergerTestBase
                 """
             ],
             """
+<<<<<<< Updated upstream
             type Product
                 @fusion__type(schema: A)
                 @fusion__type(schema: B) {
@@ -285,6 +322,12 @@ public sealed class SourceSchemaMergerArgumentTests : SourceSchemaMergerTestBase
                     @deprecated(reason: "No longer supported.")): [String]
                     @fusion__field(schema: A)
                     @fusion__field(schema: B)
+=======
+            type Product @fusion__type(schema: A) @fusion__type(schema: B) {
+              reviews(
+                filter: String @fusion__inputField(schema: A) @fusion__inputField(schema: B) @deprecated(reason: "No longer supported.")
+              ): [String] @fusion__field(schema: A) @fusion__field(schema: B)
+>>>>>>> Stashed changes
             }
             """);
     }

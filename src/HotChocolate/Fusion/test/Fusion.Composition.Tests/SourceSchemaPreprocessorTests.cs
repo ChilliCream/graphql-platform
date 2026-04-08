@@ -406,37 +406,35 @@ public sealed class SourceSchemaPreprocessorTests
             // lang=graphql
             """
             type Cat implements Pet & Animal
-                @key(fields: "name")
-                @key(fields: "id")
-                @key(fields: "age") {
-                age: Int
-                id: ID!
-                name: String
+              @key(fields: "name")
+              @key(fields: "id")
+              @key(fields: "age") {
+              age: Int
+              id: ID!
+              name: String
             }
 
             type Dog implements Pet & Animal
-                @key(fields: "name")
-                @key(fields: "id")
-                @key(fields: "age") {
-                age: Int
-                id: ID!
-                name: String
+              @key(fields: "name")
+              @key(fields: "id")
+              @key(fields: "age") {
+              age: Int
+              id: ID!
+              name: String
             }
 
-            interface Animal
-                @key(fields: "id")
-                @key(fields: "age") {
-                age: Int
-                id: ID!
+            interface Animal @key(fields: "id") @key(fields: "age") {
+              age: Int
+              id: ID!
             }
 
             interface Pet implements Animal
-                @key(fields: "name")
-                @key(fields: "id")
-                @key(fields: "age") {
-                age: Int
-                id: ID!
-                name: String
+              @key(fields: "name")
+              @key(fields: "id")
+              @key(fields: "age") {
+              age: Int
+              id: ID!
+              name: String
             }
             """);
     }
@@ -527,6 +525,7 @@ public sealed class SourceSchemaPreprocessorTests
             }
 
             type Query {
+<<<<<<< Updated upstream
               node(id: ID!): Node
                 @lookup
               productById(id: ID!): Product
@@ -534,23 +533,24 @@ public sealed class SourceSchemaPreprocessorTests
               productByName(productName: String!
                 @is(field: "name")): Product
                 @lookup
+=======
+              node(id: ID!): Node @lookup
+              productById(id: ID!): Product @lookup
+              productByName(productName: String! @is(field: "name")): Product @lookup
+>>>>>>> Stashed changes
             }
 
-            type Product implements Node
-              @key(fields: "id")
-              @key(fields: "name") {
+            type Product implements Node @key(fields: "id") @key(fields: "name") {
               id: ID!
               name: String!
             }
 
-            type Review implements Node
-              @key(fields: "id") {
+            type Review implements Node @key(fields: "id") {
               id: ID!
               title: String!
             }
 
-            interface Node
-              @key(fields: "id") {
+            interface Node @key(fields: "id") {
               id: ID!
             }
             """);
@@ -610,7 +610,7 @@ public sealed class SourceSchemaPreprocessorTests
               product(id: ID!): Product
               productByGtin(gtin: String!): Product
               productById(id: ID!): Product!
-              productByIdAndOther(id: ID! other: String): Product
+              productByIdAndOther(id: ID!, other: String): Product
               productsById(ids: [ID!]!): [Product]
             }
 
@@ -747,16 +747,12 @@ public sealed class SourceSchemaPreprocessorTests
             }
 
             type Query {
-              productById(id: ID!): Product
-                @lookup
-                @shareable
+              productById(id: ID!): Product @lookup @shareable
             }
 
-            type Product
-              @key(fields: "id") {
+            type Product @key(fields: "id") {
               id: ID!
-              name: String!
-                @shareable
+              name: String! @shareable
             }
             """);
     }

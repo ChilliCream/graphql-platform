@@ -1,2 +1,2 @@
 "bar"
-directive @foo("def" abc: efg) repeatable on FIELD
+directive @foo(abc: efg) repeatable on FIELD
