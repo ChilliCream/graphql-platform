@@ -133,10 +133,16 @@ public partial class LocalDateTimeType : ScalarType<DateTime, StringValueNode>
     private bool TryParseStringValue(string serialized, out DateTime value)
     {
         // Check format.
-        if (_options.ValidateInputFormat && !_localDateTimeRegex.IsMatch(serialized))
+        if (_options.ValidateInputFormat)
         {
-            value = default;
-            return false;
+            var match = _localDateTimeRegex.Match(serialized);
+
+            // RFC 3339 does not support specifying the hour as 24.
+            if (!match.Success || match.Groups["hour"].Value == "24")
+            {
+                value = default;
+                return false;
+            }
         }
 
         if (DateTime.TryParse(
@@ -181,43 +187,43 @@ public partial class LocalDateTimeType : ScalarType<DateTime, StringValueNode>
             _ => LocalDateTimeRegex9()
         };
 
-    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\z",
+    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T(?<hour>[0-9]{2}):[0-9]{2}:[0-9]{2}\z",
         RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
     private static partial Regex LocalDateTimeRegex0();
 
-    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9])?\z",
+    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T(?<hour>[0-9]{2}):[0-9]{2}:[0-9]{2}(\.[0-9])?\z",
         RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
     private static partial Regex LocalDateTimeRegex1();
 
-    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,2})?\z",
+    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T(?<hour>[0-9]{2}):[0-9]{2}:[0-9]{2}(\.[0-9]{1,2})?\z",
         RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
     private static partial Regex LocalDateTimeRegex2();
 
-    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,3})?\z",
+    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T(?<hour>[0-9]{2}):[0-9]{2}:[0-9]{2}(\.[0-9]{1,3})?\z",
         RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
     private static partial Regex LocalDateTimeRegex3();
 
-    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,4})?\z",
+    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T(?<hour>[0-9]{2}):[0-9]{2}:[0-9]{2}(\.[0-9]{1,4})?\z",
         RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
     private static partial Regex LocalDateTimeRegex4();
 
-    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,5})?\z",
+    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T(?<hour>[0-9]{2}):[0-9]{2}:[0-9]{2}(\.[0-9]{1,5})?\z",
         RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
     private static partial Regex LocalDateTimeRegex5();
 
-    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,6})?\z",
+    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T(?<hour>[0-9]{2}):[0-9]{2}:[0-9]{2}(\.[0-9]{1,6})?\z",
         RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
     private static partial Regex LocalDateTimeRegex6();
 
-    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,7})?\z",
+    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T(?<hour>[0-9]{2}):[0-9]{2}:[0-9]{2}(\.[0-9]{1,7})?\z",
         RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
     private static partial Regex LocalDateTimeRegex7();
 
-    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,8})?\z",
+    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T(?<hour>[0-9]{2}):[0-9]{2}:[0-9]{2}(\.[0-9]{1,8})?\z",
         RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
     private static partial Regex LocalDateTimeRegex8();
 
-    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,9})?\z",
+    [GeneratedRegex(@"^[0-9]{4}-[0-9]{2}-[0-9]{2}T(?<hour>[0-9]{2}):[0-9]{2}:[0-9]{2}(\.[0-9]{1,9})?\z",
         RegexOptions.ExplicitCapture | RegexOptions.IgnoreCase)]
     private static partial Regex LocalDateTimeRegex9();
 }

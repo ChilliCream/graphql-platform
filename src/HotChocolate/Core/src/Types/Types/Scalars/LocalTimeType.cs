@@ -132,10 +132,16 @@ public partial class LocalTimeType : ScalarType<TimeOnly, StringValueNode>
     private bool TryParseStringValue(string serialized, out TimeOnly value)
     {
         // Check format.
-        if (_options.ValidateInputFormat && !_localTimeRegex.IsMatch(serialized))
+        if (_options.ValidateInputFormat)
         {
-            value = default;
-            return false;
+            var match = _localTimeRegex.Match(serialized);
+
+            // RFC 3339 does not support specifying the hour as 24.
+            if (!match.Success || match.Groups["hour"].Value == "24")
+            {
+                value = default;
+                return false;
+            }
         }
 
         if (TimeOnly.TryParse(
@@ -179,33 +185,33 @@ public partial class LocalTimeType : ScalarType<TimeOnly, StringValueNode>
             _ => LocalTimeRegex9()
         };
 
-    [GeneratedRegex(@"^[0-9]{2}:[0-9]{2}:[0-9]{2}\z", RegexOptions.ExplicitCapture)]
+    [GeneratedRegex(@"^(?<hour>[0-9]{2}):[0-9]{2}:[0-9]{2}\z", RegexOptions.ExplicitCapture)]
     private static partial Regex LocalTimeRegex0();
 
-    [GeneratedRegex(@"^[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9])?\z", RegexOptions.ExplicitCapture)]
+    [GeneratedRegex(@"^(?<hour>[0-9]{2}):[0-9]{2}:[0-9]{2}(\.[0-9])?\z", RegexOptions.ExplicitCapture)]
     private static partial Regex LocalTimeRegex1();
 
-    [GeneratedRegex(@"^[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,2})?\z", RegexOptions.ExplicitCapture)]
+    [GeneratedRegex(@"^(?<hour>[0-9]{2}):[0-9]{2}:[0-9]{2}(\.[0-9]{1,2})?\z", RegexOptions.ExplicitCapture)]
     private static partial Regex LocalTimeRegex2();
 
-    [GeneratedRegex(@"^[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,3})?\z", RegexOptions.ExplicitCapture)]
+    [GeneratedRegex(@"^(?<hour>[0-9]{2}):[0-9]{2}:[0-9]{2}(\.[0-9]{1,3})?\z", RegexOptions.ExplicitCapture)]
     private static partial Regex LocalTimeRegex3();
 
-    [GeneratedRegex(@"^[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,4})?\z", RegexOptions.ExplicitCapture)]
+    [GeneratedRegex(@"^(?<hour>[0-9]{2}):[0-9]{2}:[0-9]{2}(\.[0-9]{1,4})?\z", RegexOptions.ExplicitCapture)]
     private static partial Regex LocalTimeRegex4();
 
-    [GeneratedRegex(@"^[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,5})?\z", RegexOptions.ExplicitCapture)]
+    [GeneratedRegex(@"^(?<hour>[0-9]{2}):[0-9]{2}:[0-9]{2}(\.[0-9]{1,5})?\z", RegexOptions.ExplicitCapture)]
     private static partial Regex LocalTimeRegex5();
 
-    [GeneratedRegex(@"^[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,6})?\z", RegexOptions.ExplicitCapture)]
+    [GeneratedRegex(@"^(?<hour>[0-9]{2}):[0-9]{2}:[0-9]{2}(\.[0-9]{1,6})?\z", RegexOptions.ExplicitCapture)]
     private static partial Regex LocalTimeRegex6();
 
-    [GeneratedRegex(@"^[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,7})?\z", RegexOptions.ExplicitCapture)]
+    [GeneratedRegex(@"^(?<hour>[0-9]{2}):[0-9]{2}:[0-9]{2}(\.[0-9]{1,7})?\z", RegexOptions.ExplicitCapture)]
     private static partial Regex LocalTimeRegex7();
 
-    [GeneratedRegex(@"^[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,8})?\z", RegexOptions.ExplicitCapture)]
+    [GeneratedRegex(@"^(?<hour>[0-9]{2}):[0-9]{2}:[0-9]{2}(\.[0-9]{1,8})?\z", RegexOptions.ExplicitCapture)]
     private static partial Regex LocalTimeRegex8();
 
-    [GeneratedRegex(@"^[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,9})?\z", RegexOptions.ExplicitCapture)]
+    [GeneratedRegex(@"^(?<hour>[0-9]{2}):[0-9]{2}:[0-9]{2}(\.[0-9]{1,9})?\z", RegexOptions.ExplicitCapture)]
     private static partial Regex LocalTimeRegex9();
 }

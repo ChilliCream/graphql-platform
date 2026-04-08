@@ -3,11 +3,11 @@
 ## SQL 0
 
 ```sql
--- @__p_0='3'
+-- @p='3'
 SELECT b."Id", b."AlwaysNull", b."DisplayName", b."Name", b."BrandDetails_Country_Name"
 FROM "Brands" AS b
 ORDER BY b."Name", b."Id"
-LIMIT @__p_0
+LIMIT @p
 ```
 
 ## Expression 0

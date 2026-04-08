@@ -131,10 +131,17 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
             var requestBody = new OpenApiRequestBody
             {
                 Required = true,
+#if NET11_0_OR_GREATER
+                Content = new Dictionary<string, IOpenApiMediaType>
+                {
+                    [JsonContentType] = new OpenApiMediaType { Schema = requestBodyType }
+                }
+#else
                 Content = new Dictionary<string, OpenApiMediaType>
                 {
                     [JsonContentType] = new() { Schema = requestBodyType }
                 }
+#endif
             };
 
             operation.RequestBody = requestBody;
@@ -165,7 +172,11 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
         operation.Responses["200"] = new OpenApiResponse
         {
+#if NET11_0_OR_GREATER
+            Content = new ConcurrentDictionary<string, IOpenApiMediaType> { [JsonContentType] = responseBody }
+#else
             Content = new ConcurrentDictionary<string, OpenApiMediaType> { [JsonContentType] = responseBody }
+#endif
         };
 
         return new EndpointDescriptor(

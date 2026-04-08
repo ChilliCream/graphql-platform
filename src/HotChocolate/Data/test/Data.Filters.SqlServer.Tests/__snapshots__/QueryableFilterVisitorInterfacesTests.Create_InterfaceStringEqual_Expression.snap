@@ -15,12 +15,12 @@ a Result:
 
 a SQL:
 ---------------
-.param set @__p_0 'a'
+.param set @p 'a'
 
 SELECT "d"."Id", "d"."TestId"
 FROM "Data" AS "d"
 INNER JOIN "Test" AS "t" ON "d"."TestId" = "t"."Id"
-WHERE "t"."Prop" = @__p_0
+WHERE "t"."Prop" = @p
 ---------------
 
 ba Result:
@@ -40,12 +40,12 @@ ba Result:
 
 ba SQL:
 ---------------
-.param set @__p_0 'b'
+.param set @p 'b'
 
 SELECT "d"."Id", "d"."TestId"
 FROM "Data" AS "d"
 INNER JOIN "Test" AS "t" ON "d"."TestId" = "t"."Id"
-WHERE "t"."Prop" = @__p_0
+WHERE "t"."Prop" = @p
 ---------------
 
 null

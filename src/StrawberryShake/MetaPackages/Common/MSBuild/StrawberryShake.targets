@@ -53,6 +53,7 @@
       <GenTool Condition="'$(DotNetMajor)' == '8'">$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "net8", "dotnet-graphql.dll"))</GenTool>
       <GenTool Condition="'$(DotNetMajor)' == '9'">$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "net9", "dotnet-graphql.dll"))</GenTool>
       <GenTool Condition="'$(DotNetMajor)' == '10'">$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "net10", "dotnet-graphql.dll"))</GenTool>
+      <GenTool Condition="'$(DotNetMajor)' == '11'">$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "net11", "dotnet-graphql.dll"))</GenTool>
     </PropertyGroup>
 
     <PropertyGroup>

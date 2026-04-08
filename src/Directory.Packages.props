@@ -82,6 +82,36 @@
     <PackageVersion Include="xunit.v3" Version="3.2.2" />
     <PackageVersion Include="xunit" Version="2.9.3" />
   </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net11.0'">
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="11.0.0-preview.2.26159.112" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="11.0.0-preview.2.26159.112" />
+    <PackageVersion Include="Microsoft.AspNetCore.Components.Web" Version="11.0.0-preview.2.26159.112" />
+    <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="11.0.0-preview.2.26159.112" />
+    <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="11.0.0-preview.2.26159.112" />
+    <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="11.0.0-preview.2.26159.112" />
+    <PackageVersion Include="Microsoft.Data.Sqlite.Core" Version="11.0.0-preview.2.26159.112" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="11.0.0-preview.2.26159.112" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="11.0.0-preview.2.26159.112" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Relational" Version="11.0.0-preview.2.26159.112" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="11.0.0-preview.2.26159.112" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="11.0.0-preview.2.26159.112" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="11.0.0-preview.2.26159.112" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="11.0.0-preview.2.26159.112" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="11.0.0-preview.2.26159.112" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="11.0.0-preview.2.26159.112" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="11.0.0-preview.2.26159.112" />
+    <PackageVersion Include="Microsoft.Extensions.Logging" Version="11.0.0-preview.2.26159.112" />
+    <PackageVersion Include="Microsoft.Extensions.ObjectPool" Version="11.0.0-preview.2.26159.112" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="11.0.0-preview.2.26159.112" />
+    <PackageVersion Include="Microsoft.Net.Http.Headers" Version="11.0.0-preview.2.26159.112" />
+    <PackageVersion Include="Microsoft.AspNetCore.HeaderPropagation" Version="11.0.0-preview.2.26159.112" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="11.0.0-preview.2" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite" Version="11.0.0-preview.2" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime" Version="11.0.0-preview.2" />
+    <PackageVersion Include="System.IO.Hashing" Version="11.0.0-preview.2.26159.112" />
+    <PackageVersion Include="System.IO.Packaging" Version="11.0.0-preview.2.26159.112" />
+    <PackageVersion Include="System.Security.Cryptography.Pkcs" Version="11.0.0-preview.2.26159.112" />
+  </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.1" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />

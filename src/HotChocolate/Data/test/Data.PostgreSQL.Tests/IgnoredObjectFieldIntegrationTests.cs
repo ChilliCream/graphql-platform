@@ -10,6 +10,7 @@ using HotChocolate.Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Squadron;
+using static CookieCrumble.TestEnvironment;
 
 namespace HotChocolate.Data;
 
@@ -64,7 +65,7 @@ public sealed class IgnoredObjectFieldIntegrationTests(PostgreSqlResource resour
             interceptor.Queries,
             query => query.Contains("\"Name\"", StringComparison.Ordinal));
 
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0, NET9_0]));
     }
 
     [Fact]
@@ -115,7 +116,7 @@ public sealed class IgnoredObjectFieldIntegrationTests(PostgreSqlResource resour
             interceptor.Queries,
             query => query.Contains("\"Name\"", StringComparison.Ordinal));
 
-        MatchSnapshot(result, interceptor);
+        MatchSnapshot(result, interceptor, Postfix([NET8_0, NET9_0], [NET10_0]));
     }
 
     private static ServiceProvider CreateServer(string connectionString)
@@ -146,9 +147,10 @@ public sealed class IgnoredObjectFieldIntegrationTests(PostgreSqlResource resour
 
     private static void MatchSnapshot(
         IExecutionResult result,
-        TestQueryInterceptor queryInterceptor)
+        TestQueryInterceptor queryInterceptor,
+        string? postfix)
     {
-        var snapshot = Snapshot.Create(postFix: TestEnvironment.TargetFramework);
+        var snapshot = Snapshot.Create(postfix);
 
         snapshot.Add(result.ToJson(), "Result", MarkdownLanguages.Json);
 

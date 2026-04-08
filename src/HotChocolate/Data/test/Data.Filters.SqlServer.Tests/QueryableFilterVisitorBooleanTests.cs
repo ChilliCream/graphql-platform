@@ -1,4 +1,5 @@
 using HotChocolate.Execution;
+using static CookieCrumble.TestEnvironment;
 
 namespace HotChocolate.Data.Filters;
 
@@ -39,8 +40,8 @@ public class QueryableFilterVisitorBooleanTests
         // assert
         await Snapshot
             .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
+                postFix: TargetFramework == "NET10_0"
+                    ? TargetFramework
                     : null)
             .AddResult(res1, "true")
             .AddResult(res2, "false")
@@ -67,8 +68,8 @@ public class QueryableFilterVisitorBooleanTests
         // assert
         await Snapshot
             .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
+                postFix: TargetFramework == "NET10_0"
+                    ? TargetFramework
                     : null)
             .AddResult(res1, "true")
             .AddResult(res2, "false")
@@ -99,10 +100,7 @@ public class QueryableFilterVisitorBooleanTests
 
         // assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddResult(res1, "true")
             .AddResult(res2, "false")
             .AddResult(res3, "null")
@@ -134,10 +132,7 @@ public class QueryableFilterVisitorBooleanTests
 
         // assert
         await Snapshot
-            .Create(
-                postFix: TestEnvironment.TargetFramework == "NET10_0"
-                    ? TestEnvironment.TargetFramework
-                    : null)
+            .Create(Postfix([NET8_0, NET9_0]))
             .AddResult(res1, "true")
             .AddResult(res2, "false")
             .AddResult(res3, "null")

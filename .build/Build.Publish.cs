@@ -26,7 +26,7 @@ partial class Build
                 .SetProject("src/Nitro/CommandLine/src/CommandLine")
                 .SetOutput(PublishDirectory)
                 .SetRuntime(RuntimeIdentifier)
-                .SetFramework("net10.0")
+                .SetFramework("net11.0")
                 .SetConfiguration(Configuration)
                 .SetSelfContained(true)
                 .SetInformationalVersion(SemVersion)
@@ -37,7 +37,7 @@ partial class Build
                 .SetProperty("NitroIdentityClientId", NitroIdentityClientId)
                 .SetProperty("NitroIdentityScopes", NitroIdentityScopes)
                 .SetProperty("PublishAot", true)
-                .SetProperty("TargetFrameworks", "net10.0")
+                .SetProperty("TargetFrameworks", "net11.0")
                 .SetProperty("RuntimeIdentifiers", RuntimeIdentifier));
         });
 

@@ -3,20 +3,20 @@
 ## SQL 0
 
 ```sql
--- @__value_0='Country1'
--- @__value_1='2'
--- @__p_2='3'
+-- @value='Country1'
+-- @value2='2'
+-- @p='3'
 SELECT b."Id", b."AlwaysNull", b."DisplayName", b."Name", b."BrandDetails_Country_Name"
 FROM "Brands" AS b
-WHERE b."BrandDetails_Country_Name" > @__value_0 OR (b."BrandDetails_Country_Name" = @__value_0 AND b."Id" > @__value_1)
+WHERE b."BrandDetails_Country_Name" > @value OR (b."BrandDetails_Country_Name" = @value AND b."Id" > @value2)
 ORDER BY b."BrandDetails_Country_Name", b."Id"
-LIMIT @__p_2
+LIMIT @p
 ```
 
 ## Expression 0
 
 ```text
-[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderBy(x => x.BrandDetails.Country.Name).ThenBy(t => t.Id).Where(t => ((t.BrandDetails.Country.Name.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass14_0`1[System.String]).value) > 0) OrElse ((t.BrandDetails.Country.Name.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass14_0`1[System.String]).value) == 0) AndAlso (t.Id.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass14_0`1[System.Int32]).value) > 0)))).Take(3)
+[Microsoft.EntityFrameworkCore.Query.EntityQueryRootExpression].OrderBy(x => x.BrandDetails.Country.Name).ThenBy(t => t.Id).Where(t => ((t.BrandDetails.Country.Name.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass16_0`1[System.String]).value) > 0) OrElse ((t.BrandDetails.Country.Name.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass16_0`1[System.String]).value) == 0) AndAlso (t.Id.CompareTo(value(GreenDonut.Data.Expressions.ExpressionHelpers+<>c__DisplayClass16_0`1[System.Int32]).value) > 0)))).Take(3)
 ```
 
 ## Result
