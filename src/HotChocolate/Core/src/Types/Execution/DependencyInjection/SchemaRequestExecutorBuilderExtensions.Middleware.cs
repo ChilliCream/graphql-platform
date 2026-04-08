@@ -30,7 +30,7 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// </remarks>
     public static IRequestExecutorBuilder UseField<
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)]
-        TMiddleware>(
+    TMiddleware>(
         this IRequestExecutorBuilder builder)
         where TMiddleware : class
     {
@@ -60,8 +60,9 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// where a field middleware is applied.
     /// </remarks>
     public static IRequestExecutorBuilder UseField<
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)]
-        TMiddleware>(
+        [DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.PublicConstructors
+            | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>(
         this IRequestExecutorBuilder builder,
         Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
         where TMiddleware : class
@@ -148,8 +149,9 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// The request executor builder.
     /// </returns>
     public static IRequestExecutorBuilder MapField<
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)]
-        TMiddleware>(
+        [DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.PublicConstructors
+            | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>(
         this IRequestExecutorBuilder builder,
         FieldReference fieldReference)
         where TMiddleware : class
@@ -185,8 +187,9 @@ public static partial class SchemaRequestExecutorBuilderExtensions
     /// <paramref name="factory"/> is <c>null</c>.
     /// </exception>
     public static IRequestExecutorBuilder MapField<
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)]
-        TMiddleware>(
+        [DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.PublicConstructors
+            | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>(
         this IRequestExecutorBuilder builder,
         FieldReference fieldReference,
         Func<IServiceProvider, FieldDelegate, TMiddleware> factory)

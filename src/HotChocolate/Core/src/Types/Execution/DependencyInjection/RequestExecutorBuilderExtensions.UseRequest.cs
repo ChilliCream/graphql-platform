@@ -282,8 +282,9 @@ public static partial class RequestExecutorBuilderExtensions
     /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </returns>
     public static IRequestExecutorBuilder UseRequest<
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)]
-        TMiddleware>(
+        [DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.PublicConstructors
+            | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>(
         this IRequestExecutorBuilder builder,
         string? key = null,
         string? before = null,
