@@ -5,7 +5,7 @@ schema {
 type Query {
   productById(id: ID!): Product
   productBySlug(slug: String!): Product
-  products(after: String before: String first: Int last: Int): ProductConnection
+  products(after: String, before: String, first: Int, last: Int): ProductConnection
   reviewById(id: ID!): Review
   viewer: Viewer
 }
@@ -25,7 +25,7 @@ type Product {
   id: ID!
   name: Custom!
   price: Float!
-  reviews(after: String before: String first: Int last: Int): ProductReviewConnection
+  reviews(after: String, before: String, first: Int, last: Int): ProductReviewConnection
 }
 
 type ProductConnection {
@@ -66,7 +66,7 @@ type Review {
 type UserProfile {
   displayName: String!
   id: ID!
-  reviews(after: String before: String first: Int last: Int): UserProfileReviewConnection
+  reviews(after: String, before: String, first: Int, last: Int): UserProfileReviewConnection
 }
 
 type UserProfileReviewConnection {
@@ -82,7 +82,7 @@ type UserProfileReviewEdge {
 
 type Viewer {
   displayName: String!
-  reviews(after: String before: String first: Int last: Int): ProductReviewConnection
+  reviews(after: String, before: String, first: Int, last: Int): ProductReviewConnection
 }
 
 enum ScalarSerializationType {
@@ -96,4 +96,4 @@ enum ScalarSerializationType {
 
 scalar Custom
 
-directive @defer(if: Boolean = true label: String) on FRAGMENT_SPREAD | INLINE_FRAGMENT
+directive @defer(if: Boolean = true, label: String) on FRAGMENT_SPREAD | INLINE_FRAGMENT

@@ -101,9 +101,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_77a61d25_2(
-              $__fusion_1_id: ID!
-            ) {
+            query testQuery_77a61d25_2($__fusion_1_id: ID!) {
               authorById(id: $__fusion_1_id) {
                 displayName
               }
@@ -168,9 +166,7 @@ operationPlan:
       type: OperationBatch
       schema: B
       operation: |
-        query testQuery_77a61d25_2(
-          $__fusion_1_id: ID!
-        ) {
+        query testQuery_77a61d25_2($__fusion_1_id: ID!) {
           authorById(id: $__fusion_1_id) {
             displayName
           }

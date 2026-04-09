@@ -1,8 +1,6 @@
 operation:
   - document: |
-      query(
-        $limit: Int = 1
-      ) {
+      query($limit: Int = 1) {
         feed {
           author {
             id
@@ -24,9 +22,7 @@ nodes:
     type: Operation
     schema: c
     operation: |
-      query Op_123456789101112_1(
-        $limit: Int = 1
-      ) {
+      query Op_123456789101112_1($limit: Int = 1) {
         feed {
           comments(limit: $limit) {
             id

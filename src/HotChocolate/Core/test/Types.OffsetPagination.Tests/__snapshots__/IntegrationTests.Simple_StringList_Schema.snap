@@ -1,4 +1,4 @@
-﻿schema {
+schema {
   query: Query
 }
 
@@ -56,9 +56,9 @@ type NestedObjectListCollectionSegment {
 }
 
 type Query {
-  letters(skip: Int take: Int): LettersCollectionSegment
-  explicitType(skip: Int take: Int): ExplicitTypeCollectionSegment
-  nestedObjectList(skip: Int take: Int): NestedObjectListCollectionSegment
-  extendedTypeRef(skip: Int take: Int): ExtendedTypeRefCollectionSegment
-  extendedTypeRefNested(skip: Int take: Int): ExtendedTypeRefNestedCollectionSegment
+  letters(skip: Int, take: Int): LettersCollectionSegment
+  explicitType(skip: Int, take: Int): ExplicitTypeCollectionSegment
+  nestedObjectList(skip: Int, take: Int): NestedObjectListCollectionSegment
+  extendedTypeRef(skip: Int, take: Int): ExtendedTypeRefCollectionSegment
+  extendedTypeRefNested(skip: Int, take: Int): ExtendedTypeRefNestedCollectionSegment
 }

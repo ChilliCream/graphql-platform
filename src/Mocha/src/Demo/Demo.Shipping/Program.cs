@@ -28,6 +28,7 @@ builder.Services.AddMediator()
 builder
     .Services.AddMessageBus()
     .AddInstrumentation()
+    .AddResilience()
     .AddShipping()
     .AddEntityFramework<ShippingDbContext>(p =>
     {

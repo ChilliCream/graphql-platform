@@ -1,9 +1,7 @@
 title: Node_Field_Two_Concrete_Types_Selections_Have_Same_Dependency
 request:
   document: |
-    query testQuery(
-      $id: ID!
-    ) {
+    query testQuery($id: ID!) {
       node(id: $id) {
         ... on Discussion {
           product {
@@ -59,9 +57,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_7a72a6b2_5(
-              $id: ID!
-            ) {
+            query testQuery_7a72a6b2_5($id: ID!) {
               node(id: $id) {
                 __typename
                 ... on Discussion {
@@ -133,9 +129,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_7a72a6b2_6(
-              $__fusion_2_id: ID!
-            ) {
+            query testQuery_7a72a6b2_6($__fusion_2_id: ID!) {
               node(id: $__fusion_2_id) {
                 __typename
                 ... on Product {
@@ -161,9 +155,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $id: ID!
-        ) {
+        query testQuery($id: ID!) {
           node(id: $id) {
             __typename @fusion__requirement
             ... on Discussion {
@@ -196,9 +188,7 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query testQuery_7a72a6b2_2(
-          $id: ID!
-        ) {
+        query testQuery_7a72a6b2_2($id: ID!) {
           node(id: $id) {
             __typename
           }
@@ -211,9 +201,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_7a72a6b2_3(
-          $id: ID!
-        ) {
+        query testQuery_7a72a6b2_3($id: ID!) {
           node(id: $id) {
             __typename
             ... on Review {
@@ -232,9 +220,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query testQuery_7a72a6b2_4(
-          $__fusion_1_id: ID!
-        ) {
+        query testQuery_7a72a6b2_4($__fusion_1_id: ID!) {
           node(id: $__fusion_1_id) {
             __typename
             ... on Product {
@@ -254,9 +240,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_7a72a6b2_5(
-          $id: ID!
-        ) {
+        query testQuery_7a72a6b2_5($id: ID!) {
           node(id: $id) {
             __typename
             ... on Discussion {
@@ -275,9 +259,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query testQuery_7a72a6b2_6(
-          $__fusion_2_id: ID!
-        ) {
+        query testQuery_7a72a6b2_6($__fusion_2_id: ID!) {
           node(id: $__fusion_2_id) {
             __typename
             ... on Product {

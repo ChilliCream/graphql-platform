@@ -27,7 +27,7 @@
         },
         {
           "Key": "graphql.http.request.query.body",
-          "Value": "query GetHero(\n  $episode: Episode!\n) {\n  hero(episode: $episode) {\n    name\n  }\n}"
+          "Value": "query GetHero($episode: Episode!) {\n  hero(episode: $episode) {\n    name\n  }\n}"
         },
         {
           "Key": "graphql.http.request.variables",

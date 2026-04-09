@@ -649,13 +649,13 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the PeopleSearch GraphQL operation
     /// <code>
-    /// query PeopleSearch(
-    ///   $term: String!
-    ///     $skip: Int
-    ///     $take: Int
-    ///     $inactive: Boolean
-    /// ) {
-    ///   people: peopleSearch(term: $term, includeInactive: $inactive, skip: $skip, take: $take) {
+    /// query PeopleSearch($term: String!, $skip: Int, $take: Int, $inactive: Boolean) {
+    ///   people: peopleSearch(
+    ///     term: $term
+    ///     includeInactive: $inactive
+    ///     skip: $skip
+    ///     take: $take
+    ///   ) {
     ///     __typename
     ///     totalCount
     ///     pageInfo {
@@ -726,13 +726,13 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the PeopleSearch GraphQL operation
     /// <code>
-    /// query PeopleSearch(
-    ///   $term: String!
-    ///     $skip: Int
-    ///     $take: Int
-    ///     $inactive: Boolean
-    /// ) {
-    ///   people: peopleSearch(term: $term, includeInactive: $inactive, skip: $skip, take: $take) {
+    /// query PeopleSearch($term: String!, $skip: Int, $take: Int, $inactive: Boolean) {
+    ///   people: peopleSearch(
+    ///     term: $term
+    ///     includeInactive: $inactive
+    ///     skip: $skip
+    ///     take: $take
+    ///   ) {
     ///     __typename
     ///     totalCount
     ///     pageInfo {
@@ -907,13 +907,13 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the PeopleSearch GraphQL operation
     /// <code>
-    /// query PeopleSearch(
-    ///   $term: String!
-    ///     $skip: Int
-    ///     $take: Int
-    ///     $inactive: Boolean
-    /// ) {
-    ///   people: peopleSearch(term: $term, includeInactive: $inactive, skip: $skip, take: $take) {
+    /// query PeopleSearch($term: String!, $skip: Int, $take: Int, $inactive: Boolean) {
+    ///   people: peopleSearch(
+    ///     term: $term
+    ///     includeInactive: $inactive
+    ///     skip: $skip
+    ///     take: $take
+    ///   ) {
     ///     __typename
     ///     totalCount
     ///     pageInfo {

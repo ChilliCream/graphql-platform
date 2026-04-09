@@ -1,9 +1,7 @@
 title: Node_Field_Concrete_Type_Selection_Has_Dependency
 request:
   document: |
-    query testQuery(
-      $id: ID!
-    ) {
+    query testQuery($id: ID!) {
       node(id: $id) {
         ... on Discussion {
           id
@@ -60,9 +58,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_163be4ff_3(
-              $id: ID!
-            ) {
+            query testQuery_163be4ff_3($id: ID!) {
               node: discussionById(id: $id) {
                 __typename
                 id
@@ -113,9 +109,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_163be4ff_4(
-              $__fusion_1_id: ID!
-            ) {
+            query testQuery_163be4ff_4($__fusion_1_id: ID!) {
               node(id: $__fusion_1_id) {
                 __typename
                 ... on Product {
@@ -141,9 +135,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $id: ID!
-        ) {
+        query testQuery($id: ID!) {
           node(id: $id) {
             __typename @fusion__requirement
             ... on Discussion {
@@ -171,9 +163,7 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query testQuery_163be4ff_2(
-          $id: ID!
-        ) {
+        query testQuery_163be4ff_2($id: ID!) {
           node(id: $id) {
             __typename
           }
@@ -186,9 +176,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_163be4ff_3(
-          $id: ID!
-        ) {
+        query testQuery_163be4ff_3($id: ID!) {
           node: discussionById(id: $id) {
             __typename
             id
@@ -206,9 +194,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_163be4ff_4(
-          $__fusion_1_id: ID!
-        ) {
+        query testQuery_163be4ff_4($__fusion_1_id: ID!) {
           node(id: $__fusion_1_id) {
             __typename
             ... on Product {

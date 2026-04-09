@@ -104,9 +104,7 @@ sourceSchemas:
           kind: OperationBatch
           items:
             - document: |
-                query testQuery_1703e95b_2(
-                  $__fusion_1_id: ID!
-                ) {
+                query testQuery_1703e95b_2($__fusion_1_id: ID!) {
                   authorById(id: $__fusion_1_id) {
                     email
                   }
@@ -116,9 +114,7 @@ sourceSchemas:
                   "__fusion_1_id": "QXV0aG9yOjI="
                 }
             - document: |
-                query testQuery_1703e95b_3(
-                  $__fusion_2_id: ID!
-                ) {
+                query testQuery_1703e95b_3($__fusion_2_id: ID!) {
                   authorById(id: $__fusion_2_id) {
                     displayName
                   }
@@ -191,9 +187,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_1703e95b_2(
-          $__fusion_1_id: ID!
-        ) {
+        query testQuery_1703e95b_2($__fusion_1_id: ID!) {
           authorById(id: $__fusion_1_id) {
             email
           }
@@ -211,9 +205,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_1703e95b_3(
-          $__fusion_2_id: ID!
-        ) {
+        query testQuery_1703e95b_3($__fusion_2_id: ID!) {
           authorById(id: $__fusion_2_id) {
             displayName
           }

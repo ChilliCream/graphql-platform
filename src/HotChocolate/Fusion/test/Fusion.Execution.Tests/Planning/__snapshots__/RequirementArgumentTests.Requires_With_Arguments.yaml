@@ -70,9 +70,7 @@ nodes:
     type: Operation
     schema: c
     operation: |
-      query Op_123456789101112_3(
-        $__fusion_3_id: ID!
-      ) {
+      query Op_123456789101112_3($__fusion_3_id: ID!) {
         commentById(id: $__fusion_3_id) {
           somethingElse
         }

@@ -154,9 +154,7 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Op_2bff8025_3(
-              $__fusion_2_id: ID!
-            ) {
+            query Op_2bff8025_3($__fusion_2_id: ID!) {
               discussionById(id: $__fusion_2_id) {
                 upvotes
                 ... on Discussion {
@@ -224,9 +222,7 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Op_2bff8025_2(
-              $__fusion_1_id: ID!
-            ) {
+            query Op_2bff8025_2($__fusion_1_id: ID!) {
               authorById(id: $__fusion_1_id) {
                 upvotes
               }
@@ -307,9 +303,7 @@ operationPlan:
       type: OperationBatch
       schema: C
       operation: |
-        query Op_2bff8025_2(
-          $__fusion_1_id: ID!
-        ) {
+        query Op_2bff8025_2($__fusion_1_id: ID!) {
           authorById(id: $__fusion_1_id) {
             upvotes
           }
@@ -329,9 +323,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_2bff8025_3(
-          $__fusion_2_id: ID!
-        ) {
+        query Op_2bff8025_3($__fusion_2_id: ID!) {
           discussionById(id: $__fusion_2_id) {
             upvotes
             ... on Discussion {
