@@ -272,7 +272,7 @@ public sealed class CreateWorkspaceCommandTests(NitroCommandFixture fixture)
         // assert
         Assert.Equal(0, result.ExitCode);
 
-        SessionServiceMock.Verify(
+        _sessionServiceMock.Verify(
             x => x.SelectWorkspaceAsync(
                 It.Is<Services.Sessions.Workspace>(w => w.Id == WorkspaceId && w.Name == WorkspaceName),
                 It.IsAny<CancellationToken>()),
@@ -298,7 +298,7 @@ public sealed class CreateWorkspaceCommandTests(NitroCommandFixture fixture)
         // assert
         Assert.Equal(0, result.ExitCode);
 
-        SessionServiceMock.Verify(
+        _sessionServiceMock.Verify(
             x => x.SelectWorkspaceAsync(
                 It.Is<Services.Sessions.Workspace>(w => w.Id == WorkspaceId && w.Name == WorkspaceName),
                 It.IsAny<CancellationToken>()),
@@ -327,7 +327,7 @@ public sealed class CreateWorkspaceCommandTests(NitroCommandFixture fixture)
         // assert
         Assert.Equal(0, result.ExitCode);
 
-        SessionServiceMock.Verify(
+        _sessionServiceMock.Verify(
             x => x.SelectWorkspaceAsync(
                 It.IsAny<Services.Sessions.Workspace>(),
                 It.IsAny<CancellationToken>()),

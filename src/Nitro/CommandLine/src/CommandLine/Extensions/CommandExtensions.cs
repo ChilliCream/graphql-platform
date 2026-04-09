@@ -13,7 +13,7 @@ internal static class CommandExtensions
     {
         command.SetAction(async (parseResult, cancellationToken) =>
         {
-            var services = CommandExecutionContext.Services.Value!;
+            var services = CommandExecutionContext.s_services.Value!;
             var console = services.GetRequiredService<INitroConsole>();
 
             try

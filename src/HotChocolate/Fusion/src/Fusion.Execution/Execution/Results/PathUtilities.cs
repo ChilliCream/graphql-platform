@@ -4,7 +4,7 @@ namespace HotChocolate.Fusion.Execution.Results;
 
 internal static class PathUtilities
 {
-    private static readonly ArrayPool<object> _objectPool = ArrayPool<object>.Shared;
+    private static readonly ArrayPool<object> s_objectPool = ArrayPool<object>.Shared;
 
     public static bool IsPathInSubtree(Path path, Path subtreeRoot, bool includeSelf)
     {
@@ -19,8 +19,8 @@ internal static class PathUtilities
             return includeSelf || !path.IsRoot;
         }
 
-        var pathBuffer = _objectPool.Rent(path.Length);
-        var subtreeBuffer = _objectPool.Rent(subtreeRoot.Length);
+        var pathBuffer = s_objectPool.Rent(path.Length);
+        var subtreeBuffer = s_objectPool.Rent(subtreeRoot.Length);
 
         try
         {
@@ -43,9 +43,9 @@ internal static class PathUtilities
         finally
         {
             pathBuffer.AsSpan(0, path.Length).Clear();
-            _objectPool.Return(pathBuffer);
+            s_objectPool.Return(pathBuffer);
             subtreeBuffer.AsSpan(0, subtreeRoot.Length).Clear();
-            _objectPool.Return(subtreeBuffer);
+            s_objectPool.Return(subtreeBuffer);
         }
     }
 }

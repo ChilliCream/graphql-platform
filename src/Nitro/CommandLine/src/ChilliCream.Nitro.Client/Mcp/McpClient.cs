@@ -2,8 +2,6 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Runtime.CompilerServices;
-using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Mcp;
 using StrawberryShake;
 
 namespace ChilliCream.Nitro.Client.Mcp;

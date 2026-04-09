@@ -138,9 +138,11 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
             }
 
             var take = Math.Min(source.Length, remaining);
+#pragma warning disable IDE0057 // Use range operator -- not supported in .NET Standard 2.0.
             source.Slice(0, take).CopyTo(chunk.AsSpan(_currentChunkOffset, take));
             _currentChunkOffset += take;
             source = source.Slice(take);
+#pragma warning restore IDE0057 // Use range operator
         }
     }
 

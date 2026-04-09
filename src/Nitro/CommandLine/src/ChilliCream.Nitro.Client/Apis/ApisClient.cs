@@ -1,5 +1,3 @@
-using GeneratedApiKind = ChilliCream.Nitro.Client.ApiKind;
-
 namespace ChilliCream.Nitro.Client.Apis;
 
 internal sealed class ApisClient(IApiClient apiClient) : IApisClient
@@ -59,7 +57,7 @@ internal sealed class ApisClient(IApiClient apiClient) : IApisClient
             workspaceId,
             path,
             name,
-            MapApiKind(kind),
+            kind,
             cancellationToken);
 
         return OperationResultHelper.EnsureData(result).PushWorkspaceChanges;
@@ -115,14 +113,4 @@ internal sealed class ApisClient(IApiClient apiClient) : IApisClient
 
         return OperationResultHelper.EnsureData(result).UpdateApiSettings;
     }
-
-    private static GeneratedApiKind? MapApiKind(ApiKind? kind)
-        => kind switch
-        {
-            ApiKind.Collection => GeneratedApiKind.Collection,
-            ApiKind.Service => GeneratedApiKind.Service,
-            ApiKind.Gateway => GeneratedApiKind.Gateway,
-            null => null,
-            _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unsupported API kind.")
-        };
 }

@@ -4,14 +4,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
-using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
-using HotChocolate.Fusion.SourceSchema.Packaging;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
-using ArchiveMetadata = HotChocolate.Fusion.SourceSchema.Packaging.ArchiveMetadata;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
