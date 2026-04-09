@@ -6,6 +6,120 @@ namespace HotChocolate.Language;
 public class QueryParserTests
 {
     [Fact]
+    public void Default_MaxAllowedRecursionDepth_Is_200()
+    {
+        Assert.Equal(200, ParserOptions.Default.MaxAllowedRecursionDepth);
+    }
+
+    [Fact]
+    public void Reject_Queries_Exceeding_Max_Recursion_Depth_Selection_Sets()
+    {
+        // Vector B: nested selection sets { a { a { ... } } }
+        const int depth = 201;
+        var query = string.Concat(Enumerable.Repeat("{ a", depth))
+            + string.Concat(Enumerable.Repeat(" }", depth));
+
+        Assert
+            .Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(query))
+            .Message
+            .MatchInlineSnapshot(
+                "Document exceeds the maximum allowed recursion depth of 200. Parsing aborted.");
+    }
+
+    [Fact]
+    public void Reject_Queries_Exceeding_Max_Recursion_Depth_Object_Values()
+    {
+        // Vector A: nested object values { a(x: {a: {a: ... 1 }}) }
+        const int depth = 201;
+        var query = "{ a(x: "
+            + string.Concat(Enumerable.Repeat("{a: ", depth))
+            + "1"
+            + string.Concat(Enumerable.Repeat("}", depth))
+            + ") }";
+
+        Assert
+            .Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(query))
+            .Message
+            .MatchInlineSnapshot(
+                "Document exceeds the maximum allowed recursion depth of 200. Parsing aborted.");
+    }
+
+    [Fact]
+    public void Reject_Queries_Exceeding_Max_Recursion_Depth_List_Values()
+    {
+        // Vector C: nested list values [[[...1...]]]
+        const int depth = 201;
+        var query = "{ a(x: "
+            + string.Concat(Enumerable.Repeat("[", depth))
+            + "1"
+            + string.Concat(Enumerable.Repeat("]", depth))
+            + ") }";
+
+        Assert
+            .Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(query))
+            .Message
+            .MatchInlineSnapshot(
+                "Document exceeds the maximum allowed recursion depth of 200. Parsing aborted.");
+    }
+
+    [Fact]
+    public void Reject_Queries_Exceeding_Max_Recursion_Depth_List_Types()
+    {
+        // Vector D: nested list types [[[...Int...]]]
+        const int depth = 201;
+        var query = $"query($v: {string.Concat(Enumerable.Repeat("[", depth))}Int{string.Concat(Enumerable.Repeat("]", depth))}) {{ a }}";
+
+        Assert
+            .Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(query))
+            .Message
+            .MatchInlineSnapshot(
+                "Document exceeds the maximum allowed recursion depth of 200. Parsing aborted.");
+    }
+
+    [Fact]
+    public void Allow_Queries_Within_Max_Recursion_Depth()
+    {
+        // 50 levels of nesting is well within the default 200 limit
+        const int depth = 50;
+        var query = string.Concat(Enumerable.Repeat("{ a", depth))
+            + string.Concat(Enumerable.Repeat(" }", depth));
+
+        var document = Utf8GraphQLParser.Parse(query);
+
+        Assert.NotNull(document);
+        Assert.Single(document.Definitions);
+    }
+
+    [Fact]
+    public void Reject_Queries_Exceeding_Custom_Recursion_Depth()
+    {
+        var options = new ParserOptions(maxAllowedRecursionDepth: 10);
+        const int depth = 11;
+        var query = string.Concat(Enumerable.Repeat("{ a", depth))
+            + string.Concat(Enumerable.Repeat(" }", depth));
+
+        Assert
+            .Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(query, options))
+            .Message
+            .MatchInlineSnapshot(
+                "Document exceeds the maximum allowed recursion depth of 10. Parsing aborted.");
+    }
+
+    [Fact]
+    public void Allow_Queries_Within_Custom_Recursion_Depth()
+    {
+        var options = new ParserOptions(maxAllowedRecursionDepth: 10);
+        const int depth = 10;
+        var query = string.Concat(Enumerable.Repeat("{ a", depth))
+            + string.Concat(Enumerable.Repeat(" }", depth));
+
+        var document = Utf8GraphQLParser.Parse(query, options);
+
+        Assert.NotNull(document);
+        Assert.Single(document.Definitions);
+    }
+
+    [Fact]
     public void Reject_Queries_With_More_Than_2048_Fields()
     {
         Assert
