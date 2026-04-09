@@ -1,12 +1,31 @@
+using System.Collections.Immutable;
 using Mocha.Middlewares;
 
 namespace Mocha;
 
-internal sealed class AggregateMessagingDiagnosticEvents(IMessagingDiagnosticEventListener[] listeners)
-    : IMessagingDiagnosticEvents
+internal sealed class AggregateMessagingDiagnosticEvents : IMessagingDiagnosticEvents
 {
+    private ImmutableArray<IMessagingDiagnosticEventListener> _listeners;
+
+    public AggregateMessagingDiagnosticEvents(IMessagingDiagnosticEventListener[] listeners)
+    {
+        _listeners = [.. listeners];
+    }
+
+    public IDisposable Subscribe(IMessagingDiagnosticEventListener listener)
+    {
+        ImmutableInterlocked.Update(ref _listeners, static (list, l) => list.Add(l), listener);
+        return new Subscription(this, listener);
+    }
+
+    private void Unsubscribe(IMessagingDiagnosticEventListener listener)
+    {
+        ImmutableInterlocked.Update(ref _listeners, static (list, l) => list.Remove(l), listener);
+    }
+
     public IDisposable Dispatch(IDispatchContext context)
     {
+        var listeners = _listeners;
         var scopes = new IDisposable[listeners.Length];
 
         for (var i = 0; i < listeners.Length; i++)
@@ -19,6 +38,8 @@ internal sealed class AggregateMessagingDiagnosticEvents(IMessagingDiagnosticEve
 
     public void DispatchError(IDispatchContext context, Exception exception)
     {
+        var listeners = _listeners;
+
         for (var i = 0; i < listeners.Length; i++)
         {
             listeners[i].DispatchError(context, exception);
@@ -27,6 +48,7 @@ internal sealed class AggregateMessagingDiagnosticEvents(IMessagingDiagnosticEve
 
     public IDisposable Receive(IReceiveContext context)
     {
+        var listeners = _listeners;
         var scopes = new IDisposable[listeners.Length];
 
         for (var i = 0; i < listeners.Length; i++)
@@ -39,6 +61,8 @@ internal sealed class AggregateMessagingDiagnosticEvents(IMessagingDiagnosticEve
 
     public void ReceiveError(IReceiveContext context, Exception exception)
     {
+        var listeners = _listeners;
+
         for (var i = 0; i < listeners.Length; i++)
         {
             listeners[i].ReceiveError(context, exception);
@@ -47,6 +71,7 @@ internal sealed class AggregateMessagingDiagnosticEvents(IMessagingDiagnosticEve
 
     public IDisposable Consume(IConsumeContext context)
     {
+        var listeners = _listeners;
         var scopes = new IDisposable[listeners.Length];
 
         for (var i = 0; i < listeners.Length; i++)
@@ -59,10 +84,19 @@ internal sealed class AggregateMessagingDiagnosticEvents(IMessagingDiagnosticEve
 
     public void ConsumeError(IConsumeContext context, Exception exception)
     {
+        var listeners = _listeners;
+
         for (var i = 0; i < listeners.Length; i++)
         {
             listeners[i].ConsumeError(context, exception);
         }
+    }
+
+    private sealed class Subscription(
+        AggregateMessagingDiagnosticEvents aggregate,
+        IMessagingDiagnosticEventListener listener) : IDisposable
+    {
+        public void Dispose() => aggregate.Unsubscribe(listener);
     }
 
     private sealed class AggregateActivityScope(IDisposable[] scopes) : IDisposable

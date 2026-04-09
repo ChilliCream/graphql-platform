@@ -2935,6 +2935,10 @@
           {
             "path": "diagnostics",
             "title": "Diagnostics"
+          },
+          {
+            "path": "testing",
+            "title": "Testing"
           }
         ]
       }

@@ -289,14 +289,8 @@ public partial class MessageBusBuilder : IMessageBusBuilder
         services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
 
         var listeners = applicationServices.GetServices<IMessagingDiagnosticEventListener>().ToArray();
-
-        IMessagingDiagnosticEvents diagnosticEvents = listeners.Length switch
-        {
-            0 => NoopMessagingDiagnosticEvents.Instance,
-            1 => listeners[0],
-            _ => new AggregateMessagingDiagnosticEvents(listeners)
-        };
-
+        var diagnosticEvents = new AggregateMessagingDiagnosticEvents(listeners);
+        services.AddSingleton<IMessagingDiagnosticEvents>(diagnosticEvents);
         services.AddSingleton(diagnosticEvents);
 
         var naming = applicationServices.GetService<IBusNamingConventions>();
