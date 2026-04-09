@@ -1,0 +1,5 @@
+{
+  "appHost": {
+    "path": "AzureEventHubTransport.AppHost/AzureEventHubTransport.AppHost.csproj"
+  }
+}

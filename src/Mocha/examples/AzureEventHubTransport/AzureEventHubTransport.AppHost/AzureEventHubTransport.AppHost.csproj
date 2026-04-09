@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Sdk Name="Aspire.AppHost.Sdk" Version="13.1.0" />
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>AzureEventHubTransport.AppHost</RootNamespace>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" />
+    <PackageReference Include="Aspire.Hosting.Azure.EventHubs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AzureEventHubTransport.OrderService\AzureEventHubTransport.OrderService.csproj" />
+    <ProjectReference Include="..\AzureEventHubTransport.ShippingService\AzureEventHubTransport.ShippingService.csproj" />
+    <ProjectReference Include="..\AzureEventHubTransport.NotificationService\AzureEventHubTransport.NotificationService.csproj" />
+  </ItemGroup>
+</Project>

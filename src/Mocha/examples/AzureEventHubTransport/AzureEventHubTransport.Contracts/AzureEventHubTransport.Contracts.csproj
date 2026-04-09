@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>AzureEventHubTransport.Contracts</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Mocha\Mocha.csproj" />
+    <ProjectReference Include="..\..\..\src\Mocha.Abstractions\Mocha.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\src\Mocha.Mediator.Abstractions\Mocha.Mediator.Abstractions.csproj" />
+  </ItemGroup>
+</Project>

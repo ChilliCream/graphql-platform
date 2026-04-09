@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Mocha.Transport.AzureEventHub.Tests</AssemblyName>
+    <RootNamespace>Mocha.Transport.AzureEventHub.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Storage.Blobs" />
+    <PackageReference Include="Testcontainers" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Mocha.TestHelpers" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Mocha\Mocha.csproj" />
+    <ProjectReference Include="..\..\src\Mocha.Transport.AzureEventHub\Mocha.Transport.AzureEventHub.csproj" />
+    <ProjectReference Include="..\Mocha.TestHelpers\Mocha.TestHelpers.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Config.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>

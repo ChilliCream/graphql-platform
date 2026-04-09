@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Mocha.Transport.AzureEventHub</AssemblyName>
+    <RootNamespace>Mocha.Transport.AzureEventHub</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Mocha.Abstractions\Mocha.Abstractions.csproj" />
+    <ProjectReference Include="..\Mocha\Mocha.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Azure.Messaging.EventHubs" VersionOverride="5.12.2" />
+    <PackageReference Include="Azure.Identity" VersionOverride="1.13.2" />
+    <PackageReference Include="Azure.Storage.Blobs" />
+    <PackageReference Include="Azure.ResourceManager.EventHubs" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" />
+  </ItemGroup>
+</Project>

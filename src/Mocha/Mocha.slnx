@@ -8,6 +8,14 @@
     <Project Path="examples/PostgresTransport/PostgresTransport.ServiceDefaults/PostgresTransport.ServiceDefaults.csproj" />
     <Project Path="examples/PostgresTransport/PostgresTransport.ShippingService/PostgresTransport.ShippingService.csproj" />
   </Folder>
+  <Folder Name="/examples/AzureEventHubTransport/">
+    <Project Path="examples/AzureEventHubTransport/AzureEventHubTransport.AppHost/AzureEventHubTransport.AppHost.csproj" />
+    <Project Path="examples/AzureEventHubTransport/AzureEventHubTransport.Contracts/AzureEventHubTransport.Contracts.csproj" />
+    <Project Path="examples/AzureEventHubTransport/AzureEventHubTransport.NotificationService/AzureEventHubTransport.NotificationService.csproj" />
+    <Project Path="examples/AzureEventHubTransport/AzureEventHubTransport.OrderService/AzureEventHubTransport.OrderService.csproj" />
+    <Project Path="examples/AzureEventHubTransport/AzureEventHubTransport.ServiceDefaults/AzureEventHubTransport.ServiceDefaults.csproj" />
+    <Project Path="examples/AzureEventHubTransport/AzureEventHubTransport.ShippingService/AzureEventHubTransport.ShippingService.csproj" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/Mocha.Abstractions/Mocha.Abstractions.csproj" />
     <Project Path="src/Mocha.Analyzers/Mocha.Analyzers.csproj" />
@@ -19,10 +27,9 @@
     <Project Path="src/Mocha.Mediator/Mocha.Mediator.csproj" />
     <Project Path="src/Mocha.Outbox/Mocha.Outbox.csproj" />
     <Project Path="src/Mocha.Threading/Mocha.Threading.csproj" />
-    <Project Path="src/Mocha.Mediator/Mocha.Mediator.csproj" />
-    <Project Path="src/Mocha.Analyzers/Mocha.Analyzers.csproj" />
     <Project Path="src/Mocha.Transport.InMemory/Mocha.Transport.InMemory.csproj" />
     <Project Path="src/Mocha.Transport.Postgres/Mocha.Transport.Postgres.csproj" />
+    <Project Path="src/Mocha.Transport.AzureEventHub/Mocha.Transport.AzureEventHub.csproj" />
     <Project Path="src/Mocha.Transport.RabbitMQ/Mocha.Transport.RabbitMQ.csproj" />
     <Project Path="src/Mocha.Utilities/Mocha.Utilities.csproj" />
     <Project Path="src/Mocha/Mocha.csproj" />
@@ -39,6 +46,7 @@
     <Project Path="test/Mocha.Tests/Mocha.Tests.csproj" />
     <Project Path="test/Mocha.Transport.InMemory.Tests/Mocha.Transport.InMemory.Tests.csproj" />
     <Project Path="test/Mocha.Transport.Postgres.Tests/Mocha.Transport.Postgres.Tests.csproj" />
+    <Project Path="test/Mocha.Transport.AzureEventHub.Tests/Mocha.Transport.AzureEventHub.Tests.csproj" />
     <Project Path="test/Mocha.Transport.RabbitMQ.Tests/Mocha.Transport.RabbitMQ.Tests.csproj" />
   </Folder>
 </Solution>
