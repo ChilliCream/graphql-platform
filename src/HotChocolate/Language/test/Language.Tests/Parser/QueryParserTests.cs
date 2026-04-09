@@ -119,6 +119,35 @@ public class QueryParserTests
         Assert.Single(document.Definitions);
     }
 
+    [Theory]
+    [InlineData(20_000)]
+    [InlineData(50_000)]
+    public void Reject_Attack_Payload_Nested_Selection_Sets(int depth)
+    {
+        // Payloads at these depths would cause a StackOverflowException
+        // (process-fatal, uncatchable) without the recursion depth limit.
+        // With the limit, they throw a catchable SyntaxException at depth 201.
+        var query = string.Concat(Enumerable.Repeat("{ a", depth))
+            + string.Concat(Enumerable.Repeat(" }", depth));
+
+        Assert.Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(query));
+    }
+
+    [Theory]
+    [InlineData(20_000)]
+    [InlineData(50_000)]
+    public void Reject_Attack_Payload_Nested_List_Values(int depth)
+    {
+        // Vector C from the vulnerability report — smallest crashing payload (~40 KB).
+        var query = "{ a(x: "
+            + string.Concat(Enumerable.Repeat("[", depth))
+            + "1"
+            + string.Concat(Enumerable.Repeat("]", depth))
+            + ") }";
+
+        Assert.Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(query));
+    }
+
     [Fact]
     public void Reject_Queries_With_More_Than_2048_Fields()
     {
