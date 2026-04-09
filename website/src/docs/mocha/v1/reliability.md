@@ -283,11 +283,11 @@ Consumer-level policies replace the bus-level policies entirely for that consume
 
 ### RetryBackoffType values
 
-| Value         | Formula                 | Example (Delay = 200 ms) |
-| ------------- | ----------------------- | ------------------------ |
-| `Constant`    | `Delay`                 | 200 ms, 200 ms, 200 ms   |
-| `Linear`      | `Delay * (attempt + 1)` | 400 ms, 600 ms, 800 ms   |
-| `Exponential` | `Delay * 2^attempt`     | 400 ms, 800 ms, 1600 ms  |
+| Value         | Formula                   | Example (Delay = 200 ms) |
+| ------------- | ------------------------- | ------------------------ |
+| `Constant`    | `Delay`                   | 200 ms, 200 ms, 200 ms   |
+| `Linear`      | `Delay * attempt`         | 200 ms, 400 ms, 600 ms   |
+| `Exponential` | `Delay * 2^(attempt - 1)` | 200 ms, 400 ms, 800 ms   |
 
 # Redeliver failed messages
 

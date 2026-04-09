@@ -36,7 +36,7 @@ internal sealed class ReceiveRedeliveryMiddleware(
         }
         catch (Exception ex)
         {
-            // Request/reply messages must not be redelivered -- the caller is waiting.
+            // Request/reply messages must not be redelivered - the caller is waiting.
             if (context.Envelope?.ResponseAddress is not null)
             {
                 throw;
@@ -67,9 +67,9 @@ internal sealed class ReceiveRedeliveryMiddleware(
         int delayedRetryCount,
         DateTimeOffset scheduledTime)
     {
-        var envelope = context.Envelope
-            ?? throw new InvalidOperationException(
-                "Cannot redeliver because the receive context has no envelope.");
+        var envelope =
+            context.Envelope
+            ?? throw new InvalidOperationException("Cannot redeliver because the receive context has no envelope.");
 
         if (envelope.Headers is null)
         {
