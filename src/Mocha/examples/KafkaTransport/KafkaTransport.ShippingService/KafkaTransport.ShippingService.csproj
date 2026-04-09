@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <RootNamespace>KafkaTransport.ShippingService</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\KafkaTransport.ServiceDefaults\KafkaTransport.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\KafkaTransport.Contracts\KafkaTransport.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\src\Mocha\Mocha.csproj" />
+    <ProjectReference Include="..\..\..\src\Mocha.Transport.Kafka\Mocha.Transport.Kafka.csproj" />
+    <ProjectReference Include="..\..\..\src\Mocha.Hosting\Mocha.Hosting.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,5 @@
+{
+  "appHost": {
+    "path": "KafkaTransport.AppHost/KafkaTransport.AppHost.csproj"
+  }
+}

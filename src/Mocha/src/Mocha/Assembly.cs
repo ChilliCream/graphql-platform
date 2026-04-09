@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Mocha.EntityFrameworkCore.Postgres")]
 [assembly: InternalsVisibleTo("Mocha.EntityFrameworkCore")]
 [assembly: InternalsVisibleTo("Mocha.Transport.RabbitMQ")]
+[assembly: InternalsVisibleTo("Mocha.Transport.Kafka")]
 [assembly: InternalsVisibleTo("Mocha.Transport.Postgres")]
 [assembly: InternalsVisibleTo("Mocha.Tests")]
 [assembly: InternalsVisibleTo("Mocha.Sagas.TestHelpers")]

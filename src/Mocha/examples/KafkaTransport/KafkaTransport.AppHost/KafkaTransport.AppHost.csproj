@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Sdk Name="Aspire.AppHost.Sdk" Version="13.1.0" />
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net10.0</TargetFrameworks>
+    <RootNamespace>KafkaTransport.AppHost</RootNamespace>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" />
+    <PackageReference Include="Aspire.Hosting.Kafka" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\KafkaTransport.OrderService\KafkaTransport.OrderService.csproj" />
+    <ProjectReference Include="..\KafkaTransport.ShippingService\KafkaTransport.ShippingService.csproj" />
+    <ProjectReference Include="..\KafkaTransport.NotificationService\KafkaTransport.NotificationService.csproj" />
+  </ItemGroup>
+</Project>
