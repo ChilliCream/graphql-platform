@@ -26,6 +26,8 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
         | System.Reflection.BindingFlags.NonPublic
         | System.Reflection.BindingFlags.DeclaredOnly;
 
+    private static readonly char[] CrefTrimChars = ['!', ':', ' '];
+
     private readonly IXmlDocumentationResolver _documentationResolver;
     private readonly ObjectPool<StringBuilder> _stringBuilderPool;
 
@@ -81,7 +83,7 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
 
         var summaryNode = element.Element(SummaryElementName);
         var returnsNode = element.Element(ReturnsElementName);
-        var exceptionNodes = element.Descendants(ExceptionElementName);
+        var exceptionNodes = element.Elements(ExceptionElementName);
 
         return ComposeMemberDescription(
             summaryNode,
@@ -150,8 +152,8 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
                             description.AppendLine();
                         }
 
-                        description.Append($"{++errorCount}. ");
-                        description.Append($"{codeValue}: ");
+                        description.Append(++errorCount).Append(". ");
+                        description.Append(codeValue).Append(": ");
 
                         AppendText(error, description);
                     }
@@ -213,7 +215,7 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
                 attribute = currentElement.Attribute(Cref);
                 if (attribute != null)
                 {
-                    var value = attribute.Value.AsSpan().Trim(['!', ':', ' ']);
+                    var value = attribute.Value.AsSpan().Trim(CrefTrimChars);
 
                     var lastDotIndex = value.LastIndexOf('.');
                     if (lastDotIndex >= 0)
@@ -336,18 +338,13 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
             return element;
         }
 
-        var baseType = member.DeclaringType?.BaseType;
-        if (baseType is null)
-        {
-            return element;
-        }
-
         // Shallow copy to ensure that we do not mutate the original element from the cache.
         // We use a shallow copy instead of a deep copy (new XElement(element)) to avoid the allocation
         // overhead since we only need to replace a few (generally 1) inheritdoc-elements.
         var elementCopy = new XElement(element.Name);
 
-        var baseMember = baseType.GetMember(member.Name, BindingFlags).SingleOrDefault();
+        var baseType = member.DeclaringType?.BaseType;
+        var baseMember = baseType?.GetMember(member.Name, BindingFlags).SingleOrDefault();
         foreach (var child in element.Elements())
         {
             if (child.Name != Inheritdoc)
@@ -394,7 +391,18 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
 
         if (!containsNewLineChar)
         {
-            return stringBuilder.ToString().Trim();
+            // Trim in-place to avoid an intermediate string allocation.
+            while (stringBuilder.Length > 0 && char.IsWhiteSpace(stringBuilder[0]))
+            {
+                stringBuilder.Remove(0, 1);
+            }
+
+            while (stringBuilder.Length > 0 && char.IsWhiteSpace(stringBuilder[^1]))
+            {
+                stringBuilder.Remove(stringBuilder.Length - 1, 1);
+            }
+
+            return stringBuilder.Length == 0 ? null : stringBuilder.ToString();
         }
 
         stringBuilder.Replace("\r", string.Empty);

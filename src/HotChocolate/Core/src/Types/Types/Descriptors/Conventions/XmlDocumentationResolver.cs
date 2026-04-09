@@ -42,7 +42,7 @@ public class XmlDocumentationResolver : IXmlDocumentationResolver
                         .Element("members")?
                         .Elements("member")
                         .Where(static x => x.Attribute("name") != null)
-                        .ToDictionary(static x => x.Attribute("name")!.Value, static delegate(XElement x)
+                        .ToDictionary(static x => x.Attribute("name")!.Value, static (XElement x) =>
                         {
                             // Optimize memory usage: We already stored the name as key in the dictionary.
                             x.RemoveAttributes();
