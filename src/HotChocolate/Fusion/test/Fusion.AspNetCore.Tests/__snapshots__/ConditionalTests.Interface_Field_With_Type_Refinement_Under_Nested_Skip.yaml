@@ -1,10 +1,7 @@
 title: Interface_Field_With_Type_Refinement_Under_Nested_Skip
 request:
   document: |
-    query(
-      $skip1: Boolean!
-        $skip2: Boolean!
-    ) {
+    query($skip1: Boolean!, $skip2: Boolean!) {
       abstractTypes {
         ... on Discussion {
           score
@@ -72,10 +69,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_0731cc53_1(
-              $skip1: Boolean!
-                $skip2: Boolean!
-            ) {
+            query Op_0731cc53_1($skip1: Boolean!, $skip2: Boolean!) {
               abstractTypes {
                 __typename
                 ... on Discussion {
@@ -148,9 +142,7 @@ sourceSchemas:
           kind: OperationBatch
           items:
             - document: |
-                query Op_0731cc53_2(
-                  $__fusion_1_id: ID!
-                ) {
+                query Op_0731cc53_2($__fusion_1_id: ID!) {
                   discussionById(id: $__fusion_1_id) {
                     upvotes
                   }
@@ -165,9 +157,7 @@ sourceSchemas:
                   }
                 ]
             - document: |
-                query Op_0731cc53_4(
-                  $__fusion_3_id: ID!
-                ) {
+                query Op_0731cc53_4($__fusion_3_id: ID!) {
                   discussionById(id: $__fusion_3_id) {
                     score
                   }
@@ -246,10 +236,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_0731cc53_3(
-              $skip2: Boolean!
-                $__fusion_2_id: ID!
-            ) {
+            query Op_0731cc53_3($skip2: Boolean!, $__fusion_2_id: ID!) {
               authorById(id: $__fusion_2_id) {
                 upvotes
                 ... on Author {
@@ -277,10 +264,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query(
-          $skip1: Boolean!
-            $skip2: Boolean!
-        ) {
+        query($skip1: Boolean!, $skip2: Boolean!) {
           abstractTypes {
             __typename @fusion__requirement
             ... on Discussion {
@@ -304,10 +288,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_0731cc53_1(
-          $skip1: Boolean!
-            $skip2: Boolean!
-        ) {
+        query Op_0731cc53_1($skip1: Boolean!, $skip2: Boolean!) {
           abstractTypes {
             __typename
             ... on Discussion {
@@ -329,9 +310,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_0731cc53_2(
-          $__fusion_1_id: ID!
-        ) {
+        query Op_0731cc53_2($__fusion_1_id: ID!) {
           discussionById(id: $__fusion_1_id) {
             upvotes
           }
@@ -352,9 +331,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_0731cc53_4(
-          $__fusion_3_id: ID!
-        ) {
+        query Op_0731cc53_4($__fusion_3_id: ID!) {
           discussionById(id: $__fusion_3_id) {
             score
           }
@@ -372,10 +349,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query Op_0731cc53_3(
-          $skip2: Boolean!
-            $__fusion_2_id: ID!
-        ) {
+        query Op_0731cc53_3($skip2: Boolean!, $__fusion_2_id: ID!) {
           authorById(id: $__fusion_2_id) {
             upvotes
             ... on Author {
