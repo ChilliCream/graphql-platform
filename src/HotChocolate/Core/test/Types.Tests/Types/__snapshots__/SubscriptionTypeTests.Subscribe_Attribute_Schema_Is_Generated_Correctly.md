@@ -8,8 +8,8 @@ schema {
 }
 
 type MyMutation {
-  writeBoolean(userId: String! message: Boolean!): Boolean!
-  writeMessage(userId: String! message: String!): String!
+  writeBoolean(userId: String!, message: Boolean!): Boolean!
+  writeMessage(userId: String!, message: String!): String!
   writeSysMessage(message: String!): String!
   writeFixedMessage(message: String!): String!
   writeOnInferTopic(message: String!): String!

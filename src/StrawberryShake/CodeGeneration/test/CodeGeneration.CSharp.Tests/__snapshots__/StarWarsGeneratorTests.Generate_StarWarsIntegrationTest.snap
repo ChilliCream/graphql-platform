@@ -311,9 +311,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the CreateReview GraphQL operation
     /// <code>
-    /// mutation CreateReview(
-    ///   $stars: Int!
-    /// ) {
+    /// mutation CreateReview($stars: Int!) {
     ///   createReview(episode: EMPIRE, review: { stars: $stars, commentary: "good" }) {
     ///     __typename
     ///     stars
@@ -347,9 +345,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the CreateReview GraphQL operation
     /// <code>
-    /// mutation CreateReview(
-    ///   $stars: Int!
-    /// ) {
+    /// mutation CreateReview($stars: Int!) {
     ///   createReview(episode: EMPIRE, review: { stars: $stars, commentary: "good" }) {
     ///     __typename
     ///     stars
@@ -437,9 +433,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the CreateReview GraphQL operation
     /// <code>
-    /// mutation CreateReview(
-    ///   $stars: Int!
-    /// ) {
+    /// mutation CreateReview($stars: Int!) {
     ///   createReview(episode: EMPIRE, review: { stars: $stars, commentary: "good" }) {
     ///     __typename
     ///     stars

@@ -1,6 +1,4 @@
-query ViewerContainerQuery(
-  $symbol: String!
-) {
+query ViewerContainerQuery($symbol: String!) {
   assetBySymbol(symbol: $symbol) {
     ... ViewerHeaderFragment_asset
     ... ViewerSnapshotFragment_asset
@@ -70,11 +68,10 @@ fragment ViewerStatsFragment_asset on Asset {
 
 ---------------------------------------------------------
 
-query ViewerContainerQuery(
-  $symbol: String!
-) {
+query ViewerContainerQuery($symbol: String!) {
   ... on Query {
-    assetBySymbol(symbol: $symbol) @__execute(id: 2, kind: DEFAULT, type: COMPOSITE) {
+    assetBySymbol(symbol: $symbol)
+      @__execute(id: 2, kind: DEFAULT, type: COMPOSITE) {
       ... on Asset {
         id @__execute(id: 4, kind: DEFAULT, type: LEAF)
         symbol @__execute(id: 5, kind: DEFAULT, type: LEAF)
@@ -92,7 +89,8 @@ query ViewerContainerQuery(
                 percentageChange @__execute(id: 28, kind: DEFAULT, type: LEAF)
                 history @__execute(id: 29, kind: DEFAULT, type: COMPOSITE) {
                   ... on HistoryConnection {
-                    nodes @__execute(id: 32, kind: DEFAULT, type: COMPOSITE_LIST) {
+                    nodes
+                      @__execute(id: 32, kind: DEFAULT, type: COMPOSITE_LIST) {
                       ... on AssetPriceHistory {
                         epoch @__execute(id: 34, kind: DEFAULT, type: LEAF)
                         price @__execute(id: 35, kind: DEFAULT, type: LEAF)
@@ -106,7 +104,8 @@ query ViewerContainerQuery(
             id @__execute(id: 19, kind: DEFAULT, type: LEAF)
             marketCap @__execute(id: 20, kind: DEFAULT, type: LEAF)
             volume24Hour @__execute(id: 21, kind: DEFAULT, type: LEAF)
-            volumePercentChange24Hour @__execute(id: 22, kind: DEFAULT, type: LEAF)
+            volumePercentChange24Hour
+              @__execute(id: 22, kind: DEFAULT, type: LEAF)
             maxSupply @__execute(id: 23, kind: DEFAULT, type: LEAF)
             circulatingSupply @__execute(id: 24, kind: DEFAULT, type: LEAF)
             tradingActivity @__execute(id: 25, kind: DEFAULT, type: LEAF)

@@ -128,9 +128,7 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Op_192dc5f8_2(
-              $__fusion_1_id: Int!
-            ) {
+            query Op_192dc5f8_2($__fusion_1_id: Int!) {
               bookById(id: $__fusion_1_id) {
                 author
               }
@@ -202,9 +200,7 @@ operationPlan:
       type: OperationBatch
       schema: B
       operation: |
-        query Op_192dc5f8_2(
-          $__fusion_1_id: Int!
-        ) {
+        query Op_192dc5f8_2($__fusion_1_id: Int!) {
           bookById(id: $__fusion_1_id) {
             author
           }

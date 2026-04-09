@@ -1,10 +1,7 @@
 title: Forward_Nested_Variables
 request:
   document: |
-    query ProductReviews(
-      $id: ID!
-        $first: Int!
-    ) {
+    query ProductReviews($id: ID!, $first: Int!) {
       productById(id: $id) {
         id
         repeat(num: $first)
@@ -41,7 +38,7 @@ sourceSchemas:
         nodes(ids: [ID!]!): [Node]! @shareable
         userById(id: ID!): User!
         users: [User!]!
-        testWithTwoArgumentsDifferingNullability(first: Int! second: Int): String!
+        testWithTwoArgumentsDifferingNullability(first: Int!, second: Int): String!
       }
 
       type User implements Node {
@@ -129,10 +126,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query ProductReviews_f7aec035_1(
-              $id: ID!
-                $first: Int!
-            ) {
+            query ProductReviews_f7aec035_1($id: ID!, $first: Int!) {
               productById(id: $id) {
                 id
                 repeat(num: $first)
@@ -157,10 +151,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query ProductReviews(
-          $id: ID!
-            $first: Int!
-        ) {
+        query ProductReviews($id: ID!, $first: Int!) {
           productById(id: $id) {
             id
             repeat(num: $first)
@@ -175,10 +166,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query ProductReviews_f7aec035_1(
-          $id: ID!
-            $first: Int!
-        ) {
+        query ProductReviews_f7aec035_1($id: ID!, $first: Int!) {
           productById(id: $id) {
             id
             repeat(num: $first)

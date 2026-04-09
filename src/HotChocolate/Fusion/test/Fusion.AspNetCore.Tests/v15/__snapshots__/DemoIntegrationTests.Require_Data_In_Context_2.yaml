@@ -79,7 +79,7 @@ sourceSchemas:
         nodes(ids: [ID!]!): [Node]! @shareable
         userById(id: ID!): User!
         users: [User!]!
-        testWithTwoArgumentsDifferingNullability(first: Int! second: Int): String!
+        testWithTwoArgumentsDifferingNullability(first: Int!, second: Int): String!
       }
 
       type User implements Node {
@@ -92,9 +92,7 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Requires_b3dd796a_3(
-              $__fusion_2_id: ID!
-            ) {
+            query Requires_b3dd796a_3($__fusion_2_id: ID!) {
               node(id: $__fusion_2_id) {
                 __typename
                 ... on User {
@@ -293,7 +291,7 @@ sourceSchemas:
         id: ID!
         size: Int! @shareable
         weight: Int! @shareable
-        deliveryEstimate(size: Int weight: Int zip: String!): DeliveryEstimate!
+        deliveryEstimate(size: Int, weight: Int, zip: String!): DeliveryEstimate!
       }
 
       type Query {
@@ -304,9 +302,7 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Requires_b3dd796a_2(
-              $__fusion_1_id: ID!
-            ) {
+            query Requires_b3dd796a_2($__fusion_1_id: ID!) {
               node(id: $__fusion_1_id) {
                 __typename
                 ... on Product {
@@ -412,9 +408,7 @@ operationPlan:
       type: Operation
       schema: D
       operation: |
-        query Requires_b3dd796a_2(
-          $__fusion_1_id: ID!
-        ) {
+        query Requires_b3dd796a_2($__fusion_1_id: ID!) {
           node(id: $__fusion_1_id) {
             __typename
             ... on Product {
@@ -437,9 +431,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Requires_b3dd796a_3(
-          $__fusion_2_id: ID!
-        ) {
+        query Requires_b3dd796a_3($__fusion_2_id: ID!) {
           node(id: $__fusion_2_id) {
             __typename
             ... on User {

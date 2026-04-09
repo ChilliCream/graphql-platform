@@ -1,10 +1,7 @@
 title: Forward_Nested_Variables_No_OpName_Two_RootSelections
 request:
   document: |
-    query(
-      $id: ID!
-        $first: Int!
-    ) {
+    query($id: ID!, $first: Int!) {
       a: productById(id: $id) {
         id
         repeat(num: $first)
@@ -49,7 +46,7 @@ sourceSchemas:
         nodes(ids: [ID!]!): [Node]! @shareable
         userById(id: ID!): User!
         users: [User!]!
-        testWithTwoArgumentsDifferingNullability(first: Int! second: Int): String!
+        testWithTwoArgumentsDifferingNullability(first: Int!, second: Int): String!
       }
 
       type User implements Node {
@@ -137,10 +134,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_5090b8e6_1(
-              $id: ID!
-                $first: Int!
-            ) {
+            query Op_5090b8e6_1($id: ID!, $first: Int!) {
               a: productById(id: $id) {
                 id
                 repeat(num: $first)
@@ -173,10 +167,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query(
-          $id: ID!
-            $first: Int!
-        ) {
+        query($id: ID!, $first: Int!) {
           a: productById(id: $id) {
             id
             repeat(num: $first)
@@ -194,10 +185,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query Op_5090b8e6_1(
-          $id: ID!
-            $first: Int!
-        ) {
+        query Op_5090b8e6_1($id: ID!, $first: Int!) {
           a: productById(id: $id) {
             id
             repeat(num: $first)

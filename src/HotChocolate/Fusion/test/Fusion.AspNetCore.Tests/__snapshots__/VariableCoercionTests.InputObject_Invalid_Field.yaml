@@ -1,9 +1,7 @@
 title: InputObject_Invalid_Field
 request:
   document: |
-    query testQuery(
-      $cat: Cat!
-    ) {
+    query testQuery($cat: Cat!) {
       catName(input: $cat)
     }
   variables: |

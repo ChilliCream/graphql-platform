@@ -1,9 +1,7 @@
 title: Field_Below_Shared_Field_Only_Available_On_One_Subgraph_Type_Of_Shared_Field_Not_Node
 request:
   document: |
-    query(
-      $productId: ID!
-    ) {
+    query($productId: ID!) {
       productById(id: $productId) {
         subgraph1Only {
           sharedLinked {
@@ -63,9 +61,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_8e568844_1(
-              $productId: ID!
-            ) {
+            query Op_8e568844_1($productId: ID!) {
               productById(id: $productId) {
                 subgraph1Only {
                   sharedLinked {
@@ -121,9 +117,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_8e568844_2(
-              $__fusion_1_id: ID!
-            ) {
+            query Op_8e568844_2($__fusion_1_id: ID!) {
               node(id: $__fusion_1_id) {
                 __typename
                 ... on ProductAvailability {
@@ -153,9 +147,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query(
-          $productId: ID!
-        ) {
+        query($productId: ID!) {
           productById(id: $productId) {
             subgraph1Only {
               sharedLinked {
@@ -173,9 +165,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_8e568844_1(
-          $productId: ID!
-        ) {
+        query Op_8e568844_1($productId: ID!) {
           productById(id: $productId) {
             subgraph1Only {
               sharedLinked {
@@ -191,9 +181,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_8e568844_2(
-          $__fusion_1_id: ID!
-        ) {
+        query Op_8e568844_2($__fusion_1_id: ID!) {
           node(id: $__fusion_1_id) {
             __typename
             ... on ProductAvailability {

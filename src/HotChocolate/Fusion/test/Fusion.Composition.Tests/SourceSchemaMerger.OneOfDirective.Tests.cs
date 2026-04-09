@@ -28,13 +28,8 @@ public sealed class SourceSchemaMergerOneOfDirectiveTests : SourceSchemaMergerTe
                 """
             ],
             """
-            input Foo
-                @oneOf
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field: Int
-                    @fusion__inputField(schema: A)
-                    @fusion__inputField(schema: B)
+            input Foo @oneOf @fusion__type(schema: A) @fusion__type(schema: B) {
+              field: Int @fusion__inputField(schema: A) @fusion__inputField(schema: B)
             }
             """);
     }
@@ -59,13 +54,8 @@ public sealed class SourceSchemaMergerOneOfDirectiveTests : SourceSchemaMergerTe
                 """
             ],
             """
-            input Foo
-                @oneOf
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field: Int
-                    @fusion__inputField(schema: A)
-                    @fusion__inputField(schema: B)
+            input Foo @oneOf @fusion__type(schema: A) @fusion__type(schema: B) {
+              field: Int @fusion__inputField(schema: A) @fusion__inputField(schema: B)
             }
             """);
     }
@@ -94,12 +84,8 @@ public sealed class SourceSchemaMergerOneOfDirectiveTests : SourceSchemaMergerTe
                 """
             ],
             """
-            input Foo
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field: Int
-                    @fusion__inputField(schema: A)
-                    @fusion__inputField(schema: B)
+            input Foo @fusion__type(schema: A) @fusion__type(schema: B) {
+              field: Int @fusion__inputField(schema: A) @fusion__inputField(schema: B)
             }
             """);
     }

@@ -1,9 +1,7 @@
 title: Upload_Nullable_File_Not_Provided
 request:
   document: |
-    query(
-      $file: Upload
-    ) {
+    query($file: Upload) {
       nullableUpload(file: $file) {
         fileName
         contentType
@@ -66,7 +64,12 @@ sourceSchemas:
         LIST
       }
 
-      directive @serializeAs("The primitive type a scalar is serialized to." type: [ScalarSerializationType!]! "The ECMA-262 regex pattern that the serialized scalar value conforms to." pattern: String) on SCALAR
+      directive @serializeAs(
+        "The primitive type a scalar is serialized to."
+        type: [ScalarSerializationType!]!
+        "The ECMA-262 regex pattern that the serialized scalar value conforms to."
+        pattern: String
+      ) on SCALAR
 
       "The `Upload` scalar type represents a file upload."
       scalar Upload @serializeAs(type: STRING)
@@ -74,9 +77,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_86d793bb_1(
-              $file: Upload
-            ) {
+            query Op_86d793bb_1($file: Upload) {
               nullableUpload(file: $file) {
                 fileName
                 contentType
@@ -98,9 +99,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query(
-          $file: Upload
-        ) {
+        query($file: Upload) {
           nullableUpload(file: $file) {
             fileName
             contentType
@@ -115,9 +114,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_86d793bb_1(
-          $file: Upload
-        ) {
+        query Op_86d793bb_1($file: Upload) {
           nullableUpload(file: $file) {
             fileName
             contentType

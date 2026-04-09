@@ -2226,15 +2226,20 @@ namespace Foo.Bar
     /// <code>
     /// query GetFeatsPage(
     ///   $skip: Int!
-    ///     $take: Int!
-    ///     $searchTerm: String! = ""
-    ///     $order: [FeatSortInput!] = [
+    ///   $take: Int!
+    ///   $searchTerm: String! = ""
+    ///   $order: [FeatSortInput!] = [
     ///     {
     ///       name: ASC
     ///     }
     ///   ]
     /// ) {
-    ///   feats(skip: $skip, take: $take, order: $order, where: { or: [{ name: { contains: $searchTerm } }, { traits: { some: { name: { contains: $searchTerm } } } }] }) {
+    ///   feats(
+    ///     skip: $skip
+    ///     take: $take
+    ///     order: $order
+    ///     where: { or: [{ name: { contains: $searchTerm } }, { traits: { some: { name: { contains: $searchTerm } } } }] }
+    ///   ) {
     ///     __typename
     ///     totalCount
     ///     items {
@@ -2290,15 +2295,20 @@ namespace Foo.Bar
     /// <code>
     /// query GetFeatsPage(
     ///   $skip: Int!
-    ///     $take: Int!
-    ///     $searchTerm: String! = ""
-    ///     $order: [FeatSortInput!] = [
+    ///   $take: Int!
+    ///   $searchTerm: String! = ""
+    ///   $order: [FeatSortInput!] = [
     ///     {
     ///       name: ASC
     ///     }
     ///   ]
     /// ) {
-    ///   feats(skip: $skip, take: $take, order: $order, where: { or: [{ name: { contains: $searchTerm } }, { traits: { some: { name: { contains: $searchTerm } } } }] }) {
+    ///   feats(
+    ///     skip: $skip
+    ///     take: $take
+    ///     order: $order
+    ///     where: { or: [{ name: { contains: $searchTerm } }, { traits: { some: { name: { contains: $searchTerm } } } }] }
+    ///   ) {
     ///     __typename
     ///     totalCount
     ///     items {
@@ -2455,15 +2465,20 @@ namespace Foo.Bar
     /// <code>
     /// query GetFeatsPage(
     ///   $skip: Int!
-    ///     $take: Int!
-    ///     $searchTerm: String! = ""
-    ///     $order: [FeatSortInput!] = [
+    ///   $take: Int!
+    ///   $searchTerm: String! = ""
+    ///   $order: [FeatSortInput!] = [
     ///     {
     ///       name: ASC
     ///     }
     ///   ]
     /// ) {
-    ///   feats(skip: $skip, take: $take, order: $order, where: { or: [{ name: { contains: $searchTerm } }, { traits: { some: { name: { contains: $searchTerm } } } }] }) {
+    ///   feats(
+    ///     skip: $skip
+    ///     take: $take
+    ///     order: $order
+    ///     where: { or: [{ name: { contains: $searchTerm } }, { traits: { some: { name: { contains: $searchTerm } } } }] }
+    ///   ) {
     ///     __typename
     ///     totalCount
     ///     items {
@@ -2505,9 +2520,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetFeatById GraphQL operation
     /// <code>
-    /// query GetFeatById(
-    ///   $id: UUID!
-    /// ) {
+    /// query GetFeatById($id: UUID!) {
     ///   feats(where: { id: { eq: $id } }) {
     ///     __typename
     ///     items {
@@ -2569,9 +2582,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetFeatById GraphQL operation
     /// <code>
-    /// query GetFeatById(
-    ///   $id: UUID!
-    /// ) {
+    /// query GetFeatById($id: UUID!) {
     ///   feats(where: { id: { eq: $id } }) {
     ///     __typename
     ///     items {
@@ -2687,9 +2698,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetFeatById GraphQL operation
     /// <code>
-    /// query GetFeatById(
-    ///   $id: UUID!
-    /// ) {
+    /// query GetFeatById($id: UUID!) {
     ///   feats(where: { id: { eq: $id } }) {
     ///     __typename
     ///     items {

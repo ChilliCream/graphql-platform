@@ -92,9 +92,7 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Op_e8751f64_3(
-              $__fusion_2_id: ID!
-            ) {
+            query Op_e8751f64_3($__fusion_2_id: ID!) {
               userById(id: $__fusion_2_id) {
                 reputation
               }
@@ -131,9 +129,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_e8751f64_4(
-              $__fusion_3_id: ID!
-            ) {
+            query Op_e8751f64_4($__fusion_3_id: ID!) {
               userById(id: $__fusion_3_id) {
                 profile
               }
@@ -192,9 +188,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_e8751f64_2(
-          $__fusion_1_id: ID!
-        ) {
+        query Op_e8751f64_2($__fusion_1_id: ID!) {
           productById(id: $__fusion_1_id) {
             price
           }
@@ -212,9 +206,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_e8751f64_3(
-          $__fusion_2_id: ID!
-        ) {
+        query Op_e8751f64_3($__fusion_2_id: ID!) {
           userById(id: $__fusion_2_id) {
             reputation
           }
@@ -232,9 +224,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query Op_e8751f64_4(
-          $__fusion_3_id: ID!
-        ) {
+        query Op_e8751f64_4($__fusion_3_id: ID!) {
           userById(id: $__fusion_3_id) {
             profile
           }
