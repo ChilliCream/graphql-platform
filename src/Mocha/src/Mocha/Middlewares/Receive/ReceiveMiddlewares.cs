@@ -50,6 +50,11 @@ public static class ReceiveMiddlewares
         MessageTypeSelectionMiddleware.Create();
 
     /// <summary>
+    /// The redelivery middleware configuration that reschedules failed messages for later delivery.
+    /// </summary>
+    public static readonly ReceiveMiddlewareConfiguration Redelivery = ReceiveRedeliveryMiddleware.Create();
+
+    /// <summary>
     /// The routing middleware configuration that dispatches messages to the appropriate consumer.
     /// </summary>
     public static readonly ReceiveMiddlewareConfiguration Routing = RoutingMiddleware.Create();

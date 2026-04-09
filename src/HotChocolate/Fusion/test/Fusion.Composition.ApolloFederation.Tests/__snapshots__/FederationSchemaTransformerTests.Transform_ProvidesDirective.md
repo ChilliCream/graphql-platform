@@ -38,19 +38,15 @@ schema {
 
 type Query {
   reviews: [Review]
-  userById(id: ID!): User
-    @internal
-    @lookup
+  userById(id: ID!): User @internal @lookup
 }
 
 type Review {
-  author: User
-    @provides(fields: "username")
+  author: User @provides(fields: "username")
   body: String
 }
 
-type User
-  @key(fields: "id") {
+type User @key(fields: "id") {
   id: ID!
   totalProductsCreated: Int
   username: String

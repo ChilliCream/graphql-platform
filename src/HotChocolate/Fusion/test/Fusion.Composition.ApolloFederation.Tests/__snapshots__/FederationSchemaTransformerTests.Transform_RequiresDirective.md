@@ -36,16 +36,14 @@ schema {
 
 type Query {
   product(id: ID!): Product
-  productById(id: ID!): Product
-    @internal
-    @lookup
+  productById(id: ID!): Product @internal @lookup
 }
 
-type Product
-  @key(fields: "id") {
+type Product @key(fields: "id") {
   id: ID!
   shippingEstimate(
     price: Float! @require(field: "price")
-    weight: Float! @require(field: "weight")): Float
+    weight: Float! @require(field: "weight")
+  ): Float
 }
 ```

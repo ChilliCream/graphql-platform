@@ -32,14 +32,13 @@ schema {
 }
 
 type Query {
-  productBySkuAndPackage(package: String! sku: String!): Product
+  productBySkuAndPackage(package: String!, sku: String!): Product
     @internal
     @lookup
   products: [Product]
 }
 
-type Product
-  @key(fields: "sku package") {
+type Product @key(fields: "sku package") {
   name: String
   package: String!
   sku: String!

@@ -4,24 +4,18 @@ schema {
 
 type Query {
   product(id: Int!): Product
-  productById(id: Int!): Product
-    @internal
-    @lookup
+  productById(id: Int!): Product @internal @lookup
   topProducts: [Product!]!
-  userByEmail(email: String!): User
-    @internal
-    @lookup
+  userByEmail(email: String!): User @internal @lookup
 }
 
-type Product
-  @key(fields: "id") {
+type Product @key(fields: "id") {
   id: Int!
   name: String!
   price: Float!
 }
 
-type User
-  @key(fields: "email") {
+type User @key(fields: "email") {
   email: String!
   name: String!
 }

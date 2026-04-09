@@ -90,9 +90,7 @@ sourceSchemas:
       - request:
           accept: application/jsonl
           document: |
-            query Op_490e9345_2(
-              $__fusion_1_id: ID!
-            ) {
+            query Op_490e9345_2($__fusion_1_id: ID!) {
               bookById(id: $__fusion_1_id) {
                 rating
               }
@@ -151,9 +149,7 @@ operationPlan:
       type: Operation
       schema: b
       operation: |
-        query Op_490e9345_2(
-          $__fusion_1_id: ID!
-        ) {
+        query Op_490e9345_2($__fusion_1_id: ID!) {
           bookById(id: $__fusion_1_id) {
             rating
           }

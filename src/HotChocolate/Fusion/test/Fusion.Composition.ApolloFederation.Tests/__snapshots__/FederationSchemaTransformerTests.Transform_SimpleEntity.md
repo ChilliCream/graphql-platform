@@ -32,13 +32,10 @@ schema {
 
 type Query {
   product(id: ID!): Product
-  productById(id: ID!): Product
-    @internal
-    @lookup
+  productById(id: ID!): Product @internal @lookup
 }
 
-type Product
-  @key(fields: "id") {
+type Product @key(fields: "id") {
   id: ID!
   name: String
 }

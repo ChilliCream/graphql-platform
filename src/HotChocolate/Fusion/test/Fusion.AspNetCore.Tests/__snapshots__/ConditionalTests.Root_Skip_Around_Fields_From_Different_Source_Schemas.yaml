@@ -1,9 +1,7 @@
 title: Root_Skip_Around_Fields_From_Different_Source_Schemas
 request:
   document: |
-    query testQuery(
-      $skip: Boolean!
-    ) {
+    query testQuery($skip: Boolean!) {
       ... @skip(if: $skip) {
         productBySlug(slug: "product") {
           name
@@ -53,9 +51,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $skip: Boolean!
-        ) {
+        query testQuery($skip: Boolean!) {
           ... @skip(if: $skip) {
             productBySlug(slug: "product") {
               name

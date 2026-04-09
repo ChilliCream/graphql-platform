@@ -51,23 +51,16 @@ schema {
 
 type Query {
   product(id: ID!): Product
-  productById(id: ID!): Product
-    @internal
-    @lookup
-  productBySkuAndPackage(package: String! sku: String!): Product
+  productById(id: ID!): Product @internal @lookup
+  productBySkuAndPackage(package: String!, sku: String!): Product
     @internal
     @lookup
   reviews: [Review]
-  userById(id: ID!): User
-    @internal
-    @lookup
+  userById(id: ID!): User @internal @lookup
 }
 
-type Product
-  @key(fields: "id")
-  @key(fields: "sku package") {
-  createdBy: User
-    @provides(fields: "totalProductsCreated")
+type Product @key(fields: "id") @key(fields: "sku package") {
+  createdBy: User @provides(fields: "totalProductsCreated")
   id: ID!
   inStock: Boolean
   name: String
@@ -82,8 +75,7 @@ type Review {
   body: String
 }
 
-type User
-  @key(fields: "id") {
+type User @key(fields: "id") {
   id: ID!
   totalProductsCreated: Int
 }

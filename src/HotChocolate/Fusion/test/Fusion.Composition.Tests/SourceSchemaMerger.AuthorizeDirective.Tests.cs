@@ -48,41 +48,39 @@ public sealed class SourceSchemaMergerAuthorizeDirectiveTests : SourceSchemaMerg
             ],
             """
             schema {
-                query: Query
+              query: Query
             }
 
             type Query
-                @authorize(policy: "PolicyA1")
-                @authorize(policy: "PolicyB1")
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field: Int
-                    @authorize(policy: "PolicyA2")
-                    @authorize(policy: "PolicyB2")
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+              @authorize(policy: "PolicyA1")
+              @authorize(policy: "PolicyB1")
+              @fusion__type(schema: A)
+              @fusion__type(schema: B) {
+              field: Int
+                @authorize(policy: "PolicyA2")
+                @authorize(policy: "PolicyB2")
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
             }
 
             type FooObject
-                @authorize(policy: "PolicyA3")
-                @authorize(policy: "PolicyB3")
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field: Int
-                    @authorize(policy: "PolicyA4")
-                    @authorize(policy: "PolicyB4")
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+              @authorize(policy: "PolicyA3")
+              @authorize(policy: "PolicyB3")
+              @fusion__type(schema: A)
+              @fusion__type(schema: B) {
+              field: Int
+                @authorize(policy: "PolicyA4")
+                @authorize(policy: "PolicyB4")
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
             }
 
-            interface FooInterface
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field: Int
-                    @authorize(policy: "PolicyA5")
-                    @authorize(policy: "PolicyB5")
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            interface FooInterface @fusion__type(schema: A) @fusion__type(schema: B) {
+              field: Int
+                @authorize(policy: "PolicyA5")
+                @authorize(policy: "PolicyB5")
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
             }
             """,
             modifySchema: s_removeAuthorizeDirective);
@@ -113,15 +111,11 @@ public sealed class SourceSchemaMergerAuthorizeDirectiveTests : SourceSchemaMerg
             ],
             """
             schema {
-                query: Query
+              query: Query
             }
 
-            type Query
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field: Int
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              field: Int @fusion__field(schema: A) @fusion__field(schema: B)
             }
             """);
     }
@@ -243,16 +237,14 @@ public sealed class SourceSchemaMergerAuthorizeDirectiveTests : SourceSchemaMerg
             ],
             """
             schema {
-                query: Query
+              query: Query
             }
 
             type Query
-                @authorize(policy: "Policy1")
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field: Int
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+              @authorize(policy: "Policy1")
+              @fusion__type(schema: A)
+              @fusion__type(schema: B) {
+              field: Int @fusion__field(schema: A) @fusion__field(schema: B)
             }
             """,
             modifySchema: s_removeAuthorizeDirective);

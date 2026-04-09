@@ -1,9 +1,7 @@
 title: Only_Typename_Selected
 request:
   document: |
-    query testQuery(
-      $id: ID!
-    ) {
+    query testQuery($id: ID!) {
       node(id: $id) {
         __typename
       }
@@ -44,9 +42,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_539ebaa0_2(
-              $id: ID!
-            ) {
+            query testQuery_539ebaa0_2($id: ID!) {
               node(id: $id) {
                 __typename
               }
@@ -87,9 +83,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $id: ID!
-        ) {
+        query testQuery($id: ID!) {
           node(id: $id) {
             __typename
           }
@@ -107,9 +101,7 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query testQuery_539ebaa0_2(
-          $id: ID!
-        ) {
+        query testQuery_539ebaa0_2($id: ID!) {
           node(id: $id) {
             __typename
           }

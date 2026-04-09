@@ -105,7 +105,7 @@ sourceSchemas:
         nodes(ids: [ID!]!): [Node]! @shareable
         userById(id: ID!): User!
         users: [User!]!
-        testWithTwoArgumentsDifferingNullability(first: Int! second: Int): String!
+        testWithTwoArgumentsDifferingNullability(first: Int!, second: Int): String!
       }
 
       type User implements Node {
@@ -118,9 +118,7 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query TopProducts_c6ef3d11_3(
-              $__fusion_2_id: ID!
-            ) {
+            query TopProducts_c6ef3d11_3($__fusion_2_id: ID!) {
               node(id: $__fusion_2_id) {
                 __typename
                 ... on User {
@@ -280,9 +278,7 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query TopProducts_c6ef3d11_2(
-              $__fusion_1_id: ID!
-            ) {
+            query TopProducts_c6ef3d11_2($__fusion_1_id: ID!) {
               node(id: $__fusion_1_id) {
                 __typename
                 ... on Product {
@@ -501,9 +497,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query TopProducts_c6ef3d11_2(
-          $__fusion_1_id: ID!
-        ) {
+        query TopProducts_c6ef3d11_2($__fusion_1_id: ID!) {
           node(id: $__fusion_1_id) {
             __typename
             ... on Product {
@@ -528,9 +522,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query TopProducts_c6ef3d11_3(
-          $__fusion_2_id: ID!
-        ) {
+        query TopProducts_c6ef3d11_3($__fusion_2_id: ID!) {
           node(id: $__fusion_2_id) {
             __typename
             ... on User {

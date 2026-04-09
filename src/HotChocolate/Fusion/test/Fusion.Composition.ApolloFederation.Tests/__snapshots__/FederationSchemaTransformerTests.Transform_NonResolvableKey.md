@@ -34,8 +34,7 @@ type Query {
   products: [Product]
 }
 
-type Product
-  @key(fields: "id") {
+type Product @key(fields: "id") {
   id: ID!
   name: String
 }

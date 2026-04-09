@@ -122,9 +122,7 @@ sourceSchemas:
           kind: OperationBatch
           items:
             - document: |
-                query Op_1b3419da_2(
-                  $__fusion_1_id: ID!
-                ) {
+                query Op_1b3419da_2($__fusion_1_id: ID!) {
                   authorById(id: $__fusion_1_id) {
                     b: name(postFix: "2")
                   }
@@ -134,9 +132,7 @@ sourceSchemas:
                   "__fusion_1_id": "1"
                 }
             - document: |
-                query Op_1b3419da_2(
-                  $__fusion_1_id: ID!
-                ) {
+                query Op_1b3419da_2($__fusion_1_id: ID!) {
                   authorById(id: $__fusion_1_id) {
                     b: name(postFix: "2")
                   }
@@ -146,9 +142,7 @@ sourceSchemas:
                   "__fusion_1_id": "2"
                 }
             - document: |
-                query Op_1b3419da_3(
-                  $__fusion_2_id: ID!
-                ) {
+                query Op_1b3419da_3($__fusion_2_id: ID!) {
                   authorById(id: $__fusion_2_id) {
                     a: name
                   }
@@ -158,9 +152,7 @@ sourceSchemas:
                   "__fusion_2_id": "1"
                 }
             - document: |
-                query Op_1b3419da_3(
-                  $__fusion_2_id: ID!
-                ) {
+                query Op_1b3419da_3($__fusion_2_id: ID!) {
                   authorById(id: $__fusion_2_id) {
                     a: name
                   }
@@ -241,9 +233,7 @@ operationPlan:
       type: Operation
       schema: b
       operation: |
-        query Op_1b3419da_2(
-          $__fusion_1_id: ID!
-        ) {
+        query Op_1b3419da_2($__fusion_1_id: ID!) {
           authorById(id: $__fusion_1_id) {
             b: name(postFix: "2")
           }
@@ -261,9 +251,7 @@ operationPlan:
       type: Operation
       schema: b
       operation: |
-        query Op_1b3419da_3(
-          $__fusion_2_id: ID!
-        ) {
+        query Op_1b3419da_3($__fusion_2_id: ID!) {
           authorById(id: $__fusion_2_id) {
             a: name
           }

@@ -33,18 +33,14 @@ schema {
 }
 
 type Query {
-  productById(id: ID!): Product
-    @internal
-    @lookup
-  productBySkuAndPackage(package: String! sku: String!): Product
+  productById(id: ID!): Product @internal @lookup
+  productBySkuAndPackage(package: String!, sku: String!): Product
     @internal
     @lookup
   products: [Product]
 }
 
-type Product
-  @key(fields: "id")
-  @key(fields: "sku package") {
+type Product @key(fields: "id") @key(fields: "sku package") {
   id: ID!
   name: String
   package: String!

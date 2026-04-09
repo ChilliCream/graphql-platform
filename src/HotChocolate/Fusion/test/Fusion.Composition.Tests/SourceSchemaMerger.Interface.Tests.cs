@@ -26,16 +26,10 @@ public sealed class SourceSchemaMergerInterfaceTests : SourceSchemaMergerTestBas
                 """
             ],
             """
-            interface Product
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                createdAt: String
-                    @fusion__field(schema: B)
-                id: ID!
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
-                name: String
-                    @fusion__field(schema: A)
+            interface Product @fusion__type(schema: A) @fusion__type(schema: B) {
+              createdAt: String @fusion__field(schema: B)
+              id: ID! @fusion__field(schema: A) @fusion__field(schema: B)
+              name: String @fusion__field(schema: A)
             }
             """);
     }
@@ -67,12 +61,8 @@ public sealed class SourceSchemaMergerInterfaceTests : SourceSchemaMergerTestBas
             ],
             """
             "First description"
-            interface Product
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                id: ID!
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            interface Product @fusion__type(schema: A) @fusion__type(schema: B) {
+              id: ID! @fusion__field(schema: A) @fusion__field(schema: B)
             }
             """);
     }
@@ -99,12 +89,10 @@ public sealed class SourceSchemaMergerInterfaceTests : SourceSchemaMergerTestBas
             ],
             """
             interface Product
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
-                @fusion__inaccessible {
-                id: ID!
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @fusion__inaccessible {
+              id: ID! @fusion__field(schema: A) @fusion__field(schema: B)
             }
             """);
     }
@@ -148,38 +136,28 @@ public sealed class SourceSchemaMergerInterfaceTests : SourceSchemaMergerTestBas
                 """
             ],
             """
-            interface I1
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                id: ID!
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            interface I1 @fusion__type(schema: A) @fusion__type(schema: B) {
+              id: ID! @fusion__field(schema: A) @fusion__field(schema: B)
             }
 
             interface I2
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
-                @fusion__inaccessible {
-                id: ID!
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @fusion__inaccessible {
+              id: ID! @fusion__field(schema: A) @fusion__field(schema: B)
             }
 
-            interface I3
-                @fusion__type(schema: B) {
-                id: ID!
-                    @fusion__field(schema: B)
+            interface I3 @fusion__type(schema: B) {
+              id: ID! @fusion__field(schema: B)
             }
 
             interface Product implements I1 & I3
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
-                @fusion__implements(schema: A, interface: "I1")
-                @fusion__implements(schema: B, interface: "I1")
-                @fusion__implements(schema: B, interface: "I3") {
-                id: ID!
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @fusion__implements(schema: A, interface: "I1")
+              @fusion__implements(schema: B, interface: "I1")
+              @fusion__implements(schema: B, interface: "I3") {
+              id: ID! @fusion__field(schema: A) @fusion__field(schema: B)
             }
             """);
     }
@@ -205,27 +183,22 @@ public sealed class SourceSchemaMergerInterfaceTests : SourceSchemaMergerTestBas
             ],
             """
             schema {
-                query: Query
+              query: Query
             }
 
-            type Query
-                @fusion__type(schema: A) {
-                productById(
-                    id: ID! @fusion__inputField(schema: A)): Product
-                    @fusion__field(schema: A)
-                productByName(
-                    name: String! @fusion__inputField(schema: A)): Product
-                    @fusion__field(schema: A)
+            type Query @fusion__type(schema: A) {
+              productById(id: ID! @fusion__inputField(schema: A)): Product
+                @fusion__field(schema: A)
+              productByName(name: String! @fusion__inputField(schema: A)): Product
+                @fusion__field(schema: A)
             }
 
             interface Product
-                @fusion__type(schema: A)
-                @fusion__lookup(schema: A, key: "id", field: "productById(id: ID!): Product", map: ["id"], path: null, internal: false)
-                @fusion__lookup(schema: A, key: "name", field: "productByName(name: String!): Product", map: ["name"], path: null, internal: false) {
-                id: ID!
-                    @fusion__field(schema: A)
-                name: String!
-                    @fusion__field(schema: A)
+              @fusion__type(schema: A)
+              @fusion__lookup(schema: A, key: "id", field: "productById(id: ID!): Product", map: ["id"], path: null, internal: false)
+              @fusion__lookup(schema: A, key: "name", field: "productByName(name: String!): Product", map: ["name"], path: null, internal: false) {
+              id: ID! @fusion__field(schema: A)
+              name: String! @fusion__field(schema: A)
             }
             """);
     }
@@ -259,43 +232,34 @@ public sealed class SourceSchemaMergerInterfaceTests : SourceSchemaMergerTestBas
             ],
             """
             schema {
-                query: Query
+              query: Query
             }
 
-            type Query
-                @fusion__type(schema: A) {
-                animalById(
-                    id: ID! @fusion__inputField(schema: A)): Animal
-                    @fusion__field(schema: A)
+            type Query @fusion__type(schema: A) {
+              animalById(id: ID! @fusion__inputField(schema: A)): Animal
+                @fusion__field(schema: A)
             }
 
             type Cat implements Animal
-                @fusion__type(schema: A)
-                @fusion__implements(schema: A, interface: "Animal")
-                @fusion__lookup(schema: A, key: "id", field: "catById(id: ID!): Cat", map: ["id"], path: "animalById", internal: false) {
-                catById(
-                    id: ID! @fusion__inputField(schema: A)): Cat
-                    @fusion__field(schema: A)
-                id: ID!
-                    @fusion__field(schema: A)
+              @fusion__type(schema: A)
+              @fusion__implements(schema: A, interface: "Animal")
+              @fusion__lookup(schema: A, key: "id", field: "catById(id: ID!): Cat", map: ["id"], path: "animalById", internal: false) {
+              catById(id: ID! @fusion__inputField(schema: A)): Cat @fusion__field(schema: A)
+              id: ID! @fusion__field(schema: A)
             }
 
             type Dog implements Animal
-                @fusion__type(schema: A)
-                @fusion__implements(schema: A, interface: "Animal")
-                @fusion__lookup(schema: A, key: "id", field: "dogById(id: ID!): Dog", map: ["id"], path: "animalById", internal: false) {
-                dogById(
-                    id: ID! @fusion__inputField(schema: A)): Dog
-                    @fusion__field(schema: A)
-                id: ID!
-                    @fusion__field(schema: A)
+              @fusion__type(schema: A)
+              @fusion__implements(schema: A, interface: "Animal")
+              @fusion__lookup(schema: A, key: "id", field: "dogById(id: ID!): Dog", map: ["id"], path: "animalById", internal: false) {
+              dogById(id: ID! @fusion__inputField(schema: A)): Dog @fusion__field(schema: A)
+              id: ID! @fusion__field(schema: A)
             }
 
             interface Animal
-                @fusion__type(schema: A)
-                @fusion__lookup(schema: A, key: "id", field: "animalById(id: ID!): Animal", map: ["id"], path: null, internal: false) {
-                id: ID!
-                    @fusion__field(schema: A)
+              @fusion__type(schema: A)
+              @fusion__lookup(schema: A, key: "id", field: "animalById(id: ID!): Animal", map: ["id"], path: null, internal: false) {
+              id: ID! @fusion__field(schema: A)
             }
             """);
     }
