@@ -8,17 +8,34 @@ using Mocha.Analyzers.Utils;
 namespace Mocha.Analyzers.Inspectors;
 
 /// <summary>
-/// Inspects invocation expressions to discover calls to module registration methods
-/// annotated with <c>[MessagingModuleInfo]</c> and extracts the declared message types.
+/// Inspects invocation expressions to discover calls to source-generated module registration
+/// methods (e.g. <c>builder.AddOrderService()</c>) and extracts their declared message types.
 /// </summary>
+/// <remarks>
+/// <para>
+/// The source generator decorates each generated <c>Add*</c> extension method with a
+/// <c>[MessagingModuleInfo(MessageTypes = new[] { typeof(A), typeof(B) })]</c> attribute
+/// that lists every message type the module handles. This inspector resolves the called
+/// method symbol, reads that attribute, and emits an <see cref="ImportedModuleTypesInfo"/>
+/// containing the type names.
+/// </para>
+/// <para>
+/// Downstream generators use this to avoid emitting duplicate serializer registrations for
+/// types already covered by a referenced module.
+/// </para>
+/// <para>
+/// The syntactic pre-filter (<see cref="InvocationModuleFilter"/>) broadly matches any
+/// method starting with <c>Add</c>; this inspector then narrows to only those carrying
+/// the <c>[MessagingModuleInfo]</c> attribute.
+/// </para>
+/// </remarks>
 public sealed class ImportedModuleTypeInspector : ISyntaxInspector
 {
     /// <inheritdoc />
     public ImmutableArray<ISyntaxFilter> Filters { get; } = [InvocationModuleFilter.Instance];
 
     /// <inheritdoc />
-    public IImmutableSet<SyntaxKind> SupportedKinds { get; } =
-        ImmutableHashSet.Create(SyntaxKind.InvocationExpression);
+    public IImmutableSet<SyntaxKind> SupportedKinds { get; } = ImmutableHashSet.Create(SyntaxKind.InvocationExpression);
 
     /// <inheritdoc />
     public bool TryHandle(

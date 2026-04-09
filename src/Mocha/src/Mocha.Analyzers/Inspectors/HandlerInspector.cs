@@ -75,9 +75,7 @@ public sealed class HandlerInspector : ISyntaxInspector
         foreach (var descriptor in s_handlerKinds)
         {
             var target = descriptor.GetTarget(knownSymbols);
-            var implemented = target is not null
-                ? namedTypeSymbol.FindImplementedInterface(target)
-                : null;
+            var implemented = target is not null ? namedTypeSymbol.FindImplementedInterface(target) : null;
 
             if (implemented is null)
             {
@@ -101,16 +99,16 @@ public sealed class HandlerInspector : ISyntaxInspector
         return false;
     }
 
-    private static bool ImplementsAnyHandlerInterface(
-        KnownTypeSymbols knownSymbols,
-        INamedTypeSymbol namedTypeSymbol)
+    private static bool ImplementsAnyHandlerInterface(KnownTypeSymbols knownSymbols, INamedTypeSymbol namedTypeSymbol)
     {
-        return
-            (knownSymbols.ICommandHandlerVoid is not null
+        return (
+                knownSymbols.ICommandHandlerVoid is not null
                 && namedTypeSymbol.FindImplementedInterface(knownSymbols.ICommandHandlerVoid) is not null)
-            || (knownSymbols.ICommandHandlerResponse is not null
+            || (
+                knownSymbols.ICommandHandlerResponse is not null
                 && namedTypeSymbol.FindImplementedInterface(knownSymbols.ICommandHandlerResponse) is not null)
-            || (knownSymbols.IQueryHandler is not null
+            || (
+                knownSymbols.IQueryHandler is not null
                 && namedTypeSymbol.FindImplementedInterface(knownSymbols.IQueryHandler) is not null);
     }
 
