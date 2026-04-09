@@ -1,6 +1,6 @@
 ---
 title: "Reliability"
-description: "Configure fault handling, dead-letter routing, message expiry, concurrency limits, circuit breakers, the transactional outbox, and the idempotent inbox in Mocha to build resilient messaging pipelines."
+description: "Configure exception policies, retry, delayed redelivery, fault handling, dead-letter routing, message expiry, concurrency limits, circuit breakers, the transactional outbox, and the idempotent inbox in Mocha to build resilient messaging pipelines."
 ---
 
 Messaging systems fail. Handlers throw exceptions, brokers go offline, databases lock up, and messages arrive faster than consumers can process them. Mocha's reliability features handle these failures at the infrastructure level so your handler code stays focused on business logic.
@@ -8,6 +8,11 @@ Messaging systems fail. Handlers throw exceptions, brokers go offline, databases
 ```csharp
 builder.Services
     .AddMessageBus()
+    .AddResilience(policy =>
+    {
+        policy.On<ValidationException>().DeadLetter();
+        policy.Default().Retry().ThenRedeliver();
+    })
     .AddCircuitBreaker(opts =>
     {
         opts.FailureRatio = 0.5;
@@ -24,7 +29,7 @@ builder.Services
     .AddRabbitMQ();
 ```
 
-That configuration adds circuit breaking, concurrency limiting, transactional outbox, idempotent inbox, and database transaction wrapping - all as middleware in the receive and dispatch pipelines.
+That configuration adds per-exception retry and redelivery policies, circuit breaking, concurrency limiting, transactional outbox, idempotent inbox, and database transaction wrapping - all as middleware in the receive and dispatch pipelines.
 
 # Delivery guarantees
 
@@ -48,15 +53,17 @@ TransportCircuitBreaker
     -> Instrumentation
       -> DeadLetter
         -> Fault
-          -> CircuitBreaker
-            -> Expiry
-              -> MessageTypeSelection
-                -> Routing
-                  -> Consumer pipeline
-                    -> Transaction middleware (BEGIN)
-                      -> Inbox (claim inside transaction)
-                        -> Your handler
-                    -> Transaction middleware (COMMIT/ROLLBACK)
+          -> Redelivery          <- schedules for later if retries exhausted
+            -> CircuitBreaker
+              -> Expiry
+                -> MessageTypeSelection
+                  -> Routing
+                    -> Consumer pipeline
+                      -> Retry   <- immediate in-process retries
+                        -> Transaction middleware (BEGIN)
+                          -> Inbox (claim inside transaction)
+                            -> Your handler
+                        -> Transaction middleware (COMMIT/ROLLBACK)
 ```
 
 Each middleware can intercept failures from downstream, transform them, or short-circuit the pipeline. The reliability middlewares - dead-letter, fault, circuit breaker, expiry, inbox, and concurrency limiter - are all enabled by default with sensible defaults. You tune them when the defaults do not match your workload.
@@ -145,6 +152,420 @@ await bus.SendAsync(
 ```
 
 For time-sensitive commands, a short expiry prevents stale operations from executing after their validity window.
+
+# Retry failed messages
+
+When a handler throws a transient exception - a database timeout, an HTTP 503, temporary lock contention - retrying the same operation a few hundred milliseconds later often succeeds. The retry middleware re-runs the handler in-process without releasing the concurrency slot or leaving the consumer pipeline.
+
+Retry lives in the **consumer pipeline**, not the receive pipeline. This matters for two reasons:
+
+1. **Only handler failures are retried.** Deserialization errors, unknown message types, and routing failures are almost always permanent. Retrying them wastes time.
+2. **Multi-consumer correctness.** When one endpoint routes a message to multiple consumers, only the failing consumer retries. The others are unaffected.
+
+## Add retry with defaults
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddResilience()
+    .AddEventHandler<OrderPlacedHandler>()
+    .AddRabbitMQ();
+```
+
+The parameterless `AddResilience()` registers a catch-all `Default()` rule with both retry and redelivery enabled. Retry defaults to 3 attempts, 200 ms base delay, exponential backoff, jitter enabled, and a 30-second maximum delay. These defaults handle the majority of transient failures without tuning.
+
+## Customize retry behavior
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddResilience(policy =>
+    {
+        policy.Default()
+            .Retry(5, TimeSpan.FromSeconds(1), RetryBackoffType.Exponential)
+            .ThenRedeliver();
+    })
+    .AddEventHandler<OrderPlacedHandler>()
+    .AddRabbitMQ();
+```
+
+## Use explicit retry intervals
+
+When you need precise control over each delay, pass an array of intervals. The array length determines the number of retries.
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddResilience(policy =>
+    {
+        policy.Default().Retry(
+        [
+            TimeSpan.FromMilliseconds(100),
+            TimeSpan.FromMilliseconds(500),
+            TimeSpan.FromSeconds(2)
+        ]).ThenRedeliver();
+    })
+    .AddEventHandler<OrderPlacedHandler>()
+    .AddRabbitMQ();
+```
+
+## Handle different exceptions differently
+
+Not every exception should be retried. Validation errors, authorization failures, and other permanent errors waste retry budget. Use `AddResilience` to define per-exception handling strategies.
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddResilience(policy =>
+    {
+        // Never retry validation failures - route to error endpoint
+        policy.On<ValidationException>().DeadLetter();
+
+        // Never retry non-transient database errors
+        policy.On<DbException>(ex => !ex.IsTransient).DeadLetter();
+
+        // Transient database errors get more retries
+        policy.On<DbException>(ex => ex.IsTransient)
+            .Retry(5, TimeSpan.FromMilliseconds(200))
+            .ThenRedeliver();
+
+        // Everything else: retry then redeliver
+        policy.Default().Retry().ThenRedeliver();
+    })
+    .AddEventHandler<OrderPlacedHandler>()
+    .AddRabbitMQ();
+```
+
+Exception matching respects inheritance. `On<DbException>()` also matches `NpgsqlException` and any other `DbException` subclass. When multiple rules match, the most specific type wins - the same precedence as C# `catch` blocks.
+
+For the full API including predicates, conditional policies, and escalation chains, see [Exception Policies](/docs/mocha/v1/exception-policies).
+
+## Override retry per consumer
+
+The bus-level exception policy applies to all consumers. Override it for specific consumers that need different behavior. See [Handlers and Consumers](/docs/mocha/v1/handlers-and-consumers) for the full consumer configuration API.
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddResilience() // bus-level: default retry + redelivery for all consumers
+    .AddEventHandler<OrderHandler>(consumer =>
+    {
+        // This consumer: 10 retries with longer delay, then redeliver
+        consumer.AddResilience(policy =>
+        {
+            policy.Default()
+                .Retry(10, TimeSpan.FromSeconds(2))
+                .ThenRedeliver();
+        });
+    })
+    .AddEventHandler<NotificationHandler>(consumer =>
+    {
+        // This consumer: skip retry, redeliver only
+        consumer.AddResilience(policy =>
+        {
+            policy.Default().Redeliver();
+        });
+    })
+    .AddRabbitMQ();
+```
+
+Consumer-level policies replace the bus-level policies entirely for that consumer - they are not merged. If you need a bus-level rule to also apply at the consumer level, include it in the consumer-level configuration.
+
+## Retry defaults reference
+
+| Setting   | Default value |
+| --------- | ------------- |
+| Attempts  | 3             |
+| Delay     | 200 ms        |
+| Backoff   | Exponential   |
+| Jitter    | Enabled       |
+| Max delay | 30 seconds    |
+
+### RetryBackoffType values
+
+| Value         | Formula                   | Example (Delay = 200 ms) |
+| ------------- | ------------------------- | ------------------------ |
+| `Constant`    | `Delay`                   | 200 ms, 200 ms, 200 ms   |
+| `Linear`      | `Delay * attempt`         | 200 ms, 400 ms, 600 ms   |
+| `Exponential` | `Delay * 2^(attempt - 1)` | 200 ms, 400 ms, 800 ms   |
+
+# Redeliver failed messages
+
+Retry handles transient blips that resolve in milliseconds. Some failures take longer - a downstream service is deploying, a database is recovering from a failover, an external API is rate-limiting. For these, you need **redelivery**: reschedule the message for later delivery through the transport.
+
+Redelivery lives in the **receive pipeline**, not the consumer pipeline. This matters for two reasons:
+
+1. **Single decision point.** When an endpoint has multiple consumers, you want one redelivery decision per message, not one per consumer.
+2. **Releases the concurrency slot.** Retry holds the slot while waiting. Redelivery returns the message to the transport and frees the slot for other messages.
+
+Redelivery uses Mocha's [scheduling infrastructure](/docs/mocha/v1/scheduling) to schedule the message for future delivery. The message re-enters the full receive pipeline when it arrives - fresh routing, fresh consumer invocations, fresh retry attempts.
+
+```text
+Receive pipeline:
+
+  Fault
+    -> Redelivery
+      -> CircuitBreaker
+        -> ... (rest of pipeline)
+
+All retries exhausted -> exception propagates to Redelivery
+  -> redelivery attempts remaining -> schedule for later delivery
+  -> redelivery exhausted -> exception propagates to Fault -> error endpoint
+```
+
+## Add redelivery with defaults
+
+Redelivery is included when you call `AddResilience()` without arguments or when you chain `.ThenRedeliver()` in an escalation chain.
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddResilience() // Default() rule enables both retry and redelivery
+    .AddEventHandler<OrderPlacedHandler>()
+    .AddRabbitMQ();
+```
+
+The default redelivery schedule is three attempts at 5 minutes, 15 minutes, and 30 minutes with jitter enabled and a 1-hour maximum delay.
+
+## Use custom redelivery intervals
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddResilience(policy =>
+    {
+        policy.Default().Retry().ThenRedeliver(
+        [
+            TimeSpan.FromSeconds(30),
+            TimeSpan.FromMinutes(5),
+            TimeSpan.FromMinutes(30)
+        ]);
+    })
+    .AddEventHandler<OrderPlacedHandler>()
+    .AddRabbitMQ();
+```
+
+The array length determines the number of redelivery attempts. Each element is the delay before that attempt.
+
+## Use calculated redelivery delays
+
+Instead of explicit intervals, configure a number of attempts and a base delay:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddResilience(policy =>
+    {
+        policy.Default()
+            .Retry()
+            .ThenRedeliver(5, TimeSpan.FromMinutes(2));
+    })
+    .AddEventHandler<OrderPlacedHandler>()
+    .AddRabbitMQ();
+```
+
+## Redeliver without retry
+
+To skip retry entirely and go straight to redelivery, use `.Redeliver()` directly:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddResilience(policy =>
+    {
+        policy.Default().Redeliver();
+    })
+    .AddEventHandler<OrderPlacedHandler>()
+    .AddRabbitMQ();
+```
+
+When `.Redeliver()` is called without `.Retry()` first, retry is disabled for that rule. The handler failure goes straight to redelivery scheduling.
+
+## Override redelivery per endpoint
+
+Override exception policies at the transport level for more granular control. Transport-level policies replace the bus-level policies entirely for all endpoints on that transport.
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddResilience() // bus-level default
+    .AddRabbitMQ(transport =>
+    {
+        transport.AddResilience(policy =>
+        {
+            // Override for this transport: longer redelivery intervals
+            policy.Default().Retry().ThenRedeliver(
+            [
+                TimeSpan.FromMinutes(10),
+                TimeSpan.FromMinutes(30),
+                TimeSpan.FromHours(1)
+            ]);
+        });
+    });
+```
+
+Disable redelivery for a specific transport by configuring retry-only:
+
+```csharp
+transport.AddResilience(policy =>
+{
+    policy.Default().Retry();
+});
+```
+
+## Redelivery defaults reference
+
+| Setting   | Default value         |
+| --------- | --------------------- |
+| Intervals | 5 min, 15 min, 30 min |
+| Jitter    | Enabled               |
+| Max delay | 1 hour                |
+
+# Combine retry and redelivery
+
+The two tiers compose naturally through escalation chains. When both are configured, a message goes through immediate retry first. If all retries are exhausted, the exception propagates up from the consumer pipeline to the receive pipeline, where redelivery catches it and schedules the message for later delivery. On the next delivery round, the full retry cycle runs again.
+
+```text
+Message arrives
+  |
+  +- Consumer pipeline: Retry
+  |    +- Attempt 1 -> handler throws -> retry
+  |    +- Attempt 2 -> handler throws -> retry
+  |    +- Attempt 3 -> handler throws -> retry
+  |    +- Attempt 4 -> handler throws -> retries exhausted, exception propagates
+  |
+  +- Receive pipeline: Redelivery
+  |    +- Schedule message for delivery in 5 minutes
+  |
+  +- ... 5 minutes later, message re-enters pipeline ...
+  |
+  +- Consumer pipeline: Retry
+  |    +- Attempt 1 -> handler throws -> retry
+  |    +- ...
+  |    +- Attempt 4 -> retries exhausted, exception propagates
+  |
+  +- Receive pipeline: Redelivery
+  |    +- Schedule message for delivery in 15 minutes
+  |
+  +- ... continues until redelivery attempts exhausted ...
+  |
+  +- Fault middleware -> error endpoint (dead letter)
+```
+
+The total number of handler invocations before a message reaches the error endpoint:
+
+```text
+Total attempts = (retry attempts + 1) x (redelivery attempts + 1)
+```
+
+With the defaults (3 retries, 3 redeliveries): `(3 + 1) x (3 + 1) = 16` total handler invocations.
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddResilience(policy =>
+    {
+        policy.Default()
+            .Retry(5, TimeSpan.FromSeconds(1), RetryBackoffType.Exponential)
+            .ThenRedeliver(
+            [
+                TimeSpan.FromMinutes(5),
+                TimeSpan.FromMinutes(15),
+                TimeSpan.FromMinutes(30)
+            ]);
+    })
+    .AddEventHandler<OrderPlacedHandler>()
+    .AddRabbitMQ();
+```
+
+With this configuration: `(5 + 1) x (3 + 1) = 24` total handler invocations before dead-letter.
+
+:::note Request/reply messages skip redelivery
+Redelivery does not apply to request/reply messages. The caller is waiting synchronously for a response - scheduling the message for delivery minutes later would cause a timeout. When a request/reply handler fails after retry exhaustion, the exception propagates directly to the fault middleware, which sends a `NotAcknowledgedEvent` back to the caller. Immediate retry still applies to request/reply handlers.
+:::
+
+# Inspect retry state in handlers
+
+Handlers can access the current retry state through the context features. This is useful for graceful degradation - trying a primary path on the first attempt and falling back to an alternative on subsequent retries.
+
+```csharp
+public class PaymentConsumer(ILogger<PaymentConsumer> logger) : IConsumer<ProcessPayment>
+{
+    public async ValueTask ConsumeAsync(IConsumeContext<ProcessPayment> context)
+    {
+        var state = context.Features.Get<RetryFeature>();
+
+        if (state is { ImmediateRetryCount: > 2 })
+        {
+            logger.LogWarning(
+                "Primary gateway failed after {Retries} retries, using fallback",
+                state.ImmediateRetryCount);
+            await ProcessViaFallbackGatewayAsync(context.Message);
+            return;
+        }
+
+        if (state is { DelayedRetryCount: > 0 })
+        {
+            logger.LogWarning(
+                "Processing after {Redeliveries} redeliveries",
+                state.DelayedRetryCount);
+        }
+
+        await ProcessPaymentAsync(context.Message);
+    }
+}
+```
+
+`RetryFeature` is `null` when `AddResilience()` is not configured. When present, it exposes two properties:
+
+| Property              | Type  | Description                                                                                |
+| --------------------- | ----- | ------------------------------------------------------------------------------------------ |
+| `ImmediateRetryCount` | `int` | Number of immediate retries so far in this delivery round. `0` on the initial attempt.     |
+| `DelayedRetryCount`   | `int` | Number of redelivery rounds completed. Read from the `delayed-retry-count` message header. |
+
+## Retry and sagas
+
+[Sagas](/docs/mocha/v1/sagas) are consumers, so retry and redelivery apply automatically - no special configuration needed. Each saga handler invocation runs inside a saga transaction. If the handler throws, the transaction is never committed and all state changes are discarded. On the next retry attempt, the saga state is loaded fresh from the store.
+
+This means retry is safe for sagas by default. You do not need to worry about partial state mutations leaking between retry attempts.
+
+Redelivery is also safe. When a redelivered message arrives, a new transaction starts and the saga state is loaded at whatever state the last successful commit left it.
+
+# Troubleshoot retry and redelivery
+
+## "My handler runs more times than expected"
+
+Check both retry and redelivery. With both configured, the total handler invocations are `(retry attempts + 1) x (redelivery attempts + 1)`. Three retries with three redeliveries means 16 total invocations, not 6. Use the [formula above](#combine-retry-and-redelivery) to calculate the exact count.
+
+## "Retry does not work for my consumer"
+
+`AddResilience()` must be called at the bus level (or on the specific consumer) to register the retry middleware in the consumer pipeline. Adding a consumer-level policy without a bus-level or consumer-level `AddResilience()` call has no effect - the middleware is not in the pipeline.
+
+## "Redelivery fails at startup"
+
+Redelivery uses Mocha's [scheduling infrastructure](/docs/mocha/v1/scheduling). If your transport does not support scheduling or the scheduling store is not configured, redelivery cannot schedule messages for later delivery. Check that your transport is configured with scheduling support.
+
+## "Validation exceptions are being retried"
+
+Use `AddResilience` to route permanent failures directly to the error endpoint:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddResilience(policy =>
+    {
+        policy.On<ValidationException>().DeadLetter();
+        policy.Default().Retry().ThenRedeliver();
+    })
+    .AddEventHandler<OrderPlacedHandler>()
+    .AddRabbitMQ();
+```
+
+See [Exception Policies](/docs/mocha/v1/exception-policies) for the full per-exception configuration API, including predicates, terminal actions, and escalation chains.
+
+## "Request/reply messages are not redelivered"
+
+This is by design. Redelivery skips request/reply messages because the caller is waiting for a synchronous response. Immediate retry still applies. See the [note above](#combine-retry-and-redelivery) for details.
 
 # Limit concurrency
 
@@ -551,8 +972,11 @@ The inbox cleanup worker is a background hosted service (`IHostedService`). It r
 
 # Next steps
 
-Your messaging pipeline now handles failures, limits concurrency, breaks circuits on sustained errors, guarantees delivery through the outbox, and deduplicates messages through the inbox. To monitor your messaging system, see [Observability](/docs/mocha/v1/observability).
+Your messaging pipeline now handles exceptions per-type with retry and redelivery policies, limits concurrency, breaks circuits on repeated failures, guarantees delivery through the outbox, and deduplicates messages through the inbox. To monitor your messaging system, see [Observability](/docs/mocha/v1/observability).
 
+- [**Exception Policies**](/docs/mocha/v1/exception-policies) - Configure per-exception handling with composable retry, redelivery, and terminal actions.
+- [**Handlers and Consumers**](/docs/mocha/v1/handlers-and-consumers) - Configure per-consumer exception policy overrides and understand handler exception behavior.
+- [**Scheduling**](/docs/mocha/v1/scheduling) - Configure the scheduling infrastructure that redelivery uses for delayed message delivery.
 - [**Middleware and Pipelines**](/docs/mocha/v1/middleware-and-pipelines) - Write custom middleware, control pipeline ordering, and understand the three pipeline stages.
 - [**Sagas**](/docs/mocha/v1/sagas) - Coordinate multi-step workflows with state machine sagas that use compensation when steps fail.
 - [**Observability**](/docs/mocha/v1/observability) - Trace message flows across services and monitor pipeline health with OpenTelemetry.

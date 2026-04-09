@@ -31,6 +31,7 @@ builder.Services.AddMediator()
 builder
     .Services.AddMessageBus()
     .AddInstrumentation()
+    .AddResilience()
     .AddBilling()
     .AddBatchHandler<OrderPlacedBatchHandler>(opts =>
     {
