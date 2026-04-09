@@ -623,6 +623,7 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
         // Return any pre-allocated chunks beyond the used range.
         for (var i = usedChunks; i < _chunkCount; i++)
         {
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             if (_chunks[i] is not null)
             {
                 JsonMemory.Return(_memoryKind, _chunks[i]);
