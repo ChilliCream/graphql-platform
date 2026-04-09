@@ -80,9 +80,10 @@ static class Helpers
 
         list.AddRange(DotNetTasks.DotNet($"new sln -n {Path.GetFileNameWithoutExtension(solutionFile)} --format sln", workingDirectory));
 
-        var projectsArg = string.Join(" ", projects.Select(t => $"\"{t}\""));
-
-        list.AddRange(DotNetTasks.DotNet($"sln \"{solutionFile}\" add {projectsArg}", workingDirectory));
+        foreach (var project in projects)
+        {
+            list.AddRange(DotNetTasks.DotNet($"sln \"{solutionFile}\" add \"{project}\" --include-references false", workingDirectory));
+        }
 
         return list;
     }
