@@ -262,17 +262,10 @@ internal sealed class OperationExecutionMiddleware
 
     private object? GetQueryRootValue(RequestContext context)
     {
-        var queryType = context.Schema.QueryType;
-
-        if (queryType is null)
-        {
-            return null;
-        }
-
         return RootValueResolver.Resolve(
             context,
             context.RequestServices,
-            Unsafe.As<ObjectType>(queryType),
+            Unsafe.As<ObjectType>(context.Schema.QueryType),
             ref _cachedQuery);
     }
 
