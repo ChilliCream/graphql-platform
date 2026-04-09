@@ -262,10 +262,18 @@ internal sealed class OperationExecutionMiddleware
 
     private object? GetQueryRootValue(RequestContext context)
     {
+        var queryType = context.Schema.QueryType;
+
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+        if (queryType is null)
+        {
+            return null;
+        }
+
         return RootValueResolver.Resolve(
             context,
             context.RequestServices,
-            Unsafe.As<ObjectType>(context.Schema.QueryType),
+            Unsafe.As<ObjectType>(queryType),
             ref _cachedQuery);
     }
 
