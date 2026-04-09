@@ -25,7 +25,7 @@ public sealed class RequestParserOptions
     /// CPU time and memory.
     /// </para>
     /// <para>To prevent this you can set a maximum number of nodes allowed within a document.</para>
-    /// <para>This limitation effects the <see cref="Utf8GraphQLParser"/>.</para>
+    /// <para>This limitation affects the <see cref="Utf8GraphQLParser"/>.</para>
     /// </summary>
     public int MaxAllowedNodes { get; set; } = int.MaxValue;
 
@@ -37,7 +37,7 @@ public sealed class RequestParserOptions
     /// CPU time and memory.
     /// </para>
     /// <para>To prevent this you can set a maximum number of tokens allowed within a document.</para>
-    /// <para>This limitation effects the <see cref="Utf8GraphQLReader"/>.</para>
+    /// <para>This limitation affects the <see cref="Utf8GraphQLReader"/>.</para>
     /// </summary>
     public int MaxAllowedTokens { get; set; } = int.MaxValue;
 
