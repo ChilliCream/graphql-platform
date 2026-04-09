@@ -41,6 +41,36 @@ public class Issue6177ReproTests
         }
     }
 
+    [Fact]
+    public void Custom_Id_Operation_Filter_Type_Is_Used_When_Configured_With_Instance()
+    {
+        // arrange
+        var schema = SchemaBuilder.New()
+            .AddFiltering()
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("subscriptions")
+                    .Resolve(new List<SubscriptionNode>())
+                    .UseFiltering<SubscriptionFilterTypeWithInstance>())
+            .Create();
+
+        // act
+        var schemaSdl = schema.ToString();
+
+        // assert
+        Assert.Contains("id: SubscriptionIdOperationFilterInput", schemaSdl, StringComparison.Ordinal);
+    }
+
+    public class SubscriptionFilterTypeWithInstance : FilterInputType<SubscriptionNode>
+    {
+        protected override void Configure(IFilterInputTypeDescriptor<SubscriptionNode> descriptor)
+        {
+            descriptor.BindFieldsExplicitly();
+            descriptor.Field(f => f.Id).Type(new SubscriptionIdOperationFilterInput());
+        }
+    }
+
     public class SubscriptionIdOperationFilterInput : IdOperationFilterInputType
     {
         protected override void Configure(IFilterInputTypeDescriptor descriptor)

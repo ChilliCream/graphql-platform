@@ -153,6 +153,11 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
                     continue;
                 }
 
+                if (field.Type is SchemaTypeReference { Type: IdOperationFilterInputType })
+                {
+                    continue;
+                }
+
                 field.Type = discoveryContext.TypeInspector.GetTypeRef(
                     typeof(IdOperationFilterInputType),
                     TypeContext.Input,
