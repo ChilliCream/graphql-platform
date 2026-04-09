@@ -1,6 +1,3 @@
-using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Workspaces;
-
 namespace ChilliCream.Nitro.Client.Workspaces;
 
 internal sealed class WorkspacesClient(IApiClient apiClient) : IWorkspacesClient

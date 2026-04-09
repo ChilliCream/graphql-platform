@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Schemas;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Schemas;

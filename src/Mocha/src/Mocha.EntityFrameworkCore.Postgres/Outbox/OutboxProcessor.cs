@@ -201,7 +201,14 @@ public sealed class PostgresOutboxProcessor
                     // Commit failed (e.g., connection lost). Attempt rollback.
                     // If commit actually succeeded server-side, the message stays
                     // with times_sent incremented - safe, just causes a retry.
-                    try { await transaction.RollbackAsync(CancellationToken.None); } catch { /* swallow */ }
+                    try
+                    {
+                        await transaction.RollbackAsync(CancellationToken.None);
+                    }
+                    catch
+                    {
+                        /* swallow */
+                    }
                 }
             }
         }

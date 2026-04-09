@@ -1,5 +1,3 @@
-using ChilliCream.Nitro.Client;
-
 namespace ChilliCream.Nitro.Client.Clients;
 
 /// <summary>

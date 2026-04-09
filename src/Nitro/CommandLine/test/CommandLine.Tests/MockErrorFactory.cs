@@ -253,9 +253,7 @@ internal static class MockErrorFactory
         mock.As<ISchemaChangeViolationError>()
             .SetupGet(x => x.Changes)
             .Returns(changes
-                .Select(c =>
-                    (IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes)
-                    c.Object)
+                .Select(c => c.Object)
                 .ToArray());
     }
 
@@ -278,24 +276,23 @@ internal static class MockErrorFactory
     private static List<Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes>>
         CreateSchemaChangeMocks()
     {
-        var changes = new List<Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes>>();
+        return
+        [
+            // 1. DirectiveModifiedChange with sub-changes
+            CreateDirectiveModifiedChange(),
 
-        // 1. DirectiveModifiedChange with sub-changes
-        changes.Add(CreateDirectiveModifiedChange());
+            // 2. ObjectModifiedChange with sub-changes
+            CreateObjectModifiedChange(),
 
-        // 2. ObjectModifiedChange with sub-changes
-        changes.Add(CreateObjectModifiedChange());
+            // 3. EnumModifiedChange with sub-changes
+            CreateEnumModifiedChange(),
 
-        // 3. EnumModifiedChange with sub-changes
-        changes.Add(CreateEnumModifiedChange());
+            // 4. TypeSystemMemberAddedChange
+            CreateTypeSystemMemberAddedChange(),
 
-        // 4. TypeSystemMemberAddedChange
-        changes.Add(CreateTypeSystemMemberAddedChange());
-
-        // 5. TypeSystemMemberRemovedChange
-        changes.Add(CreateTypeSystemMemberRemovedChange());
-
-        return changes;
+            // 5. TypeSystemMemberRemovedChange
+            CreateTypeSystemMemberRemovedChange()
+        ];
     }
 
     private static Mock<IOnClientVersionPublishUpdated_OnClientVersionPublishingUpdate_Deployment_Errors_Changes>

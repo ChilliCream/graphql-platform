@@ -1,5 +1,3 @@
-using ChilliCream.Nitro.CommandLine;
-
 namespace ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens.Options;
 
 internal class PersonalAccessTokenDescriptionOption : Option<string>
