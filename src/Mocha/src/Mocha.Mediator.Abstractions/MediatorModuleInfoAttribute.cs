@@ -12,4 +12,9 @@ public sealed class MediatorModuleInfoAttribute : Attribute
     /// Gets or sets the message types registered by this module.
     /// </summary>
     public Type[] MessageTypes { get; set; } = [];
+
+    /// <summary>
+    /// Gets or sets the handler types registered by this module.
+    /// </summary>
+    public Type[] HandlerTypes { get; set; } = [];
 }

@@ -30,7 +30,8 @@ public sealed class MediatorGenerator : IIncrementalGenerator
 
     private static readonly ISyntaxInspector[] s_callSiteInspectors =
     [
-        new CallSiteMessageTypeInspector()
+        new CallSiteMessageTypeInspector(),
+        new ImportedMediatorModuleTypeInspector()
     ];
 
     private static readonly ISyntaxGenerator[] s_generators =
@@ -203,7 +204,7 @@ public sealed class MediatorGenerator : IIncrementalGenerator
             }
 
             // Validate message types vs handlers (MO0001, MO0002)
-            ValidateMessageHandlerPairing(context, syntaxInfos);
+            ValidateMessageHandlerPairing(context, syntaxInfos, callSiteInfos);
 
             // Validate call-site types vs handlers (MO0020)
             ValidateCallSiteNoHandler(context, syntaxInfos, callSiteInfos);
@@ -249,7 +250,8 @@ public sealed class MediatorGenerator : IIncrementalGenerator
 
     private static void ValidateMessageHandlerPairing(
         SourceProductionContext context,
-        ImmutableArray<SyntaxInfo> syntaxInfos)
+        ImmutableArray<SyntaxInfo> syntaxInfos,
+        ImmutableArray<SyntaxInfo> callSiteInfos)
     {
         var messageTypes = new List<MessageTypeInfo>();
         var handlers = new List<HandlerInfo>();
@@ -269,6 +271,20 @@ public sealed class MediatorGenerator : IIncrementalGenerator
         if (messageTypes.Count == 0)
         {
             return;
+        }
+
+        // Collect handler message type names from imported mediator modules.
+        var importedHandlerMessageTypes = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var info in callSiteInfos)
+        {
+            if (info is ImportedMediatorModuleTypesInfo imported)
+            {
+                foreach (var typeName in imported.ImportedTypeNames)
+                {
+                    importedHandlerMessageTypes.Add(typeName);
+                }
+            }
         }
 
         // Build a lookup of handlers by message type name
@@ -291,6 +307,12 @@ public sealed class MediatorGenerator : IIncrementalGenerator
             if (!handlersByMessageType.TryGetValue(messageType.MessageTypeName, out var matchingHandlers)
                 || matchingHandlers.Count == 0)
             {
+                // If the handler exists in an imported module, skip MO0001.
+                if (importedHandlerMessageTypes.Contains(messageType.MessageTypeName))
+                {
+                    continue;
+                }
+
                 // MO0001: Missing handler
                 context.ReportDiagnostic(
                     Diagnostic.Create(Errors.MissingHandler, location, messageType.MessageTypeName));
@@ -329,6 +351,18 @@ public sealed class MediatorGenerator : IIncrementalGenerator
             if (info is HandlerInfo { Diagnostics.Count: 0 } handler)
             {
                 handlerMessageTypes.Add(handler.MessageTypeName);
+            }
+        }
+
+        // Include handler message types from imported mediator modules.
+        foreach (var info in callSiteInfos)
+        {
+            if (info is ImportedMediatorModuleTypesInfo imported)
+            {
+                foreach (var typeName in imported.ImportedTypeNames)
+                {
+                    handlerMessageTypes.Add(typeName);
+                }
             }
         }
 

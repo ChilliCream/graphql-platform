@@ -8,28 +8,29 @@ using Mocha.Analyzers.Utils;
 namespace Mocha.Analyzers.Inspectors;
 
 /// <summary>
-/// Inspects invocation expressions to discover calls to source-generated module registration
-/// methods (e.g. <c>builder.AddOrderService()</c>) and extracts their declared message types.
+/// Inspects invocation expressions to discover calls to source-generated mediator module
+/// registration methods (e.g. <c>builder.AddOrderService()</c>) and extracts their declared
+/// message and handler types.
 /// </summary>
 /// <remarks>
 /// <para>
 /// The source generator decorates each generated <c>Add*</c> extension method with a
-/// <c>[MessagingModuleInfo(MessageTypes = new[] { typeof(A), typeof(B) })]</c> attribute
-/// that lists every message type the module handles. This inspector resolves the called
-/// method symbol, reads that attribute, and emits an <see cref="ImportedModuleTypesInfo"/>
-/// containing the type names.
+/// <c>[MediatorModuleInfo(MessageTypes = new[] { typeof(A) }, HandlerTypes = new[] { typeof(B) })]</c>
+/// attribute that lists every message and handler type the module registers. This inspector
+/// resolves the called method symbol, reads that attribute, and emits an
+/// <see cref="ImportedMediatorModuleTypesInfo"/> containing the type names.
 /// </para>
 /// <para>
-/// Downstream generators use this to avoid emitting duplicate serializer registrations for
-/// types already covered by a referenced module.
+/// Downstream validators use this to avoid reporting false-positive MO0001 and MO0020
+/// diagnostics for types whose handlers exist in a referenced module.
 /// </para>
 /// <para>
 /// The syntactic pre-filter (<see cref="InvocationModuleFilter"/>) broadly matches any
 /// method starting with <c>Add</c>; this inspector then narrows to only those carrying
-/// the <c>[MessagingModuleInfo]</c> attribute.
+/// the <c>[MediatorModuleInfo]</c> attribute.
 /// </para>
 /// </remarks>
-public sealed class ImportedModuleTypeInspector : ISyntaxInspector
+public sealed class ImportedMediatorModuleTypeInspector : ISyntaxInspector
 {
     /// <inheritdoc />
     public ImmutableArray<ISyntaxFilter> Filters { get; } = [InvocationModuleFilter.Instance];
@@ -60,16 +61,15 @@ public sealed class ImportedModuleTypeInspector : ISyntaxInspector
             return false;
         }
 
-        // Look for [MessagingModuleInfo] on the resolved method.
+        // Look for [MediatorModuleInfo] on the resolved method.
         foreach (var attr in methodSymbol.GetAttributes())
         {
-            if (attr.AttributeClass?.ToDisplayString() != SyntaxConstants.MessagingModuleInfoAttribute)
+            if (attr.AttributeClass?.ToDisplayString() != SyntaxConstants.MediatorModuleInfoAttribute)
             {
                 continue;
             }
 
             var messageTypeNames = new List<string>();
-            var sagaTypeNames = new List<string>();
             var handlerTypeNames = new List<string>();
 
             foreach (var namedArg in attr.NamedArguments)
@@ -82,7 +82,6 @@ public sealed class ImportedModuleTypeInspector : ISyntaxInspector
                 List<string>? targetList = namedArg.Key switch
                 {
                     SyntaxConstants.MessageTypesProperty => messageTypeNames,
-                    SyntaxConstants.SagaTypesProperty => sagaTypeNames,
                     SyntaxConstants.HandlerTypesProperty => handlerTypeNames,
                     _ => null
                 };
@@ -101,12 +100,11 @@ public sealed class ImportedModuleTypeInspector : ISyntaxInspector
                 }
             }
 
-            if (messageTypeNames.Count > 0 || sagaTypeNames.Count > 0 || handlerTypeNames.Count > 0)
+            if (messageTypeNames.Count > 0 || handlerTypeNames.Count > 0)
             {
-                syntaxInfo = new ImportedModuleTypesInfo(
+                syntaxInfo = new ImportedMediatorModuleTypesInfo(
                     methodSymbol.Name,
                     new ImmutableEquatableArray<string>(messageTypeNames),
-                    new ImmutableEquatableArray<string>(sagaTypeNames),
                     new ImmutableEquatableArray<string>(handlerTypeNames));
                 return true;
             }

@@ -11,11 +11,17 @@ namespace Microsoft.Extensions.DependencyInjection
     [global::System.CodeDom.Compiler.GeneratedCode("Mocha.Analyzers", "1.0.0")]
     public static class TestsMediatorBuilderExtensions
     {
-        [global::Mocha.Mediator.MediatorModuleInfo(MessageTypes = new global::System.Type[]
-        {
-            typeof(global::TestApp.GetUserQuery),
-            typeof(global::TestApp.UserDto),
-        })]
+        [global::Mocha.Mediator.MediatorModuleInfo(
+            MessageTypes = new global::System.Type[]
+            {
+                typeof(global::TestApp.GetUserQuery),
+                typeof(global::TestApp.UserDto),
+            },
+            HandlerTypes = new global::System.Type[]
+            {
+                typeof(global::TestApp.GetUserHandler),
+            }
+        )]
         public static global::Mocha.Mediator.IMediatorHostBuilder AddTests(
             this global::Mocha.Mediator.IMediatorHostBuilder builder)
         {

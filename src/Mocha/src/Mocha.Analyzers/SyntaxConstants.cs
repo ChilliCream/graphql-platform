@@ -119,6 +119,18 @@ public static class SyntaxConstants
     public const string MessageTypesProperty = "MessageTypes";
 
     /// <summary>
+    /// Gets the named property name for the <c>SagaTypes</c> property
+    /// on <c>MessagingModuleInfoAttribute</c>.
+    /// </summary>
+    public const string SagaTypesProperty = "SagaTypes";
+
+    /// <summary>
+    /// Gets the named property name for the <c>HandlerTypes</c> property
+    /// on <c>MessagingModuleInfoAttribute</c> and <c>MediatorModuleInfoAttribute</c>.
+    /// </summary>
+    public const string HandlerTypesProperty = "HandlerTypes";
+
+    /// <summary>
     /// Gets the metadata name for the <c>IMessageBus</c> interface.
     /// </summary>
     public const string IMessageBus = "Mocha.IMessageBus";

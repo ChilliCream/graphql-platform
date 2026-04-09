@@ -12,4 +12,14 @@ public sealed class MessagingModuleInfoAttribute : Attribute
     /// Gets or sets the message types registered by this module.
     /// </summary>
     public Type[] MessageTypes { get; set; } = [];
+
+    /// <summary>
+    /// Gets or sets the saga types registered by this module.
+    /// </summary>
+    public Type[] SagaTypes { get; set; } = [];
+
+    /// <summary>
+    /// Gets or sets the handler types registered by this module.
+    /// </summary>
+    public Type[] HandlerTypes { get; set; } = [];
 }

@@ -57,6 +57,8 @@ public sealed class MessagingDependencyInjectionGenerator : ISyntaxGenerator
         // Collect type names imported from referenced modules — these already have
         // serializer registrations from the referenced module's Add*() method.
         var importedTypeNames = new HashSet<string>(StringComparer.Ordinal);
+        var importedSagaTypeNames = new HashSet<string>(StringComparer.Ordinal);
+        var importedHandlerTypeNames = new HashSet<string>(StringComparer.Ordinal);
 
         // Collect type names that are actually declared in the local JsonSerializerContext.
         var jsonContextTypeNames = new HashSet<string>(StringComparer.Ordinal);
@@ -68,6 +70,16 @@ public sealed class MessagingDependencyInjectionGenerator : ISyntaxGenerator
                 foreach (var typeName in imported.ImportedTypeNames)
                 {
                     importedTypeNames.Add(typeName);
+                }
+
+                foreach (var typeName in imported.ImportedSagaTypeNames)
+                {
+                    importedSagaTypeNames.Add(typeName);
+                }
+
+                foreach (var typeName in imported.ImportedHandlerTypeNames)
+                {
+                    importedHandlerTypeNames.Add(typeName);
                 }
             }
             else if (info is JsonContextSerializableTypesInfo jsonContextTypes)
@@ -116,12 +128,26 @@ public sealed class MessagingDependencyInjectionGenerator : ISyntaxGenerator
             .OrderBy(t => t, StringComparer.Ordinal)
             .ToList();
 
+        var sortedSagaTypeNames = sagas
+            .Select(s => s.SagaTypeName)
+            .Distinct(StringComparer.Ordinal)
+            .Where(t => !importedSagaTypeNames.Contains(t))
+            .OrderBy(t => t, StringComparer.Ordinal)
+            .ToList();
+
+        var sortedHandlerTypeNames = handlers
+            .Select(h => h.HandlerTypeName)
+            .Distinct(StringComparer.Ordinal)
+            .Where(t => !importedHandlerTypeNames.Contains(t))
+            .OrderBy(t => t, StringComparer.Ordinal)
+            .ToList();
+
         using var builder = new MessagingDependencyInjectionFileBuilder(moduleName, assemblyName);
 
         builder.WriteHeader();
         builder.WriteBeginNamespace();
         builder.WriteBeginClass();
-        builder.WriteBeginRegistrationMethod(sortedMessageTypeNames);
+        builder.WriteBeginRegistrationMethod(sortedMessageTypeNames, sortedSagaTypeNames, sortedHandlerTypeNames);
 
         // When JsonContext is specified, emit AOT registrations at the top of the method.
         if (jsonContextTypeName is not null)
@@ -195,15 +221,15 @@ public sealed class MessagingDependencyInjectionGenerator : ISyntaxGenerator
                 enclosedTypesMap.TryGetValue(messageType, out var enclosedTypes);
                 builder.WriteMessageConfiguration(messageType, jsonContextTypeName, enclosedTypes);
             }
+        }
 
-            if (sagas.Count > 0)
+        if (sagas.Count > 0)
+        {
+            builder.WriteSectionComment("Saga Configuration");
+
+            foreach (var saga in sagas)
             {
-                builder.WriteSectionComment("Saga Configuration");
-
-                foreach (var saga in sagas)
-                {
-                    builder.WriteSagaConfiguration(saga.SagaTypeName, saga.StateTypeName, jsonContextTypeName);
-                }
+                builder.WriteSagaConfiguration(saga.SagaTypeName, saga.StateTypeName, jsonContextTypeName);
             }
         }
 
@@ -264,16 +290,6 @@ public sealed class MessagingDependencyInjectionGenerator : ISyntaxGenerator
             foreach (var handler in eventHandlers)
             {
                 builder.WriteHandlerRegistration(handler);
-            }
-        }
-
-        if (sagas.Count > 0)
-        {
-            builder.WriteSectionComment("Sagas");
-
-            foreach (var saga in sagas)
-            {
-                builder.WriteSagaRegistration(saga);
             }
         }
 

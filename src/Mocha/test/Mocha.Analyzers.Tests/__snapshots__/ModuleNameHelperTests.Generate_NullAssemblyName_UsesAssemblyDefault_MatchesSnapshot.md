@@ -11,10 +11,16 @@ namespace Microsoft.Extensions.DependencyInjection
     [global::System.CodeDom.Compiler.GeneratedCode("Mocha.Analyzers", "1.0.0")]
     public static class UnknownMediatorBuilderExtensions
     {
-        [global::Mocha.Mediator.MediatorModuleInfo(MessageTypes = new global::System.Type[]
-        {
-            typeof(global::TestApp.PingCommand),
-        })]
+        [global::Mocha.Mediator.MediatorModuleInfo(
+            MessageTypes = new global::System.Type[]
+            {
+                typeof(global::TestApp.PingCommand),
+            },
+            HandlerTypes = new global::System.Type[]
+            {
+                typeof(global::TestApp.PingHandler),
+            }
+        )]
         public static global::Mocha.Mediator.IMediatorHostBuilder AddUnknown(
             this global::Mocha.Mediator.IMediatorHostBuilder builder)
         {

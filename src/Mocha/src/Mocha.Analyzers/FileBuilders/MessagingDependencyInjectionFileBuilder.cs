@@ -42,24 +42,68 @@ public sealed class MessagingDependencyInjectionFileBuilder : FileBuilderBase
 
     /// <summary>
     /// Writes the opening of the registration extension method, including the
-    /// <c>[MessagingModuleInfo]</c> attribute with the message types array.
+    /// <c>[MessagingModuleInfo]</c> attribute with the message, saga, and handler types arrays.
     /// </summary>
     /// <param name="messageTypeNames">
-    /// The fully qualified message type names to include in the attribute, or <see langword="null"/> to omit the attribute.
+    /// The fully qualified message type names to include in the attribute, or <see langword="null"/> to omit.
     /// </param>
-    public void WriteBeginRegistrationMethod(IReadOnlyList<string>? messageTypeNames = null)
+    /// <param name="sagaTypeNames">
+    /// The fully qualified saga type names to include in the attribute, or <see langword="null"/> to omit.
+    /// </param>
+    /// <param name="handlerTypeNames">
+    /// The fully qualified handler type names to include in the attribute, or <see langword="null"/> to omit.
+    /// </param>
+    public void WriteBeginRegistrationMethod(
+        IReadOnlyList<string>? messageTypeNames = null,
+        IReadOnlyList<string>? sagaTypeNames = null,
+        IReadOnlyList<string>? handlerTypeNames = null)
     {
-        if (messageTypeNames is { Count: > 0 })
+        var hasMessages = messageTypeNames is { Count: > 0 };
+        var hasSagas = sagaTypeNames is { Count: > 0 };
+        var hasHandlers = handlerTypeNames is { Count: > 0 };
+
+        if (hasMessages || hasSagas || hasHandlers)
         {
-            Writer.WriteIndentedLine("[global::Mocha.MessagingModuleInfo(MessageTypes = new global::System.Type[]");
-            Writer.WriteIndentedLine("{");
-            Writer.IncreaseIndent();
-            foreach (var typeName in messageTypeNames)
+            // Build the list of property assignments to emit, so we can handle
+            // comma placement correctly (no trailing comma on the last property).
+            var properties = new List<(string Name, IReadOnlyList<string> Types)>();
+
+            if (hasMessages)
             {
-                Writer.WriteIndentedLine("typeof({0}),", typeName);
+                properties.Add(("MessageTypes", messageTypeNames!));
             }
+
+            if (hasSagas)
+            {
+                properties.Add(("SagaTypes", sagaTypeNames!));
+            }
+
+            if (hasHandlers)
+            {
+                properties.Add(("HandlerTypes", handlerTypeNames!));
+            }
+
+            Writer.WriteIndentedLine("[global::Mocha.MessagingModuleInfo(");
+            Writer.IncreaseIndent();
+
+            for (var i = 0; i < properties.Count; i++)
+            {
+                var (name, types) = properties[i];
+                var isLast = i == properties.Count - 1;
+
+                Writer.WriteIndentedLine("{0} = new global::System.Type[]", name);
+                Writer.WriteIndentedLine("{");
+                Writer.IncreaseIndent();
+                foreach (var typeName in types)
+                {
+                    Writer.WriteIndentedLine("typeof({0}),", typeName);
+                }
+                Writer.DecreaseIndent();
+                Writer.WriteIndentedLine(isLast ? "}" : "},");
+            }
+
             Writer.DecreaseIndent();
-            Writer.WriteIndentedLine("})]");
+            Writer.WriteIndentedLine(")]");
         }
 
         Writer.WriteIndentedLine("public static global::Mocha.IMessageBusHostBuilder {0}(", _methodName);
@@ -139,12 +183,17 @@ public sealed class MessagingDependencyInjectionFileBuilder : FileBuilderBase
     }
 
     /// <summary>
-    /// Writes a saga configuration registration with a pre-built JSON state serializer.
+    /// Writes a saga configuration registration. When a <paramref name="jsonContextTypeName"/>
+    /// is provided, includes a pre-built JSON state serializer; otherwise emits a configuration
+    /// with only the saga type.
     /// </summary>
     /// <param name="sagaTypeName">The fully qualified saga type name.</param>
     /// <param name="stateTypeName">The fully qualified saga state type name.</param>
-    /// <param name="jsonContextTypeName">The fully qualified type name of the JsonSerializerContext.</param>
-    public void WriteSagaConfiguration(string sagaTypeName, string stateTypeName, string jsonContextTypeName)
+    /// <param name="jsonContextTypeName">
+    /// The fully qualified type name of the JsonSerializerContext, or <see langword="null"/>
+    /// to omit the state serializer.
+    /// </param>
+    public void WriteSagaConfiguration(string sagaTypeName, string stateTypeName, string? jsonContextTypeName)
     {
         Writer.WriteIndentedLine("global::Mocha.MessageBusHostBuilderExtensions.AddSagaConfiguration<");
         Writer.IncreaseIndent();
@@ -156,10 +205,15 @@ public sealed class MessagingDependencyInjectionFileBuilder : FileBuilderBase
         Writer.WriteIndentedLine("{");
         Writer.IncreaseIndent();
         Writer.WriteIndentedLine("SagaType = typeof({0}),", sagaTypeName);
-        Writer.WriteIndentedLine("StateSerializer = new global::Mocha.Sagas.JsonSagaStateSerializer(");
-        Writer.IncreaseIndent();
-        Writer.WriteIndentedLine("{0}.Default.GetTypeInfo(typeof({1}))!),", jsonContextTypeName, stateTypeName);
-        Writer.DecreaseIndent();
+
+        if (jsonContextTypeName is not null)
+        {
+            Writer.WriteIndentedLine("StateSerializer = new global::Mocha.Sagas.JsonSagaStateSerializer(");
+            Writer.IncreaseIndent();
+            Writer.WriteIndentedLine("{0}.Default.GetTypeInfo(typeof({1}))!),", jsonContextTypeName, stateTypeName);
+            Writer.DecreaseIndent();
+        }
+
         Writer.DecreaseIndent();
         Writer.WriteIndentedLine("});");
         Writer.DecreaseIndent();
@@ -193,18 +247,6 @@ public sealed class MessagingDependencyInjectionFileBuilder : FileBuilderBase
         Writer.WriteIndentedLine("Factory = global::Mocha.ConsumerFactory.{0}", factoryCall);
         Writer.DecreaseIndent();
         Writer.WriteIndentedLine("});");
-        Writer.DecreaseIndent();
-    }
-
-    /// <summary>
-    /// Writes a saga registration call for the specified saga.
-    /// </summary>
-    /// <param name="saga">The saga info to register.</param>
-    public void WriteSagaRegistration(SagaInfo saga)
-    {
-        Writer.WriteIndentedLine("global::Mocha.MessageBusHostBuilderExtensions.AddSaga<");
-        Writer.IncreaseIndent();
-        Writer.WriteIndentedLine("{0}>(builder);", saga.SagaTypeName);
         Writer.DecreaseIndent();
     }
 

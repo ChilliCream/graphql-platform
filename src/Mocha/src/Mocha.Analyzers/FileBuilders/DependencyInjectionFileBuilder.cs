@@ -34,25 +34,58 @@ public sealed class DependencyInjectionFileBuilder : FileBuilderBase
 
     /// <summary>
     /// Writes the opening of the registration extension method, including the
-    /// <c>[MediatorModuleInfo]</c> attribute with the message types array.
+    /// <c>[MediatorModuleInfo]</c> attribute with the message and handler types arrays.
     /// </summary>
     /// <param name="messageTypeNames">
-    /// The fully qualified message type names to include in the attribute, or <see langword="null"/> to omit the attribute.
+    /// The fully qualified message type names to include in the attribute, or <see langword="null"/> to omit.
     /// </param>
-    public void WriteBeginRegistrationMethod(IReadOnlyList<string>? messageTypeNames = null)
+    /// <param name="handlerTypeNames">
+    /// The fully qualified handler type names to include in the attribute, or <see langword="null"/> to omit.
+    /// </param>
+    public void WriteBeginRegistrationMethod(
+        IReadOnlyList<string>? messageTypeNames = null,
+        IReadOnlyList<string>? handlerTypeNames = null)
     {
-        if (messageTypeNames is { Count: > 0 })
+        var hasMessages = messageTypeNames is { Count: > 0 };
+        var hasHandlers = handlerTypeNames is { Count: > 0 };
+
+        if (hasMessages || hasHandlers)
         {
-            Writer.WriteIndentedLine(
-                "[global::Mocha.Mediator.MediatorModuleInfo(MessageTypes = new global::System.Type[]");
-            Writer.WriteIndentedLine("{");
-            Writer.IncreaseIndent();
-            foreach (var typeName in messageTypeNames)
+            // Build the list of property assignments to emit, so we can handle
+            // comma placement correctly (no trailing comma on the last property).
+            var properties = new List<(string Name, IReadOnlyList<string> Types)>();
+
+            if (hasMessages)
             {
-                Writer.WriteIndentedLine("typeof({0}),", typeName);
+                properties.Add(("MessageTypes", messageTypeNames!));
             }
+
+            if (hasHandlers)
+            {
+                properties.Add(("HandlerTypes", handlerTypeNames!));
+            }
+
+            Writer.WriteIndentedLine("[global::Mocha.Mediator.MediatorModuleInfo(");
+            Writer.IncreaseIndent();
+
+            for (var i = 0; i < properties.Count; i++)
+            {
+                var (name, types) = properties[i];
+                var isLast = i == properties.Count - 1;
+
+                Writer.WriteIndentedLine("{0} = new global::System.Type[]", name);
+                Writer.WriteIndentedLine("{");
+                Writer.IncreaseIndent();
+                foreach (var typeName in types)
+                {
+                    Writer.WriteIndentedLine("typeof({0}),", typeName);
+                }
+                Writer.DecreaseIndent();
+                Writer.WriteIndentedLine(isLast ? "}" : "},");
+            }
+
             Writer.DecreaseIndent();
-            Writer.WriteIndentedLine("})]");
+            Writer.WriteIndentedLine(")]");
         }
 
         Writer.WriteIndentedLine("public static global::Mocha.Mediator.IMediatorHostBuilder {0}(", _methodName);
