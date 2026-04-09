@@ -21,7 +21,7 @@ public class JsonErrorParserTests
     public void Error_Has_No_Message()
     {
         // arrange
-        var result = JsonDocument.Parse(@"[{ }]");
+        var result = JsonDocument.Parse("[{ }]");
 
         // act
         var errors = JsonErrorParser.ParseErrors(result.RootElement);
@@ -43,7 +43,7 @@ public class JsonErrorParserTests
             [
                 {
                     "message": "errors",
-                    "path": [ 1, "foo", 2, "bar" ]
+                    "path": [1, "foo", 2, "bar"]
                 }
             ]
             """);

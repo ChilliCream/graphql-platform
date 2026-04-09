@@ -95,6 +95,7 @@ internal sealed class CostAnalyzerMiddleware(
                     documentId,
                     document,
                     maxAllowedErrors: 1,
+                    maxLocationsPerError: 5,
                     context.Features);
 
                 var analyzer = new CostAnalyzer(requestOptions);
@@ -164,6 +165,6 @@ internal sealed class CostAnalyzerMiddleware(
 
                 return context => middleware.InvokeAsync(context);
             },
-            nameof(CostAnalyzerMiddleware));
+            WellKnownRequestMiddleware.CostAnalyzerMiddleware);
     }
 }

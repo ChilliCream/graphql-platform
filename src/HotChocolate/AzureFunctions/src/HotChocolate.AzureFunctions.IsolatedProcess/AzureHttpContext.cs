@@ -1,4 +1,3 @@
-using System.IO.Pipelines;
 using System.Security.Claims;
 using HotChocolate.AspNetCore;
 using Microsoft.AspNetCore.Http;

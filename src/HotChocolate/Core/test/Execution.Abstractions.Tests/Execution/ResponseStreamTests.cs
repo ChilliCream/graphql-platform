@@ -27,7 +27,7 @@ public class ResponseStreamTests
         void Fail() => default(ResponseStream)!.RegisterForCleanup(disposable);
 
         // assert
-        Assert.Throws<ArgumentNullException>(Fail);
+        Assert.Throws<NullReferenceException>(Fail);
     }
 
     [Fact]
@@ -70,7 +70,7 @@ public class ResponseStreamTests
         var result = new ResponseStream(() => null!);
 
         // act
-        void Fail() => result.RegisterForCleanup(null!);
+        void Fail() => result.RegisterForCleanup(default(Func<ValueTask>)!);
 
         // assert
         Assert.Throws<ArgumentNullException>(Fail);

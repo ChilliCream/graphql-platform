@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>HotChocolate.Demo.Catalog.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Demo.Catalog.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Demo\Demo.Catalog\Demo.Catalog.csproj" />
+    <ProjectReference Include="..\Mocha.Sagas.TestHelpers\Mocha.Sagas.TestHelpers.csproj" />
+  </ItemGroup>
+</Project>

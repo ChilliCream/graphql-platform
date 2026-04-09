@@ -134,7 +134,7 @@ client.ConnectionInterceptor = new CustomConnectionInterceptor();
 
 ## Initial payload
 
-In JavaScript it is not possible to add headers to a web socket. Therefor many GraphQL server do not use HTTP headers for the authentication of web sockets. Instead, they send the authentication token with the first payload to the server.
+In JavaScript it is not possible to add headers to a web socket. Therefore many GraphQL server do not use HTTP headers for the authentication of web sockets. Instead, they send the authentication token with the first payload to the server.
 
 You can specify create this payload with a `ISocketConnectionInterceptor`
 

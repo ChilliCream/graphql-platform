@@ -13,14 +13,23 @@ namespace HotChocolate.CostAnalysis.Types;
 public sealed class ListSizeAttribute : ObjectFieldDescriptorAttribute
 {
     private readonly int? _assumedSize;
+    private readonly int? _slicingArgumentDefaultValue;
 
     /// <summary>
     /// The maximum length of the list returned by this field.
+    /// Must be a non-negative integer when specified.
+    /// This property is intended to be set via attribute initialization only;
+    /// reading the value at runtime is not supported.
     /// </summary>
+    /// <exception cref="NotSupportedException">Thrown when attempting to read this property at runtime.</exception>
     public int AssumedSize
     {
-        get => _assumedSize ?? 0;
-        init => _assumedSize = value;
+        get => throw new NotSupportedException();
+        init
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(value);
+            _assumedSize = value;
+        }
     }
 
     /// <summary>
@@ -31,9 +40,20 @@ public sealed class ListSizeAttribute : ObjectFieldDescriptorAttribute
 
     /// <summary>
     /// The default value for a slicing argument, which is used if the argument is not present in a
-    /// query.
+    /// query. Must be a non-negative integer when specified.
+    /// This property is intended to be set via attribute initialization only;
+    /// reading the value at runtime is not supported.
     /// </summary>
-    public int? SlicingArgumentDefaultValue { get; init; }
+    /// <exception cref="NotSupportedException">Thrown when attempting to read this property at runtime.</exception>
+    public int SlicingArgumentDefaultValue
+    {
+        get => throw new NotSupportedException();
+        init
+        {
+            ArgumentOutOfRangeException.ThrowIfNegative(value);
+            _slicingArgumentDefaultValue = value;
+        }
+    }
 
     /// <summary>
     /// The subfield(s) that the list size applies to.
@@ -49,13 +69,14 @@ public sealed class ListSizeAttribute : ObjectFieldDescriptorAttribute
     protected override void OnConfigure(
         IDescriptorContext context,
         IObjectFieldDescriptor descriptor,
-        MemberInfo member)
+        MemberInfo? member)
     {
         descriptor.Directive(
             new ListSizeDirective(
                 _assumedSize,
                 SlicingArguments?.ToImmutableArray(),
                 SizedFields?.ToImmutableArray(),
-                RequireOneSlicingArgument));
+                RequireOneSlicingArgument,
+                _slicingArgumentDefaultValue));
     }
 }

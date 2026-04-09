@@ -1,3 +1,5 @@
+using System.Buffers;
+
 namespace HotChocolate.Language;
 
 /// <summary>
@@ -11,6 +13,11 @@ public interface IDocumentHashProvider
     string Name { get; }
 
     /// <summary>
+    /// The name of the algorithm used for hashing.
+    /// </summary>
+    string AlgorithmName { get; }
+
+    /// <summary>
     /// Gets the format of the document hash.
     /// </summary>
     HashFormat Format { get; }
@@ -21,4 +28,11 @@ public interface IDocumentHashProvider
     /// <param name="document">The GraphQL operation document.</param>
     /// <returns>The hash of the GraphQL operation document.</returns>
     OperationDocumentHash ComputeHash(ReadOnlySpan<byte> document);
+
+    /// <summary>
+    /// Computes the hash of a GraphQL operation document.
+    /// </summary>
+    /// <param name="document">The GraphQL operation document.</param>
+    /// <returns>The hash of the GraphQL operation document.</returns>
+    OperationDocumentHash ComputeHash(ReadOnlySequence<byte> document);
 }

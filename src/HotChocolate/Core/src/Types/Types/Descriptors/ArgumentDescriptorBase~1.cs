@@ -1,3 +1,4 @@
+using HotChocolate.Internal;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -38,21 +39,15 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentCon
 
     /// <inheritdoc cref="IArgumentDescriptor.Deprecated()"/>
     protected void Deprecated()
-    {
-        Configuration.DeprecationReason = DirectiveNames.Deprecated.Arguments.DefaultReason;
-    }
+        => Configuration.DeprecationReason = DirectiveNames.Deprecated.Arguments.DefaultReason;
 
-    /// <inheritdoc cref="IArgumentDescriptor.Description(string)"/>
-    protected void Description(string value)
-    {
-        Configuration.Description = value;
-    }
+    /// <inheritdoc cref="IArgumentDescriptor.Description(string?)"/>
+    protected void Description(string? value)
+        => Configuration.Description = value;
 
     /// <inheritdoc cref="IArgumentDescriptor.Type{TInputType}()"/>
     public void Type<TInputType>() where TInputType : IInputType
-    {
-        Type(typeof(TInputType));
-    }
+        => Type(typeof(TInputType));
 
     /// <summary>
     /// Sets the type of the argument
@@ -70,6 +65,8 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentCon
     /// </summary>
     public void Type(Type type)
     {
+        ArgumentNullException.ThrowIfNull(type);
+
         var typeInfo = Context.TypeInspector.CreateTypeInfo(type);
 
         if (typeInfo.IsSchemaType && !typeInfo.IsInputType())
@@ -132,7 +129,7 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentCon
         Configuration.SetMoreSpecificType(typeNode, TypeContext.Input);
     }
 
-    /// <inheritdoc cref="IArgumentDescriptor.DefaultValue(IValueNode)"/>
+    /// <inheritdoc cref="IArgumentDescriptor.DefaultValue(IValueNode?)"/>
     public void DefaultValue(IValueNode? value)
     {
         Configuration.DefaultValue = value ?? NullValueNode.Default;
@@ -149,6 +146,11 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentCon
         }
         else
         {
+            if (TryCoerceEnumUnderlyingValue(value, out var enumValue))
+            {
+                value = enumValue;
+            }
+
             var type = Context.TypeInspector.GetType(value.GetType());
             Configuration.SetMoreSpecificType(type, TypeContext.Input);
             Configuration.RuntimeDefaultValue = value;
@@ -167,4 +169,32 @@ public class ArgumentDescriptorBase<T> : DescriptorBase<T> where T : ArgumentCon
     /// <inheritdoc cref="IArgumentDescriptor.Directive(string, ArgumentNode[])"/>
     public void Directive(string name, params ArgumentNode[] arguments)
         => Configuration.AddDirective(name, arguments);
+
+    private bool TryCoerceEnumUnderlyingValue(object value, out object enumValue)
+    {
+        enumValue = default!;
+
+        if (Configuration.Type is not ExtendedTypeReference typeReference)
+        {
+            return false;
+        }
+
+        var clrType = Nullable.GetUnderlyingType(typeReference.Type.Source)
+            ?? typeReference.Type.Source;
+
+        if (!clrType.IsEnum)
+        {
+            return false;
+        }
+
+        var underlyingType = Enum.GetUnderlyingType(clrType);
+
+        if (value.GetType() != underlyingType)
+        {
+            return false;
+        }
+
+        enumValue = Enum.ToObject(clrType, value);
+        return true;
+    }
 }

@@ -1,0 +1,5 @@
+*
+!out
+!out/**
+!config/conf.d
+!config/conf.d/**

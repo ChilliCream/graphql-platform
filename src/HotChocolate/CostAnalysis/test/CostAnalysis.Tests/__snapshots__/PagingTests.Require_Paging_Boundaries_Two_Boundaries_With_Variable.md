@@ -5,7 +5,7 @@
 ```graphql
 query(
   $first: Int
-  $last: Int
+    $last: Int
 ) {
   books(first: $first, last: $last) {
     nodes {
@@ -32,4 +32,3 @@ query(
   }
 }
 ```
-

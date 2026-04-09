@@ -1,0 +1,122 @@
+title: GetFirstPage_With_After_Null
+request:
+  document: |
+    query AfterNull(
+      $after: String
+    ) {
+      appointments(after: $after) {
+        nodes {
+          id
+        }
+      }
+    }
+  variables: |
+    {
+      "after": null
+    }
+response:
+  body: |
+    {
+      "data": {
+        "appointments": {
+          "nodes": [
+            {
+              "id": "QXBwb2ludG1lbnQ6Mg=="
+            },
+            {
+              "id": "QXBwb2ludG1lbnQ6Mw=="
+            },
+            {
+              "id": "QXBwb2ludG1lbnQ6NA=="
+            }
+          ]
+        }
+      }
+    }
+sourceSchemas:
+  - name: E
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Appointment {
+        id: ID!
+      }
+
+      type AppointmentConnection {
+        nodes: [Appointment!]
+      }
+
+      type Query {
+        appointments(after: String): AppointmentConnection
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query AfterNull_bcc834fd_1(
+              $after: String
+            ) {
+              appointments(after: $after) {
+                nodes {
+                  id
+                }
+              }
+            }
+          variables: |
+            {
+              "after": null
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "appointments": {
+                    "nodes": [
+                      {
+                        "id": "QXBwb2ludG1lbnQ6Mg=="
+                      },
+                      {
+                        "id": "QXBwb2ludG1lbnQ6Mw=="
+                      },
+                      {
+                        "id": "QXBwb2ludG1lbnQ6NA=="
+                      }
+                    ]
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query AfterNull(
+          $after: String
+        ) {
+          appointments(after: $after) {
+            nodes {
+              id
+            }
+          }
+        }
+      name: AfterNull
+      hash: bcc834fd4621a90c14b517b1ca5aa99d
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: E
+      operation: |
+        query AfterNull_bcc834fd_1(
+          $after: String
+        ) {
+          appointments(after: $after) {
+            nodes {
+              id
+            }
+          }
+        }
+      forwardedVariables:
+        - after

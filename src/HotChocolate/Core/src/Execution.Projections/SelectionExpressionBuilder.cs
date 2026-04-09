@@ -35,13 +35,30 @@ internal sealed class SelectionExpressionBuilder
         typeof(bool?),
         typeof(char?)
     ];
+    private static readonly MethodInfo s_selectMethod =
+        typeof(Enumerable)
+            .GetMethods()
+            .Where(m => m.Name == nameof(Enumerable.Select) && m.GetParameters().Length == 2)
+            .First(m => m.GetParameters()[1].ParameterType.GetGenericTypeDefinition() == typeof(Func<,>));
+    private static readonly MethodInfo s_toListMethod =
+        typeof(Enumerable)
+            .GetMethods()
+            .Where(m => m.Name == nameof(Enumerable.ToList) && m.GetParameters().Length == 1)
+            .Single();
+    private static readonly MethodInfo s_toArrayMethod =
+        typeof(Enumerable)
+            .GetMethods()
+            .Where(m => m.Name == nameof(Enumerable.ToArray) && m.GetParameters().Length == 1)
+            .Single();
 
-    public Expression<Func<TRoot, TRoot>> BuildExpression<TRoot>(ISelection selection)
+    public Expression<Func<TRoot, TRoot>> BuildExpression<TRoot>(
+        Selection selection,
+        ulong includeFlags = 0)
     {
         var rootType = typeof(TRoot);
         var parameter = Expression.Parameter(rootType, "root");
         var requirements = selection.DeclaringOperation.Schema.Features.GetRequired<FieldRequirementsMetadata>();
-        var context = new Context(parameter, rootType, requirements, new NullabilityInfoContext());
+        var context = new Context(parameter, rootType, requirements, new NullabilityInfoContext(), includeFlags);
         var root = new TypeContainer();
 
         CollectTypes(context, selection, root);
@@ -56,16 +73,19 @@ internal sealed class SelectionExpressionBuilder
         return Expression.Lambda<Func<TRoot, TRoot>>(selectionSetExpression, parameter);
     }
 
-    public Expression<Func<TRoot, TRoot>> BuildNodeExpression<TRoot>(ISelection selection)
+    public Expression<Func<TRoot, TRoot>> BuildNodeExpression<TRoot>(
+        Selection selection,
+        ulong includeFlags = 0)
     {
         var rootType = typeof(TRoot);
         var parameter = Expression.Parameter(rootType, "root");
         var requirements = selection.DeclaringOperation.Schema.Features.GetRequired<FieldRequirementsMetadata>();
-        var context = new Context(parameter, rootType, requirements, new NullabilityInfoContext());
+        var context = new Context(parameter, rootType, requirements, new NullabilityInfoContext(), includeFlags);
         var root = new TypeContainer();
 
         var entityType = selection.DeclaringOperation
             .GetPossibleTypes(selection)
+            .Cast<ObjectType>()
             .FirstOrDefault(t => t.RuntimeType == typeof(TRoot));
 
         if (entityType is null)
@@ -94,7 +114,7 @@ internal sealed class SelectionExpressionBuilder
         return Expression.Lambda<Func<TRoot, TRoot>>(selectionSetExpression, parameter);
     }
 
-    private void CollectTypes(Context context, ISelection selection, TypeContainer parent)
+    private void CollectTypes(Context context, Selection selection, TypeContainer parent)
     {
         var namedType = selection.Type.NamedType();
 
@@ -105,7 +125,7 @@ internal sealed class SelectionExpressionBuilder
 
         if (namedType.IsAbstractType())
         {
-            foreach (var possibleType in selection.DeclaringOperation.GetPossibleTypes(selection))
+            foreach (var possibleType in selection.DeclaringOperation.GetPossibleTypes(selection).Cast<ObjectType>())
             {
                 var possibleTypeNode = new TypeNode(possibleType.RuntimeType);
                 var possibleSelectionSet = selection.DeclaringOperation.GetSelectionSet(selection, possibleType);
@@ -148,10 +168,11 @@ internal sealed class SelectionExpressionBuilder
                 var typeCondition = Expression.TypeIs(context.Parent, typeNode.Type);
                 var selectionSet = BuildSelectionSetExpression(newContext, typeNode);
 
-                if (selectionSet is null)
-                {
-                    throw new InvalidOperationException();
-                }
+                // If a type condition only selects non-bindable fields like __typename,
+                // BuildSelectionSetExpression returns null. Reuse the source instance
+                // instead so the branch remains query-parameter dependent and does not
+                // get parameterized as a constant by EF.
+                selectionSet ??= newParent;
 
                 var castedSelectionSet = Expression.Convert(selectionSet, context.ParentType);
                 switchExpression = Expression.Condition(typeCondition, castedSelectionSet, switchExpression);
@@ -160,16 +181,37 @@ internal sealed class SelectionExpressionBuilder
             return switchExpression;
         }
 
-        return BuildSelectionSetExpression(context, parent.Nodes[0]);
+        var singleTypeNode = parent.Nodes[0];
+
+        if (context.ParentType != singleTypeNode.Type)
+        {
+            var newParent = Expression.Convert(context.Parent, singleTypeNode.Type);
+            var newContext = context with { Parent = newParent, ParentType = singleTypeNode.Type };
+            var selectionSet = BuildSelectionSetExpression(newContext, singleTypeNode);
+
+            if (selectionSet is null)
+            {
+                return null;
+            }
+
+            var castedSelectionSet = Expression.Convert(selectionSet, context.ParentType);
+
+            return Expression.Condition(
+                Expression.TypeIs(context.Parent, singleTypeNode.Type),
+                castedSelectionSet,
+                Expression.Constant(null, context.ParentType));
+        }
+
+        return BuildSelectionSetExpression(context, singleTypeNode);
     }
 
-    private static MemberInitExpression? BuildSelectionSetExpression(
+    private static Expression? BuildSelectionSetExpression(
         Context context,
         TypeNode parent)
     {
         var assignments = ImmutableArray.CreateBuilder<MemberAssignment>();
 
-        // order by property name so expressions evalutate to the same hash regardless of selection order
+        // order by property name so expressions evaluate to the same hash regardless of selection order
         foreach (var property in parent.Nodes.OrderBy(node => node.Property.Name))
         {
             var assignment = BuildAssignmentExpression(property, context);
@@ -184,20 +226,81 @@ internal sealed class SelectionExpressionBuilder
             return null;
         }
 
-        return Expression.MemberInit(
-            Expression.New(context.ParentType),
-            assignments.ToImmutable());
+        var assignmentList = assignments.ToImmutable();
+
+        // Wee keep EF constructor-injected entities intact by reusing the existing instance.
+        if (ShouldReuseExistingInstance(context.ParentType))
+        {
+            return context.Parent;
+        }
+
+        // Preferred path for mutable types.
+        var parameterlessConstructor = context.ParentType.GetConstructor(Type.EmptyTypes);
+        if (parameterlessConstructor is not null)
+        {
+            var allWritable = assignmentList.All(a =>
+                a.Member is PropertyInfo { CanWrite: true, SetMethod.IsPublic: true });
+
+            if (allWritable)
+            {
+                return Expression.MemberInit(
+                    Expression.New(parameterlessConstructor),
+                    assignmentList);
+            }
+        }
+
+        // Fallback path for record-like types without a parameterless constructor.
+        var bestMatchingConstructor = context.ParentType.GetConstructors()
+            .Select(c => (Constructor: c, Parameters: c.GetParameters()))
+            .OrderBy(c => c.Parameters.Length)
+            .FirstOrDefault(c =>
+                c.Parameters.Length >= assignmentList.Length
+                && assignmentList.All(a =>
+                    c.Parameters.Any(p =>
+                        string.Equals(a.Member.Name, p.Name, StringComparison.OrdinalIgnoreCase)
+                        && a.Expression.Type.IsAssignableTo(p.ParameterType))));
+
+        if (bestMatchingConstructor.Constructor is not null)
+        {
+            var arguments = bestMatchingConstructor.Parameters.Select(p =>
+            {
+                var assignment = assignmentList.FirstOrDefault(a =>
+                    string.Equals(a.Member.Name, p.Name, StringComparison.OrdinalIgnoreCase)
+                    && a.Expression.Type.IsAssignableTo(p.ParameterType));
+
+                if (assignment is not null)
+                {
+                    return assignment.Expression.Type == p.ParameterType
+                        ? assignment.Expression
+                        : Expression.Convert(assignment.Expression, p.ParameterType);
+                }
+
+                if (p.HasDefaultValue)
+                {
+                    return Expression.Convert(Expression.Constant(p.DefaultValue), p.ParameterType);
+                }
+
+                // Partial projections can omit constructor arguments that are not selected.
+                // We fall back to default values for missing arguments to keep selector
+                // construction non-throwing for record-like types.
+                return Expression.Default(p.ParameterType);
+            }).ToArray();
+
+            return Expression.New(bestMatchingConstructor.Constructor, arguments);
+        }
+
+        throw new InvalidOperationException(
+            $"No writable properties or suitable constructor found for type '{context.ParentType.Name}'.");
     }
 
     private void CollectSelection(
         Context context,
-        ISelection selection,
+        Selection selection,
         TypeNode parent)
     {
         var namedType = selection.Field.Type.NamedType();
 
-        if (selection.Field.Type.IsListType() && !namedType.IsLeafType()
-            || selection.Field.PureResolver is null
+        if (selection.Field.PureResolver is null
             || selection.Field.ResolverMember?.ReflectedType != selection.Field.DeclaringType.RuntimeType)
         {
             return;
@@ -266,11 +369,16 @@ internal sealed class SelectionExpressionBuilder
 
     private void CollectSelections(
         Context context,
-        ISelectionSet selectionSet,
+        SelectionSet selectionSet,
         TypeNode parent)
     {
         foreach (var selection in selectionSet.Selections)
         {
+            if (!selection.IsIncluded(context.IncludeFlags))
+            {
+                continue;
+            }
+
             var requirements = context.GetRequirements(selection);
             if (requirements is not null)
             {
@@ -305,9 +413,21 @@ internal sealed class SelectionExpressionBuilder
             return Expression.Bind(node.Property, propertyAccessor);
         }
 
-        if (node.IsArrayOrCollection)
+        if (TryGetCollectionElementType(node.Property.PropertyType, out var elementType))
         {
-            throw new NotSupportedException("List projections are not supported.");
+            var projectedCollection = BuildCollectionProjectionExpression(context, node, propertyAccessor, elementType);
+
+            if (IsNullableType(context, node.Property))
+            {
+                var nullCheck = Expression.Condition(
+                    Expression.Equal(propertyAccessor, Expression.Constant(null, node.Property.PropertyType)),
+                    Expression.Constant(null, node.Property.PropertyType),
+                    projectedCollection);
+
+                return Expression.Bind(node.Property, nullCheck);
+            }
+
+            return Expression.Bind(node.Property, projectedCollection);
         }
 
         var newContext = context with { Parent = propertyAccessor, ParentType = node.Property.PropertyType };
@@ -326,6 +446,162 @@ internal sealed class SelectionExpressionBuilder
         return nestedExpression is null ? null : Expression.Bind(node.Property, nestedExpression);
     }
 
+    private static Expression BuildCollectionProjectionExpression(
+        Context context,
+        PropertyNode node,
+        Expression source,
+        Type elementType)
+    {
+        var parameter = Expression.Parameter(elementType, "item");
+        var itemContext = context with { Parent = parameter, ParentType = elementType };
+        var nestedExpression = BuildTypeSwitchExpression(itemContext, node);
+
+        if (nestedExpression is null)
+        {
+            throw new InvalidOperationException(
+                $"Unable to build projection for collection property '{node.Property.Name}'.");
+        }
+
+        var projectedItem = nestedExpression.Type == elementType
+            ? nestedExpression
+            : Expression.Convert(nestedExpression, elementType);
+        var itemProjection = Expression.Lambda(projectedItem, parameter);
+        var projectedItems = Expression.Call(
+            s_selectMethod.MakeGenericMethod(elementType, elementType),
+            source,
+            itemProjection);
+
+        return CreateCollectionExpression(projectedItems, node.Property.PropertyType, elementType);
+    }
+
+    private static Expression CreateCollectionExpression(
+        Expression source,
+        Type targetType,
+        Type elementType)
+    {
+        if (targetType.IsArray)
+        {
+            return Expression.Call(s_toArrayMethod.MakeGenericMethod(elementType), source);
+        }
+
+        if (TryCreateSetExpression(source, targetType, elementType, out var setExpression))
+        {
+            return setExpression!;
+        }
+
+        var listExpression = Expression.Call(s_toListMethod.MakeGenericMethod(elementType), source);
+
+        if (targetType.IsAssignableFrom(listExpression.Type))
+        {
+            return listExpression.Type == targetType
+                ? listExpression
+                : Expression.Convert(listExpression, targetType);
+        }
+
+        var enumerableType = typeof(IEnumerable<>).MakeGenericType(elementType);
+        var enumerableCtor = targetType.GetConstructor([enumerableType]);
+
+        if (enumerableCtor is not null)
+        {
+            return Expression.New(enumerableCtor, source);
+        }
+
+        var listType = typeof(List<>).MakeGenericType(elementType);
+        var listCtor = targetType.GetConstructor([listType]);
+
+        if (listCtor is not null)
+        {
+            return Expression.New(listCtor, listExpression);
+        }
+
+        throw new NotSupportedException(
+            $"Collection projection for property type '{targetType.FullName}' is not supported.");
+    }
+
+    private static bool TryCreateSetExpression(
+        Expression source,
+        Type targetType,
+        Type elementType,
+        out Expression? expression)
+    {
+        var setFactoryType = default(Type);
+
+        if (targetType.IsGenericType)
+        {
+            var typeDefinition = targetType.GetGenericTypeDefinition();
+            if (typeDefinition == typeof(ISet<>)
+                || typeDefinition == typeof(HashSet<>))
+            {
+                setFactoryType = typeof(HashSet<>).MakeGenericType(elementType);
+            }
+            else if (typeDefinition == typeof(SortedSet<>))
+            {
+                setFactoryType = typeof(SortedSet<>).MakeGenericType(elementType);
+            }
+        }
+
+        if (setFactoryType is not null)
+        {
+            var constructor = setFactoryType.GetConstructor([source.Type]);
+
+            if (constructor is null)
+            {
+                expression = null;
+                return false;
+            }
+
+            var newSet = Expression.New(constructor, source);
+            expression = newSet.Type == targetType
+                ? newSet
+                : Expression.Convert(newSet, targetType);
+            return true;
+        }
+
+        expression = null;
+        return false;
+    }
+
+    private static bool TryGetCollectionElementType(
+        Type type,
+        out Type elementType)
+    {
+        if (type.IsArray)
+        {
+            elementType = type.GetElementType()!;
+            return true;
+        }
+
+        if (type.IsGenericType && IsSupportedCollectionDefinition(type.GetGenericTypeDefinition()))
+        {
+            elementType = type.GetGenericArguments()[0];
+            return true;
+        }
+
+        foreach (var interfaceType in type.GetInterfaces())
+        {
+            if (interfaceType.IsGenericType
+                && IsSupportedCollectionDefinition(interfaceType.GetGenericTypeDefinition()))
+            {
+                elementType = interfaceType.GetGenericArguments()[0];
+                return true;
+            }
+        }
+
+        elementType = default!;
+        return false;
+    }
+
+    private static bool IsSupportedCollectionDefinition(Type typeDefinition)
+        => typeDefinition == typeof(IEnumerable<>)
+            || typeDefinition == typeof(IReadOnlyCollection<>)
+            || typeDefinition == typeof(IReadOnlyList<>)
+            || typeDefinition == typeof(ICollection<>)
+            || typeDefinition == typeof(IList<>)
+            || typeDefinition == typeof(ISet<>)
+            || typeDefinition == typeof(List<>)
+            || typeDefinition == typeof(HashSet<>)
+            || typeDefinition == typeof(SortedSet<>);
+
     private static bool IsNullableType(Context context, PropertyInfo propertyInfo)
     {
         if (propertyInfo.PropertyType.IsValueType)
@@ -341,14 +617,30 @@ internal sealed class SelectionExpressionBuilder
         Expression Parent,
         Type ParentType,
         FieldRequirementsMetadata Requirements,
-        NullabilityInfoContext NullabilityInfoContext)
+        NullabilityInfoContext NullabilityInfoContext,
+        ulong IncludeFlags)
     {
-        public TypeNode? GetRequirements(ISelection selection)
+        public TypeNode? GetRequirements(Selection selection)
         {
             var flags = selection.Field.Flags;
             return (flags & CoreFieldFlags.WithRequirements) == CoreFieldFlags.WithRequirements
                 ? Requirements.GetRequirements(selection.Field)
                 : null;
         }
+    }
+
+    private static bool ShouldReuseExistingInstance(Type type)
+        => type.GetConstructor(Type.EmptyTypes) is not null
+            && type.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic)
+                .Any(t =>
+                    t.GetParameters().Length > 0
+                    && !IsRecordCopyConstructor(t, type));
+
+    private static bool IsRecordCopyConstructor(ConstructorInfo constructor, Type declaringType)
+    {
+        var parameters = constructor.GetParameters();
+
+        return parameters.Length == 1
+            && parameters[0].ParameterType == declaringType;
     }
 }

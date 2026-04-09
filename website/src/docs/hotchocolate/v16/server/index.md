@@ -2,60 +2,78 @@
 title: Overview
 ---
 
-In this section, you will learn how you can configure your GraphQL server and we will look at some transport protocol-related details.
+This section covers how you configure and operate a Hot Chocolate GraphQL server. You will find details on transport protocols, middleware, dependency injection, and runtime behavior.
 
 # Endpoints
 
-Hot Chocolate comes with ASP.NET Core endpoint middleware for accepting HTTP / WebSocket GraphQL requests, downloading the GraphQL schema, or serving the [Nitro](/products/nitro) GraphQL IDE.
+Hot Chocolate provides ASP.NET Core endpoint middleware for accepting HTTP and WebSocket GraphQL requests, downloading the schema, and serving the [Nitro](/products/nitro) GraphQL IDE.
 
 [Learn more about endpoints](/docs/hotchocolate/v16/server/endpoints)
 
-# HTTP transport
+# HTTP Transport
 
-Hot Chocolate implements the GraphQL over HTTP specification.
+Hot Chocolate implements the GraphQL over HTTP specification. In v16, the default incremental delivery format changed from v0.1 to v0.2, and clients can select the format through the `Accept` header.
 
 [Learn more about the HTTP transport](/docs/hotchocolate/v16/server/http-transport)
 
+# Cache Control
+
+Cache control lets your GraphQL server emit `Cache-Control` and `Vary` response headers that CDNs, reverse proxies, and browsers can use for HTTP caching decisions.
+
+[Learn more about cache control](/docs/hotchocolate/v16/server/cache-control)
+
 # Interceptors
 
-Interceptors allow you to intercept GraphQL requests before they are executed. There are interceptors for both GraphQL requests sent via HTTP as well as via WebSockets.
+Interceptors let you intercept GraphQL requests before execution. There are interceptors for both HTTP requests and WebSocket sessions.
 
-In the case of WebSockets, the interceptor also allows you to handle life cycle events, such as when a client first connects.
+For WebSockets, the interceptor also handles lifecycle events such as when a client first connects.
 
 [Learn more about interceptors](/docs/hotchocolate/v16/server/interceptors)
 
-# Dependency injection
+# Dependency Injection
 
-Hot Chocolate allows you to access dependency injection services inside your resolvers. We will take a look at the different ways you can inject services and also how you can switch out the dependency injection provider.
+Hot Chocolate recognizes services registered in your DI container and injects them into resolvers automatically. In v16, services are resolved implicitly without requiring the `[Service]` attribute.
 
-[Learn more about Dependency Injection](/docs/hotchocolate/v16/server/dependency-injection)
+[Learn more about dependency injection](/docs/hotchocolate/v16/resolvers-and-data/dependency-injection)
+
+# Warmup
+
+Hot Chocolate constructs the schema eagerly at startup. You can go further by registering warmup tasks that pre-populate caches before the server begins accepting traffic.
+
+[Learn more about warmup](/docs/hotchocolate/v16/server/warmup)
 
 # Global State
 
-With Global State you can define properties on a per-request basis to be made available to all resolvers and middleware.
+Global State lets you define properties on a per-request basis and makes them available to all resolvers and middleware.
 
-[Learn more about Global State](/docs/hotchocolate/v16/server/global-state)
+[Learn more about global state](/docs/hotchocolate/v16/server/global-state)
 
 # Introspection
 
-Introspection allows you to query the type system of your GraphQL server using regular GraphQL queries. While this is a powerful feature, enabling all sorts of amazing developer tooling, it can also be used as an attack vector. We will take a look at how you can control who is allowed to issue introspection queries against your GraphQL server.
+Introspection lets you query the type system of your GraphQL server using regular GraphQL queries. While this powers developer tooling, it can also be an attack vector. You can control who is allowed to issue introspection queries.
 
-[Learn more about introspection](/docs/hotchocolate/v16/server/introspection)
+[Learn more about introspection](/docs/hotchocolate/v16/securing-your-api/introspection)
 
 # Files
 
-Though not considered one of the responsibilities of a GraphQL server, for convenience, Hot Chocolate provides file upload support. We will also take a look at what other options you have when it comes to uploading and serving files.
+Hot Chocolate provides file upload support through the `Upload` scalar, even though file handling is not traditionally a GraphQL server concern. You can also return presigned URLs for a hybrid approach.
 
 [Learn more about handling files](/docs/hotchocolate/v16/server/files)
 
 # Instrumentation
 
-Hot Chocolate allows you to gather instrumentation data about your GraphQL server, by hooking into various events in the execution process of a GraphQL request. You will also learn how to set up our OpenTelemetry integration.
+Hot Chocolate exposes diagnostic events across the server, execution engine, and DataLoader layers. The built-in OpenTelemetry integration aligns with the proposed GraphQL semantic conventions.
 
 [Learn more about instrumentation](/docs/hotchocolate/v16/server/instrumentation)
 
 # Batching
 
-Batching allows you to send and execute a sequence of GraphQL operations in a single request.
+Batching lets you send and execute multiple GraphQL operations in a single request. In v16, batching is disabled by default and you enable it through the `AllowedBatching` flags enum.
 
 [Learn more about batching](/docs/hotchocolate/v16/server/batching)
+
+# Command Line
+
+The command-line interface lets you export your GraphQL schema from the terminal, which is useful for CI/CD pipelines.
+
+[Learn more about the command line](/docs/hotchocolate/v16/server/command-line)

@@ -1,4 +1,7 @@
+using System.Text.Json;
+using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Text.Json;
 using HotChocolate.Types.MongoDb.Resources;
 using MongoDB.Bson;
 
@@ -8,8 +11,7 @@ namespace HotChocolate.Types.MongoDb;
 /// The ObjectId scalar type represents a 12 byte ObjectId, represented as UTF-8 character
 /// sequences.
 /// </summary>
-public class ObjectIdType
-    : ScalarType<ObjectId, StringValueNode>
+public class ObjectIdType : ScalarType<ObjectId, StringValueNode>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="ObjectIdType"/> class.
@@ -35,15 +37,15 @@ public class ObjectIdType
         Description = description;
     }
 
-    /// <inheritdoc />
-    protected override ObjectId ParseLiteral(StringValueNode valueSyntax) =>
-        new(valueSyntax.Value);
+    protected override ObjectId OnCoerceInputLiteral(StringValueNode valueLiteral)
+        => new(valueLiteral.Value);
 
-    /// <inheritdoc />
-    protected override StringValueNode ParseValue(ObjectId runtimeValue) =>
-        new(runtimeValue.ToString());
+    protected override ObjectId OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
+        => new(inputValue.GetString()!);
 
-    /// <inheritdoc />
-    public override IValueNode ParseResult(object? resultValue) =>
-        ParseValue(resultValue);
+    protected override void OnCoerceOutputValue(ObjectId runtimeValue, ResultElement resultValue)
+        => resultValue.SetStringValue(runtimeValue.ToString());
+
+    protected override StringValueNode OnValueToLiteral(ObjectId runtimeValue)
+        => new(runtimeValue.ToString());
 }

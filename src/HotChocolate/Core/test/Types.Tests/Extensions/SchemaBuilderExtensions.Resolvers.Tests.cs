@@ -9,10 +9,7 @@ public class SchemaBuilderExtensionsResolversTests
     [Fact]
     public void AddResolverContextObject_BuilderIsNull_ArgNullExcept()
     {
-        // arrange
-        var builder = SchemaBuilder.New();
-
-        // act
+        // arrange & act
         Action action = () => SchemaBuilderExtensions
             .AddResolver(
                 null!,
@@ -21,7 +18,7 @@ public class SchemaBuilderExtensionsResolversTests
                 new Func<IResolverContext, object>(c => new object()));
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Throws<NullReferenceException>(action);
     }
 
     [Fact]
@@ -65,10 +62,7 @@ public class SchemaBuilderExtensionsResolversTests
     [Fact]
     public void AddResolverContextTaskObject_BuilderIsNull_ArgNullExcept()
     {
-        // arrange
-        var builder = SchemaBuilder.New();
-
-        // act
+        // arrange & act
         Action action = () => SchemaBuilderExtensions
             .AddResolver(
                 null!,
@@ -78,7 +72,7 @@ public class SchemaBuilderExtensionsResolversTests
                     c => Task.FromResult(new object())));
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Throws<NullReferenceException>(action);
     }
 
     [Fact]
@@ -124,10 +118,7 @@ public class SchemaBuilderExtensionsResolversTests
     [Fact]
     public void AddResolverContextTResult_BuilderIsNull_ArgNullExcept()
     {
-        // arrange
-        var builder = SchemaBuilder.New();
-
-        // act
+        // arrange & act
         Action action = () => SchemaBuilderExtensions
             .AddResolver(
                 null!,
@@ -137,7 +128,7 @@ public class SchemaBuilderExtensionsResolversTests
                     c => "abc"));
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Throws<NullReferenceException>(action);
     }
 
     [Fact]
@@ -184,10 +175,7 @@ public class SchemaBuilderExtensionsResolversTests
     [Fact]
     public void AddResolverContextTaskTResult_BuilderIsNull_ArgNullExcept()
     {
-        // arrange
-        var builder = SchemaBuilder.New();
-
-        // act
+        // arrange & act
         Action action = () => SchemaBuilderExtensions
             .AddResolver(
                 null!,
@@ -197,7 +185,7 @@ public class SchemaBuilderExtensionsResolversTests
                     c => Task.FromResult("abc")));
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Throws<NullReferenceException>(action);
     }
 
     [Fact]
@@ -244,10 +232,7 @@ public class SchemaBuilderExtensionsResolversTests
     [Fact]
     public void AddResolverObject_BuilderIsNull_ArgNullExcept()
     {
-        // arrange
-        var builder = SchemaBuilder.New();
-
-        // act
+        // arrange & act
         Action action = () => SchemaBuilderExtensions
             .AddResolver(
                 null!,
@@ -256,7 +241,7 @@ public class SchemaBuilderExtensionsResolversTests
                 new Func<object>(() => "abc"));
 
         // assert
-        Assert.Throws<ArgumentNullException>(action);
+        Assert.Throws<NullReferenceException>(action);
     }
 
     [Fact]

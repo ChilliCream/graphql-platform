@@ -213,12 +213,12 @@ export const DEFAULT_THEME_COLORS = css`
   --cc-primary-color: #3b4f74; //before: f40010;
   --cc-menu-link-color: #ccc9e4;
   --cc-menu-link-hover-color: #fff;
-  --cc-primary-button-color: #2493c2;
+  --cc-primary-button-color: #1b7da6;
   --cc-primary-button-border-color: #123151;
-  --cc-primary-button-text-color: #ddf1f9;
-  --cc-primary-button-hover-color: #47a4cc;
+  --cc-primary-button-text-color: #ffffff;
+  --cc-primary-button-hover-color: #2493c2;
   --cc-primary-button-hover-border-color: #123151;
-  --cc-primary-button-hover-text-color: #ddf1f9;
+  --cc-primary-button-hover-text-color: #ffffff;
   --cc-primary-text-button-color: #e29f83;
   --cc-primary-text-button-hover-color: #ffd5c3;
   --cc-secondary-color: #516083;
@@ -245,6 +245,6 @@ export const FONT_FAMILY =
 export const FONT_FAMILY_CODE =
   'Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace';
 
-export const FONT_FAMILY_HEADING = `"Radio Canada", ${FONT_FAMILY}`;
+export const FONT_FAMILY_HEADING = `var(--font-radio-canada), ${FONT_FAMILY}`;
 
 export const MAX_CONTENT_WIDTH = 1200;

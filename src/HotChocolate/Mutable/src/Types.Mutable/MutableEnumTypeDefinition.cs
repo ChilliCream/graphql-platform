@@ -39,6 +39,8 @@ public class MutableEnumTypeDefinition
     /// <inheritdoc cref="IMutableTypeDefinition.Description" />
     public string? Description { get; set; }
 
+    Type IRuntimeTypeProvider.RuntimeType => typeof(object);
+
     public DirectiveCollection Directives
         => _directives ??= [];
 

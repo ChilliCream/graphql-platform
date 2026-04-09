@@ -1,5 +1,6 @@
 #nullable disable
 
+using System.Numerics;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
@@ -41,7 +42,7 @@ public class TypeDiscovererTests
                 .Select(t => new
                 {
                     type = t.Type.GetType().GetTypeName(),
-                    runtimeType = t.Type is IHasRuntimeType hr
+                    runtimeType = t.Type is IRuntimeTypeProvider hr
                         ? hr.RuntimeType.GetTypeName()
                         : null,
                     references = t.References.Select(r => r.ToString()).ToList()
@@ -84,7 +85,7 @@ public class TypeDiscovererTests
                 .Select(t => new
                 {
                     type = t.Type.GetType().GetTypeName(),
-                    runtimeType = t.Type is IHasRuntimeType hr
+                    runtimeType = t.Type is IRuntimeTypeProvider hr
                         ? hr.RuntimeType.GetTypeName()
                         : null,
                     references = t.References.Select(r => r.ToString()).ToList()
@@ -128,7 +129,7 @@ public class TypeDiscovererTests
                 .Select(t => new
                 {
                     type = t.Type.GetType().GetTypeName(),
-                    runtimeType = t.Type is IHasRuntimeType hr
+                    runtimeType = t.Type is IRuntimeTypeProvider hr
                         ? hr.RuntimeType.GetTypeName()
                         : null,
                     references = t.References.ConvertAll(r => r.ToString())
@@ -173,7 +174,7 @@ public class TypeDiscovererTests
                 .Select(t => new
                 {
                     type = t.Type.GetType().GetTypeName(),
-                    runtimeType = t.Type is IHasRuntimeType hr
+                    runtimeType = t.Type is IRuntimeTypeProvider hr
                         ? hr.RuntimeType.GetTypeName()
                         : null,
                     references = t.References.Select(r => r.ToString()).ToList()
@@ -253,6 +254,33 @@ public class TypeDiscovererTests
             });
     }
 
+    [Fact]
+    public void Can_Infer_Generic_Record_Struct_Input_Type()
+    {
+        // arrange
+        var context = DescriptorContext.Create();
+        var typeRegistry = new TypeRegistry(context.TypeInterceptor);
+        var typeLookup = new TypeLookup(context.TypeInspector, typeRegistry);
+
+        var typeDiscoverer = new TypeDiscoverer(
+            context,
+            typeRegistry,
+            typeLookup,
+            new HashSet<TypeReference>
+            {
+                _typeInspector.GetTypeRef(
+                    typeof(QueryWithGenericRecordStructInput),
+                    TypeContext.Output)
+            },
+            new AggregateTypeInterceptor());
+
+        // act
+        var errors = typeDiscoverer.DiscoverTypes();
+
+        // assert
+        Assert.Empty(errors);
+    }
+
     public class FooType
         : ObjectType<Foo>
     {
@@ -283,6 +311,16 @@ public class TypeDiscovererTests
     {
         public string Foo(IMyArg o) => throw new NotImplementedException();
     }
+
+    public class QueryWithGenericRecordStructInput
+    {
+        public string Foo(RangeSpec<int> range) => throw new NotImplementedException();
+    }
+
+    public readonly record struct RangeSpec<T>(
+        T? Min,
+        T? Max)
+        where T : struct, IComparable<T>, IComparisonOperators<T, T, bool>;
 
     public interface IMyArg;
 }

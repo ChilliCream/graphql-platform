@@ -6,6 +6,9 @@ using HotChocolate.Types;
 using Marten;
 using Marten.Linq;
 using Microsoft.Extensions.DependencyInjection;
+#if NET9_0_OR_GREATER
+using Weasel.Core;
+#endif
 
 namespace HotChocolate.Data;
 
@@ -29,7 +32,21 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
     {
         var dbName = $"DB_{Guid.NewGuid():N}";
         await Container.Resource.CreateDatabaseAsync(dbName);
-        var store = DocumentStore.For(Container.Resource.GetConnectionString(dbName));
+        var store = DocumentStore.For(options =>
+        {
+            options.Connection(Container.Resource.GetConnectionString(dbName));
+
+#if NET8_0
+            // The STJ option "AllowOutOfOrderMetadataProperties" is not supported in .NET 8.
+            options.UseNewtonsoftForSerialization();
+#else
+            options.UseSystemTextJsonForSerialization(
+                enumStorage: EnumStorage.AsInteger,
+                casing: Casing.Default,
+                // See https://github.com/dotnet/runtime/issues/72604.
+                configure: jsonOptions => jsonOptions.AllowOutOfOrderMetadataProperties = true);
+#endif
+        });
 
         var resolver = await BuildResolverAsync(store, entities);
 
@@ -64,11 +81,8 @@ public abstract class FilterVisitorTestBase : IAsyncLifetime
                     await next(context);
                     if (context.ContextData.TryGetValue("sql", out var queryString))
                     {
-                        context.Result =
-                            OperationResultBuilder
-                                .FromResult(context.Result!.ExpectOperationResult())
-                                .SetContextData("sql", queryString)
-                                .Build();
+                        var result = context.Result.ExpectOperationResult();
+                        result.ContextData = result.ContextData.SetItem("sql", queryString);
                     }
                 })
             .ModifyPagingOptions(o => o.IncludeTotalCount = true)

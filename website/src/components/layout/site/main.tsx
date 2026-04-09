@@ -45,7 +45,7 @@ export const Main: FC<PropsWithChildren<unknown>> = ({ children }) => {
 
       headlineElement?.scrollIntoView();
     }
-  });
+  }, []);
 
   const scrollToTop = () => {
     ref.current?.scrollTo({
@@ -69,6 +69,7 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   height: 100vh;
+  overflow-x: hidden;
   overflow-y: auto;
 `;
 

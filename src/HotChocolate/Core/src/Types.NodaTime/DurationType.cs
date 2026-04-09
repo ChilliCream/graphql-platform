@@ -1,65 +1,83 @@
-using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Types.NodaTime.Properties;
+using System.Text.Json;
+using HotChocolate.Features;
+using HotChocolate.Language;
+using HotChocolate.Properties;
+using HotChocolate.Text.Json;
 using NodaTime;
-using NodaTime.Text;
+using static HotChocolate.Utilities.ThrowHelper;
 
 namespace HotChocolate.Types.NodaTime;
 
 /// <summary>
-/// Represents a fixed (and calendar-independent) length of time.
+/// The <c>Duration</c> scalar type represents a duration of time. It is intended for scenarios
+/// where you need to represent time intervals, such as elapsed time, timeout durations, scheduling
+/// intervals, or any measurement of time that is not tied to a specific date or time.
 /// </summary>
-public class DurationType : StringToStructBaseType<Duration>
+/// <seealso href="https://scalars.graphql.org/chillicream/duration.html">Specification</seealso>
+public class DurationType : ScalarType<Duration, StringValueNode>
 {
-    private readonly IPattern<Duration>[] _allowedPatterns;
-    private readonly IPattern<Duration> _serializationPattern;
+    private const string SpecifiedByUri = "https://scalars.graphql.org/chillicream/duration.html";
 
     /// <summary>
-    /// Initializes a new instance of <see cref="DurationType"/>.
+    /// Initializes a new instance of the <see cref="DurationType"/> class.
     /// </summary>
-    public DurationType(params IPattern<Duration>[] allowedPatterns) : base("Duration")
+    public DurationType(
+        string name,
+        string? description = null,
+        BindingBehavior bind = BindingBehavior.Explicit)
+        : base(name, bind)
     {
-        if (allowedPatterns.Length == 0)
-        {
-            throw ThrowHelper.PatternCannotBeEmpty(this);
-        }
-
-        _allowedPatterns = allowedPatterns;
-        _serializationPattern = allowedPatterns[0];
-
-        Description = CreateDescription(
-            allowedPatterns,
-            NodaTimeResources.DurationType_Description,
-            NodaTimeResources.DurationType_Description_Extended);
+        Description = description;
+        Pattern =
+            @"^-?P(?:-?\d+Y)?(?:-?\d+M)?(?:-?\d+W)?(?:-?\d+D)?(?:T(?:-?\d+H)?(?:-?\d+M)?(?:-?\d+(?:[.,]\d+)?S)?)?$";
+        SpecifiedBy = new Uri(SpecifiedByUri);
     }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="DurationType"/>.
+    /// Initializes a new instance of the <see cref="DurationType"/> class.
     /// </summary>
     [ActivatorUtilitiesConstructor]
-    public DurationType() : this(DurationPattern.Roundtrip)
+    public DurationType()
+        : this(
+            ScalarNames.Duration,
+            TypeResources.DurationType_Description,
+            BindingBehavior.Implicit)
     {
     }
 
     /// <inheritdoc />
-    protected override string Serialize(Duration runtimeValue)
-        => _serializationPattern
-            .Format(runtimeValue);
+    protected override Duration OnCoerceInputLiteral(StringValueNode valueLiteral)
+    {
+        // Parse directly from UTF-8 bytes to avoid the string allocation.
+        if (Iso8601DurationParser.TryParse(valueLiteral.AsSpan(), out var value))
+        {
+            return value;
+        }
+
+        throw Scalar_Cannot_CoerceInputLiteral(this, valueLiteral);
+    }
 
     /// <inheritdoc />
-    protected override bool TryDeserialize(
-        string resultValue,
-        [NotNullWhen(true)] out Duration? runtimeValue)
-        => _allowedPatterns.TryParse(resultValue, out runtimeValue);
-
-    protected override Dictionary<IPattern<Duration>, string> PatternMap => new()
+    protected override Duration OnCoerceInputValue(JsonElement inputValue, IFeatureProvider context)
     {
-        { DurationPattern.Roundtrip, "-D:hh:mm:ss.sssssssss" },
-        { DurationPattern.JsonRoundtrip, "-hh:mm:ss.sssssssss" }
-    };
+        if (Iso8601DurationParser.TryParse(inputValue.GetString()!.AsSpan(), out var value))
+        {
+            return value;
+        }
 
-    protected override Dictionary<IPattern<Duration>, string> ExampleMap => new()
+        throw Scalar_Cannot_CoerceInputValue(this, inputValue);
+    }
+
+    /// <inheritdoc />
+    protected override void OnCoerceOutputValue(Duration runtimeValue, ResultElement resultValue)
     {
-        { DurationPattern.Roundtrip, "-1:20:00:00.999999999" },
-        { DurationPattern.JsonRoundtrip, "-44:00:00.999999999" }
-    };
+        // Format directly to UTF-8 bytes on the stack to avoid allocation.
+        Span<byte> buffer = stackalloc byte[64];
+        Iso8601DurationFormatter.TryFormat(runtimeValue, buffer, out var bytesWritten);
+        resultValue.SetStringValue(buffer[..bytesWritten]);
+    }
+
+    /// <inheritdoc />
+    protected override StringValueNode OnValueToLiteral(Duration runtimeValue)
+        => new StringValueNode(Iso8601DurationFormatter.Format(runtimeValue));
 }

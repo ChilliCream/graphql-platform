@@ -802,6 +802,36 @@ public class SchemaBuilderTests
     }
 
     [Fact]
+    public void BindClrType_DictionaryToAnyType_DictionaryFieldIsScalarField()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType<QueryWithDictionaryArgument>()
+            .BindRuntimeType<IDictionary<string, object>, AnyType>()
+            .Create();
+
+        // assert
+        var queryType = schema.Types.GetType<ObjectType>("QueryWithDictionaryArgument");
+        Assert.Equal("Any", queryType.Fields["foo"].Arguments["foo"].Type.Print());
+    }
+
+    [Fact]
+    public void BindClrType_ByteArrayToBase64Type_ByteArrayFieldIsScalarField()
+    {
+        // arrange
+        // act
+        var schema = SchemaBuilder.New()
+            .AddQueryType<QueryWithByteArrayField>()
+            .BindRuntimeType<byte[], Base64StringType>()
+            .Create();
+
+        // assert
+        var queryType = schema.Types.GetType<ObjectType>("QueryWithByteArrayField");
+        Assert.Equal("Base64String!", queryType.Fields["foo"].Type.Print());
+    }
+
+    [Fact]
     public void BindClrType_BuilderIsNull_ArgumentNullException()
     {
         // arrange
@@ -1297,81 +1327,6 @@ public class SchemaBuilderTests
     }
 
     [Fact]
-    public void AddConvention_Through_ServiceCollection()
-    {
-        // arrange
-        var services = new ServiceCollection();
-        services.AddTransient<ITestConvention, TestConvention>();
-        var provider = services.BuildServiceProvider();
-
-        // act
-        var schema = SchemaBuilder.New()
-            .AddServices(provider)
-            .AddType<ConventionTestType>()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Resolve("bar"))
-            .Create();
-
-        // assert
-        var testType = schema.Types.GetType<ConventionTestType>("ConventionTestType");
-        var convention = testType.Context.GetConventionOrDefault<ITestConvention>(new TestConvention2());
-        Assert.IsType<TestConvention>(convention);
-    }
-
-    [Fact]
-    public void AddConvention_Through_ServiceCollection_ProvideImplementation()
-    {
-        // arrange
-        var services = new ServiceCollection();
-        var conventionImpl = new TestConvention();
-        services.AddSingleton<ITestConvention>(conventionImpl);
-        var provider = services.BuildServiceProvider();
-
-        // act
-        var schema = SchemaBuilder.New()
-            .AddServices(provider)
-            .AddType<ConventionTestType>()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Resolve("bar"))
-            .Create();
-
-        // assert
-        var testType = schema.Types.GetType<ConventionTestType>("ConventionTestType");
-        var convention = testType.Context.GetConventionOrDefault<ITestConvention>(new TestConvention2());
-        Assert.IsType<TestConvention>(convention);
-        Assert.Equal(convention, conventionImpl);
-    }
-
-    [Fact]
-    public void AddConvention_Through_ServiceCollection_And_SchemaBuilderOverrides()
-    {
-        // arrange
-        var services = new ServiceCollection();
-        services.AddSingleton<IConvention, TestConvention>();
-        var provider = services.BuildServiceProvider();
-
-        // act
-        var schema = SchemaBuilder.New()
-            .AddServices(provider)
-            .AddConvention(typeof(IConvention), typeof(TestConvention2))
-            .AddType<ConventionTestType>()
-            .AddQueryType(d => d
-                .Name("Query")
-                .Field("foo")
-                .Resolve("bar"))
-            .Create();
-
-        // assert
-        var testType = schema.Types.GetType<ConventionTestType>("ConventionTestType");
-        var convention = testType.Context.GetConventionOrDefault<ITestConvention>(new TestConvention2());
-        Assert.IsType<TestConvention2>(convention);
-    }
-
-    [Fact]
     public void AddConvention_NamingConvention()
     {
         // arrange
@@ -1762,7 +1717,7 @@ public class SchemaBuilderTests
             .AddConvention<IMockConvention>(convention)
             .AddConvention<IMockConvention>(new MockConventionExtension())
             .Create();
-        var result = context.GetConventionOrDefault<IMockConvention>(
+        context.GetConventionOrDefault<IMockConvention>(
             () => throw new InvalidOperationException());
 
         // assert
@@ -2092,6 +2047,16 @@ public class SchemaBuilderTests
     public class QueryWithIntField
     {
         public int Foo { get; set; }
+    }
+
+    public class QueryWithDictionaryArgument
+    {
+        public bool Foo(IDictionary<string, object>? foo) => true;
+    }
+
+    public class QueryWithByteArrayField
+    {
+        public required byte[] Foo { get; set; }
     }
 
     public abstract class AbstractQuery

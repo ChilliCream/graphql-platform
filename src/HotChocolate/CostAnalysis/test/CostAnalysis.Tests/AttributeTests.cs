@@ -107,6 +107,26 @@ public sealed class AttributeTests
 
         // assert
         Assert.Equal(10, costDirective.AssumedSize);
+        Assert.Equal(42, costDirective.SlicingArgumentDefaultValue);
+        Assert.Equal(["first", "last"], costDirective.SlicingArguments, StringComparer.Ordinal);
+        Assert.Equal(["edges", "nodes"], costDirective.SizedFields, StringComparer.Ordinal);
+        Assert.False(costDirective.RequireOneSlicingArgument);
+    }
+
+    [Fact]
+    public void ListSize_ObjectFieldAttribute_AppliesDirective_NoExplicitSizes()
+    {
+        // arrange & act
+        var query = CreateSchema().Types.GetType<ObjectType>(OperationTypeNames.Query);
+
+        var costDirective = query.Fields["examples2"]
+            .Directives
+            .Single(d => d.Type.Name == "listSize")
+            .ToValue<ListSizeDirective>();
+
+        // assert
+        Assert.Null(costDirective.AssumedSize);
+        Assert.Null(costDirective.SlicingArgumentDefaultValue);
         Assert.Equal(["first", "last"], costDirective.SlicingArguments, StringComparer.Ordinal);
         Assert.Equal(["edges", "nodes"], costDirective.SizedFields, StringComparer.Ordinal);
         Assert.False(costDirective.RequireOneSlicingArgument);
@@ -132,10 +152,22 @@ public sealed class AttributeTests
             AssumedSize = 10,
             SlicingArguments = ["first", "last"],
             SizedFields = ["edges", "nodes"],
-            RequireOneSlicingArgument = false)]
+            RequireOneSlicingArgument = false,
+            SlicingArgumentDefaultValue = 42)]
         [Cost(5.0)]
         // ReSharper disable once UnusedMember.Local
         public static List<Example> GetExamples([Cost(8.0)] ExampleInput _)
+        {
+            return [new Example(ExampleEnum.Member)];
+        }
+
+        [ListSize(
+            SlicingArguments = ["first", "last"],
+            SizedFields = ["edges", "nodes"],
+            RequireOneSlicingArgument = false)]
+        [Cost(5.0)]
+        // ReSharper disable once UnusedMember.Local
+        public static List<Example> GetExamples2([Cost(8.0)] ExampleInput _)
         {
             return [new Example(ExampleEnum.Member)];
         }

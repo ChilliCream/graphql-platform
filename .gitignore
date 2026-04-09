@@ -325,4 +325,8 @@ conferences.db-wal
 .mono/
 packages.lock.json
 
-Directory.Build.props.user
+Directory.Build.user.props
+.generated/
+.claude/
+
+src/Mocha/benchmarks/Mocha.Mediator.Benchmarks/Generated/

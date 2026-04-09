@@ -4,8 +4,8 @@
       "message": "The OneOf Input Object `ExampleInput` requires that exactly one field must be supplied and that field must not be `null`.",
       "locations": [
         {
-          "line": 1,
-          "column": 18
+          "line": 2,
+          "column": 20
         }
       ],
       "path": [
@@ -13,16 +13,15 @@
       ],
       "extensions": {
         "type": "ExampleInput",
-        "specifiedBy": "https://spec.graphql.org/draft/#sec-All-Variable-Usages-Are-Allowed",
-        "rfc": "https://github.com/graphql/graphql-spec/pull/825"
+        "specifiedBy": "https://spec.graphql.org/September2025/#sec-All-Variable-Usages-Are-Allowed"
       }
     },
     {
       "message": "The specified value type of field `b` does not match the field type.",
       "locations": [
         {
-          "line": 1,
-          "column": 33
+          "line": 2,
+          "column": 35
         }
       ],
       "path": [
@@ -32,7 +31,7 @@
         "fieldName": "b",
         "fieldType": "Int",
         "locationType": "Int",
-        "specifiedBy": "https://spec.graphql.org/October2021/#sec-Values-of-Correct-Type"
+        "specifiedBy": "https://spec.graphql.org/September2025/#sec-Values-of-Correct-Type"
       }
     }
   ]

@@ -1,9 +1,7 @@
-using System.Text;
 using HotChocolate.Diagnostics;
 using HotChocolate.Diagnostics.Listeners;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -48,15 +46,16 @@ public static class DiagnosticsRequestExecutorBuilderExtensions
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentNullException.ThrowIfNull(options);
 
-        builder.Services.TryAddSingleton(
-            sp =>
-            {
-                var optionInst = new InstrumentationOptions();
-                options(sp, optionInst);
-                return optionInst;
-            });
-
+        builder.Services.TryAddSingleton(sp =>
+        {
+            var optionInst = new InstrumentationOptions();
+            options(sp, optionInst);
+            return optionInst;
+        });
         builder.Services.TryAddSingleton<InternalActivityEnricher>();
+
+        builder.AddApplicationService<InstrumentationOptions>();
+        builder.AddApplicationService<InternalActivityEnricher>();
 
         builder.AddDiagnosticEventListener(
             sp => new ActivityExecutionDiagnosticListener(
@@ -79,13 +78,5 @@ public static class DiagnosticsRequestExecutorBuilderExtensions
         return builder;
     }
 
-    private sealed class InternalActivityEnricher : ActivityEnricher
-    {
-        public InternalActivityEnricher(
-            ObjectPool<StringBuilder> stringBuilderPoolPool,
-            InstrumentationOptions options)
-            : base(stringBuilderPoolPool, options)
-        {
-        }
-    }
+    private sealed class InternalActivityEnricher(InstrumentationOptions options) : ActivityEnricher(options);
 }

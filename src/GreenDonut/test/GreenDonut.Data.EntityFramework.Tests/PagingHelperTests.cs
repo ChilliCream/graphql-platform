@@ -41,7 +41,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
         var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
         // Act
-        arguments = new PagingArguments(2, after: page.CreateCursor(page.Last!));
+        arguments = new PagingArguments(2, after: page.CreateEndCursor());
         page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
         // Assert
@@ -61,7 +61,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
         var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
         // Act
-        var cursor = page.CreateCursor(page.Last!, 2);
+        var cursor = page.CreateCursor(page.Last!.Value, 2);
         arguments = new PagingArguments(2, after: cursor);
         page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
@@ -83,12 +83,12 @@ public class PagingHelperTests(PostgreSqlResource resource)
         var first = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
         // -> get second page
-        var cursor = first.CreateCursor(first.Last!, 0);
+        var cursor = first.CreateCursor(first.Last!.Value, 0);
         arguments = new PagingArguments(2, after: cursor) { EnableRelativeCursors = true };
         var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
         // -> get third page
-        cursor = page.CreateCursor(page.Last!, 0);
+        cursor = page.CreateCursor(page.Last!.Value, 0);
         arguments = new PagingArguments(2, after: cursor) { EnableRelativeCursors = true };
         page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
@@ -105,7 +105,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
         17  Product 0-16
         18  Product 0-17
         */
-        cursor = page.CreateCursor(page.Last!, -1);
+        cursor = page.CreateCursor(page.Last!.Value, -1);
         arguments = new PagingArguments(last: 2, before: cursor);
         page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
@@ -124,9 +124,9 @@ public class PagingHelperTests(PostgreSqlResource resource)
         */
         new
         {
-            First = page.First!.Name,
-            Last = page.Last!.Name,
-            ItemsCount = page.Items.Length
+            First = page.First!.Value.Item.Name,
+            Last = page.Last!.Value.Item.Name,
+            ItemsCount = page.Count
         }.MatchMarkdownSnapshot();
     }
 
@@ -143,11 +143,11 @@ public class PagingHelperTests(PostgreSqlResource resource)
         var page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id)
             .ToPageAsync(arguments);
 
-        arguments = new PagingArguments(2, after: page.CreateCursor(page.Last!));
+        arguments = new PagingArguments(2, after: page.CreateEndCursor());
         page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
         // Act
-        arguments = new PagingArguments(2, after: page.CreateCursor(page.Last!));
+        arguments = new PagingArguments(2, after: page.CreateEndCursor());
         page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
         // Assert
@@ -168,7 +168,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
             .ToPageAsync(arguments);
 
         // Act
-        arguments = new PagingArguments(2, after: page.CreateCursor(page.First!), before: page.CreateCursor(page.Last!));
+        arguments = new PagingArguments(2, after: page.CreateStartCursor(), before: page.CreateEndCursor());
         page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
         // Assert
@@ -241,7 +241,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
 
         await using var context = new CatalogContext(connectionString);
 
-        var page = await context.Products
+        await context.Products
             .With(query)
             .ToPageAsync(arguments);
 
@@ -271,7 +271,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
 
         await using var context = new CatalogContext(connectionString);
 
-        var page = await context.Products
+        await context.Products
             .With(query)
             .ToPageAsync(arguments);
 
@@ -301,7 +301,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
 
         await using var context = new CatalogContext(connectionString);
 
-        var page = await context.Brands
+        await context.Brands
             .With(query)
             .ToPageAsync(arguments);
 
@@ -328,7 +328,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
             .ToPageAsync(arguments);
 
         // Act
-        arguments = arguments with { Before = page.CreateCursor(page.First!) };
+        arguments = arguments with { Before = page.CreateStartCursor() };
         page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
         // Assert
@@ -351,7 +351,7 @@ public class PagingHelperTests(PostgreSqlResource resource)
             .ToPageAsync(arguments);
 
         // Act
-        arguments = new PagingArguments(after: page.CreateCursor(page.First!), last: 2, before: page.CreateCursor(page.Last!));
+        arguments = new PagingArguments(after: page.CreateStartCursor(), last: 2, before: page.CreateEndCursor());
         page = await context.Products.OrderBy(t => t.Name).ThenBy(t => t.Id).ToPageAsync(arguments);
 
         // Assert
@@ -382,9 +382,9 @@ public class PagingHelperTests(PostgreSqlResource resource)
             snapshot.Add(
                 new
                 {
-                    First = page.Value.CreateCursor(page.Value.First!),
-                    Last = page.Value.CreateCursor(page.Value.Last!),
-                    page.Value.Items
+                    First = page.Value.CreateStartCursor(),
+                    Last = page.Value.CreateEndCursor(),
+                    Items = page.Value.ToArray()
                 },
                 name: page.Key.ToString());
         }
@@ -417,7 +417,15 @@ public class PagingHelperTests(PostgreSqlResource resource)
             { "TimeOnly", context.Tests.OrderByDescending(t => t.TimeOnly) },
             { "UInt", context.Tests.OrderByDescending(t => t.UInt) },
             { "ULong", context.Tests.OrderByDescending(t => t.ULong) },
-            { "UShort", context.Tests.OrderByDescending(t => t.UShort) }
+            { "UShort", context.Tests.OrderByDescending(t => t.UShort) },
+            { "ByteEnum", context.Tests.OrderByDescending(t => t.ByteEnum) },
+            { "SbyteEnum", context.Tests.OrderByDescending(t => t.SbyteEnum) },
+            { "ShortEnum", context.Tests.OrderByDescending(t => t.ShortEnum) },
+            { "UshortEnum", context.Tests.OrderByDescending(t => t.UshortEnum) },
+            { "IntEnum", context.Tests.OrderByDescending(t => t.IntEnum) },
+            { "UintEnum", context.Tests.OrderByDescending(t => t.UintEnum) },
+            { "LongEnum", context.Tests.OrderByDescending(t => t.LongEnum) },
+            { "UlongEnum", context.Tests.OrderByDescending(t => t.UlongEnum) }
         };
 
         // Act
@@ -430,12 +438,21 @@ public class PagingHelperTests(PostgreSqlResource resource)
             var page = await query.ThenByDescending(t => t.Id).ToPageAsync(arguments);
 
             // Get 2nd page.
-            arguments = new PagingArguments(2, after: page.CreateCursor(page.Last!));
+            arguments = new PagingArguments(2, after: page.CreateEndCursor());
             pages.Add(label, await query.ThenByDescending(t => t.Id).ToPageAsync(arguments));
         }
 
         // Assert
-        pages.MatchMarkdownSnapshot();
+        pages.ToDictionary(
+            p => p.Key,
+            p =>
+                p.Value.Select(
+                    t =>
+                        new
+                        {
+                            t.Id,
+                            Value = t.GetType().GetProperty(p.Key)?.GetValue(t)
+                        })).MatchMarkdownSnapshot();
     }
 
     private static async Task SeedAsync(string connectionString)
@@ -476,19 +493,19 @@ public class PagingHelperTests(PostgreSqlResource resource)
         await using var context = new CatalogContext(connectionString);
         await context.Database.EnsureCreatedAsync();
 
-        for (var i = 1; i <= 10; i++)
+        for (var i = 1; i <= 8; i++)
         {
             var test = new Test
             {
                 Id = i,
-                Bool = i % 2 == 0,
+                Bool = i > 4,
                 DateOnly = DateOnly.FromDateTime(DateTime.UnixEpoch.AddDays(i - 1)),
                 DateTime = DateTime.UnixEpoch.AddDays(i - 1),
                 DateTimeOffset = DateTimeOffset.UnixEpoch.AddDays(i - 1),
                 Decimal = i,
                 Double = i,
                 Float = i,
-                Guid = Guid.ParseExact($"0000000000000000000000000000000{i - 1}", "N"),
+                Guid = Guid.ParseExact($"0000000000000000000000000000000{i}", "N"),
                 Int = i,
                 Long = i,
                 Short = (short)i,
@@ -497,7 +514,15 @@ public class PagingHelperTests(PostgreSqlResource resource)
                 TimeSpan = TimeSpan.FromHours(i),
                 UInt = (uint)i,
                 ULong = (ulong)i,
-                UShort = (ushort)i
+                UShort = (ushort)i,
+                ByteEnum = i > 4 ? TestByteEnum.Two : TestByteEnum.One,
+                SbyteEnum = i > 4 ? TestSbyteEnum.Two : TestSbyteEnum.One,
+                ShortEnum = i > 4 ? TestShortEnum.Two : TestShortEnum.One,
+                UshortEnum = i > 4 ? TestUshortEnum.Two : TestUshortEnum.One,
+                IntEnum = i > 4 ? TestIntEnum.Two : TestIntEnum.One,
+                UintEnum = i > 4 ? TestUintEnum.Two : TestUintEnum.One,
+                LongEnum = i > 4 ? TestLongEnum.Two : TestLongEnum.One,
+                UlongEnum = i > 4 ? TestUlongEnum.Two : TestUlongEnum.One
             };
 
             context.Tests.Add(test);

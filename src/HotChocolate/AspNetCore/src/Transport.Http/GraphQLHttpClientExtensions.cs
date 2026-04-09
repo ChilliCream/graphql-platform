@@ -1,14 +1,6 @@
-using System.Net.Http.Headers;
-using System.Text;
-using System.Text.Json;
-using HotChocolate.Buffers;
-using HotChocolate.Language;
-using HotChocolate.Transport;
 #if FUSION
-using HotChocolate.Transport.Http;
+using HotChocolate.Fusion.Execution;
 #endif
-using HotChocolate.Transport.Serialization;
-using static System.Net.Http.HttpCompletionOption;
 
 #if FUSION
 namespace HotChocolate.Fusion.Transport.Http;
@@ -41,10 +33,21 @@ public static class GraphQLHttpClientExtensions
         string query,
         CancellationToken cancellationToken = default)
     {
+#if FUSION
+        var operation = new OperationRequest(
+            query,
+            id: null,
+            operationName: null,
+            onError: null,
+            variables: VariableValues.Empty,
+            extensions: JsonSegment.Empty);
+#else
         var operation = new OperationRequest(query);
+#endif
         return GetAsync(client, operation, cancellationToken);
     }
 
+#if !FUSION
     /// <summary>
     /// Sends a GraphQL GET request to the specified GraphQL endpoint.
     /// </summary>
@@ -140,6 +143,7 @@ public static class GraphQLHttpClientExtensions
             ? GetAsync(client, operation, cancellationToken)
             : GetAsync(client, operation, uri, cancellationToken);
     }
+#endif
 
     /// <summary>
     /// Sends a GraphQL GET request to the specified GraphQL endpoint.
@@ -165,7 +169,17 @@ public static class GraphQLHttpClientExtensions
         Uri? uri = null,
         CancellationToken cancellationToken = default)
     {
+#if FUSION
+        var operation = new OperationRequest(
+            query,
+            id: null,
+            operationName: null,
+            onError: null,
+            variables: VariableValues.Empty,
+            extensions: JsonSegment.Empty);
+#else
         var operation = new OperationRequest(query);
+#endif
         return uri is null
             ? GetAsync(client, operation, cancellationToken)
             : GetAsync(client, operation, uri, cancellationToken);
@@ -195,7 +209,17 @@ public static class GraphQLHttpClientExtensions
         string? uri = null,
         CancellationToken cancellationToken = default)
     {
+#if FUSION
+        var operation = new OperationRequest(
+            query,
+            id: null,
+            operationName: null,
+            onError: null,
+            variables: VariableValues.Empty,
+            extensions: JsonSegment.Empty);
+#else
         var operation = new OperationRequest(query);
+#endif
         return uri is null
             ? GetAsync(client, operation, cancellationToken)
             : GetAsync(client, operation, uri, cancellationToken);
@@ -321,10 +345,21 @@ public static class GraphQLHttpClientExtensions
         string query,
         CancellationToken cancellationToken = default)
     {
+#if FUSION
+        var operation = new OperationRequest(
+            query,
+            id: null,
+            operationName: null,
+            onError: null,
+            variables: VariableValues.Empty,
+            extensions: JsonSegment.Empty);
+#else
         var operation = new OperationRequest(query);
+#endif
         return PostAsync(client, operation, cancellationToken);
     }
 
+#if !FUSION
     /// <summary>
     /// Sends a GraphQL POST request to the specified GraphQL endpoint.
     /// </summary>
@@ -352,6 +387,7 @@ public static class GraphQLHttpClientExtensions
         var operation = new OperationRequest(query, variables: variables);
         return PostAsync(client, operation, cancellationToken);
     }
+#endif
 
     /// <summary>
     /// Sends a GraphQL POST request to the specified GraphQL endpoint.
@@ -377,7 +413,17 @@ public static class GraphQLHttpClientExtensions
         Uri? uri = null,
         CancellationToken cancellationToken = default)
     {
+#if FUSION
+        var operation = new OperationRequest(
+            query,
+            id: null,
+            operationName: null,
+            onError: null,
+            variables: VariableValues.Empty,
+            extensions: JsonSegment.Empty);
+#else
         var operation = new OperationRequest(query);
+#endif
         return uri is null
             ? PostAsync(client, operation, cancellationToken)
             : PostAsync(client, operation, uri, cancellationToken);
@@ -407,12 +453,23 @@ public static class GraphQLHttpClientExtensions
         string? uri = null,
         CancellationToken cancellationToken = default)
     {
+#if FUSION
+        var operation = new OperationRequest(
+            query,
+            id: null,
+            operationName: null,
+            onError: null,
+            variables: VariableValues.Empty,
+            extensions: JsonSegment.Empty);
+#else
         var operation = new OperationRequest(query);
+#endif
         return uri is null
             ? PostAsync(client, operation, cancellationToken)
             : PostAsync(client, operation, uri, cancellationToken);
     }
 
+#if !FUSION
     /// <summary>
     /// Sends a GraphQL POST request to the specified GraphQL endpoint.
     /// </summary>
@@ -480,6 +537,7 @@ public static class GraphQLHttpClientExtensions
             ? PostAsync(client, operation, cancellationToken)
             : PostAsync(client, operation, uri, cancellationToken);
     }
+#endif
 
     /// <summary>
     /// Sends a GraphQL POST request to the specified GraphQL endpoint.

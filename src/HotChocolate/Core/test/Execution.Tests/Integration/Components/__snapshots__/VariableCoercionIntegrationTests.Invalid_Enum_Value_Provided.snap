@@ -1,12 +1,12 @@
 {
   "errors": [
     {
-      "message": "GenderEnum cannot parse the given literal of type `EnumValueNode`.",
-      "path": [
-        "user",
-        "gender"
-      ],
+      "message": "GenderEnum cannot coerce the given value JSON element of type `String` to a runtime value.",
       "extensions": {
+        "inputPath": [
+          "user",
+          "gender"
+        ],
         "coordinate": "UserInput.gender",
         "fieldType": "GenderEnum"
       }

@@ -1,6 +1,5 @@
 using System.ComponentModel.DataAnnotations;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types;
 
@@ -21,12 +20,11 @@ public class RequiredAttributeTests
     {
         // arrange
         var inspector = new DefaultTypeInspector(ignoreRequiredAttribute: true);
-        var services = new DictionaryServiceProvider(typeof(ITypeInspector), inspector);
 
         // act & assert
         SchemaBuilder.New()
             .AddQueryType<Foo>()
-            .AddServices(services)
+            .AddConvention<ITypeInspector>(inspector)
             .Create()
             .ToString()
             .MatchSnapshot();

@@ -90,20 +90,20 @@ public class IDAttribute : DescriptorAttribute
     protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider? attributeProvider)
     {
         switch (descriptor)
         {
-            case IInputFieldDescriptor d when element is PropertyInfo:
+            case IInputFieldDescriptor d:
                 d.ID(TypeName);
                 break;
-            case IArgumentDescriptor d when element is ParameterInfo:
+            case IArgumentDescriptor d:
                 d.ID(TypeName);
                 break;
-            case IObjectFieldDescriptor d when element is MemberInfo:
+            case IObjectFieldDescriptor d:
                 d.ID(TypeName);
                 break;
-            case IInterfaceFieldDescriptor d when element is MemberInfo:
+            case IInterfaceFieldDescriptor d:
                 d.ID();
                 break;
         }
@@ -168,49 +168,26 @@ public class IDAttribute<T> : DescriptorAttribute
     /// <inheritdoc cref="IDAttribute{T}"/>
     public IDAttribute()
     {
-        TypeName = typeof(T).Name;
     }
-
-    /// <summary>
-    /// With the <see cref="IDAttribute.TypeName"/> property you can override the type name
-    /// of the ID. This is useful to rewrite a parameter of a mutation or query, to a specific
-    /// id.
-    /// </summary>
-    /// <example>
-    /// <para>
-    /// A field can be rewritten to an ID by adding <c>[ID]</c> to the resolver.
-    /// </para>
-    /// <code>
-    /// public class UserQuery
-    /// {
-    ///     public User GetUserById([ID("User")] int id) => //....
-    /// }
-    /// </code>
-    /// <para>
-    /// The argument is rewritten to <c>ID</c> and expect an ID of type User.
-    /// Assuming `<c>User.id</c>` has the value 1. The following string is base64 encoded
-    /// </para>
-    /// </example>
-    public string? TypeName { get; }
 
     /// <inheritdoc />
     protected internal override void TryConfigure(
         IDescriptorContext context,
         IDescriptor descriptor,
-        ICustomAttributeProvider element)
+        ICustomAttributeProvider? attributeProvider)
     {
         switch (descriptor)
         {
-            case IInputFieldDescriptor d when element is PropertyInfo:
-                d.ID(TypeName);
+            case IInputFieldDescriptor d:
+                d.ID<T>();
                 break;
-            case IArgumentDescriptor d when element is ParameterInfo:
-                d.ID(TypeName);
+            case IArgumentDescriptor d:
+                d.ID<T>();
                 break;
-            case IObjectFieldDescriptor d when element is MemberInfo:
-                d.ID(TypeName);
+            case IObjectFieldDescriptor d:
+                d.ID<T>();
                 break;
-            case IInterfaceFieldDescriptor d when element is MemberInfo:
+            case IInterfaceFieldDescriptor d:
                 d.ID();
                 break;
         }

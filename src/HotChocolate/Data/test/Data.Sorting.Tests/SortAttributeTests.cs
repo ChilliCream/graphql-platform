@@ -182,7 +182,7 @@ public class SortAttributeTests
         public override void OnConfigure(
             IDescriptorContext context,
             ISortInputTypeDescriptor descriptor,
-            Type type)
+            Type? type)
         {
             descriptor.Name("ItWorks");
         }
@@ -193,7 +193,7 @@ public class SortAttributeTests
         public override void OnConfigure(
             IDescriptorContext context,
             ISortFieldDescriptor descriptor,
-            MemberInfo member)
+            MemberInfo? member)
         {
             descriptor.Ignore();
         }

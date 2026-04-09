@@ -7,7 +7,7 @@ namespace HotChocolate.Types.MongoDb;
 
 internal static class ThrowHelper
 {
-    public static SerializationException Bson_CouldNotParseValue(
+    public static LeafCoercionException Bson_CouldNotParseValue(
         ScalarType type,
         object? value) =>
         new(
@@ -17,7 +17,7 @@ internal static class ThrowHelper
                 value?.ToString() ?? "null"),
             type);
 
-    public static SerializationException Bson_CouldNotParseLiteral(
+    public static LeafCoercionException Bson_CouldNotParseLiteral(
         ScalarType type,
         IValueNode literal) =>
         new(

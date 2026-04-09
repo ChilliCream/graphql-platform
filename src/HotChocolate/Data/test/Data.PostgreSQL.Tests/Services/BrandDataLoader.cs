@@ -18,7 +18,7 @@ internal static class BrandDataLoader
         ids = ids.EnsureOrdered();
         var queryable = context.Brands
             .Where(t => ids.Contains(t.Id))
-            .With(query);
+            .With(query.Include(t => t.Id));
         PagingQueryInterceptor.Publish(queryable);
         return await queryable.ToDictionaryAsync(t => t.Id, cancellationToken);
     }

@@ -1,0 +1,31 @@
+{
+  "name": "ChilliCream Frontend",
+  "build": {
+    "dockerfile": "dockerfile",
+    "context": "."
+  },
+  "runArgs": ["--shm-size=512m"],
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        "dsznajder.es7-react-js-snippets",
+        "csstools.postcss",
+        "graphql.vscode-graphql",
+        "esbenp.prettier-vscode",
+        "anthropic.claude-code",
+        "openai.chatgpt"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh"
+      }
+    }
+  },
+  "forwardPorts": [3000],
+  "postCreateCommand": "cd website && yarn"
+}

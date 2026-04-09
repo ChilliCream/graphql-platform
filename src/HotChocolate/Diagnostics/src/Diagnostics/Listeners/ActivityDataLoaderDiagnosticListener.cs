@@ -1,38 +1,74 @@
+using System.Diagnostics;
 using GreenDonut;
-using HotChocolate.Diagnostics.Scopes;
 using static HotChocolate.Diagnostics.HotChocolateActivitySource;
 
 namespace HotChocolate.Diagnostics.Listeners;
 
-internal sealed class ActivityDataLoaderDiagnosticListener : DataLoaderDiagnosticEventListener
+internal sealed class ActivityDataLoaderDiagnosticListener(
+    ActivityEnricher enricher,
+    InstrumentationOptions options)
+    : DataLoaderDiagnosticEventListener
 {
-    private readonly InstrumentationOptions _options;
-    private readonly ActivityEnricher _enricher;
-
-    public ActivityDataLoaderDiagnosticListener(
-        ActivityEnricher enricher,
-        InstrumentationOptions options)
-    {
-        _enricher = enricher ?? throw new ArgumentNullException(nameof(enricher));
-        _options = options ?? throw new ArgumentNullException(nameof(options));
-    }
-
     public override IDisposable ExecuteBatch<TKey>(
         IDataLoader dataLoader,
         IReadOnlyList<TKey> keys)
     {
-        if (_options.SkipDataLoaderBatch)
+        if (options.SkipDataLoaderBatch)
         {
             return EmptyScope;
         }
 
-        var activity = Source.StartActivity();
+        var span = DataLoaderBatchSpan<TKey>.Start(Source, dataLoader, keys, enricher);
 
-        if (activity is null)
+        if (span is null)
         {
             return EmptyScope;
         }
 
-        return new DataLoaderBatchScope<TKey>(_enricher, dataLoader, keys, activity);
+        if (options.IncludeDataLoaderKeys)
+        {
+            var temp = keys.Select(t => t.ToString()).ToArray();
+            span.Activity.SetTag(SemanticConventions.GraphQL.DataLoader.Batch.Keys, temp);
+        }
+
+        return span;
+    }
+
+    public override IDisposable RunBatchDispatchCoordinator()
+    {
+        var span = DataLoaderDispatchSpan.Start(Source, enricher);
+
+        return span ?? EmptyScope;
+    }
+
+    public override void BatchDispatchError(Exception error)
+    {
+        if (Activity.Current is { } activity)
+        {
+            activity.SetStatus(ActivityStatusCode.Error);
+            activity.AddException(error);
+
+            enricher.EnrichBatchDispatchError(error, activity);
+        }
+    }
+
+    public override void BatchEvaluated(int openBatches)
+    {
+        Activity.Current?.AddEvent(new ActivityEvent(
+            "BatchEvaluated",
+            tags: new ActivityTagsCollection
+            {
+                { "openBatches", openBatches }
+            }));
+    }
+
+    public override void BatchDispatched(int dispatchedBatches)
+    {
+        Activity.Current?.AddEvent(new ActivityEvent(
+            "BatchDispatched",
+            tags: new ActivityTagsCollection
+            {
+                { "dispatchedBatches", dispatchedBatches }
+            }));
     }
 }

@@ -1,0 +1,4 @@
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
+  <Import Project="Directory.Build.user.props" Condition="Exists('Directory.Build.user.props')" />
+</Project>

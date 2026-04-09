@@ -1,6 +1,7 @@
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate;
@@ -94,9 +95,6 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.DefaultIsOfTypeCheck"/>
     public IsOfTypeFallback? DefaultIsOfTypeCheck { get; set; }
 
-    /// <inheritdoc cref="IReadOnlySchemaOptions.EnableOneOf"/>
-    public bool EnableOneOf { get; set; } = true;
-
     /// <inheritdoc cref="IReadOnlySchemaOptions.EnableFlagEnums"/>
     public bool EnableFlagEnums { get; set; }
 
@@ -114,6 +112,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
 
     /// <inheritdoc cref="IReadOnlySchemaOptions.EnableTag"/>
     public bool EnableTag { get; set; } = true;
+
+    /// <inheritdoc cref="IReadOnlySchemaOptions.EnableOptInFeatures"/>
+    public bool EnableOptInFeatures { get; set; }
 
     /// <inheritdoc cref="IReadOnlySchemaOptions.DefaultQueryDependencyInjectionScope"/>
     public DependencyInjectionScope DefaultQueryDependencyInjectionScope { get; set; } =
@@ -177,14 +178,28 @@ public class SchemaOptions : IReadOnlySchemaOptions
         }
     } = 256;
 
+    /// <inheritdoc cref="IReadOnlySchemaOptions.ApplyShareableToPageInfo"/>
+    public bool ApplyShareableToPageInfo { get; set; }
+
+    /// <inheritdoc cref="IReadOnlySchemaOptions.ApplyShareableToConnections"/>
+    public bool ApplyShareableToConnections { get; set; }
+
+    /// <inheritdoc cref="IReadOnlySchemaOptions.ApplyShareableToNodeFields"/>
+    public bool ApplyShareableToNodeFields { get; set; }
+
+    /// <inheritdoc cref="IReadOnlySchemaOptions.ApplySerializeAsToScalars"/>
+    public bool ApplySerializeAsToScalars { get; set; }
+
+    /// <inheritdoc cref="IReadOnlySchemaOptions.DefaultErrorHandlingMode"/>
+    public ErrorHandlingMode DefaultErrorHandlingMode { get; set; } = ErrorHandlingMode.Propagate;
+
     /// <summary>
     /// Creates a mutable options object from a read-only options object.
     /// </summary>
     /// <param name="options">The read-only options object.</param>
     /// <returns>Returns a new mutable options object.</returns>
     public static SchemaOptions FromOptions(IReadOnlySchemaOptions options)
-    {
-        return new()
+        => new()
         {
             QueryTypeName = options.QueryTypeName,
             MutationTypeName = options.MutationTypeName,
@@ -203,7 +218,6 @@ public class SchemaOptions : IReadOnlySchemaOptions
             RemoveUnusedTypeSystemDirectives = options.RemoveUnusedTypeSystemDirectives,
             SortFieldsByName = options.SortFieldsByName,
             DefaultIsOfTypeCheck = options.DefaultIsOfTypeCheck,
-            EnableOneOf = options.EnableOneOf,
             EnableFlagEnums = options.EnableFlagEnums,
             EnableDefer = options.EnableDefer,
             EnableStream = options.EnableStream,
@@ -211,11 +225,16 @@ public class SchemaOptions : IReadOnlySchemaOptions
             DefaultFieldBindingFlags = options.DefaultFieldBindingFlags,
             StripLeadingIFromInterface = options.StripLeadingIFromInterface,
             EnableTag = options.EnableTag,
+            EnableOptInFeatures = options.EnableOptInFeatures,
             DefaultQueryDependencyInjectionScope = options.DefaultQueryDependencyInjectionScope,
             DefaultMutationDependencyInjectionScope = options.DefaultMutationDependencyInjectionScope,
             LazyInitialization = options.LazyInitialization,
             PreparedOperationCacheSize = options.PreparedOperationCacheSize,
-            OperationDocumentCacheSize = options.OperationDocumentCacheSize
+            OperationDocumentCacheSize = options.OperationDocumentCacheSize,
+            ApplyShareableToPageInfo = options.ApplyShareableToPageInfo,
+            ApplyShareableToConnections = options.ApplyShareableToConnections,
+            ApplyShareableToNodeFields = options.ApplyShareableToNodeFields,
+            ApplySerializeAsToScalars = options.ApplySerializeAsToScalars,
+            DefaultErrorHandlingMode = options.DefaultErrorHandlingMode
         };
-    }
 }

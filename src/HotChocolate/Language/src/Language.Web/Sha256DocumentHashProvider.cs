@@ -1,4 +1,5 @@
 #if NET8_0_OR_GREATER
+using System.Buffers;
 using System.Runtime.CompilerServices;
 #endif
 using System.Security.Cryptography;
@@ -21,6 +22,8 @@ public sealed class Sha256DocumentHashProvider : DocumentHashProviderBase
 
     public override string Name => "sha256Hash";
 
+    public override string AlgorithmName => "sha256";
+
 #if NETSTANDARD2_0
     protected override byte[] ComputeHash(byte[] document, int length)
     {
@@ -41,6 +44,27 @@ public sealed class Sha256DocumentHashProvider : DocumentHashProviderBase
         }
 
         return FormatHash(hashSpan, format);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    protected override string ComputeHash(ReadOnlySequence<byte> document, HashFormat format)
+    {
+        using var incrementalHash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+
+        foreach (var segment in document)
+        {
+            incrementalHash.AppendData(segment.Span);
+        }
+
+        Span<byte> hashBytes = stackalloc byte[32];
+        incrementalHash.TryGetHashAndReset(hashBytes, out var written);
+
+        if (written < 32)
+        {
+            hashBytes = hashBytes[..written];
+        }
+
+        return FormatHash(hashBytes, format);
     }
 #endif
 }

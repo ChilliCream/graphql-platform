@@ -1,3 +1,5 @@
+using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using static HotChocolate.ExecutionAbstractionsResources;
@@ -9,6 +11,8 @@ namespace HotChocolate.Execution;
 /// </summary>
 public sealed class VariableBatchRequest : IOperationRequest
 {
+    private bool _disposed;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="VariableBatchRequest" /> class.
     /// </summary>
@@ -54,8 +58,8 @@ public sealed class VariableBatchRequest : IOperationRequest
         OperationDocumentHash? documentHash,
         string? operationName,
         ErrorHandlingMode? errorHandlingMode,
-        IReadOnlyList<IReadOnlyDictionary<string, object?>>? variableValues,
-        IReadOnlyDictionary<string, object?>? extensions,
+        JsonDocumentOwner variableValues,
+        JsonDocumentOwner? extensions,
         IReadOnlyDictionary<string, object?>? contextData,
         IFeatureCollection? features,
         IServiceProvider? services,
@@ -63,7 +67,17 @@ public sealed class VariableBatchRequest : IOperationRequest
     {
         if (document is null && OperationDocumentId.IsNullOrEmpty(documentId))
         {
-            throw new InvalidOperationException(OperationRequest_DocumentOrIdMustBeSet);
+            throw new ArgumentException(OperationRequest_DocumentOrIdMustBeSet);
+        }
+
+        if (variableValues.Document.RootElement.ValueKind is not JsonValueKind.Array)
+        {
+            throw new ArgumentException(VariableBatchRequest_Variables_Must_Be_Array, nameof(variableValues));
+        }
+
+        if (extensions is not null && extensions.Document.RootElement.ValueKind is not JsonValueKind.Object)
+        {
+            throw new ArgumentException(OperationRequest_Extensions_Must_Be_Object, nameof(extensions));
         }
 
         Document = document;
@@ -108,12 +122,12 @@ public sealed class VariableBatchRequest : IOperationRequest
     /// <summary>
     /// Gets a list of variable values for the GraphQL request.
     /// </summary>
-    public IReadOnlyList<IReadOnlyDictionary<string, object?>>? VariableValues { get; }
+    public JsonDocumentOwner VariableValues { get; }
 
     /// <summary>
     /// Gets the GraphQL request extension data.
     /// </summary>
-    public IReadOnlyDictionary<string, object?>? Extensions { get; }
+    public JsonDocumentOwner? Extensions { get; }
 
     /// <summary>
     /// Gets the initial request state.
@@ -135,6 +149,17 @@ public sealed class VariableBatchRequest : IOperationRequest
     /// </summary>
     public RequestFlags Flags { get; }
 
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        if (!_disposed)
+        {
+            VariableValues.Dispose();
+            Extensions?.Dispose();
+            _disposed = true;
+        }
+    }
+
     /// <summary>
     /// Creates a new request with the specified services.
     /// </summary>
@@ -144,7 +169,7 @@ public sealed class VariableBatchRequest : IOperationRequest
     /// <returns>
     /// Returns a new request with the specified services.
     /// </returns>
-    public VariableBatchRequest WithServices(IServiceProvider services)
+    public VariableBatchRequest WithServices(IServiceProvider? services)
         => new(
             Document,
             DocumentId,
@@ -167,7 +192,7 @@ public sealed class VariableBatchRequest : IOperationRequest
     /// <returns>
     /// Returns a new request with the specified features.
     /// </returns>
-    public VariableBatchRequest WithFeatures(IFeatureCollection features)
+    public VariableBatchRequest WithFeatures(IFeatureCollection? features)
         => new(
             Document,
             DocumentId,
@@ -180,4 +205,65 @@ public sealed class VariableBatchRequest : IOperationRequest
             features,
             Services,
             Flags);
+
+    /// <summary>
+    /// Creates a new <see cref="VariableBatchRequest"/> from a GraphQL source text
+    /// and a JSON array of variable sets.
+    /// </summary>
+    /// <param name="sourceText">
+    /// The GraphQL operation source text.
+    /// </param>
+    /// <param name="variableValues">
+    /// A JSON document whose root element is an array of variable objects.
+    /// </param>
+    /// <param name="documentHash">
+    /// A GraphQL request document hash.
+    /// </param>
+    /// <param name="operationName">
+    /// A name of an operation in the GraphQL request document that shall be executed.
+    /// </param>
+    /// <param name="errorHandlingMode">
+    /// The requested error handling mode.
+    /// </param>
+    /// <param name="extensions">
+    /// The GraphQL request extension data.
+    /// </param>
+    /// <param name="contextData">
+    /// The initial global request state.
+    /// </param>
+    /// <param name="features">
+    /// The features that shall be used while executing the GraphQL request.
+    /// </param>
+    /// <param name="services">
+    /// The services that shall be used while executing the GraphQL request.
+    /// </param>
+    /// <param name="flags">
+    /// The GraphQL request flags can be used to limit the execution engine capabilities.
+    /// </param>
+    /// <returns>
+    /// Returns a new variable batch request.
+    /// </returns>
+    public static VariableBatchRequest FromSourceText(
+        string sourceText,
+        JsonDocument variableValues,
+        OperationDocumentHash? documentHash = null,
+        string? operationName = null,
+        ErrorHandlingMode? errorHandlingMode = null,
+        JsonDocument? extensions = null,
+        IReadOnlyDictionary<string, object?>? contextData = null,
+        IFeatureCollection? features = null,
+        IServiceProvider? services = null,
+        RequestFlags flags = RequestFlags.AllowAll)
+        => new(
+            new OperationDocumentSourceText(sourceText),
+            null,
+            documentHash,
+            operationName,
+            errorHandlingMode,
+            new JsonDocumentOwner(variableValues),
+            extensions is null ? null : new(extensions),
+            contextData,
+            features,
+            services,
+            flags);
 }

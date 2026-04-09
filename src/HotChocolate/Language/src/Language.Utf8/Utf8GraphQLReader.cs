@@ -1,14 +1,22 @@
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using static HotChocolate.Language.Properties.LangUtf8Resources;
 
 namespace HotChocolate.Language;
 
 /// <summary>
-/// The UTF-8 GraphQL Lexer.
+/// A low-level, high-performance lexer (tokenizer) that reads UTF-8 encoded GraphQL source text.
 /// </summary>
 public ref partial struct Utf8GraphQLReader
 {
     private readonly ReadOnlySpan<byte> _sourceText;
+    private readonly ReadOnlySequence<byte> _sequence;
+    private ReadOnlySpan<byte> _currentSpan;
+    private int _currentSpanIndex;
+    private int _segmentOffset;
+    private byte[]? _rentedBuffer;
+    private SequencePosition _nextSegmentPosition;
+    private readonly bool _isMultiSegment;
     private readonly int _length;
     private readonly int _maxAllowedTokens;
     private int _nextNewLines;
@@ -23,6 +31,20 @@ public ref partial struct Utf8GraphQLReader
     private int _column;
     private int _tokenCount;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="Utf8GraphQLReader"/> for reading
+    /// a contiguous UTF-8 encoded GraphQL source text.
+    /// </summary>
+    /// <param name="sourceText">
+    /// The UTF-8 encoded GraphQL source text to read.
+    /// </param>
+    /// <param name="maxAllowedTokens">
+    /// The maximum number of tokens the reader is allowed to read before throwing a
+    /// <see cref="SyntaxException"/>. Defaults to <see cref="int.MaxValue"/>.
+    /// </param>
+    /// <exception cref="ArgumentException">
+    /// <paramref name="sourceText"/> is empty.
+    /// </exception>
     public Utf8GraphQLReader(ReadOnlySpan<byte> sourceText, int maxAllowedTokens = int.MaxValue)
     {
         if (sourceText.Length == 0)
@@ -47,7 +69,7 @@ public ref partial struct Utf8GraphQLReader
     }
 
     /// <summary>
-    /// Gets the GraphQL Data that is being read.
+    /// Gets the UTF-8 encoded GraphQL source text that is being read.
     /// </summary>
     public ReadOnlySpan<byte> SourceText => _sourceText;
 
@@ -57,17 +79,17 @@ public ref partial struct Utf8GraphQLReader
     public TokenKind Kind => _kind;
 
     /// <summary>
-    /// Gets the character offset at which this node begins.
+    /// Gets the character offset at which the current token begins.
     /// </summary>
     public int Start => _start;
 
     /// <summary>
-    /// Gets the character offset at which this node ends.
+    /// Gets the character offset at which the current token ends.
     /// </summary>
     public int End => _end;
 
     /// <summary>
-    /// The current position of the lexer pointer.
+    /// Gets the current position of the lexer pointer in the source text.
     /// </summary>
     public int Position => _position;
 
@@ -77,7 +99,7 @@ public ref partial struct Utf8GraphQLReader
     public int Line => _line;
 
     /// <summary>
-    /// The source index of where the current line starts.
+    /// Gets the source index of where the current line starts.
     /// </summary>
     public int LineStart => _lineStart;
 
@@ -87,27 +109,33 @@ public ref partial struct Utf8GraphQLReader
     public int Column => _column;
 
     /// <summary>
-    /// For non-punctuation tokens, represents the interpreted
-    /// value of the token.
+    /// Gets the interpreted value of the current token as a UTF-8 byte span.
+    /// For punctuation tokens, the value is empty.
     /// </summary>
     public ReadOnlySpan<byte> Value => _value;
 
     /// <summary>
-    /// Defines the type of the float if the current syntax token represents a float number.
+    /// Gets the float format of the current token, or <c>null</c> if the token is not a float.
     /// </summary>
     public FloatFormat? FloatFormat => _floatFormat;
 
     /// <summary>
-    /// Reads the next token.
+    /// Reads the next token from the source text.
     /// </summary>
     /// <returns>
-    /// Returns a boolean defining if the read was successful.
+    /// <c>true</c> if a token was successfully read;
+    /// <c>false</c> if the end of the source text has been reached.
     /// </returns>
     /// <exception cref="SyntaxException">
-    /// The steam contains invalid syntax tokens.
+    /// The source text contains invalid syntax.
     /// </exception>
     public bool Read()
     {
+        if (_isMultiSegment)
+        {
+            return ReadMultiSegment();
+        }
+
         _floatFormat = null;
 
         if (_position == 0)
@@ -158,17 +186,17 @@ public ref partial struct Utf8GraphQLReader
             return true;
         }
 
-        if (code is GraphQLConstants.Hash)
+        if (code is GraphQLCharacters.Hash)
         {
             ReadCommentToken();
             return true;
         }
 
-        if (code is GraphQLConstants.Quote)
+        if (code is GraphQLCharacters.Quote)
         {
             if (_length > _position + 2
-                && _sourceText[_position + 1] is GraphQLConstants.Quote
-                && _sourceText[_position + 2] is GraphQLConstants.Quote)
+                && _sourceText[_position + 1] is GraphQLCharacters.Quote
+                && _sourceText[_position + 2] is GraphQLCharacters.Quote)
             {
                 _position += 2;
                 ReadBlockStringToken();
@@ -184,10 +212,10 @@ public ref partial struct Utf8GraphQLReader
     }
 
     /// <summary>
-    /// Counts the tokens and returns the document token count.
+    /// Reads all remaining tokens and returns the total token count.
     /// </summary>
     /// <returns>
-    /// Returns the token count of the document.
+    /// The total number of tokens in the source text.
     /// </returns>
     public int Count()
     {
@@ -198,7 +226,7 @@ public ref partial struct Utf8GraphQLReader
 
     /// <summary>
     /// Reads name tokens as specified in
-    /// http://facebook.github.io/graphql/October2016/#Name
+    /// https://spec.graphql.org/September2025/#Name
     /// [_A-Za-z][_0-9A-Za-z]
     /// from the current lexer state.
     /// </summary>
@@ -225,7 +253,7 @@ ReadNameToken_Next:
 
     /// <summary>
     /// Reads punctuator tokens as specified in
-    /// http://facebook.github.io/graphql/October2016/#sec-Punctuators
+    /// https://spec.graphql.org/September2025/#sec-Punctuators
     /// one of ! ? $ ( ) ... . : = @ [ ] { | }
     /// additionally the reader will tokenize ampersands.
     /// </summary>
@@ -235,11 +263,16 @@ ReadNameToken_Next:
         _end = ++_position;
         _value = null;
 
-        if (code is GraphQLConstants.Dot)
+        if (code is GraphQLCharacters.Dot)
         {
-            if (_sourceText[_position] is GraphQLConstants.Dot)
+            if (IsEndOfStream())
             {
-                if (_sourceText[_position + 1] is GraphQLConstants.Dot)
+                _kind = TokenKind.Dot;
+            }
+            else if (_sourceText[_position] is GraphQLCharacters.Dot)
+            {
+                if (!IsEndOfStream(_position + 1)
+                    && _sourceText[_position + 1] is GraphQLCharacters.Dot)
                 {
                     _position += 2;
                     _end = _position;
@@ -263,82 +296,15 @@ ReadNameToken_Next:
         }
         else
         {
-            switch (code)
-            {
-                case GraphQLConstants.Bang:
-                    _kind = TokenKind.Bang;
-                    break;
-
-                case GraphQLConstants.Dollar:
-                    _kind = TokenKind.Dollar;
-                    break;
-
-                case GraphQLConstants.Ampersand:
-                    _kind = TokenKind.Ampersand;
-                    break;
-
-                case GraphQLConstants.LeftParenthesis:
-                    _kind = TokenKind.LeftParenthesis;
-                    break;
-
-                case GraphQLConstants.RightParenthesis:
-                    _kind = TokenKind.RightParenthesis;
-                    break;
-
-                case GraphQLConstants.Dot:
-                    _kind = TokenKind.Dot;
-                    break;
-
-                case GraphQLConstants.Colon:
-                    _kind = TokenKind.Colon;
-                    break;
-
-                case GraphQLConstants.Equal:
-                    _kind = TokenKind.Equal;
-                    break;
-
-                case GraphQLConstants.QuestionMark:
-                    _kind = TokenKind.QuestionMark;
-                    break;
-
-                case GraphQLConstants.At:
-                    _kind = TokenKind.At;
-                    break;
-
-                case GraphQLConstants.LeftBracket:
-                    _kind = TokenKind.LeftBracket;
-                    break;
-
-                case GraphQLConstants.RightBracket:
-                    _kind = TokenKind.RightBracket;
-                    break;
-
-                case GraphQLConstants.LeftBrace:
-                    _kind = TokenKind.LeftBrace;
-                    break;
-
-                case GraphQLConstants.Pipe:
-                    _kind = TokenKind.Pipe;
-                    break;
-
-                case GraphQLConstants.RightBrace:
-                    _kind = TokenKind.RightBrace;
-                    break;
-
-                default:
-                    // we should never get to this point since we first check
-                    // if code is a punctuator.
-                    throw new InvalidOperationException(
-                        Utf8GraphQLReader_ReadPunctuatorToken_InvalidState);
-            }
+            _kind = GraphQLCharacters.PunctuatorKind[code];
         }
     }
 
     /// <summary>
     /// Reads int tokens as specified in
-    /// http://facebook.github.io/graphql/October2021/#IntValue
+    /// https://spec.graphql.org/September2025/#IntValue
     /// or a float tokens as specified in
-    /// http://facebook.github.io/graphql/October2021/#FloatValue
+    /// https://spec.graphql.org/September2025/#FloatValue
     /// from the current lexer state.
     /// </summary>
     private void ReadNumberToken(byte firstCode)
@@ -347,12 +313,12 @@ ReadNameToken_Next:
         var code = firstCode;
         var isFloat = false;
 
-        if (code is GraphQLConstants.Minus)
+        if (code is GraphQLCharacters.Minus)
         {
-            code = _sourceText[++_position];
+            code = AdvanceAndReadOrThrowInvalidNumber();
         }
 
-        if (code is GraphQLConstants.Zero && !IsEndOfStream(_position + 1))
+        if (code is GraphQLCharacters.Zero && !IsEndOfStream(_position + 1))
         {
             code = _sourceText[++_position];
 
@@ -366,24 +332,24 @@ ReadNameToken_Next:
             code = ReadDigits(code);
         }
 
-        if (code is GraphQLConstants.Dot)
+        if (code is GraphQLCharacters.Dot)
         {
             isFloat = true;
             _floatFormat = Language.FloatFormat.FixedPoint;
-            code = _sourceText[++_position];
+            code = AdvanceAndReadOrThrowInvalidNumber();
             code = ReadDigits(code);
         }
 
         const byte lowerCaseBit = 0x20;
-        if ((code | lowerCaseBit) is GraphQLConstants.E)
+        if ((code | lowerCaseBit) is GraphQLCharacters.E)
         {
             isFloat = true;
             _floatFormat = Language.FloatFormat.Exponential;
-            code = _sourceText[++_position];
+            code = AdvanceAndReadOrThrowInvalidNumber();
 
-            if (code is GraphQLConstants.Plus or GraphQLConstants.Minus)
+            if (code is GraphQLCharacters.Plus or GraphQLCharacters.Minus)
             {
-                code = _sourceText[++_position];
+                code = AdvanceAndReadOrThrowInvalidNumber();
             }
             code = ReadDigits(code);
         }
@@ -394,7 +360,7 @@ ReadNameToken_Next:
         // Not checking for Digit because there is no situation
         // where that hasn't been consumed at this point.
         if (code.IsLetterOrUnderscore()
-            || code == GraphQLConstants.Dot)
+            || code == GraphQLCharacters.Dot)
         {
             throw new SyntaxException(this, DisallowedNameCharacterAfterNumber, (char)code, code);
         }
@@ -405,6 +371,21 @@ ReadNameToken_Next:
         _start = start;
         _end = _position;
         _value = _sourceText.Slice(start, _position - start);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private byte AdvanceAndReadOrThrowInvalidNumber()
+    {
+        if (IsEndOfStream(_position + 1))
+        {
+            throw new SyntaxException(
+                this,
+                InvalidNumber,
+                (char)GraphQLCharacters.Space,
+                GraphQLCharacters.Space);
+        }
+
+        return _sourceText[++_position];
     }
 
     private byte ReadDigits(byte firstCode)
@@ -420,7 +401,7 @@ ReadNameToken_Next:
         {
             if (++_position >= _length)
             {
-                code = GraphQLConstants.Space;
+                code = GraphQLCharacters.Space;
                 break;
             }
 
@@ -437,7 +418,7 @@ ReadNameToken_Next:
 
     /// <summary>
     /// Reads comment tokens as specified in
-    /// http://facebook.github.io/graphql/October2016/#sec-Comments
+    /// https://spec.graphql.org/September2025/#sec-Comments
     /// #[\u0009\u0020-\uFFFF]*
     /// from the current lexer state.
     /// </summary>
@@ -446,62 +427,29 @@ ReadNameToken_Next:
         var start = _position;
         var trimStart = _position + 1;
         var trim = true;
-        var run = true;
 
-        while (run && ++_position < _length)
+        while (++_position < _length)
         {
             var code = _sourceText[_position];
 
-            switch (code)
+            // Control characters (0x00-0x1F except Tab) and DEL terminate the comment.
+            if (code.IsControlCharacter())
             {
-                // SourceCharacter
-                case GraphQLConstants.Null:
-                case GraphQLConstants.StartOfHeading:
-                case GraphQLConstants.StartOfText:
-                case GraphQLConstants.EndOfText:
-                case GraphQLConstants.EndOfTransmission:
-                case GraphQLConstants.Enquiry:
-                case GraphQLConstants.Acknowledgement:
-                case GraphQLConstants.Bell:
-                case GraphQLConstants.Backspace:
-                case GraphQLConstants.LineFeed:
-                case GraphQLConstants.VerticalTab:
-                case GraphQLConstants.FormFeed:
-                case GraphQLConstants.Return:
-                case GraphQLConstants.ShiftOut:
-                case GraphQLConstants.ShiftIn:
-                case GraphQLConstants.DataLinkEscape:
-                case GraphQLConstants.DeviceControl1:
-                case GraphQLConstants.DeviceControl2:
-                case GraphQLConstants.DeviceControl3:
-                case GraphQLConstants.DeviceControl4:
-                case GraphQLConstants.NegativeAcknowledgement:
-                case GraphQLConstants.SynchronousIdle:
-                case GraphQLConstants.EndOfTransmissionBlock:
-                case GraphQLConstants.Cancel:
-                case GraphQLConstants.EndOfMedium:
-                case GraphQLConstants.Substitute:
-                case GraphQLConstants.Escape:
-                case GraphQLConstants.FileSeparator:
-                case GraphQLConstants.GroupSeparator:
-                case GraphQLConstants.RecordSeparator:
-                case GraphQLConstants.UnitSeparator:
-                case GraphQLConstants.Delete:
-                    run = false;
-                    break;
+                break;
+            }
 
-                case GraphQLConstants.Hash:
-                case GraphQLConstants.Space:
-                case GraphQLConstants.HorizontalTab:
-                    if (trim)
-                    {
-                        trimStart = _position;
-                    }
-                    break;
-
-                default:
-                    trim = false;
-                    break;
+            if (code is GraphQLCharacters.Hash
+                or GraphQLCharacters.Space
+                or GraphQLCharacters.HorizontalTab)
+            {
+                if (trim)
+                {
+                    trimStart = _position;
+                }
+            }
+            else
+            {
+                trim = false;
             }
         }
 
@@ -513,7 +461,7 @@ ReadNameToken_Next:
 
     /// <summary>
     /// Reads string tokens as specified in
-    /// http://facebook.github.io/graphql/October2016/#StringValue
+    /// https://spec.graphql.org/September2025/#StringValue
     /// "([^"\\\u000A\u000D]|(\\(u[0-9a-fA-F]{4}|["\\/bfnrt])))*"
     /// from the current lexer state.
     /// </summary>
@@ -527,12 +475,12 @@ ReadNameToken_Next:
 
             switch (code)
             {
-                case GraphQLConstants.LineFeed:
-                case GraphQLConstants.Return:
-                    return;
+                case GraphQLCharacters.LineFeed:
+                case GraphQLCharacters.Return:
+                    throw new SyntaxException(this, UnterminatedString);
 
                 // closing Quote (")
-                case GraphQLConstants.Quote:
+                case GraphQLCharacters.Quote:
                     _kind = TokenKind.String;
                     _start = start;
                     _end = _position;
@@ -542,7 +490,12 @@ ReadNameToken_Next:
                     _position++;
                     return;
 
-                case GraphQLConstants.Backslash:
+                case GraphQLCharacters.Backslash:
+                    if (IsEndOfStream(_position + 1))
+                    {
+                        throw new SyntaxException(this, UnterminatedString);
+                    }
+
                     code = _sourceText[++_position];
 
                     if (!code.IsValidEscapeCharacter())
@@ -551,38 +504,14 @@ ReadNameToken_Next:
                     }
                     break;
 
-                // SourceCharacter
-                case GraphQLConstants.Null:
-                case GraphQLConstants.StartOfHeading:
-                case GraphQLConstants.StartOfText:
-                case GraphQLConstants.EndOfText:
-                case GraphQLConstants.EndOfTransmission:
-                case GraphQLConstants.Enquiry:
-                case GraphQLConstants.Acknowledgement:
-                case GraphQLConstants.Bell:
-                case GraphQLConstants.Backspace:
-                case GraphQLConstants.VerticalTab:
-                case GraphQLConstants.FormFeed:
-                case GraphQLConstants.ShiftOut:
-                case GraphQLConstants.ShiftIn:
-                case GraphQLConstants.DataLinkEscape:
-                case GraphQLConstants.DeviceControl1:
-                case GraphQLConstants.DeviceControl2:
-                case GraphQLConstants.DeviceControl3:
-                case GraphQLConstants.DeviceControl4:
-                case GraphQLConstants.NegativeAcknowledgement:
-                case GraphQLConstants.SynchronousIdle:
-                case GraphQLConstants.EndOfTransmissionBlock:
-                case GraphQLConstants.Cancel:
-                case GraphQLConstants.EndOfMedium:
-                case GraphQLConstants.Substitute:
-                case GraphQLConstants.Escape:
-                case GraphQLConstants.FileSeparator:
-                case GraphQLConstants.GroupSeparator:
-                case GraphQLConstants.RecordSeparator:
-                case GraphQLConstants.UnitSeparator:
-                case GraphQLConstants.Delete:
-                    throw new SyntaxException(this, InvalidCharacterWithinString, code);
+                default:
+                    // Control characters (0x00-0x1F except Tab) and DEL are not
+                    // valid within strings. LF and CR are handled above.
+                    if (code.IsControlCharacter())
+                    {
+                        throw new SyntaxException(this, InvalidCharacterWithinString, code);
+                    }
+                    break;
             }
         }
 
@@ -591,7 +520,7 @@ ReadNameToken_Next:
 
     /// <summary>
     /// Reads block string tokens as specified in
-    /// http://facebook.github.io/graphql/draft/#BlockStringCharacter
+    /// https://spec.graphql.org/September2025/#BlockStringCharacter
     /// from the current lexer state.
     /// </summary>
     private void ReadBlockStringToken()
@@ -605,14 +534,14 @@ ReadNameToken_Next:
 
             switch (code)
             {
-                case GraphQLConstants.LineFeed:
+                case GraphQLCharacters.LineFeed:
                     _nextNewLines++;
                     break;
 
-                case GraphQLConstants.Return:
+                case GraphQLCharacters.Return:
                     var next = _position + 1;
 
-                    if (next < _length && _sourceText[next] is GraphQLConstants.LineFeed)
+                    if (next < _length && _sourceText[next] is GraphQLCharacters.LineFeed)
                     {
                         _position = next;
                     }
@@ -620,9 +549,10 @@ ReadNameToken_Next:
                     break;
 
                 // Closing Triple-Quote (""")
-                case GraphQLConstants.Quote:
-                    if (_sourceText[_position + 1] is GraphQLConstants.Quote
-                        && _sourceText[_position + 2] is GraphQLConstants.Quote)
+                case GraphQLCharacters.Quote:
+                    if (!IsEndOfStream(_position + 2)
+                        && _sourceText[_position + 1] is GraphQLCharacters.Quote
+                        && _sourceText[_position + 2] is GraphQLCharacters.Quote)
                     {
                         _kind = TokenKind.BlockString;
                         _start = start;
@@ -635,49 +565,26 @@ ReadNameToken_Next:
                     }
                     break;
 
-                case GraphQLConstants.Backslash:
-                    if (_sourceText[_position + 1] is GraphQLConstants.Quote
-                        && _sourceText[_position + 2] is GraphQLConstants.Quote
-                        && _sourceText[_position + 3] is GraphQLConstants.Quote)
+                case GraphQLCharacters.Backslash:
+                    if (!IsEndOfStream(_position + 3)
+                        && _sourceText[_position + 1] is GraphQLCharacters.Quote
+                        && _sourceText[_position + 2] is GraphQLCharacters.Quote
+                        && _sourceText[_position + 3] is GraphQLCharacters.Quote)
                     {
                         _position += 3;
                     }
                     break;
 
-                // SourceCharacter
-                case GraphQLConstants.Null:
-                case GraphQLConstants.StartOfHeading:
-                case GraphQLConstants.StartOfText:
-                case GraphQLConstants.EndOfText:
-                case GraphQLConstants.EndOfTransmission:
-                case GraphQLConstants.Enquiry:
-                case GraphQLConstants.Acknowledgement:
-                case GraphQLConstants.Bell:
-                case GraphQLConstants.Backspace:
-                case GraphQLConstants.VerticalTab:
-                case GraphQLConstants.FormFeed:
-                case GraphQLConstants.ShiftOut:
-                case GraphQLConstants.ShiftIn:
-                case GraphQLConstants.DataLinkEscape:
-                case GraphQLConstants.DeviceControl1:
-                case GraphQLConstants.DeviceControl2:
-                case GraphQLConstants.DeviceControl3:
-                case GraphQLConstants.DeviceControl4:
-                case GraphQLConstants.NegativeAcknowledgement:
-                case GraphQLConstants.SynchronousIdle:
-                case GraphQLConstants.EndOfTransmissionBlock:
-                case GraphQLConstants.Cancel:
-                case GraphQLConstants.EndOfMedium:
-                case GraphQLConstants.Substitute:
-                case GraphQLConstants.Escape:
-                case GraphQLConstants.FileSeparator:
-                case GraphQLConstants.GroupSeparator:
-                case GraphQLConstants.RecordSeparator:
-                case GraphQLConstants.UnitSeparator:
-                case GraphQLConstants.Delete:
-                    throw new SyntaxException(
-                        this,
-                        string.Format(InvalidCharacterWithinString, code));
+                default:
+                    // Control characters (0x00-0x1F except Tab) and DEL are not
+                    // valid within block strings. LF and CR are handled above.
+                    if (code.IsControlCharacter())
+                    {
+                        throw new SyntaxException(
+                            this,
+                            string.Format(InvalidCharacterWithinString, code));
+                    }
+                    break;
             }
         }
 
@@ -698,23 +605,23 @@ ReadNameToken_Next:
 
             switch (code)
             {
-                case GraphQLConstants.LineFeed:
+                case GraphQLCharacters.LineFeed:
                     ++_position;
                     NewLine();
                     break;
 
-                case GraphQLConstants.Return:
+                case GraphQLCharacters.Return:
                     if (++_position < _length
-                        && _sourceText[_position] is GraphQLConstants.LineFeed)
+                        && _sourceText[_position] is GraphQLCharacters.LineFeed)
                     {
                         ++_position;
                     }
                     NewLine();
                     break;
 
-                case GraphQLConstants.HorizontalTab:
-                case GraphQLConstants.Space:
-                case GraphQLConstants.Comma:
+                case GraphQLCharacters.HorizontalTab:
+                case GraphQLCharacters.Space:
+                case GraphQLCharacters.Comma:
                     ++_position;
                     break;
 
@@ -731,7 +638,9 @@ ReadNameToken_Next:
 
         if (code is 239)
         {
-            if (_sourceText[_position + 1] is 187 && _sourceText[_position + 2] is 191)
+            if (!IsEndOfStream(_position + 2)
+                && _sourceText[_position + 1] is 187
+                && _sourceText[_position + 2] is 191)
             {
                 _position += 3;
             }
@@ -739,7 +648,8 @@ ReadNameToken_Next:
 
         if (code is 254)
         {
-            if (_sourceText[_position + 1] is 255)
+            if (!IsEndOfStream(_position + 1)
+                && _sourceText[_position + 1] is 255)
             {
                 _position += 2;
             }

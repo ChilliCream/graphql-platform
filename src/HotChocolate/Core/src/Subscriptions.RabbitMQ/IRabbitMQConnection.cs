@@ -4,5 +4,5 @@ namespace HotChocolate.Subscriptions.RabbitMQ;
 
 internal interface IRabbitMQConnection
 {
-    Task<IModel> GetChannelAsync();
+    Task<IChannel> GetChannelAsync(CancellationToken cancellationToken);
 }

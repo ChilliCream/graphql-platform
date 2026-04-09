@@ -3,7 +3,9 @@ schema {
 }
 
 type Bar {
-  _123(_456: FooInput = { description: "hello" }): String
+  _123(_456: FooInput = {
+    description: "hello"
+  }): String
 }
 
 input FooInput {

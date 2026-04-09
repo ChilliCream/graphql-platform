@@ -48,7 +48,7 @@ public sealed partial class ExtendedType
                 var definition = type.GetGenericTypeDefinition();
                 if (typeof(ListType<>) == definition
                     || typeof(NonNullType<>) == definition
-                    || typeof(NativeType<>) == definition)
+                    || typeof(NamedRuntimeType<>) == definition)
                 {
                     return GetNamedType(type.GetGenericArguments()[0]);
                 }

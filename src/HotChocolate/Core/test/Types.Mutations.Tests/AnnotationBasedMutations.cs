@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Types;
 
-public class AnnotationBasedMutations
+public partial class AnnotationBasedMutations
 {
     [Fact]
     public async Task SimpleMutation_Inferred()
@@ -1266,9 +1266,39 @@ public class AnnotationBasedMutations
                     "name_Named": "coco"
                   }
                 }
-              }
+                }
             }
             """);
+    }
+
+    [Fact]
+    public async Task MutationConvention_With_SnakeCase_ObjectField_NamingConvention_Uses_PascalCase_TypeNames()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQL()
+                .AddMutationType<Issue4803Mutation>()
+                .AddConvention<INamingConventions, Issue4803NamingConvention>()
+                .AddMutationConventions(
+                    new MutationConventionOptions { ApplyToAllMutations = true })
+                .ModifyOptions(o => o.StrictValidation = false)
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+
+        var schemaText = schema.ToString();
+
+        Assert.Matches(
+            @"type Issue4803Mutation \{[\s\S]*do_something\(input: DoSomethingInput!\): DoSomethingPayload!",
+            schemaText);
+        Assert.Contains("input DoSomethingInput {", schemaText);
+        Assert.Contains("type DoSomethingPayload {", schemaText);
+        Assert.Contains("issue4803_result: Issue4803Result", schemaText);
+        Assert.Contains("user_name: String!", schemaText);
+        Assert.DoesNotContain("Do_somethingInput", schemaText);
+        Assert.DoesNotContain("Do_somethingPayload", schemaText);
+        Assert.DoesNotContain("issue4803Result: Issue4803Result", schemaText);
+        Assert.DoesNotContain("userName: String!", schemaText);
     }
 
     [Fact]
@@ -1336,11 +1366,10 @@ public class AnnotationBasedMutations
                 .BuildSchemaAsync();
 
         // act & assert
-        var exception =
-            (SchemaException?)(await Assert.ThrowsAsync<SchemaException>(Act)).Errors[0].Exception;
+        var exception = (SchemaException?)(await Assert.ThrowsAsync<SchemaException>(Act)).Errors[0].Exception;
 
         Assert.Equal(
-            "The mutation field 'DoSomething' must return a value.",
+            "The mutation field 'doSomething' must return a value.",
             exception?.Errors[0].Message);
     }
 
@@ -1433,7 +1462,7 @@ public class AnnotationBasedMutations
             ITypeCompletionContext completionContext,
             TypeSystemConfiguration configuration)
         {
-            if (configuration is not ObjectTypeConfiguration _)
+            if (configuration is not ObjectTypeConfiguration)
             {
                 return;
             }
@@ -1933,5 +1962,48 @@ public class AnnotationBasedMutations
         {
             return "GetTypeDescription";
         }
+    }
+
+    public class Issue4803Mutation
+    {
+        public Issue4803Result DoSomething(string userName)
+            => new() { UserName = userName };
+    }
+
+    public class Issue4803Result
+    {
+        public string UserName { get; set; } = null!;
+    }
+
+    public partial class Issue4803NamingConvention : DefaultNamingConventions
+    {
+        public override string GetMemberName(MemberInfo member, MemberKind kind)
+        {
+            if (kind is MemberKind.ObjectField or MemberKind.InputObjectField)
+            {
+                return ToSnakeCase(member.Name);
+            }
+
+            return base.GetMemberName(member, kind);
+        }
+
+        public override string GetMemberName(string originalMemberName, MemberKind kind)
+        {
+            if (kind is MemberKind.ObjectField or MemberKind.InputObjectField)
+            {
+                return ToSnakeCase(originalMemberName);
+            }
+
+            return base.GetMemberName(originalMemberName, kind);
+        }
+
+        private static string ToSnakeCase(string memberName)
+        {
+            var pattern = SnakeCasePatternRegex();
+            return string.Join("_", pattern.Matches(memberName)).ToLowerInvariant();
+        }
+
+        [System.Text.RegularExpressions.GeneratedRegex(@"[A-Z]{2,}(?=[A-Z][a-z]+[0-9]*|\b)|[A-Z]?[a-z]+[0-9]*|[A-Z]|[0-9]+")]
+        private static partial System.Text.RegularExpressions.Regex SnakeCasePatternRegex();
     }
 }

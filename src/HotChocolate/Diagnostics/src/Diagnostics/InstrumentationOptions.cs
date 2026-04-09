@@ -5,34 +5,17 @@ namespace HotChocolate.Diagnostics;
 /// <summary>
 /// The Hot Chocolate instrumentation options.
 /// </summary>
-public sealed class InstrumentationOptions
+public sealed class InstrumentationOptions : InstrumentationOptionsBase
 {
-    /// <summary>
-    /// Specifies the request detail that shall be included into the tracing activities.
-    /// </summary>
-    public RequestDetails RequestDetails { get; set; } = RequestDetails.Default;
-
     /// <summary>
     /// Specifies the activity scopes that shall be instrumented.
     /// </summary>
     public ActivityScopes Scopes { get; set; } = Default;
 
     /// <summary>
-    /// Specifies if the parsed document shall be included into the tracing data.
-    /// </summary>
-    public bool IncludeDocument { get; set; }
-
-    /// <summary>
-    /// Specifies if DataLoader batch keys shall included into the tracing data.
+    /// Specifies if DataLoader batch keys shall be included into the tracing data.
     /// </summary>
     public bool IncludeDataLoaderKeys { get; set; }
-
-    /// <summary>
-    /// Defines if the operation display name shall be included in the root activity.
-    /// </summary>
-    public bool RenameRootActivity { get; set; }
-
-    internal bool IncludeRequestDetails => RequestDetails is not RequestDetails.None;
 
     internal bool SkipExecuteHttpRequest => (Scopes & ExecuteHttpRequest) != ExecuteHttpRequest;
 

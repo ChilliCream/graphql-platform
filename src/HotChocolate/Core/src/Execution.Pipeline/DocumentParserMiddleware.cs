@@ -80,7 +80,7 @@ internal sealed class DocumentParserMiddleware
                                 .AddLocation(new Location(ex.Line, ex.Column))
                                 .Build());
 
-                        context.Result = OperationResultBuilder.CreateError(error);
+                        context.Result = OperationResult.FromError(error);
                         _diagnosticEvents.RequestError(context, ex);
                     }
                 }
@@ -129,7 +129,7 @@ internal sealed class DocumentParserMiddleware
                 var middleware = Create(next, diagnosticEvents, documentHashProvider, errorHandler, parserOptions);
                 return context => middleware.InvokeAsync(context);
             },
-            nameof(DocumentParserMiddleware));
+            WellKnownRequestMiddleware.DocumentParserMiddleware);
 
     internal static DocumentParserMiddleware Create(
         RequestDelegate next,

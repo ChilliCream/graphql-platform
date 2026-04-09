@@ -1,4 +1,4 @@
-using System.Buffers;
+using System.Collections.Immutable;
 using System.IO.Pipelines;
 using System.Net;
 using Microsoft.AspNetCore.Http;
@@ -10,9 +10,14 @@ namespace HotChocolate.AzureFunctions.IsolatedProcess;
 internal sealed class AzureHttpResponse : HttpResponse
 {
     private static readonly StreamPipeWriterOptions s_options = new(leaveOpen: true);
+    private ImmutableList<(Func<object, Task>, object)> _onCompletedCallbacks = [];
     private readonly HttpResponse _response;
     private readonly HttpRequestData _requestData;
+#if NET9_0_OR_GREATER
+    private readonly Lock _sync = new();
+#else
     private readonly object _sync = new();
+#endif
     private HttpResponseData? _responseData;
     private AzureHeaderDictionary? _headers;
     private PipeWriter? _writer;
@@ -97,7 +102,12 @@ internal sealed class AzureHttpResponse : HttpResponse
         => throw new NotSupportedException();
 
     public override void OnCompleted(Func<object, Task> callback, object state)
-        => throw new NotSupportedException();
+    {
+        lock (_sync)
+        {
+            _onCompletedCallbacks = _onCompletedCallbacks.Add((callback, state));
+        }
+    }
 
     public override void Redirect(string location, bool permanent)
         => throw new NotSupportedException();
@@ -108,6 +118,14 @@ internal sealed class AzureHttpResponse : HttpResponse
         {
             await _writer.FlushAsync().ConfigureAwait(false);
             await _writer.CompleteAsync().ConfigureAwait(false);
+        }
+
+        if (!_onCompletedCallbacks.IsEmpty)
+        {
+            foreach (var (callback, state) in _onCompletedCallbacks)
+            {
+                await callback(state).ConfigureAwait(false);
+            }
         }
     }
 }

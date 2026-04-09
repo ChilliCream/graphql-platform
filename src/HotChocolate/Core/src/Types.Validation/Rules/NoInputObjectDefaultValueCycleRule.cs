@@ -91,7 +91,8 @@ public sealed class NoInputObjectDefaultValueCycleRule : IValidationEventHandler
     {
         // Only a field with a default value can result in a cycle.
         var defaultValue = field.DefaultValue;
-        if (defaultValue is null) {
+        if (defaultValue is null)
+        {
             return;
         }
 

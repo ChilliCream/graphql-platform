@@ -1,8 +1,14 @@
+#if !NET9_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
 using HotChocolate.Language;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.AspNetCore.Subscriptions;
 
+#if !NET9_0_OR_GREATER
+[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+#endif
 internal sealed class OperationSession : IOperationSession
 {
     private readonly CancellationTokenSource _cts = new();
@@ -31,7 +37,10 @@ internal sealed class OperationSession : IOperationSession
     public bool IsCompleted { get; private set; }
 
     public void BeginExecute(GraphQLRequest request, CancellationToken cancellationToken)
-        => SendResultsAsync(request, cancellationToken).FireAndForget();
+        => _ = SendResultsAsync(request, cancellationToken);
+
+    public void BeginExecuteBatch(GraphQLRequest[] requests, CancellationToken cancellationToken)
+        => _ = SendBatchResultsAsync(requests, cancellationToken);
 
     private async Task SendResultsAsync(GraphQLRequest request, CancellationToken cancellationToken)
     {
@@ -47,7 +56,7 @@ internal sealed class OperationSession : IOperationSession
 
             switch (result)
             {
-                case IOperationResult queryResult:
+                case OperationResult queryResult:
                     if (queryResult.Data is null && queryResult.Errors is { Count: > 0 })
                     {
                         await _session.Protocol.SendErrorMessageAsync(
@@ -90,7 +99,7 @@ internal sealed class OperationSession : IOperationSession
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
-            // the operation was cancelled so we do nothings
+            // the operation was canceled so we do nothing
         }
         catch (Exception ex)
         {
@@ -118,6 +127,80 @@ internal sealed class OperationSession : IOperationSession
 
             // signal that the subscription is completed.
             Complete();
+
+            request.Dispose();
+        }
+    }
+
+    private async Task SendBatchResultsAsync(GraphQLRequest[] requests, CancellationToken cancellationToken)
+    {
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _ct);
+        var ct = cts.Token;
+        var completeTry = false;
+
+        try
+        {
+            var operationRequests = new IOperationRequest[requests.Length];
+
+            for (var i = 0; i < requests.Length; i++)
+            {
+                var requestBuilder = CreateRequestBuilder(requests[i]);
+                await _interceptor.OnRequestAsync(_session, Id, requestBuilder, ct);
+                operationRequests[i] = requestBuilder.Build();
+            }
+
+            var batch = new OperationRequestBatch(operationRequests);
+            await using var responseStream = await _executorSession.ExecuteBatchAsync(batch, ct);
+
+            await foreach (var item in responseStream.ReadResultsAsync().WithCancellation(ct))
+            {
+                try
+                {
+                    // use the original cancellation token here to keep the websocket open for other streams.
+                    await SendResultMessageAsync(item, cancellationToken);
+                }
+                finally
+                {
+                    await item.DisposeAsync();
+                }
+            }
+
+            completeTry = true;
+
+            if (!ct.IsCancellationRequested)
+            {
+                await _session.Protocol.SendCompleteMessageAsync(_session, Id, ct);
+            }
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            // the operation was canceled so we do nothing
+        }
+        catch (Exception ex)
+        {
+            if (!completeTry)
+            {
+                await TrySendErrorMessageAsync(ex, ct);
+            }
+        }
+        finally
+        {
+            try
+            {
+                await _interceptor.OnCompleteAsync(_session, Id, cancellationToken);
+            }
+            catch
+            {
+                // we will just ignore any user exceptions here so we can graciously close
+                // the subscription out.
+            }
+
+            Complete();
+
+            foreach (var request in requests)
+            {
+                request.Dispose();
+            }
         }
     }
 
@@ -152,7 +235,7 @@ internal sealed class OperationSession : IOperationSession
 
         if (request.Variables is not null)
         {
-            requestBuilder.SetVariableValuesSet(request.Variables);
+            requestBuilder.SetVariableValues(request.Variables);
         }
 
         if (request.Extensions is not null)
@@ -163,7 +246,7 @@ internal sealed class OperationSession : IOperationSession
         return requestBuilder;
     }
 
-    private async Task SendResultMessageAsync(IOperationResult result, CancellationToken ct)
+    private async Task SendResultMessageAsync(OperationResult result, CancellationToken ct)
     {
         result = await _interceptor.OnResultAsync(_session, Id, result, ct);
         await _session.Protocol.SendResultMessageAsync(_session, Id, result, ct);

@@ -2,6 +2,10 @@ using HotChocolate.Caching;
 
 namespace HotChocolate.Types;
 
+/// <summary>
+/// Provides extension methods for <see cref="ISchemaBuilder"/>
+/// to register cache control directive types and validation interceptors.
+/// </summary>
 public static class CacheControlSchemaBuilderExtensions
 {
     /// <summary>

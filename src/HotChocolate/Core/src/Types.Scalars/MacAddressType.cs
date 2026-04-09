@@ -1,5 +1,4 @@
 using System.Text.RegularExpressions;
-using HotChocolate.Language;
 
 namespace HotChocolate.Types;
 
@@ -18,7 +17,7 @@ public class MacAddressType : RegexType
 {
     private const string ValidationPattern =
         @"^(?:[0-9A-Fa-f]{2}([:-]?)[0-9A-Fa-f]{2})(?:(?:\1|\.)(?:[0-9A-Fa-f]{2}([:-]?)"
-        + "[0-9A-Fa-f]{2})){2,3}$";
+        + @"[0-9A-Fa-f]{2})){2,3}\z";
 
 #if BACKREFERENCE_NOT_SUPPORTED
     [GeneratedRegex(_validationPattern, RegexOptions.None, DefaultRegexTimeoutInMs)]
@@ -57,15 +56,6 @@ public class MacAddressType : RegexType
     {
     }
 
-    /// <inheritdoc />
-    protected override SerializationException CreateParseLiteralError(IValueNode valueSyntax)
-    {
-        return ThrowHelper.MacAddressType_ParseLiteral_IsInvalid(this);
-    }
-
-    /// <inheritdoc />
-    protected override SerializationException CreateParseValueError(object runtimeValue)
-    {
-        return ThrowHelper.MacAddressType_ParseValue_IsInvalid(this);
-    }
+    protected override LeafCoercionException FormatException(string runtimeValue)
+        => ThrowHelper.MacAddressType_InvalidFormat(this);
 }

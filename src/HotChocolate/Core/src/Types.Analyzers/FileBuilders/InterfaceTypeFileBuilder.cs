@@ -1,12 +1,14 @@
 using System.Text;
-using HotChocolate.Types.Analyzers.Helpers;
+using HotChocolate.Types.Analyzers.Generators;
 using HotChocolate.Types.Analyzers.Models;
 
 namespace HotChocolate.Types.Analyzers.FileBuilders;
 
 public sealed class InterfaceTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBase(sb)
 {
-    public override void WriteInitializeMethod(IOutputTypeInfo type)
+    protected override string OutputFieldDescriptorType => WellKnownTypes.InterfaceFieldDescriptor;
+
+    public override void WriteInitializeMethod(IOutputTypeInfo type, ILocalTypeLookup typeLookup)
     {
         if (type is not InterfaceTypeInfo interfaceType)
         {
@@ -17,26 +19,20 @@ public sealed class InterfaceTypeFileBuilder(StringBuilder sb) : TypeFileBuilder
         Writer.WriteIndentedLine(
             "internal static void Initialize(global::{0}<global::{1}> descriptor)",
             WellKnownTypes.IInterfaceTypeDescriptor,
-            interfaceType.RuntimeTypeFullName);
+            interfaceType.RuntimeTypeName.FullName);
 
         Writer.WriteIndentedLine("{");
 
         using (Writer.IncreaseIndent())
         {
-            if (interfaceType.Resolvers.Length > 0)
-            {
-                Writer.WriteIndentedLine(
-                    "var thisType = typeof({0});",
-                    interfaceType.SchemaSchemaType.ToFullyQualified());
-                Writer.WriteIndentedLine(
-                    "var bindingResolver = descriptor.Extend().Context.ParameterBindingResolver;");
-                Writer.WriteIndentedLine(
-                    interfaceType.Resolvers.Any(t => t.RequiresParameterBindings)
-                            ? "var resolvers = new __Resolvers(bindingResolver);"
-                            : "var resolvers = new __Resolvers();");
-            }
+            WriteInitializationBase(
+                interfaceType.SchemaTypeName.FullName,
+                interfaceType.Resolvers.Length > 0,
+                interfaceType.Resolvers.Any(t => t.RequiresParameterBindings),
+                interfaceType.DescriptorAttributes,
+                interfaceType.Inaccessible);
 
-            WriteResolverBindings(interfaceType);
+            WriteResolverBindings(interfaceType, typeLookup);
 
             Writer.WriteLine();
             Writer.WriteIndentedLine("Configure(descriptor);");
@@ -57,7 +53,7 @@ public sealed class InterfaceTypeFileBuilder(StringBuilder sb) : TypeFileBuilder
         Writer.WriteIndentedLine(
             "static partial void Configure(global::{0}<global::{1}> descriptor);",
             WellKnownTypes.IInterfaceTypeDescriptor,
-            interfaceType.RuntimeTypeFullName);
+            interfaceType.RuntimeTypeName.FullName);
         Writer.WriteLine();
     }
 }

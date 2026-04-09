@@ -1,0 +1,192 @@
+title: Authors_And_Reviews_And_Products_With_Variables
+request:
+  document: |
+    query TopProducts(
+      $first: Int!
+    ) {
+      topProducts(first: $first) {
+        id
+      }
+    }
+  variables: |
+    {
+      "first": 2
+    }
+response:
+  body: |
+    {
+      "data": {
+        "topProducts": [
+          {
+            "id": "UHJvZHVjdDox"
+          },
+          {
+            "id": "UHJvZHVjdDoy"
+          },
+          {
+            "id": "UHJvZHVjdDoz"
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        userById(id: ID!): User!
+        users: [User!]!
+        testWithTwoArgumentsDifferingNullability(first: Int! second: Int): String!
+      }
+
+      type User implements Node {
+        id: ID!
+        name: String!
+        username: String!
+        birthdate: String!
+      }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Product implements Node {
+        id: ID!
+        reviews: [Review!]!
+        reviewCount: Int!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        reviews: [Review!]!
+      }
+
+      type Review implements Node {
+        id: ID!
+        body: String!
+        author: User!
+        product: Product!
+      }
+
+      type User implements Node {
+        id: ID!
+        reviews: [Review!]!
+        errorField: String @error
+      }
+  - name: C
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Product implements Node {
+        id: ID!
+        name: String!
+        size: Int! @shareable
+        weight: Int! @shareable
+        repeat(num: Int!): String!
+        repeatData(data: RepeatDataInput!): RepeatDataPayload!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        productById(id: ID!): Product @lookup @shareable
+        topProducts(first: Int!): [Product!]!
+      }
+
+      type RepeatDataData {
+        num: Int!
+      }
+
+      type RepeatDataPayload {
+        data: RepeatDataData!
+      }
+
+      input RepeatDataDataInput {
+        num: Int!
+      }
+
+      input RepeatDataInput {
+        data: RepeatDataDataInput!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query TopProducts_42998eb3_1(
+              $first: Int!
+            ) {
+              topProducts(first: $first) {
+                id
+              }
+            }
+          variables: |
+            {
+              "first": 2
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "topProducts": [
+                    {
+                      "id": "UHJvZHVjdDox"
+                    },
+                    {
+                      "id": "UHJvZHVjdDoy"
+                    },
+                    {
+                      "id": "UHJvZHVjdDoz"
+                    }
+                  ]
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query TopProducts(
+          $first: Int!
+        ) {
+          topProducts(first: $first) {
+            id
+          }
+        }
+      name: TopProducts
+      hash: 42998eb322dcb3ed03924bcd6d525e0a
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: C
+      operation: |
+        query TopProducts_42998eb3_1(
+          $first: Int!
+        ) {
+          topProducts(first: $first) {
+            id
+          }
+        }
+      forwardedVariables:
+        - first

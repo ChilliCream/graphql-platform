@@ -86,7 +86,6 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
         expressionBuilders.Add(new ResolverContextParameterExpressionBuilder());
         expressionBuilders.Add(new SchemaParameterExpressionBuilder());
         expressionBuilders.Add(new SelectionParameterExpressionBuilder());
-        expressionBuilders.Add(new FieldSyntaxParameterExpressionBuilder());
         expressionBuilders.Add(new ObjectTypeParameterExpressionBuilder());
         expressionBuilders.Add(new OperationDefinitionParameterExpressionBuilder());
         expressionBuilders.Add(new OperationParameterExpressionBuilder());
@@ -286,6 +285,27 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
     }
 
     /// <inheritdoc />
+    public BatchFieldDelegate CompileBatchResolve(
+        MethodInfo method,
+        Type? sourceType = null,
+        Type? resolverType = null,
+        IReadOnlyDictionary<ParameterInfo, string>? argumentNames = null,
+        IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders = null)
+    {
+        ArgumentNullException.ThrowIfNull(method);
+
+        argumentNames ??= _emptyLookup;
+        parameterExpressionBuilders ??= s_empty;
+
+        return BatchResolverCompiler.Compile(
+            method,
+            sourceType,
+            resolverType,
+            argumentNames,
+            p => GetParameterExpressionBuilder(p, parameterExpressionBuilders));
+    }
+
+    /// <inheritdoc />
     public IEnumerable<ParameterInfo> GetArgumentParameters(
         ParameterInfo[] parameters,
         IReadOnlyList<IParameterExpressionBuilder>? parameterExpressionBuilders = null)
@@ -438,6 +458,16 @@ internal sealed class DefaultResolverCompiler : IResolverCompiler
 
             if (!builder.IsPure)
             {
+                // We allow scoped state getters to be considered pure because
+                // PureResolverContext can read ScopedContextData (it delegates
+                // to its parent). Setters and local state remain not pure.
+                if (builder is ScopedStateParameterExpressionBuilder
+                    and not LocalStateParameterExpressionBuilder
+                    && !ParameterExpressionBuilderHelpers.IsStateSetter(parameter.ParameterType))
+                {
+                    continue;
+                }
+
                 return false;
             }
         }
