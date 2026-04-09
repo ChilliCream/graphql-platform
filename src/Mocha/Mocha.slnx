@@ -23,6 +23,7 @@
     <Project Path="src/Mocha.Analyzers/Mocha.Analyzers.csproj" />
     <Project Path="src/Mocha.Transport.InMemory/Mocha.Transport.InMemory.csproj" />
     <Project Path="src/Mocha.Transport.Postgres/Mocha.Transport.Postgres.csproj" />
+    <Project Path="src/Mocha.Transport.AzureServiceBus/Mocha.Transport.AzureServiceBus.csproj" />
     <Project Path="src/Mocha.Transport.RabbitMQ/Mocha.Transport.RabbitMQ.csproj" />
     <Project Path="src/Mocha.Utilities/Mocha.Utilities.csproj" />
     <Project Path="src/Mocha/Mocha.csproj" />
@@ -39,6 +40,7 @@
     <Project Path="test/Mocha.Tests/Mocha.Tests.csproj" />
     <Project Path="test/Mocha.Transport.InMemory.Tests/Mocha.Transport.InMemory.Tests.csproj" />
     <Project Path="test/Mocha.Transport.Postgres.Tests/Mocha.Transport.Postgres.Tests.csproj" />
+    <Project Path="test/Mocha.Transport.AzureServiceBus.Tests/Mocha.Transport.AzureServiceBus.Tests.csproj" />
     <Project Path="test/Mocha.Transport.RabbitMQ.Tests/Mocha.Transport.RabbitMQ.Tests.csproj" />
   </Folder>
 </Solution>
