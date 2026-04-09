@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Features;
@@ -141,7 +142,20 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     internal ImmutableArray<IOperationPlanNode> GetSkippedDefinitions(ExecutionNode node)
     {
         var list = _skippedDefinitions[node.Id];
-        return list is null or { Count: 0 } ? [] : [.. list];
+
+        if (list is null or { Count: 0 })
+        {
+            return [];
+        }
+
+        var array = new IOperationPlanNode[list.Count];
+
+        for (var i = 0; i < list.Count; i++)
+        {
+            array[i] = list[i];
+        }
+
+        return ImmutableCollectionsMarshal.AsImmutableArray(array);
     }
 
     internal void SetDynamicSchemaName(ExecutionNode node, string schemaName)
@@ -477,32 +491,28 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
             return Array.Empty<ObjectFieldNode>();
         }
 
-        var variables = new List<ObjectFieldNode>(forwardedVariables.Length);
+        var buffer = new ObjectFieldNode[forwardedVariables.Length];
+        var count = 0;
 
         foreach (var variableName in forwardedVariables)
         {
-            // we pass through the required pass through variables,
-            // if they were not omitted.
-            //
-            // it is valid for the GraphQL request to omit nullable variables.
-            //
-            // if they were not nullable we would not get here as the
-            // GraphQL validation would reject such a request.
-            //
-            // but even if the validation failed we do not need to
-            // guard against it and can just pass this to the
-            // source schema which would in any case validate
-            // any request and would reject it if a required
-            // variable was missing.
             if (Variables.TryGetValue<IValueNode>(variableName, out var variableValue))
             {
-                variables.Add(new ObjectFieldNode(variableName, variableValue));
+                buffer[count++] = new ObjectFieldNode(variableName, variableValue);
             }
         }
 
-        return variables.Count == 0
-            ? Array.Empty<ObjectFieldNode>()
-            : variables;
+        if (count == 0)
+        {
+            return Array.Empty<ObjectFieldNode>();
+        }
+
+        if (count == buffer.Length)
+        {
+            return buffer;
+        }
+
+        return buffer.AsMemory(0, count).ToArray();
     }
 
     /// <summary>

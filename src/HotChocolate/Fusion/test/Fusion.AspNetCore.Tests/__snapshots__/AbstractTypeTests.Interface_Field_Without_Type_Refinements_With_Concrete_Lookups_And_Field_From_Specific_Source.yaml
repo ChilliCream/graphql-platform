@@ -116,7 +116,6 @@ sourceSchemas:
           document: |
             query Op_1bcbe788_2($__fusion_1_id: ID!) {
               discussionById(id: $__fusion_1_id) {
-                __typename
                 totalVotes
               }
             }
@@ -130,7 +129,6 @@ sourceSchemas:
               {
                 "data": {
                   "discussionById": {
-                    "__typename": "Discussion",
                     "totalVotes": 123
                   }
                 }
@@ -166,7 +164,6 @@ operationPlan:
       operation: |
         query Op_1bcbe788_2($__fusion_1_id: ID!) {
           discussionById(id: $__fusion_1_id) {
-            __typename
             totalVotes
           }
         }
@@ -185,7 +182,6 @@ operationPlan:
       operation: |
         query Op_1bcbe788_3($__fusion_2_id: ID!) {
           commentById(id: $__fusion_2_id) {
-            __typename
             totalVotes
           }
         }

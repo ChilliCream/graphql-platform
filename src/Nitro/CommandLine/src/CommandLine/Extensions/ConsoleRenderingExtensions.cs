@@ -17,6 +17,16 @@ internal static class ConsoleRenderingExtensions
         return $"[bold]{str.EscapeMarkup()}[/]";
     }
 
+    public static string AsError(this string str)
+    {
+        return $"[red]{str.EscapeMarkup()}[/]";
+    }
+
+    public static string AsWarning(this string str)
+    {
+        return $"[yellow]{str.EscapeMarkup()}[/]";
+    }
+
     public static string AsDescription(this string str)
     {
         return $"[italic dim]{str.EscapeMarkup()}[/]";

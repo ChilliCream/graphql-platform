@@ -193,8 +193,8 @@ internal sealed class PublishClientCommand : Command
 
                                 child.Update(
                                     Messages.ValidationFailed,
-                                    approvalErrorTree,
-                                    ActivityUpdateKind.Warning);
+                                    ActivityUpdateKind.Warning,
+                                    approvalErrorTree);
                             }
 
                             child.Update(

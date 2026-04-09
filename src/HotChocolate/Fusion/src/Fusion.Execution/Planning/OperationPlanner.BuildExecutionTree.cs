@@ -24,7 +24,8 @@ public sealed partial class OperationPlanner
         OperationDefinitionNode operationDefinition,
         ImmutableList<PlanStep> planSteps,
         int searchSpace,
-        int expandedNodes)
+        int expandedNodes,
+        CancellationToken cancellationToken)
     {
         if (operation.IsIntrospectionOnly())
         {
@@ -44,7 +45,7 @@ public sealed partial class OperationPlanner
 
         planSteps = TransformPlanSteps(planSteps, operationDefinition);
         IndexDependencies(planSteps, ctx);
-        BuildExecutionNodes(planSteps, ctx, _schema, hasVariables);
+        BuildExecutionNodes(planSteps, ctx, _schema, hasVariables, cancellationToken);
         MergeAndBatchOperations(ctx, _options.EnableRequestGrouping, _options.MergePolicy);
         WireExecutionDependencies(ctx);
 
@@ -244,7 +245,8 @@ public sealed partial class OperationPlanner
         ImmutableList<PlanStep> planSteps,
         ExecutionPlanBuildContext ctx,
         ISchemaDefinition schema,
-        bool hasVariables)
+        bool hasVariables,
+        CancellationToken cancellationToken)
     {
         var requiresUpload = schema.Types.TryGetType(UploadScalarName, out var uploadType) && uploadType.IsScalarType();
         var readySteps = planSteps.Where(t => !ctx.DependenciesByStepId.ContainsKey(t.Id)).ToList();
@@ -252,6 +254,8 @@ public sealed partial class OperationPlanner
 
         while (ctx.ProcessedStepIds.Count < planSteps.Count)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             foreach (var step in readySteps)
             {
                 if (!ctx.ProcessedStepIds.Add(step.Id))

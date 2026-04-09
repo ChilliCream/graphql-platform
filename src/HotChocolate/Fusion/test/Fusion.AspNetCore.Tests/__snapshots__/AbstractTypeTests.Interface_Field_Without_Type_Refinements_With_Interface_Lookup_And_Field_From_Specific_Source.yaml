@@ -102,7 +102,6 @@ sourceSchemas:
               votableById(id: $__fusion_1_id) {
                 __typename
                 ... on Discussion {
-                  __typename
                   totalVotes
                 }
               }
@@ -155,7 +154,6 @@ operationPlan:
           votableById(id: $__fusion_1_id) {
             __typename
             ... on Discussion {
-              __typename
               totalVotes
             }
           }

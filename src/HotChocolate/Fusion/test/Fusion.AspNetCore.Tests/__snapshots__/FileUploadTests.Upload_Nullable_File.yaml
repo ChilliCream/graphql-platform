@@ -1,4 +1,4 @@
-title: Upload_Single_File_In_Input_Object
+title: Upload_Nullable_File
 request:
   contentType: multipart/form-data; boundary="f56524ab-5626-4955-b296-234a097b44f6"
   body: |
@@ -6,12 +6,12 @@ request:
     Content-Type: application/json; charset=utf-8
     Content-Disposition: form-data; name=operations
 
-    {"query":"query ($input: FileInput!) {\n  singleUploadWithInput(input: $input) {\n    fileName\n    contentType\n    content\n  }\n}","variables":{"input":{"file":null}}}
+    {"query":"query ($file: Upload) {\n  nullableUpload(file: $file) {\n    fileName\n    contentType\n    content\n  }\n}","variables":{"file":null}}
     --f56524ab-5626-4955-b296-234a097b44f6
     Content-Type: application/json; charset=utf-8
     Content-Disposition: form-data; name=map
 
-    {"0":["variables.input.file"]}
+    {"0":["variables.file"]}
     --f56524ab-5626-4955-b296-234a097b44f6
     Content-Type: text/plain
     Content-Disposition: form-data; name=0; filename=test.txt; filename*=utf-8''test.txt
@@ -22,7 +22,7 @@ response:
   body: |
     {
       "data": {
-        "singleUploadWithInput": {
+        "nullableUpload": {
           "fileName": "test.txt",
           "contentType": "text/plain",
           "content": "abc"
@@ -74,12 +74,7 @@ sourceSchemas:
         LIST
       }
 
-      directive @serializeAs(
-        "The primitive type a scalar is serialized to."
-        type: [ScalarSerializationType!]!
-        "The ECMA-262 regex pattern that the serialized scalar value conforms to."
-        pattern: String
-      ) on SCALAR
+      directive @serializeAs("The primitive type a scalar is serialized to." type: [ScalarSerializationType!]! "The ECMA-262 regex pattern that the serialized scalar value conforms to." pattern: String) on SCALAR
 
       "The `Upload` scalar type represents a file upload."
       scalar Upload @serializeAs(type: STRING)
@@ -92,12 +87,12 @@ sourceSchemas:
             Content-Type: application/json; charset=utf-8
             Content-Disposition: form-data; name=operations
 
-            {"query":"query Op_6888e670_1($input: FileInput!) {\n  singleUploadWithInput(input: $input) {\n    fileName\n    contentType\n    content\n  }\n}","variables":{"input":{"file":null}}}
+            {"query":"query Op_86d793bb_1(\n  $file: Upload\n) {\n  nullableUpload(file: $file) {\n    fileName\n    contentType\n    content\n  }\n}","variables":{"file":null}}
             --f56524ab-5626-4955-b296-234a097b44f6
             Content-Type: application/json; charset=utf-8
             Content-Disposition: form-data; name=map
 
-            {"0":["variables.input.file"]}
+            {"0":["variables.file"]}
             --f56524ab-5626-4955-b296-234a097b44f6
             Content-Type: text/plain
             Content-Disposition: form-data; name=0; filename=test.txt; filename*=utf-8''test.txt
@@ -109,7 +104,7 @@ sourceSchemas:
             - |
               {
                 "data": {
-                  "singleUploadWithInput": {
+                  "nullableUpload": {
                     "fileName": "test.txt",
                     "contentType": "text/plain",
                     "content": "abc"
@@ -119,14 +114,16 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query($input: FileInput!) {
-          singleUploadWithInput(input: $input) {
+        query(
+          $file: Upload
+        ) {
+          nullableUpload(file: $file) {
             fileName
             contentType
             content
           }
         }
-      hash: 6888e670bcc6d6c1216b1773bd8868b0
+      hash: 86d793bbcd15485efc0a3ea8865ead65
       searchSpace: 1
       expandedNodes: 1
   nodes:
@@ -134,13 +131,15 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_6888e670_1($input: FileInput!) {
-          singleUploadWithInput(input: $input) {
+        query Op_86d793bb_1(
+          $file: Upload
+        ) {
+          nullableUpload(file: $file) {
             fileName
             contentType
             content
           }
         }
       forwardedVariables:
-        - input
+        - file
       requiresFileUpload: true
