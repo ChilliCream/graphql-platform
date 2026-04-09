@@ -4,6 +4,7 @@ ABCEGHJKLMNPRSTVXY
 accessibilities
 agrc
 Alderaan
+ALPN
 Andi
 apphost
 appsettings
@@ -37,13 +38,13 @@ CCPA
 chillicream
 Codespaces
 colocated
-csclient
 combinators
 contentfiles
 Contoso
 conv
 CQRS
 creds
+csclient
 CUST
 dataloaders
 debuggable
@@ -99,6 +100,7 @@ Linq
 Liquibase
 Marek
 matchesBrics
+maxage
 MCPEXP
 MediatR
 Memberwise
@@ -222,6 +224,7 @@ vsix
 VXNlcjox
 websockets
 Wilhuff
+worklist
 Wunder
 xact
 xunit

@@ -143,7 +143,7 @@ public sealed class NotificationStrategyTests
         using var scope = provider.CreateScope();
         var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
-        // Act & Assert — concurrent mode surfaces AggregateException with all failures
+        // Act & Assert - concurrent mode surfaces AggregateException with all failures
         var ex = await Assert.ThrowsAsync<AggregateException>(
             () => mediator.PublishAsync(new StrategyTestNotification("throw")).AsTask());
 

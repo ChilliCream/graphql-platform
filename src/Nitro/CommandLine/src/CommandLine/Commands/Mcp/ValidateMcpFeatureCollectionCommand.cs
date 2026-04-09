@@ -1,12 +1,9 @@
-using System.Reactive;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Mcp;
 using ChilliCream.Nitro.CommandLine.Commands.Mcp.Options;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
-using StrawberryShake;
+using ChilliCream.Nitro.CommandLine.Services;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mcp;
 
@@ -14,152 +11,172 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
 {
     public ValidateMcpFeatureCollectionCommand() : base("validate")
     {
-        Description = "Validate an MCP Feature Collection version";
+        Description = "Validate an MCP feature collection version.";
 
-        AddOption(Opt<StageNameOption>.Instance);
-        AddOption(Opt<McpFeatureCollectionIdOption>.Instance);
-        AddOption(Opt<McpPromptFilePatternOption>.Instance);
-        AddOption(Opt<McpToolFilePatternOption>.Instance);
-        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
+        Options.Add(Opt<McpFeatureCollectionIdOption>.Instance);
+        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<McpPromptFilePatternOption>.Instance);
+        Options.Add(Opt<McpToolFilePatternOption>.Instance);
+        Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Opt<StageNameOption>.Instance,
-            Opt<McpFeatureCollectionIdOption>.Instance,
-            Opt<McpPromptFilePatternOption>.Instance,
-            Opt<McpToolFilePatternOption>.Instance,
-            Opt<OptionalSourceMetadataOption>.Instance,
-            Bind.FromServiceProvider<CancellationToken>());
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples(
+            """
+            mcp validate \
+              --mcp-feature-collection-id "<collection-id>" \
+              --stage "dev" \
+              --prompt-pattern "./prompts/**/*.json" \
+              --tool-pattern "./tools/**/*.graphql"
+            """);
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        IAnsiConsole console,
-        IApiClient client,
-        string stage,
-        string mcpFeatureCollectionId,
-        List<string> promptPatterns,
-        List<string> toolPatterns,
-        string? sourceMetadataJson,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken ct)
     {
-        console.Title($"Validate against {stage.EscapeMarkup()}");
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IMcpClient>();
+        var fileSystem = services.GetRequiredService<IFileSystem>();
+        var sessionService = services.GetRequiredService<ISessionService>();
 
-        var isValid = false;
+        parseResult.AssertHasAuthentication(sessionService);
 
-        if (console.IsHumanReadable())
+        var stage = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
+        var mcpFeatureCollectionId = parseResult.GetRequiredValue(Opt<McpFeatureCollectionIdOption>.Instance);
+        var promptPatterns = parseResult.GetRequiredValue(Opt<McpPromptFilePatternOption>.Instance);
+        var toolPatterns = parseResult.GetRequiredValue(Opt<McpToolFilePatternOption>.Instance);
+        var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
+
+        var source = SourceMetadataParser.Parse(sourceMetadataJson);
+
+        await using (var rootActivity = console.StartActivity(
+            $"Validating MCP feature collection against stage '{stage.EscapeMarkup()}'",
+            "Failed to validate the MCP feature collection."))
         {
-            await console
-                .Status()
-                .Spinner(Spinner.Known.BouncingBar)
-                .SpinnerStyle(Style.Parse("green bold"))
-                .StartAsync("Validating...", ValidateMcpFeatureCollection);
-        }
-        else
-        {
-            await ValidateMcpFeatureCollection(null);
-        }
+            var promptFiles = fileSystem.GlobMatch(promptPatterns, ["**/bin/**", "**/obj/**"]).ToArray();
+            var toolFiles = fileSystem.GlobMatch(toolPatterns, ["**/bin/**", "**/obj/**"]).ToArray();
 
-        return isValid ? ExitCodes.Success : ExitCodes.Error;
-
-        async Task ValidateMcpFeatureCollection(StatusContext? ctx)
-        {
-            console.Log("Searching for MCP prompt definition files with the following patterns:");
-            foreach (var promptPattern in promptPatterns)
-            {
-                console.Log($"- {promptPattern}");
-            }
-
-            console.Log("Searching for MCP tool definition files with the following patterns:");
-            foreach (var toolPattern in toolPatterns)
-            {
-                console.Log($"- {toolPattern}");
-            }
-
-            var promptFiles = GlobMatcher.Match(promptPatterns).ToArray();
-            var toolFiles = GlobMatcher.Match(toolPatterns).ToArray();
+            rootActivity.Update($"Found {promptFiles.Length} prompt(s) and {toolFiles.Length} tool(s).");
 
             if (promptFiles.Length < 1 && toolFiles.Length < 1)
             {
-                console.WriteLine("Could not find any MCP prompt or tool definition files with the provided patterns.");
-                return;
+                rootActivity.Fail();
+                console.Error.WriteErrorLine(
+                    "Could not find any MCP prompt or tool definition files with the provided patterns.");
+                return ExitCodes.Error;
             }
-
-            console.Log($"Found {promptFiles.Length} MCP prompt definition file(s).");
-            console.Log($"Found {toolFiles.Length} MCP tool definition file(s).");
 
             var archiveStream =
-                await McpFeatureCollectionHelpers.BuildMcpFeatureCollectionArchive(promptFiles, toolFiles, ct);
+                await McpFeatureCollectionHelpers.BuildMcpFeatureCollectionArchive(
+                    fileSystem,
+                    promptFiles,
+                    toolFiles,
+                    ct);
 
-            var input = new ValidateMcpFeatureCollectionInput
+            string requestId;
+
+            await using (var child = rootActivity.StartChildActivity(
+                Messages.StartingValidationRequest,
+                Messages.FailedToStartValidationRequest))
             {
-                McpFeatureCollectionId = mcpFeatureCollectionId,
-                Stage = stage,
-                Collection = new Upload(archiveStream, "collection.zip"),
-                Source = SourceMetadataHelper.Parse(sourceMetadataJson)
-            };
+                var validationRequest = await client.StartMcpFeatureCollectionValidationAsync(
+                    mcpFeatureCollectionId,
+                    stage,
+                    archiveStream,
+                    source,
+                    ct);
 
-            var requestId = await ValidateAsync(console, client, input, ct);
-
-            console.Log($"Validation request created [grey](ID: {requestId.EscapeMarkup()})[/]");
-
-            using var stopSignal = new Subject<Unit>();
-
-            var subscription = client.ValidateMcpFeatureCollectionCommandSubscription
-                .Watch(requestId, ExecutionStrategy.NetworkOnly)
-                .TakeUntil(stopSignal);
-
-            await foreach (var x in subscription.ToAsyncEnumerable().WithCancellation(ct))
-            {
-                console.EnsureNoErrors(x);
-
-                switch (x.Data?.OnMcpFeatureCollectionVersionValidationUpdate)
+                if (validationRequest.Errors?.Count > 0)
                 {
-                    case IMcpFeatureCollectionVersionValidationFailed { Errors: var validationErrors }:
-                        console.ErrorLine("The MCP Feature Collection is invalid:");
-                        console.PrintErrorsAndExit(validationErrors);
-                        stopSignal.OnNext(Unit.Default);
-                        break;
+                    await child.FailAllAsync();
 
-                    case IMcpFeatureCollectionVersionValidationSuccess:
-                        isValid = true;
-                        stopSignal.OnNext(Unit.Default);
-                        console.Success("MCP Feature Collection validation succeeded");
-                        break;
+                    foreach (var error in validationRequest.Errors)
+                    {
+                        var errorMessage = error switch
+                        {
+                            IUnauthorizedOperation err => err.Message,
+                            IInvalidSourceMetadataInputError err => err.Message,
+                            IStageNotFoundError err => err.Message,
+                            IMcpFeatureCollectionNotFoundError err => err.Message,
+                            IError err => Messages.UnexpectedMutationError(err),
+                            _ => Messages.UnexpectedMutationError()
+                        };
 
-                    case IOperationInProgress:
-                    case IValidationInProgress:
-                        ctx?.Status("The validation is in progress.");
-                        break;
+                        console.Error.WriteErrorLine(errorMessage);
+                    }
 
-                    default:
-                        ctx?.Status(
-                            "This is an unknown response, upgrade Nitro CLI to the latest version.");
-                        break;
+                    return ExitCodes.Error;
                 }
+
+                if (validationRequest.Id is not { } id)
+                {
+                    throw new ExitException("Could not create validation request!");
+                }
+
+                requestId = id;
+                child.Success($"Validation request created (ID: {requestId.EscapeMarkup()}).");
+            }
+
+            await using (var child = rootActivity.StartChildActivity(
+                Messages.ValidatingActivity,
+                Messages.ValidationFailed))
+            {
+                await foreach (var update in client.SubscribeToMcpFeatureCollectionValidationAsync(requestId, ct))
+                {
+                    switch (update)
+                    {
+                        case IMcpFeatureCollectionVersionValidationFailed { Errors: var errors }:
+                            var errorTree = new Tree("");
+
+                            foreach (var error in errors)
+                            {
+                                switch (error)
+                                {
+                                    case IMcpFeatureCollectionValidationError e:
+                                        errorTree.AddMcpFeatureCollectionValidationErrors(e);
+                                        break;
+                                    case IMcpFeatureCollectionValidationArchiveError e:
+                                        errorTree.AddErrorMessage(Messages.InvalidArchive(e.Message));
+                                        break;
+                                    case IUnexpectedProcessingError e:
+                                        errorTree.AddErrorMessage(e.Message);
+                                        break;
+                                    case IProcessingTimeoutError e:
+                                        errorTree.AddErrorMessage(e.Message);
+                                        break;
+                                }
+                            }
+
+                            child.Fail(errorTree);
+
+                            await child.FailAllAsync();
+
+                            throw new ExitException("MCP feature collection validation failed.");
+
+                        case IMcpFeatureCollectionVersionValidationSuccess:
+                            child.Success(Messages.ValidationPassed);
+                            rootActivity.Success($"Validated MCP feature collection against stage '{stage.EscapeMarkup()}'.");
+                            return ExitCodes.Success;
+
+                        case IOperationInProgress:
+                        case IValidationInProgress:
+                            child.Update(Messages.Validating);
+                            break;
+
+                        default:
+                            child.Update(Messages.UnknownServerResponse, ActivityUpdateKind.Warning);
+                            break;
+                    }
+                }
+
+                child.Fail();
             }
         }
-    }
 
-    private static async Task<string> ValidateAsync(
-        IAnsiConsole console,
-        IApiClient client,
-        ValidateMcpFeatureCollectionInput input,
-        CancellationToken ct)
-    {
-        var result =
-            await client.ValidateMcpFeatureCollectionCommandMutation.ExecuteAsync(input, ct);
-
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        console.PrintErrorsAndExit(data.ValidateMcpFeatureCollection.Errors);
-
-        if (data.ValidateMcpFeatureCollection.Id is null)
-        {
-            throw new ExitException("Could not create validation request!");
-        }
-
-        return data.ValidateMcpFeatureCollection.Id;
+        return ExitCodes.Error;
     }
 }

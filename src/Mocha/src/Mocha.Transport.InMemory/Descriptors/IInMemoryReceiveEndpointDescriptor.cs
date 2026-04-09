@@ -10,6 +10,12 @@ public interface IInMemoryReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     new IInMemoryReceiveEndpointDescriptor Handler<THandler>() where THandler : class, IHandler;
 
     /// <inheritdoc />
+    new IInMemoryReceiveEndpointDescriptor Handler(Type handlerType);
+
+    /// <inheritdoc />
+    new IInMemoryReceiveEndpointDescriptor Consumer(Type consumerType);
+
+    /// <inheritdoc />
     new IInMemoryReceiveEndpointDescriptor Consumer<TConsumer>() where TConsumer : class, IConsumer;
 
     /// <inheritdoc />

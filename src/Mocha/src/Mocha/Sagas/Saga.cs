@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Mocha.Features;
 
@@ -213,8 +214,7 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
 
     /// <inheritdoc />
     /// <exception cref="InvalidOperationException">Thrown when the saga has not been initialized.</exception>
-    public override IReadOnlyDictionary<string, SagaState> States
-        => _states ?? throw ThrowHelper.SagaNotInitialized();
+    public override IReadOnlyDictionary<string, SagaState> States => _states ?? throw ThrowHelper.SagaNotInitialized();
 
     /// <inheritdoc />
     public override Type StateType => typeof(TState);
@@ -257,6 +257,23 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
             _logger!.CreatedSagaState(Name, state.Id);
 
             await OnEnterStateAsync(state, _initialState, context);
+
+            // Schedule timeout if configured
+            if (Configuration.Timeout is { } timeout)
+            {
+                var bus = context.GetBus();
+
+                var timeProvider = context.Services.GetService<TimeProvider>() ?? TimeProvider.System;
+
+                var scheduledTime = timeProvider.GetUtcNow().Add(timeout);
+
+                var result = await bus.ScheduleSendAsync(new SagaTimedOutEvent(state.Id), scheduledTime, ct);
+
+                if (result.Token is not null)
+                {
+                    state.TimeoutToken = result.Token;
+                }
+            }
         }
 
         await OnHandleTransitionAsync(state, @event, context);
@@ -397,6 +414,18 @@ public abstract partial class Saga<TState> : Saga where TState : SagaStateBase
 
         if (nextState.IsFinal)
         {
+            if (state.TimeoutToken is { } timeoutToken)
+            {
+                try
+                {
+                    await context.GetBus().CancelScheduledMessageAsync(timeoutToken, ct);
+                }
+                catch (Exception ex)
+                {
+                    _logger?.FailedToCancelScheduledMessage(ex, timeoutToken, Name!, state.Id);
+                }
+            }
+
             if (nextState.Response is not null
                 && state.Metadata.TryGet(SagaContextData.ReplyAddress, out var replyTo)
                 && state.Metadata.TryGet(SagaContextData.CorrelationId, out var correlationId)
@@ -602,4 +631,12 @@ internal static partial class Logs
 
     [LoggerMessage(LogLevel.Information, "Saga completed {SagaName} {SagaId}")]
     public static partial void SagaCompleted(this ILogger logger, string sagaName, Guid sagaId);
+
+    [LoggerMessage(LogLevel.Warning, "Failed to cancel scheduled message {Token} for saga {SagaName} ({SagaId})")]
+    public static partial void FailedToCancelScheduledMessage(
+        this ILogger logger,
+        Exception ex,
+        string token,
+        string sagaName,
+        Guid sagaId);
 }

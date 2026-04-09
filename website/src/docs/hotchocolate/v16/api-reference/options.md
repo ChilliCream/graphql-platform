@@ -10,8 +10,8 @@ Hot Chocolate provides several option groups that control different aspects of t
 Schema options control the type system and schema behavior. Configure them with `ModifyOptions`:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyOptions(o =>
     {
         o.StrictValidation = true;
@@ -58,8 +58,8 @@ builder.Services
 Request options control the execution engine behavior. Configure them with `ModifyRequestOptions`:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyRequestOptions(o =>
     {
         o.ExecutionTimeout = TimeSpan.FromSeconds(60);
@@ -78,8 +78,8 @@ builder.Services
 Cost options configure the cost analysis feature. Install the `HotChocolate.CostAnalysis` package and configure with `ModifyCostOptions`:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyCostOptions(o =>
     {
         o.MaxFieldCost = 1000;
@@ -95,8 +95,8 @@ Refer to the cost analysis documentation for the full list of configurable prope
 Server options control HTTP-level behavior such as GET requests, batching, multipart requests, and schema retrieval. This is new in v16. Configure with `ModifyServerOptions`:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyServerOptions(o =>
     {
         o.EnableGetRequests = true;
@@ -132,8 +132,8 @@ app.MapGraphQL().WithOptions(o => o.EnableGetRequests = false);
 The `Sockets` property on `GraphQLServerOptions` holds WebSocket-specific settings. You configure them through `ModifyServerOptions`:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyServerOptions(o =>
     {
         o.Sockets.ConnectionInitializationTimeout = TimeSpan.FromSeconds(30);
@@ -151,8 +151,8 @@ builder.Services
 Paging options control the default behavior for cursor-based pagination. Configure with `ModifyPagingOptions`:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyPagingOptions(o =>
     {
         o.DefaultPageSize = 25;
@@ -179,8 +179,8 @@ builder.Services
 Parser options control limits on the GraphQL document parser. These are important security and performance settings that protect against excessively large or complex queries. Configure them with `ModifyParserOptions`:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyParserOptions(o =>
     {
         o.MaxAllowedFields = 500;
@@ -202,8 +202,8 @@ Parsing happens before validation, so even invalid queries consume resources. Se
 Subscription options control topic buffer behavior for subscription providers. You pass them when registering a subscription provider:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddInMemorySubscriptions(new SubscriptionOptions
     {
         TopicBufferCapacity = 128,
@@ -224,8 +224,8 @@ All subscription providers (in-memory, Redis, NATS, RabbitMQ, Postgres) accept t
 Global object identification options configure the Relay-style `node` and `nodes` fields. You configure them through `AddGlobalObjectIdentification`:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddGlobalObjectIdentification(o =>
     {
         o.MaxAllowedNodeBatchSize = 25;
@@ -244,9 +244,9 @@ builder.Services
 Cache control options configure HTTP response caching hints based on the `@cacheControl` directive. Install the `HotChocolate.Caching` package and configure with `ModifyCacheControlOptions`:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
-    .UseQueryCachePipeline()
+builder
+    .AddGraphQL()
+    .UseQueryCache()
     .AddCacheControl()
     .ModifyCacheControlOptions(o =>
     {
@@ -265,6 +265,7 @@ builder.Services
 # Next Steps
 
 - [Execution engine](/docs/hotchocolate/v16/execution-engine) for pipeline configuration
+- [Cache Control](/docs/hotchocolate/v16/server/cache-control) for CDN and HTTP caching behavior
 - [Pagination](/docs/hotchocolate/v16/resolvers-and-data/pagination) for paging setup
 - [Persisted operations](/docs/hotchocolate/v16/performance/trusted-documents) for operation caching
 - [Migration guide](/docs/hotchocolate/v16/migrating/migrate-from-15-to-16) for breaking option changes

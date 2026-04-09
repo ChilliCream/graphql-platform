@@ -2,6 +2,7 @@ using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Fusion.Types.Metadata;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Types;
 
@@ -31,7 +32,10 @@ internal sealed class PlannerTopologyCache
     {
         ArgumentNullException.ThrowIfNull(schema);
 
-        var complexTypes = schema.Types.AsEnumerable().OfType<FusionComplexTypeDefinition>().ToArray();
+        var complexTypes = schema.Types.AsEnumerable()
+            .OfType<FusionComplexTypeDefinition>()
+            .Where(t => !((ITypeDefinition)t).IsIntrospectionType)
+            .ToArray();
         var schemaNames = CollectSchemaNames(complexTypes);
         var fieldResolutions = BuildFieldResolutions(complexTypes);
         var orderedLookups = BuildOrderedLookups(schema, complexTypes, schemaNames);

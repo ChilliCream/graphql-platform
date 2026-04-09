@@ -185,6 +185,20 @@
             "title": "Adding a Subgraph"
           },
           {
+            "path": "guides",
+            "title": "Guides",
+            "items": [
+              {
+                "path": "third-party-api",
+                "title": "Third-Party API"
+              },
+              {
+                "path": "first-party-api",
+                "title": "First-Party API"
+              }
+            ]
+          },
+          {
             "path": "entities-and-lookups",
             "title": "Entities and Lookups"
           },
@@ -197,32 +211,40 @@
             "title": "Field Ownership"
           },
           {
-            "path": "composition",
-            "title": "Composition"
-          },
-          {
-            "path": "aspire-integration",
-            "title": "Aspire Integration"
-          },
-          {
             "path": "schema-exposure-and-evolution",
             "title": "Schema Exposure and Evolution"
+          },
+          {
+            "path": "composition",
+            "title": "Composition"
           },
           {
             "path": "authentication-and-authorization",
             "title": "Authentication and Authorization"
           },
           {
+            "path": "cache-control",
+            "title": "Cache Control"
+          },
+          {
             "path": "performance-tuning",
             "title": "Performance Tuning"
+          },
+          {
+            "path": "aspire-integration",
+            "title": "Aspire Integration"
           },
           {
             "path": "deployment-and-ci-cd",
             "title": "Deployment and CI/CD"
           },
           {
-            "path": "attribute-and-directive-reference",
-            "title": "Attribute and Directive Reference"
+            "path": "cli",
+            "title": "CLI"
+          },
+          {
+            "path": "directives-reference",
+            "title": "Directive Reference"
           },
           {
             "path": "migration",
@@ -422,6 +444,7 @@
               { "path": "index", "title": "Overview" },
               { "path": "endpoints", "title": "Endpoints" },
               { "path": "http-transport", "title": "Transports" },
+              { "path": "cache-control", "title": "Cache Control" },
               { "path": "interceptors", "title": "Interceptors" },
               { "path": "warmup", "title": "Warmup" },
               { "path": "global-state", "title": "Global State" },

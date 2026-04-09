@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using HotChocolate.Fusion.Text.Json;
 
 namespace HotChocolate.Fusion.Execution.Clients;
@@ -29,7 +28,7 @@ public sealed class SourceSchemaResult : IDisposable
         CompactPath path,
         SourceResultDocument document,
         FinalMessage final = FinalMessage.Undefined,
-        ImmutableArray<CompactPath> additionalPaths = default)
+        CompactPathSegment additionalPaths = default)
         : this(path, document, final, ownsDocument: true, additionalPaths)
     {
     }
@@ -39,13 +38,13 @@ public sealed class SourceSchemaResult : IDisposable
         SourceResultDocument document,
         FinalMessage final,
         bool ownsDocument,
-        ImmutableArray<CompactPath> additionalPaths)
+        CompactPathSegment additionalPaths)
     {
         ArgumentNullException.ThrowIfNull(document);
 
         _document = document;
         _ownsDocument = ownsDocument;
-        AdditionalPaths = additionalPaths.IsDefault ? [] : additionalPaths;
+        AdditionalPaths = additionalPaths;
         Path = path;
         Final = final;
     }
@@ -59,7 +58,7 @@ public sealed class SourceSchemaResult : IDisposable
     /// Additional paths where this result should also be merged, used when a single source
     /// schema response satisfies multiple selection sets at different locations.
     /// </summary>
-    public ImmutableArray<CompactPath> AdditionalPaths { get; }
+    public CompactPathSegment AdditionalPaths { get; }
 
     /// <summary>
     /// The <c>data</c> element of the source schema response, or an empty element if the
@@ -132,9 +131,9 @@ public sealed class SourceSchemaResult : IDisposable
     /// at a different location in the composite result.
     /// </summary>
     internal SourceSchemaResult WithPath(CompactPath path)
-        => new(path, _document, Final, ownsDocument: false, additionalPaths: []);
+        => new(path, _document, Final, ownsDocument: false, additionalPaths: default);
 
-    internal SourceSchemaResult WithPath(CompactPath path, ImmutableArray<CompactPath> additionalPaths)
+    internal SourceSchemaResult WithPath(CompactPath path, CompactPathSegment additionalPaths)
         => new(path, _document, Final, ownsDocument: false, additionalPaths);
 
     /// <summary>

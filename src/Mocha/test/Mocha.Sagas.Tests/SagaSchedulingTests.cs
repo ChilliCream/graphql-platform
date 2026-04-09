@@ -109,14 +109,9 @@ public sealed class SagaSchedulingTests
         var saga =
             Saga.Create<TestState>(x =>
             {
-                x.Initially()
-                    .OnEvent<StartEvent>()
-                    .StateFactory(_ => new TestState())
-                    .TransitionTo("Started");
+                x.Initially().OnEvent<StartEvent>().StateFactory(_ => new TestState()).TransitionTo("Started");
 
-                x.During("Started")
-                    .OnEntry()
-                    .ScheduledPublish(delay, _ => new ScheduledNotification());
+                x.During("Started").OnEntry().ScheduledPublish(delay, _ => new ScheduledNotification());
 
                 x.During("Started").OnEvent<EndEvent>().TransitionTo("Ended");
 
@@ -144,14 +139,9 @@ public sealed class SagaSchedulingTests
         var saga =
             Saga.Create<TestState>(x =>
             {
-                x.Initially()
-                    .OnEvent<StartEvent>()
-                    .StateFactory(_ => new TestState())
-                    .TransitionTo("Started");
+                x.Initially().OnEvent<StartEvent>().StateFactory(_ => new TestState()).TransitionTo("Started");
 
-                x.During("Started")
-                    .OnEntry()
-                    .ScheduledSend(delay, _ => new ScheduledCommand());
+                x.During("Started").OnEntry().ScheduledSend(delay, _ => new ScheduledCommand());
 
                 x.During("Started").OnEvent<EndEvent>().TransitionTo("Ended");
 

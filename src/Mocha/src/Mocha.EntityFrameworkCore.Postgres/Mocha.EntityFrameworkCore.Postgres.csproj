@@ -8,7 +8,6 @@
     <ProjectReference Include="..\Mocha\Mocha.csproj" />
     <ProjectReference Include="..\Mocha.EntityFrameworkCore\Mocha.EntityFrameworkCore.csproj" />
     <ProjectReference Include="..\Mocha.Inbox\Mocha.Inbox.csproj" />
-    <ProjectReference Include="..\Mocha.Scheduling\Mocha.Scheduling.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" />

@@ -11,11 +11,11 @@ namespace Mocha.Middlewares;
 /// Without this middleware, receive-side failures become much harder to correlate with transport,
 /// endpoint, and handler latency behavior.
 /// </remarks>
-internal sealed class ReceiveInstrumentationMiddleware(IBusDiagnosticObserver observer)
+internal sealed class ReceiveInstrumentationMiddleware(IMessagingDiagnosticEvents events)
 {
     public async ValueTask InvokeAsync(IReceiveContext context, ReceiveDelegate next)
     {
-        using var activity = observer.Receive(context);
+        using var activity = events.Receive(context);
 
         try
         {
@@ -23,7 +23,7 @@ internal sealed class ReceiveInstrumentationMiddleware(IBusDiagnosticObserver ob
         }
         catch (Exception ex)
         {
-            observer.OnReceiveError(context, ex);
+            events.ReceiveError(context, ex);
 
             throw;
         }
@@ -33,8 +33,8 @@ internal sealed class ReceiveInstrumentationMiddleware(IBusDiagnosticObserver ob
         => new(
             static (context, next) =>
             {
-                var observer = context.Services.GetRequiredService<IBusDiagnosticObserver>();
-                var middleware = new ReceiveInstrumentationMiddleware(observer);
+                var events = context.Services.GetRequiredService<IMessagingDiagnosticEvents>();
+                var middleware = new ReceiveInstrumentationMiddleware(events);
                 return ctx => middleware.InvokeAsync(ctx, next);
             },
             "ReceiveInstrumentation");

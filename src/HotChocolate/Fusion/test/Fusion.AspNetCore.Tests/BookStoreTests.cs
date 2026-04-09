@@ -64,7 +64,7 @@ public class BookStoreTests : FusionTestBase
                 ("a", server1),
                 ("b", server2)
             ],
-            schemaSettings:
+            gatewaySettings:
             """
             {
               "sourceSchemas": {

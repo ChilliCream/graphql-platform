@@ -82,6 +82,7 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_c1c44a8c_1 {
               productById(id: 1) {
@@ -161,6 +162,7 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           kind: OperationBatch
           items:
             - document: |
