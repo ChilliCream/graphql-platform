@@ -7,9 +7,7 @@ public class Issue6177ReproTests
 {
     [Fact]
     public void Custom_Id_Operation_Filter_Type_Is_Used_For_Id_Attributed_Field()
-    {
-        // arrange
-        var schema = SchemaBuilder.New()
+        => SchemaBuilder.New()
             .AddFiltering()
             .AddQueryType(
                 d => d
@@ -17,14 +15,21 @@ public class Issue6177ReproTests
                     .Field("subscriptions")
                     .Resolve(new List<SubscriptionNode>())
                     .UseFiltering<SubscriptionFilterType>())
-            .Create();
+            .Create()
+            .MatchSnapshot();
 
-        // act
-        var schemaSdl = schema.ToString();
-
-        // assert
-        Assert.Contains("id: SubscriptionIdOperationFilterInput", schemaSdl, StringComparison.Ordinal);
-    }
+    [Fact]
+    public void Custom_Id_Operation_Filter_Type_Is_Used_When_Configured_With_Instance()
+        => SchemaBuilder.New()
+            .AddFiltering()
+            .AddQueryType(
+                d => d
+                    .Name("Query")
+                    .Field("subscriptions")
+                    .Resolve(new List<SubscriptionNode>())
+                    .UseFiltering<SubscriptionFilterTypeWithInstance>())
+            .Create()
+            .MatchSnapshot();
 
     public class SubscriptionNode
     {
@@ -39,27 +44,6 @@ public class Issue6177ReproTests
             descriptor.BindFieldsExplicitly();
             descriptor.Field(f => f.Id).Type<SubscriptionIdOperationFilterInput>();
         }
-    }
-
-    [Fact]
-    public void Custom_Id_Operation_Filter_Type_Is_Used_When_Configured_With_Instance()
-    {
-        // arrange
-        var schema = SchemaBuilder.New()
-            .AddFiltering()
-            .AddQueryType(
-                d => d
-                    .Name("Query")
-                    .Field("subscriptions")
-                    .Resolve(new List<SubscriptionNode>())
-                    .UseFiltering<SubscriptionFilterTypeWithInstance>())
-            .Create();
-
-        // act
-        var schemaSdl = schema.ToString();
-
-        // assert
-        Assert.Contains("id: SubscriptionIdOperationFilterInput", schemaSdl, StringComparison.Ordinal);
     }
 
     public class SubscriptionFilterTypeWithInstance : FilterInputType<SubscriptionNode>

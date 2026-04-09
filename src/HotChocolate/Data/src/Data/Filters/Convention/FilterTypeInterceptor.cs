@@ -147,6 +147,11 @@ public sealed class FilterTypeInterceptor : TypeInterceptor
             if (field.HasIdAttribute())
             {
                 // Respect explicit custom ID filter input types.
+                // We check ExtendedTypeReference (generic .Type<T>()) and
+                // SchemaTypeReference (instance .Type(new T())) but intentionally
+                // skip SyntaxTypeReference — it only carries an SDL ITypeNode name
+                // without runtime type info, so we cannot do an IsAssignableFrom
+                // check. Filter descriptors don't use that API path.
                 if (field.Type is ExtendedTypeReference { Type.Source: { } typeSource }
                     && typeof(IdOperationFilterInputType).IsAssignableFrom(typeSource))
                 {
