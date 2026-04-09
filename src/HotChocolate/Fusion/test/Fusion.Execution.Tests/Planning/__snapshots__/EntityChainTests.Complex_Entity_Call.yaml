@@ -45,7 +45,12 @@ nodes:
           $__fusion_1_id: ID!
           $__fusion_1_pid: ID!
       ) {
-        productByIdPidAndCategory(id: $__fusion_1_id, pid: $__fusion_1_pid, categoryId: $__fusion_1_categoryId, categoryTag: $__fusion_1_categoryTag) {
+        productByIdPidAndCategory(
+          id: $__fusion_1_id
+          pid: $__fusion_1_pid
+          categoryId: $__fusion_1_categoryId
+          categoryTag: $__fusion_1_categoryTag
+        ) {
           price {
             price
           }
@@ -73,9 +78,7 @@ nodes:
     type: Operation
     schema: link
     operation: |
-      query Op_123456789101112_3(
-        $__fusion_2_id: ID!
-      ) {
+      query Op_123456789101112_3($__fusion_2_id: ID!) {
         productById(id: $__fusion_2_id) {
           pid
         }

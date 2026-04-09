@@ -1,4 +1,5 @@
-schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key", "@tag", "FieldSet", "@policy"]) {
+schema
+  @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key", "@tag", "FieldSet", "@policy"]) {
   query: Query
 }
 
@@ -21,13 +22,21 @@ type _Service {
 union _Entity = Review
 
 "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
-directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+directive @key(fields: FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
 
 "Links definitions within the document to external schemas."
-directive @link("Gets imported specification url." url: String! "Gets optional list of imported element names." import: [String!]) repeatable on SCHEMA
+directive @link(
+  "Gets imported specification url."
+  url: String!
+  "Gets optional list of imported element names."
+  import: [String!]
+) repeatable on SCHEMA
 
 "Indicates to composition that the target element is restricted based on authorization policies."
-directive @policy("Retrieves list of a list of authorization policies to evaluate." policies: [[String!]!]!) on SCALAR | OBJECT | FIELD_DEFINITION | INTERFACE | ENUM
+directive @policy(
+  "Retrieves list of a list of authorization policies to evaluate."
+  policies: [[String!]!]!
+) on SCALAR | OBJECT | FIELD_DEFINITION | INTERFACE | ENUM
 
 "Scalar representing a set of fields."
 scalar FieldSet

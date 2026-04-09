@@ -1,9 +1,7 @@
 title: Introspection_Skip_On_Field
 request:
   document: |
-    query testQuery(
-      $skip: Boolean!
-    ) {
+    query testQuery($skip: Boolean!) {
       __typename @skip(if: $skip)
     }
   variables: |
@@ -28,9 +26,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $skip: Boolean!
-        ) {
+        query testQuery($skip: Boolean!) {
           __typename @skip(if: $skip)
         }
       name: testQuery

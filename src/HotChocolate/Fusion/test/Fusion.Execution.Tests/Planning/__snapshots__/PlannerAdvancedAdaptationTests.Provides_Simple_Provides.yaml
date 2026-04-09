@@ -27,9 +27,7 @@ nodes:
     type: Operation
     schema: reviews
     operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_upc: String!
-      ) {
+      query Op_123456789101112_2($__fusion_1_upc: String!) {
         productByUpc(upc: $__fusion_1_upc) {
           reviews {
             author {

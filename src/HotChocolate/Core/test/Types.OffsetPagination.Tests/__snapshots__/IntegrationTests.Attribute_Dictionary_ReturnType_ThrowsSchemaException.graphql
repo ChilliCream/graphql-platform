@@ -16,7 +16,7 @@ type KeyValuePairOfStringAndString {
 }
 
 type UglyLegacyQuery {
-  uglyLegacyResolver(skip: Int take: Int): UglyLegacyResolverCollectionSegment
+  uglyLegacyResolver(skip: Int, take: Int): UglyLegacyResolverCollectionSegment
 }
 
 "A segment of a collection."

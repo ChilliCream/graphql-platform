@@ -3,7 +3,8 @@ schema @tag(name: "OnSchema") {
 }
 
 interface IFoo @tag(name: "OnInterface") {
-  bar(baz: String! @tag(name: "OnInterfaceFieldArg")): String! @tag(name: "OnInterfaceField")
+  bar(baz: String! @tag(name: "OnInterfaceFieldArg")): String!
+    @tag(name: "OnInterfaceField")
 }
 
 type Foo implements IFoo {
@@ -11,7 +12,8 @@ type Foo implements IFoo {
 }
 
 type Query @tag(name: "OnObjectType") {
-  foo(a: String! @tag(name: "OnObjectFieldArg")): IFoo! @tag(name: "OnObjectField")
+  foo(a: String! @tag(name: "OnObjectFieldArg")): IFoo!
+    @tag(name: "OnObjectField")
   fooEnum(input: FooInput!): FooEnum!
 }
 

@@ -300,66 +300,6 @@ For automatic saga timeouts that cancel themselves on completion, see [Timeouts]
 
 See [Sagas](/docs/mocha/v1/sagas) for the full saga configuration guide.
 
-# API reference
-
-## Scheduling methods on `IMessageBus`
-
-| Method                        | Parameters                                                                                | Returns                       | Description                                                                                                               |
-| ----------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `SchedulePublishAsync<T>`     | `T message, DateTimeOffset scheduledTime, CancellationToken ct`                           | `ValueTask<SchedulingResult>` | Publishes a message for delivery at an absolute time.                                                                     |
-| `SchedulePublishAsync<T>`     | `T message, DateTimeOffset scheduledTime, PublishOptions options, CancellationToken ct`   | `ValueTask<SchedulingResult>` | Publishes a message with scheduling and publish options.                                                                  |
-| `ScheduleSendAsync`           | `object message, DateTimeOffset scheduledTime, CancellationToken ct`                      | `ValueTask<SchedulingResult>` | Sends a message for delivery at an absolute time.                                                                         |
-| `ScheduleSendAsync`           | `object message, DateTimeOffset scheduledTime, SendOptions options, CancellationToken ct` | `ValueTask<SchedulingResult>` | Sends a message with scheduling and send options.                                                                         |
-| `CancelScheduledMessageAsync` | `string token, CancellationToken ct`                                                      | `ValueTask<bool>`             | Cancels a scheduled message. Returns `true` if cancelled, `false` if already dispatched, already cancelled, or not found. |
-
-## `SchedulingResult`
-
-| Property        | Type             | Description                                                                               |
-| --------------- | ---------------- | ----------------------------------------------------------------------------------------- |
-| `Token`         | `string?`        | An opaque token for cancelling this message, or `null` if cancellation is not supported.  |
-| `ScheduledTime` | `DateTimeOffset` | The time at which the message is scheduled for delivery.                                  |
-| `IsCancellable` | `bool`           | `true` when the scheduling infrastructure supports cancellation and a token was assigned. |
-
-## Scheduling properties on options
-
-| Struct           | Property        | Type              | Default | Description                                               |
-| ---------------- | --------------- | ----------------- | ------- | --------------------------------------------------------- |
-| `PublishOptions` | `ScheduledTime` | `DateTimeOffset?` | `null`  | Scheduled delivery time. `null` means immediate delivery. |
-| `SendOptions`    | `ScheduledTime` | `DateTimeOffset?` | `null`  | Scheduled delivery time. `null` means immediate delivery. |
-
-`PublishOptions` and `SendOptions` have additional properties for expiration, headers, and other dispatch behavior. `ScheduledTime` can be combined with any of them.
-
-## Saga extensions
-
-| Method             | Available on                                            | Parameters                                       | Description                                 |
-| ------------------ | ------------------------------------------------------- | ------------------------------------------------ | ------------------------------------------- |
-| `ScheduledPublish` | `ISagaTransitionDescriptor`, `ISagaLifeCycleDescriptor` | `TimeSpan delay, Func<TState, TMessage> factory` | Publishes a message with a scheduled delay. |
-| `ScheduledSend`    | `ISagaTransitionDescriptor`, `ISagaLifeCycleDescriptor` | `TimeSpan delay, Func<TState, TMessage> factory` | Sends a message with a scheduled delay.     |
-
-## `ScheduledMessage` entity columns
-
-| Column           | Type        | Description                                                           |
-| ---------------- | ----------- | --------------------------------------------------------------------- |
-| `id`             | `uuid`      | Primary key.                                                          |
-| `envelope`       | `json`      | Serialized message envelope with headers and payload.                 |
-| `scheduled_time` | `timestamp` | UTC time when the message becomes eligible for dispatch.              |
-| `times_sent`     | `integer`   | Number of dispatch attempts.                                          |
-| `max_attempts`   | `integer`   | Maximum dispatch attempts before the message is dropped. Default: 10. |
-| `last_error`     | `jsonb`     | Last dispatch error (exception type, message, stack trace).           |
-| `created_at`     | `timestamp` | UTC time when the scheduled message was created.                      |
-
-## EF Core model builder
-
-| Method                                        | Description                                                                              |
-| --------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `modelBuilder.AddPostgresScheduledMessages()` | Applies the `ScheduledMessage` entity configuration with default table and column names. |
-
-## Scheduling service registration
-
-| Method                    | Description                                                                                             |
-| ------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `UsePostgresScheduling()` | Registers the Postgres scheduling pipeline: message store, background worker, and EF Core interceptors. |
-
 # Troubleshooting
 
 **Scheduled messages are not being delivered.**

@@ -1,9 +1,7 @@
 title: Node_Field_Selections_On_Interface_And_Concrete_Type_Both_Have_Same_Dependency
 request:
   document: |
-    query testQuery(
-      $id: ID!
-    ) {
+    query testQuery($id: ID!) {
       node(id: $id) {
         __typename
         id
@@ -69,9 +67,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_648537b2_3(
-              $id: ID!
-            ) {
+            query testQuery_648537b2_3($id: ID!) {
               node(id: $id) {
                 __typename
                 ... on Discussion {
@@ -123,9 +119,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_648537b2_4(
-              $__fusion_1_id: ID!
-            ) {
+            query testQuery_648537b2_4($__fusion_1_id: ID!) {
               authorById(id: $__fusion_1_id) {
                 rating
               }
@@ -147,9 +141,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_648537b2_5(
-              $__fusion_2_id: ID!
-            ) {
+            query testQuery_648537b2_5($__fusion_2_id: ID!) {
               authorById(id: $__fusion_2_id) {
                 username
               }
@@ -171,9 +163,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $id: ID!
-        ) {
+        query testQuery($id: ID!) {
           node(id: $id) {
             __typename
             id
@@ -206,9 +196,7 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query testQuery_648537b2_2(
-          $id: ID!
-        ) {
+        query testQuery_648537b2_2($id: ID!) {
           node(id: $id) {
             __typename
             id
@@ -222,9 +210,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_648537b2_3(
-          $id: ID!
-        ) {
+        query testQuery_648537b2_3($id: ID!) {
           node(id: $id) {
             __typename
             ... on Discussion {
@@ -247,9 +233,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_648537b2_4(
-          $__fusion_1_id: ID!
-        ) {
+        query testQuery_648537b2_4($__fusion_1_id: ID!) {
           authorById(id: $__fusion_1_id) {
             rating
           }
@@ -266,9 +250,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_648537b2_5(
-          $__fusion_2_id: ID!
-        ) {
+        query testQuery_648537b2_5($__fusion_2_id: ID!) {
           authorById(id: $__fusion_2_id) {
             username
           }

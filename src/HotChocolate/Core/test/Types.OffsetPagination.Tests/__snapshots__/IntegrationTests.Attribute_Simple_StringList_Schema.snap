@@ -1,4 +1,4 @@
-﻿schema {
+schema {
   query: QueryAttr
 }
 
@@ -40,7 +40,7 @@ type NestedObjectListCollectionSegment {
 }
 
 type QueryAttr {
-  nestedObjectList(skip: Int take: Int): NestedObjectListCollectionSegment
-  letters(skip: Int take: Int): LettersCollectionSegment
-  explicitType(skip: Int take: Int): ExplicitTypeCollectionSegment
+  nestedObjectList(skip: Int, take: Int): NestedObjectListCollectionSegment
+  letters(skip: Int, take: Int): LettersCollectionSegment
+  explicitType(skip: Int, take: Int): ExplicitTypeCollectionSegment
 }

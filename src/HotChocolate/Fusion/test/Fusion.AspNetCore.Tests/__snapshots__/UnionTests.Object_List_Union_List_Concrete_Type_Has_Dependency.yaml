@@ -177,9 +177,7 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query testQuery_e46e034a_2(
-              $__fusion_1_id: ID!
-            ) {
+            query testQuery_e46e034a_2($__fusion_1_id: ID!) {
               photoById(id: $__fusion_1_id) {
                 subgraph2
               }
@@ -299,9 +297,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_e46e034a_2(
-          $__fusion_1_id: ID!
-        ) {
+        query testQuery_e46e034a_2($__fusion_1_id: ID!) {
           photoById(id: $__fusion_1_id) {
             subgraph2
           }

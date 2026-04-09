@@ -1,9 +1,7 @@
 title: Two_Arguments_Differing_Nullability_Does_Not_Duplicate_Forwarded_Variables
 request:
   document: |
-    query Test(
-      $number: Int!
-    ) {
+    query Test($number: Int!) {
       testWithTwoArgumentsDifferingNullability(first: $number, second: $number)
     }
   variables: |
@@ -33,7 +31,7 @@ sourceSchemas:
         nodes(ids: [ID!]!): [Node]! @shareable
         userById(id: ID!): User!
         users: [User!]!
-        testWithTwoArgumentsDifferingNullability(first: Int! second: Int): String!
+        testWithTwoArgumentsDifferingNullability(first: Int!, second: Int): String!
       }
 
       type User implements Node {
@@ -46,9 +44,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Test_2ead4419_1(
-              $number: Int!
-            ) {
+            query Test_2ead4419_1($number: Int!) {
               testWithTwoArgumentsDifferingNullability(first: $number, second: $number)
             }
           variables: |
@@ -66,9 +62,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query Test(
-          $number: Int!
-        ) {
+        query Test($number: Int!) {
           testWithTwoArgumentsDifferingNullability(first: $number, second: $number)
         }
       name: Test
@@ -80,9 +74,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Test_2ead4419_1(
-          $number: Int!
-        ) {
+        query Test_2ead4419_1($number: Int!) {
           testWithTwoArgumentsDifferingNullability(first: $number, second: $number)
         }
       forwardedVariables:

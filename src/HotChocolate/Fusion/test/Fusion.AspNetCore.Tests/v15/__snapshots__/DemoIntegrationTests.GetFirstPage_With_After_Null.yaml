@@ -1,9 +1,7 @@
 title: GetFirstPage_With_After_Null
 request:
   document: |
-    query AfterNull(
-      $after: String
-    ) {
+    query AfterNull($after: String) {
       appointments(after: $after) {
         nodes {
           id
@@ -55,9 +53,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query AfterNull_bcc834fd_1(
-              $after: String
-            ) {
+            query AfterNull_bcc834fd_1($after: String) {
               appointments(after: $after) {
                 nodes {
                   id
@@ -91,9 +87,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query AfterNull(
-          $after: String
-        ) {
+        query AfterNull($after: String) {
           appointments(after: $after) {
             nodes {
               id
@@ -109,9 +103,7 @@ operationPlan:
       type: Operation
       schema: E
       operation: |
-        query AfterNull_bcc834fd_1(
-          $after: String
-        ) {
+        query AfterNull_bcc834fd_1($after: String) {
           appointments(after: $after) {
             nodes {
               id

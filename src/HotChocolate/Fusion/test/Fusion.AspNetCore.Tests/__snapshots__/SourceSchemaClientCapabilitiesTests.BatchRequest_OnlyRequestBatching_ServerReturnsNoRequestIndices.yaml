@@ -9,16 +9,16 @@ request:
 response:
   body: |
     {
-      "data": {
-        "books": [
-          {
-            "rating": "1"
-          },
-          {
-            "rating": "2"
-          }
-        ]
-      }
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "books",
+            0,
+            "rating"
+          ]
+        }
+      ]
     }
 sourceSchemas:
   - name: a
@@ -92,9 +92,7 @@ sourceSchemas:
           kind: OperationBatch
           items:
             - document: |
-                query Op_490e9345_2(
-                  $__fusion_1_id: ID!
-                ) {
+                query Op_490e9345_2($__fusion_1_id: ID!) {
                   bookById(id: $__fusion_1_id) {
                     rating
                   }
@@ -104,9 +102,7 @@ sourceSchemas:
                   "__fusion_1_id": "1"
                 }
             - document: |
-                query Op_490e9345_2(
-                  $__fusion_1_id: ID!
-                ) {
+                query Op_490e9345_2($__fusion_1_id: ID!) {
                   bookById(id: $__fusion_1_id) {
                     rating
                   }
@@ -116,24 +112,8 @@ sourceSchemas:
                   "__fusion_1_id": "2"
                 }
         response:
-          contentType: text/event-stream; charset=utf-8
-          results:
-            - |
-              {
-                "data": {
-                  "bookById": {
-                    "rating": "1"
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "bookById": {
-                    "rating": "2"
-                  }
-                }
-              }
+          statusCode: 500
+          contentType: text/plain; charset=utf-8
 operationPlan:
   operation:
     - document: |
@@ -160,9 +140,7 @@ operationPlan:
       type: Operation
       schema: b
       operation: |
-        query Op_490e9345_2(
-          $__fusion_1_id: ID!
-        ) {
+        query Op_490e9345_2($__fusion_1_id: ID!) {
           bookById(id: $__fusion_1_id) {
             rating
           }

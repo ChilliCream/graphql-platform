@@ -1,4 +1,4 @@
-﻿{
+{
   root {
     bar {
       text
@@ -15,7 +15,8 @@
         bar @__execute(id: 4, kind: PURE, type: COMPOSITE) {
           ... on Bar {
             text @__execute(id: 6, kind: PURE, type: LEAF)
-            baz @__execute(id: 7, kind: DEFAULT, type: COMPOSITE, internal: true) {
+            baz
+              @__execute(id: 7, kind: DEFAULT, type: COMPOSITE, internal: true) {
               ... on Baz {
                 text @__execute(id: 9, kind: PURE, type: LEAF)
               }
