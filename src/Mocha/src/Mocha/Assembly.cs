@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Mocha.Inbox")]
 [assembly: InternalsVisibleTo("Mocha.Outbox")]
 [assembly: InternalsVisibleTo("Mocha.EntityFrameworkCore.Postgres")]
+[assembly: InternalsVisibleTo("Mocha.EntityFrameworkCore.SqlServer")]
 [assembly: InternalsVisibleTo("Mocha.EntityFrameworkCore")]
 [assembly: InternalsVisibleTo("Mocha.Transport.RabbitMQ")]
 [assembly: InternalsVisibleTo("Mocha.Transport.Postgres")]

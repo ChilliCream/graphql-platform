@@ -12,6 +12,7 @@
     <Project Path="src/Mocha.Abstractions/Mocha.Abstractions.csproj" />
     <Project Path="src/Mocha.Analyzers/Mocha.Analyzers.csproj" />
     <Project Path="src/Mocha.EntityFrameworkCore.Postgres/Mocha.EntityFrameworkCore.Postgres.csproj" />
+    <Project Path="src/Mocha.EntityFrameworkCore.SqlServer/Mocha.EntityFrameworkCore.SqlServer.csproj" />
     <Project Path="src/Mocha.EntityFrameworkCore/Mocha.EntityFrameworkCore.csproj" />
     <Project Path="src/Mocha.Hosting/Mocha.Hosting.csproj" />
     <Project Path="src/Mocha.Inbox/Mocha.Inbox.csproj" />
@@ -28,6 +29,7 @@
   <Folder Name="/test/">
     <Project Path="test/Mocha.Analyzers.Tests/Mocha.Analyzers.Tests.csproj" />
     <Project Path="test/Mocha.EntityFrameworkCore.Postgres.Tests/Mocha.EntityFrameworkCore.Postgres.Tests.csproj" />
+    <Project Path="test/Mocha.EntityFrameworkCore.SqlServer.Tests/Mocha.EntityFrameworkCore.SqlServer.Tests.csproj" />
     <Project Path="test/Mocha.EntityFrameworkCore.Tests/Mocha.EntityFrameworkCore.Tests.csproj" />
     <Project Path="test/Mocha.Hosting.Tests/Mocha.Hosting.Tests.csproj" />
     <Project Path="test/Mocha.Mediator.Tests/Mocha.Mediator.Tests.csproj" />

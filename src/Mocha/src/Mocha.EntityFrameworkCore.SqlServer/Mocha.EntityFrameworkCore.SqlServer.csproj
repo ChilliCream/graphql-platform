@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Mocha.EntityFrameworkCore.SqlServer</AssemblyName>
+    <RootNamespace>Mocha.EntityFrameworkCore.SqlServer</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Mocha.Outbox\Mocha.Outbox.csproj" />
+    <ProjectReference Include="..\Mocha\Mocha.csproj" />
+    <ProjectReference Include="..\Mocha.EntityFrameworkCore\Mocha.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="..\Mocha.Inbox\Mocha.Inbox.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+  </ItemGroup>
+</Project>
