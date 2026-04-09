@@ -235,6 +235,15 @@ public sealed class MessagingGenerator : IIncrementalGenerator
             // Extract context-only message types from JsonSerializerContext (types without handlers).
             var augmentedInfos = ExtractContextOnlyTypes(syntaxInfos, moduleInfo, jsonContextInfo);
 
+            // Pass the full set of JsonContext-serializable type names so the DI generator
+            // can restrict serializer registrations to types that are actually in the context.
+            if (jsonContextInfo.SerializableTypes.Count > 0)
+            {
+                var serializableTypeNames = new ImmutableEquatableArray<string>(
+                    jsonContextInfo.SerializableTypes.Select(t => t.TypeName));
+                augmentedInfos = augmentedInfos.Add(new JsonContextSerializableTypesInfo(serializableTypeNames));
+            }
+
             // Include ImportedModuleTypesInfo entries so the DI generator can skip
             // serializer registration for types already covered by referenced modules.
             var importedModuleInfos = callSiteInfos.OfType<ImportedModuleTypesInfo>().ToImmutableArray();
@@ -358,7 +367,9 @@ public sealed class MessagingGenerator : IIncrementalGenerator
                 location));
         }
 
-        return new JsonContextInfo(jsonContextTypeName, new ImmutableEquatableArray<JsonSerializableTypeInfo>(serializableTypes));
+        return new JsonContextInfo(
+            jsonContextTypeName,
+            new ImmutableEquatableArray<JsonSerializableTypeInfo>(serializableTypes));
     }
 
     private static void ValidateRequestHandlerPairing(
@@ -424,7 +435,7 @@ public sealed class MessagingGenerator : IIncrementalGenerator
         bool isAotPublish,
         JsonContextInfo jsonContextInfo)
     {
-        if (!isAotPublish)
+        if (!isAotPublish && jsonContextInfo.JsonContextTypeName is null)
         {
             return;
         }
@@ -481,7 +492,7 @@ public sealed class MessagingGenerator : IIncrementalGenerator
             return;
         }
 
-        // Build the set of covered types from the pre-extracted JsonContext data
+        // Build the set of covered types from the local JsonContext
         // plus types imported from referenced modules.
         var coveredTypes = new HashSet<string>(importedTypes, StringComparer.Ordinal);
 
@@ -533,13 +544,13 @@ public sealed class MessagingGenerator : IIncrementalGenerator
         bool isAotPublish,
         JsonContextInfo jsonContextInfo)
     {
-        if (!isAotPublish || callSiteInfos.Length == 0)
+        if ((!isAotPublish && jsonContextInfo.JsonContextTypeName is null) || callSiteInfos.Length == 0)
         {
             return;
         }
 
-        // Build the set of covered types from the local JsonContext (if any)
-        // plus types imported from referenced modules via [MessagingModuleInfo].
+        // Build the set of covered types from the local JsonContext
+        // plus types imported from referenced modules.
         var coveredTypes = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var serializableType in jsonContextInfo.SerializableTypes)
@@ -558,7 +569,7 @@ public sealed class MessagingGenerator : IIncrementalGenerator
             }
         }
 
-        // If there's no local context AND no imported types, nothing to validate against.
+        // If there are no covered types at all, nothing to validate against.
         if (coveredTypes.Count == 0)
         {
             return;

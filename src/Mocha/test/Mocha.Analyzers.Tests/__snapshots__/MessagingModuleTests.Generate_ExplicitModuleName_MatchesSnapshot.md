@@ -11,10 +11,6 @@ namespace Microsoft.Extensions.DependencyInjection
     [global::System.CodeDom.Compiler.GeneratedCode("Mocha.Analyzers", "1.0.0")]
     public static class OrderServiceMessageBusBuilderExtensions
     {
-        [global::Mocha.MessagingModuleInfo(MessageTypes = new global::System.Type[]
-        {
-            typeof(global::TestApp.OrderPlacedEvent),
-        })]
         public static global::Mocha.IMessageBusHostBuilder AddOrderService(
             this global::Mocha.IMessageBusHostBuilder builder)
         {

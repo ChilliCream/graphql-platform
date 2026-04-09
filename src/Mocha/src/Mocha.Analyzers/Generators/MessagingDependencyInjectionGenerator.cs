@@ -58,6 +58,9 @@ public sealed class MessagingDependencyInjectionGenerator : ISyntaxGenerator
         // serializer registrations from the referenced module's Add*() method.
         var importedTypeNames = new HashSet<string>(StringComparer.Ordinal);
 
+        // Collect type names that are actually declared in the local JsonSerializerContext.
+        var jsonContextTypeNames = new HashSet<string>(StringComparer.Ordinal);
+
         foreach (var info in syntaxInfos)
         {
             if (info is ImportedModuleTypesInfo imported)
@@ -67,27 +70,49 @@ public sealed class MessagingDependencyInjectionGenerator : ISyntaxGenerator
                     importedTypeNames.Add(typeName);
                 }
             }
-        }
-
-        // Collect all unique message types for the [MessagingModuleInfo] attribute.
-        var allMessageTypeNames = new HashSet<string>(StringComparer.Ordinal);
-
-        foreach (var handler in handlers)
-        {
-            allMessageTypeNames.Add(handler.MessageTypeName);
-
-            if (handler.ResponseTypeName is not null)
+            else if (info is JsonContextSerializableTypesInfo jsonContextTypes)
             {
-                allMessageTypeNames.Add(handler.ResponseTypeName);
+                foreach (var typeName in jsonContextTypes.TypeNames)
+                {
+                    jsonContextTypeNames.Add(typeName);
+                }
             }
         }
 
-        foreach (var contextOnly in contextOnlyTypes)
+        // Collect all unique message types that this module actually registers
+        // serializers for via AddMessageConfiguration. Only types in the local
+        // JsonSerializerContext (excluding imports) qualify. This set is used for both
+        // the [MessagingModuleInfo] attribute and the actual serializer registrations.
+        var messageTypes = new HashSet<string>(StringComparer.Ordinal);
+
+        if (jsonContextTypeName is not null)
         {
-            allMessageTypeNames.Add(contextOnly.MessageTypeName);
+            foreach (var handler in handlers)
+            {
+                if (!importedTypeNames.Contains(handler.MessageTypeName)
+                    && jsonContextTypeNames.Contains(handler.MessageTypeName))
+                {
+                    messageTypes.Add(handler.MessageTypeName);
+                }
+
+                if (handler.ResponseTypeName is not null
+                    && !importedTypeNames.Contains(handler.ResponseTypeName)
+                    && jsonContextTypeNames.Contains(handler.ResponseTypeName))
+                {
+                    messageTypes.Add(handler.ResponseTypeName);
+                }
+            }
+
+            foreach (var contextOnly in contextOnlyTypes)
+            {
+                if (!importedTypeNames.Contains(contextOnly.MessageTypeName))
+                {
+                    messageTypes.Add(contextOnly.MessageTypeName);
+                }
+            }
         }
 
-        var sortedMessageTypeNames = allMessageTypeNames
+        var sortedMessageTypeNames = messageTypes
             .OrderBy(t => t, StringComparer.Ordinal)
             .ToList();
 
@@ -104,32 +129,6 @@ public sealed class MessagingDependencyInjectionGenerator : ISyntaxGenerator
             builder.WriteSectionComment("AOT Configuration");
             builder.WriteStrictModeConfiguration();
             builder.WriteJsonTypeInfoResolverRegistration(jsonContextTypeName);
-
-            // Collect all unique message types for pre-built serializer registration,
-            // excluding types already covered by imported modules.
-            var messageTypes = new HashSet<string>(StringComparer.Ordinal);
-
-            foreach (var handler in handlers)
-            {
-                if (!importedTypeNames.Contains(handler.MessageTypeName))
-                {
-                    messageTypes.Add(handler.MessageTypeName);
-                }
-
-                if (handler.ResponseTypeName is not null
-                    && !importedTypeNames.Contains(handler.ResponseTypeName))
-                {
-                    messageTypes.Add(handler.ResponseTypeName);
-                }
-            }
-
-            foreach (var contextOnly in contextOnlyTypes)
-            {
-                if (!importedTypeNames.Contains(contextOnly.MessageTypeName))
-                {
-                    messageTypes.Add(contextOnly.MessageTypeName);
-                }
-            }
 
             // Compute enclosed types per message type (pre-sorted by specificity).
             var enclosedTypesMap = new Dictionary<string, List<string>>(StringComparer.Ordinal);

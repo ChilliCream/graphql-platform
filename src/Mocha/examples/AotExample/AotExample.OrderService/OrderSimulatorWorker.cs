@@ -8,8 +8,8 @@ namespace AotExample.OrderService;
 
 public sealed class OrderSimulatorWorker(
     IServiceScopeFactory scopeFactory,
-    ILogger<OrderSimulatorWorker> logger)
-    : BackgroundService
+    ILogger<OrderSimulatorWorker> logger
+) : BackgroundService
 {
     private static readonly string[] s_products =
     [
@@ -18,7 +18,7 @@ public sealed class OrderSimulatorWorker(
         "USB-C Hub",
         "Monitor Stand",
         "Webcam HD",
-        "Noise-Cancelling Headphones"
+        "Noise-Cancelling Headphones",
     ];
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -41,27 +41,39 @@ public sealed class OrderSimulatorWorker(
                 // 1. Place order via mediator command
                 var result = await sender.SendAsync(
                     new PlaceOrderCommand { ProductName = product, Quantity = quantity },
-                    stoppingToken);
+                    stoppingToken
+                );
 
                 // 2. Query order status via mediator query
                 var status = await sender.QueryAsync(
                     new GetOrderStatusQuery { OrderId = result.OrderId },
-                    stoppingToken);
+                    stoppingToken
+                );
 
                 logger.LogOrderStatus(result.OrderId, status.Status);
 
                 var correlationId = Guid.NewGuid();
 
                 // 3. Publish to bus — FulfillmentService will pick this up, saga will track it
+
+                await messageBus.PublishAsync(
+                    new OrderShippedEvent
+                    {
+                        OrderId = result.OrderId,
+                        TrackingNumber = $"TRACK-{Random.Shared.Next(1000, 9999)}",
+                    },
+                    stoppingToken
+                );
                 await messageBus.PublishAsync(
                     new OrderPlacedEvent
                     {
                         OrderId = result.OrderId,
                         ProductName = product,
                         Quantity = quantity,
-                        CorrelationId = correlationId
+                        CorrelationId = correlationId,
                     },
-                    stoppingToken);
+                    stoppingToken
+                );
             }
             catch (OperationCanceledException)
             {
