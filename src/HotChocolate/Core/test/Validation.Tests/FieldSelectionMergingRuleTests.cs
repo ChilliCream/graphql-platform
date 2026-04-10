@@ -8,7 +8,8 @@ public class FieldSelectionMergingRuleTests
     : DocumentValidatorVisitorTestBase
 {
     public FieldSelectionMergingRuleTests()
-        : base(builder => builder.AddRule<OverlappingFieldsCanBeMergedRule>())
+        : base(builder => builder.AddRule(
+            (_, o) => new OverlappingFieldsCanBeMergedRule(o.MaxAllowedFieldMergeComparisons)))
     {
     }
 
