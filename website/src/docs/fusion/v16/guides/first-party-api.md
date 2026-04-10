@@ -73,7 +73,7 @@ app.Run();
 
 With `MapGraphQLPersistedOperations()`, the operation hash and operation name are part of the URL path. Clients never send a `query` or `id` field. Only `variables` and `extensions` are specified, either in the POST body or as query parameters on GET:
 
-**HTTP POST to `/graphql/persisted/{hash}/{operationName}`:**
+**HTTP POST to `/graphql/persisted/{operationId}/{operationName}`:**
 
 ```json
 {
@@ -81,7 +81,7 @@ With `MapGraphQLPersistedOperations()`, the operation hash and operation name ar
 }
 ```
 
-**HTTP GET to `/graphql/persisted/{hash}/{operationName}`:**
+**HTTP GET to `/graphql/persisted/{operationId}/{operationName}`:**
 
 ```http
 GET /graphql/persisted/0c95d31ca29272475bf837f944f4e513/GetProducts?variables={"first":10}
