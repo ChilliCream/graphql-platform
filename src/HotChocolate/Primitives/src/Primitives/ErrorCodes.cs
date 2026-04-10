@@ -327,6 +327,11 @@ public static class ErrorCodes
         /// The maximum allowed coordinate cycle depth was exceeded.
         /// </summary>
         public const string MaxCoordinateCycleDepthOverflow = "HC0087";
+
+        /// <summary>
+        /// The field merge validation budget was exhausted.
+        /// </summary>
+        public const string BudgetExceeded = "HC0088";
     }
 
     /// <summary>

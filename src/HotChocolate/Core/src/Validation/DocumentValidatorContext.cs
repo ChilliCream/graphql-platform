@@ -246,6 +246,7 @@ public sealed class DocumentValidatorContext : IFeatureProvider
     public sealed class FragmentContext
     {
         private readonly HashSet<string> _visited = [];
+        private readonly HashSet<string> _completed = [];
         private readonly Dictionary<string, FragmentDefinitionNode> _fragments = new(StringComparer.Ordinal);
 
         public IEnumerable<string> Names => _fragments.Keys;
@@ -267,7 +268,8 @@ public sealed class DocumentValidatorContext : IFeatureProvider
 
         public bool TryEnter(FragmentSpreadNode spread, [NotNullWhen(true)] out FragmentDefinitionNode? fragment)
         {
-            if (_visited.Add(spread.Name.Value)
+            if (!_completed.Contains(spread.Name.Value)
+                && _visited.Add(spread.Name.Value)
                 && _fragments.TryGetValue(spread.Name.Value, out fragment))
             {
                 return true;
@@ -278,20 +280,30 @@ public sealed class DocumentValidatorContext : IFeatureProvider
         }
 
         public void Leave(FragmentSpreadNode spread)
-            => _visited.Remove(spread.Name.Value);
+        {
+            _visited.Remove(spread.Name.Value);
+            _completed.Add(spread.Name.Value);
+        }
 
         public void Leave(FragmentDefinitionNode fragment)
-            => _visited.Remove(fragment.Name.Value);
+        {
+            _visited.Remove(fragment.Name.Value);
+            _completed.Add(fragment.Name.Value);
+        }
 
         public bool Exists(FragmentSpreadNode spread)
             => _fragments.ContainsKey(spread.Name.Value);
 
         internal void Reset()
-            => _visited.Clear();
+        {
+            _visited.Clear();
+            _completed.Clear();
+        }
 
         internal void Clear()
         {
             _visited.Clear();
+            _completed.Clear();
             _fragments.Clear();
         }
     }

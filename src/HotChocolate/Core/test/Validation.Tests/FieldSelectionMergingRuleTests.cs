@@ -1,3 +1,4 @@
+using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Validation.Rules;
 
@@ -1399,4 +1400,80 @@ public class FieldSelectionMergingRuleTests
             .AddResolver("Query", "y", () => "")
             .AddType(new AnyType())
             .Create();
+
+    [Fact]
+    public void Budget_Exceeded_With_Many_Inline_Fragments()
+    {
+        // arrange - low budget to trigger exhaustion
+        var rule = new OverlappingFieldsCanBeMergedRule(maxAllowedFieldMergeComparisons: 50);
+        var fragments = string.Concat(Enumerable.Repeat("... on Dog { name }\n", 100));
+        var query = $$"""
+            {
+                dog {
+                    {{fragments}}
+                }
+            }
+            """;
+        var document = Utf8GraphQLParser.Parse(query);
+        var context = ValidationUtils.CreateContext(document);
+
+        // act
+        rule.Validate(context, document);
+
+        // assert
+        Assert.NotEmpty(context.Errors);
+        Assert.Contains(
+            context.Errors,
+            e => e.Code == ErrorCodes.Validation.BudgetExceeded);
+        Assert.True(context.FatalErrorDetected);
+    }
+
+    [Fact]
+    public void Budget_Not_Exceeded_With_Higher_Limit()
+    {
+        // arrange - high budget, same query should pass
+        var rule = new OverlappingFieldsCanBeMergedRule(maxAllowedFieldMergeComparisons: 100_000);
+        var fragments = string.Concat(Enumerable.Repeat("... on Dog { name }\n", 100));
+        var query = $$"""
+            {
+                dog {
+                    {{fragments}}
+                }
+            }
+            """;
+        var document = Utf8GraphQLParser.Parse(query);
+        var context = ValidationUtils.CreateContext(document);
+
+        // act
+        rule.Validate(context, document);
+
+        // assert
+        Assert.Empty(context.Errors);
+        Assert.False(context.FatalErrorDetected);
+    }
+
+    [Fact]
+    public void Default_Budget_Allows_Normal_Queries()
+    {
+        // arrange - default constructor (100,000 budget)
+        var rule = new OverlappingFieldsCanBeMergedRule(100_000);
+        var document = Utf8GraphQLParser.Parse(
+            """
+            {
+                dog {
+                    name
+                    ... on Dog { name nickname }
+                    ... on Dog { name }
+                }
+            }
+            """);
+        var context = ValidationUtils.CreateContext(document);
+
+        // act
+        rule.Validate(context, document);
+
+        // assert
+        Assert.Empty(context.Errors);
+        Assert.False(context.FatalErrorDetected);
+    }
 }
