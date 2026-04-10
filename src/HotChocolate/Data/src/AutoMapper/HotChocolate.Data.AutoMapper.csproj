@@ -5,6 +5,7 @@
     <AssemblyName>HotChocolate.Data.AutoMapper</AssemblyName>
     <RootNamespace>HotChocolate.Data</RootNamespace>
     <Description>Contains extensions for easier integration of AutoMapper into HotChocolate</Description>
+    <NuGetAudit>false</NuGetAudit>
   </PropertyGroup>
 
   <ItemGroup>
