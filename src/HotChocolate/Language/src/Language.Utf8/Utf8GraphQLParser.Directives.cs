@@ -64,7 +64,7 @@ public ref partial struct Utf8GraphQLParser
         throw Unexpected(kind);
     }
 
-    private List<DirectiveNode> ParseDirectives(bool isConstant)
+    private List<DirectiveNode> ParseDirectives(bool isConstant, bool isQueryLocation = false)
     {
         if (_reader.Kind == TokenKind.At)
         {
@@ -74,7 +74,7 @@ public ref partial struct Utf8GraphQLParser
             {
                 list.Add(ParseDirective(isConstant));
 
-                if (list.Count > _maxAllowedDirectives)
+                if (isQueryLocation && list.Count > _maxAllowedDirectives)
                 {
                     throw new SyntaxException(
                         _reader,
