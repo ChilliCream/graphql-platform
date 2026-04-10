@@ -293,6 +293,7 @@ internal sealed class FusionRequestExecutorManager
             maxAllowedNodes: options.MaxAllowedNodes,
             maxAllowedTokens: options.MaxAllowedTokens,
             maxAllowedFields: options.MaxAllowedFields,
+            maxAllowedDirectives: options.MaxAllowedDirectives,
             maxAllowedRecursionDepth: options.MaxAllowedRecursionDepth);
     }
 

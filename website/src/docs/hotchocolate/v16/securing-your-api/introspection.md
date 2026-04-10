@@ -58,7 +58,9 @@ While these fields can be useful to you directly, they are mainly intended for d
 
 # Disabling Introspection
 
-While introspection is a powerful feature that can improve your development workflow, it can also be used as an attack vector. A malicious user could request all details about all types in your GraphQL server. Depending on the number of types, this can degrade performance. If your API should not be browsable by other developers, you have the option to disable introspection.
+While introspection is a powerful feature that can improve your development workflow, it can also be used as an attack vector. Recursive introspection queries (e.g., deeply nested `__Type.ofType` or `__Type.fields` chains) can consume significant server resources.
+
+Note that disabling introspection is not about hiding your schema. When using `MapGraphQL`, the schema is available as a static file at `/graphql/schema.graphql`. This file is computed once and has no performance impact. The purpose of disabling introspection is to prevent expensive recursive queries against production systems.
 
 Disable introspection by calling `AllowIntrospection()` with a `false` argument on the `IRequestExecutorBuilder`:
 
