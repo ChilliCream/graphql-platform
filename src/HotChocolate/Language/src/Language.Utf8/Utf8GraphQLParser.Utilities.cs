@@ -28,6 +28,25 @@ public ref partial struct Utf8GraphQLParser
     internal bool MoveNext() => _reader.MoveNext();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void IncreaseDepth()
+    {
+        if (++_recursionDepth > _maxAllowedRecursionDepth)
+        {
+            throw new SyntaxException(
+                _reader,
+                string.Format(
+                    Utf8GraphQLParser_Start_MaxAllowedRecursionDepthReached,
+                    _maxAllowedRecursionDepth));
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void DecreaseDepth()
+    {
+        --_recursionDepth;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private TokenInfo Start()
     {
         if (++_parsedNodes > _maxAllowedNodes)
