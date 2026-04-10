@@ -96,9 +96,12 @@ public static class RequestExecutorServiceCollectionExtensions
 
                 return new ParserOptions(
                     noLocations: !options.IncludeLocations,
+                    allowFragmentVariables: false,
                     maxAllowedNodes: options.MaxAllowedNodes,
                     maxAllowedTokens: options.MaxAllowedTokens,
-                    maxAllowedFields: options.MaxAllowedFields);
+                    maxAllowedFields: options.MaxAllowedFields,
+                    maxAllowedDirectives: options.MaxAllowedDirectives,
+                    maxAllowedRecursionDepth: options.MaxAllowedRecursionDepth);
             });
 
         return services;
