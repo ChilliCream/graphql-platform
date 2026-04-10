@@ -203,6 +203,14 @@ internal static class ThrowHelper
                     dataLoaderType.FullName ?? dataLoaderType.Name)
                 .Build());
 
+    public static SchemaException KeyValuePairType_InvalidRuntimeType(string typeName)
+        => new SchemaException(
+            SchemaErrorBuilder.New()
+                .SetMessage(
+                    ThrowHelper_KeyValuePairType_InvalidRuntimeType,
+                    typeName)
+                .Build());
+
     public static SchemaException NonGenericExecutableNotAllowed()
         => new SchemaException(
             SchemaErrorBuilder
@@ -354,7 +362,7 @@ internal static class ThrowHelper
                 .SetInputPath(path)
                 .SetExtension(
                     "specifiedBy",
-                    "https://spec.graphql.org/June2018/#sec-Type-System.List")
+                    "https://spec.graphql.org/September2025/#sec-List")
                 .Build(),
             type,
             path);

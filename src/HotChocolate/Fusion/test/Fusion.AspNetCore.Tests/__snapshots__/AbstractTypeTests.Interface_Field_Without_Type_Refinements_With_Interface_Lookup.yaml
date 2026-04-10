@@ -1,0 +1,149 @@
+title: Interface_Field_Without_Type_Refinements_With_Interface_Lookup
+request:
+  document: |
+    {
+      votable {
+        id
+        viewerCanVote
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "votable": {
+          "id": "RGlzY3Vzc2lvbjox",
+          "viewerCanVote": true
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Votable @key(fields: "id") {
+        id: ID!
+      }
+
+      type Discussion implements Votable @key(fields: "id") {
+        id: ID!
+      }
+
+      type Query {
+        votable: Votable
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_fb4e28df_1 {
+              votable {
+                __typename
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "votable": {
+                    "__typename": "Discussion",
+                    "id": "RGlzY3Vzc2lvbjox"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Votable {
+        id: ID!
+        viewerCanVote: Boolean!
+      }
+
+      type Discussion implements Votable {
+        id: ID!
+        viewerCanVote: Boolean!
+      }
+
+      type Query {
+        votableById(id: ID!): Votable @lookup
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_fb4e28df_2($__fusion_1_id: ID!) {
+              votableById(id: $__fusion_1_id) {
+                __typename
+                ... on Discussion {
+                  viewerCanVote
+                }
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "RGlzY3Vzc2lvbjox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "votableById": {
+                    "__typename": "Discussion",
+                    "viewerCanVote": true
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          votable {
+            __typename @fusion__requirement
+            id
+            id @fusion__requirement
+            viewerCanVote
+          }
+        }
+      hash: fb4e28df20f489a10c0f71a560445d04
+      searchSpace: 2
+      expandedNodes: 3
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_fb4e28df_1 {
+          votable {
+            __typename
+            id
+          }
+        }
+    - id: 2
+      type: Operation
+      schema: B
+      operation: |
+        query Op_fb4e28df_2($__fusion_1_id: ID!) {
+          votableById(id: $__fusion_1_id) {
+            __typename
+            ... on Discussion {
+              viewerCanVote
+            }
+          }
+        }
+      source: $.votableById<Discussion>
+      target: $.votable<Discussion>
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

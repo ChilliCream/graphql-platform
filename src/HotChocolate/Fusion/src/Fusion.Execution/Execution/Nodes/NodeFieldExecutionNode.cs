@@ -10,6 +10,7 @@ public sealed class NodeFieldExecutionNode : ExecutionNode
 {
     private readonly Dictionary<string, ExecutionNode> _branches = [];
     private ExecutionNode _fallbackQuery = null!;
+    private readonly ResultSelectionSet _resultSelectionSet;
     private readonly string _responseName;
     private readonly IValueNode _idValue;
     private readonly ExecutionNodeCondition[] _conditions;
@@ -21,6 +22,8 @@ public sealed class NodeFieldExecutionNode : ExecutionNode
         ExecutionNodeCondition[] conditions)
     {
         _responseName = responseName;
+        var resultSelectionSet = new SelectionSetNode([new FieldNode(responseName)]);
+        _resultSelectionSet = ResultSelectionSet.Create(resultSelectionSet);
         _idValue = idValue;
         Id = id;
         _conditions = conditions;
@@ -82,14 +85,14 @@ public sealed class NodeFieldExecutionNode : ExecutionNode
                 .SetExtension("originalValue", id)
                 .Build();
 
-            context.AddErrors(error, [_responseName], Path.Root);
+            context.AddErrors(error, _resultSelectionSet, Path.Root);
 
             return ValueTask.FromResult(ExecutionStatus.Failed);
         }
 
         if (_branches.TryGetValue(typeName, out var operation))
         {
-            // We have a branch and we select it for exclusive execution
+            // We have a branch, and we select it for exclusive execution
             EnqueueDependentForExecution(context, operation);
 
             return ValueTask.FromResult(ExecutionStatus.Success);
@@ -115,7 +118,7 @@ public sealed class NodeFieldExecutionNode : ExecutionNode
         }
     }
 
-    protected override IDisposable? CreateScope(OperationPlanContext context)
+    protected override IDisposable CreateScope(OperationPlanContext context)
         => context.DiagnosticEvents.ExecuteNodeFieldNode(context, this);
 
     internal void AddBranch(string objectTypeName, ExecutionNode node)

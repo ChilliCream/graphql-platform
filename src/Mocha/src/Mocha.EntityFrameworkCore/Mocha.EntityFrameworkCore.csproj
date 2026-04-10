@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Mocha.Abstractions\Mocha.Abstractions.csproj" />
+    <ProjectReference Include="..\Mocha.Mediator\Mocha.Mediator.csproj" />
     <ProjectReference Include="..\Mocha.Outbox\Mocha.Outbox.csproj" />
     <ProjectReference Include="..\Mocha\Mocha.csproj" />
   </ItemGroup>

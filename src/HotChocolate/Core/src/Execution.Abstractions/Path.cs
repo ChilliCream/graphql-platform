@@ -131,7 +131,7 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
     {
         if (this is RootPathSegment)
         {
-            return "/";
+            return string.Empty;
         }
 
         // On first pass we calculate the total length
@@ -147,7 +147,11 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
                     break;
 
                 case NamePathSegment name:
-                    totalLength += 1 + name.Name.Length; // '/' + name
+                    totalLength += name.Name.Length;
+                    if (current.Parent is not RootPathSegment)
+                    {
+                        totalLength++;
+                    }
                     break;
 
                 default:
@@ -158,10 +162,13 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
         }
 
         // On second pass we fill from right to left using string.Create
-        return string.Create(totalLength, this, static (span, path) =>
+        return string.Create(
+            totalLength,
+            this,
+            static (span, state) =>
         {
             var pos = span.Length;
-            var current = path;
+            var current = state;
 
             while (current is not RootPathSegment)
             {
@@ -188,7 +195,10 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
                     case NamePathSegment name:
                         pos -= name.Name.Length;
                         name.Name.AsSpan().CopyTo(span[pos..]);
-                        span[--pos] = '/';
+                        if (current.Parent is not RootPathSegment)
+                        {
+                            span[--pos] = '.';
+                        }
                         break;
                 }
 
@@ -253,12 +263,12 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
     }
 
     /// <summary>
-    /// Creates a new list representing the current <see cref="Path"/>.
+    /// Copies the segments of the current <see cref="Path"/> into the provided span.
     /// </summary>
-    /// <returns>
-    /// Returns a new list representing the current <see cref="Path"/>.
-    /// </returns>
-    public void ToList(Span<object> path)
+    /// <param name="path">
+    /// The destination span. Must be at least <see cref="Length"/> elements long.
+    /// </param>
+    public void CopyTo(Span<object> path)
     {
         if (IsRoot)
         {
@@ -273,7 +283,7 @@ public abstract class Path : IEquatable<Path>, IComparable<Path>
         }
 
         var current = this;
-        var length = path.Length;
+        var length = Length;
 
         while (!current.IsRoot)
         {

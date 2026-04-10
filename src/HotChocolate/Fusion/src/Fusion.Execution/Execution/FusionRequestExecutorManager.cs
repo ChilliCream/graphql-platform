@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.IO.Hashing;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Channels;
@@ -227,7 +228,10 @@ internal sealed class FusionRequestExecutorManager
 
         var documentProvider = documentProviderFactory.Invoke(_applicationServices);
         var documentPromise = new TaskCompletionSource<FusionConfiguration>();
-        using var subscription = documentProvider.Subscribe(s => documentPromise.TrySetResult(s));
+        using var subscription = documentProvider.Subscribe(
+            onNext: s => documentPromise.TrySetResult(s),
+            onError: ex => documentPromise.TrySetException(ex),
+            onCompleted: () => documentPromise.TrySetCanceled());
         await using var cancellation = cancellationToken.Register(() => documentPromise.TrySetCanceled());
         return (await documentPromise.Task.ConfigureAwait(false), documentProvider);
     }
@@ -288,7 +292,9 @@ internal sealed class FusionRequestExecutorManager
             allowFragmentVariables: false,
             maxAllowedNodes: options.MaxAllowedNodes,
             maxAllowedTokens: options.MaxAllowedTokens,
-            maxAllowedFields: options.MaxAllowedFields);
+            maxAllowedFields: options.MaxAllowedFields,
+            maxAllowedDirectives: options.MaxAllowedDirectives,
+            maxAllowedRecursionDepth: options.MaxAllowedRecursionDepth);
     }
 
     private SourceSchemaClientConfigurations CreateClientConfigurations(
@@ -305,23 +311,7 @@ internal sealed class FusionRequestExecutorManager
                 {
                     if (transports.TryGetProperty("http", out var http))
                     {
-                        var clientName = SourceSchemaHttpClientConfiguration.DefaultClientName;
-
-                        if (http.TryGetProperty("clientName", out var clientNameProperty)
-                            && clientNameProperty.ValueKind is JsonValueKind.String
-                            && clientNameProperty.GetString() is { } customClientName
-                            && !string.IsNullOrEmpty(customClientName))
-                        {
-                            clientName = customClientName;
-                        }
-
-                        var httpClient = new SourceSchemaHttpClientConfiguration(
-                            name: sourceSchema.Name,
-                            httpClientName: clientName,
-                            baseAddress: new Uri(http.GetProperty("url").GetString()!),
-                            batchingMode: GetBatchingMode(http));
-
-                        configurations.Add(httpClient);
+                        configurations.Add(CreateHttpClientConfiguration(sourceSchema.Name, http));
                     }
                 }
             }
@@ -335,17 +325,100 @@ internal sealed class FusionRequestExecutorManager
         return new SourceSchemaClientConfigurations(configurations);
     }
 
-    private static SourceSchemaHttpClientBatchingMode GetBatchingMode(JsonElement httpSettings)
+    private static SourceSchemaHttpClientConfiguration CreateHttpClientConfiguration(
+        string schemaName,
+        JsonElement http)
     {
-        if (httpSettings.TryGetProperty("batchingMode", out var batchingMode)
-            && batchingMode.ValueKind == JsonValueKind.String
-            && batchingMode.GetString() == "REQUEST_BATCHING")
+        var clientName = SourceSchemaHttpClientConfiguration.DefaultClientName;
+        var capabilities = SourceSchemaClientCapabilities.All;
+        var supportedOperations = SupportedOperationType.All;
+        ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null;
+        ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null;
+        ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null;
+
+        if (http.TryGetProperty("clientName", out var clientNameProperty)
+            && clientNameProperty.ValueKind is JsonValueKind.String
+            && clientNameProperty.GetString() is { } customClientName
+            && !string.IsNullOrEmpty(customClientName))
         {
-            return SourceSchemaHttpClientBatchingMode.ApolloRequestBatching;
+            clientName = customClientName;
         }
 
-        return SourceSchemaHttpClientBatchingMode.VariableBatching
-            | SourceSchemaHttpClientBatchingMode.RequestBatching;
+        if (http.TryGetProperty("capabilities", out var capabilitiesElement))
+        {
+            if (capabilitiesElement.TryGetProperty("standard", out var standard))
+            {
+                if (standard.TryGetProperty("formats", out var formats))
+                {
+                    var builder = ImmutableArray.CreateBuilder<MediaTypeWithQualityHeaderValue>();
+
+                    foreach (var format in formats.EnumerateArray())
+                    {
+                        builder.Add(MediaTypeWithQualityHeaderValue.Parse(format.GetString()!));
+                    }
+
+                    defaultAcceptHeaderValues = builder.ToImmutable();
+                }
+            }
+
+            if (capabilitiesElement.TryGetProperty("batching", out var batchingElement))
+            {
+                if (batchingElement.TryGetProperty("variableBatching", out var supported)
+                    && !supported.GetBoolean())
+                {
+                    capabilities &= ~SourceSchemaClientCapabilities.VariableBatching;
+                }
+
+                if (batchingElement.TryGetProperty("requestBatching", out supported)
+                    && !supported.GetBoolean())
+                {
+                    capabilities &= ~SourceSchemaClientCapabilities.RequestBatching;
+                }
+
+                if (batchingElement.TryGetProperty("formats", out var formats))
+                {
+                    var builder = ImmutableArray.CreateBuilder<MediaTypeWithQualityHeaderValue>();
+
+                    foreach (var format in formats.EnumerateArray())
+                    {
+                        builder.Add(MediaTypeWithQualityHeaderValue.Parse(format.GetString()!));
+                    }
+
+                    batchingAcceptHeaderValues = builder.ToImmutable();
+                }
+            }
+
+            if (capabilitiesElement.TryGetProperty("subscriptions", out var subscriptionsElement))
+            {
+                if (subscriptionsElement.TryGetProperty("supported", out var supported)
+                    && !supported.GetBoolean())
+                {
+                    supportedOperations &= ~SupportedOperationType.Subscription;
+                }
+
+                if (subscriptionsElement.TryGetProperty("formats", out var formats))
+                {
+                    var builder = ImmutableArray.CreateBuilder<MediaTypeWithQualityHeaderValue>();
+
+                    foreach (var format in formats.EnumerateArray())
+                    {
+                        builder.Add(MediaTypeWithQualityHeaderValue.Parse(format.GetString()!));
+                    }
+
+                    subscriptionAcceptHeaderValues = builder.ToImmutable();
+                }
+            }
+        }
+
+        return new SourceSchemaHttpClientConfiguration(
+            name: schemaName,
+            httpClientName: clientName,
+            baseAddress: new Uri(http.GetProperty("url").GetString()!),
+            supportedOperations: supportedOperations,
+            capabilities: capabilities,
+            defaultAcceptHeaderValues: defaultAcceptHeaderValues,
+            batchingAcceptHeaderValues: batchingAcceptHeaderValues,
+            subscriptionAcceptHeaderValues: subscriptionAcceptHeaderValues);
     }
 
     private FeatureCollection CreateSchemaFeatures(
@@ -636,8 +709,9 @@ internal sealed class FusionRequestExecutorManager
             _settingsHash = XxHash64.HashToUInt64(GetRawUtf8Value(configuration.Settings.Document.RootElement));
 
             _documentProviderSubscription = documentProvider.Subscribe(
-                OnDocumentChanged,
-                () => _channel.Writer.TryComplete());
+                onNext: OnDocumentChanged,
+                onError: ex => _channel.Writer.TryComplete(ex),
+                onCompleted: () => _channel.Writer.TryComplete());
 
             DocumentProvider = documentProvider;
             Executor = executor;

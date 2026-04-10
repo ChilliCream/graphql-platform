@@ -1,9 +1,7 @@
 title: Root_Skip_Only_On_Some_Fields_Of_Same_Source_Schema
 request:
   document: |
-    query testQuery(
-      $skip: Boolean!
-    ) {
+    query testQuery($skip: Boolean!) {
       productBySlug(slug: "product") @skip(if: $skip) {
         name
       }
@@ -46,10 +44,9 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_d58c3d50_1(
-              $skip: Boolean!
-            ) {
+            query testQuery_d58c3d50_1($skip: Boolean!) {
               viewer {
                 name
               }
@@ -74,9 +71,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $skip: Boolean!
-        ) {
+        query testQuery($skip: Boolean!) {
           viewer {
             name
           }
@@ -93,9 +88,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_d58c3d50_1(
-          $skip: Boolean!
-        ) {
+        query testQuery_d58c3d50_1($skip: Boolean!) {
           viewer {
             name
           }

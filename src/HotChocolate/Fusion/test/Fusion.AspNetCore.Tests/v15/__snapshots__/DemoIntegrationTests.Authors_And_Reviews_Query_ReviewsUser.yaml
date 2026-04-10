@@ -157,7 +157,7 @@ sourceSchemas:
         nodes(ids: [ID!]!): [Node]! @shareable
         userById(id: ID!): User!
         users: [User!]!
-        testWithTwoArgumentsDifferingNullability(first: Int! second: Int): String!
+        testWithTwoArgumentsDifferingNullability(first: Int!, second: Int): String!
       }
 
       type User implements Node {
@@ -168,6 +168,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query GetUser_c03cccb0_2 {
               users {
@@ -197,10 +198,9 @@ sourceSchemas:
                 }
               }
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query GetUser_c03cccb0_4(
-              $__fusion_2_id: ID!
-            ) {
+            query GetUser_c03cccb0_4($__fusion_2_id: ID!) {
               node(id: $__fusion_2_id) {
                 __typename
                 ... on User {
@@ -236,6 +236,15 @@ sourceSchemas:
               },
               {
                 "__fusion_2_id": "VXNlcjoxMg=="
+              },
+              {
+                "__fusion_2_id": "VXNlcjo3"
+              },
+              {
+                "__fusion_2_id": "VXNlcjo4"
+              },
+              {
+                "__fusion_2_id": "VXNlcjo5"
               }
             ]
         response:
@@ -322,42 +331,6 @@ sourceSchemas:
                   }
                 }
               }
-      - request:
-          document: |
-            query GetUser_c03cccb0_5(
-              $__fusion_3_id: ID!
-            ) {
-              node(id: $__fusion_3_id) {
-                __typename
-                ... on User {
-                  name
-                }
-              }
-            }
-          variables: |
-            [
-              {
-                "__fusion_3_id": "VXNlcjo3"
-              },
-              {
-                "__fusion_3_id": "VXNlcjo4"
-              },
-              {
-                "__fusion_3_id": "VXNlcjo5"
-              },
-              {
-                "__fusion_3_id": "VXNlcjoxMA=="
-              },
-              {
-                "__fusion_3_id": "VXNlcjoxMQ=="
-              },
-              {
-                "__fusion_3_id": "VXNlcjoxMg=="
-              }
-            ]
-        response:
-          contentType: application/jsonl; charset=utf-8
-          results:
             - |
               {
                 "data": {
@@ -382,33 +355,6 @@ sourceSchemas:
                   "node": {
                     "__typename": "User",
                     "name": "User: VXNlcjo5"
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "node": {
-                    "__typename": "User",
-                    "name": "User: VXNlcjoxMA=="
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "node": {
-                    "__typename": "User",
-                    "name": "User: VXNlcjoxMQ=="
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "node": {
-                    "__typename": "User",
-                    "name": "User: VXNlcjoxMg=="
                   }
                 }
               }
@@ -448,6 +394,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query GetUser_c03cccb0_1 {
               a: reviews {
@@ -511,10 +458,9 @@ sourceSchemas:
                 }
               }
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query GetUser_c03cccb0_3(
-              $__fusion_1_id: ID!
-            ) {
+            query GetUser_c03cccb0_3($__fusion_1_id: ID!) {
               node(id: $__fusion_1_id) {
                 __typename
                 ... on User {
@@ -693,9 +639,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query GetUser_c03cccb0_3(
-          $__fusion_1_id: ID!
-        ) {
+        query GetUser_c03cccb0_3($__fusion_1_id: ID!) {
           node(id: $__fusion_1_id) {
             __typename
             ... on User {
@@ -717,12 +661,10 @@ operationPlan:
       dependencies:
         - id: 2
     - id: 4
-      type: Operation
+      type: OperationBatch
       schema: A
       operation: |
-        query GetUser_c03cccb0_4(
-          $__fusion_2_id: ID!
-        ) {
+        query GetUser_c03cccb0_4($__fusion_2_id: ID!) {
           node(id: $__fusion_2_id) {
             __typename
             ... on User {
@@ -731,35 +673,15 @@ operationPlan:
           }
         }
       source: $.node<User>
-      target: $.users.reviews.author
+      targets:
+        - $.users.reviews.author
+        - $.b.author
+        - $.a.author
+      batchingGroupId: 4
       requirements:
         - name: __fusion_2_id
           selectionMap: >-
             id
       dependencies:
-        - id: 3
-    - id: 5
-      type: OperationBatch
-      schema: A
-      operation: |
-        query GetUser_c03cccb0_5(
-          $__fusion_3_id: ID!
-        ) {
-          node(id: $__fusion_3_id) {
-            __typename
-            ... on User {
-              name
-            }
-          }
-        }
-      source: $.node<User>
-      targets:
-        - $.b.author
-        - $.a.author
-      batchingGroupId: 1
-      requirements:
-        - name: __fusion_3_id
-          selectionMap: >-
-            id
-      dependencies:
         - id: 1
+        - id: 3

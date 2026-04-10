@@ -18,7 +18,7 @@ internal sealed class InMemoryTopicDescriptor
     }
 
     /// <inheritdoc />
-    protected override InMemoryTopicConfiguration Configuration { get; set; }
+    protected internal override InMemoryTopicConfiguration Configuration { get; protected set; }
 
     /// <inheritdoc />
     public IInMemoryTopicDescriptor Name(string name)

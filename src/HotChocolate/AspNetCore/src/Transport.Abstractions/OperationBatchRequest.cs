@@ -1,24 +1,88 @@
+#if FUSION
+using System.Collections.Immutable;
+using HotChocolate.Text.Json;
+using HotChocolate.Fusion.Transport.Http;
+using HotChocolate.Fusion.Transport.Serialization;
+
+namespace HotChocolate.Fusion.Transport;
+#else
+using System.Collections.Immutable;
 using System.Text.Json;
 using HotChocolate.Transport.Serialization;
 
 namespace HotChocolate.Transport;
+#endif
 
 /// <summary>
 /// Represents a GraphQL batch request that can be sent over a WebSocket or HTTP connection.
 /// </summary>
-/// <param name="requests">
-/// A list of operation requests to execute.
-/// </param>
-public readonly struct OperationBatchRequest(
-    IReadOnlyList<IOperationRequest> requests)
+public readonly struct OperationBatchRequest
     : IRequestBody
     , IEquatable<OperationBatchRequest>
 {
+#if FUSION
+    /// <summary>
+    /// Initializes a new instance of <see cref="OperationBatchRequest"/> with the specified
+    /// immutable array of operation requests.
+    /// </summary>
+    /// <param name="requests">
+    /// The requests of this batch.
+    /// </param>
+    /// <param name="fileMap">
+    /// The file map entries for multipart file uploads. Default is empty.
+    /// </param>
+    public OperationBatchRequest(
+        ImmutableArray<IOperationRequest> requests,
+        ImmutableArray<FileEntry> fileMap = default)
+    {
+        if (requests.IsDefaultOrEmpty)
+        {
+            throw new ArgumentException(
+                "The batch request must contain at least one operation.",
+                nameof(requests));
+        }
+
+        Requests = requests;
+        FileMap = fileMap;
+    }
+#else
+    /// <summary>
+    /// Initializes a new instance of <see cref="OperationBatchRequest"/> with the specified
+    /// immutable array of operation requests.
+    /// </summary>
+    /// <param name="requests">
+    /// The requests of this batch.
+    /// </param>
+    /// <exception cref="ArgumentException">
+    /// Thrown if <paramref name="requests"/> is default or empty.
+    /// </exception>
+    public OperationBatchRequest(ImmutableArray<IOperationRequest> requests)
+    {
+        if (requests.IsDefaultOrEmpty)
+        {
+            throw new ArgumentException(
+                "The batch request must contain at least one operation.",
+                nameof(requests));
+        }
+
+        Requests = requests;
+    }
+#endif
+
     /// <summary>
     /// Gets the list of operation requests to execute.
     /// </summary>
-    public IReadOnlyList<IOperationRequest> Requests { get; } =
-        requests ?? throw new ArgumentNullException(nameof(requests));
+    public ImmutableArray<IOperationRequest> Requests { get; }
+
+#if FUSION
+    /// <summary>
+    /// Gets the file map entries for multipart file uploads.
+    /// Each entry maps a file key in the variable JSON to the actual file stream,
+    /// enabling the transport layer to construct the multipart form per the
+    /// GraphQL multipart request specification.
+    /// </summary>
+    public ImmutableArray<FileEntry> FileMap { get; }
+#endif
 
     /// <summary>
     /// Writes the request to the specified <paramref name="writer"/>.
@@ -29,7 +93,11 @@ public readonly struct OperationBatchRequest(
     /// <exception cref="ArgumentNullException">
     /// Thrown if the <paramref name="writer"/> is <see langword="null"/>.
     /// </exception>
+#if FUSION
+    public void WriteTo(JsonWriter writer)
+#else
     public void WriteTo(Utf8JsonWriter writer)
+#endif
     {
         ArgumentNullException.ThrowIfNull(writer);
 
@@ -50,12 +118,12 @@ public readonly struct OperationBatchRequest(
     /// </returns>
     public bool Equals(OperationBatchRequest other)
     {
-        if (Requests.Count != other.Requests.Count)
+        if (Requests.Length != other.Requests.Length)
         {
             return false;
         }
 
-        for (var i = 0; i < Requests.Count; i++)
+        for (var i = 0; i < Requests.Length; i++)
         {
             if (!Requests[i].Equals(other.Requests[i]))
             {

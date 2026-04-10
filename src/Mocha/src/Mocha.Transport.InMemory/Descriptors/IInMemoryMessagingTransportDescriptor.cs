@@ -64,26 +64,32 @@ public interface IInMemoryMessagingTransportDescriptor : IMessagingTransportDesc
     new IInMemoryMessagingTransportDescriptor IsDefaultTransport();
 
     /// <inheritdoc />
-    new IInMemoryMessagingTransportDescriptor UseDispatch(DispatchMiddlewareConfiguration configuration);
+    new IInMemoryMessagingTransportDescriptor UseDispatch(
+        DispatchMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null);
 
     /// <inheritdoc />
-    new IInMemoryMessagingTransportDescriptor AppendDispatch(
-        string after,
-        DispatchMiddlewareConfiguration configuration);
+    new IInMemoryMessagingTransportDescriptor UseReceive(
+        ReceiveMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null);
 
-    /// <inheritdoc />
-    new IInMemoryMessagingTransportDescriptor PrependDispatch(
-        string before,
-        DispatchMiddlewareConfiguration configuration);
+    /// <summary>
+    /// Claims a handler for this in-memory transport and returns a configurator for its receive endpoint.
+    /// The handler will be bound to a convention-named endpoint on this transport during initialization.
+    /// </summary>
+    /// <typeparam name="THandler">The handler type implementing <see cref="IHandler"/>.</typeparam>
+    /// <returns>A configurator that allows configuring the handler's receive endpoint.</returns>
+    IMessagingTransportHandlerDescriptor<IInMemoryReceiveEndpointDescriptor> Handler<THandler>()
+        where THandler : class, IHandler;
 
-    /// <inheritdoc />
-    new IInMemoryMessagingTransportDescriptor UseReceive(ReceiveMiddlewareConfiguration configuration);
-
-    /// <inheritdoc />
-    new IInMemoryMessagingTransportDescriptor AppendReceive(string after, ReceiveMiddlewareConfiguration configuration);
-
-    /// <inheritdoc />
-    new IInMemoryMessagingTransportDescriptor PrependReceive(
-        string before,
-        ReceiveMiddlewareConfiguration configuration);
+    /// <summary>
+    /// Claims a consumer for this in-memory transport and returns a configurator for its receive endpoint.
+    /// The consumer will be bound to a convention-named endpoint on this transport during initialization.
+    /// </summary>
+    /// <typeparam name="TConsumer">The consumer type implementing <see cref="IConsumer"/>.</typeparam>
+    /// <returns>A configurator that allows configuring the consumer's receive endpoint.</returns>
+    IMessagingTransportConsumerDescriptor<IInMemoryReceiveEndpointDescriptor> Consumer<TConsumer>()
+        where TConsumer : class, IConsumer;
 }

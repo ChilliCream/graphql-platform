@@ -38,14 +38,15 @@ public class InboxTests
             .UseInboxCore();
 
         builder.ConfigureMessageBus(h =>
-            h.PrependDispatch(new DispatchMiddlewareConfiguration(
+            h.UseDispatch(new DispatchMiddlewareConfiguration(
                 (_, next) =>
                     ctx =>
                     {
                         ctx.MessageId = fixedMessageId;
                         return next(ctx);
                     },
-                "ForceMessageId")));
+                "ForceMessageId"),
+                before: "Instrumentation"));
 
         await using var bus = await builder
             .AddRabbitMQ()
@@ -59,7 +60,7 @@ public class InboxTests
 
         // Wait for the first message to be fully processed and recorded in the inbox
         Assert.True(await recorder.WaitAsync(s_timeout), "Handler did not receive the first event within timeout");
-        await WaitUntilAsync(() => inbox.RecordedEnvelopes.Count >= 1, s_timeout);
+        await WaitUntilAsync(() => !inbox.RecordedEnvelopes.IsEmpty, s_timeout);
 
         await messageBus.PublishAsync(new InboxEvent { Payload = "second" }, CancellationToken.None);
 
@@ -128,18 +129,18 @@ public class InboxTests
         builder.ConfigureMessageBus(h =>
         {
             // Force all messages to have the same MessageId
-            h.PrependDispatch(new DispatchMiddlewareConfiguration(
+            h.UseDispatch(new DispatchMiddlewareConfiguration(
                 (_, next) =>
                     ctx =>
                     {
                         ctx.MessageId = fixedMessageId;
                         return next(ctx);
                     },
-                "ForceMessageId"));
+                "ForceMessageId"),
+                before: "Instrumentation");
 
             // Add a consumer middleware before the inbox that sets SkipInbox
-            h.PrependConsume(
-                "Inbox",
+            h.UseConsume(
                 new ConsumerMiddlewareConfiguration(
                     static (_, next) =>
                         ctx =>
@@ -148,7 +149,8 @@ public class InboxTests
                             feature.SkipInbox = true;
                             return next(ctx);
                         },
-                    "SkipInboxCheck"));
+                    "SkipInboxCheck"),
+                before: "Inbox");
         });
 
         await using var bus = await builder
@@ -189,14 +191,15 @@ public class InboxTests
             .UseInboxCore();
 
         builder.ConfigureMessageBus(h =>
-            h.PrependDispatch(new DispatchMiddlewareConfiguration(
+            h.UseDispatch(new DispatchMiddlewareConfiguration(
                 (_, next) =>
                     ctx =>
                     {
                         ctx.MessageId = null;
                         return next(ctx);
                     },
-                "ClearMessageId")));
+                "ClearMessageId"),
+                before: "Instrumentation"));
 
         await using var bus = await builder
             .AddRabbitMQ()

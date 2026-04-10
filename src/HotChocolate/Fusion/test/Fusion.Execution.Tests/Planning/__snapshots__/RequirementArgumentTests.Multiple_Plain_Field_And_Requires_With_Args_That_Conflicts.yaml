@@ -27,17 +27,14 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_otherField: String!
-          $__fusion_2_id: ID!
-      ) {
+      query Op_123456789101112_2($__fusion_1_otherField: String!, $__fusion_2_id: ID!) {
         testById(id: $__fusion_2_id) {
           anotherWithRequiresAndArgs(otherField: $__fusion_1_otherField)
         }
       }
     source: $.testById
     target: $.test
-    batchingGroupId: 1
+    batchingGroupId: 2
     requirements:
       - name: __fusion_1_otherField
         selectionMap: >-
@@ -48,62 +45,18 @@ nodes:
     dependencies:
       - id: 3
       - id: 4
-  - id: 3
-    type: Operation
-    schema: b
-    operation: |
-      query Op_123456789101112_3(
-        $__fusion_3_id: ID!
-      ) {
-        testById(id: $__fusion_3_id) {
-          otherField
-          id
-        }
-      }
-    source: $.testById
-    target: $.test
-    batchingGroupId: 2
-    requirements:
-      - name: __fusion_3_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 1
-  - id: 4
-    type: Operation
-    schema: b
-    operation: |
-      query Op_123456789101112_4(
-        $__fusion_4_id: ID!
-      ) {
-        testById(id: $__fusion_4_id) {
-          id
-        }
-      }
-    source: $.testById
-    target: $.test
-    batchingGroupId: 2
-    requirements:
-      - name: __fusion_4_id
-        selectionMap: >-
-          id
-    dependencies:
-      - id: 1
   - id: 5
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_5(
-        $__fusion_5_otherField: String!
-          $__fusion_6_id: ID!
-      ) {
+      query Op_123456789101112_5($__fusion_5_otherField: String!, $__fusion_6_id: ID!) {
         testById(id: $__fusion_6_id) {
           fieldWithRequiresAndArgs(otherField: $__fusion_5_otherField)
         }
       }
     source: $.testById
     target: $.test
-    batchingGroupId: 1
+    batchingGroupId: 2
     requirements:
       - name: __fusion_5_otherField
         selectionMap: >-
@@ -114,20 +67,55 @@ nodes:
     dependencies:
       - id: 3
       - id: 6
+  - id: 3
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_3($__fusion_3_id: ID!) {
+        testById(id: $__fusion_3_id) {
+          otherField
+          id
+        }
+      }
+    source: $.testById
+    target: $.test
+    batchingGroupId: 3
+    requirements:
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
+  - id: 4
+    type: Operation
+    schema: b
+    operation: |
+      query Op_123456789101112_4($__fusion_4_id: ID!) {
+        testById(id: $__fusion_4_id) {
+          id
+        }
+      }
+    source: $.testById
+    target: $.test
+    batchingGroupId: 3
+    requirements:
+      - name: __fusion_4_id
+        selectionMap: >-
+          id
+    dependencies:
+      - id: 1
   - id: 6
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_6(
-        $__fusion_7_id: ID!
-      ) {
+      query Op_123456789101112_6($__fusion_7_id: ID!) {
         testById(id: $__fusion_7_id) {
           otherField
         }
       }
     source: $.testById
     target: $.test
-    batchingGroupId: 2
+    batchingGroupId: 3
     requirements:
       - name: __fusion_7_id
         selectionMap: >-
@@ -138,16 +126,14 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_7(
-        $__fusion_8_id: ID!
-      ) {
+      query Op_123456789101112_7($__fusion_8_id: ID!) {
         testById(id: $__fusion_8_id) {
           otherField(arg: 1)
         }
       }
     source: $.testById
     target: $.test
-    batchingGroupId: 2
+    batchingGroupId: 3
     requirements:
       - name: __fusion_8_id
         selectionMap: >-

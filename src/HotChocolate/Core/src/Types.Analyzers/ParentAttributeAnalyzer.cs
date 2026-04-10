@@ -178,8 +178,7 @@ public sealed class ParentAttributeAnalyzer : DiagnosticAnalyzer
             if (fullName is "System.Collections.Generic.List<T>"
                 or "System.Collections.Generic.IList<T>"
                 or "System.Collections.Generic.IReadOnlyList<T>"
-                or "System.Collections.Generic.ICollection<T>"
-                or "System.Collections.Generic.IEnumerable<T>")
+                or "System.Collections.Immutable.ImmutableArray<T>")
             {
                 return namedType.TypeArguments[0];
             }

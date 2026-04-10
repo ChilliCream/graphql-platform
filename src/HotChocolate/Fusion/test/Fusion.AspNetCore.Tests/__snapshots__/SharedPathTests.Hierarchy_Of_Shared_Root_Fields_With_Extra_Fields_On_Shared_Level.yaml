@@ -80,6 +80,7 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_2deb87e6_1 {
               viewer {
@@ -153,6 +154,7 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           kind: OperationBatch
           items:
             - document: |
@@ -205,6 +207,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_2deb87e6_3 {
               viewer {
@@ -260,16 +263,7 @@ operationPlan:
             schema2
           }
         }
-      batchingGroupId: 1
-    - id: 3
-      type: Operation
-      schema: C
-      operation: |
-        query Op_2deb87e6_3 {
-          viewer {
-            schema3
-          }
-        }
+      batchingGroupId: 2
     - id: 4
       type: Operation
       schema: B
@@ -281,4 +275,13 @@ operationPlan:
             }
           }
         }
-      batchingGroupId: 1
+      batchingGroupId: 2
+    - id: 3
+      type: Operation
+      schema: C
+      operation: |
+        query Op_2deb87e6_3 {
+          viewer {
+            schema3
+          }
+        }

@@ -70,5 +70,21 @@ public class OrderPlacedEventHandler(
             cancellationToken);
 
         logger.LogInformation("PaymentCompletedEvent published for order {OrderId}", message.OrderId);
+
+        // Schedule a payment reminder 30 seconds from now
+        await messageBus.SchedulePublishAsync(
+            new PaymentReminderEvent
+            {
+                InvoiceId = invoice.Id,
+                OrderId = message.OrderId,
+                CustomerId = message.CustomerId,
+                Amount = invoice.Amount
+            },
+            DateTimeOffset.UtcNow.AddSeconds(30),
+            cancellationToken);
+
+        logger.LogInformation(
+            "Payment reminder scheduled for order {OrderId} in 30 seconds",
+            message.OrderId);
     }
 }

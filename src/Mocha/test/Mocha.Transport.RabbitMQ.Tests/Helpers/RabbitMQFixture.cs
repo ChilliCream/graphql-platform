@@ -1,7 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
-using Docker.DotNet.Models;
 using RabbitMQ.Client;
 using Squadron;
 
@@ -10,8 +9,7 @@ namespace Mocha.Transport.RabbitMQ.Tests.Helpers;
 public class MochaRabbitMQResource : RabbitMQResource
 {
     public Task<string?> InvokeCommandAsync(string[] command)
-        => Manager.InvokeCommandAsync(
-            new ContainerExecCreateParameters { Cmd = command, AttachStdout = true, AttachStderr = true });
+        => Manager.InvokeCommandAsync(command);
 }
 
 public sealed class RabbitMQFixture : IAsyncLifetime

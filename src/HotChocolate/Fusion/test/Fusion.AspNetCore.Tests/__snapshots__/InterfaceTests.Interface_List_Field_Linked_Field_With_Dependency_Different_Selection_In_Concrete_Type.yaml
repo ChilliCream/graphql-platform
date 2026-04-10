@@ -70,6 +70,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query testQuery_e4ba4706_1 {
               authorables {
@@ -128,12 +129,11 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           kind: OperationBatch
           items:
             - document: |
-                query testQuery_e4ba4706_2(
-                  $__fusion_1_id: ID!
-                ) {
+                query testQuery_e4ba4706_2($__fusion_1_id: ID!) {
                   authorById(id: $__fusion_1_id) {
                     email
                   }
@@ -148,9 +148,7 @@ sourceSchemas:
                   }
                 ]
             - document: |
-                query testQuery_e4ba4706_3(
-                  $__fusion_2_id: ID!
-                ) {
+                query testQuery_e4ba4706_3($__fusion_2_id: ID!) {
                   authorById(id: $__fusion_2_id) {
                     displayName
                   }
@@ -255,16 +253,14 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_e4ba4706_2(
-          $__fusion_1_id: ID!
-        ) {
+        query testQuery_e4ba4706_2($__fusion_1_id: ID!) {
           authorById(id: $__fusion_1_id) {
             email
           }
         }
       source: $.authorById
       target: $.authorables<Discussion>.author
-      batchingGroupId: 1
+      batchingGroupId: 2
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -275,16 +271,14 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_e4ba4706_3(
-          $__fusion_2_id: ID!
-        ) {
+        query testQuery_e4ba4706_3($__fusion_2_id: ID!) {
           authorById(id: $__fusion_2_id) {
             displayName
           }
         }
       source: $.authorById
       target: $.authorables.author
-      batchingGroupId: 1
+      batchingGroupId: 2
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

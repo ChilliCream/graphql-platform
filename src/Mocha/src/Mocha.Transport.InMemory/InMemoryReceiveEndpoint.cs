@@ -34,7 +34,8 @@ public sealed class InMemoryReceiveEndpoint(InMemoryMessagingTransport transport
             throw new InvalidOperationException("Queue name is required");
         }
 
-        _maxDegreeOfParallelism = configuration.MaxConcurrency;
+        _maxDegreeOfParallelism = configuration.MaxConcurrency
+            ?? ReceiveEndpointConfiguration.Defaults.MaxConcurrency;
     }
 
     protected override void OnComplete(

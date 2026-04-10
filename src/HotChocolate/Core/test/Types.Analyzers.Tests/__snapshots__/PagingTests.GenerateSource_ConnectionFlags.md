@@ -357,6 +357,25 @@ namespace TestNamespace.Types.Root
                     var pagingOptions = global::HotChocolate.Types.Pagination.PagingHelper.GetPagingOptions(field.Context, null);
                     configuration.Features.Set(pagingOptions);
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetAuthorsAsync",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::GreenDonut.Data.PagingArguments),
+                            typeof(global::HotChocolate.Types.Pagination.ConnectionFlags),
+                            typeof(global::System.Threading.CancellationToken)
+                        })!;
+
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+                    HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
+                        field.Context,
+                        fieldDescriptor,
+                        configuration.Member,
+                        new global::HotChocolate.Types.UseConnectionAttribute());
+                    configuration.ConfigurationsAreApplied = true;
+                    fieldDescriptor.CreateConfiguration();
+
                     configuration.Resolvers = context.Resolvers.GetAuthorsAsync();
                 },
                 (Resolvers: resolvers, ThisType: thisType));

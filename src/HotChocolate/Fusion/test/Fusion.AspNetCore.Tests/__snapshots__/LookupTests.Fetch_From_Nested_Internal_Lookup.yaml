@@ -58,6 +58,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_76f18599_1 {
               books {
@@ -115,10 +116,9 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Op_76f18599_2(
-              $__fusion_1_id: ID!
-            ) {
+            query Op_76f18599_2($__fusion_1_id: ID!) {
               lookups {
                 authorById(id: $__fusion_1_id) {
                   name
@@ -143,26 +143,6 @@ sourceSchemas:
                   "lookups": {
                     "authorById": {
                       "name": "Jon Skeet"
-                    }
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "lookups": {
-                    "authorById": {
-                      "name": "JRR Tolkien"
-                    }
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "lookups": {
-                    "authorById": {
-                      "name": "JRR Tolkien"
                     }
                   }
                 }
@@ -207,9 +187,7 @@ operationPlan:
       type: Operation
       schema: b
       operation: |
-        query Op_76f18599_2(
-          $__fusion_1_id: ID!
-        ) {
+        query Op_76f18599_2($__fusion_1_id: ID!) {
           lookups {
             authorById(id: $__fusion_1_id) {
               name

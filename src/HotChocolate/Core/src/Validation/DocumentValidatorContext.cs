@@ -144,6 +144,7 @@ public sealed class DocumentValidatorContext : IFeatureProvider
         DocumentNode document,
         int maxAllowedErrors,
         int maxLocationsPerError,
+        int maxAllowedFragmentVisits,
         IFeatureCollection? features)
     {
         ArgumentNullException.ThrowIfNull(schema);
@@ -155,6 +156,8 @@ public sealed class DocumentValidatorContext : IFeatureProvider
         Document = document;
         _maxAllowedErrors = maxAllowedErrors;
         _maxLocationsPerError = maxLocationsPerError;
+
+        Fragments.SetMaxAllowedFragmentVisits(maxAllowedFragmentVisits);
 
         _features.Initialize(features);
 
@@ -247,6 +250,8 @@ public sealed class DocumentValidatorContext : IFeatureProvider
     {
         private readonly HashSet<string> _visited = [];
         private readonly Dictionary<string, FragmentDefinitionNode> _fragments = new(StringComparer.Ordinal);
+        private int _maxAllowedFragmentVisits;
+        private int _fragmentVisits;
 
         public IEnumerable<string> Names => _fragments.Keys;
 
@@ -267,9 +272,16 @@ public sealed class DocumentValidatorContext : IFeatureProvider
 
         public bool TryEnter(FragmentSpreadNode spread, [NotNullWhen(true)] out FragmentDefinitionNode? fragment)
         {
+            if (_fragmentVisits >= _maxAllowedFragmentVisits)
+            {
+                fragment = null;
+                return false;
+            }
+
             if (_visited.Add(spread.Name.Value)
                 && _fragments.TryGetValue(spread.Name.Value, out fragment))
             {
+                _fragmentVisits++;
                 return true;
             }
 
@@ -286,13 +298,22 @@ public sealed class DocumentValidatorContext : IFeatureProvider
         public bool Exists(FragmentSpreadNode spread)
             => _fragments.ContainsKey(spread.Name.Value);
 
+        internal void SetMaxAllowedFragmentVisits(int maxAllowedFragmentVisits)
+        {
+            _maxAllowedFragmentVisits = maxAllowedFragmentVisits;
+        }
+
         internal void Reset()
-            => _visited.Clear();
+        {
+            _visited.Clear();
+            _fragmentVisits = 0;
+        }
 
         internal void Clear()
         {
             _visited.Clear();
             _fragments.Clear();
+            _fragmentVisits = 0;
         }
     }
 }

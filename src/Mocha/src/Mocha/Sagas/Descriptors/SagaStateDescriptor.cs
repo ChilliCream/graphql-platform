@@ -34,8 +34,7 @@ public sealed class SagaStateDescriptor<TState>
 
         if (eventType.IsEventRequest())
         {
-            throw new InvalidOperationException(
-                $"Event type '{eventType}' is a request and should be handled with 'OnRequest' method.");
+            throw ThrowHelper.SagaEventIsRequest(eventType);
         }
 
         return On<TEvent>(SagaTransitionKind.Event);
@@ -60,8 +59,7 @@ public sealed class SagaStateDescriptor<TState>
 
         if (eventType.IsEventRequest())
         {
-            throw new InvalidOperationException(
-                $"Event type '{eventType}' is a request and should be handled with 'OnRequest' method.");
+            throw ThrowHelper.SagaEventIsRequest(eventType);
         }
 
         return On<TEvent>(SagaTransitionKind.Reply);

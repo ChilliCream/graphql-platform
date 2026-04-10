@@ -91,26 +91,22 @@ public interface IRabbitMQMessagingTransportDescriptor
     new IRabbitMQMessagingTransportDescriptor IsDefaultTransport();
 
     /// <inheritdoc cref="IMessagingTransportDescriptor.UseDispatch" />
-    new IRabbitMQMessagingTransportDescriptor UseDispatch(DispatchMiddlewareConfiguration configuration);
-
-    /// <inheritdoc cref="IMessagingTransportDescriptor.AppendDispatch" />
-    new IRabbitMQMessagingTransportDescriptor AppendDispatch(
-        string after,
-        DispatchMiddlewareConfiguration configuration);
-
-    /// <inheritdoc cref="IMessagingTransportDescriptor.PrependDispatch" />
-    new IRabbitMQMessagingTransportDescriptor PrependDispatch(
-        string before,
-        DispatchMiddlewareConfiguration configuration);
+    new IRabbitMQMessagingTransportDescriptor UseDispatch(
+        DispatchMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null);
 
     /// <inheritdoc cref="IMessagingTransportDescriptor.UseReceive" />
-    new IRabbitMQMessagingTransportDescriptor UseReceive(ReceiveMiddlewareConfiguration configuration);
+    new IRabbitMQMessagingTransportDescriptor UseReceive(
+        ReceiveMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null);
 
-    /// <inheritdoc cref="IMessagingTransportDescriptor.AppendReceive" />
-    new IRabbitMQMessagingTransportDescriptor AppendReceive(string after, ReceiveMiddlewareConfiguration configuration);
+    /// <summary>Claims a handler for this transport, creating a convention-named endpoint.</summary>
+    IMessagingTransportHandlerDescriptor<IRabbitMQReceiveEndpointDescriptor> Handler<THandler>()
+        where THandler : class, IHandler;
 
-    /// <inheritdoc cref="IMessagingTransportDescriptor.PrependReceive" />
-    new IRabbitMQMessagingTransportDescriptor PrependReceive(
-        string before,
-        ReceiveMiddlewareConfiguration configuration);
+    /// <summary>Claims a consumer for this transport, creating a convention-named endpoint.</summary>
+    IMessagingTransportConsumerDescriptor<IRabbitMQReceiveEndpointDescriptor> Consumer<TConsumer>()
+        where TConsumer : class, IConsumer;
 }

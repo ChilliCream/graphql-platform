@@ -1,11 +1,9 @@
-using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
-using ChilliCream.Nitro.CommandLine.Commands.Apis.Inputs;
+using ChilliCream.Nitro.Client.Apis;
+using ChilliCream.Nitro.Client.Mocks;
 using ChilliCream.Nitro.CommandLine.Commands.Mocks.Components;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mocks;
@@ -16,89 +14,93 @@ internal sealed class ListMockCommand : Command
     {
         Description = "List all mock schemas in an API.";
 
-        AddOption(Opt<OptionalApiIdOption>.Instance);
-        AddOption(Opt<CursorOption>.Instance);
+        Options.Add(Opt<OptionalApiIdOption>.Instance);
+        Options.Add(Opt<OptionalCursorOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples("mock list --api-id \"<api-id>\"");
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken ct)
     {
-        if (console.IsHumanReadable())
+        var console = services.GetRequiredService<INitroConsole>();
+        var apisClient = services.GetRequiredService<IApisClient>();
+        var client = services.GetRequiredService<IMocksClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
+
+        parseResult.AssertHasAuthentication(sessionService);
+
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
+
+        if (console.IsInteractive)
         {
-            return await RenderInteractiveAsync(context, console, client, ct);
+            return await RenderInteractiveAsync(parseResult, console, apisClient, client, sessionService, resultHolder, cursor, ct);
         }
 
-        return await RenderNonInteractiveAsync(context, console, client, ct);
+        return await RenderNonInteractiveAsync(parseResult, client, resultHolder, cursor, ct);
     }
 
     private static async Task<int> RenderInteractiveAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        ParseResult parseResult,
+        INitroConsole console,
+        IApisClient apisClient,
+        IMocksClient client,
+        ISessionService sessionService,
+        IResultHolder resultHolder,
+        string? cursor,
         CancellationToken ct)
     {
         const string apiMessage = "For which API do you want to list the mock schemas?";
-        var apiId = await context.GetOrSelectApiId(apiMessage);
+        var apiId = await console.GetOrPromptForApiIdAsync(apiMessage, parseResult, apisClient, sessionService, ct);
 
         var container = PaginationContainer
-            .Create(
-                (after, first, ct) =>
-                    client.ListMockCommandQuery.ExecuteAsync(apiId, after, first, ct),
-                static p => p.ApiById?.MockSchemas?.PageInfo,
-                static p => p.ApiById?.MockSchemas?.Edges)
+            .CreateConnectionData((after, first, token) =>
+                client.ListMockSchemasAsync(apiId, after ?? cursor, first, token))
             .PageSize(10);
 
         var api = await PagedTable
             .From(container)
             .Title("Mock Schemas")
-            .AddColumn("Id", x => x.Node.Id)
-            .AddColumn("Name", x => x.Node.Name)
+            .AddColumn("Id", x => x.Id)
+            .AddColumn("Name", x => x.Name)
             .RenderAsync(console, ct);
 
-        if (api?.Node is IMockSchemaDetailPrompt node)
+        if (api is not null)
         {
-            context.SetResult(MockSchemaDetailPrompt.From(node).ToObject());
+            resultHolder.SetResult(new ObjectResult(MockSchemaDetailPrompt.From(api).ToObject()));
         }
 
         return ExitCodes.Success;
     }
 
     private static async Task<int> RenderNonInteractiveAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        ParseResult parseResult,
+        IMocksClient client,
+        IResultHolder resultHolder,
+        string? cursor,
         CancellationToken ct)
     {
-        var apiId = context.ParseResult.GetValueForOption(Opt<OptionalApiIdOption>.Instance);
+        var apiId = parseResult.GetValue(Opt<OptionalApiIdOption>.Instance);
         if (apiId is null)
         {
-            throw Exit("The API ID is required in non-interactive mode.");
+            throw MissingRequiredOption(ApiIdOption.OptionName);
         }
 
-        var cursor = context.ParseResult.GetValueForOption(Opt<CursorOption>.Instance);
-        var result = await client
-            .ListMockCommandQuery
-            .ExecuteAsync(apiId, cursor, 10, ct);
+        var data = await client.ListMockSchemasAsync(apiId, cursor, 10, ct);
+        var items = data.Items
+            .Select(MockSchemaDetailPrompt.From)
+            .Select(x => x.ToObject())
+            .ToArray();
 
-        console.EnsureNoErrors(result);
-
-        var endCursor = result.Data?.ApiById?.MockSchemas?.PageInfo.EndCursor;
-
-        var items = result.Data?.ApiById?.MockSchemas?.Edges?.Select(x =>
-                MockSchemaDetailPrompt.From(x.Node).ToObject())
-            .ToArray() ?? [];
-
-        context.SetResult(new PaginatedListResult<MockSchemaDetailPrompt.MockSchemaDetailPromptResult>(items, endCursor));
+        resultHolder.SetResult(
+            new PaginatedListResult<MockSchemaDetailPrompt.MockSchemaDetailPromptResult>(items, data.EndCursor));
 
         return ExitCodes.Success;
     }

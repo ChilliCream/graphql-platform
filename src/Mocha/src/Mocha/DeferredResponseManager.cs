@@ -50,7 +50,7 @@ public sealed class DeferredResponseManager(TimeProvider timeProvider)
             return await promise.TaskCompletionSource.Task;
         }
 
-        throw new InvalidOperationException("Promise not found.");
+        throw ThrowHelper.PromiseNotFound();
     }
 
     /// <summary>

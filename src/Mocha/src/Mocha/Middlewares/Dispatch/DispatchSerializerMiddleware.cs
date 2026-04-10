@@ -20,28 +20,24 @@ internal sealed class DispatchSerializerMiddleware()
         {
             if (context.Message is null)
             {
-                throw new InvalidOperationException(
-                    "To send a message either the body must be set or the message must be set");
+                throw ThrowHelper.DispatchMessageRequired();
             }
 
             if (context.MessageType is null)
             {
-                throw new InvalidOperationException(
-                    "To send a message a message type must be set. Otherwise there is no way to serialize the message");
+                throw ThrowHelper.DispatchMessageTypeRequired();
             }
 
             if (context.ContentType is null)
             {
-                throw new InvalidOperationException(
-                    "To send a message a content type must be set. Otherwise there is no way to serialize the message");
+                throw ThrowHelper.DispatchContentTypeRequired();
             }
 
             var serializer = context.MessageType.GetSerializer(context.ContentType);
 
             if (serializer is null)
             {
-                throw new InvalidOperationException(
-                    $"No serializer found for content type {context.ContentType.Value} and message type {context.MessageType.Identity}");
+                throw ThrowHelper.DispatchSerializerNotFound(context.ContentType.Value, context.MessageType.Identity);
             }
 
             serializer.Serialize(context.Message, context.Body);
@@ -91,6 +87,7 @@ public static class DispatchContextExtensions
             Host = context.Host,
             SentAt = context.SentAt,
             DeliverBy = context.DeliverBy,
+            ScheduledTime = context.ScheduledTime,
             DeliveryCount = 0,
             Headers = context.Headers,
             Body = context.Body.WrittenMemory

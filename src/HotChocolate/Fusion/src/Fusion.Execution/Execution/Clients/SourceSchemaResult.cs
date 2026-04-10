@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using HotChocolate.Fusion.Text.Json;
 
 namespace HotChocolate.Fusion.Execution.Clients;
@@ -26,27 +25,26 @@ public sealed class SourceSchemaResult : IDisposable
     /// <param name="final">Whether this is the final message in a streaming response.</param>
     /// <param name="additionalPaths">Any additional paths where this result should also be merged.</param>
     public SourceSchemaResult(
-        Path path,
+        CompactPath path,
         SourceResultDocument document,
         FinalMessage final = FinalMessage.Undefined,
-        ImmutableArray<Path> additionalPaths = default)
+        CompactPathSegment additionalPaths = default)
         : this(path, document, final, ownsDocument: true, additionalPaths)
     {
     }
 
     private SourceSchemaResult(
-        Path path,
+        CompactPath path,
         SourceResultDocument document,
         FinalMessage final,
         bool ownsDocument,
-        ImmutableArray<Path> additionalPaths)
+        CompactPathSegment additionalPaths)
     {
-        ArgumentNullException.ThrowIfNull(path);
         ArgumentNullException.ThrowIfNull(document);
 
         _document = document;
         _ownsDocument = ownsDocument;
-        AdditionalPaths = additionalPaths.IsDefault ? [] : additionalPaths;
+        AdditionalPaths = additionalPaths;
         Path = path;
         Final = final;
     }
@@ -54,13 +52,13 @@ public sealed class SourceSchemaResult : IDisposable
     /// <summary>
     /// The primary path in the composite result into which this source schema result will be merged.
     /// </summary>
-    public Path Path { get; }
+    public CompactPath Path { get; }
 
     /// <summary>
     /// Additional paths where this result should also be merged, used when a single source
     /// schema response satisfies multiple selection sets at different locations.
     /// </summary>
-    public ImmutableArray<Path> AdditionalPaths { get; }
+    public CompactPathSegment AdditionalPaths { get; }
 
     /// <summary>
     /// The <c>data</c> element of the source schema response, or an empty element if the
@@ -132,8 +130,11 @@ public sealed class SourceSchemaResult : IDisposable
     /// of the underlying document. Used internally when the same result needs to be referenced
     /// at a different location in the composite result.
     /// </summary>
-    internal SourceSchemaResult WithPath(Path path)
-        => new(path, _document, Final, ownsDocument: false, additionalPaths: []);
+    internal SourceSchemaResult WithPath(CompactPath path)
+        => new(path, _document, Final, ownsDocument: false, additionalPaths: default);
+
+    internal SourceSchemaResult WithPath(CompactPath path, CompactPathSegment additionalPaths)
+        => new(path, _document, Final, ownsDocument: false, additionalPaths);
 
     /// <summary>
     /// Disposes the underlying result document if this instance owns it.

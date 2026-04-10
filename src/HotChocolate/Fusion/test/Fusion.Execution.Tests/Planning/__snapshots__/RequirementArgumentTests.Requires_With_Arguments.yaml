@@ -29,6 +29,18 @@ nodes:
         }
       }
     batchingGroupId: 1
+  - id: 4
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_4 {
+        feed {
+          comments @fusion__requirement {
+            id
+          }
+        }
+      }
+    batchingGroupId: 1
   - id: 2
     type: Operation
     schema: b
@@ -58,9 +70,7 @@ nodes:
     type: Operation
     schema: c
     operation: |
-      query Op_123456789101112_3(
-        $__fusion_3_id: ID!
-      ) {
+      query Op_123456789101112_3($__fusion_3_id: ID!) {
         commentById(id: $__fusion_3_id) {
           somethingElse
         }
@@ -72,16 +82,4 @@ nodes:
         selectionMap: >-
           id
     dependencies:
-      - id: 4
-  - id: 4
-    type: Operation
-    schema: a
-    operation: |
-      query Op_123456789101112_4 {
-        feed {
-          comments @fusion__requirement {
-            id
-          }
-        }
-      }
-    batchingGroupId: 1
+      - id: 1

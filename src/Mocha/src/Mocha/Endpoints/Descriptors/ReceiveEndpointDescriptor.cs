@@ -22,6 +22,28 @@ public abstract class ReceiveEndpointDescriptor<T>(IMessagingConfigurationContex
         return this;
     }
 
+    /// <summary>
+    /// Binds a handler to this receive endpoint by its runtime type.
+    /// </summary>
+    /// <param name="handlerType">The handler type to bind.</param>
+    /// <returns>The descriptor instance for method chaining.</returns>
+    public IReceiveEndpointDescriptor<T> Handler(Type handlerType)
+    {
+        Configuration.ConsumerIdentities.Add(handlerType);
+        return this;
+    }
+
+    /// <summary>
+    /// Binds a consumer to this receive endpoint by its runtime type.
+    /// </summary>
+    /// <param name="consumerType">The consumer type to bind.</param>
+    /// <returns>The descriptor instance for method chaining.</returns>
+    public IReceiveEndpointDescriptor<T> Consumer(Type consumerType)
+    {
+        Configuration.ConsumerIdentities.Add(consumerType);
+        return this;
+    }
+
     public IReceiveEndpointDescriptor<T> Kind(ReceiveEndpointKind kind)
     {
         Configuration.Kind = kind;
@@ -46,21 +68,30 @@ public abstract class ReceiveEndpointDescriptor<T>(IMessagingConfigurationContex
         return this;
     }
 
-    public IReceiveEndpointDescriptor<T> UseReceive(ReceiveMiddlewareConfiguration configuration)
+    public IReceiveEndpointDescriptor<T> UseReceive(
+        ReceiveMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null)
     {
-        Configuration.ReceiveMiddlewares.Add(configuration);
-        return this;
-    }
+        if (before is not null && after is not null)
+        {
+            throw ThrowHelper.BeforeAndAfterConflict();
+        }
 
-    public IReceiveEndpointDescriptor<T> AppendReceive(string after, ReceiveMiddlewareConfiguration configuration)
-    {
-        Configuration.ReceivePipelineModifiers.Append(configuration, after);
-        return this;
-    }
+        if (before is null && after is null)
+        {
+            Configuration.ReceiveMiddlewares.Add(configuration);
+            return this;
+        }
 
-    public IReceiveEndpointDescriptor<T> PrependReceive(string before, ReceiveMiddlewareConfiguration configuration)
-    {
-        Configuration.ReceivePipelineModifiers.Prepend(configuration, before);
+        if (before is not null)
+        {
+            Configuration.ReceivePipelineModifiers.Prepend(configuration, before);
+        }
+        else
+        {
+            Configuration.ReceivePipelineModifiers.Append(configuration, after);
+        }
 
         return this;
     }

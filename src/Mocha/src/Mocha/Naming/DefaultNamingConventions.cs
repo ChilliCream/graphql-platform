@@ -25,7 +25,7 @@ public sealed partial class DefaultNamingConventions(IHostInfo host) : IBusNamin
 
         if (!route.IsInitialized)
         {
-            throw new InvalidOperationException("Route is not initialized");
+            throw ThrowHelper.RouteNotInitialized();
         }
 
         return route.Kind switch

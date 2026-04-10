@@ -79,7 +79,7 @@ internal sealed class DbContextSagaStore(DbContext context) : ISagaStore, IDispo
                 saga.Name,
                 document,
                 // TODO timeprovider
-                DateTime.UtcNow,
+                DateTimeOffset.UtcNow,
                 DateTimeOffset.UtcNow);
             sagaState.Version = NewVersion();
             set.Add(sagaState);
@@ -87,7 +87,7 @@ internal sealed class DbContextSagaStore(DbContext context) : ISagaStore, IDispo
         else
         {
             sagaState.State = document;
-            sagaState.UpdatedAt = DateTime.UtcNow;
+            sagaState.UpdatedAt = DateTimeOffset.UtcNow;
             sagaState.Version = NewVersion();
             set.Entry(sagaState).Property(x => x.State).IsModified = true;
         }

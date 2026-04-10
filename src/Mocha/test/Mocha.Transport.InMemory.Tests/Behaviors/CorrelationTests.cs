@@ -53,14 +53,14 @@ public class CorrelationTests
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act — two independent publishes
+        // act - two independent publishes
         await bus.PublishAsync(new OrderCreated { OrderId = "ORD-A" }, default);
         Assert.True(await capture.WaitAsync(s_timeout));
 
         await bus.PublishAsync(new OrderCreated { OrderId = "ORD-B" }, default);
         Assert.True(await capture.WaitAsync(s_timeout));
 
-        // assert — each publish gets its own MessageId and ConversationId
+        // assert - each publish gets its own MessageId and ConversationId
         Assert.Equal(2, capture.Contexts.Count);
         var ids = capture.Contexts.ToArray();
 
@@ -71,7 +71,7 @@ public class CorrelationTests
     [Fact]
     public async Task Consumer_Should_SeeAllCorrelationIds_When_MessageReceived()
     {
-        // arrange — use IConsumer<T> to inspect the full context
+        // arrange - use IConsumer<T> to inspect the full context
         var capture = new ContextCapture();
         await using var provider = await new ServiceCollection()
             .AddSingleton(capture)
@@ -98,7 +98,7 @@ public class CorrelationTests
     [Fact]
     public async Task Publish_Should_HaveDistinctMessageIdButSharedCorrelationScope_When_FanOutToMultipleConsumers()
     {
-        // arrange — two consumers receive the same published event via fan-out
+        // arrange - two consumers receive the same published event via fan-out
         var capture = new ContextCapture();
         await using var provider = await new ServiceCollection()
             .AddSingleton(capture)
@@ -114,7 +114,7 @@ public class CorrelationTests
         // act
         await bus.PublishAsync(new OrderCreated { OrderId = "ORD-FAN" }, default);
 
-        // assert — both consumers received the event
+        // assert - both consumers received the event
         Assert.True(await capture.WaitAsync(s_timeout, 2));
         Assert.Equal(2, capture.Contexts.Count);
 
@@ -147,10 +147,10 @@ public class CorrelationTests
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act — publish the initial event
+        // act - publish the initial event
         await bus.PublishAsync(new OrderCreated { OrderId = "ORD-CHAIN" }, default);
 
-        // assert — wait for both captures (OrderCreated + ProcessPayment)
+        // assert - wait for both captures (OrderCreated + ProcessPayment)
         Assert.True(await capture.WaitAsync(s_timeout, 2), "Both handlers should fire");
         Assert.Equal(2, capture.Contexts.Count);
 
@@ -247,7 +247,7 @@ public class CorrelationTests
 
             var bus = context.Services.GetRequiredService<IMessageBus>();
 
-            // No manual propagation needed — the framework handles it automatically
+            // No manual propagation needed - the framework handles it automatically
             await bus.PublishAsync(
                 new ProcessPayment { OrderId = context.Message.OrderId, Amount = 100m },
                 context.CancellationToken);

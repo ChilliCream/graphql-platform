@@ -1,9 +1,7 @@
-using System.Text;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Diagnostics.Listeners;
 using HotChocolate.Fusion.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.ObjectPool;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -35,13 +33,13 @@ public static class DiagnosticsFusionGatewayBuilderExtensions
         builder.AddApplicationService<InternalActivityEnricher>();
 
         builder.AddDiagnosticEventListener(
-            sp => new ActivityFusionExecutionDiagnosticEventListener(
+            sp => new FusionActivityExecutionDiagnosticEventListener(
                 sp.GetService<FusionActivityEnricher>() ??
                     sp.GetRequiredService<InternalActivityEnricher>(),
                 sp.GetRequiredService<InstrumentationOptions>()));
 
         builder.AddDiagnosticEventListener(
-            sp => new ActivityServerDiagnosticListener(
+            sp => new FusionActivityServerDiagnosticListener(
                 sp.GetService<FusionActivityEnricher>() ??
                     sp.GetRequiredService<InternalActivityEnricher>(),
                 sp.GetRequiredService<InstrumentationOptions>()));
@@ -49,8 +47,5 @@ public static class DiagnosticsFusionGatewayBuilderExtensions
         return builder;
     }
 
-    private sealed class InternalActivityEnricher(
-        ObjectPool<StringBuilder> stringBuilderPool,
-        InstrumentationOptions options)
-        : FusionActivityEnricher(stringBuilderPool, options);
+    private sealed class InternalActivityEnricher(InstrumentationOptions options) : FusionActivityEnricher(options);
 }

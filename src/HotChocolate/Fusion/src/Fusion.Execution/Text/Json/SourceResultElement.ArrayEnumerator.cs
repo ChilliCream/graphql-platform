@@ -101,7 +101,9 @@ public readonly partial struct SourceResultElement
 
             // Already on an element: jump to just after this element (exclusive),
             // which is the start of the next element if one exists.
-            var next = _target._parent.GetEndIndex(_current, includeEndElement: true);
+            // Inlined from GetEndIndex(_current, includeEndElement: true).
+            var row = _target._parent.GetDbRow(_current);
+            var next = row.IsSimpleValue ? _current + 1 : _current + row.NumberOfRows;
 
             if (next < _endCursor)
             {

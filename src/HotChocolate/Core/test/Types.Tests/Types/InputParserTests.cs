@@ -647,7 +647,11 @@ public class InputParserTests
 
     private class ResolverArgumentsAccessor
     {
+#if NET9_0_OR_GREATER
+        private readonly Lock _lock = new();
+#else
         private readonly object _lock = new();
+#endif
         internal SortedDictionary<string, IDictionary<string, object?>?> Arguments { get; } = new();
 
         internal string? ResolveWith(IDictionary<string, object?> args)

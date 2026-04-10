@@ -57,6 +57,9 @@
   <data name="SourceSchemaHttpClient_InvalidVariableIndex" xml:space="preserve">
     <value>The batch response contains an invalid variableIndex '{0}' for node '{1}'.</value>
   </data>
+  <data name="SourceSchemaHttpClient_VariableIndexOutOfRange" xml:space="preserve">
+    <value>The batch response contains an out-of-range variableIndex '{0}'.</value>
+  </data>
   <data name="SourceSchemaHttpClient_NoResultForNode" xml:space="preserve">
     <value>The batch response does not contain any result for node '{0}'.</value>
   </data>
@@ -71,5 +74,17 @@
   </data>
   <data name="SourceSchemaRequestDispatcher_BatchResponseCountMismatch" xml:space="preserve">
     <value>The client did not return a response for each request in the batch.</value>
+  </data>
+  <data name="OperationPlan_NodeNotFound" xml:space="preserve">
+    <value>No execution node with id '{0}' exists in this plan.</value>
+  </data>
+  <data name="OperationBatchExecutionNode_MissingBatchResult" xml:space="preserve">
+    <value>The batch response does not contain any result for operation '{0}'.</value>
+  </data>
+  <data name="ExecutionNode_MissingBooleanVariable" xml:space="preserve">
+    <value>Expected to have a boolean value for variable '${0}'.</value>
+  </data>
+  <data name="JsonOperationPlanParser_SingleOperationRequired" xml:space="preserve">
+    <value>There must be exactly one operation definition in the operation document of the operation plan.</value>
   </data>
 </root>

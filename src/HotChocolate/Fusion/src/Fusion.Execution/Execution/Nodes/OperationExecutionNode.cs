@@ -13,11 +13,10 @@ public sealed class OperationExecutionNode : ExecutionNode
 {
     private readonly OperationRequirement[] _requirements;
     private readonly string[] _forwardedVariables;
-    private readonly string[] _responseNames;
+    private readonly ResultSelectionSet _resultSelectionSet;
     private readonly ExecutionNodeCondition[] _conditions;
     private readonly bool _requiresFileUpload;
     private readonly OperationSourceText _operation;
-    private readonly int? _batchingGroupId;
     private readonly string? _schemaName;
     private readonly SelectionPath _target;
     private readonly SelectionPath _source;
@@ -30,20 +29,18 @@ public sealed class OperationExecutionNode : ExecutionNode
         SelectionPath source,
         OperationRequirement[] requirements,
         string[] forwardedVariables,
-        string[] responseNames,
+        ResultSelectionSet resultSelectionSet,
         ExecutionNodeCondition[] conditions,
-        int? batchingGroupId,
         bool requiresFileUpload)
     {
         Id = id;
         _operation = operation;
-        _batchingGroupId = batchingGroupId;
         _schemaName = schemaName;
         _target = target;
         _source = source;
         _requirements = requirements;
         _forwardedVariables = forwardedVariables;
-        _responseNames = responseNames;
+        _resultSelectionSet = resultSelectionSet;
         _conditions = conditions;
         _requiresFileUpload = requiresFileUpload;
     }
@@ -63,14 +60,9 @@ public sealed class OperationExecutionNode : ExecutionNode
     public OperationSourceText Operation => _operation;
 
     /// <summary>
-    /// Gets the deterministic batching group identifier assigned at planning time.
+    /// Gets the result selection set fulfilled by this operation.
     /// </summary>
-    public int? BatchingGroupId => _batchingGroupId;
-
-    /// <summary>
-    /// Gets the response names of the <see cref="Target"/> selection set that are fulfilled by this operation.
-    /// </summary>
-    public ReadOnlySpan<string> ResponseNames => _responseNames;
+    internal ResultSelectionSet ResultSelectionSet => _resultSelectionSet;
 
     /// <inheritdoc />
     public override string? SchemaName => _schemaName;
@@ -118,14 +110,12 @@ public sealed class OperationExecutionNode : ExecutionNode
         }
 
         var schemaName = _schemaName ?? context.GetDynamicSchemaName(this);
-
         context.TrackVariableValueSets(this, variables);
 
         var request = new SourceSchemaClientRequest
         {
             Node = this,
             SchemaName = schemaName,
-            BatchingGroupId = _batchingGroupId,
             OperationType = _operation.Type,
             OperationSourceText = _operation.SourceText,
             Variables = variables,
@@ -141,22 +131,14 @@ public sealed class OperationExecutionNode : ExecutionNode
         try
         {
             // we execute the GraphQL request against a source schema
-            var response = await context.SourceSchemaScheduler
-                .ExecuteAsync(request, cancellationToken)
-                .ConfigureAwait(false);
+            var client = context.GetClient(schemaName, _operation.Type);
+            var response = await client.ExecuteAsync(context, request, cancellationToken).ConfigureAwait(false);
             context.TrackSourceSchemaClientResponse(this, response);
 
             // we read the responses from the response stream.
-            var totalPathCount = variables.Length;
+            var initialBufferLength = Math.Max(variables.Length, 2);
 
-            for (var i = 0; i < variables.Length; i++)
-            {
-                totalPathCount += variables[i].AdditionalPaths.Length;
-            }
-
-            var initialBufferLength = Math.Max(totalPathCount, 2);
-
-            await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken))
+            await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken).ConfigureAwait(false))
             {
                 // If there is only one response, we skip the buffer rental.
                 if (index == 0)
@@ -214,7 +196,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                 singleResult.Dispose();
             }
 
-            AddErrors(context, exception, variables, _responseNames);
+            context.AddErrors(exception, variables, _resultSelectionSet);
             return ExecutionStatus.Failed;
         }
 
@@ -225,7 +207,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                 context.AddPartialResults(
                     _source,
                     buffer.AsSpan(0, index),
-                    _responseNames,
+                    _resultSelectionSet,
                     hasSomeErrors);
             }
             else if (singleResult is not null)
@@ -234,7 +216,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                 context.AddPartialResults(
                     _source,
                     MemoryMarshal.CreateReadOnlySpan(ref firstResult, 1),
-                    _responseNames,
+                    _resultSelectionSet,
                     hasSomeErrors);
             }
             else
@@ -242,7 +224,7 @@ public sealed class OperationExecutionNode : ExecutionNode
                 context.AddPartialResults(
                     _source,
                     [],
-                    _responseNames,
+                    _resultSelectionSet,
                     hasSomeErrors);
             }
         }
@@ -256,7 +238,7 @@ public sealed class OperationExecutionNode : ExecutionNode
         catch (Exception exception)
         {
             diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
-            AddErrors(context, exception, variables, _responseNames);
+            context.AddErrors(exception, variables, _resultSelectionSet);
             return ExecutionStatus.Failed;
         }
         finally
@@ -316,56 +298,9 @@ public sealed class OperationExecutionNode : ExecutionNode
         }
         catch (Exception ex)
         {
-            AddErrors(context, ex, variables, _responseNames);
-            context.DiagnosticEvents.SubscriptionTransportError(context, this, schemaName, subscriptionId, ex);
+            context.AddErrors(ex, variables, _resultSelectionSet);
+            context.DiagnosticEvents.SourceSchemaTransportError(context, this, schemaName, ex);
             return SubscriptionResult.Failed(subscriptionId, ex);
-        }
-    }
-
-    private static void AddErrors(
-        OperationPlanContext context,
-        Exception exception,
-        ImmutableArray<VariableValues> variables,
-        ReadOnlySpan<string> responseNames)
-    {
-        var error = ErrorBuilder.FromException(exception).Build();
-
-        if (variables.Length == 0)
-        {
-            context.AddErrors(error, responseNames, Path.Root);
-        }
-        else
-        {
-            var pathBufferLength = 0;
-
-            for (var i = 0; i < variables.Length; i++)
-            {
-                pathBufferLength += 1 + variables[i].AdditionalPaths.Length;
-            }
-
-            var pathBuffer = ArrayPool<Path>.Shared.Rent(pathBufferLength);
-
-            try
-            {
-                var pathBufferIndex = 0;
-
-                for (var i = 0; i < variables.Length; i++)
-                {
-                    pathBuffer[pathBufferIndex++] = variables[i].Path;
-
-                    foreach (var additionalPath in variables[i].AdditionalPaths)
-                    {
-                        pathBuffer[pathBufferIndex++] = additionalPath;
-                    }
-                }
-
-                context.AddErrors(error, responseNames, pathBuffer.AsSpan(0, pathBufferLength));
-            }
-            finally
-            {
-                pathBuffer.AsSpan(0, pathBufferLength).Clear();
-                ArrayPool<Path>.Shared.Return(pathBuffer);
-            }
         }
     }
 
@@ -484,14 +419,14 @@ public sealed class OperationExecutionNode : ExecutionNode
                     _node.SchemaName ?? _context.GetDynamicSchemaName(_node),
                     _subscriptionId,
                     exception);
-                _context.AddErrors(error, _node._responseNames);
+                _context.AddErrors(error, _node._resultSelectionSet);
                 return false;
             }
 
             if (hasResult)
             {
                 _resultBuffer[0] = _resultEnumerator.Current;
-                _context.AddPartialResults(_node._source, _resultBuffer, _node._responseNames);
+                _context.AddPartialResults(_node._source, _resultBuffer, _node._resultSelectionSet, containsErrors: true);
 
                 Current = new EventMessageResult(
                     _node.Id,

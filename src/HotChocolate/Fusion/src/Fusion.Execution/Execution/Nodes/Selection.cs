@@ -124,11 +124,13 @@ public sealed class Selection : ISelection
                 || (flags3 & includeFlags) == flags3;
         }
 
-        var span = _includeFlags.AsSpan();
+        var includeFlagsArray = _includeFlags;
 
-        for (var i = 0; i < span.Length; i++)
+        for (var i = 0; i < includeFlagsArray.Length; i++)
         {
-            if ((span[i] & includeFlags) == span[i])
+            var current = includeFlagsArray[i];
+
+            if ((current & includeFlags) == current)
             {
                 return true;
             }

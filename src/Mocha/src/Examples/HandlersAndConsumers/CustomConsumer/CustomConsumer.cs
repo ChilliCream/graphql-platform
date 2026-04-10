@@ -57,7 +57,7 @@ public sealed record OrderPlaced(
     string CustomerId,
     decimal TotalAmount);
 
-// IConsumer<T> gives full access to the consume context — message payload,
+// IConsumer<T> gives full access to the consume context - message payload,
 // envelope metadata, headers, correlation IDs, and the service provider.
 // Use ConfigureMessageBus with AddHandler to assign a custom consumer name
 // and configure explicit inbound routes.

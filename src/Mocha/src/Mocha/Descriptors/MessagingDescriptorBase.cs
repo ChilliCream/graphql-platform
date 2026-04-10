@@ -6,7 +6,7 @@ namespace Mocha;
 /// <typeparam name="T">The configuration type this descriptor manages.</typeparam>
 public abstract class MessagingDescriptorBase<T>(IMessagingConfigurationContext context)
     : IMessagingDescriptor<T>
-    , IDescriptorExtension<T> where T : MessagingConfiguration
+    , IMessagingDescriptorExtension<T> where T : MessagingConfiguration
 {
     protected internal IMessagingConfigurationContext Context { get; } =
         context ?? throw new ArgumentNullException(nameof(context));
@@ -15,13 +15,13 @@ public abstract class MessagingDescriptorBase<T>(IMessagingConfigurationContext 
 
     protected internal abstract T Configuration { get; protected set; }
 
-    T IDescriptorExtension<T>.Configuration => Configuration;
+    T IMessagingDescriptorExtension<T>.Configuration => Configuration;
 
-    public IDescriptorExtension<T> Extend() => this;
+    public IMessagingDescriptorExtension<T> Extend() => this;
 
-    IDescriptorExtension IMessagingDescriptor.Extend() => Extend();
+    IMessagingDescriptorExtension IMessagingDescriptor.Extend() => Extend();
 
-    public IDescriptorExtension<T> ExtendWith(Action<IDescriptorExtension<T>> configure)
+    public IMessagingDescriptorExtension<T> ExtendWith(Action<IMessagingDescriptorExtension<T>> configure)
     {
         ArgumentNullException.ThrowIfNull(configure);
 
@@ -29,7 +29,7 @@ public abstract class MessagingDescriptorBase<T>(IMessagingConfigurationContext 
         return this;
     }
 
-    public IDescriptorExtension<T> ExtendWith<TState>(Action<IDescriptorExtension<T>, TState> configure, TState state)
+    public IMessagingDescriptorExtension<T> ExtendWith<TState>(Action<IMessagingDescriptorExtension<T>, TState> configure, TState state)
     {
         ArgumentNullException.ThrowIfNull(configure);
 

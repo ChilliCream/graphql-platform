@@ -50,56 +50,44 @@ public sealed class SourceSchemaMergerCostDirectiveTests : SourceSchemaMergerTes
             ],
             """
             schema {
-                query: Query
+              query: Query
             }
 
             type Query
+              @cost(weight: "1")
+              @fusion__cost(schema: A, weight: "1.0")
+              @fusion__cost(schema: B, weight: "1.0")
+              @fusion__type(schema: A)
+              @fusion__type(schema: B) {
+              field(
+                argument: Int @cost(weight: "1") @fusion__cost(schema: A, weight: "1.0") @fusion__cost(schema: B, weight: "1.0") @fusion__inputField(schema: A) @fusion__inputField(schema: B)
+              ): Int
                 @cost(weight: "1")
                 @fusion__cost(schema: A, weight: "1.0")
                 @fusion__cost(schema: B, weight: "1.0")
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field(argument: Int
-                    @cost(weight: "1")
-                    @fusion__cost(schema: A, weight: "1.0")
-                    @fusion__cost(schema: B, weight: "1.0")
-                    @fusion__inputField(schema: A)
-                    @fusion__inputField(schema: B)): Int
-                    @cost(weight: "1")
-                    @fusion__cost(schema: A, weight: "1.0")
-                    @fusion__cost(schema: B, weight: "1.0")
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
             }
 
-            input Input
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field: Int
-                    @cost(weight: "1")
-                    @fusion__cost(schema: A, weight: "1.0")
-                    @fusion__cost(schema: B, weight: "1.0")
-                    @fusion__inputField(schema: A)
-                    @fusion__inputField(schema: B)
+            input Input @fusion__type(schema: A) @fusion__type(schema: B) {
+              field: Int @cost(weight: "1") @fusion__cost(schema: A, weight: "1.0") @fusion__cost(schema: B, weight: "1.0") @fusion__inputField(schema: A) @fusion__inputField(schema: B)
             }
 
             enum Enum
-                @cost(weight: "1")
-                @fusion__cost(schema: A, weight: "1.0")
-                @fusion__cost(schema: B, weight: "1.0")
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                VALUE
-                    @fusion__enumValue(schema: A)
-                    @fusion__enumValue(schema: B)
+              @cost(weight: "1")
+              @fusion__cost(schema: A, weight: "1.0")
+              @fusion__cost(schema: B, weight: "1.0")
+              @fusion__type(schema: A)
+              @fusion__type(schema: B) {
+              VALUE @fusion__enumValue(schema: A) @fusion__enumValue(schema: B)
             }
 
             scalar Scalar
-                @cost(weight: "1")
-                @fusion__cost(schema: A, weight: "1.0")
-                @fusion__cost(schema: B, weight: "1.0")
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
+              @cost(weight: "1")
+              @fusion__cost(schema: A, weight: "1.0")
+              @fusion__cost(schema: B, weight: "1.0")
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
             """,
             modifySchema: s_removeCostDirective);
     }
@@ -124,9 +112,7 @@ public sealed class SourceSchemaMergerCostDirectiveTests : SourceSchemaMergerTes
                 """
             ],
             """
-            scalar Foo
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
+            scalar Foo @fusion__type(schema: A) @fusion__type(schema: B)
             """,
             modifySchema: s_removeCostDirective);
     }

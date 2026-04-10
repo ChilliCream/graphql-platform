@@ -28,7 +28,7 @@ public sealed class InMemoryMessagingTransportDescriptor
         Configuration = new InMemoryTransportConfiguration();
     }
 
-    protected override InMemoryTransportConfiguration Configuration { get; set; }
+    protected internal override InMemoryTransportConfiguration Configuration { get; protected set; }
 
     /// <inheritdoc />
     public new IInMemoryMessagingTransportDescriptor ModifyOptions(Action<TransportOptions> configure)
@@ -63,57 +63,23 @@ public sealed class InMemoryMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
-    public new IInMemoryMessagingTransportDescriptor UseDispatch(DispatchMiddlewareConfiguration configuration)
+    public new IInMemoryMessagingTransportDescriptor UseDispatch(
+        DispatchMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null)
     {
-        base.UseDispatch(configuration);
+        base.UseDispatch(configuration, before: before, after: after);
 
         return this;
     }
 
     /// <inheritdoc />
-    public new IInMemoryMessagingTransportDescriptor AppendDispatch(
-        string after,
-        DispatchMiddlewareConfiguration configuration)
+    public new IInMemoryMessagingTransportDescriptor UseReceive(
+        ReceiveMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null)
     {
-        base.AppendDispatch(after, configuration);
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public new IInMemoryMessagingTransportDescriptor PrependDispatch(
-        string before,
-        DispatchMiddlewareConfiguration configuration)
-    {
-        base.PrependDispatch(before, configuration);
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public new IInMemoryMessagingTransportDescriptor UseReceive(ReceiveMiddlewareConfiguration configuration)
-    {
-        base.UseReceive(configuration);
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public new IInMemoryMessagingTransportDescriptor AppendReceive(
-        string after,
-        ReceiveMiddlewareConfiguration configuration)
-    {
-        base.AppendReceive(after, configuration);
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public new IInMemoryMessagingTransportDescriptor PrependReceive(
-        string before,
-        ReceiveMiddlewareConfiguration configuration)
-    {
-        base.PrependReceive(before, configuration);
+        base.UseReceive(configuration, before: before, after: after);
 
         return this;
     }
@@ -140,6 +106,26 @@ public sealed class InMemoryMessagingTransportDescriptor
         base.BindHandlersExplicitly();
 
         return this;
+    }
+
+    /// <inheritdoc />
+    public IMessagingTransportHandlerDescriptor<IInMemoryReceiveEndpointDescriptor> Handler<THandler>()
+        where THandler : class, IHandler
+    {
+        var name = Context.Naming.GetReceiveEndpointName(typeof(THandler), ReceiveEndpointKind.Default);
+        var endpoint = Endpoint(name);
+        endpoint.Handler(typeof(THandler));
+        return new MessagingTransportHandlerDescriptor<IInMemoryReceiveEndpointDescriptor>(endpoint);
+    }
+
+    /// <inheritdoc />
+    public IMessagingTransportConsumerDescriptor<IInMemoryReceiveEndpointDescriptor> Consumer<TConsumer>()
+        where TConsumer : class, IConsumer
+    {
+        var name = Context.Naming.GetReceiveEndpointName(typeof(TConsumer), ReceiveEndpointKind.Default);
+        var endpoint = Endpoint(name);
+        endpoint.Consumer(typeof(TConsumer));
+        return new MessagingTransportConsumerDescriptor<IInMemoryReceiveEndpointDescriptor>(endpoint);
     }
 
     /// <inheritdoc />

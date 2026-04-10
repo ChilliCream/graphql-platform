@@ -17,6 +17,18 @@ public sealed class SourceSchemaPreprocessorTests
                 "A",
                 // lang=graphql
                 """
+                type Query @tag(name: "remove") {
+                    field1: ID!
+                }
+
+                type Mutation @tag(name: "remove") {
+                    field1: ID!
+                }
+
+                type Subscription @tag(name: "remove") {
+                    field1: ID!
+                }
+
                 type Object1 @tag(name: "remove") {
                     field1: ID!
                 }
@@ -166,6 +178,75 @@ public sealed class SourceSchemaPreprocessorTests
                     logEntry.Message);
                 Assert.Equal(LogSeverity.Error, logEntry.Severity);
             });
+    }
+
+    [Fact]
+    public void Preprocess_ExcludeByTagAllMembers_RemovesEmptyTypes()
+    {
+        // arrange
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                // lang=graphql
+                """
+                type Query {
+                    field: ID! @tag(name: "remove")
+                }
+
+                type Mutation {
+                    field: ID! @tag(name: "remove")
+                }
+
+                type Subscription {
+                    field: ID! @tag(name: "remove")
+                }
+
+                type Object {
+                    field: ID! @tag(name: "remove")
+                }
+
+                input Input {
+                    field: ID! @tag(name: "remove")
+                }
+
+                enum Enum {
+                    VALUE @tag(name: "remove")
+                }
+
+                directive @tag(name: String!) repeatable on
+                    | SCHEMA
+                    | SCALAR
+                    | OBJECT
+                    | FIELD_DEFINITION
+                    | ARGUMENT_DEFINITION
+                    | INTERFACE
+                    | UNION
+                    | ENUM
+                    | ENUM_VALUE
+                    | INPUT_OBJECT
+                    | INPUT_FIELD_DEFINITION
+                """);
+        var compositionLog = new CompositionLog();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, compositionLog);
+        var schema = sourceSchemaParser.Parse().Value;
+        var preprocessor =
+            new SourceSchemaPreprocessor(
+                schema,
+                [],
+                compositionLog,
+                options: new SourceSchemaPreprocessorOptions { ExcludeByTag = ["remove"] });
+
+        // act
+        var result = preprocessor.Preprocess();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Null(schema.QueryType);
+        Assert.Null(schema.MutationType);
+        Assert.Null(schema.SubscriptionType);
+        Assert.False(schema.Types.ContainsName("Object"));
+        Assert.False(schema.Types.ContainsName("Input"));
+        Assert.False(schema.Types.ContainsName("Enum"));
     }
 
     [Fact]
@@ -325,37 +406,35 @@ public sealed class SourceSchemaPreprocessorTests
             // lang=graphql
             """
             type Cat implements Pet & Animal
-                @key(fields: "name")
-                @key(fields: "id")
-                @key(fields: "age") {
-                age: Int
-                id: ID!
-                name: String
+              @key(fields: "name")
+              @key(fields: "id")
+              @key(fields: "age") {
+              age: Int
+              id: ID!
+              name: String
             }
 
             type Dog implements Pet & Animal
-                @key(fields: "name")
-                @key(fields: "id")
-                @key(fields: "age") {
-                age: Int
-                id: ID!
-                name: String
+              @key(fields: "name")
+              @key(fields: "id")
+              @key(fields: "age") {
+              age: Int
+              id: ID!
+              name: String
             }
 
-            interface Animal
-                @key(fields: "id")
-                @key(fields: "age") {
-                age: Int
-                id: ID!
+            interface Animal @key(fields: "id") @key(fields: "age") {
+              age: Int
+              id: ID!
             }
 
             interface Pet implements Animal
-                @key(fields: "name")
-                @key(fields: "id")
-                @key(fields: "age") {
-                age: Int
-                id: ID!
-                name: String
+              @key(fields: "name")
+              @key(fields: "id")
+              @key(fields: "age") {
+              age: Int
+              id: ID!
+              name: String
             }
             """);
     }
@@ -446,30 +525,22 @@ public sealed class SourceSchemaPreprocessorTests
             }
 
             type Query {
-              node(id: ID!): Node
-                @lookup
-              productById(id: ID!): Product
-                @lookup
-              productByName(productName: String!
-                @is(field: "name")): Product
-                @lookup
+              node(id: ID!): Node @lookup
+              productById(id: ID!): Product @lookup
+              productByName(productName: String! @is(field: "name")): Product @lookup
             }
 
-            type Product implements Node
-              @key(fields: "id")
-              @key(fields: "name") {
+            type Product implements Node @key(fields: "id") @key(fields: "name") {
               id: ID!
               name: String!
             }
 
-            type Review implements Node
-              @key(fields: "id") {
+            type Review implements Node @key(fields: "id") {
               id: ID!
               title: String!
             }
 
-            interface Node
-              @key(fields: "id") {
+            interface Node @key(fields: "id") {
               id: ID!
             }
             """);
@@ -529,7 +600,7 @@ public sealed class SourceSchemaPreprocessorTests
               product(id: ID!): Product
               productByGtin(gtin: String!): Product
               productById(id: ID!): Product!
-              productByIdAndOther(id: ID! other: String): Product
+              productByIdAndOther(id: ID!, other: String): Product
               productsById(ids: [ID!]!): [Product]
             }
 
@@ -666,16 +737,12 @@ public sealed class SourceSchemaPreprocessorTests
             }
 
             type Query {
-              productById(id: ID!): Product
-                @lookup
-                @shareable
+              productById(id: ID!): Product @lookup @shareable
             }
 
-            type Product
-              @key(fields: "id") {
+            type Product @key(fields: "id") {
               id: ID!
-              name: String!
-                @shareable
+              name: String! @shareable
             }
             """);
     }

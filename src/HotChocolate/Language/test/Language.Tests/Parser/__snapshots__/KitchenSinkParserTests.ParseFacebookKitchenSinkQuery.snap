@@ -1,12 +1,7 @@
 SDL:
 ---------------
 "Query description"
-query queryName(
-  "$foo description"
-  $foo: ComplexType
-  "$site description"
-  $site: Site = MOBILE
-) {
+query queryName($foo: ComplexType, $site: Site = MOBILE) {
   whoever123is: node(id: [123, 456]) {
     id
     ... on User @defer {
@@ -37,10 +32,7 @@ mutation likeStory {
 }
 
 "Subscription description"
-subscription StoryLikeSubscription(
-  "$input description"
-  $input: StoryLikeSubscribeInput
-) {
+subscription StoryLikeSubscription($input: StoryLikeSubscribeInput) {
   storyLikeSubscribe(input: $input) {
     story {
       likers {

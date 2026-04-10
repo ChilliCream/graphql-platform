@@ -27,12 +27,8 @@ public sealed class SourceSchemaMergerInputObjectTests : SourceSchemaMergerTestB
                 """
             ],
             """
-            input OrderInput
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                id: ID!
-                    @fusion__inputField(schema: A)
-                    @fusion__inputField(schema: B)
+            input OrderInput @fusion__type(schema: A) @fusion__type(schema: B) {
+              id: ID! @fusion__inputField(schema: A) @fusion__inputField(schema: B)
             }
             """);
     }
@@ -66,12 +62,8 @@ public sealed class SourceSchemaMergerInputObjectTests : SourceSchemaMergerTestB
             ],
             """
             "First Description"
-            input OrderInput
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                id: ID!
-                    @fusion__inputField(schema: A)
-                    @fusion__inputField(schema: B)
+            input OrderInput @fusion__type(schema: A) @fusion__type(schema: B) {
+              id: ID! @fusion__inputField(schema: A) @fusion__inputField(schema: B)
             }
             """);
     }
@@ -98,12 +90,10 @@ public sealed class SourceSchemaMergerInputObjectTests : SourceSchemaMergerTestB
             ],
             """
             input OrderInput
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
-                @fusion__inaccessible {
-                id: ID!
-                    @fusion__inputField(schema: A)
-                    @fusion__inputField(schema: B)
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @fusion__inaccessible {
+              id: ID! @fusion__inputField(schema: A) @fusion__inputField(schema: B)
             }
             """);
     }

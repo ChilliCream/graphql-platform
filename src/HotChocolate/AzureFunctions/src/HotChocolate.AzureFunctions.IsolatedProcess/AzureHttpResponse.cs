@@ -13,7 +13,11 @@ internal sealed class AzureHttpResponse : HttpResponse
     private ImmutableList<(Func<object, Task>, object)> _onCompletedCallbacks = [];
     private readonly HttpResponse _response;
     private readonly HttpRequestData _requestData;
+#if NET9_0_OR_GREATER
+    private readonly Lock _sync = new();
+#else
     private readonly object _sync = new();
+#endif
     private HttpResponseData? _responseData;
     private AzureHeaderDictionary? _headers;
     private PipeWriter? _writer;

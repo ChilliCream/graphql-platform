@@ -7,8 +7,7 @@ namespace HotChocolate.Fusion.Execution.Clients;
 /// <summary>
 /// Represents the configuration for fetching data from a source schema over HTTP.
 /// </summary>
-public class SourceSchemaHttpClientConfiguration
-    : ISourceSchemaClientConfiguration
+public class SourceSchemaHttpClientConfiguration : ISourceSchemaClientConfiguration
 {
     public const string DefaultClientName = "fusion";
 
@@ -24,8 +23,8 @@ public class SourceSchemaHttpClientConfiguration
     /// <param name="supportedOperations">
     /// The supported operations.
     /// </param>
-    /// <param name="batchingMode">
-    /// The batching mode.
+    /// <param name="capabilities">
+    /// The client capabilities.
     /// </param>
     /// <param name="defaultAcceptHeaderValues">
     /// The <c>Accept</c> header values sent in case of a single, non-Subscription GraphQL request.
@@ -49,9 +48,7 @@ public class SourceSchemaHttpClientConfiguration
         string name,
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
-        SourceSchemaHttpClientBatchingMode batchingMode =
-            SourceSchemaHttpClientBatchingMode.VariableBatching
-                | SourceSchemaHttpClientBatchingMode.RequestBatching,
+        SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.All,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
@@ -63,7 +60,7 @@ public class SourceSchemaHttpClientConfiguration
             DefaultClientName,
             baseAddress,
             supportedOperations,
-            batchingMode,
+            capabilities,
             defaultAcceptHeaderValues,
             batchingAcceptHeaderValues,
             subscriptionAcceptHeaderValues,
@@ -88,8 +85,8 @@ public class SourceSchemaHttpClientConfiguration
     /// <param name="supportedOperations">
     /// The supported operations.
     /// </param>
-    /// <param name="batchingMode">
-    /// The batching mode.
+    /// <param name="capabilities">
+    /// The client capabilities.
     /// </param>
     /// <param name="defaultAcceptHeaderValues">
     /// The <c>Accept</c> header values sent in case of a single, non-Subscription GraphQL request.
@@ -114,9 +111,7 @@ public class SourceSchemaHttpClientConfiguration
         string httpClientName,
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
-        SourceSchemaHttpClientBatchingMode batchingMode =
-            SourceSchemaHttpClientBatchingMode.VariableBatching
-                | SourceSchemaHttpClientBatchingMode.RequestBatching,
+        SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.All,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
@@ -132,27 +127,19 @@ public class SourceSchemaHttpClientConfiguration
         HttpClientName = httpClientName;
         BaseAddress = baseAddress;
         SupportedOperations = supportedOperations;
-        BatchingMode = batchingMode;
+        Capabilities = capabilities;
 
-        DefaultAcceptHeaderValues = defaultAcceptHeaderValues ?? AcceptContentTypes.Default;
+        DefaultAcceptHeaderValue = defaultAcceptHeaderValues is null
+            ? AcceptContentTypes.DefaultHeader
+            : AcceptContentTypes.FormatAcceptHeader(defaultAcceptHeaderValues.Value);
 
-        if (batchingMode.HasFlag(SourceSchemaHttpClientBatchingMode.VariableBatching))
-        {
-            batchingMode &= ~SourceSchemaHttpClientBatchingMode.ApolloRequestBatching;
-        }
+        BatchingAcceptHeaderValue = batchingAcceptHeaderValues is null
+            ? AcceptContentTypes.BatchingHeader
+            : AcceptContentTypes.FormatAcceptHeader(batchingAcceptHeaderValues.Value);
 
-        if (batchingAcceptHeaderValues.HasValue)
-        {
-            BatchingAcceptHeaderValues = batchingAcceptHeaderValues.Value;
-        }
-        else
-        {
-            BatchingAcceptHeaderValues = batchingMode == SourceSchemaHttpClientBatchingMode.ApolloRequestBatching
-                ? AcceptContentTypes.ApolloRequestBatching
-                : AcceptContentTypes.VariableBatching;
-        }
-
-        SubscriptionAcceptHeaderValues = subscriptionAcceptHeaderValues ?? AcceptContentTypes.Subscription;
+        SubscriptionAcceptHeaderValue = subscriptionAcceptHeaderValues is null
+            ? AcceptContentTypes.SubscriptionHeader
+            : AcceptContentTypes.FormatAcceptHeader(subscriptionAcceptHeaderValues.Value);
 
         OnBeforeSend = onBeforeSend;
         OnAfterReceive = onAfterReceive;
@@ -180,24 +167,24 @@ public class SourceSchemaHttpClientConfiguration
     public SupportedOperationType SupportedOperations { get; }
 
     /// <summary>
-    /// Gets the preferred batching mode.
+    /// Gets the client capabilities.
     /// </summary>
-    public SourceSchemaHttpClientBatchingMode BatchingMode { get; }
+    public SourceSchemaClientCapabilities Capabilities { get; }
 
     /// <summary>
-    /// Gets the <c>Accept</c> header values sent in case of a single, non-Subscription GraphQL request.
+    /// Gets a pre-formatted Accept header string for single, non-Subscription GraphQL requests.
     /// </summary>
-    public ImmutableArray<MediaTypeWithQualityHeaderValue> DefaultAcceptHeaderValues { get; }
+    public string DefaultAcceptHeaderValue { get; }
 
     /// <summary>
-    /// Gets the <c>Accept</c> header values sent in case of a batching request.
+    /// Gets a pre-formatted Accept header string for batching requests.
     /// </summary>
-    public ImmutableArray<MediaTypeWithQualityHeaderValue> BatchingAcceptHeaderValues { get; }
+    public string BatchingAcceptHeaderValue { get; }
 
     /// <summary>
-    /// Gets the <c>Accept</c> header values sent in case of a subscription.
+    /// Gets a pre-formatted Accept header string for subscriptions.
     /// </summary>
-    public ImmutableArray<MediaTypeWithQualityHeaderValue> SubscriptionAcceptHeaderValues { get; }
+    public string SubscriptionAcceptHeaderValue { get; }
 
     /// <summary>
     /// Called before the request is sent.
@@ -216,7 +203,7 @@ public class SourceSchemaHttpClientConfiguration
 
     private static class AcceptContentTypes
     {
-        public static ImmutableArray<MediaTypeWithQualityHeaderValue> Default { get; } =
+        private static ImmutableArray<MediaTypeWithQualityHeaderValue> Default { get; } =
         [
             new("application/graphql-response+json") { CharSet = "utf-8" },
             new("application/json") { CharSet = "utf-8" },
@@ -224,7 +211,7 @@ public class SourceSchemaHttpClientConfiguration
             new("text/event-stream") { CharSet = "utf-8" }
         ];
 
-        public static ImmutableArray<MediaTypeWithQualityHeaderValue> VariableBatching { get; } =
+        private static ImmutableArray<MediaTypeWithQualityHeaderValue> Batching { get; } =
         [
             new("application/jsonl") { CharSet = "utf-8" },
             new("text/event-stream") { CharSet = "utf-8" },
@@ -232,15 +219,19 @@ public class SourceSchemaHttpClientConfiguration
             new("application/json") { CharSet = "utf-8" }
         ];
 
-        public static ImmutableArray<MediaTypeWithQualityHeaderValue> ApolloRequestBatching { get; } =
-        [
-            new("application/json") { CharSet = "utf-8" }
-        ];
-
-        public static ImmutableArray<MediaTypeWithQualityHeaderValue> Subscription { get; } =
+        private static ImmutableArray<MediaTypeWithQualityHeaderValue> Subscription { get; } =
         [
             new("application/jsonl") { CharSet = "utf-8" },
             new("text/event-stream") { CharSet = "utf-8" }
         ];
+
+        public static string DefaultHeader { get; } = FormatAcceptHeader(Default);
+
+        public static string BatchingHeader { get; } = FormatAcceptHeader(Batching);
+
+        public static string SubscriptionHeader { get; } = FormatAcceptHeader(Subscription);
+
+        public static string FormatAcceptHeader(ImmutableArray<MediaTypeWithQualityHeaderValue> values)
+            => string.Join(", ", values);
     }
 }

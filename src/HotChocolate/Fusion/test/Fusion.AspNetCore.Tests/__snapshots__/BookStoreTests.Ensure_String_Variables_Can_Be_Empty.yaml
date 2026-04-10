@@ -1,9 +1,7 @@
 title: Ensure_String_Variables_Can_Be_Empty
 request:
   document: |
-    query(
-      $s: String!
-    ) {
+    query($s: String!) {
       formatTitle(title: $s)
     }
   variables: |
@@ -66,15 +64,23 @@ sourceSchemas:
 
       type Query {
         bookById(id: Int!): Book! @lookup
-        books("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): BooksConnection
+        books(
+          "Returns the first _n_ elements from the list."
+          first: Int
+          "Returns the elements in the list that come after the specified cursor."
+          after: String
+          "Returns the last _n_ elements from the list."
+          last: Int
+          "Returns the elements in the list that come before the specified cursor."
+          before: String
+        ): BooksConnection
         formatTitle(title: String!): String!
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_577373a9_1(
-              $s: String!
-            ) {
+            query Op_577373a9_1($s: String!) {
               formatTitle(title: $s)
             }
           variables: |
@@ -140,14 +146,21 @@ sourceSchemas:
       type Query {
         bookById(id: Int!): Book! @internal @lookup
         authorById(id: Int!): Author! @internal @lookup
-        authors("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): AuthorsConnection
+        authors(
+          "Returns the first _n_ elements from the list."
+          first: Int
+          "Returns the elements in the list that come after the specified cursor."
+          after: String
+          "Returns the last _n_ elements from the list."
+          last: Int
+          "Returns the elements in the list that come before the specified cursor."
+          before: String
+        ): AuthorsConnection
       }
 operationPlan:
   operation:
     - document: |
-        query(
-          $s: String!
-        ) {
+        query($s: String!) {
           formatTitle(title: $s)
         }
       hash: 577373a9b2c16f480ac5c2645f109b7b
@@ -158,9 +171,7 @@ operationPlan:
       type: Operation
       schema: a
       operation: |
-        query Op_577373a9_1(
-          $s: String!
-        ) {
+        query Op_577373a9_1($s: String!) {
           formatTitle(title: $s)
         }
       forwardedVariables:

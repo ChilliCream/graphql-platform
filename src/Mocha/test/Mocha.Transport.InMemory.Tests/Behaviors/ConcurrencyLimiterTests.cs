@@ -25,13 +25,13 @@ public class ConcurrencyLimiterTests
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act — publish many messages in parallel
+        // act - publish many messages in parallel
         for (var i = 0; i < messageCount; i++)
         {
             await bus.PublishAsync(new OrderCreated { OrderId = $"ORD-{i}" }, CancellationToken.None);
         }
 
-        // assert — wait for all messages and check peak concurrency
+        // assert - wait for all messages and check peak concurrency
         Assert.True(
             await tracker.WaitAsync(s_timeout, messageCount),
             $"Handler did not process all {messageCount} messages");

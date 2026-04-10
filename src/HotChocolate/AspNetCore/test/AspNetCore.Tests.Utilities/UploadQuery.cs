@@ -40,9 +40,26 @@ public class UploadQuery
         return await sr.ReadToEndAsync();
     }
 
-    public async Task<string> OptionalUpload([GraphQLType(typeof(UploadType))] Optional<IFile> file)
+    public async Task<string?> NullableUpload(IFile? file)
     {
-        await using var stream = file.Value!.OpenReadStream();
+        if (file is null)
+        {
+            return null;
+        }
+
+        await using var stream = file.OpenReadStream();
+        using var sr = new StreamReader(stream, Encoding.UTF8);
+        return await sr.ReadToEndAsync();
+    }
+
+    public async Task<string?> OptionalUpload([GraphQLType(typeof(UploadType))] Optional<IFile> file)
+    {
+        if (!file.HasValue || file.Value is null)
+        {
+            return null;
+        }
+
+        await using var stream = file.Value.OpenReadStream();
         using var sr = new StreamReader(stream, Encoding.UTF8);
         return await sr.ReadToEndAsync();
     }

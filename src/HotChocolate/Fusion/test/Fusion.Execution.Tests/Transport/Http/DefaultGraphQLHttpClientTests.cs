@@ -1,11 +1,14 @@
 using System.Text;
 using System.Text.Json;
-using HotChocolate.Transport;
+using HotChocolate.Buffers;
+using HotChocolate.Fusion.Execution;
 
 namespace HotChocolate.Fusion.Transport.Http;
 
 public class DefaultGraphQLHttpClientTests
 {
+    private const int LargeTestBatchSize = 5_000;
+
     [Fact]
     public async Task Fetch_Large_Json()
     {
@@ -15,7 +18,8 @@ public class DefaultGraphQLHttpClientTests
         await using var app = context.Item2;
         using var client = new DefaultGraphQLHttpClient(server.CreateClient(), disposeInnerClient: true);
 
-        var operationRequest = new OperationRequest("{ items }");
+        var operationRequest =
+            new OperationRequest("{ items }", null, null, null, VariableValues.Empty, JsonSegment.Empty);
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
@@ -44,7 +48,8 @@ public class DefaultGraphQLHttpClientTests
             "application/graphql-response+json");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new OperationRequest("{ number }");
+        var operationRequest =
+            new OperationRequest("{ number }", null, null, null, VariableValues.Empty, JsonSegment.Empty);
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
@@ -72,7 +77,8 @@ public class DefaultGraphQLHttpClientTests
             "application/json");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new OperationRequest("{ number }");
+        var operationRequest =
+            new OperationRequest("{ number }", null, null, null, VariableValues.Empty, JsonSegment.Empty);
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
@@ -100,7 +106,8 @@ public class DefaultGraphQLHttpClientTests
             "application/graphql-response+json");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new OperationRequest("{ number }");
+        var operationRequest =
+            new OperationRequest("{ number }", null, null, null, VariableValues.Empty, JsonSegment.Empty);
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
@@ -137,7 +144,8 @@ public class DefaultGraphQLHttpClientTests
             "application/json");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new OperationRequest("{ number }");
+        var operationRequest =
+            new OperationRequest("{ number }", null, null, null, VariableValues.Empty, JsonSegment.Empty);
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
@@ -160,7 +168,7 @@ public class DefaultGraphQLHttpClientTests
     }
 
     [Fact]
-    public async Task ReadAsResultStream_Single_Application_Json_Apollo_Request_Batching_Response()
+    public async Task ReadAsResultStream_Single_Application_Json_ApolloRequestBatching_Response()
     {
         // arrange
         var handler = new MockHttpMessageHandler(
@@ -178,7 +186,7 @@ public class DefaultGraphQLHttpClientTests
 
         var operationRequest = new OperationBatchRequest(
         [
-            new OperationRequest("{ number }")
+            new OperationRequest("{ number }", null, null, null, VariableValues.Empty, JsonSegment.Empty)
         ]);
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
@@ -202,7 +210,7 @@ public class DefaultGraphQLHttpClientTests
     }
 
     [Fact]
-    public async Task ReadAsResultStream_Multi_Application_Json_Apollo_Request_Batching_Response()
+    public async Task ReadAsResultStream_Multi_Application_Json_ApolloRequestBatching_Response()
     {
         // arrange
         var handler = new MockHttpMessageHandler(
@@ -224,10 +232,10 @@ public class DefaultGraphQLHttpClientTests
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
         var operationRequest = new OperationBatchRequest(
-            [
-                new OperationRequest("{ number }"),
-                new OperationRequest("{ number }")
-            ]);
+        [
+            new OperationRequest("{ number }", null, null, null, VariableValues.Empty, JsonSegment.Empty),
+            new OperationRequest("{ number }", null, null, null, VariableValues.Empty, JsonSegment.Empty)
+        ]);
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
@@ -267,9 +275,11 @@ public class DefaultGraphQLHttpClientTests
 
         var operationRequest = new VariableBatchRequest(
             "{ number }",
-            variables: [
-                new Dictionary<string, object?>()
-            ]);
+            null,
+            null,
+            null,
+            [VariableValues.Empty],
+            JsonSegment.Empty);
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
@@ -311,10 +321,11 @@ public class DefaultGraphQLHttpClientTests
 
         var operationRequest = new VariableBatchRequest(
             "{ number }",
-            variables: [
-              new Dictionary<string, object?>(),
-              new Dictionary<string, object?>()
-            ]);
+            null,
+            null,
+            null,
+            [VariableValues.Empty, VariableValues.Empty],
+            JsonSegment.Empty);
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
@@ -358,7 +369,8 @@ public class DefaultGraphQLHttpClientTests
             "text/event-stream");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new OperationRequest("{ number }");
+        var operationRequest =
+            new OperationRequest("{ number }", null, null, null, VariableValues.Empty, JsonSegment.Empty);
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
@@ -407,7 +419,8 @@ public class DefaultGraphQLHttpClientTests
             "text/event-stream");
         using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
 
-        var operationRequest = new OperationRequest("{ number }");
+        var operationRequest =
+            new OperationRequest("{ number }", null, null, null, VariableValues.Empty, JsonSegment.Empty);
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
         // act
@@ -427,6 +440,173 @@ public class DefaultGraphQLHttpClientTests
         }
 
         Assert.Equal(2, count);
+    }
+
+    [Fact]
+    public async Task ReadAsResult_Large_Application_Json_Response()
+    {
+        // arrange
+        var largeJson = GenerateLargeJsonResponse(5000);
+        var handler = new MockHttpMessageHandler(largeJson, "application/json");
+        using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
+
+        var operationRequest =
+            new OperationRequest("{ items }", null, null, null, VariableValues.Empty, JsonSegment.Empty);
+        var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var result = await client.SendAsync(request);
+        var document = await result.ReadAsResultAsync();
+
+        // assert
+        var itemCount = document.Root.GetProperty("data").GetProperty("items").GetArrayLength();
+        Assert.Equal(5000, itemCount);
+    }
+
+    [Fact]
+    public async Task ReadAsResult_Large_Application_Graphql_Response_Json_Response()
+    {
+        // arrange
+        var largeJson = GenerateLargeJsonResponse(5000);
+        var handler = new MockHttpMessageHandler(largeJson, "application/graphql-response+json");
+        using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
+
+        var operationRequest =
+            new OperationRequest("{ items }", null, null, null, VariableValues.Empty, JsonSegment.Empty);
+        var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var result = await client.SendAsync(request);
+        var document = await result.ReadAsResultAsync();
+
+        // assert
+        var itemCount = document.Root.GetProperty("data").GetProperty("items").GetArrayLength();
+        Assert.Equal(5000, itemCount);
+    }
+
+    [Fact]
+    public async Task ReadAsResultStream_Large_Application_Json_Lines_Response()
+    {
+        // arrange
+        var ms = new MemoryStream();
+        var sw = new StreamWriter(ms);
+
+        for (var i = 0; i < 1000; i++)
+        {
+            sw.Write($"{{\"data\":{{\"number\":{i}}}}}");
+            sw.Write('\n');
+        }
+
+        sw.Flush();
+        ms.Position = 0;
+
+        var handler = new MockHttpMessageHandler(ms, "application/jsonl");
+        using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
+
+        var operationRequest = new VariableBatchRequest(
+            "{ number }",
+            null,
+            null,
+            null,
+            [.. Enumerable.Repeat(VariableValues.Empty, 1000)],
+            JsonSegment.Empty);
+        var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var result = await client.SendAsync(request);
+        var stream = result.ReadAsResultStreamAsync();
+
+        // assert
+        var count = 0;
+
+        await foreach (var document in stream)
+        {
+            var number = document.Root.GetProperty("data").GetProperty("number").GetInt32();
+            Assert.Equal(count, number);
+            count++;
+        }
+
+        Assert.Equal(1000, count);
+    }
+
+    [Fact]
+    public async Task ReadAsResultStream_Large_Application_Json_Array_Response()
+    {
+        // arrange
+        var largeJson = GenerateLargeJsonArrayResponse(LargeTestBatchSize);
+        var handler = new MockHttpMessageHandler(largeJson, "application/json");
+        using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
+
+        var operationRequest = new OperationBatchRequest(
+        [
+            ..Enumerable.Range(0, LargeTestBatchSize)
+                .Select(_ =>
+                    (IOperationRequest)new OperationRequest("{ number }", null, null, null, VariableValues.Empty,
+                        JsonSegment.Empty))
+        ]);
+        var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var result = await client.SendAsync(request);
+        var stream = result.ReadAsResultStreamAsync();
+
+        // assert
+        var count = 0;
+
+        await foreach (var document in stream)
+        {
+            var number = document.Root.GetProperty("data").GetProperty("number").GetInt32();
+            Assert.Equal(count, number);
+            count++;
+        }
+
+        Assert.Equal(LargeTestBatchSize, count);
+    }
+
+    [Fact]
+    public async Task ReadAsResultStream_Large_Text_Event_Stream_Response()
+    {
+        // arrange
+        var ms = new MemoryStream();
+        var sw = new StreamWriter(ms);
+
+        for (var i = 0; i < LargeTestBatchSize; i++)
+        {
+            sw.Write("event: next");
+            sw.Write('\n');
+            sw.Write($"data: {{\"data\":{{\"number\":{i}}}}}");
+            sw.Write('\n');
+            sw.Write('\n');
+        }
+
+        sw.Write("event: complete");
+        sw.Write('\n');
+        sw.Write('\n');
+        sw.Flush();
+        ms.Position = 0;
+
+        var handler = new MockHttpMessageHandler(ms, "text/event-stream");
+        using var client = new DefaultGraphQLHttpClient(new HttpClient(handler));
+
+        var operationRequest =
+            new OperationRequest("{ number }", null, null, null, VariableValues.Empty, JsonSegment.Empty);
+        var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
+
+        // act
+        using var result = await client.SendAsync(request);
+        var stream = result.ReadAsResultStreamAsync();
+
+        // assert
+        var count = 0;
+
+        await foreach (var document in stream)
+        {
+            var number = document.Root.GetProperty("data").GetProperty("number").GetInt32();
+            Assert.Equal(count, number);
+            count++;
+        }
+
+        Assert.Equal(LargeTestBatchSize, count);
     }
 
     [Fact]
@@ -452,12 +632,15 @@ public class DefaultGraphQLHttpClientTests
             + "a glossy finish that accentuates its sculptural silhouette. Balancing softness with warmth, this "
             + "palette extends Curry\u2019s legacy with a fresh, contemporary expression. It's still iconic.";
 
+        var variableValues = CreateVariableValues(
+            new Dictionary<string, object?> { ["description"] = description });
         var operationRequest = new OperationRequest(
             "mutation($description: String!) { updateDescription(description: $description) }",
-            variables: new Dictionary<string, object?>
-            {
-                ["description"] = description
-            });
+            null,
+            null,
+            null,
+            variableValues,
+            JsonSegment.Empty);
 
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
@@ -476,6 +659,56 @@ public class DefaultGraphQLHttpClientTests
             .GetString();
 
         Assert.Equal(description, serializedDescription);
+    }
+
+    private static string GenerateLargeJsonResponse(int itemCount)
+    {
+        var sb = new StringBuilder();
+        sb.Append("{\"data\":{\"items\":[");
+
+        for (var i = 0; i < itemCount; i++)
+        {
+            if (i > 0)
+            {
+                sb.Append(',');
+            }
+
+            sb.Append($"{{\"id\":{i},\"value\":\"item_{i}\"}}");
+        }
+
+        sb.Append("]}}");
+        return sb.ToString();
+    }
+
+    private static string GenerateLargeJsonArrayResponse(int itemCount)
+    {
+        var sb = new StringBuilder();
+        sb.Append('[');
+
+        for (var i = 0; i < itemCount; i++)
+        {
+            if (i > 0)
+            {
+                sb.Append(',');
+            }
+
+            sb.Append($"{{\"data\":{{\"number\":{i}}}}}");
+        }
+
+        sb.Append(']');
+        return sb.ToString();
+    }
+
+    private static VariableValues CreateVariableValues(Dictionary<string, object?> variables)
+    {
+        var writer = new ChunkedArrayWriter();
+        var startPosition = writer.Position;
+        using var jsonWriter = new Utf8JsonWriter(writer,
+            new JsonWriterOptions { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
+        JsonSerializer.Serialize(jsonWriter, variables);
+        jsonWriter.Flush();
+        var length = writer.Position - startPosition;
+        return new VariableValues(default, JsonSegment.Create(writer, startPosition, length));
     }
 
     private class MockHttpMessageHandler(Stream responseStream, string contentType) : HttpMessageHandler

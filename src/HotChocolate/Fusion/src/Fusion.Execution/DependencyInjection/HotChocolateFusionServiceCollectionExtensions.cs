@@ -1,6 +1,7 @@
 using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
+using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Language;
@@ -14,11 +15,9 @@ public static class HotChocolateFusionServiceCollectionExtensions
 {
     public static IFusionGatewayBuilder AddGraphQLGateway(
         this IServiceCollection services,
-        string? name = null,
-        FusionMemoryPoolOptions? options = null)
+        string? name = null)
     {
         name ??= ISchemaDefinition.DefaultName;
-        options ??= new FusionMemoryPoolOptions();
 
         ArgumentNullException.ThrowIfNull(services);
         ArgumentException.ThrowIfNullOrEmpty(name);
@@ -26,10 +25,25 @@ public static class HotChocolateFusionServiceCollectionExtensions
         AddCore(services);
         AddRequestExecutorManager(services);
         AddSourceSchemaScope(services);
-        AddResultObjectPools(services, options.Clone());
 
         return CreateBuilder(services, name);
     }
+
+    /// <summary>
+    /// Builds a <see cref="ServiceProvider"/> from the <paramref name="services"/> and
+    /// resolves the Fusion gateway executor.
+    /// </summary>
+    /// <param name="services">The service collection containing the gateway configuration.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The gateway request executor.</returns>
+    public static async ValueTask<IRequestExecutor> BuildGatewayAsync(
+        this IServiceCollection services,
+        CancellationToken cancellationToken = default)
+        => await services
+            .BuildServiceProvider()
+            .GetRequiredService<FusionRequestExecutorManager>()
+            .GetExecutorAsync(cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
 
     private static void AddCore(
         IServiceCollection services)
@@ -61,18 +75,13 @@ public static class HotChocolateFusionServiceCollectionExtensions
     private static void AddSourceSchemaScope(
         IServiceCollection services)
     {
+        services.AddSingleton<ISourceSchemaClientFactory>(
+            static sp => new HttpSourceSchemaClientFactory(
+                sp.GetRequiredService<IHttpClientFactory>()));
+
         services.TryAddSingleton<ISourceSchemaClientScopeFactory>(
             static sp => new DefaultSourceSchemaClientScopeFactory(
-                sp.GetRequiredService<IHttpClientFactory>()));
-    }
-
-    // TODO : REVIEW IF THIS IS STILL NEEDED
-    internal static void AddResultObjectPools(
-        IServiceCollection services,
-        FusionMemoryPoolOptions options)
-    {
-        services.TryAddSingleton<ObjectPoolProvider>(static _ => new DefaultObjectPoolProvider());
-        services.TryAddSingleton(options);
+                sp.GetServices<ISourceSchemaClientFactory>().ToArray()));
     }
 
     private static DefaultFusionGatewayBuilder CreateBuilder(
@@ -89,9 +98,20 @@ public static class HotChocolateFusionServiceCollectionExtensions
 
         var builder = new DefaultFusionGatewayBuilder(services, name);
         builder.AddDocumentCache();
+        builder.AddOperationPlanContextPool();
         builder.UseDefaultPipeline();
         return builder;
     }
+
+    private static void AddOperationPlanContextPool(this IFusionGatewayBuilder builder)
+        => builder.ConfigureSchemaServices(
+            static (_, s) => s.TryAddSingleton(
+                sp => new OperationPlanContextPool(
+                    sp.GetRequiredService<INodeIdParser>(),
+                    sp.GetRequiredService<IFusionExecutionDiagnosticEvents>(),
+                    sp.GetRequiredService<IErrorHandler>(),
+                    levels: [64, 128, 256, 512, 1024, 2048, 4096],
+                    trimInterval: TimeSpan.FromMinutes(2))));
 
     private static IFusionGatewayBuilder AddDocumentCache(this IFusionGatewayBuilder builder)
     {

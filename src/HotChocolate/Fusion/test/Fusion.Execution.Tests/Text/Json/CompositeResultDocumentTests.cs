@@ -360,7 +360,7 @@ public class CompositeResultDocumentTests : FusionTestBase
         var path = productBySlug.GetProperty("name").Path;
 
         // assert
-        Assert.Equal("/productBySlug/name", path.ToString());
+        Assert.Equal("productBySlug.name", path.ToString());
     }
 
     [Fact]
@@ -413,7 +413,7 @@ public class CompositeResultDocumentTests : FusionTestBase
         var path = name.Path;
 
         // assert
-        Assert.Equal("/users/nodes[0]/name", path.ToString());
+        Assert.Equal("users.nodes[0].name", path.ToString());
     }
 
     [Fact]

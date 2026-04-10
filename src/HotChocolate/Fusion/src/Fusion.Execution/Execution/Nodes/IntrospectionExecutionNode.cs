@@ -1,5 +1,6 @@
 using System.Text.Json;
 using HotChocolate.Fusion.Text.Json;
+using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -7,7 +8,7 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 public sealed class IntrospectionExecutionNode : ExecutionNode
 {
     private readonly Selection[] _selections;
-    private readonly string[] _responseNames;
+    private readonly ResultSelectionSet _resultSelectionSet;
     private readonly ExecutionNodeCondition[] _conditions;
 
     public IntrospectionExecutionNode(
@@ -26,7 +27,8 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
 
         Id = id;
         _selections = selections;
-        _responseNames = selections.Select(t => t.ResponseName).ToArray();
+        var selectionSetNode = new SelectionSetNode(selections.Select(t => t.SyntaxNodes[0].Node).ToArray());
+        _resultSelectionSet = ResultSelectionSet.Create(selectionSetNode);
         _conditions = conditions;
     }
 
@@ -70,7 +72,7 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
         }
 
         ExecuteSelections(context, backlog);
-        context.AddPartialResults(resultBuilder.Build(), _responseNames);
+        context.AddPartialResults(resultBuilder.Build(), _resultSelectionSet);
 
         return new ValueTask<ExecutionStatus>(ExecutionStatus.Success);
     }

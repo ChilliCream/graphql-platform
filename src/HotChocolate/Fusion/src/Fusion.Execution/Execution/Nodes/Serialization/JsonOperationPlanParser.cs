@@ -3,13 +3,25 @@ using System.Text.Json;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Language;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
 
+/// <summary>
+/// Turns a JSON-encoded operation plan back into a living <see cref="OperationPlan"/>
+/// object, including the original GraphQL operation, every execution node, and the
+/// dependency graph that connects them.
+/// </summary>
 public sealed class JsonOperationPlanParser : OperationPlanParser
 {
     private readonly OperationCompiler _operationCompiler;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="JsonOperationPlanParser"/>.
+    /// </summary>
+    /// <param name="operationCompiler">
+    /// The compiler used to compile parsed operation definitions.
+    /// </param>
     public JsonOperationPlanParser(OperationCompiler operationCompiler)
     {
         ArgumentNullException.ThrowIfNull(operationCompiler);
@@ -17,6 +29,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         _operationCompiler = operationCompiler;
     }
 
+    /// <inheritdoc />
     public override OperationPlan Parse(ReadOnlyMemory<byte> planSourceText)
     {
         using var document = JsonDocument.Parse(planSourceText);
@@ -39,10 +52,13 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         var nodes = ParseNodes(rootElement.GetProperty("nodes"), operation);
 
+        // Root nodes are the entry points of the execution plan. A node is a
+        // root when it has no dependencies at all, meaning the executor can
+        // start it immediately without waiting for other nodes to finish.
         return OperationPlan.Create(
             id,
             operation,
-            [.. nodes.Where(n => n.Dependencies.Length == 0)],
+            [.. nodes.Where(n => n.Dependencies.Length == 0 && n.OptionalDependencies.Length == 0)],
             nodes,
             searchSpace,
             expandedNodes);
@@ -59,9 +75,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         if (operationDefinition is null)
         {
-            throw new InvalidOperationException(
-                "There must be exactly one operation definition in the "
-                + "operation document of the operation plan.");
+            throw ThrowHelper.SingleOperationRequired();
         }
 
         return _operationCompiler.Compile(id, hash, operationDefinition);
@@ -69,36 +83,157 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
     private ImmutableArray<ExecutionNode> ParseNodes(JsonElement nodesElement, Operation operation)
     {
-        var nodes = new List<(ExecutionNode, int[]?, Dictionary<string, int>?, int?)>();
+        // Phase 1: Read every JSON node element into a lightweight intermediate
+        // object. We do not create real execution nodes yet because we first need
+        // to know which operations belong to the same batch group.
+        var parsedNodes = new List<ParsedNodeInfo>();
 
         foreach (var nodeElement in nodesElement.EnumerateArray())
         {
             var nodeType = nodeElement.GetProperty("type").GetString()!;
             var id = nodeElement.GetProperty("id").GetInt32();
 
-            (ExecutionNode, int[]?, Dictionary<string, int>?, int?) node = nodeType switch
-            {
-                "Operation" => ParseOperationNode(nodeElement, id),
-                "OperationBatch" => ParseOperationBatchNode(nodeElement, id),
-                "Introspection" => ParseIntrospectionNode(nodeElement, id, operation),
-                "Node" => ParseNodeFieldNode(nodeElement, id, operation),
-                _ => throw new NotSupportedException($"Unsupported node type: {nodeType}")
-            };
+            var schema = _operationCompiler.Schema;
 
-            nodes.Add(node);
+            switch (nodeType)
+            {
+                case "Operation":
+                    parsedNodes.Add(ParseOperationNodeInfo(nodeElement, id, schema));
+                    break;
+
+                case "OperationBatch":
+                    parsedNodes.Add(ParseOperationBatchNodeInfo(nodeElement, id, schema));
+                    break;
+
+                case "Introspection":
+                    parsedNodes.Add(ParseIntrospectionNodeInfo(nodeElement, id, operation));
+                    break;
+
+                case "Node":
+                    parsedNodes.Add(ParseNodeFieldNodeInfo(nodeElement, id, operation));
+                    break;
+
+                default:
+                    throw new NotSupportedException($"Unsupported node type: {nodeType}");
+            }
         }
 
-        var nodeMap = nodes.ToDictionary(n => n.Item1.Id, n => n.Item1);
+        // Phase 2: Separate operations that share a batching group identifier
+        // from those that stand alone. Operations in the same group will be
+        // merged into a single OperationBatchExecutionNode later, so the
+        // gateway can send them to the downstream service in one network call.
+        var batchGroups = new Dictionary<int, List<ParsedOperationNodeInfo>>();
+        var standaloneNodes = new List<ParsedNodeInfo>();
 
-        foreach (var (node, dependencies, branches, fallback) in nodes)
+        foreach (var parsed in parsedNodes)
+        {
+            if (parsed is ParsedOperationNodeInfo opInfo && opInfo.BatchingGroupId.HasValue)
+            {
+                if (!batchGroups.TryGetValue(opInfo.BatchingGroupId.Value, out var group))
+                {
+                    group = [];
+                    batchGroups[opInfo.BatchingGroupId.Value] = group;
+                }
+
+                group.Add(opInfo);
+            }
+            else
+            {
+                standaloneNodes.Add(parsed);
+            }
+        }
+
+        // Phase 3: Turn the intermediate objects into real execution nodes.
+        // We also build a lookup from node identifier to execution node so that
+        // Phase 4 can wire up dependencies efficiently.
+        var allNodes = new List<(ExecutionNode Node, int[]? Dependencies, Dictionary<string, int>? Branches, int? Fallback)>();
+        var nodeMap = new Dictionary<int, ExecutionNode>();
+
+        // Merge each batch group into a single OperationBatchExecutionNode.
+        // The group identifier becomes the node identifier, and every member
+        // operation becomes an entry in the batch node's operation list.
+        foreach (var (groupId, groupMembers) in batchGroups)
+        {
+            var operations = new List<OperationDefinition>();
+            var allDeps = new HashSet<int>();
+
+            foreach (var member in groupMembers)
+            {
+                operations.Add(member.ToOperationDefinition());
+
+                if (member.Dependencies is not null)
+                {
+                    foreach (var dep in member.Dependencies)
+                    {
+                        allDeps.Add(dep);
+                    }
+                }
+            }
+
+            var batchNode = new OperationBatchExecutionNode(groupId, operations.ToArray());
+            allNodes.Add((batchNode, allDeps.Count > 0 ? allDeps.ToArray() : null, null, null));
+            nodeMap[groupId] = batchNode;
+        }
+
+        // Convert every node that does not belong to a batch group into its
+        // own execution node (for example, a single-operation node or an
+        // introspection node).
+        foreach (var parsed in standaloneNodes)
+        {
+            var (node, deps, branches, fallback) = parsed.ToExecutionNodeTuple();
+            allNodes.Add((node, deps, branches, fallback));
+            nodeMap[node.Id] = node;
+        }
+
+        // When multiple operations are merged into one batch node, only the
+        // group identifier survives as a real node identifier. Other code may
+        // still reference the original member identifiers in dependency lists,
+        // so we build a redirect map that translates each absorbed member
+        // identifier to the batch node's group identifier.
+        var idRedirects = new Dictionary<int, int>();
+
+        foreach (var (groupId, groupMembers) in batchGroups)
+        {
+            foreach (var member in groupMembers)
+            {
+                if (member.Id != groupId)
+                {
+                    idRedirects[member.Id] = groupId;
+                }
+            }
+        }
+
+        // Phase 4: Connect every node to the nodes it depends on. We use the
+        // redirect map from above so that a dependency on a merged member
+        // identifier correctly resolves to the batch node that now contains it.
+        foreach (var (node, dependencies, branches, fallback) in allNodes)
         {
             if (dependencies is not null)
             {
-                foreach (var dependencyId in dependencies)
+                foreach (var rawDepId in dependencies)
                 {
+                    var dependencyId = idRedirects.TryGetValue(rawDepId, out var redirectId)
+                        ? redirectId
+                        : rawDepId;
+
                     if (nodeMap.TryGetValue(dependencyId, out var dependencyNode))
                     {
-                        node.AddDependency(dependencyNode);
+                        // A batch node that holds more than one operation can still
+                        // run even if some of its dependencies are skipped, because
+                        // each operation inside the batch tracks its own fine-grained
+                        // dependencies. We mark these as optional so the executor
+                        // does not block the entire batch when only one member's
+                        // dependency is missing. Single-operation nodes (and
+                        // non-batch nodes) need a strict dependency instead.
+                        if (node is OperationBatchExecutionNode { Operations.Length: > 1 })
+                        {
+                            node.AddOptionalDependency(dependencyNode);
+                        }
+                        else
+                        {
+                            node.AddDependency(dependencyNode);
+                        }
+
                         dependencyNode.AddDependent(node);
                     }
                     else
@@ -113,8 +248,10 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             {
                 if (branches is not null)
                 {
-                    foreach (var (typeName, nodeId) in branches)
+                    foreach (var (typeName, rawNodeId) in branches)
                     {
+                        var nodeId = idRedirects.TryGetValue(rawNodeId, out var rId) ? rId : rawNodeId;
+
                         if (nodeMap.TryGetValue(nodeId, out var branchNode))
                         {
                             nodeExecutionNode.AddBranch(typeName, branchNode);
@@ -142,7 +279,59 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             }
         }
 
-        foreach (var (node, _, _, _) in nodes)
+        // Build a unified lookup that maps every plan-level identifier to its
+        // node. This includes execution nodes *and* the individual operation
+        // definitions inside batch nodes. We need both because a member
+        // operation's dependency list uses the original identifiers, which may
+        // point to another operation definition rather than a top-level node.
+        var planNodeMap = new Dictionary<int, IOperationPlanNode>(nodeMap.Count);
+
+        foreach (var (id, node) in nodeMap)
+        {
+            planNodeMap[id] = node;
+
+            if (node is OperationBatchExecutionNode bn)
+            {
+                foreach (var op in bn.Operations)
+                {
+                    planNodeMap[op.Id] = op;
+                }
+            }
+        }
+
+        // Each operation definition inside a batch node tracks its own
+        // dependencies so the executor can skip individual operations whose
+        // prerequisites were not met. Here we resolve those per-operation
+        // dependencies using the original identifiers from the JSON.
+        foreach (var (groupId, groupMembers) in batchGroups)
+        {
+            if (nodeMap.TryGetValue(groupId, out var batchNode) && batchNode is OperationBatchExecutionNode batch)
+            {
+                var memberIndex = 0;
+
+                foreach (var member in groupMembers)
+                {
+                    if (member.Dependencies is { Length: > 0 })
+                    {
+                        var opDef = batch.Operations[memberIndex];
+
+                        foreach (var depId in member.Dependencies)
+                        {
+                            if (planNodeMap.TryGetValue(depId, out var depNode))
+                            {
+                                opDef.AddDependency(depNode);
+                            }
+                        }
+                    }
+
+                    memberIndex++;
+                }
+            }
+        }
+
+        // Seal every node so its dependency and dependent lists become
+        // immutable. After this point no further wiring changes are allowed.
+        foreach (var (node, _, _, _) in allNodes)
         {
             node.Seal();
         }
@@ -150,116 +339,75 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         return [.. nodeMap.Values.OrderBy(t => t.Id)];
     }
 
-    private static (OperationExecutionNode, int[]?, Dictionary<string, int>?, int?) ParseOperationNode(
-        JsonElement nodeElement, int id)
+    private static ParsedOperationNodeInfo ParseOperationNodeInfo(
+        JsonElement nodeElement, int id, ISchemaDefinition schema)
     {
-        string? schemaName = null;
-        if (nodeElement.TryGetProperty("schema", out var schemaElement))
-        {
-            schemaName = schemaElement.GetString()!;
-        }
+        var (schemaName, opSource, source, requirements, forwardedVariables,
+            resultSelectionSet, dependencies, batchingGroupId, conditions,
+            requiresFileUpload) = ParseCommonOperationFields(nodeElement, schema);
 
-        var operationElement = nodeElement.GetProperty("operation");
-        var operationName = operationElement.GetProperty("name").GetString()!;
-        var operationType = Enum.Parse<OperationType>(operationElement.GetProperty("kind").GetString()!);
-        var document = operationElement.GetProperty("document").GetString()!;
-        var hash = operationElement.GetProperty("hash").GetString()!;
-
-        SelectionPath? source = null;
         SelectionPath? target = null;
-        List<OperationRequirement>? requirements = null;
-        string[]? forwardedVariables = null;
-        string[]? responseNames = null;
-        int[]? dependencies = null;
-        int? batchingGroupId = null;
-
-        if (nodeElement.TryGetProperty("source", out var sourceElement))
-        {
-            source = SelectionPath.Parse(sourceElement.GetString()!);
-        }
 
         if (nodeElement.TryGetProperty("target", out var targetElement))
         {
             target = SelectionPath.Parse(targetElement.GetString()!);
         }
 
-        if (nodeElement.TryGetProperty("requirements", out var requirementsElement))
+        return new ParsedSingleOperationNodeInfo
         {
-            requirements = [];
-
-            foreach (var requirementElement in requirementsElement.EnumerateArray())
-            {
-                var requirementName = requirementElement.GetProperty("name").GetString()!;
-                var requirementType = requirementElement.GetProperty("type").GetString()!;
-                var requirementPath = requirementElement.GetProperty("path").GetString()!;
-                var selectionMap = requirementElement.GetProperty("selectionMap").GetString()!;
-
-                requirements.Add(new OperationRequirement(
-                    requirementName,
-                    Utf8GraphQLParser.Syntax.ParseTypeReference(requirementType),
-                    SelectionPath.Parse(requirementPath),
-                    FieldSelectionMapParser.Parse(selectionMap)));
-            }
-        }
-
-        if (nodeElement.TryGetProperty("forwardedVariables", out var forwardedVariablesElement))
-        {
-            forwardedVariables = forwardedVariablesElement
-                .EnumerateArray()
-                .Select(e => e.GetString()!)
-                .ToArray();
-        }
-
-        if (nodeElement.TryGetProperty("responseNames", out var responseNamesElement))
-        {
-            responseNames = responseNamesElement
-                .EnumerateArray()
-                .Select(e => e.GetString()!)
-                .ToArray();
-        }
-
-        if (nodeElement.TryGetProperty("dependencies", out var dependenciesElement))
-        {
-            dependencies = dependenciesElement
-                .EnumerateArray()
-                .Select(e => e.GetInt32())
-                .ToArray();
-        }
-
-        if (nodeElement.TryGetProperty("batchingGroupId", out var batchingGroupIdElement))
-        {
-            batchingGroupId = batchingGroupIdElement.GetInt32();
-        }
-
-        var conditions = TryParseConditions(nodeElement);
-
-        var requiresFileUpload = nodeElement.TryGetProperty("requiresFileUpload", out var requiresFileUploadElement)
-            && requiresFileUploadElement.ValueKind == JsonValueKind.True;
-
-        var node = new OperationExecutionNode(
-            id,
-            new OperationSourceText(
-                operationName,
-                operationType,
-                document,
-                hash),
-            schemaName,
-            target ?? SelectionPath.Root,
-            source ?? SelectionPath.Root,
-            requirements?.ToArray() ?? [],
-            forwardedVariables ?? [],
-            responseNames ?? [],
-            conditions,
-            batchingGroupId,
-            requiresFileUpload);
-
-        return (node, dependencies, null, null);
+            Id = id,
+            SchemaName = schemaName,
+            OperationSource = opSource,
+            Source = source ?? SelectionPath.Root,
+            Target = target ?? SelectionPath.Root,
+            Requirements = requirements?.ToArray() ?? [],
+            ForwardedVariables = forwardedVariables ?? [],
+            ResultSelectionSet = ResultSelectionSet.Create(resultSelectionSet!, schema),
+            Dependencies = dependencies,
+            BatchingGroupId = batchingGroupId,
+            Conditions = conditions,
+            RequiresFileUpload = requiresFileUpload,
+            Schema = schema
+        };
     }
 
-    private static (OperationBatchExecutionNode, int[]?, Dictionary<string, int>?, int?) ParseOperationBatchNode(
-        JsonElement nodeElement, int id)
+    private static ParsedOperationNodeInfo ParseOperationBatchNodeInfo(
+        JsonElement nodeElement, int id, ISchemaDefinition schema)
+    {
+        var (schemaName, opSource, source, requirements, forwardedVariables,
+            resultSelectionSet, dependencies, batchingGroupId, conditions,
+            requiresFileUpload) = ParseCommonOperationFields(nodeElement, schema);
+
+        var targets = nodeElement.TryGetProperty("targets", out var targetsElement)
+            ? targetsElement.EnumerateArray().Select(e => SelectionPath.Parse(e.GetString()!)).ToArray()
+            : [];
+
+        return new ParsedBatchOperationNodeInfo
+        {
+            Id = id,
+            SchemaName = schemaName,
+            OperationSource = opSource,
+            Source = source ?? SelectionPath.Root,
+            Targets = targets,
+            Requirements = requirements?.ToArray() ?? [],
+            ForwardedVariables = forwardedVariables ?? [],
+            ResultSelectionSet = ResultSelectionSet.Create(resultSelectionSet!, schema),
+            Dependencies = dependencies,
+            BatchingGroupId = batchingGroupId,
+            Conditions = conditions,
+            RequiresFileUpload = requiresFileUpload,
+            Schema = schema
+        };
+    }
+
+    private static (string? schemaName, OperationSourceText opSource, SelectionPath? source,
+        List<OperationRequirement>? requirements, string[]? forwardedVariables,
+        SelectionSetNode? resultSelectionSet, int[]? dependencies, int? batchingGroupId,
+        ExecutionNodeCondition[] conditions, bool requiresFileUpload)
+        ParseCommonOperationFields(JsonElement nodeElement, ISchemaDefinition schema)
     {
         string? schemaName = null;
+
         if (nodeElement.TryGetProperty("schema", out var schemaElement))
         {
             schemaName = schemaElement.GetString()!;
@@ -270,11 +418,12 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         var operationType = Enum.Parse<OperationType>(operationElement.GetProperty("kind").GetString()!);
         var document = operationElement.GetProperty("document").GetString()!;
         var hash = operationElement.GetProperty("hash").GetString()!;
+        var opSource = new OperationSourceText(operationName, operationType, document, hash);
 
         SelectionPath? source = null;
         List<OperationRequirement>? requirements = null;
         string[]? forwardedVariables = null;
-        string[]? responseNames = null;
+        SelectionSetNode? resultSelectionSet = null;
         int[]? dependencies = null;
         int? batchingGroupId = null;
 
@@ -282,10 +431,6 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         {
             source = SelectionPath.Parse(sourceElement.GetString()!);
         }
-
-        var targets = nodeElement.TryGetProperty("targets", out var targetsElement)
-            ? targetsElement.EnumerateArray().Select(e => SelectionPath.Parse(e.GetString()!)).ToArray()
-            : [];
 
         if (nodeElement.TryGetProperty("requirements", out var requirementsElement))
         {
@@ -314,12 +459,15 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 .ToArray();
         }
 
-        if (nodeElement.TryGetProperty("responseNames", out var responseNamesElement))
+        if (nodeElement.TryGetProperty("resultSelectionSet", out var resultSelectionSetElement)
+            && resultSelectionSetElement.GetString() is { Length: > 0 } resultSelectionSetSyntax)
         {
-            responseNames = responseNamesElement
-                .EnumerateArray()
-                .Select(e => e.GetString()!)
-                .ToArray();
+            resultSelectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet(resultSelectionSetSyntax);
+        }
+
+        if (resultSelectionSet is null)
+        {
+            throw new InvalidOperationException("The resultSelectionSet is required in a valid operation plan.");
         }
 
         if (nodeElement.TryGetProperty("dependencies", out var dependenciesElement))
@@ -340,27 +488,11 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         var requiresFileUpload = nodeElement.TryGetProperty("requiresFileUpload", out var requiresFileUploadElement)
             && requiresFileUploadElement.ValueKind == JsonValueKind.True;
 
-        var node = new OperationBatchExecutionNode(
-            id,
-            new OperationSourceText(
-                operationName,
-                operationType,
-                document,
-                hash),
-            schemaName,
-            targets,
-            source ?? SelectionPath.Root,
-            requirements?.ToArray() ?? [],
-            forwardedVariables ?? [],
-            responseNames ?? [],
-            conditions,
-            batchingGroupId,
-            requiresFileUpload);
-
-        return (node, dependencies, null, null);
+        return (schemaName, opSource, source, requirements, forwardedVariables,
+            resultSelectionSet, dependencies, batchingGroupId, conditions, requiresFileUpload);
     }
 
-    private static (IntrospectionExecutionNode, int[]?, Dictionary<string, int>?, int?) ParseIntrospectionNode(
+    private static ParsedNodeInfo ParseIntrospectionNodeInfo(
         JsonElement nodeElement,
         int id,
         Operation operation)
@@ -377,12 +509,12 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         var conditions = TryParseConditions(nodeElement);
 
-        var node = new IntrospectionExecutionNode(
-            id,
-            selections.ToArray(),
-            conditions);
-
-        return (node, null, null, null);
+        return new ParsedIntrospectionNodeInfo
+        {
+            Id = id,
+            Selections = selections.ToArray(),
+            Conditions = conditions
+        };
 
         Selection GetRootSelection(string responseName)
         {
@@ -399,7 +531,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         }
     }
 
-    private static (NodeFieldExecutionNode, int[]?, Dictionary<string, int>?, int?) ParseNodeFieldNode(
+    private static ParsedNodeInfo ParseNodeFieldNodeInfo(
         JsonElement nodeElement, int id, Operation operation)
     {
         var responseName = nodeElement.GetProperty("responseName").GetString()!;
@@ -436,13 +568,15 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         var conditions = TryParseConditions(nodeElement);
 
-        var node = new NodeFieldExecutionNode(
-            id,
-            responseName,
-            idValue,
-            conditions);
-
-        return (node, null, branches, fallbackNodeId);
+        return new ParsedNodeFieldNodeInfo
+        {
+            Id = id,
+            ResponseName = responseName,
+            IdValue = idValue,
+            Conditions = conditions,
+            Branches = branches,
+            FallbackNodeId = fallbackNodeId
+        };
     }
 
     private static ExecutionNodeCondition[] TryParseConditions(JsonElement nodeElement)
@@ -464,5 +598,133 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         }
 
         return conditions.ToArray();
+    }
+
+    // The classes below are lightweight intermediate representations used only
+    // during parsing. They hold the raw values extracted from JSON so we can
+    // first group and redirect identifiers before creating the final execution
+    // nodes and wiring their dependencies.
+
+    private abstract class ParsedNodeInfo
+    {
+        public int Id { get; init; }
+        public int[]? Dependencies { get; init; }
+
+        public abstract (ExecutionNode Node, int[]? Dependencies, Dictionary<string, int>? Branches, int? Fallback)
+            ToExecutionNodeTuple();
+    }
+
+    private abstract class ParsedOperationNodeInfo : ParsedNodeInfo
+    {
+        public string? SchemaName { get; init; }
+        public required OperationSourceText OperationSource { get; init; }
+        public required SelectionPath Source { get; init; }
+        public OperationRequirement[] Requirements { get; init; } = [];
+        public string[] ForwardedVariables { get; init; } = [];
+        public required ResultSelectionSet ResultSelectionSet { get; init; }
+        public int? BatchingGroupId { get; init; }
+        public ExecutionNodeCondition[] Conditions { get; init; } = [];
+        public bool RequiresFileUpload { get; init; }
+        public required ISchemaDefinition Schema { get; init; }
+
+        public abstract OperationDefinition ToOperationDefinition();
+    }
+
+    private sealed class ParsedSingleOperationNodeInfo : ParsedOperationNodeInfo
+    {
+        public required SelectionPath Target { get; init; }
+
+        public override OperationDefinition ToOperationDefinition()
+        {
+            return new SingleOperationDefinition(
+                Id,
+                OperationSource,
+                SchemaName,
+                Target,
+                Source,
+                Requirements,
+                ForwardedVariables,
+                ResultSelectionSet,
+                Conditions,
+                RequiresFileUpload);
+        }
+
+        public override (ExecutionNode, int[]?, Dictionary<string, int>?, int?) ToExecutionNodeTuple()
+        {
+            var node = new OperationExecutionNode(
+                Id,
+                OperationSource,
+                SchemaName,
+                Target,
+                Source,
+                Requirements,
+                ForwardedVariables,
+                ResultSelectionSet,
+                Conditions,
+                RequiresFileUpload);
+
+            return (node, Dependencies, null, null);
+        }
+    }
+
+    private sealed class ParsedBatchOperationNodeInfo : ParsedOperationNodeInfo
+    {
+        public SelectionPath[] Targets { get; init; } = [];
+
+        public override OperationDefinition ToOperationDefinition()
+        {
+            return new BatchOperationDefinition(
+                Id,
+                OperationSource,
+                SchemaName,
+                Targets,
+                Source,
+                Requirements,
+                ForwardedVariables,
+                ResultSelectionSet,
+                Conditions,
+                RequiresFileUpload);
+        }
+
+        public override (ExecutionNode, int[]?, Dictionary<string, int>?, int?) ToExecutionNodeTuple()
+        {
+            // This batch operation does not share a batching group with any other
+            // operation, so it stands alone. We still wrap it in an
+            // OperationBatchExecutionNode because the executor expects batch
+            // operations to run through the batch execution path.
+            var opDef = ToOperationDefinition();
+            var batchNode = new OperationBatchExecutionNode(Id, [opDef]);
+
+            return (batchNode, Dependencies, null, null);
+        }
+    }
+
+    private sealed class ParsedIntrospectionNodeInfo : ParsedNodeInfo
+    {
+        public Selection[] Selections { get; init; } = [];
+        public ExecutionNodeCondition[] Conditions { get; init; } = [];
+
+        public override (ExecutionNode, int[]?, Dictionary<string, int>?, int?) ToExecutionNodeTuple()
+        {
+            var node = new IntrospectionExecutionNode(Id, Selections, Conditions);
+
+            return (node, Dependencies, null, null);
+        }
+    }
+
+    private sealed class ParsedNodeFieldNodeInfo : ParsedNodeInfo
+    {
+        public string ResponseName { get; init; } = "";
+        public IValueNode IdValue { get; init; } = null!;
+        public ExecutionNodeCondition[] Conditions { get; init; } = [];
+        public Dictionary<string, int>? Branches { get; init; }
+        public int FallbackNodeId { get; init; }
+
+        public override (ExecutionNode, int[]?, Dictionary<string, int>?, int?) ToExecutionNodeTuple()
+        {
+            var node = new NodeFieldExecutionNode(Id, ResponseName, IdValue, Conditions);
+
+            return (node, Dependencies, Branches, FallbackNodeId);
+        }
     }
 }

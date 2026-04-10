@@ -11,21 +11,29 @@ namespace Mocha.Middlewares;
 /// Without this separation, high receive latency and high handler latency are hard to attribute and
 /// tune independently.
 /// </remarks>
-internal sealed class ConsumerInstrumentationMiddleware(IBusDiagnosticObserver observer)
+internal sealed class ConsumerInstrumentationMiddleware(IMessagingDiagnosticEvents events)
 {
     public async ValueTask InvokeAsync(IConsumeContext context, ConsumerDelegate next)
     {
-        using var scope = observer.Consume(context);
+        using var scope = events.Consume(context);
 
-        await next(context);
+        try
+        {
+            await next(context);
+        }
+        catch (Exception ex)
+        {
+            events.ConsumeError(context, ex);
+            throw;
+        }
     }
 
     public static ConsumerMiddlewareConfiguration Create()
         => new(
             static (context, next) =>
             {
-                var observer = context.Services.GetRequiredService<IBusDiagnosticObserver>();
-                var middleware = new ConsumerInstrumentationMiddleware(observer);
+                var events = context.Services.GetRequiredService<IMessagingDiagnosticEvents>();
+                var middleware = new ConsumerInstrumentationMiddleware(events);
                 return ctx => middleware.InvokeAsync(ctx, next);
             },
             "Instrumentation");

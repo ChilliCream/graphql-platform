@@ -84,8 +84,9 @@ public static class EndpointRouteBuilderExtensions
         var schemaNameOrDefault = schemaName ?? ISchemaDefinition.DefaultName;
         var pattern = Parse(path + "/{**slug}");
         var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
+        var services = endpointRouteBuilder.ServiceProvider;
         requestPipeline.MapGraphQL(path, schemaNameOrDefault);
-        var serverOptions = endpointRouteBuilder.ServiceProvider.GetRequiredService<IOptionsMonitor<GraphQLServerOptions>>().Get(schemaNameOrDefault);
+        var serverOptions = services.GetServerOptions(schemaNameOrDefault);
 
         return new GraphQLEndpointConventionBuilder(
             endpointRouteBuilder
@@ -123,19 +124,22 @@ public static class EndpointRouteBuilderExtensions
 
         path = path.ToString().TrimEnd('/');
 
-        var executorProvider = applicationBuilder.ApplicationServices.GetRequiredService<IRequestExecutorProvider>();
-        var executorEvents = applicationBuilder.ApplicationServices.GetRequiredService<IRequestExecutorEvents>();
-        var formOptions = applicationBuilder.ApplicationServices.GetRequiredService<IOptions<FormOptions>>();
+        var services = applicationBuilder.ApplicationServices;
+        var executorProvider = services.GetRequiredService<IRequestExecutorProvider>();
+        var executorEvents = services.GetRequiredService<IRequestExecutorEvents>();
+        var formOptions = services.GetRequiredService<IOptions<FormOptions>>();
         var executor = new HttpRequestExecutorProxy(executorProvider, executorEvents, schemaName);
-        var serverOptions = applicationBuilder.ApplicationServices.GetRequiredService<IOptionsMonitor<GraphQLServerOptions>>().Get(schemaName);
+        var serverOptions = services.GetServerOptions(schemaName);
 
         applicationBuilder
             .Use(MiddlewareFactory.CreateCancellationMiddleware())
+            .Use(MiddlewareFactory.CreateConcurrencyGateMiddleware(serverOptions.MaxConcurrentRequests))
             .Use(MiddlewareFactory.CreateWebSocketSubscriptionMiddleware(executor, serverOptions))
             .Use(MiddlewareFactory.CreateHttpPostMiddleware(executor, serverOptions))
             .Use(MiddlewareFactory.CreateHttpMultipartMiddleware(executor, serverOptions, formOptions))
             .Use(MiddlewareFactory.CreateHttpGetMiddleware(executor, serverOptions))
-            .Use(MiddlewareFactory.CreateHttpGetSchemaMiddleware(executor, serverOptions, path, MiddlewareRoutingType.Integrated))
+            .Use(MiddlewareFactory.CreateHttpGetSchemaMiddleware(
+                executor, serverOptions, path, MiddlewareRoutingType.Integrated))
             .UseNitroApp(path, serverOptions.Tool)
             .Use(_ => context =>
             {
@@ -203,14 +207,16 @@ public static class EndpointRouteBuilderExtensions
         var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
         var schemaNameOrDefault = schemaName ?? ISchemaDefinition.DefaultName;
 
-        var executorProvider = endpointRouteBuilder.ServiceProvider.GetRequiredService<IRequestExecutorProvider>();
-        var executorEvents = endpointRouteBuilder.ServiceProvider.GetRequiredService<IRequestExecutorEvents>();
-        var formOptions = endpointRouteBuilder.ServiceProvider.GetRequiredService<IOptions<FormOptions>>();
+        var services = endpointRouteBuilder.ServiceProvider;
+        var executorProvider = services.GetRequiredService<IRequestExecutorProvider>();
+        var executorEvents = services.GetRequiredService<IRequestExecutorEvents>();
+        var formOptions = services.GetRequiredService<IOptions<FormOptions>>();
         var executor = new HttpRequestExecutorProxy(executorProvider, executorEvents, schemaNameOrDefault);
-        var serverOptions = endpointRouteBuilder.ServiceProvider.GetRequiredService<IOptionsMonitor<GraphQLServerOptions>>().Get(schemaNameOrDefault);
+        var serverOptions = services.GetServerOptions(schemaNameOrDefault);
 
         requestPipeline
             .Use(MiddlewareFactory.CreateCancellationMiddleware())
+            .Use(MiddlewareFactory.CreateConcurrencyGateMiddleware(serverOptions.MaxConcurrentRequests))
             .Use(MiddlewareFactory.CreateHttpPostMiddleware(executor, serverOptions))
             .Use(MiddlewareFactory.CreateHttpMultipartMiddleware(executor, serverOptions, formOptions))
             .Use(MiddlewareFactory.CreateHttpGetMiddleware(executor, serverOptions))
@@ -283,10 +289,11 @@ public static class EndpointRouteBuilderExtensions
         var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
         var schemaNameOrDefault = schemaName ?? ISchemaDefinition.DefaultName;
 
-        var executorProvider = endpointRouteBuilder.ServiceProvider.GetRequiredService<IRequestExecutorProvider>();
-        var executorEvents = endpointRouteBuilder.ServiceProvider.GetRequiredService<IRequestExecutorEvents>();
+        var services = endpointRouteBuilder.ServiceProvider;
+        var executorProvider = services.GetRequiredService<IRequestExecutorProvider>();
+        var executorEvents = services.GetRequiredService<IRequestExecutorEvents>();
         var executor = new HttpRequestExecutorProxy(executorProvider, executorEvents, schemaNameOrDefault);
-        var serverOptions = endpointRouteBuilder.ServiceProvider.GetRequiredService<IOptionsMonitor<GraphQLServerOptions>>().Get(schemaNameOrDefault);
+        var serverOptions = services.GetServerOptions(schemaNameOrDefault);
 
         requestPipeline
             .Use(MiddlewareFactory.CreateCancellationMiddleware())
@@ -362,14 +369,17 @@ public static class EndpointRouteBuilderExtensions
         var requestPipeline = endpointRouteBuilder.CreateApplicationBuilder();
         var schemaNameOrDefault = schemaName ?? ISchemaDefinition.DefaultName;
 
-        var executorProvider = endpointRouteBuilder.ServiceProvider.GetRequiredService<IRequestExecutorProvider>();
-        var executorEvents = endpointRouteBuilder.ServiceProvider.GetRequiredService<IRequestExecutorEvents>();
+        var services = endpointRouteBuilder.ServiceProvider;
+        var executorProvider = services.GetRequiredService<IRequestExecutorProvider>();
+        var executorEvents = services.GetRequiredService<IRequestExecutorEvents>();
         var executor = new HttpRequestExecutorProxy(executorProvider, executorEvents, schemaNameOrDefault);
-        var serverOptions = endpointRouteBuilder.ServiceProvider.GetRequiredService<IOptionsMonitor<GraphQLServerOptions>>().Get(schemaNameOrDefault);
+        var serverOptions = services.GetServerOptions(schemaNameOrDefault);
 
         requestPipeline
             .Use(MiddlewareFactory.CreateCancellationMiddleware())
-            .Use(MiddlewareFactory.CreateHttpGetSchemaMiddleware(executor, serverOptions, PathString.Empty, MiddlewareRoutingType.Explicit))
+            .Use(MiddlewareFactory.CreateConcurrencyGateMiddleware(serverOptions.MaxConcurrentRequests))
+            .Use(MiddlewareFactory.CreateHttpGetSchemaMiddleware(
+                executor, serverOptions, PathString.Empty, MiddlewareRoutingType.Explicit))
             .Use(_ => context =>
             {
                 context.Response.StatusCode = 404;
@@ -529,7 +539,28 @@ public static class EndpointRouteBuilderExtensions
         this GraphQLEndpointConventionBuilder builder,
         Action<GraphQLServerOptions> configure)
     {
-        builder.Add(c => c.Metadata.Add(new GraphQLServerOptionsOverride(configure)));
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(configure);
+
+        builder.Add(c =>
+        {
+            c.Metadata.Add(new GraphQLServerOptionsOverride(configure));
+
+            var options = new GraphQLServerOptions();
+
+            for (var i = c.Metadata.Count - 1; i >= 0; i--)
+            {
+                if (c.Metadata[i] is NitroAppOptions toolOptions)
+                {
+                    options.Tool = toolOptions.Clone();
+                    break;
+                }
+            }
+
+            configure(options);
+            c.Metadata.Add(options.Tool);
+        });
+
         return builder;
     }
 
@@ -625,6 +656,9 @@ public static class EndpointRouteBuilderExtensions
         builder.Add(c => c.Metadata.Add(options));
         return builder;
     }
+
+    private static GraphQLServerOptions GetServerOptions(this IServiceProvider services, string schemaName)
+        => services.GetRequiredService<IOptionsMonitor<GraphQLServerOptions>>().Get(schemaName);
 
     private static void TryResolveSchemaName(IServiceProvider services, ref string? schemaName)
     {

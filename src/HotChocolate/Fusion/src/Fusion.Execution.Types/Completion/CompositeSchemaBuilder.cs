@@ -498,7 +498,7 @@ internal static class CompositeSchemaBuilder
         context.Interceptor.OnAfterCompleteSchema(context, schema);
         schema.Seal();
         context.Complete(schema);
-        schema.InitializePlannerTopologyCache();
+        schema.EnsurePlannerTopologyCacheInitialized();
 
         return schema;
     }

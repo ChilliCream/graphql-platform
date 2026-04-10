@@ -1,0 +1,317 @@
+{
+  "activities": [
+    {
+      "OperationName": "ExecuteHttpRequest",
+      "DisplayName": "GraphQL HTTP POST",
+      "Status": "Ok",
+      "tags": [
+        {
+          "Key": "graphql.http.kind",
+          "Value": "HttpPost"
+        },
+        {
+          "Key": "graphql.schema.name",
+          "Value": "_Default"
+        },
+        {
+          "Key": "graphql.http.request.type",
+          "Value": "single"
+        },
+        {
+          "Key": "graphql.http.request.query.id",
+          "Value": "c0513b4b6f0cf7430f64de4aa3dcd7c6"
+        },
+        {
+          "Key": "graphql.http.request.query.hash",
+          "Value": "c0513b4b6f0cf7430f64de4aa3dcd7c6"
+        }
+      ],
+      "event": [],
+      "activities": [
+        {
+          "OperationName": "Parse HTTP Request",
+          "DisplayName": "Parse HTTP Request",
+          "Status": "Ok",
+          "tags": [],
+          "event": []
+        },
+        {
+          "OperationName": "GraphQL Operation",
+          "DisplayName": "query",
+          "Status": "Ok",
+          "tags": [
+            {
+              "Key": "graphql.operation.type",
+              "Value": "query"
+            },
+            {
+              "Key": "graphql.document.hash",
+              "Value": "md5:668e9631148921208d08dbb69513fa8e"
+            },
+            {
+              "Key": "graphql.errors.count",
+              "Value": 0
+            }
+          ],
+          "event": [
+            {
+              "Name": "AddedOperationToCache",
+              "Tags": []
+            },
+            {
+              "Name": "AddedDocumentToCache",
+              "Tags": []
+            }
+          ],
+          "activities": [
+            {
+              "OperationName": "GraphQL Document Validation",
+              "DisplayName": "GraphQL Document Validation",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "validate"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:668e9631148921208d08dbb69513fa8e"
+                }
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "GraphQL Complexity Analysis",
+              "DisplayName": "GraphQL Complexity Analysis",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:668e9631148921208d08dbb69513fa8e"
+                },
+                {
+                  "Key": "graphql.operation.fieldCost",
+                  "Value": 1.0
+                },
+                {
+                  "Key": "graphql.operation.typeCost",
+                  "Value": 2.0
+                }
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "GraphQL Operation Planning",
+              "DisplayName": "GraphQL Operation Planning",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "plan"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:668e9631148921208d08dbb69513fa8e"
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
+                }
+              ],
+              "event": []
+            },
+            {
+              "OperationName": "GraphQL Operation Execution",
+              "DisplayName": "GraphQL Operation Execution",
+              "Status": "Ok",
+              "tags": [
+                {
+                  "Key": "graphql.processing.type",
+                  "Value": "execute"
+                },
+                {
+                  "Key": "graphql.operation.type",
+                  "Value": "query"
+                },
+                {
+                  "Key": "graphql.document.hash",
+                  "Value": "md5:668e9631148921208d08dbb69513fa8e"
+                }
+              ],
+              "event": [],
+              "activities": [
+                {
+                  "OperationName": "Query.hero",
+                  "DisplayName": "Query.hero",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "resolve"
+                    },
+                    {
+                      "Key": "graphql.selection.name",
+                      "Value": "hero"
+                    },
+                    {
+                      "Key": "graphql.selection.path",
+                      "Value": "hero"
+                    },
+                    {
+                      "Key": "graphql.selection.field.name",
+                      "Value": "hero"
+                    },
+                    {
+                      "Key": "graphql.selection.field.coordinate",
+                      "Value": "Query.hero"
+                    },
+                    {
+                      "Key": "graphql.selection.field.parent_type",
+                      "Value": "Query"
+                    }
+                  ],
+                  "event": []
+                },
+                {
+                  "OperationName": "Droid.friends",
+                  "DisplayName": "Droid.friends",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "resolve"
+                    },
+                    {
+                      "Key": "graphql.selection.name",
+                      "Value": "friends"
+                    },
+                    {
+                      "Key": "graphql.selection.path",
+                      "Value": "hero.friends"
+                    },
+                    {
+                      "Key": "graphql.selection.field.name",
+                      "Value": "friends"
+                    },
+                    {
+                      "Key": "graphql.selection.field.coordinate",
+                      "Value": "Droid.friends"
+                    },
+                    {
+                      "Key": "graphql.selection.field.parent_type",
+                      "Value": "Droid"
+                    }
+                  ],
+                  "event": []
+                },
+                {
+                  "OperationName": "Human.friends",
+                  "DisplayName": "Human.friends",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "resolve"
+                    },
+                    {
+                      "Key": "graphql.selection.name",
+                      "Value": "friends"
+                    },
+                    {
+                      "Key": "graphql.selection.path",
+                      "Value": "hero.friends.nodes[0].friends"
+                    },
+                    {
+                      "Key": "graphql.selection.field.name",
+                      "Value": "friends"
+                    },
+                    {
+                      "Key": "graphql.selection.field.coordinate",
+                      "Value": "Human.friends"
+                    },
+                    {
+                      "Key": "graphql.selection.field.parent_type",
+                      "Value": "Human"
+                    }
+                  ],
+                  "event": []
+                },
+                {
+                  "OperationName": "Human.friends",
+                  "DisplayName": "Human.friends",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "resolve"
+                    },
+                    {
+                      "Key": "graphql.selection.name",
+                      "Value": "friends"
+                    },
+                    {
+                      "Key": "graphql.selection.path",
+                      "Value": "hero.friends.nodes[1].friends"
+                    },
+                    {
+                      "Key": "graphql.selection.field.name",
+                      "Value": "friends"
+                    },
+                    {
+                      "Key": "graphql.selection.field.coordinate",
+                      "Value": "Human.friends"
+                    },
+                    {
+                      "Key": "graphql.selection.field.parent_type",
+                      "Value": "Human"
+                    }
+                  ],
+                  "event": []
+                },
+                {
+                  "OperationName": "Human.friends",
+                  "DisplayName": "Human.friends",
+                  "Status": "Ok",
+                  "tags": [
+                    {
+                      "Key": "graphql.processing.type",
+                      "Value": "resolve"
+                    },
+                    {
+                      "Key": "graphql.selection.name",
+                      "Value": "friends"
+                    },
+                    {
+                      "Key": "graphql.selection.path",
+                      "Value": "hero.friends.nodes[2].friends"
+                    },
+                    {
+                      "Key": "graphql.selection.field.name",
+                      "Value": "friends"
+                    },
+                    {
+                      "Key": "graphql.selection.field.coordinate",
+                      "Value": "Human.friends"
+                    },
+                    {
+                      "Key": "graphql.selection.field.parent_type",
+                      "Value": "Human"
+                    }
+                  ],
+                  "event": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "OperationName": "Format HTTP Response",
+          "DisplayName": "Format HTTP Response",
+          "Status": "Ok",
+          "tags": [],
+          "event": []
+        }
+      ]
+    }
+  ]
+}

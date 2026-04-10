@@ -227,6 +227,63 @@ builder.Services
     .AddRabbitMQ();
 ```
 
+## Configure handler endpoints
+
+When you want convention-based endpoint naming but need to customize specific handler endpoints, use `transport.Handler<T>()`. This claims the handler for the transport and gives you access to the endpoint descriptor through `ConfigureEndpoint()`:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEventHandler<OrderPlacedHandler>()
+    .AddEventHandler<PaymentReceivedHandler>()
+    .AddRabbitMQ(transport =>
+    {
+        // Claim OrderPlacedHandler and configure its convention-named endpoint
+        transport.Handler<OrderPlacedHandler>()
+            .ConfigureEndpoint(ep => ep.MaxConcurrency(10))
+            .ConfigureEndpoint(ep => ep.FaultEndpoint("order-errors"));
+    });
+```
+
+`PaymentReceivedHandler` still gets an auto-discovered endpoint with default settings. `OrderPlacedHandler` gets the same convention-derived endpoint name, but with concurrency capped at 10 and a custom fault endpoint.
+
+Multiple `ConfigureEndpoint()` calls on the same handler compose in declaration order.
+
+The same pattern works for consumers:
+
+```csharp
+transport.Consumer<OrderAuditConsumer>()
+    .ConfigureEndpoint(ep => ep.MaxConcurrency(3));
+```
+
+Inside `ConfigureEndpoint()`, you have access to transport-specific settings. To set prefetch on a RabbitMQ endpoint:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEventHandler<OrderPlacedHandler>()
+    .AddRabbitMQ(transport =>
+    {
+        transport.Handler<OrderPlacedHandler>()
+            .ConfigureEndpoint(ep => ep.MaxPrefetch(50));
+    });
+```
+
+For PostgreSQL, configure the batch size:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEventHandler<OrderPlacedHandler>()
+    .AddPostgres(transport =>
+    {
+        transport.Handler<OrderPlacedHandler>()
+            .ConfigureEndpoint(ep => ep.MaxBatchSize(100));
+    });
+```
+
+This approach sits between implicit and explicit binding: you keep automatic endpoint naming but gain per-handler configuration. See the [RabbitMQ](/docs/mocha/v1/transports/rabbitmq), [PostgreSQL](/docs/mocha/v1/transports/postgres), and [InMemory](/docs/mocha/v1/transports/in-memory) transport pages for the full set of transport-specific endpoint settings.
+
 ## Explicit binding
 
 Switch to explicit binding when you need full control over which handlers run on which endpoints. With explicit binding, the transport does not auto-discover endpoints - you must declare each one:
@@ -249,9 +306,11 @@ builder.Services
 
 Both handlers now consume from the same `combined-orders` queue. Without explicit binding, they would each get their own endpoint.
 
-## Configure endpoint settings
+## Named endpoints vs. handler claims
 
-Whether you use implicit or explicit binding, you can configure per-endpoint settings through the endpoint descriptor:
+You can configure per-endpoint settings in two ways: through a named endpoint, or through `transport.Handler<T>()` which derives the endpoint name from conventions.
+
+To configure a named endpoint directly:
 
 ```csharp
 builder.Services
@@ -266,6 +325,41 @@ builder.Services
             .SkippedEndpoint("order-skipped");
     });
 ```
+
+To configure through a handler claim, which derives the endpoint name from conventions:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEventHandler<OrderPlacedHandler>()
+    .AddRabbitMQ(rabbit =>
+    {
+        rabbit.Handler<OrderPlacedHandler>()
+            .ConfigureEndpoint(ep => ep
+                .MaxConcurrency(5)
+                .FaultEndpoint("order-errors")
+                .SkippedEndpoint("order-skipped"));
+    });
+```
+
+Use `transport.Endpoint("name")` when you need to control the endpoint name or bind multiple handlers to the same endpoint. Use `transport.Handler<T>()` when you want the convention-derived name and are configuring a single handler's endpoint.
+
+## Multi-transport handler routing
+
+In a multi-transport setup, `Handler<T>()` also determines which transport owns the handler. Mark one transport as the default with `.IsDefaultTransport()`, then claim specific handlers on other transports:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEventHandler<OrderPlacedHandler>()
+    .AddEventHandler<AuditHandler>()
+    .AddRabbitMQ(r => r.IsDefaultTransport())       // default for unclaimed handlers
+    .AddInMemory(m => m.Handler<AuditHandler>());   // AuditHandler claimed by InMemory
+// OrderPlacedHandler → RabbitMQ (default, implicit)
+// AuditHandler → InMemory (claimed)
+```
+
+A claimed handler is bound to the claiming transport regardless of which transport is the default. Unclaimed handlers fall through to the default transport. This is the recommended pattern for multi-transport routing - it avoids `BindHandlersExplicitly()` and keeps the configuration minimal.
 
 For outbound endpoints:
 

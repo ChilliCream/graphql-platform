@@ -22,21 +22,31 @@ public abstract class DispatchEndpointDescriptor<T>(IMessagingConfigurationConte
         return this;
     }
 
-    public IDispatchEndpointDescriptor<T> UseDispatch(DispatchMiddlewareConfiguration configuration)
+    public IDispatchEndpointDescriptor<T> UseDispatch(
+        DispatchMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null)
     {
-        Configuration.DispatchMiddlewares.Add(configuration);
-        return this;
-    }
+        if (before is not null && after is not null)
+        {
+            throw ThrowHelper.BeforeAndAfterConflict();
+        }
 
-    public IDispatchEndpointDescriptor<T> AppendDispatch(string after, DispatchMiddlewareConfiguration configuration)
-    {
-        Configuration.DispatchPipelineModifiers.Append(configuration, after);
-        return this;
-    }
+        if (before is null && after is null)
+        {
+            Configuration.DispatchMiddlewares.Add(configuration);
+            return this;
+        }
 
-    public IDispatchEndpointDescriptor<T> PrependDispatch(string before, DispatchMiddlewareConfiguration configuration)
-    {
-        Configuration.DispatchPipelineModifiers.Prepend(configuration, before);
+        if (before is not null)
+        {
+            Configuration.DispatchPipelineModifiers.Prepend(configuration, before);
+        }
+        else
+        {
+            Configuration.DispatchPipelineModifiers.Append(configuration, after);
+        }
+
         return this;
     }
 }

@@ -390,7 +390,29 @@ transport.DeclareBinding("platform-events", "my-queue"); // auto-provisioned (de
 
 # Prefetch and concurrency
 
-Customize queue names, prefetch counts, and handler assignments on receive endpoints:
+Use `transport.Handler<T>()` to claim a handler and configure prefetch and concurrency on its convention-named endpoint:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEventHandler<OrderPlacedEventHandler>()
+    .AddRabbitMQ(transport =>
+    {
+        transport.Handler<OrderPlacedEventHandler>()
+            .ConfigureEndpoint(e => e.MaxPrefetch(50).MaxConcurrency(10));
+    });
+```
+
+This keeps the convention-derived endpoint name while tuning the consumer settings. `ConfigureEndpoint()` can be called multiple times - actions compose in declaration order:
+
+```csharp
+transport.Handler<OrderPlacedEventHandler>()
+    .ConfigureEndpoint(e => e.MaxPrefetch(50))
+    .ConfigureEndpoint(e => e.MaxConcurrency(10))
+    .ConfigureEndpoint(e => e.FaultEndpoint("order-errors"));
+```
+
+For full control over the endpoint name and queue, use explicit binding with `Endpoint("name")`:
 
 ```csharp
 builder.Services
@@ -427,6 +449,163 @@ For prefetch tuning guidance from first principles, see [CloudAMQP Best Practice
 | Bindings           | Exchange-to-queue                                   | Endpoint discovery phase           |
 
 All auto-provisioned resources are durable by default and survive broker restarts.
+
+# Routing keys
+
+RabbitMQ uses a `routing_key` field on every published message to decide which queues receive it. When you publish to a **topic exchange**, the broker compares the message's routing key against binding patterns on each queue. Queues whose pattern matches get the message. Queues that don't match never see it.
+
+**Direct exchanges** work the same way, but require an exact match instead of a pattern.
+
+**Fanout exchanges** ignore routing keys entirely - every bound queue gets every message.
+
+Routing keys are useful when you need to split a single message stream across different consumers based on a property of the message itself:
+
+- **Disconnecting producers from consumers** - publish messages without knowing which queues or services will consume them. Consumers can bind with patterns to receive only the messages they care about.
+- **Multi-tenant routing** - route messages to tenant-specific queues (`tenant-a.orders`, `tenant-b.orders`)
+- **Region-based routing** - route to regional processors (`us.east`, `eu.west`)
+- **Priority routing** - separate high-priority and low-priority messages (`priority.high`, `priority.low`)
+
+For a full treatment of topic exchange routing, see the [RabbitMQ Topics Tutorial](https://www.rabbitmq.com/tutorials/tutorial-five-dotnet).
+
+## Configure routing key extraction
+
+To set a routing key on published messages, call `UseRabbitMQRoutingKey<T>()` when registering the message type:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddMessage<OrderEvent>(m => m
+        .UseRabbitMQRoutingKey<OrderEvent>(msg => msg.Region))
+    .AddRabbitMQ();
+```
+
+The extractor function runs at dispatch time for each message. It receives the message instance and returns the routing key string. Return `null` to publish without a routing key.
+
+`UseRabbitMQRoutingKey<T>()` is configured on `AddMessage<T>()`, not on the transport or endpoint. This keeps routing key logic next to the message definition where it belongs.
+
+### Composite routing keys
+
+Combine multiple properties into a single routing key using string interpolation:
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddMessage<OrderEvent>(m => m
+        .UseRabbitMQRoutingKey<OrderEvent>(msg => $"{msg.TenantId}.{msg.Region}"))
+    .AddRabbitMQ();
+```
+
+This produces routing keys like `acme.us.east` or `contoso.eu.west`, which you can match with topic exchange binding patterns like `acme.#` or `*.eu.*`.
+
+## Topic exchange example
+
+This example routes region-tagged events to different queues based on their routing key. The US queue receives messages matching `us.*`, and the EU queue receives messages matching `eu.*`.
+
+```mermaid
+graph LR
+    P[Publisher] -->|"region = us.east"| E[Topic Exchange<br/>region-events]
+    E -->|"us.* ✓"| QA[Queue<br/>us-orders]
+    E -->|"eu.* ✗"| QB[Queue<br/>eu-orders]
+    QA --> CA[US Consumer]
+
+    style QB stroke-dasharray: 5 5
+```
+
+### Define the message type
+
+```csharp
+public sealed class RegionEvent
+{
+    public required string Region { get; init; }
+    public required string Payload { get; init; }
+}
+```
+
+### Wire up the bus
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddConsumer<UsRegionConsumer>()
+    .AddConsumer<EuRegionConsumer>()
+    .AddMessage<RegionEvent>(m => m
+        .UseRabbitMQRoutingKey<RegionEvent>(msg => msg.Region))
+    .AddRabbitMQ(transport =>
+    {
+        transport.BindHandlersExplicitly();
+
+        // Declare topology: one topic exchange, two queues, two bindings with patterns
+        transport.DeclareExchange("region-events")
+            .Type(RabbitMQExchangeType.Topic);
+
+        transport.DeclareQueue("us-orders");
+        transport.DeclareQueue("eu-orders");
+
+        transport.DeclareBinding("region-events", "us-orders")
+            .RoutingKey("us.*");
+        transport.DeclareBinding("region-events", "eu-orders")
+            .RoutingKey("eu.*");
+
+        // Bind consumers to queues
+        transport.Endpoint("us-ep")
+            .Consumer<UsRegionConsumer>()
+            .Queue("us-orders");
+        transport.Endpoint("eu-ep")
+            .Consumer<EuRegionConsumer>()
+            .Queue("eu-orders");
+
+        // Dispatch to the topic exchange
+        transport.DispatchEndpoint("region-dispatch")
+            .ToExchange("region-events")
+            .Publish<RegionEvent>();
+    });
+```
+
+When you publish a `RegionEvent` with `Region = "us.east"`, the routing key middleware extracts `"us.east"` from the message and sets it on the AMQP publish. The topic exchange matches `"us.east"` against `us.*` (match) and `eu.*` (no match). Only the US queue receives the message.
+
+### Topic exchange binding patterns
+
+| Pattern   | Matches                      | Does not match           |
+| --------- | ---------------------------- | ------------------------ |
+| `us.*`    | `us.east`, `us.west`         | `us.east.az1`, `eu.west` |
+| `eu.#`    | `eu.west`, `eu.west.az1`     | `us.east`                |
+| `#`       | Everything                   | -                        |
+| `*.*.az1` | `us.east.az1`, `eu.west.az1` | `us.east`                |
+
+`*` matches exactly one word. `#` matches zero or more words. Words are separated by dots.
+
+## Direct exchange routing keys
+
+Direct exchanges use exact-match routing keys instead of patterns. A message with routing key `"priority-high"` reaches only queues bound with exactly `"priority-high"`.
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddConsumer<HighPriorityConsumer>()
+    .AddMessage<TaskEvent>(m => m
+        .UseRabbitMQRoutingKey<TaskEvent>(msg => $"priority-{msg.Priority}"))
+    .AddRabbitMQ(transport =>
+    {
+        transport.BindHandlersExplicitly();
+
+        transport.DeclareExchange("task-routing")
+            .Type(RabbitMQExchangeType.Direct);
+
+        transport.DeclareQueue("high-priority-tasks");
+        transport.DeclareBinding("task-routing", "high-priority-tasks")
+            .RoutingKey("priority-high");
+
+        transport.Endpoint("high-priority-ep")
+            .Consumer<HighPriorityConsumer>()
+            .Queue("high-priority-tasks");
+
+        transport.DispatchEndpoint("task-dispatch")
+            .ToExchange("task-routing")
+            .Publish<TaskEvent>();
+    });
+```
+
+Messages with `Priority = "high"` reach the queue. Messages with any other priority are dropped by the exchange (unless another queue is bound with a matching routing key).
 
 # Next steps
 

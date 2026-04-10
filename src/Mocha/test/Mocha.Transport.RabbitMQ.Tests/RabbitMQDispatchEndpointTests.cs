@@ -157,7 +157,7 @@ public class RabbitMQDispatchEndpointTests
     [Fact]
     public void DispatchEndpoint_Should_SetDestinationAddress_When_ReplyPathContainsExchange()
     {
-        // arrange — create a reply dispatch endpoint and an exchange dispatch endpoint
+        // arrange - create a reply dispatch endpoint and an exchange dispatch endpoint
         var runtime = CreateRuntime(t =>
         {
             t.DeclareExchange("my-exchange");
@@ -170,7 +170,7 @@ public class RabbitMQDispatchEndpointTests
             .DispatchEndpoints.OfType<RabbitMQDispatchEndpoint>()
             .First(e => e.Exchange is { Name: "my-exchange" });
 
-        // assert — the destination address contains the e/ exchange path format
+        // assert - the destination address contains the e/ exchange path format
         Assert.NotNull(endpoint.Destination.Address);
         Assert.Contains("e/my-exchange", endpoint.Destination.Address.ToString());
     }
@@ -178,7 +178,7 @@ public class RabbitMQDispatchEndpointTests
     [Fact]
     public void DispatchEndpoint_Should_SetDestinationAddress_When_ReplyPathContainsExchangeWithVhost()
     {
-        // arrange — use a custom vhost via stub
+        // arrange - use a custom vhost via stub
         var runtime = CreateRuntimeWithVhost(t =>
         {
             t.DeclareExchange("my-exchange");
@@ -191,7 +191,7 @@ public class RabbitMQDispatchEndpointTests
             .DispatchEndpoints.OfType<RabbitMQDispatchEndpoint>()
             .First(e => e.Exchange is { Name: "my-exchange" });
 
-        // assert — with vhost the address includes the vhost segment before e/
+        // assert - with vhost the address includes the vhost segment before e/
         var address = endpoint.Destination.Address.ToString();
         Assert.Contains("e/my-exchange", address);
         Assert.Contains("myvhost", address);

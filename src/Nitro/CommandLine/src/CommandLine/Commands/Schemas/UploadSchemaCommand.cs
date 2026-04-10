@@ -1,89 +1,109 @@
-using ChilliCream.Nitro.CommandLine.Client;
-using ChilliCream.Nitro.CommandLine.Configuration;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
-using StrawberryShake;
+using ChilliCream.Nitro.CommandLine.Services;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using Command = System.CommandLine.Command;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Schemas;
 
 internal sealed class UploadSchemaCommand : Command
 {
-    public UploadSchemaCommand()
-        : base("upload")
+    public UploadSchemaCommand() : base("upload")
     {
-        Description = "Upload a new schema version";
+        Description = "Upload a new schema version.";
 
-        AddOption(Opt<TagOption>.Instance);
-        AddOption(Opt<SchemaFileOption>.Instance);
-        AddOption(Opt<ApiIdOption>.Instance);
-        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
+        Options.Add(Opt<ApiIdOption>.Instance);
+        Options.Add(Opt<TagOption>.Instance);
+        Options.Add(Opt<SchemaFileOption>.Instance);
+        Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Opt<TagOption>.Instance,
-            Opt<SchemaFileOption>.Instance,
-            Opt<ApiIdOption>.Instance,
-            Opt<OptionalSourceMetadataOption>.Instance,
-            Bind.FromServiceProvider<CancellationToken>());
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples(
+            """
+            schema upload \
+              --api-id "<api-id>" \
+              --tag "v1" \
+              --schema-file ./schema.graphqls
+            """);
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        IAnsiConsole console,
-        IApiClient client,
-        string tag,
-        FileInfo schemaFile,
-        string apiId,
-        string? sourceMetadataJson,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken cancellationToken)
     {
-        console.Title($"Upload schema {schemaFile.FullName.EscapeMarkup()}");
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<ISchemasClient>();
+        var fileSystem = services.GetRequiredService<IFileSystem>();
+        var sessionService = services.GetRequiredService<ISessionService>();
 
-        if (console.IsHumanReadable())
+        parseResult.AssertHasAuthentication(sessionService);
+
+        var tag = parseResult.GetRequiredValue(Opt<TagOption>.Instance);
+        var schemaFilePath = parseResult.GetRequiredValue(Opt<SchemaFileOption>.Instance);
+        var apiId = parseResult.GetRequiredValue(Opt<ApiIdOption>.Instance);
+        var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
+
+        var source = SourceMetadataParser.Parse(sourceMetadataJson);
+
+        if (!Path.IsPathRooted(schemaFilePath))
         {
-            await console
-                .Status()
-                .Spinner(Spinner.Known.BouncingBar)
-                .SpinnerStyle(Style.Parse("green bold"))
-                .StartAsync("Upload schema...", UploadSchema);
+            schemaFilePath = Path.Combine(fileSystem.GetCurrentDirectory(), schemaFilePath);
         }
-        else
+
+        if (!fileSystem.FileExists(schemaFilePath))
         {
-            await UploadSchema(null);
+            throw new ExitException(Messages.SchemaFileDoesNotExist(schemaFilePath));
         }
 
-        return ExitCodes.Success;
-
-        async Task UploadSchema(StatusContext? ctx)
+        await using (var activity = console.StartActivity(
+            $"Uploading new schema version '{tag.EscapeMarkup()}' to API '{apiId.EscapeMarkup()}'",
+            "Failed to upload a new schema version."))
         {
-            console.Log("Initialized");
-            console.Log($"Reading file [blue]{schemaFile.FullName.EscapeMarkup()}[/]");
+            await using var stream = fileSystem.OpenReadStream(schemaFilePath);
 
-            var stream = FileHelpers.CreateFileStream(schemaFile);
+            var data = await client.UploadSchemaAsync(
+                apiId,
+                tag,
+                stream,
+                source,
+                cancellationToken);
 
-            var input = new UploadSchemaInput
+            if (data.Errors?.Count > 0)
             {
-                Schema = new Upload(stream, "schema.graphqls"),
-                ApiId = apiId,
-                Tag = tag,
-                Source = SourceMetadataHelper.Parse(sourceMetadataJson)
-            };
+                activity.Fail();
 
-            console.Log("Uploading Schema..");
-            var result = await client.UploadSchema.ExecuteAsync(input, cancellationToken);
+                foreach (var error in data.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        IUnauthorizedOperation err => err.Message,
+                        IInvalidSourceMetadataInputError err => err.Message,
+                        IDuplicatedTagError err => err.Message,
+                        IConcurrentOperationError err => err.Message,
+                        IApiNotFoundError err => err.Message,
+                        IError err => Messages.UnexpectedMutationError(err),
+                        _ => Messages.UnexpectedMutationError()
+                    };
 
-            console.EnsureNoErrors(result);
-            var data = console.EnsureData(result);
-            console.PrintErrorsAndExit(data.UploadSchema.Errors);
+                    console.Error.WriteErrorLine(errorMessage);
+                }
 
-            if (data.UploadSchema.SchemaVersion?.Id is null)
-            {
-                throw new ExitException("Upload schema failed!");
+                return ExitCodes.Error;
             }
 
-            console.Success("Successfully uploaded schema!");
+            if (data.SchemaVersion is null)
+            {
+                throw new ExitException("Could not upload schema.");
+            }
+
+            activity.Success($"Uploaded new schema version '{tag.EscapeMarkup()}'.");
+
+            return ExitCodes.Success;
         }
     }
 }

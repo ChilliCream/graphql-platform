@@ -8,8 +8,7 @@ internal sealed class LazyMessagingRuntime : ILazyMessagingRuntime
         {
             if (field is null)
             {
-                throw new InvalidOperationException(
-                    "Messaging runtime is not initialized, you can only access the runtime after it has been built.");
+                throw ThrowHelper.MessagingRuntimeNotInitialized();
             }
 
             return field;

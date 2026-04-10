@@ -3,19 +3,21 @@
 using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
-#if FUSION
-using HotChocolate.Transport;
-using HotChocolate.Transport.Http;
-#endif
-using HotChocolate.Transport.Serialization;
 using static System.Net.Http.HttpCompletionOption;
 
 #if FUSION
+using HotChocolate.Fusion.Transport.Serialization;
+using HotChocolate.Text.Json;
+using HotChocolate.Transport.Http;
+using HotChocolate.Types;
+
 namespace HotChocolate.Fusion.Transport.Http;
 #else
+using System.Text.Json;
+using HotChocolate.Transport.Serialization;
+
 namespace HotChocolate.Transport.Http;
 #endif
 
@@ -24,6 +26,10 @@ namespace HotChocolate.Transport.Http;
 /// </summary>
 public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
 {
+#if FUSION
+    private const string JsonUtf8ContentType = $"{ContentType.Json}; charset=utf-8";
+#endif
+
     private readonly HttpClient _http;
     private readonly bool _disposeInnerClient;
 
@@ -107,7 +113,14 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         using var arrayWriter = new PooledArrayWriter();
         using var requestMessage = CreateRequestMessage(arrayWriter, request, requestUri);
 
+#if FUSION
+        if (request.State is { } state)
+        {
+            request.OnMessageCreated?.Invoke(request, requestMessage, state);
+        }
+#else
         request.OnMessageCreated?.Invoke(request, requestMessage, request.State);
+#endif
 
         requestMessage.Version = _http.DefaultRequestVersion;
         requestMessage.VersionPolicy = _http.DefaultVersionPolicy;
@@ -116,7 +129,14 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
             .SendAsync(requestMessage, ResponseHeadersRead, ct)
             .ConfigureAwait(false);
 
+#if FUSION
+        if (request.State is { } receivedState)
+        {
+            request.OnMessageReceived?.Invoke(request, responseMessage, receivedState);
+        }
+#else
         request.OnMessageReceived?.Invoke(request, responseMessage, request.State);
+#endif
 
         return new GraphQLHttpResponse(responseMessage);
     }
@@ -148,11 +168,27 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
             Method = method
         };
 
+#if FUSION
+        if (request.AcceptHeaderValue is not null)
+        {
+            message.Headers.TryAddWithoutValidation("Accept", request.AcceptHeaderValue);
+        }
+        else
+        {
+            message.Headers.Accept.Clear();
+            foreach (var contentType in request.Accept)
+            {
+                message.Headers.Accept.Add(contentType);
+            }
+        }
+#else
         message.Headers.Accept.Clear();
         foreach (var contentType in request.Accept)
         {
             message.Headers.Accept.Add(contentType);
         }
+
+#endif
 
         if (method == GraphQLHttpMethod.Post)
         {
@@ -177,6 +213,13 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
             throw new NotSupportedException($"The HTTP method `{method}` is not supported.");
         }
 
+        if (request.OperationKind.HasValue)
+        {
+            message.Options.Set(
+                GraphQLHttpRequest.OperationKindOptionsKey,
+                request.OperationKind.Value);
+        }
+
         return message;
     }
 
@@ -184,18 +227,142 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         PooledArrayWriter arrayWriter,
         GraphQLHttpRequest request)
     {
+#if FUSION
+        var jsonWriter = new JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
+        request.Body.WriteTo(jsonWriter);
+#else
         using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
         request.Body.WriteTo(jsonWriter);
         jsonWriter.Flush();
+#endif
 
         Debug.WriteLine(Encoding.UTF8.GetString(arrayWriter.WrittenSpan));
 
         var internalBuffer = PooledArrayWriterMarshal.GetUnderlyingBuffer(arrayWriter);
         var content = new ByteArrayContent(internalBuffer, 0, arrayWriter.Length);
+#if FUSION
+        content.Headers.ContentType = null;
+        content.Headers.TryAddWithoutValidation("Content-Type", JsonUtf8ContentType);
+#else
         content.Headers.ContentType = new MediaTypeHeaderValue(ContentType.Json, "utf-8");
+#endif
         return content;
     }
 
+#if FUSION
+    private static HttpContent CreateMultipartContent(
+        PooledArrayWriter arrayWriter,
+        GraphQLHttpRequest request)
+    {
+        var fileEntries = CollectFileEntries(request.Body);
+
+        if (fileEntries.Count == 0)
+        {
+            arrayWriter.Reset();
+            return CreatePostContent(arrayWriter, request);
+        }
+
+        // Group file entries by key so each physical file is written once.
+        var uniqueFiles = GroupFileEntriesByKey(fileEntries);
+
+        // Write the file map JSON first.
+        WriteFileMapJson(arrayWriter, uniqueFiles);
+        var start = arrayWriter.Length;
+
+        // Write the operations JSON.
+        WriteOperationJson(arrayWriter, request);
+        var buffer = PooledArrayWriterMarshal.GetUnderlyingBuffer(arrayWriter);
+
+        var form = new MultipartFormDataContent();
+
+        var operation = new ByteArrayContent(buffer, start, arrayWriter.Length - start);
+        operation.Headers.ContentType = null;
+        operation.Headers.TryAddWithoutValidation("Content-Type", JsonUtf8ContentType);
+        form.Add(operation, "operations");
+
+        var fileMap = new ByteArrayContent(buffer, 0, start);
+        fileMap.Headers.ContentType = null;
+        fileMap.Headers.TryAddWithoutValidation("Content-Type", JsonUtf8ContentType);
+        form.Add(fileMap, "map");
+
+        for (var i = 0; i < uniqueFiles.Count; i++)
+        {
+            var (_, file, _) = uniqueFiles[i];
+            var fileContent = new StreamContent(file.OpenReadStream());
+            if (!string.IsNullOrEmpty(file.ContentType))
+            {
+                fileContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
+            }
+
+            form.Add(fileContent, i.ToString(), file.Name);
+        }
+
+        return form;
+    }
+
+    private static void WriteOperationJson(PooledArrayWriter arrayWriter, GraphQLHttpRequest request)
+    {
+        var jsonWriter = new JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
+        request.Body.WriteTo(jsonWriter);
+    }
+
+    private static void WriteFileMapJson(
+        PooledArrayWriter arrayWriter,
+        List<(string Key, IFile File, List<string> Paths)> uniqueFiles)
+    {
+        var jsonWriter = new JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
+        jsonWriter.WriteStartObject();
+
+        for (var i = 0; i < uniqueFiles.Count; i++)
+        {
+            jsonWriter.WritePropertyName(i.ToString());
+            jsonWriter.WriteStartArray();
+
+            foreach (var path in uniqueFiles[i].Paths)
+            {
+                jsonWriter.WriteStringValue(path);
+            }
+
+            jsonWriter.WriteEndArray();
+        }
+
+        jsonWriter.WriteEndObject();
+    }
+
+    private static List<(string Key, IFile File, List<string> Paths)> GroupFileEntriesByKey(
+        IReadOnlyList<FileEntry> fileEntries)
+    {
+        var result = new List<(string Key, IFile File, List<string> Paths)>();
+        var keyIndex = new Dictionary<string, int>(StringComparer.Ordinal);
+
+        for (var i = 0; i < fileEntries.Count; i++)
+        {
+            var entry = fileEntries[i];
+
+            if (keyIndex.TryGetValue(entry.Key, out var existingIndex))
+            {
+                result[existingIndex].Paths.Add(entry.Path);
+            }
+            else
+            {
+                keyIndex[entry.Key] = result.Count;
+                result.Add((entry.Key, entry.file, new List<string> { entry.Path }));
+            }
+        }
+
+        return result;
+    }
+
+    private static IReadOnlyList<FileEntry> CollectFileEntries(IRequestBody body)
+    {
+        return body switch
+        {
+            OperationRequest { FileMap: { IsDefaultOrEmpty: false } fileMap } => [.. fileMap],
+            OperationBatchRequest { FileMap: { IsDefaultOrEmpty: false } fileMap } => [.. fileMap],
+            _ => []
+        };
+    }
+#else
     private static HttpContent CreateMultipartContent(
         PooledArrayWriter arrayWriter,
         GraphQLHttpRequest request)
@@ -249,7 +416,91 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
         return Utf8JsonWriterHelper.WriteFilesMap(jsonWriter, request.Body);
     }
+#endif
 
+#if FUSION
+    private static Uri CreateGetRequestUri(
+        PooledArrayWriter arrayWriter,
+        Uri baseAddress,
+        IRequestBody body)
+    {
+        if (body is not OperationRequest or)
+        {
+            throw new InvalidOperationException(
+                HttpResources.DefaultGraphQLHttpClient_BatchNotAllowed);
+        }
+
+        var sb = new StringBuilder();
+        var appendAmpersand = false;
+
+        sb.Append(baseAddress);
+        sb.Append('?');
+
+        if (!string.IsNullOrWhiteSpace(or.Id))
+        {
+            AppendAmpersand(sb, ref appendAmpersand);
+            sb.Append("id=");
+            sb.Append(Uri.EscapeDataString(or.Id!));
+        }
+
+        if (!string.IsNullOrWhiteSpace(or.Query))
+        {
+            AppendAmpersand(sb, ref appendAmpersand);
+            sb.Append("query=");
+            sb.Append(Uri.EscapeDataString(or.Query!));
+        }
+
+        if (!string.IsNullOrWhiteSpace(or.OperationName))
+        {
+            AppendAmpersand(sb, ref appendAmpersand);
+            sb.Append("operationName=");
+            sb.Append(Uri.EscapeDataString(or.OperationName!));
+        }
+
+        if (or.OnError is { } errorHandlingMode)
+        {
+            AppendAmpersand(sb, ref appendAmpersand);
+            sb.Append("onError=");
+            sb.Append(GetErrorHandlingModeAsString(errorHandlingMode));
+        }
+
+        if (!or.Variables.IsEmpty)
+        {
+            AppendAmpersand(sb, ref appendAmpersand);
+            sb.Append("variables=");
+            sb.Append(Uri.EscapeDataString(FormatJsonSegmentAsString(arrayWriter, or.Variables.Values)));
+        }
+
+        if (!or.Extensions.IsEmpty)
+        {
+            AppendAmpersand(sb, ref appendAmpersand);
+            sb.Append("extensions=");
+            sb.Append(Uri.EscapeDataString(FormatJsonSegmentAsString(arrayWriter, or.Extensions)));
+        }
+
+        return new Uri(sb.ToString());
+
+        static void AppendAmpersand(StringBuilder sb, ref bool appendAmpersand)
+        {
+            if (appendAmpersand)
+            {
+                sb.Append('&');
+            }
+
+            appendAmpersand = true;
+        }
+    }
+
+    private static string FormatJsonSegmentAsString(PooledArrayWriter arrayWriter, JsonSegment segment)
+    {
+        arrayWriter.Reset();
+
+        var jsonWriter = new JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
+        segment.WriteTo(jsonWriter);
+
+        return Encoding.UTF8.GetString(arrayWriter.WrittenSpan);
+    }
+#else
     private static Uri CreateGetRequestUri(
         PooledArrayWriter arrayWriter,
         Uri baseAddress,
@@ -334,17 +585,6 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         }
     }
 
-    private static string GetErrorHandlingModeAsString(ErrorHandlingMode mode)
-    {
-        return mode switch
-        {
-            ErrorHandlingMode.Propagate => "PROPAGATE",
-            ErrorHandlingMode.Null => "NULL",
-            ErrorHandlingMode.Halt => "HALT",
-            _ => throw new ArgumentOutOfRangeException(nameof(mode))
-        };
-    }
-
     private static string FormatDocumentAsJson(PooledArrayWriter arrayWriter, object? obj)
     {
         arrayWriter.Reset();
@@ -354,6 +594,17 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         jsonWriter.Flush();
 
         return Encoding.UTF8.GetString(arrayWriter.WrittenSpan);
+    }
+#endif
+
+    private static string GetErrorHandlingModeAsString(ErrorHandlingMode mode)
+    {
+        return mode switch
+        {
+            ErrorHandlingMode.Propagate => "PROPAGATE",
+            ErrorHandlingMode.Null => "NULL",
+            _ => throw new ArgumentOutOfRangeException(nameof(mode))
+        };
     }
 
     protected override void Dispose(bool disposing)

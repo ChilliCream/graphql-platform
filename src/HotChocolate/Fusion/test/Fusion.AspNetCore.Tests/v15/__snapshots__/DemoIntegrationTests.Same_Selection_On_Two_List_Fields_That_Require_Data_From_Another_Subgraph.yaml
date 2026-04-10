@@ -84,6 +84,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_9ad18dbf_1 {
               productsA {
@@ -152,10 +153,9 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Op_9ad18dbf_2(
-              $__fusion_1_id: ID!
-            ) {
+            query Op_9ad18dbf_2($__fusion_1_id: ID!) {
               node(id: $__fusion_1_id) {
                 __typename
                 ... on Product {
@@ -289,9 +289,7 @@ operationPlan:
       type: OperationBatch
       schema: B
       operation: |
-        query Op_9ad18dbf_2(
-          $__fusion_1_id: ID!
-        ) {
+        query Op_9ad18dbf_2($__fusion_1_id: ID!) {
           node(id: $__fusion_1_id) {
             __typename
             ... on Product {
@@ -304,7 +302,7 @@ operationPlan:
       targets:
         - $.productsB
         - $.productsA
-      batchingGroupId: 1
+      batchingGroupId: 2
       requirements:
         - name: __fusion_1_id
           selectionMap: >-

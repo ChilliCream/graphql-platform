@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Middlewares;
 using Mocha.Sagas;
@@ -14,8 +15,18 @@ public interface IMessageBusBuilder
     /// Registers a message handler that will consume messages matching its declared message type.
     /// </summary>
     /// <typeparam name="THandler">The handler type implementing <see cref="IHandler"/>.</typeparam>
+    /// <param name="configure">Optional action to configure the consumer descriptor.</param>
     /// <returns>The builder instance for method chaining.</returns>
-    IMessageBusBuilder AddHandler<THandler>() where THandler : class, IHandler;
+    IMessageBusBuilder AddHandler<THandler>(Action<IConsumerDescriptor>? configure = null)
+        where THandler : class, IHandler;
+
+    /// <summary>
+    /// Registers a handler using pre-built configuration from the source generator.
+    /// </summary>
+    /// <param name="configuration">The pre-built handler configuration.</param>
+    /// <returns>The builder instance for method chaining.</returns>
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    IMessageBusBuilder AddHandlerConfiguration(MessagingHandlerConfiguration configuration);
 
     /// <summary>
     /// Registers a batch event handler that collects messages and delivers them in batches.
@@ -102,122 +113,83 @@ public interface IMessageBusBuilder
     MessagingRuntime Build(IServiceProvider services);
 
     /// <summary>
-    /// Appends a dispatch middleware configuration to the end of the dispatch pipeline.
+    /// Adds a dispatch middleware configuration to the dispatch pipeline.
+    /// When neither <paramref name="before"/> nor <paramref name="after"/> is specified, the
+    /// middleware is appended to the end of the pipeline.
+    /// When <paramref name="before"/> is specified, the middleware is inserted immediately before
+    /// the middleware with the given key.
+    /// When <paramref name="after"/> is specified, the middleware is inserted immediately after
+    /// the middleware with the given key.
     /// </summary>
     /// <param name="configuration">The dispatch middleware configuration to add.</param>
+    /// <param name="before">
+    /// The key of the existing middleware before which to insert, or <c>null</c> to skip
+    /// positional insertion.
+    /// </param>
+    /// <param name="after">
+    /// The key of the existing middleware after which to insert, or <c>null</c> to skip
+    /// positional insertion.
+    /// </param>
     /// <returns>The builder instance for method chaining.</returns>
-    IMessageBusBuilder UseDispatch(DispatchMiddlewareConfiguration configuration);
+    /// <exception cref="ArgumentException">
+    /// Thrown when both <paramref name="before"/> and <paramref name="after"/> are specified.
+    /// </exception>
+    IMessageBusBuilder UseDispatch(
+        DispatchMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null);
 
     /// <summary>
-    /// Inserts a dispatch middleware configuration immediately after the middleware with the
-    /// specified name.
-    /// </summary>
-    /// <param name="after">The name of the existing middleware after which to insert.</param>
-    /// <param name="configuration">The dispatch middleware configuration to insert.</param>
-    /// <returns>The builder instance for method chaining.</returns>
-    IMessageBusBuilder AppendDispatch(string after, DispatchMiddlewareConfiguration configuration);
-
-    /// <summary>
-    /// Inserts a dispatch middleware configuration immediately before the middleware with the
-    /// specified name.
-    /// </summary>
-    /// <param name="before">The name of the existing middleware before which to insert.</param>
-    /// <param name="configuration">The dispatch middleware configuration to insert.</param>
-    /// <returns>The builder instance for method chaining.</returns>
-    IMessageBusBuilder PrependDispatch(string before, DispatchMiddlewareConfiguration configuration);
-
-    /// <summary>
-    /// Appends a dispatch middleware configuration to the end of the current dispatch pipeline.
-    /// </summary>
-    /// <param name="configuration">The dispatch middleware configuration to append.</param>
-    /// <returns>The builder instance for method chaining.</returns>
-    IMessageBusBuilder AppendDispatch(DispatchMiddlewareConfiguration configuration);
-
-    /// <summary>
-    /// Prepends a dispatch middleware configuration to the beginning of the current dispatch
-    /// pipeline.
-    /// </summary>
-    /// <param name="configuration">The dispatch middleware configuration to prepend.</param>
-    /// <returns>The builder instance for method chaining.</returns>
-    IMessageBusBuilder PrependDispatch(DispatchMiddlewareConfiguration configuration);
-
-    /// <summary>
-    /// Appends a receive middleware configuration to the end of the receive pipeline.
+    /// Adds a receive middleware configuration to the receive pipeline.
+    /// When neither <paramref name="before"/> nor <paramref name="after"/> is specified, the
+    /// middleware is appended to the end of the pipeline.
+    /// When <paramref name="before"/> is specified, the middleware is inserted immediately before
+    /// the middleware with the given key.
+    /// When <paramref name="after"/> is specified, the middleware is inserted immediately after
+    /// the middleware with the given key.
     /// </summary>
     /// <param name="configuration">The receive middleware configuration to add.</param>
+    /// <param name="before">
+    /// The key of the existing middleware before which to insert, or <c>null</c> to skip
+    /// positional insertion.
+    /// </param>
+    /// <param name="after">
+    /// The key of the existing middleware after which to insert, or <c>null</c> to skip
+    /// positional insertion.
+    /// </param>
     /// <returns>The builder instance for method chaining.</returns>
-    IMessageBusBuilder UseReceive(ReceiveMiddlewareConfiguration configuration);
+    /// <exception cref="ArgumentException">
+    /// Thrown when both <paramref name="before"/> and <paramref name="after"/> are specified.
+    /// </exception>
+    IMessageBusBuilder UseReceive(
+        ReceiveMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null);
 
     /// <summary>
-    /// Inserts a receive middleware configuration immediately after the middleware with the
-    /// specified name.
-    /// </summary>
-    /// <param name="after">The name of the existing middleware after which to insert.</param>
-    /// <param name="configuration">The receive middleware configuration to insert.</param>
-    /// <returns>The builder instance for method chaining.</returns>
-    IMessageBusBuilder AppendReceive(string after, ReceiveMiddlewareConfiguration configuration);
-
-    /// <summary>
-    /// Inserts a receive middleware configuration immediately before the middleware with the
-    /// specified name.
-    /// </summary>
-    /// <param name="before">The name of the existing middleware before which to insert.</param>
-    /// <param name="configuration">The receive middleware configuration to insert.</param>
-    /// <returns>The builder instance for method chaining.</returns>
-    IMessageBusBuilder PrependReceive(string before, ReceiveMiddlewareConfiguration configuration);
-
-    /// <summary>
-    /// Appends a receive middleware configuration to the end of the current receive pipeline.
-    /// </summary>
-    /// <param name="configuration">The receive middleware configuration to append.</param>
-    /// <returns>The builder instance for method chaining.</returns>
-    IMessageBusBuilder AppendReceive(ReceiveMiddlewareConfiguration configuration);
-
-    /// <summary>
-    /// Prepends a receive middleware configuration to the beginning of the current receive
-    /// pipeline.
-    /// </summary>
-    /// <param name="configuration">The receive middleware configuration to prepend.</param>
-    /// <returns>The builder instance for method chaining.</returns>
-    IMessageBusBuilder PrependReceive(ReceiveMiddlewareConfiguration configuration);
-
-    /// <summary>
-    /// Appends a consumer middleware configuration to the end of the consumer pipeline.
+    /// Adds a consumer middleware configuration to the consumer pipeline.
+    /// When neither <paramref name="before"/> nor <paramref name="after"/> is specified, the
+    /// middleware is appended to the end of the pipeline.
+    /// When <paramref name="before"/> is specified, the middleware is inserted immediately before
+    /// the middleware with the given key.
+    /// When <paramref name="after"/> is specified, the middleware is inserted immediately after
+    /// the middleware with the given key.
     /// </summary>
     /// <param name="configuration">The consumer middleware configuration to add.</param>
+    /// <param name="before">
+    /// The key of the existing middleware before which to insert, or <c>null</c> to skip
+    /// positional insertion.
+    /// </param>
+    /// <param name="after">
+    /// The key of the existing middleware after which to insert, or <c>null</c> to skip
+    /// positional insertion.
+    /// </param>
     /// <returns>The builder instance for method chaining.</returns>
-    IMessageBusBuilder UseConsume(ConsumerMiddlewareConfiguration configuration);
-
-    /// <summary>
-    /// Inserts a consumer middleware configuration immediately after the middleware with the
-    /// specified name.
-    /// </summary>
-    /// <param name="after">The name of the existing middleware after which to insert.</param>
-    /// <param name="configuration">The consumer middleware configuration to insert.</param>
-    /// <returns>The builder instance for method chaining.</returns>
-    IMessageBusBuilder AppendConsume(string after, ConsumerMiddlewareConfiguration configuration);
-
-    /// <summary>
-    /// Inserts a consumer middleware configuration immediately before the middleware with the
-    /// specified name.
-    /// </summary>
-    /// <param name="before">The name of the existing middleware before which to insert.</param>
-    /// <param name="configuration">The consumer middleware configuration to insert.</param>
-    /// <returns>The builder instance for method chaining.</returns>
-    IMessageBusBuilder PrependConsume(string before, ConsumerMiddlewareConfiguration configuration);
-
-    /// <summary>
-    /// Appends a consumer middleware configuration to the end of the current consumer pipeline.
-    /// </summary>
-    /// <param name="configuration">The consumer middleware configuration to append.</param>
-    /// <returns>The builder instance for method chaining.</returns>
-    IMessageBusBuilder AppendConsume(ConsumerMiddlewareConfiguration configuration);
-
-    /// <summary>
-    /// Prepends a consumer middleware configuration to the beginning of the current consumer
-    /// pipeline.
-    /// </summary>
-    /// <param name="configuration">The consumer middleware configuration to prepend.</param>
-    /// <returns>The builder instance for method chaining.</returns>
-    IMessageBusBuilder PrependConsume(ConsumerMiddlewareConfiguration configuration);
+    /// <exception cref="ArgumentException">
+    /// Thrown when both <paramref name="before"/> and <paramref name="after"/> are specified.
+    /// </exception>
+    IMessageBusBuilder UseConsume(
+        ConsumerMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null);
 }

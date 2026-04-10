@@ -73,7 +73,7 @@ public sealed class ConsumeContextTests
         // act
         ctx.Dispose();
 
-        // assert — forwarded properties throw after dispose
+        // assert - forwarded properties throw after dispose
         Assert.Throws<ObjectDisposedException>(() => ctx.MessageId);
         Assert.Throws<ObjectDisposedException>(() => ctx.CorrelationId);
         Assert.Throws<ObjectDisposedException>(() => ctx.ConversationId);
@@ -111,11 +111,11 @@ public sealed class ConsumeContextTests
         var inner = CreateStubWithMessage(new TestEvent { Id = "survives" });
         var ctx = new ConsumeContext<TestEvent>(inner);
 
-        // act — resolve before dispose (matches BatchConsumer's pattern)
+        // act - resolve before dispose (matches BatchConsumer's pattern)
         _ = ctx.Message;
         ctx.Dispose();
 
-        // assert — cached field survives dispose
+        // assert - cached field survives dispose
         Assert.Equal("survives", ctx.Message.Id);
     }
 
@@ -146,7 +146,7 @@ public sealed class ConsumeContextTests
 
         public void SetMessage(object message)
         {
-            _features.GetOrSet<MessageParsingFeature>().Message = message;
+            _features.Configure<MessageParsingFeature>(f => f.Message = message);
         }
 
         public IFeatureCollection Features { get; }
