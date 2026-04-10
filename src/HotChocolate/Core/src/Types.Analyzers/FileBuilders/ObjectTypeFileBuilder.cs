@@ -78,6 +78,8 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
             {
                 WriteResolverField(objectType.NodeResolver);
             }
+
+            WriteIsSelectedFields(objectType.NodeResolver);
         }
     }
 
@@ -93,7 +95,9 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
             objectType,
             typeLookup,
             type.Resolvers.Any(t => t.RequiresParameterBindings)
-            || (objectType.NodeResolver?.RequiresParameterBindings ?? false));
+            || (objectType.NodeResolver?.RequiresParameterBindings ?? false),
+            type.Resolvers.Any(HasIsSelectedFields)
+            || HasIsSelectedFields(objectType.NodeResolver));
     }
 
     protected override void WriteResolversBindingInitialization(IOutputTypeInfo type, ILocalTypeLookup typeLookup)
@@ -112,6 +116,8 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
             {
                 WriteResolverBindingInitialization(objectType.NodeResolver, typeLookup);
             }
+
+            WriteIsSelectedInitialization(objectType.NodeResolver);
         }
     }
 
