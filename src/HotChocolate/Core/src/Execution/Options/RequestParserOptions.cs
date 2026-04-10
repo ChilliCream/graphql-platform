@@ -50,4 +50,17 @@ public sealed class RequestParserOptions
     /// as fields is an easier way to estimate query size for GraphQL requests.
     /// </summary>
     public int MaxAllowedFields { get; set; } = 2048;
+
+    /// <summary>
+    /// The maximum number of directives allowed per location (e.g. per field,
+    /// per operation, per fragment definition). Repeatable directives can be used
+    /// to exhaust CPU and memory resources if not limited.
+    /// </summary>
+    public int MaxAllowedDirectives { get; set; } = 4;
+
+    /// <summary>
+    /// The maximum allowed recursion depth when parsing a document.
+    /// This prevents stack overflow from deeply nested queries.
+    /// </summary>
+    public int MaxAllowedRecursionDepth { get; set; } = 200;
 }

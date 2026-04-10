@@ -7,6 +7,209 @@ namespace HotChocolate.Language;
 public class QueryParserTests
 {
     [Fact]
+    public void Default_MaxAllowedRecursionDepth_Is_200()
+    {
+        Assert.Equal(200, ParserOptions.Default.MaxAllowedRecursionDepth);
+    }
+
+    [Fact]
+    public void Reject_Queries_Exceeding_Max_Recursion_Depth_Selection_Sets()
+    {
+        const int depth = 201;
+        var query = string.Concat(Enumerable.Repeat("{ a", depth))
+            + string.Concat(Enumerable.Repeat(" }", depth));
+
+        Assert
+            .Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(query))
+            .Message
+            .MatchInlineSnapshot(
+                "Document exceeds the maximum allowed recursion depth of 200. Parsing aborted.");
+    }
+
+    [Fact]
+    public void Reject_Queries_Exceeding_Max_Recursion_Depth_Object_Values()
+    {
+        const int depth = 201;
+        var query = "{ a(x: "
+            + string.Concat(Enumerable.Repeat("{a: ", depth))
+            + "1"
+            + string.Concat(Enumerable.Repeat("}", depth))
+            + ") }";
+
+        Assert
+            .Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(query))
+            .Message
+            .MatchInlineSnapshot(
+                "Document exceeds the maximum allowed recursion depth of 200. Parsing aborted.");
+    }
+
+    [Fact]
+    public void Reject_Queries_Exceeding_Max_Recursion_Depth_List_Values()
+    {
+        const int depth = 201;
+        var query = "{ a(x: "
+            + string.Concat(Enumerable.Repeat("[", depth))
+            + "1"
+            + string.Concat(Enumerable.Repeat("]", depth))
+            + ") }";
+
+        Assert
+            .Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(query))
+            .Message
+            .MatchInlineSnapshot(
+                "Document exceeds the maximum allowed recursion depth of 200. Parsing aborted.");
+    }
+
+    [Fact]
+    public void Reject_Queries_Exceeding_Max_Recursion_Depth_List_Types()
+    {
+        const int depth = 201;
+        var query = $"query($v: {string.Concat(Enumerable.Repeat("[", depth))}Int{string.Concat(Enumerable.Repeat("]", depth))}) {{ a }}";
+
+        Assert
+            .Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(query))
+            .Message
+            .MatchInlineSnapshot(
+                "Document exceeds the maximum allowed recursion depth of 200. Parsing aborted.");
+    }
+
+    [Fact]
+    public void Allow_Queries_Within_Max_Recursion_Depth()
+    {
+        const int depth = 50;
+        var query = string.Concat(Enumerable.Repeat("{ a", depth))
+            + string.Concat(Enumerable.Repeat(" }", depth));
+
+        var document = Utf8GraphQLParser.Parse(query);
+
+        Assert.NotNull(document);
+        Assert.Single(document.Definitions);
+    }
+
+    [Fact]
+    public void Reject_Queries_Exceeding_Custom_Recursion_Depth()
+    {
+        var options = new ParserOptions(
+            noLocations: false,
+            allowFragmentVariables: false,
+            maxAllowedNodes: int.MaxValue,
+            maxAllowedTokens: int.MaxValue,
+            maxAllowedFields: 2048,
+            maxAllowedDirectives: 4,
+            maxAllowedRecursionDepth: 10);
+        const int depth = 11;
+        var query = string.Concat(Enumerable.Repeat("{ a", depth))
+            + string.Concat(Enumerable.Repeat(" }", depth));
+
+        Assert
+            .Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(query, options))
+            .Message
+            .MatchInlineSnapshot(
+                "Document exceeds the maximum allowed recursion depth of 10. Parsing aborted.");
+    }
+
+    [Fact]
+    public void Allow_Queries_Within_Custom_Recursion_Depth()
+    {
+        var options = new ParserOptions(
+            noLocations: false,
+            allowFragmentVariables: false,
+            maxAllowedNodes: int.MaxValue,
+            maxAllowedTokens: int.MaxValue,
+            maxAllowedFields: 2048,
+            maxAllowedDirectives: 4,
+            maxAllowedRecursionDepth: 10);
+        const int depth = 10;
+        var query = string.Concat(Enumerable.Repeat("{ a", depth))
+            + string.Concat(Enumerable.Repeat(" }", depth));
+
+        var document = Utf8GraphQLParser.Parse(query, options);
+
+        Assert.NotNull(document);
+        Assert.Single(document.Definitions);
+    }
+
+    [Theory]
+    [InlineData(20_000)]
+    [InlineData(50_000)]
+    public void Reject_Attack_Payload_Nested_Selection_Sets(int depth)
+    {
+        var query = string.Concat(Enumerable.Repeat("{ a", depth))
+            + string.Concat(Enumerable.Repeat(" }", depth));
+
+        Assert.Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(query));
+    }
+
+    [Theory]
+    [InlineData(20_000)]
+    [InlineData(50_000)]
+    public void Reject_Attack_Payload_Nested_List_Values(int depth)
+    {
+        var query = "{ a(x: "
+            + string.Concat(Enumerable.Repeat("[", depth))
+            + "1"
+            + string.Concat(Enumerable.Repeat("]", depth))
+            + ") }";
+
+        Assert.Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(query));
+    }
+
+    [Fact]
+    public void Default_MaxAllowedDirectives_Is_4()
+    {
+        Assert.Equal(4, ParserOptions.Default.MaxAllowedDirectives);
+    }
+
+    [Fact]
+    public void Reject_Fields_Exceeding_Max_Allowed_Directives_Per_Location()
+    {
+        Assert
+            .Throws<SyntaxException>(() => Utf8GraphQLParser.Parse("{ a @d @d @d @d @d }"))
+            .Message
+            .MatchInlineSnapshot(
+                "A location in the GraphQL document contains more than 4 directives. Parsing aborted.");
+    }
+
+    [Fact]
+    public void Allow_Fields_Within_Max_Allowed_Directives_Per_Location()
+    {
+        Utf8GraphQLParser.Parse("{ a @d @d @d @d }");
+    }
+
+    [Fact]
+    public void Reject_Fields_Exceeding_Custom_Directive_Limit()
+    {
+        var options = new ParserOptions(
+            noLocations: false,
+            allowFragmentVariables: false,
+            maxAllowedNodes: int.MaxValue,
+            maxAllowedTokens: int.MaxValue,
+            maxAllowedFields: 2048,
+            maxAllowedDirectives: 2,
+            maxAllowedRecursionDepth: 200);
+
+        Assert
+            .Throws<SyntaxException>(() => Utf8GraphQLParser.Parse("{ a @d @d @d }", options))
+            .Message
+            .MatchInlineSnapshot(
+                "A location in the GraphQL document contains more than 2 directives. Parsing aborted.");
+    }
+
+    [Fact]
+    public void Allow_Fields_Within_Custom_Directive_Limit()
+    {
+        var options = new ParserOptions(
+            noLocations: false,
+            allowFragmentVariables: false,
+            maxAllowedNodes: int.MaxValue,
+            maxAllowedTokens: int.MaxValue,
+            maxAllowedFields: 2048,
+            maxAllowedDirectives: 2,
+            maxAllowedRecursionDepth: 200);
+        Utf8GraphQLParser.Parse("{ a @d @d }", options);
+    }
+
+    [Fact]
     public void Reject_Queries_With_More_Than_2048_Fields()
     {;
         Assert
