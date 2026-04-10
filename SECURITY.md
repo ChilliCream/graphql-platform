@@ -8,7 +8,7 @@ We will provide bug fixes and updates to the latest major version.
 | ------- | ------------------ |
 | 16.x    | :white_check_mark: |
 | 15.x    | :white_check_mark: |
-| 14.x    | :white_check_mark: |
+| 14.x    | :x:                |
 | 13.x    | :x:                |
 | < 13.0  | :x:                |
 
