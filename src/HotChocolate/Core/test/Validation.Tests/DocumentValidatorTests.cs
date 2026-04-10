@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
@@ -867,6 +868,69 @@ public class DocumentValidatorTests
     [Fact]
     public void Introspection_Cycle_Detected()
         => ExpectErrors(FileResource.Open("introspection_with_cycle.graphql"));
+
+    /// <summary>
+    /// Fragment traversal bomb: each fragment spreads the next one N times.
+    /// Without deduplication this creates N^(levels-1) traversals.
+    /// Validation must deduplicate fragment visits so this completes instantly.
+    /// See: https://github.com/graphql/tsc/discussions/82
+    /// </summary>
+    [Fact]
+    public void Fragment_Traversal_Bomb_Should_Complete_Quickly()
+    {
+        // 10 fragment levels, each spreading the next 50 times.
+        // Without dedup: 50^9 ≈ 2×10^15 traversals (would hang forever).
+        // With dedup: 10 fragment visits (completes instantly).
+        var sb = new StringBuilder();
+        sb.AppendLine("{...A}");
+
+        const string names = "ABCDEFGHIJ";
+        for (var i = 0; i < names.Length - 1; i++)
+        {
+            sb.Append($"fragment {names[i]} on Query {{");
+            for (var j = 0; j < 50; j++)
+            {
+                if (j > 0)
+                {
+                    sb.Append(' ');
+                }
+
+                sb.Append($"...{names[i + 1]}");
+            }
+
+            sb.AppendLine("}");
+        }
+
+        sb.AppendLine($"fragment {names[^1]} on Query {{ __typename }}");
+
+        ExpectValid(sb.ToString());
+    }
+
+    /// <summary>
+    /// Fragment expansion bomb: each fragment level doubles the number of
+    /// field expansions via two aliased sub-selections that reference the
+    /// same child fragment. At depth 20 this creates 2^20 ≈ 1M recursive
+    /// expansions in naive implementations.
+    /// See: https://github.com/graphql/tsc/discussions/82
+    /// </summary>
+    [Fact]
+    public void Fragment_Expansion_Bomb_Should_Be_Rejected()
+    {
+        // 20 levels, 2 branches per level = 2^20 ≈ 1,048,576 expansions.
+        const int depth = 20;
+        var sb = new StringBuilder();
+        sb.AppendLine("{ field { ...F0 } }");
+
+        for (var i = 0; i < depth; i++)
+        {
+            sb.AppendLine(
+                $"fragment F{i} on Query {{ fa: field {{ ...F{i + 1} }} fb: field {{ ...F{i + 1} }} }}");
+        }
+
+        sb.AppendLine($"fragment F{depth} on Query {{ __typename }}");
+
+        ExpectErrors(sb.ToString());
+    }
 
     private static void ExpectValid([StringSyntax("graphql")] string sourceText)
         => ExpectValid(null, null, sourceText);
