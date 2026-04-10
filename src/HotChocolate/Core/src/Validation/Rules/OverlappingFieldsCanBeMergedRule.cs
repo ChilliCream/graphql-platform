@@ -6,7 +6,7 @@ namespace HotChocolate.Validation.Rules;
 
 /// <summary>
 /// Implements the field selection merging rule as described in the GraphQL Spec.
-/// https://spec.graphql.org/June2018/#sec-Field-Selection-Merging
+/// https://spec.graphql.org/September2025/#sec-Field-Selection-Merging
 /// </summary>
 /// <remarks>
 /// The algorithm implemented here is not the one from the Spec, but is based on
