@@ -14,7 +14,7 @@ internal static class RootCommandExtensions
         InvocationConfiguration? invocationConfiguration,
         CancellationToken cancellationToken)
     {
-        CommandExecutionContext.Services.Value = new CommandServices(services);
+        CommandExecutionContext.s_services.Value = new CommandServices(services);
 
         var console = services.GetRequiredService<INitroConsole>();
 

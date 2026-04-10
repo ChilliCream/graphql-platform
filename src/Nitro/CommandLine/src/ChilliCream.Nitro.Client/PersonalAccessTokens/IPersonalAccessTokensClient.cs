@@ -1,4 +1,3 @@
-using ChilliCream.Nitro.Client;
 namespace ChilliCream.Nitro.Client.PersonalAccessTokens;
 
 /// <summary>

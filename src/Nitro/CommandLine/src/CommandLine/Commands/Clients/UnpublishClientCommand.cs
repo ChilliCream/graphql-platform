@@ -3,7 +3,6 @@ using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
-using static ChilliCream.Nitro.CommandLine.Helpers.Placeholders;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
 
