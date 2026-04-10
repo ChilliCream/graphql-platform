@@ -72,7 +72,7 @@ jobs:
         timeout-minutes: 5
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -94,13 +94,13 @@ jobs:
           CI_BUILD: true
 
       - name: Upload Test Results as Artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: test-results-${{ matrix.name }}
           path: ${{ matrix.directoryPath }}/TestResults/*.trx
 
       - name: Upload Coverage File as Artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-${{ matrix.name }}
           # The * matches a single directory that is named with a GUID.
@@ -109,7 +109,7 @@ jobs:
 
       - name: Upload mismatch files as Artifact
         if: failure()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: mismatch-files-${{ matrix.name }}
           path: ${{ matrix.directoryPath }}/**/__mismatch__/*
@@ -126,7 +126,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download all coverage artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           path: ./output/download
           pattern: coverage-*
