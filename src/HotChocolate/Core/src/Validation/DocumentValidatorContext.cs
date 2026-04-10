@@ -144,6 +144,7 @@ public sealed class DocumentValidatorContext : IFeatureProvider
         DocumentNode document,
         int maxAllowedErrors,
         int maxLocationsPerError,
+        int maxAllowedFragmentVisits,
         IFeatureCollection? features)
     {
         ArgumentNullException.ThrowIfNull(schema);
@@ -155,6 +156,8 @@ public sealed class DocumentValidatorContext : IFeatureProvider
         Document = document;
         _maxAllowedErrors = maxAllowedErrors;
         _maxLocationsPerError = maxLocationsPerError;
+
+        Fragments.SetMaxAllowedFragmentVisits(maxAllowedFragmentVisits);
 
         _features.Initialize(features);
 
@@ -246,8 +249,9 @@ public sealed class DocumentValidatorContext : IFeatureProvider
     public sealed class FragmentContext
     {
         private readonly HashSet<string> _visited = [];
-        private readonly HashSet<string> _completed = [];
         private readonly Dictionary<string, FragmentDefinitionNode> _fragments = new(StringComparer.Ordinal);
+        private int _maxAllowedFragmentVisits;
+        private int _fragmentVisits;
 
         public IEnumerable<string> Names => _fragments.Keys;
 
@@ -268,10 +272,16 @@ public sealed class DocumentValidatorContext : IFeatureProvider
 
         public bool TryEnter(FragmentSpreadNode spread, [NotNullWhen(true)] out FragmentDefinitionNode? fragment)
         {
-            if (!_completed.Contains(spread.Name.Value)
-                && _visited.Add(spread.Name.Value)
+            if (_fragmentVisits >= _maxAllowedFragmentVisits)
+            {
+                fragment = null;
+                return false;
+            }
+
+            if (_visited.Add(spread.Name.Value)
                 && _fragments.TryGetValue(spread.Name.Value, out fragment))
             {
+                _fragmentVisits++;
                 return true;
             }
 
@@ -280,31 +290,30 @@ public sealed class DocumentValidatorContext : IFeatureProvider
         }
 
         public void Leave(FragmentSpreadNode spread)
-        {
-            _visited.Remove(spread.Name.Value);
-            _completed.Add(spread.Name.Value);
-        }
+            => _visited.Remove(spread.Name.Value);
 
         public void Leave(FragmentDefinitionNode fragment)
-        {
-            _visited.Remove(fragment.Name.Value);
-            _completed.Add(fragment.Name.Value);
-        }
+            => _visited.Remove(fragment.Name.Value);
 
         public bool Exists(FragmentSpreadNode spread)
             => _fragments.ContainsKey(spread.Name.Value);
 
+        internal void SetMaxAllowedFragmentVisits(int maxAllowedFragmentVisits)
+        {
+            _maxAllowedFragmentVisits = maxAllowedFragmentVisits;
+        }
+
         internal void Reset()
         {
             _visited.Clear();
-            _completed.Clear();
+            _fragmentVisits = 0;
         }
 
         internal void Clear()
         {
             _visited.Clear();
-            _completed.Clear();
             _fragments.Clear();
+            _fragmentVisits = 0;
         }
     }
 }

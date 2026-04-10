@@ -56,6 +56,19 @@ builder.Services
         allowRequestOverrides: true);
 ```
 
+## Fragment Visits
+
+Each time a visitor enters a fragment spread counts as one visit. Queries with deeply nested or repeated fragment spreads can cause exponential visitor work. Hot Chocolate caps the total number of fragment visits per operation at **1,000** by default:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .ModifyValidationOptions(o =>
+    {
+        o.MaxAllowedFragmentVisits = 1_000;
+    });
+```
+
 ## Field Merge Comparisons
 
 The "overlapping fields can be merged" validation rule checks that fields with the same response name have compatible types and arguments. On adversarial inputs with deeply nested fragments, this check can become expensive.

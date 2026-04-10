@@ -45,6 +45,10 @@ Caps how deeply nested a query can be. A depth of 10 covers most real-world quer
 builder.AddMaxExecutionDepthRule(10);
 ```
 
+### Fragment Visits
+
+Each time a visitor enters a fragment spread counts as one visit. Queries with deeply nested or repeated fragment spreads can cause exponential visitor work. The total number of fragment visits per operation is capped at **1,000** by default.
+
 ### Field Merge Comparisons
 
 The overlapping-fields-can-be-merged rule caps comparison work at 100,000 by default. No configuration is needed for most gateways. The default protects against fragment expansion bombs.

@@ -103,4 +103,27 @@ public sealed class ValidationOptions
             field = value;
         }
     } = 100_000;
+
+    /// <summary>
+    /// <para>
+    /// The maximum number of fragment visits allowed during validation.
+    /// Each time a fragment spread is entered counts as one visit.
+    /// This prevents adversarial queries with deeply nested or repeated
+    /// fragment spreads from consuming unbounded CPU.
+    /// </para>
+    /// <para>Default: <c>1,000</c></para>
+    /// </summary>
+    public int MaxAllowedFragmentVisits
+    {
+        get;
+        set
+        {
+            if (value < 1)
+            {
+                value = 1_000;
+            }
+
+            field = value;
+        }
+    } = 1_000;
 }
