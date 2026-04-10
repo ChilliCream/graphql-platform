@@ -1,238 +1,133 @@
 ---
-title: "Building a private GraphQL API"
-description: "An end-to-end guide for building a private, first-party GraphQL API using trusted documents in Hot Chocolate."
+title: "First-Party API"
+description: "Deploy a Hot Chocolate server as a locked-down first-party GraphQL API using trusted documents. Eliminate parser exploits, validation attacks, and complexity abuse by only executing pre-registered operations."
 ---
 
-If you control every client that talks to your GraphQL API, you have a significant advantage: you know every operation at build time. You can extract those operations, register them with the server, and configure the server to reject anything it has not seen before. This is how Meta built and operates GraphQL internally, and it is the recommended path for teams building first-party APIs.
+When your GraphQL API is only consumed by clients you control — mobile apps, websites, internal services — there is no reason for the server to accept arbitrary GraphQL Operations at runtime. You already know every operation your clients will ever send, because you wrote them. Trusted documents let you take advantage of that fact.
 
-This guide walks you through the full workflow for building a private GraphQL API with Hot Chocolate. A private API serves your own applications: your website, your mobile app, your internal tools. You are not exposing a public endpoint for third-party developers. The key insight is that if you control the clients, you can lock down the server to only accept operations you have reviewed and approved.
+The idea is simple: rather than shipping GraphQL operation text inside your client and sending it to the server on every request, you extract all operations at build time and register them with the server ahead of deployment. At runtime, clients reference operations by a short identifier instead of sending the full operation text. The server looks up the pre-registered operation, executes it, and returns the result. It never parses or validates an operation it has not seen before.
 
-# The trusted documents workflow
+This eliminates entire classes of attacks. The GraphQL parser and validator never process untrusted input, so parser exploits, validation-level denial of service, and complexity attacks simply cannot reach your server. But the benefits go well beyond security. Trusted documents give you something that REST and gRPC cannot: field-level visibility into which client, in which version, uses which operations and which fields. Because every operation is registered with its client identity and version, you can make informed schema evolution decisions at the individual field level. You know exactly who will be affected before you deprecate or remove a field, enabling safe, incremental API evolution at scale.
 
-Trusted documents (also called persisted operations) turn your GraphQL API from an open query endpoint into a closed, auditable contract. The workflow has three steps:
+This is why Meta, Netflix, and X operate GraphQL in production with trusted documents.
 
-1. **Extract** operations from your client applications at build time. Each operation gets a hash that serves as its unique identifier.
-2. **Register** those operations with the server. You place the operation files in a storage location the server can read from, or you use the Nitro client registry.
-3. **Configure** the server to only accept registered operations. Any request that does not reference a known operation ID is rejected.
+This guide covers the server side of this workflow: how to configure a Hot Chocolate server to only execute trusted, pre-registered operations.
 
-Once this workflow is in place, the server never parses or executes an operation it has not seen before. Malicious queries, accidental expensive queries, and schema exploration by unauthorized clients are all blocked at the door.
+# How trusted documents work
 
-# Extract operations from your client
+Trusted documents (also called persisted operations) turn your GraphQL endpoint from an open operation processor into a closed, auditable contract. The workflow has three steps:
 
-The first step is to get the operations out of your client code and into files the server can consume. Both Relay and Strawberry Shake support this out of the box.
+1. **Extract.** The client compiler (Relay, Strawberry Shake, or similar) extracts every GraphQL operation from the codebase at build time. Each operation is hashed to produce a stable, unique identifier.
+2. **Publish.** The extracted operations are published to the Nitro client registry before the application is deployed.
+3. **Execute.** At runtime, clients send the operation hash instead of the full operation text. The server looks up the operation by ID in the client registry, executes the pre-registered document, and returns the result.
 
-## Relay
+Once this workflow is in place, the server never parses an operation it has not seen before.
 
-Relay extracts operations during its compiler step. Configure `relay.config.js` to output persisted operations:
+# Configure the Hot Chocolate server
 
-```js
-// relay.config.js
-module.exports = {
-  src: "./src",
-  schema: "./schema.graphql",
-  language: "typescript",
-  persistConfig: {
-    file: "./persisted-operations/operations.json",
-    algorithm: "MD5",
-  },
-};
+Hot Chocolate needs `UsePersistedOperationPipeline()` to replace the default request pipeline with one that resolves operations by ID. You also need to connect the server to Nitro and enable the security options that block ad-hoc operations and skip document body parsing.
+
+First, add the `ChilliCream.Nitro` package to your project:
+
+```bash
+dotnet add package ChilliCream.Nitro
 ```
 
-After running the Relay compiler, the `operations.json` file contains a mapping of hashes to operation documents:
-
-```json
-{
-  "913abc361487c481cf6015841c0eca22": "query GetUser { me { id name } }",
-  "0e7cf2125e8eb711b470cc72c73ca77e": "query GetProducts { products { nodes { name price } } }"
-}
-```
-
-[Learn more about Relay persisted queries](https://relay.dev/docs/guides/persisted-queries/)
-
-## Strawberry Shake
-
-Strawberry Shake extracts operations as part of the normal .NET build. Add the `GraphQLPersistedOperationOutput` property to your client project:
-
-```xml
-<!-- MyClient.csproj -->
-<PropertyGroup>
-    <GraphQLPersistedOperationOutput>./persisted-operations</GraphQLPersistedOperationOutput>
-</PropertyGroup>
-```
-
-When you build the project, Strawberry Shake writes one `.graphql` file per operation to the output directory, using the operation hash as the filename:
-
-```text
-persisted-operations/
-  913abc361487c481cf6015841c0eca22.graphql
-  0e7cf2125e8eb711b470cc72c73ca77e.graphql
-```
-
-If your server expects the Relay JSON format instead, set the output format:
-
-```xml
-<!-- MyClient.csproj -->
-<PropertyGroup>
-    <GraphQLPersistedOperationOutput>./persisted-operations</GraphQLPersistedOperationOutput>
-    <GraphQLPersistedOperationFormat>relay</GraphQLPersistedOperationFormat>
-</PropertyGroup>
-```
-
-[Learn more about Strawberry Shake persisted operations](/docs/strawberryshake/v16/performance/persisted-operations)
-
-# Register operations with the server
-
-Once you have the extracted operation files, the server needs access to them. You have two options.
-
-## Filesystem storage
-
-For straightforward setups, place the operation files on disk where the server can read them. Install the filesystem storage package:
-
-<PackageInstallation packageName="HotChocolate.PersistedOperations.FileSystem" />
-
-Point the server at the directory containing your operation files:
+Then configure the server:
 
 ```csharp
-// Program.cs
+var builder = WebApplication.CreateBuilder(args);
+
 builder.Services
     .AddGraphQLServer()
     .AddQueryType<Query>()
+    .AddNitro()
     .UsePersistedOperationPipeline()
-    .AddFileSystemOperationDocumentStorage("./persisted-operations");
-```
-
-Hot Chocolate looks for files named `{hash}.graphql` in the specified directory. Make sure the hashing algorithm matches between client and server. Hot Chocolate defaults to MD5, which matches Relay's default.
-
-## Client registry (Nitro)
-
-For production deployments with multiple client versions, CI/CD validation, and schema compatibility checks, use the [Nitro client registry](/docs/nitro/apis/client-registry). The client registry validates operations against your schema on publish and distributes them to your server at runtime.
-
-```csharp
-// Program.cs
-builder.Services
-    .AddGraphQLServer()
-    .AddQueryType<Query>()
-    .AddNitro(x =>
+    .ModifyRequestOptions(o =>
     {
-        x.ApiKey = "<<your-api-key>>";
-        x.ApiId = "<<your-api-id>>";
-        x.Stage = "production";
-    })
-    .UsePersistedOperationPipeline();
+        o.PersistedOperations.OnlyAllowPersistedDocuments = true;
+        o.PersistedOperations.AllowDocumentBody = false;
+    });
+
+var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapGraphQL();
+}
+
+app.MapGraphQLPersistedOperations();
+
+app.Run();
 ```
 
-The client registry is the recommended approach for teams running multiple services or deploying frequently. It catches operation-schema mismatches in your CI pipeline before they reach production.
+`MapGraphQL()` is only registered in development. It exposes the standard GraphQL endpoint that client tooling needs: ad-hoc operations, introspection, and the schema endpoint at `/graphql/sdl`. In production, only `MapGraphQLPersistedOperations()` is registered. The server exclusively accepts requests that reference a registered operation ID by URL, and the HTTP request parser skips reading the `query` field entirely.
 
-[Learn more about the client registry](/docs/nitro/apis/client-registry)
+# What the settings do
 
-# Configure the server
+**`OnlyAllowPersistedDocuments = true`** means every executed operation must match a persisted document. Clients can still send the full operation text in the `query` field; the server will parse it, hash it, and verify that the hash matches a registered operation. This is useful during migration: legacy clients keep sending operation text while new clients send only the hash. Either way, only known operations execute.
 
-The `UsePersistedOperationPipeline()` method replaces the default request pipeline with one that resolves operations by ID. Instead of parsing a raw GraphQL document from the request body, the server looks up the operation in its document storage using the hash provided by the client.
+**`AllowDocumentBody = false`** (this is the default) goes further. It configures the transport layer to skip parsing the `query` field entirely from JSON request bodies and GET query parameters. The GraphQL parser is never invoked for incoming request documents. This is the strict trusted documents mode.
 
-```csharp
-// Program.cs
-builder.Services
-    .AddGraphQLServer()
-    .AddQueryType<Query>()
-    .UsePersistedOperationPipeline()
-    .AddFileSystemOperationDocumentStorage("./persisted-operations");
-```
+**Together**, the server never parses untrusted GraphQL input. Operations are loaded from the client registry by ID, where they were pre-validated at publish time. The parser, validator, and cost analyzer are never exercised by external traffic.
 
-With this pipeline active, clients send requests with an `id` field instead of a `query` field:
+# Client request format
+
+With `MapGraphQLPersistedOperations()`, the operation hash and operation name are part of the URL path. Clients never send a `query` or `id` field. Only `variables` and `extensions` are specified, either in the POST body or as query parameters on GET:
+
+**HTTP POST to `/graphql/persisted/{operationId}/{operationName}`:**
 
 ```json
 {
-  "id": "913abc361487c481cf6015841c0eca22",
-  "variables": {
-    "userId": "abc123"
-  }
+  "variables": { "first": 10 }
 }
 ```
 
-> Note: Relay uses `doc_id` instead of `id` by default. Update your Relay network layer to send the hash as `id`.
+**HTTP GET to `/graphql/persisted/{operationId}/{operationName}`:**
 
-# Block ad-hoc operations
-
-The persisted operation pipeline still accepts regular operations alongside persisted ones unless you explicitly block them. To close this gap, enable `OnlyAllowPersistedDocuments`:
-
-```csharp
-// Program.cs
-builder.Services
-    .AddGraphQLServer()
-    .AddQueryType<Query>()
-    .UsePersistedOperationPipeline()
-    .AddFileSystemOperationDocumentStorage("./persisted-operations")
-    .ModifyRequestOptions(options =>
-        options.PersistedOperations.OnlyAllowPersistedDocuments = true);
+```http
+GET /graphql/persisted/0c95d31ca29272475bf837f944f4e513/GetProducts?variables={"first":10}
 ```
 
-This is the key security boundary of a private API. With this option enabled, any request that does not reference a registered operation ID is rejected with an error. No ad-hoc queries, no introspection queries, no malicious payloads.
-
-You can customize the error message returned to clients:
+The default base path is `/graphql/persisted`. You can customize it:
 
 ```csharp
-// Program.cs
-.ModifyRequestOptions(options =>
-{
-    options.PersistedOperations.OnlyAllowPersistedDocuments = true;
-    options.PersistedOperations.OperationNotAllowedError = ErrorBuilder.New()
-        .SetMessage("This API only accepts pre-registered operations.")
-        .Build();
-})
+app.MapGraphQLPersistedOperations("/api/operations");
 ```
+
+You can require that clients always include an operation name in the URL:
+
+```csharp
+app.MapGraphQLPersistedOperations(requireOperationName: true);
+```
+
+The deterministic GET routes produce stable cache keys, which makes them ideal for CDN and HTTP response caching.
 
 # Development workflow
 
-During development, you need to iterate on operations without going through the full extract-register-deploy cycle every time you change a query. There are two approaches.
+During development, you need to iterate on operations without going through the full extract-publish-deploy cycle every time you change an operation. Tools like Nitro (the GraphQL IDE) need to send ad-hoc operations for exploration and testing.
 
-## Automatic persisted operations for development
-
-Use `UseAutomaticPersistedOperationPipeline()` in your development environment. This lets clients persist operations at runtime: the first request with a new operation stores it, and subsequent requests use the hash.
+The conditional `MapGraphQL()` in the configuration above already handles the endpoint side. For the execution pipeline, use an HTTP request interceptor to allow non-persisted operations in development:
 
 ```csharp
-// Program.cs
-if (app.Environment.IsDevelopment())
+public class DevToolsInterceptor : DefaultHttpRequestInterceptor
 {
-    builder.Services
-        .AddMemoryCache()
-        .AddGraphQLServer()
-        .AddQueryType<Query>()
-        .UseAutomaticPersistedOperationPipeline()
-        .AddInMemoryOperationDocumentStorage();
-}
-else
-{
-    builder.Services
-        .AddGraphQLServer()
-        .AddQueryType<Query>()
-        .UsePersistedOperationPipeline()
-        .AddFileSystemOperationDocumentStorage("./persisted-operations")
-        .ModifyRequestOptions(options =>
-            options.PersistedOperations.OnlyAllowPersistedDocuments = true);
-}
-```
+    private readonly IHostEnvironment _env;
 
-## Developer bypass with an HTTP interceptor
+    public DevToolsInterceptor(IHostEnvironment env) => _env = env;
 
-If you prefer to keep the persisted operation pipeline active during development but allow specific developers to send ad-hoc operations, use a custom HTTP request interceptor:
-
-```csharp
-// Interceptors/DevelopmentRequestInterceptor.cs
-public class DevelopmentRequestInterceptor : DefaultHttpRequestInterceptor
-{
     public override ValueTask OnCreateAsync(
         HttpContext context,
         IRequestExecutor requestExecutor,
         OperationRequestBuilder requestBuilder,
         CancellationToken cancellationToken)
     {
-        if (context.Request.Headers.ContainsKey("X-Developer"))
+        if (_env.IsDevelopment())
         {
             requestBuilder.AllowNonPersistedOperation();
         }
 
-        return base.OnCreateAsync(
-            context, requestExecutor, requestBuilder, cancellationToken);
+        return base.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);
     }
 }
 ```
@@ -240,82 +135,52 @@ public class DevelopmentRequestInterceptor : DefaultHttpRequestInterceptor
 Register the interceptor:
 
 ```csharp
-// Program.cs
 builder.Services
     .AddGraphQLServer()
     .AddQueryType<Query>()
-    .AddHttpRequestInterceptor<DevelopmentRequestInterceptor>()
+    .AddNitro()
+    .AddHttpRequestInterceptor<DevToolsInterceptor>()
     .UsePersistedOperationPipeline()
-    .AddFileSystemOperationDocumentStorage("./persisted-operations")
-    .ModifyRequestOptions(options =>
-        options.PersistedOperations.OnlyAllowPersistedDocuments = true);
-```
-
-In production, remove the interceptor or gate the bypass behind a proper authorization check.
-
-# What you can skip
-
-A private API with trusted documents eliminates entire categories of attack vectors. Because you control every operation that reaches the server, several security measures that public APIs require become unnecessary:
-
-**Cost analysis.** Cost analysis protects against expensive queries from unknown clients. With trusted documents, every operation has already been reviewed by your team. You know the cost of each operation before it reaches production.
-
-**Introspection restrictions.** Clients in a trusted documents workflow do not use introspection at runtime. Operations are compiled against the schema at build time using schema files or code generation. Disabling introspection in production is still reasonable as a defense-in-depth measure, but it is no longer a primary security control.
-
-**Depth limits.** Query depth limits prevent deeply nested queries from consuming excessive resources. With trusted documents, you have reviewed every operation and know its structure. Depth limits add no value when the operation set is fixed.
-
-**Operation complexity limits.** Similar to cost analysis, complexity limits guard against operations you have not seen before. With trusted documents, there are no surprise operations.
-
-This is a significant operational win. Your server configuration becomes lighter, your security model becomes simpler, and your team spends less time tuning limits and thresholds.
-
-# Putting it all together
-
-Here is a complete `Program.cs` for a private API with trusted documents:
-
-```csharp
-// Program.cs
-var builder = WebApplication.CreateBuilder(args);
-
-builder.Services
-    .AddGraphQLServer()
-    .AddQueryType<Query>()
-    .AddMutationType<Mutation>()
-    .AddAuthorization()
-    .UsePersistedOperationPipeline()
-    .AddFileSystemOperationDocumentStorage("./persisted-operations")
-    .ModifyRequestOptions(options =>
-        options.PersistedOperations.OnlyAllowPersistedDocuments = true);
-
-var app = builder.Build();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.MapGraphQL();
-
-app.Run();
-```
-
-Compare this with a public API that needs cost analysis, depth limits, and introspection controls:
-
-```csharp
-// Program.cs (public API for comparison)
-var builder = WebApplication.CreateBuilder(args);
-
-builder.Services
-    .AddGraphQLServer()
-    .AddQueryType<Query>()
-    .AddMutationType<Mutation>()
-    .AddAuthorization()
-    .AddMaxExecutionDepthRule(15)
     .ModifyRequestOptions(o =>
     {
-        o.ExecutionTimeout = TimeSpan.FromSeconds(30);
-    })
-    .ModifyCostOptions(o =>
+        o.PersistedOperations.OnlyAllowPersistedDocuments = true;
+        o.PersistedOperations.AllowDocumentBody = false;
+    });
+```
+
+In production, `IsDevelopment()` returns `false`, and all requests must reference a registered operation ID. In development, the interceptor calls `AllowNonPersistedOperation()` on the request builder, which bypasses the `OnlyAllowPersistedDocuments` check for that request.
+
+Replace the environment check with an authorization policy, API key, or other mechanism that fits your requirements. The important thing is that production traffic always goes through the persisted operation path.
+
+# Putting it together
+
+Here is a complete `Program.cs` for a Hot Chocolate server deployed as a first-party API with trusted documents, authentication, and persisted operation routes:
+
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services
+    .AddAuthentication()
+    .AddJwtBearer(options =>
     {
-        o.MaxFieldCost = 2000;
-        o.MaxTypeCost = 2000;
-        o.EnforceCostLimits = true;
+        options.Authority = "https://your-identity-provider.com/realms/your-realm";
+        options.Audience = "graphql-api";
+    });
+
+builder.Services.AddAuthorization();
+
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<Query>()
+    .AddMutationType<Mutation>()
+    .AddAuthorization()
+    .AddNitro()
+    .AddHttpRequestInterceptor<DevToolsInterceptor>()
+    .UsePersistedOperationPipeline()
+    .ModifyRequestOptions(o =>
+    {
+        o.PersistedOperations.OnlyAllowPersistedDocuments = true;
+        o.PersistedOperations.AllowDocumentBody = false;
     });
 
 var app = builder.Build();
@@ -323,17 +188,26 @@ var app = builder.Build();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapGraphQL();
+if (app.Environment.IsDevelopment())
+{
+    app.MapGraphQL();
+}
+
+app.MapGraphQLPersistedOperations();
 
 app.Run();
 ```
 
-The private API setup is shorter, has fewer knobs to tune, and provides a stronger security guarantee. The tradeoff is the build-time extraction step, which your client tooling handles automatically.
+This configuration:
+
+- Validates JWT tokens and enforces authorization policies.
+- Rejects any request that does not reference a registered operation ID.
+- Never parses the `query` field from incoming requests.
+- Exposes deterministic GET routes at `/graphql/persisted/{operationId}/{operationName}` for CDN-friendly caching.
+- Allows ad-hoc operations in development via the `DevToolsInterceptor`.
 
 # Next Steps
 
-- **Need to set up persisted operations storage?** See [Persisted Operations](/docs/hotchocolate/v16/performance/trusted-documents) for filesystem, Redis, and Azure Blob Storage options.
-- **Want runtime operation persistence for development?** See [Automatic Persisted Operations](/docs/hotchocolate/v16/performance/automatic-persisted-operations).
-- **Need authentication and authorization?** See [Security Overview](/docs/hotchocolate/v16/security).
-- **Managing multiple clients in production?** See [Client Registry](/docs/nitro/apis/client-registry) for versioning, validation, and distribution.
-- **Using Strawberry Shake?** See [Strawberry Shake Persisted Operations](/docs/strawberryshake/v16/performance/persisted-operations) for client-side configuration.
+- **"How do I extract and publish operations from my client?"** See [Client Registry](/docs/nitro/apis/client-registry) for extracting operations, publishing them to Nitro, and managing multiple client versions.
+- **"I need authentication and authorization."** See [Security Overview](/docs/hotchocolate/v16/security) for authentication and authorization configuration.
+- **"I need to protect against complexity attacks on a public API."** See [Public API guide](/docs/hotchocolate/v16/guides/public-api) for cost analysis, depth limits, and introspection controls.
