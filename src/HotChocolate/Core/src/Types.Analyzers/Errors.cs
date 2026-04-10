@@ -52,7 +52,7 @@ public static class Errors
 
     public static readonly DiagnosticDescriptor InterfaceTypeStaticKeywordMissing =
         new(
-            id: "HC0107",
+            id: "HC0112",
             title: "Static Keyword Missing",
             messageFormat: "A split interface type class needs to be a static class",
             category: "TypeSystem",
