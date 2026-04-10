@@ -119,7 +119,7 @@ public static partial class HotChocolateValidationBuilderExtensions
         return builder
             .AddRule<FieldSelectionsRule>()
             .AddRule<LeafFieldSelectionsRule>()
-            .AddRule<OverlappingFieldsCanBeMergedRule>();
+            .AddRule((_, o) => new OverlappingFieldsCanBeMergedRule(o.MaxAllowedFieldMergeComparisons));
     }
 
     /// <summary>

@@ -223,6 +223,10 @@
             "title": "Authentication and Authorization"
           },
           {
+            "path": "request-limits",
+            "title": "Request Limits"
+          },
+          {
             "path": "cache-control",
             "title": "Cache Control"
           },
@@ -474,6 +478,7 @@
               { "path": "authentication", "title": "Authentication" },
               { "path": "authorization", "title": "Authorization" },
               { "path": "cost-analysis", "title": "Cost Analysis" },
+              { "path": "request-limits", "title": "Request Limits" },
               { "path": "introspection", "title": "Controlling Introspection" }
             ]
           },

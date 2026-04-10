@@ -44,54 +44,11 @@ Authorization controls what an authenticated user can access. Hot Chocolate prov
 
 [Learn more about authorization](/docs/hotchocolate/v16/securing-your-api/authorization)
 
-## Execution Depth
+## Request Limits
 
-Limit how deeply nested a query can be:
+Hot Chocolate enforces limits at every stage of request processing -- parsing, validation, and execution -- to keep resource consumption bounded. This includes limits on fields, directives, nesting depth, execution depth, timeouts, and more.
 
-```csharp
-// Program.cs
-builder.Services
-    .AddGraphQLServer()
-    .AddMaxExecutionDepthRule(5);
-```
-
-## Execution Timeout
-
-GraphQL requests are automatically aborted after 30 seconds by default. Override this setting to match your requirements:
-
-```csharp
-// Program.cs
-builder.Services
-    .AddGraphQLServer()
-    .ModifyRequestOptions(o =>
-    {
-        o.ExecutionTimeout = TimeSpan.FromSeconds(60);
-    });
-```
-
-The timeout is not enforced when a debugger is attached.
-
-## Validation Error Limit
-
-To protect against payloads designed to generate excessive validation errors, Hot Chocolate limits validation errors to 5 by default. Once the limit is reached, validation stops and the collected errors are returned.
-
-```csharp
-// Program.cs
-builder.Services
-    .AddGraphQLServer()
-    .SetMaxAllowedValidationErrors(10);
-```
-
-## Nodes Batch Size
-
-The `nodes(ids: [ID])` field in Relay-compliant schemas allows fetching multiple nodes at once. To prevent abuse, the batch size is limited to 50 by default:
-
-```csharp
-// Program.cs
-builder.Services
-    .AddGraphQLServer()
-    .AddGlobalObjectIdentification(o => o.MaxAllowedNodeBatchSize = 100);
-```
+[Learn more about request limits](/docs/hotchocolate/v16/securing-your-api/request-limits)
 
 ## Introspection
 

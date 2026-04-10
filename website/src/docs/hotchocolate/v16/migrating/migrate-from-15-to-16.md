@@ -1034,3 +1034,52 @@ var app = builder.Build();
 - await app.RunWithGraphQLCommandsAsync(args);
 + return await app.RunWithGraphQLCommandsAsync(args);
 ```
+
+## Parser recursion depth limit
+
+The parser now enforces a maximum recursion depth of **200** by default. Deeply nested selection sets, list values, object values, or type references that exceed this depth are rejected with a `SyntaxException` instead of causing a stack overflow. If your queries legitimately exceed this depth, increase the limit:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .ModifyParserOptions(o =>
+    {
+        o.MaxAllowedRecursionDepth = 500;
+    });
+```
+
+## Parser directive limit
+
+The parser now limits the number of directives per location (field, operation, fragment definition) to **4** by default. Documents with more directives on a single location are rejected at parse time. If you use more than 4 directives per location, increase the limit:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .ModifyParserOptions(o =>
+    {
+        o.MaxAllowedDirectives = 8;
+    });
+```
+
+## Fragment visit budget
+
+Validation now caps the total number of fragment visits per operation at **1,000** by default. Each time a fragment spread is entered during validation counts as one visit. Queries with deeply nested or heavily reused fragment spreads that exceed this budget will have remaining fragments skipped during validation. If you have complex queries with many fragment spreads, increase the limit:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .ModifyValidationOptions(o =>
+    {
+        o.MaxAllowedFragmentVisits = 5_000;
+    });
+```
+
+## Field merge comparison budget
+
+The overlapping-fields-can-be-merged validation rule now caps comparison work at **100,000** by default. Queries that exceed this budget are rejected. If you have very complex queries that trigger this limit, increase it:
+
+```csharp
+builder.Services
+    .AddGraphQLServer()
+    .SetMaxAllowedFieldMergeComparisons(200_000);
+```
