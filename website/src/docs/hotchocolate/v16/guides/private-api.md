@@ -75,7 +75,7 @@ app.Run();
 
 With `MapGraphQLPersistedOperations()`, the operation hash and operation name are part of the URL path. Clients never send a `query` or `id` field. Only `variables` and `extensions` are specified, either in the POST body or as query parameters on GET:
 
-**HTTP POST to `/graphql/persisted/{hash}/{operationName}`:**
+**HTTP POST to `/graphql/persisted/{operationId}/{operationName}`:**
 
 ```json
 {
@@ -83,7 +83,7 @@ With `MapGraphQLPersistedOperations()`, the operation hash and operation name ar
 }
 ```
 
-**HTTP GET to `/graphql/persisted/{hash}/{operationName}`:**
+**HTTP GET to `/graphql/persisted/{operationId}/{operationName}`:**
 
 ```http
 GET /graphql/persisted/0c95d31ca29272475bf837f944f4e513/GetProducts?variables={"first":10}
@@ -203,7 +203,7 @@ This configuration:
 - Validates JWT tokens and enforces authorization policies.
 - Rejects any request that does not reference a registered operation ID.
 - Never parses the `query` field from incoming requests.
-- Exposes deterministic GET routes at `/graphql/persisted/{hash}/{operationName}` for CDN-friendly caching.
+- Exposes deterministic GET routes at `/graphql/persisted/{operationId}/{operationName}` for CDN-friendly caching.
 - Allows ad-hoc operations in development via the `DevToolsInterceptor`.
 
 # Next Steps
