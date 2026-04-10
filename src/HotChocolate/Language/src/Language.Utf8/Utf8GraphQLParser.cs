@@ -12,10 +12,13 @@ public ref partial struct Utf8GraphQLParser
     private readonly bool _allowFragmentVars;
     private readonly int _maxAllowedNodes;
     private readonly int _maxAllowedFields;
+    private readonly int _maxAllowedDirectives;
+    private readonly int _maxAllowedRecursionDepth;
     private Utf8GraphQLReader _reader;
     private StringValueNode? _description;
     private int _parsedNodes;
     private int _parsedFields;
+    private int _recursionDepth;
 
     public Utf8GraphQLParser(
         ReadOnlySpan<byte> graphQLData,
@@ -31,6 +34,8 @@ public ref partial struct Utf8GraphQLParser
         _allowFragmentVars = options.Experimental.AllowFragmentVariables;
         _maxAllowedNodes = options.MaxAllowedNodes;
         _maxAllowedFields = options.MaxAllowedFields;
+        _maxAllowedDirectives = options.MaxAllowedDirectives;
+        _maxAllowedRecursionDepth = options.MaxAllowedRecursionDepth;
         _reader = new Utf8GraphQLReader(graphQLData, options.MaxAllowedTokens);
         _description = null;
     }
@@ -49,6 +54,8 @@ public ref partial struct Utf8GraphQLParser
         _allowFragmentVars = options.Experimental.AllowFragmentVariables;
         _maxAllowedNodes = options.MaxAllowedNodes;
         _maxAllowedFields = options.MaxAllowedFields;
+        _maxAllowedDirectives = options.MaxAllowedDirectives;
+        _maxAllowedRecursionDepth = options.MaxAllowedRecursionDepth;
         _reader = reader;
         _description = null;
     }
@@ -72,6 +79,7 @@ public ref partial struct Utf8GraphQLParser
     public DocumentNode Parse()
     {
         _parsedNodes = 0;
+        _recursionDepth = 0;
         var definitions = new List<IDefinitionNode>();
 
         var start = Start();
