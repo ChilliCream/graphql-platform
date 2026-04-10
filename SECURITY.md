@@ -6,7 +6,10 @@ We will provide bug fixes and updates to the latest major version.
 
 | Version | Supported          |
 | ------- | ------------------ |
+| 16.x    | :white_check_mark: |
+| 15.x    | :white_check_mark: |
 | 14.x    | :white_check_mark: |
+| 13.x    | :x:                |
 | < 13.0  | :x:                |
 
 ## Security Updates
@@ -15,9 +18,11 @@ We will provide security relevant fixes to the following versions:
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 14.x    | :white_check_mark: |
-| 13.x    | :white_check_mark: |
-| 12.x    | :white_check_mark: |
+| 16.x    | :white_check_mark: |
+| 15.x    | :white_check_mark: |
+| 14.x    | :x:                |
+| 13.x    | :x:                |
+| 12.x    | :x:                |
 | < 12.0  | :x:                |
 
 ## Reporting a Vulnerability
