@@ -163,7 +163,7 @@ builder
 The maximum HTTP request body size defaults to approximately 20 MB:
 
 ```csharp
-services.AddGraphQLGatewayServer(maxAllowedRequestSize: 5 * 1000 * 1024); // 5 MB
+builder.AddGraphQLGateway(maxAllowedRequestSize: 5 * 1000 * 1024); // 5 MB
 ```
 
 ### Server Options

@@ -11,8 +11,8 @@ Parser limits stop malicious payloads before the AST is fully constructed. Becau
 Configure parser limits with `ModifyParserOptions`:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyParserOptions(o =>
     {
         o.MaxAllowedFields = 1024;
@@ -38,8 +38,8 @@ After parsing, the validation layer checks the document against your schema. Som
 Limits how deeply nested a query can be:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddMaxExecutionDepthRule(10);
 ```
 
@@ -48,8 +48,8 @@ This prevents queries that traverse deep relationship chains (e.g., `user.friend
 You can skip introspection fields from the depth count and allow per-request overrides:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddMaxExecutionDepthRule(
         maxAllowedExecutionDepth: 10,
         skipIntrospectionFields: true,
@@ -61,8 +61,8 @@ builder.Services
 Each time a visitor enters a fragment spread counts as one visit. Queries with deeply nested or repeated fragment spreads can cause exponential visitor work. Hot Chocolate caps the total number of fragment visits per operation at **1,000** by default:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyValidationOptions(o =>
     {
         o.MaxAllowedFragmentVisits = 1_000;
@@ -76,8 +76,8 @@ The "overlapping fields can be merged" validation rule checks that fields with t
 Hot Chocolate caps the comparison budget at **100,000** by default. Queries exceeding this budget are rejected:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .SetMaxAllowedFieldMergeComparisons(50_000);
 ```
 
@@ -88,8 +88,8 @@ Some schemas contain self-referential relationships. For example, a `User` type 
 The field cycle depth rule tracks how many times each schema coordinate (e.g., `User.friends`) appears on the query path:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddMaxAllowedFieldCycleDepthRule(defaultCycleLimit: 3);
 ```
 
@@ -117,8 +117,8 @@ Adding a fourth level of `friends` would be rejected.
 You can override the limit for specific coordinates if some relationships are safe to traverse more deeply than others:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddMaxAllowedFieldCycleDepthRule(
         defaultCycleLimit: 3,
         coordinateCycleLimits:
@@ -134,8 +134,8 @@ This rule is enabled by default in non-development environments as part of the d
 Documents designed to generate excessive validation errors can consume memory accumulating error objects. The default limit is **5**. When the limit is reached, validation stops early instead of continuing to accumulate errors.
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .SetMaxAllowedValidationErrors(5);
 ```
 
@@ -149,8 +149,8 @@ Recursive introspection queries are limited by default:
 - **List fields** (`fields`, `inputFields`, `interfaces`, `possibleTypes`): 1 level of recursion
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .SetIntrospectionAllowedDepth(
         maxAllowedOfTypeDepth: 8,
         maxAllowedListRecursiveDepth: 1);
@@ -163,8 +163,8 @@ builder.Services
 Requests are aborted after 30 seconds by default. The timeout is not enforced when a debugger is attached.
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyRequestOptions(o =>
     {
         o.ExecutionTimeout = TimeSpan.FromSeconds(10);
@@ -176,8 +176,8 @@ builder.Services
 The `nodes(ids: [ID!]!)` field allows fetching multiple entities at once. The default batch limit is **50**:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddGlobalObjectIdentification(o => o.MaxAllowedNodeBatchSize = 25);
 ```
 

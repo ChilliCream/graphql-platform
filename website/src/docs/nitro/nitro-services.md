@@ -21,8 +21,8 @@ dotnet add package ChilliCream.Nitro
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<Query>()
     .AddInstrumentation() // if you want to use telemetry
     .AddNitro(x =>

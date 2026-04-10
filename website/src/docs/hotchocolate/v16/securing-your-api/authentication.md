@@ -62,8 +62,8 @@ app.UseEndpoints(endpoints =>
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddAuthorization()
     .AddQueryType<Query>();
 ```
@@ -160,8 +160,8 @@ public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddHttpRequestInterceptor<HttpRequestInterceptor>();
 ```
 

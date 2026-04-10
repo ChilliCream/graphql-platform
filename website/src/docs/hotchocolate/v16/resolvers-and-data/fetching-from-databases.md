@@ -36,8 +36,8 @@ public static partial class BookQueries
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddTypes();
 ```
 
@@ -77,8 +77,8 @@ public class BookQueriesType : ObjectType<BookQueries>
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<BookQueriesType>();
 ```
 

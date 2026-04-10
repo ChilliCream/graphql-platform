@@ -202,8 +202,8 @@ Apply consistent pagination settings across your entire schema:
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyPagingOptions(opt =>
     {
         opt.MaxPageSize = 100;
@@ -339,8 +339,8 @@ Set `NullOrdering` on `PagingOptions` to match your database:
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyPagingOptions(opt => opt.NullOrdering = NullOrdering.NativeNullsLast);
 ```
 
@@ -352,16 +352,16 @@ The `UsePaging` middleware provides a unified API that adapts to different data 
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddMongoDbPagingProviders();
 ```
 
 Name a provider to reference it explicitly on specific fields:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddMongoDbPagingProviders(providerName: "MongoDB");
 ```
 
