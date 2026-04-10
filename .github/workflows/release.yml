@@ -162,17 +162,17 @@ jobs:
           NitroIdentityScopes: ${{ secrets.NITRO_IDENTITY_SCOPES }}
 
       - name: 🖋️ Azure login (Windows)
-        uses: azure/login@v1
+        uses: azure/login@v3
         if: runner.os == 'Windows'
         with:
           creds: ${{ secrets.SIGNING_CREDENTIALS }}
 
       - name: 🖋️ Sign binary (Windows)
-        uses: azure/trusted-signing-action@v0
+        uses: azure/artifact-signing-action@v1
         if: runner.os == 'Windows'
         with:
           endpoint: ${{ vars.AZURE_TRUSTED_SIGNING_ACCOUNT_ENDPOINT }}
-          trusted-signing-account-name: ${{ secrets.AZURE_CODE_SIGNING_NAME }}
+          signing-account-name: ${{ secrets.AZURE_CODE_SIGNING_NAME }}
           certificate-profile-name: ${{ secrets.WINDOWS_APP_CERT_PROFILE_NAME }}
           files: ${{ github.workspace }}\publish\nitro.exe
           file-digest: SHA256
@@ -279,7 +279,7 @@ jobs:
           security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
 
       - name: 📤 Upload zipped binary as artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: nitro-${{ matrix.rid }}
           path: nitro-${{ matrix.rid }}.zip
@@ -307,7 +307,7 @@ jobs:
       - name: 🧰 Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
           registry-url: ${{ vars.NPM_REGISTRY_URL }}
           scope: "@chillicream"
 
@@ -315,7 +315,7 @@ jobs:
         run: corepack enable
 
       - name: 📥 Download all zipped nitro binaries
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           pattern: nitro-*
           merge-multiple: true
@@ -377,7 +377,7 @@ jobs:
         shell: bash
 
       - name: 📤 Upload tarball as artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: chillicream-nitro-${{ env.GIT_TAG }}.tgz
           path: src/Nitro/CommandLine/src/chillicream-nitro/chillicream-nitro-${{ env.GIT_TAG }}.tgz
@@ -501,7 +501,7 @@ jobs:
 
       - name: 🔐 Create GitHub App token
         id: app-token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ secrets.ACTIONS_APP_ID }}
           private-key: ${{ secrets.ACTIONS_APP_PRIVATE_KEY }}

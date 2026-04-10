@@ -16,7 +16,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Post initial pending comment
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -182,7 +182,7 @@ jobs:
             "${{ matrix.runner-label }}"
 
       - name: Upload benchmark result
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: benchmark-${{ matrix.test }}-${{ matrix.mode }}-${{ matrix.runner-group }}
@@ -194,7 +194,7 @@ jobs:
       # No artifact downloads, no external scripts — just a few API calls.
       - name: Update PR comment (progressive)
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -331,7 +331,7 @@ jobs:
 
     steps:
       - name: Download all benchmark results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           pattern: benchmark-*
@@ -341,7 +341,7 @@ jobs:
       # overwrite progressive results with a less complete artifact set
       # (e.g., when cancel-in-progress killed some jobs mid-run).
       - name: Update PR comment with final report
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -511,7 +511,7 @@ jobs:
 
     steps:
       - name: Download all benchmark results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: benchmark-*
           path: benchmark-results
