@@ -22,7 +22,7 @@ After installing the package, you need to configure the services in your startup
 public void ConfigureServices(IServiceCollection services)
 {
     services
-        .AddGraphQLServer()
+        .AddGraphQL()
         .AddQueryType<Query>()
         .AddNitro(x =>
         {
@@ -45,7 +45,7 @@ public void ConfigureServices(IServiceCollection services)
 > public void ConfigureServices(IServiceCollection services)
 > {
 >     services
->         .AddGraphQLServer()
+>         .AddGraphQL()
 >         .AddQueryType<Query>()
 >         .AddNitro()
 > }

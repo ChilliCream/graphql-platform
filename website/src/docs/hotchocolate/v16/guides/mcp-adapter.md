@@ -20,7 +20,7 @@ Register the MCP adapter on your GraphQL server and map the MCP endpoint:
 // Program.cs
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services
+builder
     .AddGraphQL()
     .AddQueryType<Query>()
     .AddMutationType<Mutation>()
@@ -242,7 +242,7 @@ You can configure the underlying MCP server options and add custom (non-GraphQL)
 
 ```csharp
 // Program.cs
-builder.Services
+builder
     .AddGraphQL()
     .AddQueryType<Query>()
     .AddMcp(
@@ -279,12 +279,12 @@ In stateless mode, only the Streamable HTTP POST endpoint is available.
 
 # Fusion Integration
 
-The MCP adapter works with Fusion gateway servers. Instead of `AddGraphQL()`, use `AddGraphQLGatewayServer()` and the rest of the configuration remains the same:
+The MCP adapter works with Fusion gateway servers. Instead of `AddGraphQL()`, use `AddGraphQLGateway()` and the rest of the configuration remains the same:
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLGatewayServer()
+builder
+    .AddGraphQLGateway()
     .AddInMemoryConfiguration(compositeSchema)
     .AddHttpClientConfiguration("Subgraph", subgraphUri)
     .AddMcp()

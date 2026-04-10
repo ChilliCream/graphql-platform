@@ -89,8 +89,8 @@ By default, scoped services are scoped to the resolver for queries and DataLoade
 You can change these defaults globally:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyOptions(o =>
     {
         o.DefaultQueryDependencyInjectionScope =
@@ -150,8 +150,8 @@ Hot Chocolate maintains a separate internal service provider for schema services
 ```csharp
 builder.Services.AddSingleton<MyService>();
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddApplicationService<MyService>()
     .AddDiagnosticEventListener<MyDiagnosticEventListener>();
 ```
@@ -291,8 +291,8 @@ public sealed class SocketSessionInterceptor
 Register these interceptors for them to take effect:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddHttpRequestInterceptor<HttpRequestInterceptor>()
     .AddSocketSessionInterceptor<SocketSessionInterceptor>();
 ```

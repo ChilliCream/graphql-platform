@@ -15,8 +15,8 @@ While eager initialization ensures your schema is ready at startup, you might wa
 Register warmup tasks using the `AddWarmupTask()` method to execute requests against the newly created schema during initialization:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddWarmupTask(async (executor, cancellationToken) =>
     {
         await executor.ExecuteAsync("{ __typename }", cancellationToken);
@@ -57,8 +57,8 @@ await executor.ExecuteAsync(request, cancellationToken);
 For more control over warmup behavior, implement the `IRequestExecutorWarmupTask` interface:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddWarmupTask<MyWarmupTask>();
 
 public class MyWarmupTask : IRequestExecutorWarmupTask
@@ -81,16 +81,16 @@ You can register your custom warmup task using either the delegate form or the g
 
 ```csharp
 // Delegate form
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddWarmupTask(async (executor, ct) =>
     {
         await executor.ExecuteAsync("{ __typename }", ct);
     });
 
 // Generic form with IRequestExecutorWarmupTask
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddWarmupTask<MyWarmupTask>();
 ```
 
@@ -99,8 +99,8 @@ builder.Services
 If you need to export the schema as part of your startup process (for example, for CI/CD or schema registry integration), use the `ExportSchemaOnStartup()` method:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ExportSchemaOnStartup("./schema.graphql");
 ```
 
@@ -147,8 +147,8 @@ public class MyExecutionEventListener : ExecutionDiagnosticEventListener
 If you need to defer schema construction until the first request (though this is rarely recommended), you can opt into lazy initialization:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyOptions(options => options.LazyInitialization = true)
 ```
 

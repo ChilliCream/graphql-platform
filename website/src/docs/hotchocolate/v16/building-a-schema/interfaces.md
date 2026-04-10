@@ -75,8 +75,8 @@ public static partial class MessageQueries
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddType<TextMessage>();
 ```
 
@@ -136,8 +136,8 @@ public class TextMessageType : ObjectType<TextMessage>
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<QueryType>()
     .AddType<TextMessageType>();
 ```
@@ -272,8 +272,8 @@ public class TextMessage : IDatedMessage
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddType<IDatedMessage>()
     .AddType<TextMessage>();
 ```
@@ -306,8 +306,8 @@ public class TextMessageType : ObjectType<TextMessage>
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<QueryType>()
     .AddType<DatedMessageType>()
     .AddType<TextMessageType>();

@@ -65,8 +65,8 @@ Note that disabling introspection is not about hiding your schema. When using `M
 Disable introspection by calling `AllowIntrospection()` with a `false` argument on the `IRequestExecutorBuilder`:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AllowIntrospection(false);
 ```
 
@@ -75,8 +75,8 @@ While clients can still issue introspection queries, Hot Chocolate returns an er
 You most likely do not want to disable introspection while developing, so you can toggle it based on the current hosting environment:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AllowIntrospection(builder.Environment.IsDevelopment());
 ```
 
@@ -103,8 +103,8 @@ public class IntrospectionInterceptor : DefaultHttpRequestInterceptor
 ```
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     // Disable introspection by default
     .AllowIntrospection(false)
     .AddHttpRequestInterceptor<IntrospectionInterceptor>();

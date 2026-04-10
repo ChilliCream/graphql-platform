@@ -24,8 +24,8 @@ Call `AddAuthorization()` on both `IServiceCollection` (for ASP.NET Core service
 // Program.cs
 builder.Services.AddAuthorization();
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddAuthorization()
     .AddQueryType<Query>();
 ```
