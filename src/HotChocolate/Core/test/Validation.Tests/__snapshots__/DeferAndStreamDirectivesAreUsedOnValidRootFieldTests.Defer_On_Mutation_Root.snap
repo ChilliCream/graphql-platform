@@ -10,7 +10,7 @@
       }
     ],
     "Extensions": {
-      "specifiedBy": "https://spec.graphql.org/October2021/#sec-Defer-And-Stream-Directives-Are-Used-On-Valid-Root-Field"
+      "specifiedBy": "https://spec.graphql.org/September2025/#sec-Defer-And-Stream-Directives-Are-Used-On-Valid-Root-Field"
     },
     "Exception": null,
     "SyntaxNode": {

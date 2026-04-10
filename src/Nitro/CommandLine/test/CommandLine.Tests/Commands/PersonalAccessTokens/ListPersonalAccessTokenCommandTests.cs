@@ -1,5 +1,3 @@
-using ChilliCream.Nitro.Client;
-
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.PersonalAccessTokens;
 
 public sealed class ListPersonalAccessTokenCommandTests(NitroCommandFixture fixture)

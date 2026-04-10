@@ -292,7 +292,9 @@ internal sealed class FusionRequestExecutorManager
             allowFragmentVariables: false,
             maxAllowedNodes: options.MaxAllowedNodes,
             maxAllowedTokens: options.MaxAllowedTokens,
-            maxAllowedFields: options.MaxAllowedFields);
+            maxAllowedFields: options.MaxAllowedFields,
+            maxAllowedDirectives: options.MaxAllowedDirectives,
+            maxAllowedRecursionDepth: options.MaxAllowedRecursionDepth);
     }
 
     private SourceSchemaClientConfigurations CreateClientConfigurations(

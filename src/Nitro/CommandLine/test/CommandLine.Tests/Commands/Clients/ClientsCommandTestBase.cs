@@ -1,8 +1,6 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Clients;
 using Moq;
 using Moq.Language;
-using static ChilliCream.Nitro.CommandLine.Tests.TestHelpers;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Clients;
 

@@ -119,8 +119,7 @@ public static partial class ActivityTestHelper
                 var scrubbedStackTrace = StackTracePathRegex().Replace(stackTrace, match =>
                 {
                     var fileName = System.IO.Path.GetFileName(match.Groups["path"].Value);
-                    var lineNumber = match.Groups["line"].Value;
-                    return $" in {fileName}:line {lineNumber}";
+                    return $" in {fileName}";
                 });
 
                 yield return new KeyValuePair<string, object?>(

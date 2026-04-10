@@ -1,5 +1,3 @@
-using ChilliCream.Nitro.CommandLine;
-
 namespace ChilliCream.Nitro.CommandLine.Results;
 
 internal sealed class OptionalOutputFormatOption : Option<OutputFormat?>

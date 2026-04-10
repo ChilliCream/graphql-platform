@@ -1,5 +1,3 @@
-using ChilliCream.Nitro.Client;
-
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Apis;
 
 public sealed class ListApiCommandTests(NitroCommandFixture fixture) : ApisCommandTestBase(fixture)

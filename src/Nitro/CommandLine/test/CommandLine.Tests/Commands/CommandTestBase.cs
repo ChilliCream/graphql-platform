@@ -46,7 +46,7 @@ public abstract class CommandTestBase
     protected readonly Mock<IPersonalAccessTokensClient> PersonalAccessTokensClientMock = new(MockBehavior.Strict);
     protected readonly Mock<IEnvironmentsClient> EnvironmentsClientMock = new(MockBehavior.Strict);
     protected readonly Mock<IStagesClient> StagesClientMock = new(MockBehavior.Strict);
-    internal readonly Mock<Services.Sessions.ISessionService> SessionServiceMock = new();
+    internal readonly Mock<Services.Sessions.ISessionService> _sessionServiceMock = new();
     protected readonly Mock<IWorkspacesClient> WorkspacesClientMock = new(MockBehavior.Strict);
     private InteractionMode _interactionMode = InteractionMode.NonInteractive;
     private bool _authenticated = true;
@@ -198,14 +198,14 @@ public abstract class CommandTestBase
 
         if (_useSession)
         {
-            SessionServiceMock
+            _sessionServiceMock
                 .SetupGet(x => x.Session)
                 .Returns(CreateSession(null));
         }
 
         if (_useSessionWithWorkspace)
         {
-            SessionServiceMock
+            _sessionServiceMock
                 .SetupGet(x => x.Session)
                 .Returns(CreateSession(
                     new Services.Sessions.Workspace(
@@ -215,7 +215,7 @@ public abstract class CommandTestBase
 
         services.Replace(ServiceDescriptor.Singleton(_fileSystemMock.Object));
         services.Replace(ServiceDescriptor.Singleton(_environmentVariableProviderMock.Object));
-        services.Replace(ServiceDescriptor.Singleton(SessionServiceMock.Object));
+        services.Replace(ServiceDescriptor.Singleton(_sessionServiceMock.Object));
         services.Replace(ServiceDescriptor.Singleton(WorkspacesClientMock.Object));
         services.Replace(ServiceDescriptor.Singleton(SchemasClientMock.Object));
         services.Replace(ServiceDescriptor.Singleton(FusionConfigurationClientMock.Object));

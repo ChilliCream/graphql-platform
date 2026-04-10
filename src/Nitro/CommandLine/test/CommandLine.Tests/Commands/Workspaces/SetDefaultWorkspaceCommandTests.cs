@@ -152,7 +152,7 @@ public sealed class SetDefaultWorkspaceCommandTests(NitroCommandFixture fixture)
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
 
-        SessionServiceMock.Verify(
+        _sessionServiceMock.Verify(
             x => x.SelectWorkspaceAsync(
                 It.Is<Services.Sessions.Workspace>(w => w.Id == WorkspaceId && w.Name == WorkspaceName),
                 It.IsAny<CancellationToken>()),

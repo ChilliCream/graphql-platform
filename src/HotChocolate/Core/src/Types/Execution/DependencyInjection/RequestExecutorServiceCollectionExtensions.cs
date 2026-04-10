@@ -84,7 +84,9 @@ public static class RequestExecutorServiceCollectionExtensions
                     noLocations: !options.IncludeLocations,
                     maxAllowedNodes: options.MaxAllowedNodes,
                     maxAllowedTokens: options.MaxAllowedTokens,
-                    maxAllowedFields: options.MaxAllowedFields);
+                    maxAllowedFields: options.MaxAllowedFields,
+                    maxAllowedDirectives: options.MaxAllowedDirectives,
+                    maxAllowedRecursionDepth: options.MaxAllowedRecursionDepth);
             });
 
         return services;
