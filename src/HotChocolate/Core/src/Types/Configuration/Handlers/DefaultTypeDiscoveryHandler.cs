@@ -60,19 +60,39 @@ internal sealed class DefaultTypeDiscoveryHandler(ITypeInspector typeInspector) 
         }
         else if (IsObjectType(typeInfo))
         {
-            schemaType =
-                TypeInspector.CreateTypeRef(
-                    typeof(ObjectType<>),
-                    typeInfo,
-                    typeReference);
+            if (typeInfo.IsKeyValuePair)
+            {
+                schemaType =
+                    TypeReference.Create(
+                        new KeyValuePairObjectType(typeInfo.ExtendedRuntimeType),
+                        scope: typeReference.Scope);
+            }
+            else
+            {
+                schemaType =
+                    TypeInspector.CreateTypeRef(
+                        typeof(ObjectType<>),
+                        typeInfo,
+                        typeReference);
+            }
         }
         else if (IsInputObjectType(typeInfo))
         {
-            schemaType =
-                TypeInspector.CreateTypeRef(
-                    typeof(InputObjectType<>),
-                    typeInfo,
-                    typeReference);
+            if (typeInfo.IsKeyValuePair)
+            {
+                schemaType =
+                    TypeReference.Create(
+                        new KeyValuePairInputObjectType(typeInfo.ExtendedRuntimeType),
+                        scope: typeReference.Scope);
+            }
+            else
+            {
+                schemaType =
+                    TypeInspector.CreateTypeRef(
+                        typeof(InputObjectType<>),
+                        typeInfo,
+                        typeReference);
+            }
         }
         else if (IsEnumType(typeInfo))
         {

@@ -95,7 +95,7 @@ export const NavigationItem = styled.li<{
     `}
 `;
 
-export const NavigationTitle = styled.h6`
+export const NavigationTitle = styled.h3`
   margin-bottom: 12px;
   padding: 0 25px;
   font-size: 0.875rem;

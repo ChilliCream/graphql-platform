@@ -649,13 +649,13 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the PeopleSearch GraphQL operation
     /// <code>
-    /// query PeopleSearch(
-    ///   $term: String!
-    ///     $skip: Int
-    ///     $take: Int
-    ///     $inactive: Boolean
-    /// ) {
-    ///   people: peopleSearch(term: $term, includeInactive: $inactive, skip: $skip, take: $take) {
+    /// query PeopleSearch($term: String!, $skip: Int, $take: Int, $inactive: Boolean) {
+    ///   people: peopleSearch(
+    ///     term: $term
+    ///     includeInactive: $inactive
+    ///     skip: $skip
+    ///     take: $take
+    ///   ) {
     ///     __typename
     ///     totalCount
     ///     pageInfo {
@@ -726,13 +726,13 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the PeopleSearch GraphQL operation
     /// <code>
-    /// query PeopleSearch(
-    ///   $term: String!
-    ///     $skip: Int
-    ///     $take: Int
-    ///     $inactive: Boolean
-    /// ) {
-    ///   people: peopleSearch(term: $term, includeInactive: $inactive, skip: $skip, take: $take) {
+    /// query PeopleSearch($term: String!, $skip: Int, $take: Int, $inactive: Boolean) {
+    ///   people: peopleSearch(
+    ///     term: $term
+    ///     includeInactive: $inactive
+    ///     skip: $skip
+    ///     take: $take
+    ///   ) {
     ///     __typename
     ///     totalCount
     ///     pageInfo {
@@ -907,13 +907,13 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the PeopleSearch GraphQL operation
     /// <code>
-    /// query PeopleSearch(
-    ///   $term: String!
-    ///     $skip: Int
-    ///     $take: Int
-    ///     $inactive: Boolean
-    /// ) {
-    ///   people: peopleSearch(term: $term, includeInactive: $inactive, skip: $skip, take: $take) {
+    /// query PeopleSearch($term: String!, $skip: Int, $take: Int, $inactive: Boolean) {
+    ///   people: peopleSearch(
+    ///     term: $term
+    ///     includeInactive: $inactive
+    ///     skip: $skip
+    ///     take: $take
+    ///   ) {
     ///     __typename
     ///     totalCount
     ///     pageInfo {
@@ -1730,6 +1730,7 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, global::Foo.Bar.PeopleSearch_People_Items_Person>, global::Foo.Bar.State.PeopleSearch_People_Items_PersonFromPersonEntityMapper>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.DepartmentEntity, global::Foo.Bar.PeopleSearch_People_Items_Department_Department>, global::Foo.Bar.State.PeopleSearch_People_Items_Department_DepartmentFromDepartmentEntityMapper>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.PersonEntity, global::Foo.Bar.PeopleSearch_People_Items_Manager_Person>, global::Foo.Bar.State.PeopleSearch_People_Items_Manager_PersonFromPersonEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.AnySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.Base64StringSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
@@ -1737,17 +1738,20 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DecimalSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DurationSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.FloatSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IdSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IntSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.JsonSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LongSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ShortSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UnsignedByteSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UnsignedIntSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UnsignedLongSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UnsignedShortSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UriSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UrlSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UUIDSerializer>(services);

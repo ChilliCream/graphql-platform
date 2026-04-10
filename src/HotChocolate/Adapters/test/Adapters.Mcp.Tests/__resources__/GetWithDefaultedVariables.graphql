@@ -14,6 +14,8 @@ query GetWithDefaultedVariables(
   $dateTime: DateTime! = "2000-01-01T12:00:00Z"
   "Decimal description"
   $decimal: Decimal! = 79228162514264337593543950335
+  "Duration description"
+  $duration: Duration! = "PT5M"
   "Enum description"
   $enum: TestEnum! = VALUE1
   "Float description"
@@ -38,10 +40,16 @@ query GetWithDefaultedVariables(
   $short: Short! = 1
   "String description"
   $string: String! = "default"
-  "TimeSpan description"
-  $timeSpan: TimeSpan! = "PT5M"
   "Unknown description"
   $unknown: Unknown! = "default"
+  "UnsignedByte description"
+  $unsignedByte: UnsignedByte! = 1
+  "UnsignedInt description"
+  $unsignedInt: UnsignedInt! = 65536
+  "UnsignedLong description"
+  $unsignedLong: UnsignedLong! = 4294967296
+  "UnsignedShort description"
+  $unsignedShort: UnsignedShort! = 256
   "URI description"
   $uri: URI! = "https://example.com"
   "URL description"
@@ -57,6 +65,7 @@ query GetWithDefaultedVariables(
     date: $date
     dateTime: $dateTime
     decimal: $decimal
+    duration: $duration
     enum: $enum
     float: $float
     id: $id
@@ -69,8 +78,11 @@ query GetWithDefaultedVariables(
     object: $object
     short: $short
     string: $string
-    timeSpan: $timeSpan
     unknown: $unknown
+    unsignedByte: $unsignedByte
+    unsignedInt: $unsignedInt
+    unsignedLong: $unsignedLong
+    unsignedShort: $unsignedShort
     uri: $uri
     url: $url
     uuid: $uuid
@@ -82,6 +94,7 @@ query GetWithDefaultedVariables(
     date
     dateTime
     decimal
+    duration
     enum
     float
     id
@@ -100,8 +113,11 @@ query GetWithDefaultedVariables(
     }
     short
     string
-    timeSpan
     unknown
+    unsignedByte
+    unsignedInt
+    unsignedLong
+    unsignedShort
     uri
     url
     uuid

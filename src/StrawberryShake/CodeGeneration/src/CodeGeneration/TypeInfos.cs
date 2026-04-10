@@ -192,6 +192,10 @@ public sealed class TypeInfos
             new RuntimeTypeInfo(TypeNames.UInt64, true)
         },
         {
+            TypeNames.SByte,
+            new RuntimeTypeInfo(TypeNames.SByte, true)
+        },
+        {
             TypeNames.Single,
             new RuntimeTypeInfo(TypeNames.Single, true)
         },
@@ -408,8 +412,24 @@ public sealed class TypeInfos
             new RuntimeTypeInfo(TypeNames.ByteArraySerializer)
         },
         {
-            TypeNames.TimeSpanSerializer,
-            new RuntimeTypeInfo(TypeNames.TimeSpanSerializer)
+            TypeNames.DurationSerializer,
+            new RuntimeTypeInfo(TypeNames.DurationSerializer)
+        },
+        {
+            TypeNames.UnsignedByteSerializer,
+            new RuntimeTypeInfo(TypeNames.UnsignedByteSerializer)
+        },
+        {
+            TypeNames.UnsignedIntSerializer,
+            new RuntimeTypeInfo(TypeNames.UnsignedIntSerializer)
+        },
+        {
+            TypeNames.UnsignedLongSerializer,
+            new RuntimeTypeInfo(TypeNames.UnsignedLongSerializer)
+        },
+        {
+            TypeNames.UnsignedShortSerializer,
+            new RuntimeTypeInfo(TypeNames.UnsignedShortSerializer)
         }
     };
 

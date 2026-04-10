@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/Execution.Abstractions.Benchmarks/">
+    <Project Path="Execution.Abstractions.Benchmarks/HotChocolate.Execution.Abstractions.Benchmarks.csproj" />
+  </Folder>
+  <Folder Name="/Validation.Benchmarks/">
+    <Project Path="Validation.Benchmarks/HotChocolate.Validation.Benchmarks.csproj" />
+  </Folder>
+</Solution>

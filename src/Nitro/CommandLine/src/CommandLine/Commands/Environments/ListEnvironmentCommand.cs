@@ -1,9 +1,6 @@
-using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client.Environments;
 using ChilliCream.Nitro.CommandLine.Commands.Environments.Components;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
@@ -13,85 +10,86 @@ internal sealed class ListEnvironmentCommand : Command
 {
     public ListEnvironmentCommand() : base("list")
     {
-        Description = "Lists all environments of a workspace";
+        Description = "List all environments of a workspace.";
 
-        AddOption(Opt<CursorOption>.Instance);
-        AddOption(Opt<WorkspaceIdOption>.Instance);
+        Options.Add(Opt<OptionalCursorOption>.Instance);
+        Options.Add(Opt<OptionalWorkspaceIdOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples("environment list");
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken ct)
     {
-        var workspaceId = context.RequireWorkspaceId();
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IEnvironmentsClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        if (console.IsHumanReadable())
+        parseResult.AssertHasAuthentication(sessionService);
+
+        var workspaceId = parseResult.GetWorkspaceId(sessionService);
+
+        var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
+
+        if (console.IsInteractive)
         {
-            return await RenderInteractiveAsync(context, console, client, workspaceId, ct);
+            return await RenderInteractiveAsync(cursor, console, client, resultHolder, workspaceId, ct);
         }
 
-        return await RenderNonInteractiveAsync(context, console, client, workspaceId, ct);
+        return await RenderNonInteractiveAsync(cursor, client, resultHolder, workspaceId, ct);
     }
 
     private static async Task<int> RenderInteractiveAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        string? cursor,
+        INitroConsole console,
+        IEnvironmentsClient client,
+        IResultHolder resultHolder,
         string workspaceId,
         CancellationToken ct)
     {
         var container = PaginationContainer
-            .Create((after, first, ct) =>
-                    client.ListEnvironmentCommandQuery.ExecuteAsync(workspaceId, after, first, ct),
-                static p => p.WorkspaceById?.Environments?.PageInfo,
-                static p => p.WorkspaceById?.Environments?.Edges)
+            .CreateConnectionData((after, first, token)
+                => client.ListEnvironmentsAsync(workspaceId, after ?? cursor, first, token))
             .PageSize(10);
 
         var environment = await PagedTable
             .From(container)
             .Title("Environments")
-            .AddColumn("Id", x => x.Node.Id)
-            .AddColumn("Name", x => x.Node.Name)
+            .AddColumn("Id", x => x.Id)
+            .AddColumn("Name", x => x.Name)
             .RenderAsync(console, ct);
 
-        if (environment?.Node is IEnvironmentDetailPrompt_Environment node)
+        if (environment is not null)
         {
-            context.SetResult(EnvironmentDetailPrompt.From(node).ToObject());
+            resultHolder.SetResult(new ObjectResult(EnvironmentDetailPrompt.From(environment).ToObject()));
         }
 
         return ExitCodes.Success;
     }
 
     private static async Task<int> RenderNonInteractiveAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        string? cursor,
+        IEnvironmentsClient client,
+        IResultHolder resultHolder,
         string workspaceId,
         CancellationToken ct)
     {
-        var cursor = context.ParseResult.GetValueForOption(Opt<CursorOption>.Instance);
-        var result = await client
-            .ListEnvironmentCommandQuery
-            .ExecuteAsync(workspaceId, cursor, 10, ct);
+        var data = await client.ListEnvironmentsAsync(workspaceId, cursor, 10, ct);
 
-        console.EnsureNoErrors(result);
+        var items = data.Items
+            .Select(EnvironmentDetailPrompt.From)
+            .Select(x => x.ToObject())
+            .ToArray();
 
-        var endCursor = result.Data?.WorkspaceById?.Environments?.PageInfo.EndCursor;
-
-        var items = result.Data?.WorkspaceById?.Environments?.Edges?.Select(x =>
-                EnvironmentDetailPrompt.From(x.Node).ToObject())
-            .ToArray() ?? [];
-
-        context.SetResult(new PaginatedListResult<EnvironmentDetailPrompt.EnvironmentDetailPromptResult>(items, endCursor));
+        resultHolder.SetResult(
+            new PaginatedListResult<EnvironmentDetailPrompt.EnvironmentDetailPromptResult>(items, data.EndCursor));
 
         return ExitCodes.Success;
     }

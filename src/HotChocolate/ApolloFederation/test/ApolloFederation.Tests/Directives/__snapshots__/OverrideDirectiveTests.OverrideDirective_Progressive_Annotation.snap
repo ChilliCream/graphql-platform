@@ -1,4 +1,5 @@
-schema @link(url: "https://specs.apollo.dev/federation/v2.7", import: [ "@key", "@override", "@tag", "FieldSet" ]) {
+schema
+  @link(url: "https://specs.apollo.dev/federation/v2.7", import: ["@key", "@override", "@tag", "FieldSet"]) {
   query: Query
 }
 
@@ -22,13 +23,18 @@ type _Service {
 union _Entity = Foo
 
 "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
-directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+directive @key(fields: FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
 
 "Links definitions within the document to external schemas."
-directive @link("Gets imported specification url." url: String! "Gets optional list of imported element names." import: [String!]) repeatable on SCHEMA
+directive @link(
+  "Gets imported specification url."
+  url: String!
+  "Gets optional list of imported element names."
+  import: [String!]
+) repeatable on SCHEMA
 
 "Overrides fields resolution logic from other subgraph. Used for migrating fields from one subgraph to another."
-directive @override(from: String! label: String) on FIELD_DEFINITION
+directive @override(from: String!, label: String) on FIELD_DEFINITION
 
 "Scalar representing a set of fields."
 scalar FieldSet

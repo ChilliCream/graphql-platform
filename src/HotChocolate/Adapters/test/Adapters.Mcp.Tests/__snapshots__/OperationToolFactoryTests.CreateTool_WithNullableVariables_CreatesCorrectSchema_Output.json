@@ -38,7 +38,9 @@
               "type": [
                 "integer",
                 "null"
-              ]
+              ],
+              "minimum": -128,
+              "maximum": 127
             },
             "date": {
               "type": [
@@ -62,6 +64,14 @@
                 "null"
               ]
             },
+            "duration": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "duration",
+              "pattern": "^-?P(?:\\d+W|(?=\\d|T(?:\\d|$))(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?)$"
+            },
             "enum": {
               "type": [
                 "string",
@@ -77,7 +87,9 @@
               "type": [
                 "number",
                 "null"
-              ]
+              ],
+              "minimum": -79228162514264337593543950335,
+              "maximum": 79228162514264337593543950335
             },
             "id": {
               "type": [
@@ -90,7 +102,9 @@
               "type": [
                 "integer",
                 "null"
-              ]
+              ],
+              "minimum": -2147483648,
+              "maximum": 2147483647
             },
             "list": {
               "type": [
@@ -130,7 +144,9 @@
               "type": [
                 "integer",
                 "null"
-              ]
+              ],
+              "minimum": -9223372036854775808,
+              "maximum": 9223372036854775807
             },
             "object": {
               "type": [
@@ -182,7 +198,9 @@
               "type": [
                 "integer",
                 "null"
-              ]
+              ],
+              "minimum": -32768,
+              "maximum": 32767
             },
             "string": {
               "type": [
@@ -190,19 +208,43 @@
                 "null"
               ]
             },
-            "timeSpan": {
-              "type": [
-                "string",
-                "null"
-              ],
-              "format": "duration",
-              "pattern": "^-?P(?:\\d+W|(?=\\d|T(?:\\d|$))(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?)$"
-            },
             "unknown": {
               "type": [
                 "string",
                 "null"
               ]
+            },
+            "unsignedByte": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 255
+            },
+            "unsignedInt": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            "unsignedLong": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 18446744073709551615
+            },
+            "unsignedShort": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 65535
             },
             "uri": {
               "type": [
@@ -235,6 +277,7 @@
             "date",
             "dateTime",
             "decimal",
+            "duration",
             "enum",
             "float",
             "id",
@@ -247,8 +290,11 @@
             "object",
             "short",
             "string",
-            "timeSpan",
             "unknown",
+            "unsignedByte",
+            "unsignedInt",
+            "unsignedLong",
+            "unsignedShort",
             "uri",
             "url",
             "uuid"

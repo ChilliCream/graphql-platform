@@ -21,7 +21,34 @@ public ref partial struct Utf8GraphQLParser
         var operation = ParseOperationType();
         var name = _reader.Kind == TokenKind.Name ? ParseName() : null;
         var variableDefinitions = ParseVariableDefinitions();
-        var directives = ParseDirectives(false);
+        var directives = ParseDirectives(false, isQueryLocation: true);
+        var selectionSet = ParseSelectionSet();
+        var location = CreateLocation(in start);
+
+        return new OperationDefinitionNode(
+            location,
+            name,
+            TakeDescription(),
+            operation,
+            variableDefinitions,
+            directives,
+            selectionSet);
+    }
+
+    /// <summary>
+    /// Parses an operation definition with a pre-matched operation type,
+    /// avoiding redundant keyword comparison.
+    /// </summary>
+    private OperationDefinitionNode ParseOperationDefinition(OperationType operation)
+    {
+        var start = Start();
+
+        // skip the operation type keyword (already matched by caller)
+        MoveNext();
+
+        var name = _reader.Kind == TokenKind.Name ? ParseName() : null;
+        var variableDefinitions = ParseVariableDefinitions();
+        var directives = ParseDirectives(false, isQueryLocation: true);
         var selectionSet = ParseSelectionSet();
         var location = CreateLocation(in start);
 
@@ -130,7 +157,7 @@ public ref partial struct Utf8GraphQLParser
             ? ParseValueLiteral(true)
             : null;
         var directives =
-            ParseDirectives(isConstant: true);
+            ParseDirectives(isConstant: true, isQueryLocation: true);
 
         var location = CreateLocation(in start);
 
@@ -167,6 +194,8 @@ public ref partial struct Utf8GraphQLParser
     /// </summary>
     private SelectionSetNode ParseSelectionSet()
     {
+        IncreaseDepth();
+
         var start = Start();
 
         if (_reader.Kind != TokenKind.LeftBrace)
@@ -179,7 +208,7 @@ public ref partial struct Utf8GraphQLParser
                     TokenPrinter.Print(ref _reader)));
         }
 
-        var selections = new List<ISelectionNode>();
+        var selections = new List<ISelectionNode>(8);
 
         // skip opening token
         MoveNext();
@@ -195,6 +224,7 @@ public ref partial struct Utf8GraphQLParser
 
         var location = CreateLocation(in start);
 
+        DecreaseDepth();
         return new SelectionSetNode(
             location,
             selections);
@@ -244,7 +274,7 @@ public ref partial struct Utf8GraphQLParser
         }
 
         var arguments = ParseArguments(false);
-        var directives = ParseDirectives(false);
+        var directives = ParseDirectives(false, isQueryLocation: true);
         var selectionSet = _reader.Kind == TokenKind.LeftBrace
             ? ParseSelectionSet()
             : null;
@@ -269,7 +299,7 @@ public ref partial struct Utf8GraphQLParser
     {
         if (_reader.Kind == TokenKind.LeftParenthesis)
         {
-            var list = new List<ArgumentNode>();
+            var list = new List<ArgumentNode>(4);
 
             // skip opening token
             MoveNext();

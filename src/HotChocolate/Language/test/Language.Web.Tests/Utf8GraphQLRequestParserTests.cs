@@ -1,4 +1,6 @@
+using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using System.IO.Pipelines;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -20,6 +22,32 @@ public class Utf8GraphQLRequestParserTests
 
         // act
         var batch = Utf8GraphQLRequestParser.Parse(source);
+
+        // assert
+        var r = Assert.Single(batch);
+        Assert.Null(r.OperationName);
+        Assert.Null(r.DocumentId);
+        Assert.Null(r.Variables);
+        Assert.Null(r.Extensions);
+        r.Document.MatchSnapshot();
+    }
+
+    [Fact]
+    public void Parse_Large_Query_Sequence()
+    {
+        // arrange
+        var pipe = new Pipe();
+        pipe.Writer.Write("{ \"query\": \"{ "u8);
+        for (var i = 0; i < 1_000; i++)
+        {
+            pipe.Writer.Write("aReallyLongFieldNameToFillUpTheSequences "u8);
+        }
+        pipe.Writer.Write("}\" }"u8);
+        pipe.Writer.Complete();
+        pipe.Reader.TryRead(out var result);
+
+        // act
+        var batch = Utf8GraphQLRequestParser.Parse(result.Buffer);
 
         // assert
         var r = Assert.Single(batch);
@@ -220,12 +248,9 @@ public class Utf8GraphQLRequestParserTests
     [Theory]
     [InlineData("PROPAGATE", ErrorHandlingMode.Propagate)]
     [InlineData("NULL", ErrorHandlingMode.Null)]
-    [InlineData("HALT", ErrorHandlingMode.Halt)]
     [InlineData("propagate", ErrorHandlingMode.Propagate)]
     [InlineData("null", ErrorHandlingMode.Null)]
-    [InlineData("halt", ErrorHandlingMode.Halt)]
     [InlineData(null, null)]
-    [InlineData("bla", null)]
     public void Parse_OnError(string? onError, ErrorHandlingMode? expectedErrorHandlingMode)
     {
         // arrange
@@ -430,7 +455,7 @@ public class Utf8GraphQLRequestParserTests
         Assert.True(request.Extensions!.RootElement.TryGetProperty("persistedQuery", out _));
         Assert.Null(request.Document);
         Assert.Equal("hashOfQuery", request.DocumentHash?.Value);
-        Assert.Equal("sha256Hash", request.DocumentHash?.AlgorithmName);
+        Assert.Equal("sha256", request.DocumentHash?.AlgorithmName);
     }
 
     [Fact]
@@ -1019,6 +1044,18 @@ public class Utf8GraphQLRequestParserTests
     }
 
     [Fact]
+    public void Parse_OnError_Unknown_Value_Throws()
+    {
+        // arrange
+        var source = "{\"onError\": \"HALT\", \"query\": \"{ __typename }\"}"u8.ToArray();
+
+        // act & assert
+        var exception = Assert.Throws<InvalidGraphQLRequestException>(
+            () => Utf8GraphQLRequestParser.Parse(source));
+        Assert.Contains("onError", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void Parse_OnError_Invalid_Type_Number_Throws()
     {
         // arrange
@@ -1034,7 +1071,7 @@ public class Utf8GraphQLRequestParserTests
     public void Parse_OnError_Invalid_Type_Object_Throws()
     {
         // arrange
-        var source = "{\"onError\": {\"mode\": \"HALT\"}, \"query\": \"{ __typename }\"}"u8.ToArray();
+        var source = "{\"onError\": {\"mode\": \"NULL\"}, \"query\": \"{ __typename }\"}"u8.ToArray();
 
         // act & assert
         var exception = Assert.Throws<InvalidGraphQLRequestException>(

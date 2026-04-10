@@ -1,0 +1,20 @@
+{
+  "activities": [
+    {
+      "OperationName": "ExecuteHttpRequest",
+      "DisplayName": "GraphQL HTTP GET SDL",
+      "Status": "Ok",
+      "tags": [
+        {
+          "Key": "graphql.http.kind",
+          "Value": "HttpGetSchema"
+        },
+        {
+          "Key": "graphql.schema.name",
+          "Value": "_Default"
+        }
+      ],
+      "event": []
+    }
+  ]
+}

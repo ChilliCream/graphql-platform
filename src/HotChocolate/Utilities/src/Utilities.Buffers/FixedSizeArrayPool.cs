@@ -4,20 +4,32 @@ using static HotChocolate.Buffers.Properties.BuffersResources;
 
 namespace HotChocolate.Buffers;
 
-internal sealed class FixedSizeArrayPool
+internal sealed class FixedSizeArrayPool : IDisposable
 {
     private readonly int _poolId;
     private readonly int _arraySize;
     private readonly int _numberOfArrays;
     private readonly Bucket _bucket;
 
-    public FixedSizeArrayPool(int poolId, int arraySize, int numberOfArrays, bool preAllocate = false)
+    public FixedSizeArrayPool(
+        int poolId,
+        int arraySize,
+        int[] levels,
+        TimeSpan trimInterval,
+        bool preAllocate)
     {
+        Debug.Assert(
+            levels.Length > 0,
+            "Levels must be a non-empty array.");
+        Debug.Assert(
+            trimInterval.TotalSeconds > 10,
+            "Trim interval should be greater than 10 seconds to avoid excessive trimming.");
+
         _poolId = poolId;
         _arraySize = arraySize;
-        _numberOfArrays = numberOfArrays;
-        _bucket = new Bucket(poolId, arraySize, numberOfArrays, preAllocate);
-        Log.PoolCreated(poolId, numberOfArrays, (long)numberOfArrays * arraySize);
+        _numberOfArrays = levels[levels.Length - 1];
+        _bucket = new Bucket(poolId, arraySize, levels, trimInterval, preAllocate);
+        Log.PoolCreated(poolId, _numberOfArrays, (long)_numberOfArrays * arraySize);
     }
 
     public byte[] Rent()
@@ -78,23 +90,40 @@ internal sealed class FixedSizeArrayPool
         }
     }
 
-    private sealed class Bucket
+    public void Dispose() => _bucket.Dispose();
+
+    private sealed class Bucket : IDisposable
     {
         private readonly int _poolId;
         private readonly int _bufferLength;
         private readonly byte[]?[] _buffers;
+        private readonly int[] _levels;
+        private readonly Timer _trimTimer;
+        private int _currentLevel;
+        private int _inUse;
         private SpinLock _lock;
         private int _index;
 
-        internal Bucket(int poolId, int bufferLength, int numberOfBuffers, bool preAllocate)
+        internal Bucket(
+            int poolId,
+            int bufferLength,
+            int[] levels,
+            TimeSpan trimInterval,
+            bool preAllocate)
         {
+            var numberOfBuffers = levels[levels.Length - 1];
+
             _poolId = poolId;
             _bufferLength = bufferLength;
             _buffers = new byte[numberOfBuffers][];
+            _levels = levels;
+            _currentLevel = 0;
 
             if (preAllocate)
             {
-                for (var i = 0; i < _buffers.Length; i++)
+                // only pre-allocate up to the stable level (first entry in _levels).
+                var stableLevel = levels[0];
+                for (var i = 0; i < stableLevel; i++)
                 {
                     _buffers[i] = new byte[_bufferLength];
                 }
@@ -102,12 +131,17 @@ internal sealed class FixedSizeArrayPool
 
             _lock = new SpinLock(Debugger.IsAttached);
             _index = 0;
+            _inUse = 0;
+
+            _trimTimer = new Timer(static b => ((Bucket)b!).Trim(), this, trimInterval, trimInterval);
         }
 
-        internal int InUse => _index;
+        internal int InUse => _inUse;
 
         internal byte[]? Rent()
         {
+            Interlocked.Increment(ref _inUse);
+
             var buffers = _buffers;
             byte[]? buffer = null;
 
@@ -122,7 +156,12 @@ internal sealed class FixedSizeArrayPool
             {
                 _lock.Enter(ref lockTaken);
 
-                if (_index < buffers.Length)
+                if (_index >= _levels[_currentLevel] && _currentLevel < _levels.Length - 1)
+                {
+                    _currentLevel++;
+                }
+
+                if (_index < _levels[_currentLevel])
                 {
                     buffer = buffers[_index];
                     buffers[_index++] = null;
@@ -156,6 +195,8 @@ internal sealed class FixedSizeArrayPool
 
         internal bool Return(byte[] array)
         {
+            Interlocked.Decrement(ref _inUse);
+
             // if the returned array has not the expected size we will reject it without throwing an error.
             if (array.Length != _bufferLength)
             {
@@ -185,5 +226,76 @@ internal sealed class FixedSizeArrayPool
 
             return returned;
         }
+
+        // called from the TrimCallback timer once per minute.
+        // if the pool is not under pressure we step the current level down one
+        // notch and null out the buffer slots between the new and old level so
+        // those byte[] arrays become eligible for collection.
+        private void Trim()
+        {
+            var currentLevel = _currentLevel;
+
+            // nothing to trim if we are already at the stable level.
+            if (currentLevel == 0)
+            {
+                return;
+            }
+
+            var previousLevel = currentLevel - 1;
+            var previousLimit = _levels[previousLevel];
+
+            // if outstanding buffers exceed the target level the pool is still
+            // under pressure — skip trimming.
+            if (_inUse > previousLimit)
+            {
+                return;
+            }
+            var trimmed = 0;
+
+            var lockTaken = false;
+
+            try
+            {
+                var currentLimit = _levels[currentLevel];
+
+                _lock.Enter(ref lockTaken);
+
+                // null out slots between the new limit and the old limit.
+                // only null slots that are beyond _index (i.e. not currently
+                // rented out — those slots are already null).
+                for (var i = previousLimit; i < currentLimit; i++)
+                {
+                    if (_buffers[i] != null)
+                    {
+                        _buffers[i] = null;
+                        trimmed++;
+                    }
+                }
+
+                // if _index is beyond the new limit we need to pull it back
+                // and release those buffers too.
+                if (_index > previousLimit)
+                {
+                    _index = previousLimit;
+                }
+            }
+            finally
+            {
+                if (lockTaken)
+                {
+                    _lock.Exit(false);
+                }
+            }
+
+            _currentLevel = previousLevel;
+
+            var log = Log;
+            if (log.IsEnabled())
+            {
+                log.PoolTrimmed(_poolId, trimmed, previousLimit, _inUse);
+            }
+        }
+
+        public void Dispose() => _trimTimer.Dispose();
     }
 }

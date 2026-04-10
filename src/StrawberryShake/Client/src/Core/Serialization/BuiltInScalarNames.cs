@@ -13,6 +13,7 @@ public static class BuiltInScalarNames
     public const string Date = nameof(Date);
     public const string DateTime = nameof(DateTime);
     public const string Decimal = nameof(Decimal);
+    public const string Duration = nameof(Duration);
     public const string Float = nameof(Float);
     public const string ID = nameof(ID);
     public const string Int = nameof(Int);
@@ -20,10 +21,12 @@ public static class BuiltInScalarNames
     public const string LocalDateTime = nameof(LocalDateTime);
     public const string LocalTime = nameof(LocalTime);
     public const string Long = nameof(Long);
-    public const string Name = nameof(Name);
     public const string Short = nameof(Short);
     public const string String = nameof(String);
-    public const string TimeSpan = nameof(TimeSpan);
+    public const string UnsignedByte = nameof(UnsignedByte);
+    public const string UnsignedInt = nameof(UnsignedInt);
+    public const string UnsignedLong = nameof(UnsignedLong);
+    public const string UnsignedShort = nameof(UnsignedShort);
     public const string Upload = nameof(Upload);
     public const string URI = nameof(URI);
     public const string URL = nameof(URL);

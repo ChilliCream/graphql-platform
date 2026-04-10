@@ -123,6 +123,33 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The parameter &apos;{0}&apos; on a batch resolver must be a list type (e.g. List&lt;T&gt;, IReadOnlyList&lt;T&gt;, ImmutableArray&lt;T&gt; or T[]). Batch resolvers receive one value per parent object, so all argument parameters must be collections..
+        /// </summary>
+        internal static string BatchResolver_ArgumentMustBeList {
+            get {
+                return ResourceManager.GetString("BatchResolver_ArgumentMustBeList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A batch resolver must return exactly one result per context. Expected {0} results but got {1}..
+        /// </summary>
+        internal static string BatchResolver_ResultCountMismatch {
+            get {
+                return ResourceManager.GetString("BatchResolver_ResultCountMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The batch resolver method &apos;{0}.{1}&apos; must return a list type (e.g. List&lt;T&gt;, IReadOnlyList&lt;T&gt;, ImmutableArray&lt;T&gt; or T[]). Batch resolvers return one result per parent object, so the return type must be a collection..
+        /// </summary>
+        internal static string BatchResolver_ReturnTypeMustBeList {
+            get {
+                return ResourceManager.GetString("BatchResolver_ReturnTypeMustBeList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified binding cannot be handled..
         /// </summary>
         internal static string BindingCompiler_AddBinding_BindingCannotBeHandled {
@@ -290,6 +317,24 @@ namespace HotChocolate.Properties {
         internal static string DataLoaderResolverContextExtensions_UnableToRegister {
             get {
                 return ResourceManager.GetString("DataLoaderResolverContextExtensions_UnableToRegister", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to InputPrecision must be less than or equal to 9..
+        /// </summary>
+        internal static string DateTimeOptions_InputPrecision_InvalidValue {
+            get {
+                return ResourceManager.GetString("DateTimeOptions_InputPrecision_InvalidValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to OutputPrecision must be less than or equal to 7..
+        /// </summary>
+        internal static string DateTimeOptions_OutputPrecision_InvalidValue {
+            get {
+                return ResourceManager.GetString("DateTimeOptions_OutputPrecision_InvalidValue", resourceCulture);
             }
         }
         
@@ -701,6 +746,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The `Duration` scalar type represents a duration of time..
+        /// </summary>
+        internal static string DurationType_Description {
+            get {
+                return ResourceManager.GetString("DurationType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A cursor for use in pagination..
         /// </summary>
         internal static string EdgeType_Cursor_Description {
@@ -1043,6 +1097,24 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The @requiresOptIn directive must not appear on required (non-null without a default) arguments..
+        /// </summary>
+        internal static string ErrorHelper_RequiresOptInOnRequiredArgument {
+            get {
+                return ResourceManager.GetString("ErrorHelper_RequiresOptInOnRequiredArgument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The @requiresOptIn directive must not appear on required (non-null without a default) input object field definitions..
+        /// </summary>
+        internal static string ErrorHelper_RequiresOptInOnRequiredInputField {
+            get {
+                return ResourceManager.GetString("ErrorHelper_RequiresOptInOnRequiredInputField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Field names starting with `__` are reserved for the GraphQL specification..
         /// </summary>
         internal static string ErrorHelper_TwoUnderscoresNotAllowedField {
@@ -1151,7 +1223,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http://en.wikipedia.org/wiki/IEEE_floating_point)..
+        ///   Looks up a localized string similar to The `Float` scalar type represents signed double-precision finite values as specified by [IEEE 754](https://en.wikipedia.org/wiki/IEEE_floating_point)..
         /// </summary>
         internal static string FloatType_Description {
             get {
@@ -1178,7 +1250,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The `ID` scalar type represents a unique identifier, often used to refetch an object or as key for a cache. The ID type appears in a JSON response as a String; however, it is not intended to be human-readable. When expected as an input type, any string (such as `&quot;4&quot;`) or integer (such as `4`) input value will be accepted as an ID..
+        ///   Looks up a localized string similar to The `ID` scalar type represents a unique identifier, often used to refetch an object or as the key for a cache..
         /// </summary>
         internal static string IdType_Description {
             get {
@@ -1349,7 +1421,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1..
+        ///   Looks up a localized string similar to The `Int` scalar type represents a signed 32-bit numeric non-fractional value..
         /// </summary>
         internal static string IntType_Description {
             get {
@@ -1556,6 +1628,60 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An OptInFeatureStability object describes the stability level of an opt-in feature..
+        /// </summary>
+        internal static string OptInFeatureStability_Description {
+            get {
+                return ResourceManager.GetString("OptInFeatureStability_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The feature name must follow the GraphQL type name rules..
+        /// </summary>
+        internal static string OptInFeatureStabilityDirective_FeatureName_NotValid {
+            get {
+                return ResourceManager.GetString("OptInFeatureStabilityDirective_FeatureName_NotValid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The stability must follow the GraphQL type name rules..
+        /// </summary>
+        internal static string OptInFeatureStabilityDirective_Stability_NotValid {
+            get {
+                return ResourceManager.GetString("OptInFeatureStabilityDirective_Stability_NotValid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name of the feature for which to set the stability..
+        /// </summary>
+        internal static string OptInFeatureStabilityDirectiveType_FeatureDescription {
+            get {
+                return ResourceManager.GetString("OptInFeatureStabilityDirectiveType_FeatureDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The stability level of the feature..
+        /// </summary>
+        internal static string OptInFeatureStabilityDirectiveType_StabilityDescription {
+            get {
+                return ResourceManager.GetString("OptInFeatureStabilityDirectiveType_StabilityDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sets the stability level of an opt-in feature..
+        /// </summary>
+        internal static string OptInFeatureStabilityDirectiveType_TypeDescription {
+            get {
+                return ResourceManager.GetString("OptInFeatureStabilityDirectiveType_TypeDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The member expression must specify a property or method that is public and that belongs to the type {0}.
         /// </summary>
         internal static string Reflection_MemberMust_BeMethodOrProperty {
@@ -1642,6 +1768,42 @@ namespace HotChocolate.Properties {
         internal static string Relay_NodesField_Ids_Description {
             get {
                 return ResourceManager.GetString("Relay_NodesField_Ids_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to RequiresOptIn is not supported on the specified descriptor..
+        /// </summary>
+        internal static string RequiresOptInDirective_Descriptor_NotSupported {
+            get {
+                return ResourceManager.GetString("RequiresOptInDirective_Descriptor_NotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The feature name must follow the GraphQL type name rules..
+        /// </summary>
+        internal static string RequiresOptInDirective_FeatureName_NotValid {
+            get {
+                return ResourceManager.GetString("RequiresOptInDirective_FeatureName_NotValid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name of the feature that requires opt in..
+        /// </summary>
+        internal static string RequiresOptInDirectiveType_FeatureDescription {
+            get {
+                return ResourceManager.GetString("RequiresOptInDirectiveType_FeatureDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indicates that the given field, argument, input field, or enum value requires giving explicit consent before being used..
+        /// </summary>
+        internal static string RequiresOptInDirectiveType_TypeDescription {
+            get {
+                return ResourceManager.GetString("RequiresOptInDirectiveType_TypeDescription", resourceCulture);
             }
         }
         
@@ -2159,7 +2321,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text..
+        ///   Looks up a localized string similar to The `String` scalar type represents textual data, represented as a sequence of Unicode code points..
         /// </summary>
         internal static string StringType_Description {
             get {
@@ -2627,15 +2789,6 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The `TimeSpan` scalar type represents a duration of time..
-        /// </summary>
-        internal static string TimeSpanType_Description {
-            get {
-                return ResourceManager.GetString("TimeSpanType_Description", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.
         ///
         ///Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other  [rest of string was truncated]&quot;;.
@@ -3086,6 +3239,15 @@ namespace HotChocolate.Properties {
         internal static string VariableValueBuilder_VarNameEmpty {
             get {
                 return ResourceManager.GetString("VariableValueBuilder_VarNameEmpty", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to {0} requires a KeyValuePair&lt;TKey, TValue&gt; runtime type..
+        /// </summary>
+        internal static string ThrowHelper_KeyValuePairType_InvalidRuntimeType {
+            get {
+                return ResourceManager.GetString("ThrowHelper_KeyValuePairType_InvalidRuntimeType", resourceCulture);
             }
         }
     }

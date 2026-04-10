@@ -101,4 +101,3 @@ ORDER BY p1."BrandId", p3."BrandId", p3."Name", p3."Id"
   }
 }
 ```
-

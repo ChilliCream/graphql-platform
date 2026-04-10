@@ -341,10 +341,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetBars GraphQL operation
     /// <code>
-    /// query GetBars(
-    ///   $a: String!
-    ///     $b: String
-    /// ) {
+    /// query GetBars($a: String!, $b: String) {
     ///   bars(a: $a, b: $b) {
     ///     __typename
     ///     id
@@ -382,10 +379,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetBars GraphQL operation
     /// <code>
-    /// query GetBars(
-    ///   $a: String!
-    ///     $b: String
-    /// ) {
+    /// query GetBars($a: String!, $b: String) {
     ///   bars(a: $a, b: $b) {
     ///     __typename
     ///     id
@@ -495,10 +489,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetBars GraphQL operation
     /// <code>
-    /// query GetBars(
-    ///   $a: String!
-    ///     $b: String
-    /// ) {
+    /// query GetBars($a: String!, $b: String) {
     ///   bars(a: $a, b: $b) {
     ///     __typename
     ///     id
@@ -524,10 +515,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SaveBars GraphQL operation
     /// <code>
-    /// mutation SaveBars(
-    ///   $a: String!
-    ///     $b: String
-    /// ) {
+    /// mutation SaveBars($a: String!, $b: String) {
     ///   saveBar(a: $a, b: $b) {
     ///     __typename
     ///     id
@@ -565,10 +553,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SaveBars GraphQL operation
     /// <code>
-    /// mutation SaveBars(
-    ///   $a: String!
-    ///     $b: String
-    /// ) {
+    /// mutation SaveBars($a: String!, $b: String) {
     ///   saveBar(a: $a, b: $b) {
     ///     __typename
     ///     id
@@ -678,10 +663,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the SaveBars GraphQL operation
     /// <code>
-    /// mutation SaveBars(
-    ///   $a: String!
-    ///     $b: String
-    /// ) {
+    /// mutation SaveBars($a: String!, $b: String) {
     ///   saveBar(a: $a, b: $b) {
     ///     __typename
     ///     id
@@ -1249,6 +1231,7 @@ namespace Microsoft.Extensions.DependencyInjection
             });
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.BarEntity, global::Foo.Bar.GetBars_Bars_Bar>, global::Foo.Bar.State.GetBars_Bars_BarFromBarEntityMapper>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.IEntityMapper<global::Foo.Bar.State.BarEntity, global::Foo.Bar.SaveBars_SaveBar_Bar>, global::Foo.Bar.State.SaveBars_SaveBar_BarFromBarEntityMapper>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.AnySerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.Base64StringSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.BooleanSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ByteArraySerializer>(services);
@@ -1256,17 +1239,20 @@ namespace Microsoft.Extensions.DependencyInjection
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DateTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DecimalSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.DurationSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.FloatSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IdSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.IntSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.JsonSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalDateTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LocalTimeSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.LongSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.ShortSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.StringSerializer>(services);
-            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.TimeSpanSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UnsignedByteSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UnsignedIntSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UnsignedLongSerializer>(services);
+            global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UnsignedShortSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UriSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UrlSerializer>(services);
             global::Microsoft.Extensions.DependencyInjection.ServiceCollectionServiceExtensions.AddSingleton<global::StrawberryShake.Serialization.ISerializer, global::StrawberryShake.Serialization.UUIDSerializer>(services);

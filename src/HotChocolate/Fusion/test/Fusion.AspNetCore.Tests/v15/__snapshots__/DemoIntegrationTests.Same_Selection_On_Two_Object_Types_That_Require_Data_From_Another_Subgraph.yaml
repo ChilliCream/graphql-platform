@@ -1,0 +1,218 @@
+title: Same_Selection_On_Two_Object_Types_That_Require_Data_From_Another_Subgraph
+request:
+  document: |
+    {
+      item1 {
+        product {
+          id
+          name
+        }
+      }
+      item2 {
+        product {
+          id
+          name
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "item1": {
+          "product": {
+            "id": "UHJvZHVjdDo0",
+            "name": "Product: UHJvZHVjdDo0"
+          }
+        },
+        "item2": {
+          "product": {
+            "id": "UHJvZHVjdDoz",
+            "name": "Product: UHJvZHVjdDoz"
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node @key(fields: "id") {
+        id: ID!
+      }
+
+      type Item1 {
+        product: Product!
+      }
+
+      type Item2 {
+        product: Product!
+      }
+
+      type Product implements Node {
+        id: ID!
+      }
+
+      type Query {
+        item1: Item1!
+        item2: Item2!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_e2224f1b_1 {
+              item1 {
+                product {
+                  id
+                }
+              }
+              item2 {
+                product {
+                  id
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "item1": {
+                    "product": {
+                      "id": "UHJvZHVjdDo0"
+                    }
+                  },
+                  "item2": {
+                    "product": {
+                      "id": "UHJvZHVjdDoz"
+                    }
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Product implements Node {
+        id: ID!
+        name: String!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup
+        nodes(ids: [ID!]!): [Node]!
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query Op_e2224f1b_2($__fusion_1_id: ID!) {
+              node(id: $__fusion_1_id) {
+                __typename
+                ... on Product {
+                  name
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_1_id": "UHJvZHVjdDoz"
+              },
+              {
+                "__fusion_1_id": "UHJvZHVjdDo0"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "name": "Product: UHJvZHVjdDoz"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "node": {
+                    "__typename": "Product",
+                    "name": "Product: UHJvZHVjdDo0"
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          item1 {
+            product {
+              id
+              id @fusion__requirement
+              name
+            }
+          }
+          item2 {
+            product {
+              id
+              id @fusion__requirement
+              name
+            }
+          }
+        }
+      hash: e2224f1b985fbda85e8bf7b9b94be074
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Op_e2224f1b_1 {
+          item1 {
+            product {
+              id
+            }
+          }
+          item2 {
+            product {
+              id
+            }
+          }
+        }
+    - id: 2
+      type: OperationBatch
+      schema: B
+      operation: |
+        query Op_e2224f1b_2($__fusion_1_id: ID!) {
+          node(id: $__fusion_1_id) {
+            __typename
+            ... on Product {
+              name
+            }
+          }
+        }
+      source: $.node<Product>
+      targets:
+        - $.item2.product
+        - $.item1.product
+      batchingGroupId: 2
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

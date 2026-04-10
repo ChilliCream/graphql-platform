@@ -1,6 +1,4 @@
-#if !NET9_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
-#endif
 using HotChocolate.Adapters.Mcp.Directives;
 using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Execution.Configuration;
@@ -27,18 +25,24 @@ public static class RequestExecutorBuilderExtensions
         builder.ConfigureSchemaServices(
             services => services.AddMcpSchemaServices(configureServerOptions, configureServer));
 
-        // TODO: MST we need to make sure that this directive is hidden in the introspection
         builder.AddDirectiveType<McpToolAnnotationsDirectiveType>();
 
-        builder.ConfigureOnRequestExecutorCreatedAsync(
-            async (executor, cancellationToken) =>
-            {
-                var schema = executor.Schema;
-                var storageObserver = schema.Services.GetRequiredService<McpStorageObserver>();
-                await storageObserver.StartAsync(cancellationToken);
-            });
-
         return builder;
+    }
+
+    public static IRequestExecutorBuilder AddMcpStorage<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
+        this IRequestExecutorBuilder builder,
+        Func<IServiceProvider, T> factory,
+        Func<IServiceProvider, bool>? skipIf = null)
+        where T : class, IMcpStorage
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        ArgumentNullException.ThrowIfNull(factory);
+
+        builder.ConfigureSchemaServices(s => s.AddSingleton<IMcpStorage, T>(factory));
+
+        return builder.AddMcpStorageWarmupTask(skipIf);
     }
 
     public static IRequestExecutorBuilder AddMcpStorage(
@@ -49,6 +53,20 @@ public static class RequestExecutorBuilderExtensions
         ArgumentNullException.ThrowIfNull(storage);
 
         builder.ConfigureSchemaServices(s => s.AddSingleton(storage));
+
+        return builder.AddMcpStorageWarmupTask();
+    }
+
+    private static IRequestExecutorBuilder AddMcpStorageWarmupTask(
+        this IRequestExecutorBuilder builder,
+        Func<IServiceProvider, bool>? skipIf = null)
+    {
+        builder.AddWarmupTask(async (executor, cancellationToken) =>
+        {
+            var schema = executor.Schema;
+            var storageObserver = schema.Services.GetRequiredService<McpStorageObserver>();
+            await storageObserver.StartAsync(cancellationToken);
+        }, skipIf);
 
         return builder;
     }

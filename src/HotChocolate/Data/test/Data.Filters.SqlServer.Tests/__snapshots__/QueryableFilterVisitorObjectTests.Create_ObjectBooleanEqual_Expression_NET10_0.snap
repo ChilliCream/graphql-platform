@@ -30,12 +30,10 @@ true Result:
 
 true SQL:
 ---------------
-.param set @p 1
-
 SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE "f"."BarBool" = @p
+WHERE "f"."BarBool"
 ---------------
 
 false Result:
@@ -55,10 +53,8 @@ false Result:
 
 false SQL:
 ---------------
-.param set @p 0
-
 SELECT "d"."Id", "d"."FooId"
 FROM "Data" AS "d"
 INNER JOIN "Foo" AS "f" ON "d"."FooId" = "f"."Id"
-WHERE "f"."BarBool" = @p
+WHERE NOT ("f"."BarBool")
 ---------------

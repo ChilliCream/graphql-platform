@@ -78,7 +78,7 @@ internal class PagedTable<TEdge> : SelectableTable<TEdge>
 
     /// <inheritdoc />
     protected override async Task<TEdge?> RenderTableAsync(
-        IAnsiConsole console,
+        INitroConsole console,
         LiveDisplayContext ctx,
         CancellationToken cancellationToken)
     {

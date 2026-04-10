@@ -1,16 +1,11 @@
-using System.CommandLine.IO;
-using System.Net;
-using System.Reactive;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
 using System.Text.Json;
-using ChilliCream.Nitro.CommandLine.Client;
-using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.FusionConfiguration;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Packaging;
-using HotChocolate.Fusion.SourceSchema.Packaging;
-using StrawberryShake;
+using HotChocolate.Fusion.Results;
+using HotChocolate.Types.Mutable;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
@@ -23,71 +18,103 @@ internal static class FusionPublishHelpers
         string tag,
         string? subgraphId,
         string? subgraphName,
+        SourceSchemaVersion[]? sourceSchemaVersions,
         bool waitForApproval,
-        StatusContext? statusContext,
-        IAnsiConsole console,
-        IApiClient client,
+        SourceMetadata? source,
+        INitroConsoleActivity activity,
+        INitroConsole console,
+        IFusionConfigurationClient client,
         CancellationToken cancellationToken)
     {
-        var input = new BeginFusionConfigurationPublishInput
+        var deploymentSlotRequest = await client.RequestDeploymentSlotAsync(
+            apiId,
+            stageName,
+            tag,
+            subgraphId,
+            subgraphName,
+            sourceSchemaVersions,
+            waitForApproval,
+            source,
+            cancellationToken);
+
+        if (deploymentSlotRequest.Errors?.Count > 0)
         {
-            ApiId = apiId,
-            Tag = tag,
-            StageName = stageName,
-            SubgraphName = subgraphName,
-            SubgraphApiId = subgraphId,
-            WaitForApproval = waitForApproval
-        };
+            await activity.FailAllAsync();
 
-        var result = await client.BeginFusionConfigurationPublish.ExecuteAsync(input, cancellationToken);
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        console.PrintErrorsAndExit(data.BeginFusionConfigurationPublish.Errors);
-        if (data.BeginFusionConfigurationPublish.RequestId is not { } requestId)
-        {
-            throw Exit("Failed to request deployment slot.");
-        }
-
-        console.MarkupLine($"Your request id is [blue]{requestId}[/]");
-
-        using var stopSignal = new Subject<Unit>();
-        var subscription = client.OnFusionConfigurationPublishingTaskChanged
-            .Watch(requestId, ExecutionStrategy.NetworkOnly)
-            .TakeUntil(stopSignal);
-
-        await subscription.ForEachAsync(OnNext, cancellationToken);
-
-        return requestId;
-
-        void OnNext(IOperationResult<IOnFusionConfigurationPublishingTaskChangedResult> x)
-        {
-            if (x.Errors is { Count: > 0 } errors)
+            foreach (var error in deploymentSlotRequest.Errors)
             {
-                console.PrintErrorsAndExit(errors);
-                throw Exit("Something went wrong while monitoring the publish task.");
+                var errorMessage = error switch
+                {
+                    IUnauthorizedOperation err => err.Message,
+                    IInvalidSourceMetadataInputError err => err.Message,
+                    IApiNotFoundError err => err.Message,
+                    IStageNotFoundError err => err.Message,
+                    ISubgraphInvalidError err => err.Message,
+                    IInvalidProcessingStateTransitionError err => err.Message,
+                    IError err => Messages.UnexpectedMutationError(err),
+                    _ => Messages.UnexpectedMutationError()
+                };
+
+                console.Error.WriteErrorLine(errorMessage);
             }
 
-            switch (x.Data?.OnFusionConfigurationPublishingTaskChanged)
+            throw new ExitException();
+        }
+
+        var requestId = deploymentSlotRequest.RequestId;
+
+        if (string.IsNullOrEmpty(requestId))
+        {
+            throw MutationReturnedNoData();
+        }
+
+        // activity.Update($"Request ID: {requestId.EscapeMarkup()}");
+
+        using var subscriptionCancellation =
+            CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+        await foreach (var @event in client
+                           .SubscribeToFusionConfigurationPublishingTaskChangedAsync(
+                               requestId,
+                               subscriptionCancellation.Token))
+        {
+            switch (@event)
             {
                 case IProcessingTaskIsQueued v:
-                    statusContext?.Status(
-                        $"Your request is queued and is in position [blue]{v.QueuePosition}[/].");
+                    activity.Update(Messages.QueuedAtPosition(v.QueuePosition), ActivityUpdateKind.Waiting);
                     break;
 
                 case IFusionConfigurationPublishingFailed v:
-                    stopSignal.OnNext(Unit.Default);
-                    console.PrintErrorsAndExit(v.Errors);
+                    await subscriptionCancellation.CancelAsync();
+
+                    var errorTree = new Tree("");
+
+                    foreach (var error in v.Errors)
+                    {
+                        switch (error)
+                        {
+                            case IInvalidGraphQLSchemaError e:
+                                errorTree.AddGraphQLSchemaErrors(e);
+                                break;
+
+                            default:
+                                errorTree.AddErrorMessage(error.Message);
+                                break;
+                        }
+                    }
+
+                    activity.Fail(errorTree);
                     throw Exit("Your request has failed.");
 
                 case IFusionConfigurationPublishingSuccess:
-                    stopSignal.OnNext(Unit.Default);
-                    console.WarningLine("Your request is already published.");
+                    await subscriptionCancellation.CancelAsync();
+                    activity.Update("Already published.", ActivityUpdateKind.Warning);
                     break;
 
                 case IProcessingTaskIsReady:
-                    stopSignal.OnNext(Unit.Default);
-                    console.Success("Your deployment slot is ready.");
-                    break;
+                    await subscriptionCancellation.CancelAsync();
+
+                    return requestId;
 
                 case IFusionConfigurationValidationFailed:
                 case IFusionConfigurationValidationSuccess:
@@ -95,207 +122,172 @@ internal static class FusionPublishHelpers
                 case IOperationInProgress:
                 case IWaitForApproval:
                 case IProcessingTaskApproved:
-                    stopSignal.OnNext(Unit.Default);
-                    console.Success("Your request is already processing.");
+                    await subscriptionCancellation.CancelAsync();
+                    activity.Update("Already processing.");
                     break;
 
                 default:
-                    throw Exit("Unknown response");
+                    activity.Update(Messages.UnknownServerResponse, ActivityUpdateKind.Warning);
+                    break;
             }
         }
+
+        throw new ExitException("Subscription terminated before request was ready for processing.");
     }
 
-    public static async Task ClaimDeploymentSlot(
+    public static async Task ClaimDeploymentSlotAsync(
         string requestId,
-        IAnsiConsole console,
-        IApiClient client,
+        INitroConsoleActivity activity,
+        INitroConsole console,
+        IFusionConfigurationClient client,
         CancellationToken cancellationToken)
     {
-        var input = new StartFusionConfigurationCompositionInput { RequestId = requestId };
+        var result = await client.ClaimDeploymentSlotAsync(requestId, cancellationToken);
 
-        var result =
-            await client.StartFusionConfigurationPublish.ExecuteAsync(input, cancellationToken);
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        console.PrintErrorsAndExit(data.StartFusionConfigurationComposition.Errors);
-    }
-
-    public static async Task ReleaseDeploymentSlot(
-        string requestId,
-        IAnsiConsole console,
-        IApiClient client,
-        CancellationToken cancellationToken)
-    {
-        var input = new CancelFusionConfigurationCompositionInput { RequestId = requestId };
-
-        var result =
-            await client.CancelFusionConfigurationPublish.ExecuteAsync(input, cancellationToken);
-
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        console.PrintErrorsAndExit(data.CancelFusionConfigurationComposition.Errors);
-    }
-
-    public static async Task<Stream?> DownloadLatestFusionArchiveAsync(
-        string apiId,
-        string stageName,
-        IApiClient client,
-        IHttpClientFactory httpClientFactory,
-        CancellationToken cancellationToken)
-    {
-        var result =
-            await client.FetchConfiguration.ExecuteAsync(apiId, stageName, cancellationToken);
-
-        result.EnsureNoErrors();
-
-        var downloadUrl = result.Data?.FusionConfigurationByApiId?.DownloadUrl;
-
-        if (string.IsNullOrEmpty(downloadUrl))
+        if (result.Errors?.Count > 0)
         {
-            return null;
+            await activity.FailAllAsync();
+
+            foreach (var error in result.Errors)
+            {
+                var errorMessage = error switch
+                {
+                    IUnauthorizedOperation err => err.Message,
+                    IFusionConfigurationRequestNotFoundError err => err.Message,
+                    IInvalidProcessingStateTransitionError err => err.Message,
+                    IError err => Messages.UnexpectedMutationError(err),
+                    _ => Messages.UnexpectedMutationError()
+                };
+
+                console.Error.WriteErrorLine(errorMessage);
+            }
+
+            throw new ExitException();
         }
-
-        var httpClient = httpClientFactory.CreateClient(ApiClient.ClientName);
-        var downloadResult = await httpClient.GetAsync(downloadUrl, cancellationToken);
-
-        downloadResult.EnsureSuccessStatusCode();
-
-        return await downloadResult.Content.ReadAsStreamAsync(cancellationToken);
     }
 
-    public static async Task<FusionSourceSchemaArchive> DownloadSourceSchemaArchiveAsync(
-        string apiId,
-        string sourceSchemaName,
-        string sourceSchemaVersion,
-        IHttpClientFactory httpClientFactory,
-        CancellationToken cancellationToken)
-    {
-        using var httpClient = httpClientFactory.CreateClient(ApiClient.ClientName);
-
-        var request = CreateDownloadSourceSchemaVersionRequest(apiId, sourceSchemaName, sourceSchemaVersion);
-
-        var response = await httpClient.SendAsync(request, cancellationToken);
-
-        if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
-        {
-            throw new ExitException(
-                $"Got a HTTP {response.StatusCode} while attempting to download source schema '{sourceSchemaName}' in version '{sourceSchemaVersion}'. "
-                + "Make sure that you have the proper credentials / permissions to execute this command.");
-        }
-
-        if (response.StatusCode is HttpStatusCode.NotFound)
-        {
-            throw new ExitException(
-                $"Got a HTTP {HttpStatusCode.NotFound} while attempting to download source schema '{sourceSchemaName}' in version '{sourceSchemaVersion}'. "
-                + "Make sure you've properly uploaded a source schema version before running this command.");
-        }
-
-        response.EnsureSuccessStatusCode();
-
-        var memoryStream = new MemoryStream();
-        await response.Content.CopyToAsync(memoryStream, cancellationToken);
-
-        memoryStream.Position = 0;
-
-        return FusionSourceSchemaArchive.Open(memoryStream);
-    }
-
-    public static async Task<bool> UploadFusionArchiveAsync(
+    public static async Task<bool> UploadFusionConfigurationAsync(
         string requestId,
         Stream stream,
-        StatusContext? statusContext,
-        IAnsiConsole console,
-        IApiClient client,
+        INitroConsoleActivity activity,
+        INitroConsole console,
+        IFusionConfigurationClient client,
         CancellationToken cancellationToken)
     {
-        var input = new CommitFusionConfigurationPublishInput
+        var commitResult = await client.CommitFusionArchiveAsync(requestId, stream, cancellationToken);
+
+        if (commitResult.Errors?.Count > 0)
         {
-            RequestId = requestId,
-            Configuration = new(stream, "gateway.far")
-        };
+            await activity.FailAllAsync();
 
-        var result =
-            await client.CommitFusionConfigurationPublish.ExecuteAsync(input, cancellationToken);
+            foreach (var error in commitResult.Errors)
+            {
+                var errorMessage = error switch
+                {
+                    IUnauthorizedOperation err => err.Message,
+                    IFusionConfigurationRequestNotFoundError err => err.Message,
+                    IInvalidProcessingStateTransitionError err => err.Message,
+                    IError err => Messages.UnexpectedMutationError(err),
+                    _ => Messages.UnexpectedMutationError()
+                };
 
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        console.PrintErrorsAndExit(data.CommitFusionConfigurationPublish.Errors);
+                console.Error.WriteErrorLine(errorMessage);
+            }
 
-        using var stopSignal = new Subject<Unit>();
-
-        var subscription = client.OnFusionConfigurationPublishingTaskChanged
-            .Watch(requestId, ExecutionStrategy.NetworkOnly)
-            .TakeUntil(stopSignal);
+            throw new ExitException();
+        }
 
         var committed = false;
 
-        await foreach (var x in subscription.ToAsyncEnumerable()
-            .WithCancellation(cancellationToken))
+        await foreach (var @event in client
+                           .SubscribeToFusionConfigurationPublishingTaskChangedAsync(requestId, cancellationToken))
         {
-            if (x.Errors is { Count: > 0 } errors)
-            {
-                console.PrintErrorsAndExit(errors);
-                throw Exit("No request id returned");
-            }
-
-            switch (x.Data?.OnFusionConfigurationPublishingTaskChanged)
+            switch (@event)
             {
                 case IProcessingTaskIsQueued v:
-                    statusContext?.Status(
-                        $"Your request is queued. The current position in the queue is {v.QueuePosition}.");
+                    activity.Update(Messages.QueuedAtPosition(v.QueuePosition), ActivityUpdateKind.Waiting);
                     break;
 
                 case IFusionConfigurationPublishingFailed v:
-                    stopSignal.OnNext(Unit.Default);
-                    console.PrintErrorsAndExit(v.Errors);
-                    throw Exit("The commit has failed.");
+                    var publishErrorTree = new Tree("");
+
+                    foreach (var error in v.Errors)
+                    {
+                        switch (error)
+                        {
+                            case IInvalidGraphQLSchemaError e:
+                                publishErrorTree.AddGraphQLSchemaErrors(e);
+                                break;
+
+                            default:
+                                publishErrorTree.AddErrorMessage(error.Message);
+                                break;
+                        }
+                    }
+
+                    activity.Fail(publishErrorTree);
+                    throw new ExitException("Failed to publish the new configuration.");
 
                 case IFusionConfigurationPublishingSuccess:
                     committed = true;
-                    stopSignal.OnNext(Unit.Default);
-                    break;
+                    return committed;
 
                 case IProcessingTaskIsReady:
-                    console.Success("Your request is ready for the committing.");
+                    activity.Update(Messages.RequestReadyForProcessing);
                     break;
 
                 case IFusionConfigurationValidationFailed:
-                    statusContext?.Status(
-                        "The validation of your request has failed. Check the errors in Nitro.");
+                    activity.Update(Messages.ValidationFailed);
                     break;
 
                 case IFusionConfigurationValidationSuccess:
-                    statusContext?.Status("The validation of your request was successful.");
+                    activity.Update(Messages.ValidationPassed);
                     break;
 
                 case IValidationInProgress:
-                    statusContext?.Status("The validation of your request is in progress.");
+                    activity.Update(Messages.Validating);
                     break;
 
                 case IOperationInProgress:
-                    statusContext?.Status("The committing of your request is in progress.");
+                    activity.Update(Messages.RequestBeingProcessed);
                     break;
 
-                case IWaitForApproval e:
-                    if (e.Deployment is
-                        IOnSchemaVersionPublishUpdated_OnSchemaVersionPublishingUpdate_Deployment_FusionConfigurationDeployment
-                        deployment)
+                case IWaitForApproval waitForApprovalEvent:
+                    if (waitForApprovalEvent.Deployment is IFusionConfigurationDeployment deployment)
                     {
-                        console.PrintErrors(deployment.Errors);
+                        var errorTree = new Tree("");
+
+                        foreach (var error in deployment.Errors)
+                        {
+                            switch (error)
+                            {
+                                case IInvalidGraphQLSchemaError e:
+                                    errorTree.AddGraphQLSchemaErrors(e);
+                                    break;
+                                case IPersistedQueryValidationError e:
+                                    errorTree.AddPersistedQueryValidationErrorsWithClients(e);
+                                    break;
+                                case IOpenApiCollectionValidationError e:
+                                    errorTree.AddOpenApiCollectionValidationErrors(e);
+                                    break;
+                                case IMcpFeatureCollectionValidationError e:
+                                    errorTree.AddMcpFeatureCollectionValidationErrors(e);
+                                    break;
+                            }
+                        }
+
+                        activity.Update(Messages.ValidationFailed, ActivityUpdateKind.Warning, errorTree);
                     }
 
-                    statusContext?.Status(
-                        "The committing of your request is waiting for approval. Check Nitro to approve the request.");
+                    activity.Update(Messages.WaitingForApproval, ActivityUpdateKind.Waiting);
                     break;
 
                 case IProcessingTaskApproved:
-                    statusContext?.Status("The committing of your request is approved.");
-
+                    activity.Update(Messages.RequestApproved);
                     break;
 
                 default:
-                    statusContext?.Status(
-                        "Received an unknown response. Make sure the CLI is on the latest version.");
+                    activity.Update(Messages.UnknownServerResponse, ActivityUpdateKind.Warning);
                     break;
             }
         }
@@ -303,13 +295,115 @@ internal static class FusionPublishHelpers
         return committed;
     }
 
-    public static async Task<bool> ComposeAsync(
+    public static async Task<bool> ValidateFusionConfigurationAsync(
+        string requestId,
+        Stream stream,
+        INitroConsoleActivity activity,
+        INitroConsole console,
+        IFusionConfigurationClient client,
+        CancellationToken cancellationToken)
+    {
+        var result = await client.ValidateFusionConfigurationPublishAsync(
+            requestId,
+            stream,
+            cancellationToken);
+
+        if (result.Errors?.Count > 0)
+        {
+            activity.Fail();
+
+            foreach (var error in result.Errors)
+            {
+                var errorMessage = error switch
+                {
+                    IUnauthorizedOperation err => err.Message,
+                    IFusionConfigurationRequestNotFoundError err => err.Message,
+                    IInvalidProcessingStateTransitionError err => err.Message,
+                    IError err => Messages.UnexpectedMutationError(err),
+                    _ => Messages.UnexpectedMutationError()
+                };
+
+                console.Error.WriteErrorLine(errorMessage);
+            }
+
+            throw new ExitException();
+        }
+
+        await foreach (var @event in client
+                           .SubscribeToFusionConfigurationPublishingTaskChangedAsync(requestId, cancellationToken))
+        {
+            switch (@event)
+            {
+                case IProcessingTaskIsQueued:
+                    throw Exit(
+                        "Your request is in the queued state. Try to run `fusion-configuration publish start` once the request is ready ");
+
+                case IFusionConfigurationPublishingFailed:
+                    throw Exit("Your request has already failed");
+
+                case IFusionConfigurationPublishingSuccess:
+                    throw Exit("You request is already published");
+
+                case IProcessingTaskIsReady:
+                    throw Exit(
+                        "Your request is ready for the composition. Run `fusion-configuration publish start`");
+
+                case IFusionConfigurationValidationFailed { Errors: var errors }:
+                    var errorTree = new Tree("");
+
+                    foreach (var error in errors)
+                    {
+                        switch (error)
+                        {
+                            case ISchemaVersionChangeViolationError e:
+                                errorTree.AddSchemaVersionChangeViolations(e);
+                                break;
+                            case IInvalidGraphQLSchemaError e:
+                                errorTree.AddGraphQLSchemaErrors(e);
+                                break;
+                            case IPersistedQueryValidationError e:
+                                errorTree.AddPersistedQueryValidationErrorsWithClients(e);
+                                break;
+                            case IOpenApiCollectionValidationError e:
+                                errorTree.AddOpenApiCollectionValidationErrors(e);
+                                break;
+                            case IMcpFeatureCollectionValidationError e:
+                                errorTree.AddMcpFeatureCollectionValidationErrors(e);
+                                break;
+                            case IUnexpectedProcessingError e:
+                                errorTree.AddErrorMessage(e.Message);
+                                break;
+                        }
+                    }
+
+                    activity.Fail(errorTree);
+                    return false;
+
+                case IFusionConfigurationValidationSuccess:
+                    return true;
+
+                case IOperationInProgress:
+                case IValidationInProgress:
+                case IWaitForApproval:
+                case IProcessingTaskApproved:
+                    // activity.Update(Messages.Validating);
+                    break;
+
+                default:
+                    activity.Update(Messages.UnknownServerResponse, ActivityUpdateKind.Warning);
+                    break;
+            }
+        }
+
+        return false;
+    }
+
+    public static async Task<(CompositionResult<MutableSchemaDefinition>, CompositionLog)> ComposeAsync(
         Stream archiveStream,
         Stream? existingArchiveStream,
         string environment,
         Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas,
         CompositionSettings? compositionSettings,
-        IAnsiConsole console,
         CancellationToken cancellationToken)
     {
         FusionArchive archive;
@@ -336,7 +430,6 @@ internal static class FusionPublishHelpers
             environment,
             newSourceSchemas,
             compositionSettings,
-            console,
             cancellationToken);
 
         archiveStream.Seek(0, SeekOrigin.Begin);
@@ -344,12 +437,11 @@ internal static class FusionPublishHelpers
         return result;
     }
 
-    public static async Task<bool> ComposeAsync(
+    public static async Task<(CompositionResult<MutableSchemaDefinition>, CompositionLog)> ComposeAsync(
         FusionArchive archive,
         string environment,
         Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas,
         CompositionSettings? compositionSettings,
-        IAnsiConsole console,
         CancellationToken cancellationToken)
     {
         var compositionLog = new CompositionLog();
@@ -362,45 +454,6 @@ internal static class FusionPublishHelpers
             compositionSettings,
             cancellationToken);
 
-        FusionComposeCommand.WriteCompositionLog(
-            compositionLog,
-            new AnsiStreamWriter(Console.Out),
-            false);
-
-        if (result.IsFailure)
-        {
-            foreach (var error in result.Errors)
-            {
-                console.WriteLine(error.Message);
-            }
-
-            return false;
-        }
-
-        return true;
-    }
-
-    private static HttpRequestMessage CreateDownloadSourceSchemaVersionRequest(
-        string apiId,
-        string sourceSchemaName,
-        string sourceSchemaVersion)
-    {
-        const string path = "/api/v1/apis/{0}/fusion-subgraphs/{1}/versions/{2}/download";
-
-        var escapedApiId = Uri.EscapeDataString(apiId);
-        var requestUri = string.Format(path, escapedApiId, sourceSchemaName, sourceSchemaVersion);
-
-        return new HttpRequestMessage(HttpMethod.Get, requestUri);
-    }
-
-    private sealed class AnsiStreamWriter(TextWriter textWriter) : IStandardStreamWriter
-    {
-        public void Write(string? value)
-        {
-            if (!string.IsNullOrEmpty(value))
-            {
-                textWriter.Write(value);
-            }
-        }
+        return (result, compositionLog);
     }
 }

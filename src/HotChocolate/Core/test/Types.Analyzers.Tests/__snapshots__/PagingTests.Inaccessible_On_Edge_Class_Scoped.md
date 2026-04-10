@@ -324,6 +324,24 @@ namespace TestNamespace
                     var pagingOptions = global::HotChocolate.Types.Pagination.PagingHelper.GetPagingOptions(field.Context, null);
                     configuration.Features.Set(pagingOptions);
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetAuthorsAsync",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::GreenDonut.Data.PagingArguments),
+                            typeof(global::System.Threading.CancellationToken)
+                        })!;
+
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+                    HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
+                        field.Context,
+                        fieldDescriptor,
+                        configuration.Member,
+                        new global::HotChocolate.Types.UseConnectionAttribute());
+                    configuration.ConfigurationsAreApplied = true;
+                    fieldDescriptor.CreateConfiguration();
+
                     configuration.Resolvers = context.Resolvers.GetAuthorsAsync();
                 },
                 (Resolvers: resolvers, ThisType: thisType));
@@ -371,7 +389,8 @@ namespace TestNamespace
                     args0_before,
                     args0_includeTotalCount)
                     {
-                        EnableRelativeCursors = args0_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.RelativeCursor)
+                        EnableRelativeCursors = args0_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.RelativeCursor),
+                        NullOrdering = args0_options.NullOrdering
                     };
                 var args1 = context.RequestAborted;
                 var result = await global::TestNamespace.AuthorQueries.GetAuthorsAsync(args0, args1);
@@ -421,4 +440,3 @@ namespace Microsoft.Extensions.DependencyInjection
 }
 
 ```
-

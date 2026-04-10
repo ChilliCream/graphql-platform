@@ -87,7 +87,7 @@ namespace HotChocolate.Types.Pagination
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.Description = "A list of edges.";
+                    configuration.Description = GetDescription("A list of edges.", false, field.Context.Options.UseXmlDocumentation);
                     configuration.Type = typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.ListType<global::HotChocolate.Types.NonNullType<global::HotChocolate.Types.Pagination.ProductEdgeType>>), HotChocolate.Types.TypeContext.Output);
                     configuration.ResultType = typeof(global::System.Collections.Generic.IReadOnlyList<global::HotChocolate.Types.Pagination.PageEdge<global::TestNamespace.Product>>);
 
@@ -107,7 +107,7 @@ namespace HotChocolate.Types.Pagination
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.Description = "A flattened list of the nodes";
+                    configuration.Description = GetDescription("A flattened list of the nodes", false, field.Context.Options.UseXmlDocumentation);
                     configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                         typeInspector.GetTypeRef(typeof(global::TestNamespace.Product), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.ListTypeNode(new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_Product"))));
@@ -129,7 +129,7 @@ namespace HotChocolate.Types.Pagination
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.Description = "Information to aid in pagination.";
+                    configuration.Description = GetDescription("Information to aid in pagination.", false, field.Context.Options.UseXmlDocumentation);
                     configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                         typeInspector.GetTypeRef(typeof(global::HotChocolate.Types.Pagination.PageInfo), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__HotChocolate_Types_Pagination_PageInfo")));
@@ -150,7 +150,7 @@ namespace HotChocolate.Types.Pagination
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.Description = "Identifies the total count of items in the connection.";
+                    configuration.Description = GetDescription("Identifies the total count of items in the connection.", false, field.Context.Options.UseXmlDocumentation);
                     configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                         typeInspector.GetTypeRef(typeof(int), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("int")));
@@ -202,6 +202,10 @@ namespace HotChocolate.Types.Pagination
                 return result;
             }
         }
+
+        [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        private static string? GetDescription(string value, bool isXmlDocumentation, bool useXmlDocumentation)
+            => !isXmlDocumentation || useXmlDocumentation ? value : null;
     }
 }
 
@@ -257,7 +261,7 @@ namespace HotChocolate.Types.Pagination
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.Description = "The item at the end of the edge.";
+                    configuration.Description = GetDescription("The item at the end of the edge.", false, field.Context.Options.UseXmlDocumentation);
                     configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                         typeInspector.GetTypeRef(typeof(global::TestNamespace.Product), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("global__TestNamespace_Product")));
@@ -278,7 +282,7 @@ namespace HotChocolate.Types.Pagination
                     var bindingResolver = field.Context.ParameterBindingResolver;
                     var naming = field.Context.Naming;
 
-                    configuration.Description = "A cursor for use in pagination.";
+                    configuration.Description = GetDescription("A cursor for use in pagination.", false, field.Context.Options.UseXmlDocumentation);
                     configuration.Type = global::HotChocolate.Types.Descriptors.TypeReference.Create(
                         typeInspector.GetTypeRef(typeof(string), HotChocolate.Types.TypeContext.Output),
                         new global::HotChocolate.Language.NonNullTypeNode(new global::HotChocolate.Language.NamedTypeNode("string")));
@@ -311,6 +315,10 @@ namespace HotChocolate.Types.Pagination
                 return result;
             }
         }
+
+        [global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+        private static string? GetDescription(string value, bool isXmlDocumentation, bool useXmlDocumentation)
+            => !isXmlDocumentation || useXmlDocumentation ? value : null;
     }
 }
 
@@ -390,6 +398,26 @@ namespace TestNamespace
                         configuration.Arguments.Add(argumentConfiguration);
                     }
 
+                    configuration.Member = context.ThisType.GetMethod(
+                        "GetProductsAsync",
+                        global::HotChocolate.Utilities.ReflectionUtils.StaticMemberFlags,
+                        new global::System.Type[]
+                        {
+                            typeof(global::GreenDonut.Data.PagingArguments),
+                            typeof(global::GreenDonut.Data.QueryContext<global::TestNamespace.Brand>),
+                            typeof(global::TestNamespace.ProductService),
+                            typeof(global::System.Threading.CancellationToken)
+                        })!;
+
+                    var fieldDescriptor = global::HotChocolate.Types.Descriptors.ObjectFieldDescriptor.From(field.Context, configuration);
+                    HotChocolate.Internal.ConfigurationHelper.ApplyConfiguration(
+                        field.Context,
+                        fieldDescriptor,
+                        configuration.Member,
+                        new global::HotChocolate.Types.UseConnectionAttribute());
+                    configuration.ConfigurationsAreApplied = true;
+                    fieldDescriptor.CreateConfiguration();
+
                     configuration.Resolvers = context.Resolvers.GetProductsAsync();
                     configuration.ResultPostProcessor = global::HotChocolate.Execution.ListPostProcessor<global::TestNamespace.Product>.Default;
                 },
@@ -452,13 +480,14 @@ namespace TestNamespace
                     args0_before,
                     args0_includeTotalCount)
                     {
-                        EnableRelativeCursors = args0_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.RelativeCursor)
+                        EnableRelativeCursors = args0_flags.HasFlag(global::HotChocolate.Types.Pagination.ConnectionFlags.RelativeCursor),
+                        NullOrdering = args0_options.NullOrdering
                     };
                 var args1_selection = context.Selection;
                 var args1_filter = global::HotChocolate.Data.Filters.FilterContextResolverContextExtensions.GetFilterContext(context);
                 var args1_sorting = global::HotChocolate.Data.Sorting.SortingContextResolverContextExtensions.GetSortingContext(context);
                 var args1 = new global::GreenDonut.Data.QueryContext<global::TestNamespace.Brand>(
-                    global::HotChocolate.Execution.Processing.HotChocolateExecutionSelectionExtensions.AsSelector<global::TestNamespace.Brand>(args1_selection),
+                    global::HotChocolate.Execution.Processing.HotChocolateExecutionSelectionExtensions.AsSelector<global::TestNamespace.Brand>(args1_selection, context.IncludeFlags),
                     args1_filter?.AsPredicate<global::TestNamespace.Brand>(),
                     args1_sorting?.AsSortDefinition<global::TestNamespace.Brand>());
                 var args2 = _binding_GetProductsAsync_productService.Execute<global::TestNamespace.ProductService>(context);
@@ -490,4 +519,3 @@ namespace TestNamespace
   }
 ]
 ```
-

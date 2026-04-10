@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using HotChocolate.Authorization;
 using HotChocolate.Features;
@@ -68,6 +69,7 @@ public sealed class TestSchema
                 input.Date,
                 input.DateTime,
                 input.Decimal,
+                input.Duration,
                 input.Enum,
                 input.Float,
                 input.Id,
@@ -81,12 +83,20 @@ public sealed class TestSchema
                 new Object1Nullable(new Object2Nullable(new Object3Nullable(input.Object.Field1A.Field1B.Field1C))),
                 input.Short,
                 input.String,
-                input.TimeSpan,
                 input.Unknown,
                 input.Uri,
                 input.Url,
                 input.Uuid);
         }
+
+        public string SearchProducts(string? text, float? minPrice)
+        {
+            var formattedMinPrice = minPrice?.ToString(CultureInfo.InvariantCulture);
+            return $"Searched for: {text ?? "all"}, minPrice: {formattedMinPrice}";
+        }
+
+        public string SearchProductsPaginated(string? text, int first)
+            => $"Searched for: {text ?? "all"}, first: {first}";
     }
 
     public class Mutation
@@ -185,6 +195,7 @@ public sealed class TestSchema
         [property: GraphQLType<DateType>] DateOnly? Date,
         DateTimeOffset? DateTime,
         decimal? Decimal,
+        TimeSpan? Duration,
         TestEnum? Enum,
         float? Float,
         [property: GraphQLType<IdType>] string? Id,
@@ -198,7 +209,6 @@ public sealed class TestSchema
         Object1Nullable? Object,
         short? Short,
         string? String,
-        TimeSpan? TimeSpan,
         [property: GraphQLType<UnknownType>] string? Unknown,
         Uri? Uri,
         [property: GraphQLType<UrlType>] Uri? Url,
@@ -212,6 +222,7 @@ public sealed class TestSchema
         [property: GraphQLType<NonNullType<DateType>>] DateOnly Date,
         DateTimeOffset DateTime,
         decimal Decimal,
+        TimeSpan Duration,
         TestEnum Enum,
         float Float,
         [property: GraphQLType<NonNullType<IdType>>] string Id,
@@ -225,7 +236,6 @@ public sealed class TestSchema
         Object1NonNullable Object,
         short Short,
         string String,
-        TimeSpan TimeSpan,
         [property: GraphQLType<NonNullType<UnknownType>>] string Unknown,
         Uri Uri,
         [property: GraphQLType<NonNullType<UrlType>>] Uri Url,

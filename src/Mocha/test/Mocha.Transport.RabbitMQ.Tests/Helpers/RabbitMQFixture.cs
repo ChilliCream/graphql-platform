@@ -1,0 +1,84 @@
+using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
+using System.Text;
+using RabbitMQ.Client;
+using Squadron;
+
+namespace Mocha.Transport.RabbitMQ.Tests.Helpers;
+
+public class MochaRabbitMQResource : RabbitMQResource
+{
+    public Task<string?> InvokeCommandAsync(string[] command)
+        => Manager.InvokeCommandAsync(command);
+}
+
+public sealed class RabbitMQFixture : IAsyncLifetime
+{
+    private readonly MochaRabbitMQResource _resource = new();
+
+    public async Task InitializeAsync()
+    {
+        await _resource.InitializeAsync();
+    }
+
+    public async Task DisposeAsync()
+    {
+        await _resource.DisposeAsync();
+    }
+
+    public string ConnectionString => _resource.ConnectionString;
+
+    public async Task<VhostContext> CreateVhostAsync(
+        [CallerMemberName] string testName = "",
+        [CallerFilePath] string filePath = "")
+    {
+        var vhostName = GenerateVhostName(testName, filePath);
+        await _resource.InvokeCommandAsync(["rabbitmqctl", "add_vhost", vhostName]);
+        await _resource.InvokeCommandAsync([
+            "rabbitmqctl", "set_permissions", "-p", vhostName, "guest", ".*", ".*", ".*"
+        ]);
+        return new VhostContext(this, vhostName);
+    }
+
+    internal async Task<string?> InvokeCommandAsync(string[] command)
+    {
+        return await _resource.InvokeCommandAsync(command);
+    }
+
+    internal async Task CloseAllConnectionsAsync(string reason = "test")
+    {
+        await _resource.InvokeCommandAsync(["rabbitmqctl", "close_all_connections", reason]);
+    }
+
+    internal async Task DeleteVhostAsync(string vhostName)
+    {
+        await _resource.InvokeCommandAsync(["rabbitmqctl", "delete_vhost", vhostName]);
+    }
+
+    private static string GenerateVhostName(string testName, string filePath)
+    {
+        var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(filePath)))[..8];
+        return $"{testName}_{hash}";
+    }
+}
+
+public sealed class VhostContext : IAsyncDisposable
+{
+    private readonly RabbitMQFixture _fixture;
+
+    public VhostContext(RabbitMQFixture fixture, string vhostName)
+    {
+        _fixture = fixture;
+        VhostName = vhostName;
+        ConnectionFactory = new ConnectionFactory { Uri = new Uri(fixture.ConnectionString), VirtualHost = vhostName };
+    }
+
+    public string VhostName { get; }
+
+    public IConnectionFactory ConnectionFactory { get; }
+
+    public async ValueTask DisposeAsync() => await _fixture.DeleteVhostAsync(VhostName);
+}
+
+[CollectionDefinition("RabbitMQ")]
+public class RabbitMQCollection : ICollectionFixture<RabbitMQFixture>;

@@ -8,7 +8,7 @@ interface Error {
 
 type DoSomethingPayload {
   boolean: Boolean
-  errors: [DoSomethingError] @semanticNonNull(levels: [ 1 ])
+  errors: [DoSomethingError] @semanticNonNull(levels: [1])
 }
 
 type Mutation {

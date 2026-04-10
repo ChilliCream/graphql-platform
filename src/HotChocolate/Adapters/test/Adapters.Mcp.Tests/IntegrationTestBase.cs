@@ -3,7 +3,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using HotChocolate.Adapters.Mcp.Diagnostics;
 using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Execution;
@@ -659,6 +658,7 @@ public abstract class IntegrationTestBase
                 { "date", null },
                 { "dateTime", null },
                 { "decimal", null },
+                { "duration", null },
                 { "enum", null },
                 { "float", null },
                 { "id", null },
@@ -672,8 +672,11 @@ public abstract class IntegrationTestBase
                 { "object", null },
                 { "short", null },
                 { "string", null },
-                { "timeSpan", null },
                 { "unknown", null },
+                { "unsignedByte", null },
+                { "unsignedInt", null },
+                { "unsignedLong", null },
+                { "unsignedShort", null },
                 { "uri", null },
                 { "url", null },
                 { "uuid", null }
@@ -681,10 +684,7 @@ public abstract class IntegrationTestBase
             options: new RequestOptions { JsonSerializerOptions = JsonSerializerOptions.Default });
 
         // assert
-        result.StructuredContent!
-            .ToString()
-            .ReplaceLineEndings("\n")
-            .MatchSnapshot(extension: ".json");
+        result.StructuredContent.MatchSnapshot(extension: ".json");
     }
 
     [Fact]
@@ -712,6 +712,7 @@ public abstract class IntegrationTestBase
                 { "date", "2000-01-01" },
                 { "dateTime", "2000-01-01T12:00:00Z" },
                 { "decimal", 79228162514264337593543950335m },
+                { "duration", "PT5M" },
                 { "enum", "VALUE1" },
                 { "float", 1.5 },
                 { "id", "test" },
@@ -725,8 +726,11 @@ public abstract class IntegrationTestBase
                 { "object", new { field1A = new { field1B = new { field1C = "12:00:00" } } } },
                 { "short", 1 },
                 { "string", "test" },
-                { "timeSpan", "PT5M" },
                 { "unknown", "test" },
+                { "unsignedByte", 1 },
+                { "unsignedInt", 65536 },
+                { "unsignedLong", 4294967296 },
+                { "unsignedShort", 256 },
                 { "uri", "https://example.com" },
                 { "url", "https://example.com" },
                 { "uuid", "00000000-0000-0000-0000-000000000000" }
@@ -734,10 +738,7 @@ public abstract class IntegrationTestBase
             options: new RequestOptions { JsonSerializerOptions = JsonSerializerOptions.Default });
 
         // assert
-        result.StructuredContent!
-            .ToString()
-            .ReplaceLineEndings("\n")
-            .MatchSnapshot(extension: ".json");
+        result.StructuredContent.MatchSnapshot(extension: ".json");
     }
 
     [Fact]
@@ -756,10 +757,7 @@ public abstract class IntegrationTestBase
         var result = await mcpClient.CallToolAsync("get_with_defaulted_variables");
 
         // assert
-        result.StructuredContent!
-            .ToString()
-            .ReplaceLineEndings("\n")
-            .MatchSnapshot(extension: ".json");
+        result.StructuredContent.MatchSnapshot(extension: ".json");
     }
 
     [Fact]
@@ -771,7 +769,7 @@ public abstract class IntegrationTestBase
             new OperationToolDefinition(
                 Utf8GraphQLParser.Parse(
                     await File.ReadAllTextAsync("__resources__/GetWithComplexVariables.graphql"))));
-        var server = await CreateTestServerAsync(storage, [new TimeSpanType(TimeSpanFormat.DotNet)]);
+        var server = await CreateTestServerAsync(storage, [new DurationType(DurationFormat.DotNet)]);
         var mcpClient = await CreateMcpClientAsync(server.CreateClient());
 
         // act
@@ -800,15 +798,12 @@ public abstract class IntegrationTestBase
                 { "oneOf", new { field1 = 1 } },
                 { "oneOfList", new object[] { new { field1 = 1 }, new { field2 = "test" } } },
                 { "objectWithOneOfField", new { field = new { field1 = 1 } } },
-                { "timeSpanDotNet", "00:05:00" }
+                { "durationDotNet", "00:05:00" }
             },
             options: new RequestOptions { JsonSerializerOptions = JsonSerializerOptions.Default });
 
         // assert
-        result.StructuredContent!
-            .ToString()
-            .ReplaceLineEndings("\n")
-            .MatchSnapshot(extension: ".json");
+        result.StructuredContent.MatchSnapshot(extension: ".json");
     }
 
     [Fact]
@@ -826,11 +821,7 @@ public abstract class IntegrationTestBase
         var result = await mcpClient.CallToolAsync("get_with_errors");
 
         // assert
-        result.StructuredContent!
-            .RemoveLocations()
-            .ToString()
-            .ReplaceLineEndings("\n")
-            .MatchSnapshot(extension: ".json");
+        result.StructuredContent.MatchSnapshot(extension: ".json");
     }
 
     [Fact]
@@ -850,8 +841,8 @@ public abstract class IntegrationTestBase
 
         // assert
         var snapshot = new Snapshot();
-        snapshot.Add(result1.StructuredContent, "Result 1", markdownLanguage: "json");
-        snapshot.Add(result2.StructuredContent, "Result 2", markdownLanguage: "json");
+        snapshot.Add(result1.StructuredContent, "Result 1");
+        snapshot.Add(result2.StructuredContent, "Result 2");
         await snapshot.MatchMarkdownAsync();
     }
 
@@ -870,11 +861,7 @@ public abstract class IntegrationTestBase
         var result = await mcpClient.CallToolAsync("get_with_auth");
 
         // assert
-        result.StructuredContent!
-            .RemoveLocations()
-            .ToString()
-            .ReplaceLineEndings("\n")
-            .MatchSnapshot(extension: ".json");
+        result.StructuredContent.MatchSnapshot(extension: ".json");
     }
 
     [Fact]
@@ -1056,24 +1043,5 @@ public sealed class TestMcpDiagnosticEventListener : McpDiagnosticEventListener
     public override void ValidationErrors(IReadOnlyList<IError> errors)
     {
         ValidationErrorLog.AddRange(errors);
-    }
-}
-
-file static class JsonNodeExtensions
-{
-    public static JsonNode RemoveLocations(this JsonNode node)
-    {
-        if (node["errors"] is JsonArray errors)
-        {
-            foreach (var error in errors)
-            {
-                if (error is JsonObject errorObject)
-                {
-                    errorObject.Remove("locations");
-                }
-            }
-        }
-
-        return node;
     }
 }

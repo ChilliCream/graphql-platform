@@ -26,6 +26,7 @@ public sealed class TestSchema
             [GraphQLType<DateType>] DateOnly? date,
             DateTimeOffset? dateTime,
             decimal? @decimal,
+            TimeSpan? duration,
             TestEnum? @enum,
             float? @float,
             [GraphQLType<IdType>] string? id,
@@ -38,8 +39,11 @@ public sealed class TestSchema
             Object1Nullable? @object,
             short? @short,
             string? @string,
-            TimeSpan? timeSpan,
             [GraphQLType<UnknownType>] string? unknown,
+            byte? unsignedByte,
+            uint? unsignedInt,
+            ulong? unsignedLong,
+            ushort? unsignedShort,
             Uri? uri,
             [GraphQLType<UrlType>] Uri? url,
             Guid? uuid)
@@ -52,6 +56,7 @@ public sealed class TestSchema
                     date,
                     dateTime,
                     @decimal,
+                    duration,
                     @enum,
                     @float,
                     id,
@@ -64,8 +69,11 @@ public sealed class TestSchema
                     @object,
                     @short,
                     @string,
-                    timeSpan,
                     unknown,
+                    unsignedByte,
+                    unsignedInt,
+                    unsignedLong,
+                    unsignedShort,
                     uri,
                     url,
                     uuid);
@@ -78,6 +86,7 @@ public sealed class TestSchema
             [GraphQLType<NonNullType<DateType>>] DateOnly date,
             DateTimeOffset dateTime,
             decimal @decimal,
+            TimeSpan duration,
             TestEnum @enum,
             float @float,
             [GraphQLType<NonNullType<IdType>>] string id,
@@ -90,8 +99,11 @@ public sealed class TestSchema
             Object1NonNullable @object,
             short @short,
             string @string,
-            TimeSpan timeSpan,
             [GraphQLType<NonNullType<UnknownType>>] string unknown,
+            byte unsignedByte,
+            uint unsignedInt,
+            ulong unsignedLong,
+            ushort unsignedShort,
             Uri uri,
             [GraphQLType<NonNullType<UrlType>>] Uri url,
             Guid uuid)
@@ -104,6 +116,7 @@ public sealed class TestSchema
                     date,
                     dateTime,
                     @decimal,
+                    duration,
                     @enum,
                     @float,
                     id,
@@ -116,8 +129,11 @@ public sealed class TestSchema
                     @object,
                     @short,
                     @string,
-                    timeSpan,
                     unknown,
+                    unsignedByte,
+                    unsignedInt,
+                    unsignedLong,
+                    unsignedShort,
                     uri,
                     url,
                     uuid);
@@ -130,6 +146,7 @@ public sealed class TestSchema
             [GraphQLType<NonNullType<DateType>>] DateOnly date,
             DateTimeOffset dateTime,
             decimal @decimal,
+            TimeSpan duration,
             TestEnum @enum,
             float @float,
             [GraphQLType<NonNullType<IdType>>] string id,
@@ -142,8 +159,11 @@ public sealed class TestSchema
             Object1Defaulted @object,
             short @short,
             string @string,
-            TimeSpan timeSpan,
             [GraphQLType<NonNullType<UnknownType>>] string unknown,
+            byte unsignedByte,
+            uint unsignedInt,
+            ulong unsignedLong,
+            ushort unsignedShort,
             Uri uri,
             [GraphQLType<NonNullType<UrlType>>] Uri url,
             Guid uuid)
@@ -156,6 +176,7 @@ public sealed class TestSchema
                     date,
                     dateTime,
                     @decimal,
+                    duration,
                     @enum,
                     @float,
                     id,
@@ -168,8 +189,11 @@ public sealed class TestSchema
                     @object,
                     @short,
                     @string,
-                    timeSpan,
                     unknown,
+                    unsignedByte,
+                    unsignedInt,
+                    unsignedLong,
+                    unsignedShort,
                     uri,
                     url,
                     uuid);
@@ -183,7 +207,7 @@ public sealed class TestSchema
             OneOf oneOf,
             OneOf[] oneOfList,
             ObjectWithOneOfField objectWithOneOfField,
-            TimeSpan timeSpanDotNet)
+            TimeSpan durationDotNet)
             =>
                 new(
                     list,
@@ -194,7 +218,7 @@ public sealed class TestSchema
                     oneOf,
                     oneOfList,
                     objectWithOneOfField,
-                    timeSpanDotNet);
+                    durationDotNet);
 
         public int GetWithVariableMinMaxValues() => 1;
 
@@ -335,6 +359,7 @@ public sealed class TestSchema
         [property: GraphQLType<DateType>] DateOnly? Date,
         DateTimeOffset? DateTime,
         decimal? Decimal,
+        TimeSpan? Duration,
         TestEnum? Enum,
         float? Float,
         [property: GraphQLType<IdType>] string? Id,
@@ -347,8 +372,11 @@ public sealed class TestSchema
         Object1Nullable? Object,
         short? Short,
         string? String,
-        TimeSpan? TimeSpan,
         [property: GraphQLType<UnknownType>] string? Unknown,
+        byte? UnsignedByte,
+        uint? UnsignedInt,
+        ulong? UnsignedLong,
+        ushort? UnsignedShort,
         Uri? Uri,
         [property: GraphQLType<UrlType>] Uri? Url,
         Guid? Uuid);
@@ -361,6 +389,7 @@ public sealed class TestSchema
         [property: GraphQLType<NonNullType<DateType>>] DateOnly Date,
         DateTimeOffset DateTime,
         decimal Decimal,
+        TimeSpan Duration,
         TestEnum Enum,
         float Float,
         [property: GraphQLType<NonNullType<IdType>>] string Id,
@@ -373,8 +402,11 @@ public sealed class TestSchema
         Object1NonNullable Object,
         short Short,
         string String,
-        TimeSpan TimeSpan,
         [property: GraphQLType<NonNullType<UnknownType>>] string Unknown,
+        byte UnsignedByte,
+        uint UnsignedInt,
+        ulong UnsignedLong,
+        ushort UnsignedShort,
         Uri Uri,
         [property: GraphQLType<NonNullType<UrlType>>] Uri Url,
         Guid Uuid);
@@ -387,6 +419,7 @@ public sealed class TestSchema
         [property: GraphQLType<NonNullType<DateType>>] DateOnly Date,
         DateTimeOffset DateTime,
         decimal Decimal,
+        TimeSpan Duration,
         TestEnum Enum,
         float Float,
         [property: GraphQLType<NonNullType<IdType>>] string Id,
@@ -399,8 +432,11 @@ public sealed class TestSchema
         Object1Defaulted Object,
         short Short,
         string String,
-        TimeSpan TimeSpan,
         [property: GraphQLType<NonNullType<UnknownType>>] string Unknown,
+        byte UnsignedByte,
+        uint UnsignedInt,
+        ulong UnsignedLong,
+        ushort UnsignedShort,
         Uri Uri,
         [property: GraphQLType<NonNullType<UrlType>>] Uri Url,
         Guid Uuid);
@@ -414,7 +450,7 @@ public sealed class TestSchema
         OneOf OneOf,
         OneOf[] OneOfList,
         ObjectWithOneOfField ObjectWithOneOfField,
-        TimeSpan TimeSpanDotNet);
+        TimeSpan DurationDotNet);
 
     [UnionType(name: "PetUnion")]
     public interface IPet

@@ -1,0 +1,184 @@
+title: Interface_Field_Linked_Field_With_Dependency_Same_Selection_In_Concrete_Type
+request:
+  document: |
+    query testQuery {
+      authorable {
+        author {
+          id
+          displayName
+        }
+        ... on Discussion {
+          author {
+            id
+            displayName
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "authorable": {
+          "author": {
+            "id": "QXV0aG9yOjI=",
+            "displayName": "Author: QXV0aG9yOjI="
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Authorable {
+        author: Author
+      }
+
+      type Author @key(fields: "id") {
+        id: ID!
+      }
+
+      type Comment implements Authorable {
+        author: Author
+      }
+
+      type Discussion implements Authorable {
+        author: Author
+      }
+
+      type Query {
+        authorable: Authorable
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_77a61d25_1 {
+              authorable {
+                __typename
+                author {
+                  id
+                }
+                ... on Discussion {
+                  author {
+                    id
+                  }
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "authorable": {
+                    "__typename": "Discussion",
+                    "author": {
+                      "id": "QXV0aG9yOjI="
+                    }
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author {
+        id: ID!
+        displayName: String!
+      }
+
+      type Query {
+        authorById(id: ID!): Author @lookup
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query testQuery_77a61d25_2($__fusion_1_id: ID!) {
+              authorById(id: $__fusion_1_id) {
+                displayName
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "QXV0aG9yOjI="
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "authorById": {
+                    "displayName": "Author: QXV0aG9yOjI="
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query testQuery {
+          authorable {
+            __typename @fusion__requirement
+            author {
+              id
+              id @fusion__requirement
+              displayName
+            }
+            ... on Discussion {
+              author {
+                id
+                id @fusion__requirement
+                displayName
+              }
+            }
+          }
+        }
+      name: testQuery
+      hash: 77a61d25bcbf9ac9675e65103f6dc4ed
+      searchSpace: 1
+      expandedNodes: 2
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query testQuery_77a61d25_1 {
+          authorable {
+            __typename
+            author {
+              id
+            }
+            ... on Discussion {
+              author {
+                id
+              }
+            }
+          }
+        }
+    - id: 2
+      type: OperationBatch
+      schema: B
+      operation: |
+        query testQuery_77a61d25_2($__fusion_1_id: ID!) {
+          authorById(id: $__fusion_1_id) {
+            displayName
+          }
+        }
+      source: $.authorById
+      targets:
+        - $.authorable<Discussion>.author
+        - $.authorable.author
+      batchingGroupId: 2
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 1

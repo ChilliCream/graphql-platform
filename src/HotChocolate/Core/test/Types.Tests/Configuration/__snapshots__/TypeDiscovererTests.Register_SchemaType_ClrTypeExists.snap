@@ -73,14 +73,6 @@
       ]
     },
     {
-      "type": "HotChocolate.Types.OneOfDirectiveType",
-      "runtimeType": "System.Object",
-      "references": [
-        "HotChocolate.Types.OneOfDirectiveType",
-        "OneOfDirectiveType"
-      ]
-    },
-    {
       "type": "HotChocolate.Types.SkipDirectiveType",
       "runtimeType": "System.Object",
       "references": [
@@ -104,6 +96,14 @@
         "DeprecatedDirectiveType",
         "DirectiveType<DeprecatedDirective>",
         "@DeprecatedDirective"
+      ]
+    },
+    {
+      "type": "HotChocolate.Types.OneOfDirectiveType",
+      "runtimeType": "System.Object",
+      "references": [
+        "HotChocolate.Types.OneOfDirectiveType",
+        "OneOfDirectiveType"
       ]
     },
     {

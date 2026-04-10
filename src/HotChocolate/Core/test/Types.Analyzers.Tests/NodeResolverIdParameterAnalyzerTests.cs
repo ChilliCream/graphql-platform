@@ -43,6 +43,46 @@ public class NodeResolverIdParameterAnalyzerTests
     }
 
     [Fact]
+    public async Task FirstParameter_EndsWithId_NoError()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            ["""
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Relay;
+            using GreenDonut.Data;
+            using System.Threading;
+            using System.Threading.Tasks;
+
+            namespace TestNamespace;
+
+            [ObjectType<Product>]
+            public static partial class ProductNode
+            {
+                [NodeResolver]
+                public static async Task<Product?> GetProductAsync(
+                    string userId,
+                    ProductService productService,
+                    QueryContext<Product> query,
+                    CancellationToken cancellationToken)
+                    => await productService.GetProductByIdAsync(userId, query, cancellationToken);
+            }
+
+            public class Product
+            {
+                public int Id { get; set; }
+                public string Name { get; set; }
+            }
+
+            public class ProductService
+            {
+                public Task<Product?> GetProductByIdAsync(string id, QueryContext<Product> query, CancellationToken ct) => default!;
+            }
+            """],
+            enableAnalyzers: true).MatchMarkdownAsync();
+    }
+
+    [Fact]
     public async Task IdParameter_NotInFirstPosition_RaisesError()
     {
         await TestHelper.GetGeneratedSourceSnapshot(

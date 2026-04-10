@@ -1,0 +1,81 @@
+title: Two_Arguments_Differing_Nullability_Does_Not_Duplicate_Forwarded_Variables
+request:
+  document: |
+    query Test($number: Int!) {
+      testWithTwoArgumentsDifferingNullability(first: $number, second: $number)
+    }
+  variables: |
+    {
+      "number": 1
+    }
+response:
+  body: |
+    {
+      "data": {
+        "testWithTwoArgumentsDifferingNullability": "Query"
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        userById(id: ID!): User!
+        users: [User!]!
+        testWithTwoArgumentsDifferingNullability(first: Int!, second: Int): String!
+      }
+
+      type User implements Node {
+        id: ID!
+        name: String!
+        username: String!
+        birthdate: String!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Test_2ead4419_1($number: Int!) {
+              testWithTwoArgumentsDifferingNullability(first: $number, second: $number)
+            }
+          variables: |
+            {
+              "number": 1
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "testWithTwoArgumentsDifferingNullability": "Query"
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query Test($number: Int!) {
+          testWithTwoArgumentsDifferingNullability(first: $number, second: $number)
+        }
+      name: Test
+      hash: 2ead4419dfb56bb66a60503178451950
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query Test_2ead4419_1($number: Int!) {
+          testWithTwoArgumentsDifferingNullability(first: $number, second: $number)
+        }
+      forwardedVariables:
+        - number

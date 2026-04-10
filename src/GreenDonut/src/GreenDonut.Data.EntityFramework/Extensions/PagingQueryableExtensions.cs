@@ -78,6 +78,18 @@ public static class PagingQueryableExtensions
         ArgumentNullException.ThrowIfNull(source);
 
         source = QueryHelpers.EnsureOrderPropsAreSelected(source);
+        Expression<Func<T, T>>? selector = null;
+        var applySelectorAfterPaging = arguments.After is not null || arguments.Before is not null;
+
+        if (applySelectorAfterPaging)
+        {
+            selector = QueryHelpers.ExtractCurrentSelector(source);
+
+            if (selector is not null)
+            {
+                source = QueryHelpers.RemoveSelector(source);
+            }
+        }
 
         var keys = ParseDataSetKeys(source);
 
@@ -120,7 +132,11 @@ public static class PagingQueryableExtensions
         if (arguments.After is not null)
         {
             cursor = CursorParser.Parse(arguments.After, keys);
-            var (whereExpr, cursorOffset) = BuildWhereExpression<T>(keys, cursor, true);
+            var (whereExpr, cursorOffset) = BuildWhereExpression<T>(
+                keys,
+                cursor,
+                true,
+                arguments.NullOrdering);
             source = source.Where(whereExpr);
             offset = cursorOffset;
 
@@ -145,7 +161,11 @@ public static class PagingQueryableExtensions
             }
 
             cursor = CursorParser.Parse(arguments.Before, keys);
-            var (whereExpr, cursorOffset) = BuildWhereExpression<T>(keys, cursor, false);
+            var (whereExpr, cursorOffset) = BuildWhereExpression<T>(
+                keys,
+                cursor,
+                false,
+                arguments.NullOrdering);
             source = source.Where(whereExpr);
             offset = cursorOffset;
 
@@ -181,13 +201,16 @@ public static class PagingQueryableExtensions
         }
 
         source = source.Take(requestedCount + 1);
+        var pageQuery = selector is null
+            ? source
+            : source.Select(selector);
 
         var builder = ImmutableArray.CreateBuilder<T>();
         var fetchCount = 0;
 
         if (includeTotalCount)
         {
-            var combinedQuery = source.Select(t => new { TotalCount = originalQuery.Count(), Item = t });
+            var combinedQuery = pageQuery.Select(t => new { TotalCount = originalQuery.Count(), Item = t });
 
             TryGetQueryInterceptor()?.OnBeforeExecute(combinedQuery);
 
@@ -207,9 +230,9 @@ public static class PagingQueryableExtensions
         }
         else
         {
-            TryGetQueryInterceptor()?.OnBeforeExecute(source);
+            TryGetQueryInterceptor()?.OnBeforeExecute(pageQuery);
 
-            await foreach (var item in source.AsAsyncEnumerable()
+            await foreach (var item in pageQuery.AsAsyncEnumerable()
                 .WithCancellation(cancellationToken).ConfigureAwait(false))
             {
                 fetchCount++;
@@ -238,8 +261,17 @@ public static class PagingQueryableExtensions
             builder.RemoveAt(isBackward ? 0 : requestedCount);
         }
 
+        var items = builder.ToImmutable();
         var pageIndex = CreateIndex(arguments, cursor, totalCount);
-        return CreatePage(builder.ToImmutable(), arguments, keys, fetchCount, pageIndex, requestedCount, totalCount);
+        return CreateValueCursorPage(
+            Page<T>.ToEntries(items),
+            arguments,
+            keys,
+            fetchCount,
+            pageIndex,
+            requestedCount,
+            totalCount,
+            items);
     }
 
     /// <summary>
@@ -273,11 +305,12 @@ public static class PagingQueryableExtensions
         PagingArguments arguments,
         CancellationToken cancellationToken = default)
         where TKey : notnull
-        => ToBatchPageAsync(
+        => ToBatchPageAsync<TKey, TValue, TValue>(
             source,
             keySelector,
-            t => t,
+            null,
             arguments,
+            includeTotalCount: arguments.IncludeTotalCount,
             cancellationToken);
 
     /// <summary>
@@ -315,10 +348,10 @@ public static class PagingQueryableExtensions
         bool includeTotalCount,
         CancellationToken cancellationToken = default)
         where TKey : notnull
-        => ToBatchPageAsync(
+        => ToBatchPageAsync<TKey, TValue, TValue>(
             source,
             keySelector,
-            t => t,
+            null,
             arguments,
             includeTotalCount: includeTotalCount,
             cancellationToken);
@@ -345,10 +378,10 @@ public static class PagingQueryableExtensions
     /// The type of the parent key.
     /// </typeparam>
     /// <typeparam name="TValue">
-    /// The type of the items in the queryable.
+    /// The type of the value selected from the items in the queryable.
     /// </typeparam>
     /// <typeparam name="TElement">
-    /// The type of the items in the queryable.
+    /// The type of the source elements from which keys and values are projected.
     /// </typeparam>
     /// <returns></returns>
     /// <exception cref="ArgumentException">
@@ -397,7 +430,7 @@ public static class PagingQueryableExtensions
     /// The type of the items in the queryable.
     /// </typeparam>
     /// <typeparam name="TElement">
-    /// The type of the items in the queryable.
+    /// The type of the source elements from which keys and values are projected.
     /// </typeparam>
     /// <returns></returns>
     /// <exception cref="ArgumentException">
@@ -406,12 +439,25 @@ public static class PagingQueryableExtensions
     public static async ValueTask<Dictionary<TKey, Page<TValue>>> ToBatchPageAsync<TKey, TValue, TElement>(
         this IQueryable<TElement> source,
         Expression<Func<TElement, TKey>> keySelector,
-        Func<TElement, TValue> valueSelector,
+        Func<TElement, TValue>? valueSelector,
         PagingArguments arguments,
         bool includeTotalCount,
         CancellationToken cancellationToken = default)
         where TKey : notnull
     {
+        source = QueryHelpers.EnsureOrderPropsAreSelected(source);
+
+        // extract the selector before ensuring group props are selected,
+        // as we need to remove it before grouping and re-apply it after
+        var selector = QueryHelpers.ExtractCurrentSelector(source);
+
+        // if we have a selector, remove it before grouping
+        // we'll re-apply it to the grouped items later
+        if (selector is not null)
+        {
+            source = QueryHelpers.RemoveSelector(source);
+        }
+
         var keys = ParseDataSetKeys(source);
 
         if (keys.Length == 0)
@@ -428,24 +474,18 @@ public static class PagingQueryableExtensions
                 nameof(arguments));
         }
 
+        if (valueSelector is null && !typeof(TValue).IsAssignableFrom(typeof(TElement)))
+        {
+            throw new ArgumentException(
+                "If no value selector is provided, the source element type must be assignable to the value type.",
+                nameof(valueSelector));
+        }
+
         if (arguments.EnableRelativeCursors
             && string.IsNullOrEmpty(arguments.After)
             && string.IsNullOrEmpty(arguments.Before))
         {
             includeTotalCount = true;
-        }
-
-        source = QueryHelpers.EnsureOrderPropsAreSelected(source);
-
-        // extract the selector before ensuring group props are selected,
-        // as we need to remove it before grouping and re-apply it after
-        var selector = QueryHelpers.ExtractCurrentSelector(source);
-
-        // if we have a selector, remove it before grouping
-        // we'll re-apply it to the grouped items later
-        if (selector is not null)
-        {
-            source = QueryHelpers.RemoveSelector(source);
         }
 
         source = QueryHelpers.EnsureGroupPropsAreSelected(source, keySelector);
@@ -493,34 +533,73 @@ public static class PagingQueryableExtensions
             }
 
             var itemCount = requestedCount > item.Items.Count ? item.Items.Count : requestedCount;
-            var builder = ImmutableArray.CreateBuilder<TValue>(itemCount);
+            var totalCount = counts?.GetValueOrDefault(item.Key) ?? batchExpression.Cursor?.TotalCount;
+            var pageIndex = CreateIndex(arguments, batchExpression.Cursor, totalCount);
 
-            if (batchExpression.IsBackward)
+            if (valueSelector is not null)
             {
-                for (var i = itemCount - 1; i >= 0; i--)
+                var entryBuilder = ImmutableArray.CreateBuilder<PageEntry<TValue>>(itemCount);
+                var elementBuilder = ImmutableArray.CreateBuilder<TElement>(itemCount);
+
+                if (batchExpression.IsBackward)
                 {
-                    builder.Add(valueSelector(item.Items[i]));
+                    for (var i = itemCount - 1; i >= 0; i--)
+                    {
+                        var element = item.Items[i];
+                        entryBuilder.Add(new PageEntry<TValue>(valueSelector(element), entryBuilder.Count));
+                        elementBuilder.Add(element);
+                    }
                 }
+                else
+                {
+                    for (var i = 0; i < itemCount; i++)
+                    {
+                        var element = item.Items[i];
+                        entryBuilder.Add(new PageEntry<TValue>(valueSelector(element), entryBuilder.Count));
+                        elementBuilder.Add(element);
+                    }
+                }
+
+                var page = CreateElementCursorPage(
+                    entryBuilder.ToImmutable(),
+                    elementBuilder.ToImmutable(),
+                    arguments,
+                    keys,
+                    item.Items.Count,
+                    pageIndex,
+                    requestedCount,
+                    totalCount);
+                map.Add(item.Key, page);
             }
             else
             {
-                for (var i = 0; i < itemCount; i++)
-                {
-                    builder.Add(valueSelector(item.Items[i]));
-                }
-            }
+                var entryBuilder = ImmutableArray.CreateBuilder<PageEntry<TValue>>(itemCount);
 
-            var totalCount = counts?.GetValueOrDefault(item.Key) ?? batchExpression.Cursor?.TotalCount;
-            var pageIndex = CreateIndex(arguments, batchExpression.Cursor, totalCount);
-            var page = CreatePage(
-                builder.ToImmutable(),
-                arguments,
-                keys,
-                item.Items.Count,
-                pageIndex,
-                requestedCount,
-                totalCount);
-            map.Add(item.Key, page);
+                if (batchExpression.IsBackward)
+                {
+                    for (var i = itemCount - 1; i >= 0; i--)
+                    {
+                        entryBuilder.Add(new PageEntry<TValue>((TValue)(object)item.Items[i]!, entryBuilder.Count));
+                    }
+                }
+                else
+                {
+                    for (var i = 0; i < itemCount; i++)
+                    {
+                        entryBuilder.Add(new PageEntry<TValue>((TValue)(object)item.Items[i]!, entryBuilder.Count));
+                    }
+                }
+
+                var page = CreateValueCursorPage(
+                    entryBuilder.ToImmutable(),
+                    arguments,
+                    keys,
+                    item.Items.Count,
+                    pageIndex,
+                    requestedCount,
+                    totalCount);
+                map.Add(item.Key, page);
+            }
         }
 
         return map;
@@ -581,14 +660,77 @@ public static class PagingQueryableExtensions
         public int Count { get; set; }
     }
 
-    private static Page<T> CreatePage<T>(
-        ImmutableArray<T> items,
+    private static Page<T> CreateValueCursorPage<T>(
+        ImmutableArray<PageEntry<T>> entries,
+        PagingArguments arguments,
+        CursorKey[] keys,
+        int fetchCount,
+        int? index,
+        int? requestedPageSize,
+        int? totalCount,
+        ImmutableArray<T> items = default)
+    {
+        var (hasNext, hasPrevious) = CreatePageFlags(arguments, fetchCount);
+
+        if (arguments.EnableRelativeCursors && totalCount is not null && requestedPageSize is not null)
+        {
+            return new ValueCursorPage<T>(
+                entries,
+                hasNext,
+                hasPrevious,
+                entry => CursorFormatter.Format(entry.Node, keys, new CursorPageInfo(entry.Offset, entry.PageIndex, entry.TotalCount)),
+                index ?? 1,
+                requestedPageSize.Value,
+                totalCount.Value,
+                items);
+        }
+
+        return new ValueCursorPage<T>(
+            entries,
+            hasNext,
+            hasPrevious,
+            item => CursorFormatter.Format(item, keys),
+            totalCount,
+            items);
+    }
+
+    private static Page<TValue> CreateElementCursorPage<TElement, TValue>(
+        ImmutableArray<PageEntry<TValue>> entries,
+        ImmutableArray<TElement> elements,
         PagingArguments arguments,
         CursorKey[] keys,
         int fetchCount,
         int? index,
         int? requestedPageSize,
         int? totalCount)
+    {
+        var (hasNext, hasPrevious) = CreatePageFlags(arguments, fetchCount);
+
+        if (arguments.EnableRelativeCursors && totalCount is not null && requestedPageSize is not null)
+        {
+            return new ElementCursorPage<TElement, TValue>(
+                entries,
+                elements,
+                hasNext,
+                hasPrevious,
+                entry => CursorFormatter.Format(entry.Node, keys, new CursorPageInfo(entry.Offset, entry.PageIndex, entry.TotalCount)),
+                index ?? 1,
+                requestedPageSize.Value,
+                totalCount.Value);
+        }
+
+        return new ElementCursorPage<TElement, TValue>(
+            entries,
+            elements,
+            hasNext,
+            hasPrevious,
+            item => CursorFormatter.Format(item, keys),
+            totalCount: totalCount);
+    }
+
+    private static (bool HasNext, bool HasPrevious) CreatePageFlags(
+        PagingArguments arguments,
+        int fetchCount)
     {
         var hasPrevious = false;
         var hasNext = false;
@@ -621,24 +763,7 @@ public static class PagingQueryableExtensions
             hasNext = true;
         }
 
-        if (arguments.EnableRelativeCursors && totalCount is not null && requestedPageSize is not null)
-        {
-            return new Page<T>(
-                items,
-                hasNext,
-                hasPrevious,
-                (item, o, p, c) => CursorFormatter.Format(item, keys, new CursorPageInfo(o, p, c)),
-                index ?? 1,
-                requestedPageSize.Value,
-                totalCount.Value);
-        }
-
-        return new Page<T>(
-            items,
-            hasNext,
-            hasPrevious,
-            item => CursorFormatter.Format(item, keys),
-            totalCount);
+        return (hasNext, hasPrevious);
     }
 
     private static int? CreateIndex(PagingArguments arguments, Cursor? cursor, int? totalCount)

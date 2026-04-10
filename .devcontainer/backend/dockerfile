@@ -9,7 +9,8 @@ RUN apt-get update && apt-get install -y \
     gnupg2 \
     lsb-release \
     software-properties-common \
-    openssh-server
+    openssh-server \
+    bubblewrap
 
 # Configure SSH server
 RUN mkdir /var/run/sshd \
@@ -38,8 +39,11 @@ RUN wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh \
 RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - \
     && apt-get install -y nodejs
 
-# Install Yarn
-RUN npm install -g yarn
+# Install Yarn, update npm, and install Codex CLI
+RUN npm install -g yarn npm@11.12.0 @openai/codex @github/copilot
+
+# Install Claude Code (as vscode user so it installs to their home directory)
+RUN su - vscode -c "curl -fsSL https://claude.ai/install.sh | bash"
 
 # Install GitHub CLI
 RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | gpg --dearmor -o /usr/share/keyrings/githubcli-archive-keyring.gpg \
@@ -53,6 +57,31 @@ RUN curl -sL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor |
     && echo "deb [arch=$(dpkg --print-architecture)] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" | tee /etc/apt/sources.list.d/azure-cli.list \
     && apt-get update \
     && apt-get install -y azure-cli
+
+# Install zsh plugins for better shell experience
+RUN git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions /home/vscode/.oh-my-zsh/custom/plugins/zsh-autosuggestions \
+    && git clone --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting /home/vscode/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting \
+    && chown -R vscode:vscode /home/vscode/.oh-my-zsh/custom/plugins/zsh-autosuggestions \
+    && chown -R vscode:vscode /home/vscode/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+
+# Configure Oh My Zsh: agnoster theme, useful plugins, claude-d alias
+RUN sed -i 's/ZSH_THEME=".*"/ZSH_THEME="agnoster"/' /home/vscode/.zshrc \
+    && sed -i 's/plugins=(.*)/plugins=(git gh dotnet docker zsh-autosuggestions zsh-syntax-highlighting)/' /home/vscode/.zshrc \
+    && echo 'export PATH="$HOME/.local/bin:$PATH"' >> /home/vscode/.zshrc \
+    && echo 'alias claude-d="claude --dangerously-skip-permissions"' >> /home/vscode/.zshrc \
+    && echo 'alias codex-a="codex --full-auto"' >> /home/vscode/.zshrc \
+    && echo 'alias codex-d="codex --dangerously-bypass-approvals-and-sandbox"' >> /home/vscode/.zshrc \
+    && echo 'DEFAULT_USER=$USER' >> /home/vscode/.zshrc
+
+# Set zsh as default shell for vscode user
+RUN chsh -s /bin/zsh vscode
+
+# Configure GitHub SSH to use port 443 (avoids firewall blocks on port 22)
+RUN mkdir -p /home/vscode/.ssh \
+    && printf "Host github.com\n    Hostname ssh.github.com\n    Port 443\n    User git\n" > /home/vscode/.ssh/config \
+    && chown -R vscode:vscode /home/vscode/.ssh \
+    && chmod 700 /home/vscode/.ssh \
+    && chmod 600 /home/vscode/.ssh/config
 
 # Clean up
 RUN rm dotnet-install.sh \

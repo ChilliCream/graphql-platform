@@ -1,8 +1,7 @@
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Commands.Workspaces;
-using ChilliCream.Nitro.CommandLine.Configuration;
-using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Login;
@@ -14,42 +13,52 @@ internal sealed class LoginCommand : Command
         Description =
             "Log in interactively through your default browser";
 
-        AddOption(Opt<IdentityCloudUrlOption>.Instance);
-        AddArgument(Opt<IdentityCloudUrlArgument>.Instance);
+        Options.Add(Opt<IdentityCloudUrlOption>.Instance);
+        Arguments.Add(Opt<IdentityCloudUrlArgument>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Opt<IdentityCloudUrlOption>.Instance,
-            Opt<IdentityCloudUrlArgument>.Instance,
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Bind.FromServiceProvider<ISessionService>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        this.AddExamples("login");
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        string cloudUrl,
-        string? url,
-        IAnsiConsole console,
-        IApiClient client,
-        ISessionService sessionService,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken cancellationToken)
     {
-        url ??= cloudUrl;
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IWorkspacesClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var clientContext = services.GetRequiredService<NitroClientContext>();
 
-        var session = await console
-            .DefaultStatus()
-            .StartAsync(
-                $"A web browser has been opened at [blue underline]{url}[/]. Please continue the login in the web browser.",
-                async _ => await sessionService.LoginAsync(url, cancellationToken));
-
-        if (session is null)
+        if (!console.IsInteractive)
         {
-            throw new ExitException("There was a failure and nitro could not log you in.");
+            throw new ExitException(
+                "'nitro login' requires an interactive console. "
+                + $"Use '{OptionalApiKeyOption.OptionName}' to authenticate command invocations in non-interactive environments.");
         }
 
-        console.OkLine(
-            $"Logged in as [bold]{session.Email}[/] ({session.Tenant} on {session.IdentityServer})");
+        var cloudUrl = parseResult.GetRequiredValue(Opt<IdentityCloudUrlOption>.Instance);
+        var url = parseResult.GetValue(Opt<IdentityCloudUrlArgument>.Instance);
+
+        url ??= cloudUrl;
+
+        Session? session;
+        await using (var activity = console.StartActivity("Logging in via browser", "Failed to log in."))
+        {
+            activity.Update($"Browser opened at {url.EscapeMarkup()}. Continue login there.");
+
+            session = await sessionService.LoginAsync(url, cancellationToken);
+
+            if (session is null)
+            {
+                throw new ExitException("There was a failure and Nitro could not log you in.");
+            }
+
+            activity.Success($"Logged in as '{session.Email.EscapeMarkup()}'.");
+        }
+
+        clientContext.Configure(session.ApiUrl, new NitroClientAccessTokenAuthorization(session.Tokens!.AccessToken));
 
         return await SetDefaultWorkspaceCommand
             .ExecuteAsync(forceSelection: false, console, client, sessionService, cancellationToken);

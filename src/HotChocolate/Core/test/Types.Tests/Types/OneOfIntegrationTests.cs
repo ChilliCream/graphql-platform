@@ -14,7 +14,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 """
                 {
@@ -31,7 +30,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 """
                 {
@@ -48,7 +46,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 """
                 {
@@ -65,7 +62,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 """
                 {
@@ -81,7 +77,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 """
                 {
@@ -98,7 +93,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 """
                 {
@@ -115,7 +109,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
@@ -141,7 +134,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
@@ -161,7 +153,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
@@ -186,7 +177,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
@@ -211,7 +201,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
@@ -237,7 +226,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
@@ -263,7 +251,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
@@ -289,7 +276,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
@@ -316,7 +302,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
@@ -342,7 +327,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
@@ -362,7 +346,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
@@ -388,7 +371,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 """
                 {
@@ -405,7 +387,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 """
                 {
@@ -422,7 +403,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
@@ -447,7 +427,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 """
                 {
@@ -464,7 +443,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
@@ -483,7 +461,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
@@ -509,7 +486,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 """
                 {
@@ -526,7 +502,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
@@ -552,7 +527,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 """
                 {
@@ -569,7 +543,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .ExecuteRequestAsync(
                 OperationRequestBuilder.New()
                     .SetDocument(
@@ -656,7 +629,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
     public void OneOf_generic_code_first_schema()
         => SchemaBuilder.New()
             .AddQueryType<QueryType>()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .Create()
             .ToString()
             .MatchSnapshot();
@@ -667,12 +639,7 @@ public class OneOfIntegrationTests : TypeValidationTestBase
         await new ServiceCollection()
             .AddGraphQL()
             .AddQueryType<Query>()
-            .ModifyOptions(
-                o =>
-                {
-                    o.EnableOneOf = true;
-                    o.StrictValidation = true;
-                })
+            .ModifyOptions(o => o.StrictValidation = true)
             .ExecuteRequestAsync(
                 """
                 {
@@ -708,7 +675,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                 }
                 """)
             .AddResolver("Query", "foo", "abc")
-            .ModifyOptions(o => o.EnableOneOf = true)
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }
@@ -727,7 +693,6 @@ public class OneOfIntegrationTests : TypeValidationTestBase
                 }
                 """)
             .AddResolver("Query", "foo", "abc")
-            .ModifyOptions(o => o.EnableOneOf = true)
             .BuildSchemaAsync()
             .MatchSnapshotAsync();
     }

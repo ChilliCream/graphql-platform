@@ -1,4 +1,5 @@
 #if NET8_0_OR_GREATER
+using System.Buffers;
 using System.Runtime.CompilerServices;
 #endif
 using System.Security.Cryptography;
@@ -16,6 +17,8 @@ public sealed class MD5DocumentHashProvider : DocumentHashProviderBase
         : base(format) { }
 
     public override string Name => "md5Hash";
+
+    public override string AlgorithmName => "md5";
 
 #if NETSTANDARD2_0
     protected override byte[] ComputeHash(byte[] document, int length)
@@ -37,6 +40,27 @@ public sealed class MD5DocumentHashProvider : DocumentHashProviderBase
         }
 
         return FormatHash(hashSpan, format);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    protected override string ComputeHash(ReadOnlySequence<byte> document, HashFormat format)
+    {
+        using var incrementalHash = IncrementalHash.CreateHash(HashAlgorithmName.MD5);
+
+        foreach (var segment in document)
+        {
+            incrementalHash.AppendData(segment.Span);
+        }
+
+        Span<byte> hashBytes = stackalloc byte[16];
+        incrementalHash.TryGetHashAndReset(hashBytes, out var written);
+
+        if (written < 16)
+        {
+            hashBytes = hashBytes[..written];
+        }
+
+        return FormatHash(hashBytes, format);
     }
 #endif
 }

@@ -24,6 +24,7 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
 
     private static readonly string[] s_builtInSerializers =
     [
+        AnySerializer,
         Base64StringSerializer,
         BooleanSerializer,
         ByteArraySerializer,
@@ -31,17 +32,20 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
         DateSerializer,
         DateTimeSerializer,
         DecimalSerializer,
+        DurationSerializer,
         FloatSerializer,
         IdSerializer,
         IntSerializer,
-        JsonSerializer,
         LocalDateSerializer,
         LocalDateTimeSerializer,
         LocalTimeSerializer,
         LongSerializer,
         ShortSerializer,
         StringSerializer,
-        TimeSpanSerializer,
+        UnsignedByteSerializer,
+        UnsignedIntSerializer,
+        UnsignedLongSerializer,
+        UnsignedShortSerializer,
         UriSerializer,
         UrlSerializer,
         UUIDSerializer
@@ -50,8 +54,9 @@ public class DependencyInjectionGenerator : CodeGenerator<DependencyInjectionDes
     private static readonly Dictionary<string, string> s_alternativeTypeNames = new()
     {
         ["Guid"] = UUIDSerializer,
-        ["Json"] = JsonSerializer,
-        ["JSON"] = JsonSerializer,
+        ["Json"] = AnySerializer,
+        ["JSON"] = AnySerializer,
+        ["TimeSpan"] = DurationSerializer,
         ["Uri"] = UriSerializer,
         ["Url"] = UrlSerializer,
         ["Uuid"] = UUIDSerializer

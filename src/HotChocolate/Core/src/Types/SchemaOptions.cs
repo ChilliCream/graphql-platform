@@ -1,6 +1,7 @@
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate;
@@ -94,9 +95,6 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.DefaultIsOfTypeCheck"/>
     public IsOfTypeFallback? DefaultIsOfTypeCheck { get; set; }
 
-    /// <inheritdoc cref="IReadOnlySchemaOptions.EnableOneOf"/>
-    public bool EnableOneOf { get; set; } = true;
-
     /// <inheritdoc cref="IReadOnlySchemaOptions.EnableFlagEnums"/>
     public bool EnableFlagEnums { get; set; }
 
@@ -114,6 +112,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
 
     /// <inheritdoc cref="IReadOnlySchemaOptions.EnableTag"/>
     public bool EnableTag { get; set; } = true;
+
+    /// <inheritdoc cref="IReadOnlySchemaOptions.EnableOptInFeatures"/>
+    public bool EnableOptInFeatures { get; set; }
 
     /// <inheritdoc cref="IReadOnlySchemaOptions.DefaultQueryDependencyInjectionScope"/>
     public DependencyInjectionScope DefaultQueryDependencyInjectionScope { get; set; } =
@@ -189,6 +190,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.ApplySerializeAsToScalars"/>
     public bool ApplySerializeAsToScalars { get; set; }
 
+    /// <inheritdoc cref="IReadOnlySchemaOptions.DefaultErrorHandlingMode"/>
+    public ErrorHandlingMode DefaultErrorHandlingMode { get; set; } = ErrorHandlingMode.Propagate;
+
     /// <summary>
     /// Creates a mutable options object from a read-only options object.
     /// </summary>
@@ -214,7 +218,6 @@ public class SchemaOptions : IReadOnlySchemaOptions
             RemoveUnusedTypeSystemDirectives = options.RemoveUnusedTypeSystemDirectives,
             SortFieldsByName = options.SortFieldsByName,
             DefaultIsOfTypeCheck = options.DefaultIsOfTypeCheck,
-            EnableOneOf = options.EnableOneOf,
             EnableFlagEnums = options.EnableFlagEnums,
             EnableDefer = options.EnableDefer,
             EnableStream = options.EnableStream,
@@ -222,6 +225,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
             DefaultFieldBindingFlags = options.DefaultFieldBindingFlags,
             StripLeadingIFromInterface = options.StripLeadingIFromInterface,
             EnableTag = options.EnableTag,
+            EnableOptInFeatures = options.EnableOptInFeatures,
             DefaultQueryDependencyInjectionScope = options.DefaultQueryDependencyInjectionScope,
             DefaultMutationDependencyInjectionScope = options.DefaultMutationDependencyInjectionScope,
             LazyInitialization = options.LazyInitialization,
@@ -230,6 +234,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
             ApplyShareableToPageInfo = options.ApplyShareableToPageInfo,
             ApplyShareableToConnections = options.ApplyShareableToConnections,
             ApplyShareableToNodeFields = options.ApplyShareableToNodeFields,
-            ApplySerializeAsToScalars = options.ApplySerializeAsToScalars
+            ApplySerializeAsToScalars = options.ApplySerializeAsToScalars,
+            DefaultErrorHandlingMode = options.DefaultErrorHandlingMode
         };
 }

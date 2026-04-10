@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using HotChocolate.Fetching;
@@ -8,7 +7,11 @@ namespace HotChocolate.Execution.Processing;
 
 internal sealed partial class DeferExecutionCoordinator
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _sync = new();
+#else
     private readonly object _sync = new();
+#endif
     private readonly Dictionary<DeferredBranchKey, int> _branchIdLookup = [];
     private readonly Dictionary<int, DeferredBranch> _branchLookup = [];
     private HashSet<int>? _mainBranchChildren;
@@ -121,12 +124,18 @@ internal sealed partial class DeferExecutionCoordinator
 
             cancellationToken.ThrowIfCancellationRequested();
 
+            // Read both the results and the completion flag inside the same lock
+            // to avoid a race where a final delivery sets _isComplete between
+            // the snapshot read and the completion check.
+            bool isComplete;
+
             lock (_sync)
             {
                 snapshot ??= [];
                 snapshot.Clear();
                 snapshot.AddRange(_results);
                 _results.Clear();
+                isComplete = _isComplete;
             }
 
             foreach (var result in snapshot)
@@ -134,7 +143,7 @@ internal sealed partial class DeferExecutionCoordinator
                 yield return result;
             }
 
-            if (_isComplete)
+            if (isComplete)
             {
                 yield break;
             }

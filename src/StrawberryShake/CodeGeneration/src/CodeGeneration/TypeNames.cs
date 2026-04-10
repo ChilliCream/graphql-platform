@@ -301,11 +301,23 @@ public static class TypeNames
     public const string ByteArraySerializer =
         StrawberryShakeNamespace + "Serialization.ByteArraySerializer";
 
-    public const string TimeSpanSerializer =
-        StrawberryShakeNamespace + "Serialization.TimeSpanSerializer";
+    public const string DurationSerializer =
+        StrawberryShakeNamespace + "Serialization.DurationSerializer";
 
-    public const string JsonSerializer =
-        StrawberryShakeNamespace + "Serialization.JsonSerializer";
+    public const string UnsignedByteSerializer =
+        StrawberryShakeNamespace + "Serialization.UnsignedByteSerializer";
+
+    public const string UnsignedIntSerializer =
+        StrawberryShakeNamespace + "Serialization.UnsignedIntSerializer";
+
+    public const string UnsignedLongSerializer =
+        StrawberryShakeNamespace + "Serialization.UnsignedLongSerializer";
+
+    public const string UnsignedShortSerializer =
+        StrawberryShakeNamespace + "Serialization.UnsignedShortSerializer";
+
+    public const string AnySerializer =
+        StrawberryShakeNamespace + "Serialization.AnySerializer";
 
     public const string UploadSerializer =
         StrawberryShakeNamespace + "Serialization.UploadSerializer";

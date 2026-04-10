@@ -1,6 +1,4 @@
-using StrawberryShake.CodeGeneration.CSharp.Builders;
-
-namespace StrawberryShake.CodeGeneration.CSharp.Generators;
+namespace StrawberryShake.CodeGeneration.CSharp.Builders;
 
 internal class HashCodeBuilder : ICode
 {

@@ -1,0 +1,201 @@
+title: Forward_Nested_Object_Variables
+request:
+  document: |
+    query ProductReviews($id: ID!, $first: Int!) {
+      productById(id: $id) {
+        id
+        repeatData(data: { data: { num: $first } }) {
+          data {
+            num
+          }
+        }
+      }
+    }
+  variables: |
+    {
+      "id": "UHJvZHVjdDox",
+      "first": 1
+    }
+response:
+  body: |
+    {
+      "data": {
+        "productById": {
+          "id": "UHJvZHVjdDox",
+          "repeatData": {
+            "data": {
+              "num": 123
+            }
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        userById(id: ID!): User!
+        users: [User!]!
+        testWithTwoArgumentsDifferingNullability(first: Int!, second: Int): String!
+      }
+
+      type User implements Node {
+        id: ID!
+        name: String!
+        username: String!
+        birthdate: String!
+      }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Product implements Node {
+        id: ID!
+        reviews: [Review!]!
+        reviewCount: Int!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        reviews: [Review!]!
+      }
+
+      type Review implements Node {
+        id: ID!
+        body: String!
+        author: User!
+        product: Product!
+      }
+
+      type User implements Node {
+        id: ID!
+        reviews: [Review!]!
+        errorField: String @error
+      }
+  - name: C
+    schema: |
+      schema {
+        query: Query
+      }
+
+      interface Node {
+        id: ID!
+      }
+
+      type Product implements Node {
+        id: ID!
+        name: String!
+        size: Int! @shareable
+        weight: Int! @shareable
+        repeat(num: Int!): String!
+        repeatData(data: RepeatDataInput!): RepeatDataPayload!
+      }
+
+      type Query {
+        node(id: ID!): Node @lookup @shareable
+        nodes(ids: [ID!]!): [Node]! @shareable
+        productById(id: ID!): Product @lookup @shareable
+        topProducts(first: Int!): [Product!]!
+      }
+
+      type RepeatDataData {
+        num: Int!
+      }
+
+      type RepeatDataPayload {
+        data: RepeatDataData!
+      }
+
+      input RepeatDataDataInput {
+        num: Int!
+      }
+
+      input RepeatDataInput {
+        data: RepeatDataDataInput!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query ProductReviews_4a9e0ed8_1($id: ID!, $first: Int!) {
+              productById(id: $id) {
+                id
+                repeatData(data: { data: { num: $first } }) {
+                  data {
+                    num
+                  }
+                }
+              }
+            }
+          variables: |
+            {
+              "id": "UHJvZHVjdDox",
+              "first": 1
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "productById": {
+                    "id": "UHJvZHVjdDox",
+                    "repeatData": {
+                      "data": {
+                        "num": 123
+                      }
+                    }
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query ProductReviews($id: ID!, $first: Int!) {
+          productById(id: $id) {
+            id
+            repeatData(data: { data: { num: $first } }) {
+              data {
+                num
+              }
+            }
+          }
+        }
+      name: ProductReviews
+      hash: 4a9e0ed86f673b2fe29d210703e41470
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: C
+      operation: |
+        query ProductReviews_4a9e0ed8_1($id: ID!, $first: Int!) {
+          productById(id: $id) {
+            id
+            repeatData(data: { data: { num: $first } }) {
+              data {
+                num
+              }
+            }
+          }
+        }
+      forwardedVariables:
+        - id
+        - first

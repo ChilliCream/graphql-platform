@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace HotChocolate.Language.SyntaxTree;
 
 public class EnumValueNodeTests
@@ -83,5 +85,16 @@ public class EnumValueNodeTests
         Assert.NotEqual(aHash, cHash);
         Assert.Equal(cHash, dHash);
         Assert.NotEqual(aHash, dHash);
+    }
+
+    [Fact]
+    public void AsMemorySegment_LongValue()
+    {
+        var value = new string('A', 64);
+        var node = new EnumValueNode(value);
+
+        var segment = node.AsMemorySegment();
+
+        Assert.Equal(value, Encoding.UTF8.GetString(segment.Span));
     }
 }

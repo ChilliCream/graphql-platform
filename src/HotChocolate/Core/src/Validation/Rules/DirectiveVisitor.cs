@@ -13,7 +13,7 @@ namespace HotChocolate.Validation.Rules;
 /// For each usage of a directive, the directive must be available
 /// on that server.
 ///
-/// https://spec.graphql.org/June2018/#sec-Directives-Are-Defined
+/// https://spec.graphql.org/September2025/#sec-Directives-Are-Defined
 ///
 /// AND
 ///
@@ -23,7 +23,7 @@ namespace HotChocolate.Validation.Rules;
 /// For each usage of a directive, the directive must be used in a
 /// location that the server has declared support for.
 ///
-/// https://spec.graphql.org/June2018/#sec-Directives-Are-In-Valid-Locations
+/// https://spec.graphql.org/September2025/#sec-Directives-Are-in-Valid-Locations
 ///
 /// AND
 ///

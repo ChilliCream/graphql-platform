@@ -150,7 +150,7 @@ internal sealed class VariableCoercionHelper
         throw ThrowHelper.VariableIsNotAnInputType(variableDefinition);
     }
 
-    private IValueNode CoerceInputLiteral(
+    private static IValueNode CoerceInputLiteral(
         JsonElement inputValue,
         IInputType type,
         IFeatureProvider context,
@@ -213,7 +213,7 @@ internal sealed class VariableCoercionHelper
 
                     foreach (var field in inputObjectType.Fields)
                     {
-                        if (field.DefaultValue is not (null or NullValueNode) && !processedFields.Contains(field.Name))
+                        if (field is { IsOptional: false, DefaultValue: not (null or NullValueNode) } && !processedFields.Contains(field.Name))
                         {
                             fields.Add(new ObjectFieldNode(field.Name, field.DefaultValue));
                         }
@@ -227,18 +227,20 @@ internal sealed class VariableCoercionHelper
                 }
 
             case TypeKind.List:
-                if (inputValue.ValueKind is not JsonValueKind.Array)
-                {
-                    throw new InvalidOperationException();
-                }
-
                 var items = new List<IValueNode>();
                 var elementType = type.ElementType().EnsureInputType();
                 var elementDepth = depth + 1;
 
-                foreach (var item in inputValue.EnumerateArray())
+                if (inputValue.ValueKind is JsonValueKind.Array)
                 {
-                    items.Add(CoerceInputLiteral(item, elementType, context, elementDepth));
+                    foreach (var item in inputValue.EnumerateArray())
+                    {
+                        items.Add(CoerceInputLiteral(item, elementType, context, elementDepth));
+                    }
+                }
+                else
+                {
+                    items.Add(CoerceInputLiteral(inputValue, elementType, context, elementDepth));
                 }
 
                 return new ListValueNode(items);

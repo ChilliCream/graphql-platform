@@ -1,9 +1,9 @@
-using ChilliCream.Nitro.CommandLine.Client;
-using ChilliCream.Nitro.CommandLine.Configuration;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
-using StrawberryShake;
-using Command = System.CommandLine.Command;
+using ChilliCream.Nitro.CommandLine.Services;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
+using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
 
@@ -11,74 +11,100 @@ internal sealed class UploadClientCommand : Command
 {
     public UploadClientCommand() : base("upload")
     {
-        Description = "Upload a new client version";
+        Description = "Upload a new client version.";
 
-        AddOption(Opt<TagOption>.Instance);
-        AddOption(Opt<OperationsFileOption>.Instance);
-        AddOption(Opt<ClientIdOption>.Instance);
+        Options.Add(Opt<ClientIdOption>.Instance);
+        Options.Add(Opt<TagOption>.Instance);
+        Options.Add(Opt<OperationsFileOption>.Instance);
+        Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Opt<TagOption>.Instance,
-            Opt<OperationsFileOption>.Instance,
-            Opt<ClientIdOption>.Instance,
-            Bind.FromServiceProvider<CancellationToken>());
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples(
+            """
+            client upload \
+              --client-id "<client-id>" \
+              --tag "v1" \
+              --operations-file ./operations.json
+            """);
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        IAnsiConsole console,
-        IApiClient client,
-        string tag,
-        FileInfo operationsFile,
-        string clientId,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken cancellationToken)
     {
-        console.Title($"Upload operations {operationsFile.FullName.EscapeMarkup()}");
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IClientsClient>();
+        var fileSystem = services.GetRequiredService<IFileSystem>();
+        var sessionService = services.GetRequiredService<ISessionService>();
 
-        if (console.IsHumanReadable())
+        parseResult.AssertHasAuthentication(sessionService);
+
+        var tag = parseResult.GetRequiredValue(Opt<TagOption>.Instance);
+        var operationsFilePath = parseResult.GetRequiredValue(Opt<OperationsFileOption>.Instance);
+        var clientId = parseResult.GetRequiredValue(Opt<ClientIdOption>.Instance);
+        var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
+
+        var source = SourceMetadataParser.Parse(sourceMetadataJson);
+
+        if (!Path.IsPathRooted(operationsFilePath))
         {
-            await console
-                .Status()
-                .Spinner(Spinner.Known.BouncingBar)
-                .SpinnerStyle(Style.Parse("green bold"))
-                .StartAsync("Upload operations...", UploadClient);
+            operationsFilePath = Path.Combine(fileSystem.GetCurrentDirectory(), operationsFilePath);
         }
-        else
+
+        if (!fileSystem.FileExists(operationsFilePath))
         {
-            await UploadClient(null);
+            throw new ExitException(Messages.OperationsFileDoesNotExist(operationsFilePath));
         }
 
-        return ExitCodes.Success;
-
-        async Task UploadClient(StatusContext? ctx)
+        await using (var activity = console.StartActivity(
+            $"Uploading new client version '{tag.EscapeMarkup()}' for client '{clientId.EscapeMarkup()}'",
+            "Failed to upload a new client version."))
         {
-            console.Log("Initialized");
-            console.Log($"Reading file [blue]{operationsFile.FullName.EscapeMarkup()}[/]");
+            await using var stream = fileSystem.OpenReadStream(operationsFilePath);
 
-            var stream = FileHelpers.CreateFileStream(operationsFile);
+            var data = await client.UploadClientVersionAsync(
+                clientId,
+                tag,
+                stream,
+                source,
+                cancellationToken);
 
-            var input = new UploadClientInput
+            if (data.Errors?.Count > 0)
             {
-                Operations = new Upload(stream, "operations.graphql"),
-                ClientId = clientId,
-                Tag = tag
-            };
+                activity.Fail();
 
-            console.Log("Uploading Client..");
-            var result = await client.UploadClient.ExecuteAsync(input, cancellationToken);
+                foreach (var error in data.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        IUploadClient_UploadClient_Errors_UnauthorizedOperation err => err.Message,
+                        IUploadClient_UploadClient_Errors_ClientNotFoundError err => err.Message,
+                        IUploadClient_UploadClient_Errors_DuplicatedTagError err => err.Message,
+                        IUploadClient_UploadClient_Errors_ConcurrentOperationError err => err.Message,
+                        IUploadClient_UploadClient_Errors_InvalidPersistedQueryError err => err.Message,
+                        IUploadClient_UploadClient_Errors_InvalidSourceMetadataInputError err => err.Message,
+                        IError err => Messages.UnexpectedMutationError(err),
+                        _ => Messages.UnexpectedMutationError()
+                    };
 
-            console.EnsureNoErrors(result);
-            var data = console.EnsureData(result);
-            console.PrintErrorsAndExit(data.UploadClient.Errors);
+                    console.Error.WriteErrorLine(errorMessage);
+                }
 
-            if (data.UploadClient.ClientVersion?.Id is null)
-            {
-                throw new ExitException("Upload operations failed!");
+                return ExitCodes.Error;
             }
 
-            console.Success("Successfully uploaded operations!");
+            if (data.ClientVersion is null)
+            {
+                throw Exit("Could not upload client.");
+            }
+
+            activity.Success($"Uploaded new client version '{tag.EscapeMarkup()}'.");
+
+            return ExitCodes.Success;
         }
     }
 }

@@ -1,0 +1,16 @@
+{
+  "activities": [
+    {
+      "OperationName": "GraphQL DataLoader Dispatch",
+      "DisplayName": "GraphQL DataLoader Dispatch",
+      "Status": "Ok",
+      "tags": [
+        {
+          "Key": "graphql.processing.type",
+          "Value": "dataloader_dispatch"
+        }
+      ],
+      "event": []
+    }
+  ]
+}

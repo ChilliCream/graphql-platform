@@ -69,9 +69,7 @@ public static class OpenApiRequestExecutorBuilderExtensions
     /// The <paramref name="builder"/> is <c>null</c>.
     /// </exception>
     /// <remarks>
-    /// The <typeparamref name="T"/> will be activated with the <see cref="IServiceProvider"/> of the schema services.
-    /// If your <typeparamref name="T"/> needs to access application services you need to
-    /// make the services available in the schema services via <see cref="RequestExecutorBuilderExtensions.AddApplicationService"/>.
+    /// The <typeparamref name="T"/> will be activated with the <see cref="IServiceProvider"/> of the application services.
     /// <br />
     /// The <see cref="IServiceProvider"/> passed to the <paramref name="skipIf"/>
     /// is for the application services.
@@ -118,11 +116,7 @@ public static class OpenApiRequestExecutorBuilderExtensions
     /// </exception>
     /// <remarks>
     /// The <see cref="IServiceProvider"/> passed to the <paramref name="factory"/>
-    /// is for the schema services. If you need to access application services
-    /// you need to either make the services available in the schema services
-    /// via <see cref="RequestExecutorBuilderExtensions.AddApplicationService"/> or use
-    /// <see cref="ExecutionServiceProviderExtensions.GetRootServiceProvider(IServiceProvider)"/>
-    /// to access the application services from within the schema service provider.
+    /// is for the application services.
     /// <br />
     /// The <see cref="IServiceProvider"/> passed to the <paramref name="skipIf"/>
     /// is for the application services.

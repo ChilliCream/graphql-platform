@@ -324,7 +324,7 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ foo(input: [ \"foo\" ]) }");
+            "{ foo(input: [\"foo\"]) }");
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -349,7 +349,7 @@ public class AnyTypeTests
 
         // act
         var result = await executor.ExecuteAsync(
-            "{ foo(input: [ { a: \"foo\" } ]) }");
+            "{ foo(input: [{ a: \"foo\" }]) }");
 
         // assert
         result.ToJson().MatchSnapshot();
@@ -1453,7 +1453,10 @@ public class AnyTypeTests
             }
 
             "The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
-            directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR
+            directive @specifiedBy(
+              "The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types."
+              url: String!
+            ) on SCALAR
 
             "The `Any` scalar type represents any valid GraphQL value."
             scalar Any @specifiedBy(url: "https://scalars.graphql.org/chillicream/any.html")

@@ -1,0 +1,76 @@
+using HotChocolate.Properties;
+
+namespace HotChocolate.Types;
+
+/// <summary>
+/// Defines options for configuring the behavior of date and time scalar types, such as
+/// <c>DateTime</c>, <c>LocalDateTime</c>, and <c>LocalTime</c>.
+/// </summary>
+public struct DateTimeOptions
+{
+    public const byte DefaultInputPrecision = 9;
+
+    // DateTimeOffset, DateTime, and TimeOnly all have a maximum of 7 fractional second digits.
+    public const byte DefaultOutputPrecision = 7;
+
+    public DateTimeOptions()
+    {
+    }
+
+    /// <summary>
+    /// Gets the maximum number of fractional second digits to expect when parsing date and time
+    /// input values. Note that the underlying .NET types (<see cref="DateTimeOffset"/>,
+    /// <see cref="DateTime"/>, and <see cref="TimeOnly"/>) have a maximum resolution of 7
+    /// fractional digits (100-nanosecond ticks), so digits beyond the 7th are rounded during
+    /// parsing.
+    /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Thrown when the value is greater than 9.
+    /// </exception>
+    public byte InputPrecision
+    {
+        get;
+        init
+        {
+            if (value > 9)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(InputPrecision),
+                    value,
+                    TypeResources.DateTimeOptions_InputPrecision_InvalidValue);
+            }
+
+            field = value;
+        }
+    } = DefaultInputPrecision;
+
+    /// <summary>
+    /// Gets the maximum number of fractional second digits to include when serializing date and
+    /// time output values.
+    /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Thrown when the value is greater than 7.
+    /// </exception>
+    public byte OutputPrecision
+    {
+        get;
+        init
+        {
+            if (value > 7)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(OutputPrecision),
+                    value,
+                    TypeResources.DateTimeOptions_OutputPrecision_InvalidValue);
+            }
+
+            field = value;
+        }
+    } = DefaultOutputPrecision;
+
+    /// <summary>
+    /// Gets a value indicating whether the input format of date and time values should be validated
+    /// against the expected format. Defaults to <c>true</c>.
+    /// </summary>
+    public bool ValidateInputFormat { get; init; } = true;
+}

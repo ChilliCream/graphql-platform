@@ -1,6 +1,10 @@
 {
   "name": "ChilliCream Frontend",
-  "image": "mcr.microsoft.com/devcontainers/javascript-node:22-bookworm",
+  "build": {
+    "dockerfile": "dockerfile",
+    "context": "."
+  },
+  "runArgs": ["--shm-size=512m"],
   "features": {
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
@@ -11,10 +15,17 @@
         "esbenp.prettier-vscode",
         "bradlc.vscode-tailwindcss",
         "dsznajder.es7-react-js-snippets",
-        "csstools.postcss"
-      ]
+        "csstools.postcss",
+        "graphql.vscode-graphql",
+        "esbenp.prettier-vscode",
+        "anthropic.claude-code",
+        "openai.chatgpt"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh"
+      }
     }
   },
   "forwardPorts": [3000],
-  "postCreateCommand": "node --version && npm --version"
+  "postCreateCommand": "cd website && yarn"
 }

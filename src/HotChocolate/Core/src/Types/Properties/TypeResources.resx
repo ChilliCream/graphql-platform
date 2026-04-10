@@ -174,10 +174,10 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
     <value>Object and Interface types are described by a list of Fields, each of which has a name, potentially a list of arguments, and a return type.</value>
   </data>
   <data name="FloatType_Description" xml:space="preserve">
-    <value>The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http://en.wikipedia.org/wiki/IEEE_floating_point).</value>
+    <value>The `Float` scalar type represents signed double-precision finite values as specified by [IEEE 754](https://en.wikipedia.org/wiki/IEEE_floating_point).</value>
   </data>
   <data name="IdType_Description" xml:space="preserve">
-    <value>The `ID` scalar type represents a unique identifier, often used to refetch an object or as key for a cache. The ID type appears in a JSON response as a String; however, it is not intended to be human-readable. When expected as an input type, any string (such as `"4"`) or integer (such as `4`) input value will be accepted as an ID.</value>
+    <value>The `ID` scalar type represents a unique identifier, often used to refetch an object or as the key for a cache.</value>
   </data>
   <data name="InputField_CannotSetValue" xml:space="preserve">
     <value>Unable to set the input field value.</value>
@@ -219,7 +219,7 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
     <value>The interface type extension can only be merged with an interface type.</value>
   </data>
   <data name="IntType_Description" xml:space="preserve">
-    <value>The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.</value>
+    <value>The `Int` scalar type represents a signed 32-bit numeric non-fractional value.</value>
   </data>
   <data name="LongType_Description" xml:space="preserve">
     <value>The `Long` scalar type represents a signed 64-bit integer.</value>
@@ -333,7 +333,7 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
     <value>The `Short` scalar type represents a signed 16-bit integer.</value>
   </data>
   <data name="StringType_Description" xml:space="preserve">
-    <value>The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text.</value>
+    <value>The `String` scalar type represents textual data, represented as a sequence of Unicode code points.</value>
   </data>
   <data name="String_Argument_NullOrEmpty" xml:space="preserve">
     <value>The `{0}` cannot be null or empty.</value>
@@ -485,8 +485,8 @@ Type: `{0}`</value>
   <data name="SchemaBuilder_Convention_NotSupported" xml:space="preserve">
     <value>The specified convention type is not supported.</value>
   </data>
-  <data name="TimeSpanType_Description" xml:space="preserve">
-    <value>The `TimeSpan` scalar type represents a duration of time.</value>
+  <data name="DurationType_Description" xml:space="preserve">
+    <value>The `Duration` scalar type represents a duration of time.</value>
   </data>
   <data name="DefaultDataLoaderRegistry_GetOrRegister" xml:space="preserve">
     <value>The DataLoader `{0}` was not of the requested type `{1}`.</value>
@@ -1031,5 +1031,59 @@ Type: `{0}`</value>
   </data>
   <data name="RegexType_InvalidFormat" xml:space="preserve">
     <value>{0}Type cannot parse the provided value. The value does not match the required regular expression pattern.</value>
+  </data>
+  <data name="RequiresOptInDirectiveType_TypeDescription" xml:space="preserve">
+    <value>Indicates that the given field, argument, input field, or enum value requires giving explicit consent before being used.</value>
+  </data>
+  <data name="RequiresOptInDirectiveType_FeatureDescription" xml:space="preserve">
+    <value>The name of the feature that requires opt in.</value>
+  </data>
+  <data name="RequiresOptInDirective_Descriptor_NotSupported" xml:space="preserve">
+    <value>RequiresOptIn is not supported on the specified descriptor.</value>
+  </data>
+  <data name="OptInFeatureStabilityDirectiveType_TypeDescription" xml:space="preserve">
+    <value>Sets the stability level of an opt-in feature.</value>
+  </data>
+  <data name="OptInFeatureStabilityDirectiveType_FeatureDescription" xml:space="preserve">
+    <value>The name of the feature for which to set the stability.</value>
+  </data>
+  <data name="OptInFeatureStabilityDirectiveType_StabilityDescription" xml:space="preserve">
+    <value>The stability level of the feature.</value>
+  </data>
+  <data name="OptInFeatureStability_Description" xml:space="preserve">
+    <value>An OptInFeatureStability object describes the stability level of an opt-in feature.</value>
+  </data>
+  <data name="ErrorHelper_RequiresOptInOnRequiredInputField" xml:space="preserve">
+    <value>The @requiresOptIn directive must not appear on required (non-null without a default) input object field definitions.</value>
+  </data>
+  <data name="ErrorHelper_RequiresOptInOnRequiredArgument" xml:space="preserve">
+    <value>The @requiresOptIn directive must not appear on required (non-null without a default) arguments.</value>
+  </data>
+  <data name="RequiresOptInDirective_FeatureName_NotValid" xml:space="preserve">
+    <value>The feature name must follow the GraphQL type name rules.</value>
+  </data>
+  <data name="OptInFeatureStabilityDirective_FeatureName_NotValid" xml:space="preserve">
+    <value>The feature name must follow the GraphQL type name rules.</value>
+  </data>
+  <data name="OptInFeatureStabilityDirective_Stability_NotValid" xml:space="preserve">
+    <value>The stability must follow the GraphQL type name rules.</value>
+  </data>
+  <data name="DateTimeOptions_InputPrecision_InvalidValue" xml:space="preserve">
+    <value>InputPrecision must be less than or equal to 9.</value>
+  </data>
+  <data name="DateTimeOptions_OutputPrecision_InvalidValue" xml:space="preserve">
+    <value>OutputPrecision must be less than or equal to 7.</value>
+  </data>
+  <data name="BatchResolver_ArgumentMustBeList" xml:space="preserve">
+    <value>The parameter '{0}' on a batch resolver must be a list type (e.g. List&lt;T&gt;, IReadOnlyList&lt;T&gt;, ImmutableArray&lt;T&gt; or T[]). Batch resolvers receive one value per parent object, so all argument parameters must be collections.</value>
+  </data>
+  <data name="BatchResolver_ResultCountMismatch" xml:space="preserve">
+    <value>A batch resolver must return exactly one result per context. Expected {0} results but got {1}.</value>
+  </data>
+  <data name="BatchResolver_ReturnTypeMustBeList" xml:space="preserve">
+    <value>The batch resolver method '{0}.{1}' must return a list type (e.g. List&lt;T&gt;, IReadOnlyList&lt;T&gt;, ImmutableArray&lt;T&gt; or T[]). Batch resolvers return one result per parent object, so the return type must be a collection.</value>
+  </data>
+  <data name="ThrowHelper_KeyValuePairType_InvalidRuntimeType" xml:space="preserve">
+    <value>{0} requires a KeyValuePair&lt;TKey, TValue&gt; runtime type.</value>
   </data>
 </root>

@@ -14,7 +14,6 @@ public abstract class DocumentValidatorVisitorTestBase
 
         StarWars = SchemaBuilder.New()
             .AddStarWarsTypes()
-            .ModifyOptions(o => o.EnableOneOf = true)
             .Create();
     }
 

@@ -162,6 +162,8 @@
                     "integer",
                     "null"
                   ],
+                  "minimum": -2147483648,
+                  "maximum": 2147483647,
                   "description": "field1 description"
                 },
                 "field2": {
@@ -188,6 +190,8 @@
                       "integer",
                       "null"
                     ],
+                    "minimum": -2147483648,
+                    "maximum": 2147483647,
                     "description": "field1 description"
                   },
                   "field2": {
@@ -216,6 +220,8 @@
                         "integer",
                         "null"
                       ],
+                      "minimum": -2147483648,
+                      "maximum": 2147483647,
                       "description": "field1 description"
                     },
                     "field2": {
@@ -239,7 +245,7 @@
               ],
               "additionalProperties": false
             },
-            "timeSpanDotNet": {
+            "durationDotNet": {
               "type": "string",
               "pattern": "^-?(?:(?:\\d{1,8})\\.)?(?:[0-1]?\\d|2[0-3]):(?:[0-5]?\\d):(?:[0-5]?\\d)(?:\\.(?:\\d{1,7}))?$"
             }
@@ -253,7 +259,7 @@
             "oneOf",
             "oneOfList",
             "objectWithOneOfField",
-            "timeSpanDotNet"
+            "durationDotNet"
           ],
           "additionalProperties": false
         }

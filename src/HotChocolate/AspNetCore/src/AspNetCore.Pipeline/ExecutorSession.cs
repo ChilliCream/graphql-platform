@@ -5,6 +5,7 @@ using System.Net;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Instrumentation;
 using HotChocolate.AspNetCore.Parsers;
+using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Features;
 using HotChocolate.Language;
 using Microsoft.AspNetCore.Http;
@@ -85,16 +86,37 @@ public sealed class ExecutorSession
     public async Task<IExecutionResult> ExecuteSingleAsync(
         HttpContext context,
         GraphQLRequest request,
-        RequestFlags flags)
+        RequestFlags flags,
+        GraphQLServerOptions options)
     {
         _diagnosticEvents.StartSingleRequest(context, request);
 
         var requestBuilder = OperationRequestBuilder.From(request);
         requestBuilder.SetFlags(flags);
+        requestBuilder.SetServices(context.RequestServices);
 
         await _requestInterceptor.OnCreateAsync(context, _executor, requestBuilder, context.RequestAborted);
 
-        return await _executor.ExecuteAsync(requestBuilder.Build(), context.RequestAborted);
+        var operationRequest = requestBuilder.Build();
+
+        if (operationRequest is VariableBatchRequest variableBatch)
+        {
+            if (!options.Batching.HasFlag(AllowedBatching.VariableBatching))
+            {
+                var error = Handle(ErrorHelper.InvalidRequest());
+                return OperationResult.FromError(error);
+            }
+
+            var maxBatchSize = options.MaxBatchSize;
+            if (maxBatchSize > 0
+                && variableBatch.VariableValues.Document.RootElement.GetArrayLength() > maxBatchSize)
+            {
+                var error = Handle(ErrorHelper.BatchSizeExceeded(maxBatchSize));
+                return OperationResult.FromError(error);
+            }
+        }
+
+        return await _executor.ExecuteAsync(operationRequest, context.RequestAborted);
     }
 
 #if !NET9_0_OR_GREATER
@@ -116,6 +138,7 @@ public sealed class ExecutorSession
             var requestBuilder = OperationRequestBuilder.From(request);
             requestBuilder.SetOperationName(operationNames[i]);
             requestBuilder.SetFlags(flags);
+            requestBuilder.SetServices(context.RequestServices);
 
             await _requestInterceptor.OnCreateAsync(context, _executor, requestBuilder, context.RequestAborted);
 
@@ -134,8 +157,16 @@ public sealed class ExecutorSession
     public async Task<IResponseStream> ExecuteBatchAsync(
         HttpContext context,
         GraphQLRequest[] requests,
-        RequestFlags flags)
+        RequestFlags flags,
+        GraphQLServerOptions options)
     {
+        var maxBatchSize = options.MaxBatchSize;
+        if (maxBatchSize > 0 && requests.Length > maxBatchSize)
+        {
+            var error = Handle(ErrorHelper.BatchSizeExceeded(maxBatchSize));
+            throw new GraphQLException(error);
+        }
+
         _diagnosticEvents.StartBatchRequest(context, requests);
 
         var requestBatch = new IOperationRequest[requests.Length];
@@ -144,6 +175,7 @@ public sealed class ExecutorSession
         {
             var requestBuilder = OperationRequestBuilder.From(requests[i]);
             requestBuilder.SetFlags(flags);
+            requestBuilder.SetServices(context.RequestServices);
 
             await _requestInterceptor.OnCreateAsync(context, _executor, requestBuilder, context.RequestAborted);
 

@@ -14,7 +14,7 @@ The GraphQL specification defines the following scalars.
 
 ```sdl
 type Product {
-  description: String;
+  description: String
 }
 ```
 
@@ -26,7 +26,7 @@ It is automatically inferred from the usage of the .NET [string type](https://do
 
 ```sdl
 type Product {
-  purchasable: Boolean;
+  purchasable: Boolean
 }
 ```
 
@@ -38,7 +38,7 @@ It is automatically inferred from the usage of the .NET [bool type](https://docs
 
 ```sdl
 type Product {
-  quantity: Int;
+  quantity: Int
 }
 ```
 
@@ -50,7 +50,7 @@ It is automatically inferred from the usage of the .NET [int type](https://docs.
 
 ```sdl
 type Product {
-  price: Float;
+  price: Float
 }
 ```
 
@@ -64,7 +64,7 @@ It is automatically inferred from the usage of the .NET [float](https://docs.mic
 
 ```sdl
 type Product {
-  id: ID!;
+  id: ID!
 }
 ```
 
@@ -207,9 +207,9 @@ In addition to the scalars defined by the specification, Hot Chocolate also supp
 | `Uuid`      | GUID                                                         |
 | `Any`       | This type can be anything, string, int, list or object, etc. |
 
-## Uuid Type
+## UUID Type
 
-The `Uuid` scalar supports the following serialization formats.
+The `UUID` scalar supports the following serialization formats.
 
 | Specifier   | Format                                                               |
 | ----------- | -------------------------------------------------------------------- |

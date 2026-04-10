@@ -15,9 +15,9 @@ type CursorPaginationConnection {
   "Information to aid in pagination."
   pageInfo: PageInfo @semanticNonNull
   "A list of edges."
-  edges: [CursorPaginationEdge] @semanticNonNull(levels: [ 1 ])
+  edges: [CursorPaginationEdge] @semanticNonNull(levels: [1])
   "A flattened list of the nodes."
-  nodes: [String] @semanticNonNull(levels: [ 1 ])
+  nodes: [String] @semanticNonNull(levels: [1])
 }
 
 "An edge in a connection."
@@ -33,7 +33,7 @@ type OffsetPaginationCollectionSegment {
   "Information to aid in pagination."
   pageInfo: CollectionSegmentInfo @semanticNonNull
   "A flattened list of the items."
-  items: [String] @semanticNonNull(levels: [ 1 ])
+  items: [String] @semanticNonNull(levels: [1])
 }
 
 "Information about pagination in a connection."
@@ -49,8 +49,17 @@ type PageInfo {
 }
 
 type QueryWithPagination {
-  cursorPagination("Returns the first _n_ elements from the list." first: Int "Returns the elements in the list that come after the specified cursor." after: String "Returns the last _n_ elements from the list." last: Int "Returns the elements in the list that come before the specified cursor." before: String): CursorPaginationConnection
-  offsetPagination(skip: Int take: Int): OffsetPaginationCollectionSegment
+  cursorPagination(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+  ): CursorPaginationConnection
+  offsetPagination(skip: Int, take: Int): OffsetPaginationCollectionSegment
 }
 
 directive @semanticNonNull(levels: [Int!] = [

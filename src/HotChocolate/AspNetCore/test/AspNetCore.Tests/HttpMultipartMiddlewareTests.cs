@@ -3,13 +3,8 @@ using Newtonsoft.Json;
 
 namespace HotChocolate.AspNetCore;
 
-public class HttpMultipartMiddlewareTests : ServerTestBase
+public class HttpMultipartMiddlewareTests(TestServerFactory serverFactory) : ServerTestBase(serverFactory)
 {
-    public HttpMultipartMiddlewareTests(TestServerFactory serverFactory)
-        : base(serverFactory)
-    {
-    }
-
     [Fact]
     public async Task EmptyForm_Test()
     {
@@ -298,6 +293,115 @@ public class HttpMultipartMiddlewareTests : ServerTestBase
 
         // assert
         result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Upload_Optional_File_Not_Provided()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        // act
+        var result = await server.PostAsync(
+            new ClientQueryRequest
+            {
+                Query = @"
+                    query ($upload: Upload) {
+                        optionalUpload(file: $upload)
+                    }",
+                Variables = new Dictionary<string, object?>
+                {
+                    { "upload", null }
+                }
+            },
+            "/upload");
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "ContentType": "application/graphql-response+json; charset=utf-8",
+              "StatusCode": "OK",
+              "Data": {
+                "optionalUpload": null
+              },
+              "Errors": null,
+              "Extensions": null
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Upload_Nullable_File()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        const string query = @"
+                query ($upload: Upload) {
+                    nullableUpload(file: $upload)
+                }";
+
+        var request = JsonConvert.SerializeObject(
+            new ClientQueryRequest
+            {
+                Query = query,
+                Variables = new Dictionary<string, object?>
+                {
+                    { "upload", null }
+                }
+            });
+
+        // act
+        var form = new MultipartFormDataContent
+        {
+            { new StringContent(request), "operations" },
+            { new StringContent("{ \"1\": [\"variables.upload\"] }"), "map" },
+            { new StringContent("abc"), "1", "foo.bar" }
+        };
+
+        form.Headers.Add(HttpHeaderKeys.Preflight, "1");
+
+        var result = await server.PostMultipartAsync(form, path: "/upload");
+
+        // assert
+        result.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task Upload_Nullable_File_Not_Provided()
+    {
+        // arrange
+        var server = CreateStarWarsServer();
+
+        // act
+        var result = await server.PostAsync(
+            new ClientQueryRequest
+            {
+                Query = @"
+                    query ($upload: Upload) {
+                        nullableUpload(file: $upload)
+                    }",
+                Variables = new Dictionary<string, object?>
+                {
+                    { "upload", null }
+                }
+            },
+            "/upload");
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "ContentType": "application/graphql-response+json; charset=utf-8",
+              "StatusCode": "OK",
+              "Data": {
+                "nullableUpload": null
+              },
+              "Errors": null,
+              "Extensions": null
+            }
+            """);
     }
 
     [Fact]

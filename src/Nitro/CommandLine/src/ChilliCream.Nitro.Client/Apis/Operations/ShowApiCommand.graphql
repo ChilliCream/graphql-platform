@@ -1,0 +1,5 @@
+query ShowApiCommandQuery($apiId: ID!) {
+  node(id: $apiId) {
+    ...ApiDetailPrompt_Api
+  }
+}
