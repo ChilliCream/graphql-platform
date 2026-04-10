@@ -13,7 +13,7 @@ internal static class ErrorHelper
     private const string InterfaceTypeValidation = "sec-Interfaces.Type-Validation";
     private const string ObjectTypeValidation = "sec-Objects.Type-Validation";
     private const string InputObjectTypeValidation = "sec-Input-Objects.Type-Validation";
-    private const string DirectiveValidation = "sec-Type-System.Directives.Validation";
+    private const string DirectiveValidation = "sec-Type-System.Directives.Type-Validation";
 
     public static ISchemaError NeedsOneAtLeastField(ITypeDefinition type)
         => SchemaErrorBuilder.New()
