@@ -331,7 +331,7 @@ public static class ErrorCodes
         /// <summary>
         /// The field merge validation budget was exhausted.
         /// </summary>
-        public const string BudgetExceeded = "HC0088";
+        public const string BudgetExceeded = "HC0107";
     }
 
     /// <summary>

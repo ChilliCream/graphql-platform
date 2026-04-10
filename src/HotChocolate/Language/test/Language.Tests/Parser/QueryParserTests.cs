@@ -158,6 +158,107 @@ public class QueryParserTests
     }
 
     [Fact]
+    public void Default_MaxAllowedDirectives_Is_4()
+    {
+        Assert.Equal(4, ParserOptions.Default.MaxAllowedDirectives);
+    }
+
+    [Fact]
+    public void Reject_Fields_Exceeding_Max_Allowed_Directives_Per_Location()
+    {
+        Assert
+            .Throws<SyntaxException>(() => Utf8GraphQLParser.Parse("{ a @d @d @d @d @d }"))
+            .Message
+            .MatchInlineSnapshot(
+                "A location in the GraphQL document contains more than 4 directives. Parsing aborted.");
+    }
+
+    [Fact]
+    public void Allow_Fields_Within_Max_Allowed_Directives_Per_Location()
+    {
+        // does not throw with 4 directives, which is the default limit
+        Utf8GraphQLParser.Parse("{ a @d @d @d @d }");
+    }
+
+    [Fact]
+    public void Reject_Fields_Exceeding_Custom_Directive_Limit()
+    {
+        var options = new ParserOptions(maxAllowedDirectives: 2);
+
+        Assert
+            .Throws<SyntaxException>(() => Utf8GraphQLParser.Parse("{ a @d @d @d }", options))
+            .Message
+            .MatchInlineSnapshot(
+                "A location in the GraphQL document contains more than 2 directives. Parsing aborted.");
+    }
+
+    [Fact]
+    public void Directive_Limit_Is_Per_Location_Not_Per_Document()
+    {
+        // 4 directives per location are allowed by default
+        Utf8GraphQLParser.Parse("{ a @d @d @d @d b @d @d @d @d c @d @d @d @d }");
+    }
+
+    [Theory]
+    [InlineData(5)]
+    [InlineData(1_000)]
+    [InlineData(30_000)]
+    public void Reject_Attack_Payload_Directive_Overloading(int directiveCount)
+    {
+        // CVE-2022-37734: 30,000+ directives on a single field.
+        var sb = new StringBuilder();
+        sb.Append("{ a");
+
+        for (var i = 0; i < directiveCount; i++)
+        {
+            sb.Append(" @d");
+        }
+
+        sb.Append(" }");
+
+        Assert.Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(sb.ToString()));
+    }
+
+    [Fact]
+    public void Allow_Aliased_Fields_Within_Max_Allowed_Fields()
+    {
+        // 2000 aliased fields — within the 2048 default limit.
+        // See: CVE-2024-39895, CVE-2026-35441 (alias overloading)
+        const int aliasCount = 2000;
+        var sb = new StringBuilder();
+        sb.Append('{');
+
+        for (var i = 0; i < aliasCount; i++)
+        {
+            sb.Append($" a{i}: __typename");
+        }
+
+        sb.Append(" }");
+
+        var document = Utf8GraphQLParser.Parse(sb.ToString());
+
+        Assert.NotNull(document);
+    }
+
+    [Fact]
+    public void Reject_Aliased_Fields_Exceeding_Max_Allowed_Fields()
+    {
+        // 2049 aliased fields — exceeds the 2048 default limit.
+        const int aliasCount = 2049;
+        var sb = new StringBuilder();
+        sb.Append('{');
+
+        for (var i = 0; i < aliasCount; i++)
+        {
+            sb.Append($" a{i}: __typename");
+        }
+
+        sb.Append(" }");
+
+        Assert.Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(sb.ToString()));
+    }
+
+    [Fact]
     public void ParseSimpleShortHandFormQuery()
     {
         // arrange

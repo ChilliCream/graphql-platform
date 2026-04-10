@@ -79,7 +79,7 @@ public static class Errors
 
     public static readonly DiagnosticDescriptor DataLoaderCannotBeGeneric =
         new(
-            id: "HC0085",
+            id: "HC0111",
             title: "DataLoader Cannot Be Generic",
             messageFormat: "The DataLoader source generator cannot generate generic DataLoaders",
             category: "DataLoader",
@@ -88,7 +88,7 @@ public static class Errors
 
     public static readonly DiagnosticDescriptor ConnectionSingleGenericTypeArgument =
         new(
-            id: "HC0086",
+            id: "HC0110",
             title: "Invalid Connection Structure",
             messageFormat: "A generic connection/edge type must have a single generic type argument that represents the node type",
             category: "TypeSystem",
@@ -97,7 +97,7 @@ public static class Errors
 
     public static readonly DiagnosticDescriptor ConnectionNameFormatIsInvalid =
         new(
-            id: "HC0087",
+            id: "HC0109",
             title: "Invalid Connection/Edge Name Format",
             messageFormat: "A connection/edge name must be in the format `{0}Edge` or `{0}Connection`",
             category: "TypeSystem",
@@ -106,7 +106,7 @@ public static class Errors
 
     public static readonly DiagnosticDescriptor ConnectionNameDuplicate =
         new(
-            id: "HC0088",
+            id: "HC0108",
             title: "Invalid Connection/Edge Name",
             messageFormat: "The type `{0}` cannot be mapped to the GraphQL type name `{1}` as `{2}` is already mapped to it",
             category: "TypeSystem",

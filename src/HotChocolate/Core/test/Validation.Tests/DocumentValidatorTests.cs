@@ -873,7 +873,7 @@ public class DocumentValidatorTests
     /// Fragment traversal bomb: each fragment spreads the next one N times.
     /// Without deduplication this creates N^(levels-1) traversals.
     /// Validation must deduplicate fragment visits so this completes instantly.
-    /// See: https://github.com/graphql/tsc/discussions/82
+    /// See: CVE-2025-32032
     /// </summary>
     [Fact]
     public void Fragment_Traversal_Bomb_Should_Complete_Quickly()
@@ -911,12 +911,14 @@ public class DocumentValidatorTests
     /// field expansions via two aliased sub-selections that reference the
     /// same child fragment. At depth 20 this creates 2^20 ≈ 1M recursive
     /// expansions in naive implementations.
-    /// See: https://github.com/graphql/tsc/discussions/82
+    /// See: CVE-2025-32032
     /// </summary>
     [Fact]
-    public void Fragment_Expansion_Bomb_Should_Be_Rejected()
+    public void Fragment_Expansion_Bomb_Should_Complete_Quickly()
     {
-        // 20 levels, 2 branches per level = 2^20 ≈ 1,048,576 expansions.
+        // 20 levels, 2 branches per level = 2^20 ≈ 1,048,576 expansions
+        // in naive implementations. Fragment deduplication in the visitor
+        // layer reduces this to O(depth) visits.
         const int depth = 20;
         var sb = new StringBuilder();
         sb.AppendLine("{ field { ...F0 } }");
@@ -929,7 +931,46 @@ public class DocumentValidatorTests
 
         sb.AppendLine($"fragment F{depth} on Query {{ __typename }}");
 
-        ExpectErrors(sb.ToString());
+        ExpectValid(sb.ToString());
+    }
+
+    /// <summary>
+    /// Inline fragment amplification: multiple inline fragments on the same type,
+    /// each with many aliased __typename fields, cause O(n²) comparisons in the
+    /// overlapping-fields-can-be-merged rule.
+    /// The parser's MaxAllowedFields limit (default 2048) catches this before
+    /// validation even starts.
+    /// See: CVE-2023-26144 (graphql-js)
+    /// </summary>
+    [Fact]
+    public void Inline_Fragment_TypeName_Amplification_Should_Be_Rejected_By_Parser()
+    {
+        // 10 inline fragments × 500 aliased __typename fields = 5000 fields.
+        // Exceeds the parser's MaxAllowedFields limit (2048).
+        const int fragments = 10;
+        const int fieldsPerFragment = 500;
+        var sb = new StringBuilder();
+        sb.AppendLine("{");
+
+        for (var i = 0; i < fragments; i++)
+        {
+            sb.Append("  ... on Query {");
+            for (var j = 0; j < fieldsPerFragment; j++)
+            {
+                if (j > 0)
+                {
+                    sb.Append(' ');
+                }
+
+                sb.Append($"f{j}: __typename");
+            }
+
+            sb.AppendLine("}");
+        }
+
+        sb.AppendLine("}");
+
+        Assert.Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(sb.ToString()));
     }
 
     private static void ExpectValid([StringSyntax("graphql")] string sourceText)

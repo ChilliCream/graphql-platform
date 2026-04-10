@@ -53,6 +53,15 @@ public sealed class FusionParserOptions
 
     /// <summary>
     /// <para>
+    /// The maximum number of directives allowed per location (e.g. per field,
+    /// per operation, per fragment definition). Repeatable directives can be used
+    /// to exhaust CPU and memory resources if not limited.
+    /// </para>
+    /// </summary>
+    public int MaxAllowedDirectives { get; set; } = 4;
+
+    /// <summary>
+    /// <para>
     /// The maximum allowed recursion depth when parsing a document.
     /// This prevents stack overflow from deeply nested queries.
     /// </para>
