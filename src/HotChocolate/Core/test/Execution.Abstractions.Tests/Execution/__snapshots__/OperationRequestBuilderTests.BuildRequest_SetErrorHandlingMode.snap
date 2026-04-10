@@ -1,4 +1,4 @@
 {
   "document": "{ foo }",
-  "errorHandlingMode": "Halt"
+  "errorHandlingMode": "Null"
 }

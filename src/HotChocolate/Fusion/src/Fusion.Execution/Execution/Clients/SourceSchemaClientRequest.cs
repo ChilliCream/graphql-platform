@@ -7,7 +7,7 @@ namespace HotChocolate.Fusion.Execution.Clients;
 /// <summary>
 /// Describes a single GraphQL request to be sent to a source schema.
 /// </summary>
-public sealed class SourceSchemaClientRequest
+public readonly record struct SourceSchemaClientRequest()
 {
     /// <summary>
     /// Gets the execution node that produced this request.
@@ -18,14 +18,6 @@ public sealed class SourceSchemaClientRequest
     /// Gets the name of the source schema this request targets.
     /// </summary>
     public required string SchemaName { get; init; }
-
-    /// <summary>
-    /// Gets the optional batching group identifier assigned at planning time.
-    /// When set, the <see cref="ISourceSchemaScheduler"/> holds this request until
-    /// all nodes in the same group have submitted or been skipped, then dispatches
-    /// them together via <see cref="ISourceSchemaClient.ExecuteBatchAsync"/>.
-    /// </summary>
-    public int? BatchingGroupId { get; init; }
 
     /// <summary>
     /// Gets the GraphQL operation type (query, mutation, or subscription).

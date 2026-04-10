@@ -1,3 +1,4 @@
+using HotChocolate.CostAnalysis.Types;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -249,9 +250,51 @@ public class SlicingArgumentsTests
             """);
     }
 
+    [Fact]
+    public async Task SlicingArgumentDefaultValue_Inferred_From_DefaultPageSize()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query2>()
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
+    [Fact]
+    public async Task SlicingArgumentDefaultValue_ListSizeAttribute_HasPrecedenceOver_DefaultPageSize()
+    {
+        var schema =
+            await new ServiceCollection()
+                .AddGraphQLServer()
+                .AddQueryType<Query3>()
+                .BuildSchemaAsync();
+
+        schema.MatchSnapshot();
+    }
+
     public class Query
     {
         [UsePaging]
+        public IEnumerable<int> GetFoos() => Enumerable.Range(1, 100);
+    }
+
+    public class Query2
+    {
+        [UsePaging(DefaultPageSize = 42)]
+        public IEnumerable<int> GetFoos() => Enumerable.Range(1, 100);
+    }
+
+    public class Query3
+    {
+        [UsePaging(DefaultPageSize = 42)]
+        [ListSize(
+            AssumedSize = 10,
+            SlicingArguments = ["first", "last"],
+            SizedFields = ["edges", "nodes"],
+            RequireOneSlicingArgument = false,
+            SlicingArgumentDefaultValue = 999)]
         public IEnumerable<int> GetFoos() => Enumerable.Range(1, 100);
     }
 }

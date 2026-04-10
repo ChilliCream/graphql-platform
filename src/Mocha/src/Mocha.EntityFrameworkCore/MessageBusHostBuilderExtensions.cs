@@ -23,7 +23,7 @@ public static class MessageBusHostBuilderExtensions
         Action<IEntityFrameworkCoreBuilder> configure)
         where TContext : DbContext
     {
-        var persistanceBuilder = new EntityFrameworkCoreBuilder
+        var persistenceBuilder = new EntityFrameworkCoreBuilder
         {
             Services = builder.Services,
             HostBuilder = builder,
@@ -31,10 +31,10 @@ public static class MessageBusHostBuilderExtensions
             Name = typeof(TContext).FullName ?? typeof(TContext).Name
         };
 
-        configure(persistanceBuilder);
+        configure(persistenceBuilder);
 
         builder
-            .Services.AddOptions<MessagingDbContextOptions>(persistanceBuilder.Name)
+            .Services.AddOptions<MessagingDbContextOptions>(persistenceBuilder.Name)
             .Configure<IServiceProvider>((options, serviceProvider) => options.ServiceProvider = serviceProvider);
 
         builder.Services.AddSingleton<
@@ -93,12 +93,31 @@ internal sealed class EntityFrameworkResilienceConsumeMiddleware(Type contextTyp
 {
     public async ValueTask InvokeAsync(IConsumeContext context, ConsumerDelegate next)
     {
-        // TODO is this too opinionated?
         var dbContext = (DbContext)context.Services.GetRequiredService(contextType);
+        var strategy = dbContext.Database.CreateExecutionStrategy();
 
-        var executionStrategy = dbContext.Database.CreateExecutionStrategy();
+        if (!strategy.RetriesOnFailure)
+        {
+            await next(context);
+            return;
+        }
 
-        await executionStrategy.ExecuteAsync(async () => await next(context));
+        var originalServices = context.Services;
+
+        await strategy.ExecuteAsync(async () =>
+        {
+            await using var scope = originalServices.CreateAsyncScope();
+            context.Services = scope.ServiceProvider;
+
+            try
+            {
+                await next(context);
+            }
+            finally
+            {
+                context.Services = originalServices;
+            }
+        });
     }
 
     public static ConsumerMiddlewareConfiguration Create()
@@ -110,8 +129,10 @@ internal sealed class EntityFrameworkResilienceConsumeMiddleware(Type contextTyp
                         .Services.GetRequiredService<IFeatureCollection>()
                         .Get<EntityFrameworkConfigurationFeature>()
                         ?.ContextType
-                    // TODO better exception message
-                    ?? throw new InvalidOperationException("No EntityFramework context type found");
+                    ?? throw new InvalidOperationException(
+                        "No Entity Framework Core DbContext type has been configured. "
+                        + "Call AddEntityFramework<TContext>() on the message bus host builder "
+                        + "before using UseResilience().");
 
                 var middleware = new EntityFrameworkResilienceConsumeMiddleware(contextType);
                 return ctx => middleware.InvokeAsync(ctx, next);
@@ -149,8 +170,10 @@ internal sealed class EntityFrameworkTransactionConsumeMiddleware(Type contextTy
                         .Services.GetRequiredService<IFeatureCollection>()
                         .Get<EntityFrameworkConfigurationFeature>()
                         ?.ContextType
-                    // TODO better exception message
-                    ?? throw new InvalidOperationException("No EntityFramework context type found");
+                    ?? throw new InvalidOperationException(
+                        "No Entity Framework Core DbContext type has been configured. "
+                        + "Call AddEntityFramework<TContext>() on the message bus host builder "
+                        + "before using UseTransaction().");
 
                 var middleware = new EntityFrameworkTransactionConsumeMiddleware(contextType);
                 return ctx => middleware.InvokeAsync(ctx, next);

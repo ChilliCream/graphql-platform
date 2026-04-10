@@ -56,7 +56,7 @@ public class EndpointMiddlewareTests
     }
 
     [Fact]
-    public async Task AppendReceive_Should_InvokeMiddleware_When_MessageReceived()
+    public async Task UseReceive_After_Should_InvokeMiddleware_When_MessageReceived()
     {
         // arrange
         var tracker = new MiddlewareTracker();
@@ -72,8 +72,7 @@ public class EndpointMiddlewareTests
             {
                 t.Endpoint("ep")
                     .Consumer<TrackingConsumer>()
-                    .AppendReceive(
-                        "RabbitMQAcknowledgement",
+                    .UseReceive(
                         new ReceiveMiddlewareConfiguration(
                             (_, next) =>
                                 async context =>
@@ -81,7 +80,8 @@ public class EndpointMiddlewareTests
                                     tracker.Add("append-receive-mw");
                                     await next(context);
                                 },
-                            "test-append-receive"));
+                            "test-append-receive"),
+                        after: "RabbitMQAcknowledgement");
             })
             .BuildTestBusAsync();
 
@@ -97,7 +97,7 @@ public class EndpointMiddlewareTests
     }
 
     [Fact]
-    public async Task PrependReceive_Should_InvokeMiddleware_When_MessageReceived()
+    public async Task UseReceive_Before_Should_InvokeMiddleware_When_MessageReceived()
     {
         // arrange
         var tracker = new MiddlewareTracker();
@@ -113,8 +113,7 @@ public class EndpointMiddlewareTests
             {
                 t.Endpoint("ep")
                     .Consumer<TrackingConsumer>()
-                    .PrependReceive(
-                        "RabbitMQAcknowledgement",
+                    .UseReceive(
                         new ReceiveMiddlewareConfiguration(
                             (_, next) =>
                                 async context =>
@@ -122,7 +121,8 @@ public class EndpointMiddlewareTests
                                     tracker.Add("prepend-receive-mw");
                                     await next(context);
                                 },
-                            "test-prepend-receive"));
+                            "test-prepend-receive"),
+                        before: "RabbitMQAcknowledgement");
             })
             .BuildTestBusAsync();
 
@@ -178,7 +178,7 @@ public class EndpointMiddlewareTests
     }
 
     [Fact]
-    public async Task AppendDispatch_Should_InvokeMiddleware_When_MessageDispatched()
+    public async Task UseDispatch_After_Should_InvokeMiddleware_When_MessageDispatched()
     {
         // arrange
         var tracker = new MiddlewareTracker();
@@ -194,8 +194,7 @@ public class EndpointMiddlewareTests
             {
                 t.DispatchEndpoint("ep")
                     .Publish<ProcessPayment>()
-                    .AppendDispatch(
-                        "Instrumentation",
+                    .UseDispatch(
                         new DispatchMiddlewareConfiguration(
                             (_, next) =>
                                 async context =>
@@ -203,7 +202,8 @@ public class EndpointMiddlewareTests
                                     tracker.Add("append-dispatch-mw");
                                     await next(context);
                                 },
-                            "test-append-dispatch"));
+                            "test-append-dispatch"),
+                        after: "Instrumentation");
             })
             .BuildTestBusAsync();
 
@@ -219,7 +219,7 @@ public class EndpointMiddlewareTests
     }
 
     [Fact]
-    public async Task PrependDispatch_Should_InvokeMiddleware_When_MessageDispatched()
+    public async Task UseDispatch_Before_Should_InvokeMiddleware_When_MessageDispatched()
     {
         // arrange
         var tracker = new MiddlewareTracker();
@@ -235,8 +235,7 @@ public class EndpointMiddlewareTests
             {
                 t.DispatchEndpoint("ep")
                     .Publish<ProcessPayment>()
-                    .PrependDispatch(
-                        "Instrumentation",
+                    .UseDispatch(
                         new DispatchMiddlewareConfiguration(
                             (ctx, next) =>
                                 async context =>
@@ -244,7 +243,8 @@ public class EndpointMiddlewareTests
                                     tracker.Add("prepend-dispatch-mw");
                                     await next(context);
                                 },
-                            "test-prepend-dispatch"));
+                            "test-prepend-dispatch"),
+                        before: "Instrumentation");
             })
             .BuildTestBusAsync();
 

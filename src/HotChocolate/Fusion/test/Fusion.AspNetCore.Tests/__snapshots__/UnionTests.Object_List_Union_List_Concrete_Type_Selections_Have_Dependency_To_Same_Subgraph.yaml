@@ -118,6 +118,7 @@ sourceSchemas:
       union Post = Photo | Discussion
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query testQuery_42ede545_1 {
               users {
@@ -233,12 +234,11 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           kind: OperationBatch
           items:
             - document: |
-                query testQuery_42ede545_2(
-                  $__fusion_1_id: ID!
-                ) {
+                query testQuery_42ede545_2($__fusion_1_id: ID!) {
                   authorById(id: $__fusion_1_id) {
                     subgraph2
                   }
@@ -256,9 +256,7 @@ sourceSchemas:
                   }
                 ]
             - document: |
-                query testQuery_42ede545_3(
-                  $__fusion_2_id: ID!
-                ) {
+                query testQuery_42ede545_3($__fusion_2_id: ID!) {
                   productById(id: $__fusion_2_id) {
                     subgraph2
                   }
@@ -411,16 +409,14 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_42ede545_2(
-          $__fusion_1_id: ID!
-        ) {
+        query testQuery_42ede545_2($__fusion_1_id: ID!) {
           authorById(id: $__fusion_1_id) {
             subgraph2
           }
         }
       source: $.authorById
       target: $.users.posts<Discussion>.author
-      batchingGroupId: 1
+      batchingGroupId: 2
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -431,16 +427,14 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_42ede545_3(
-          $__fusion_2_id: ID!
-        ) {
+        query testQuery_42ede545_3($__fusion_2_id: ID!) {
           productById(id: $__fusion_2_id) {
             subgraph2
           }
         }
       source: $.productById
       target: $.users.posts<Photo>.product
-      batchingGroupId: 1
+      batchingGroupId: 2
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Mocha.Hosting;
 using Mocha.Transport.InMemory;
 
 namespace Mocha.Hosting.Tests.Topology;
@@ -61,7 +60,7 @@ public sealed class MessageBusEndpointRouteBuilderExtensionsTests
         var content = await response.Content.ReadAsStringAsync(default);
         var doc = JsonDocument.Parse(content);
 
-        // Assert — the response has DiagramData shape: { services: [...], transports: [...] }
+        // Assert - the response has DiagramData shape: { services: [...], transports: [...] }
         Assert.True(
             doc.RootElement.TryGetProperty("services", out var servicesElement),
             "Response JSON should contain a 'services' property.");

@@ -27,7 +27,7 @@ internal static class MiddlewareHelper
                 HttpStatusCode.BadRequest);
         }
 
-        var requestFlags = executorSession.ResponseFormatter.CreateRequestFlags(headerResult.AcceptMediaTypes);
+        var requestFlags = executorSession.CreateRequestFlags(headerResult.AcceptMediaTypes);
 
         // if the request defines accept header values of which we cannot handle any provided
         // media type, then we will fail the request with 406 Not Acceptable.
@@ -55,7 +55,7 @@ internal static class MiddlewareHelper
         {
             try
             {
-                var request = executorSession.RequestParser.ParseRequestFromParams(context.Request.Query);
+                var request = executorSession.ParseRequestFromParams(context.Request.Query);
                 context.Response.RegisterForDispose(request);
                 return new ParseRequestResult(request);
             }
@@ -88,7 +88,7 @@ internal static class MiddlewareHelper
             try
             {
                 var request =
-                    executorSession.RequestParser.ParsePersistedOperationRequestFromParams(
+                    executorSession.ParsePersistedOperationRequestFromParams(
                         operationId,
                         operationName,
                         context.Request.Query);
@@ -125,7 +125,7 @@ internal static class MiddlewareHelper
             try
             {
                 request =
-                    await executorSession.RequestParser.ParsePersistedOperationRequestAsync(
+                    await executorSession.ParsePersistedOperationRequestAsync(
                         operationId,
                         operationName,
                         context.Request.BodyReader,
@@ -286,12 +286,7 @@ internal static class MiddlewareHelper
                 formatScope = executorSession.DiagnosticEvents.FormatHttpResponse(context, queryResult);
             }
 
-            await executorSession.ResponseFormatter.FormatAsync(
-                context.Response,
-                result,
-                acceptMediaTypes,
-                statusCode,
-                context.RequestAborted);
+            await executorSession.WriteResultAsync(context, result, acceptMediaTypes, statusCode);
         }
         finally
         {

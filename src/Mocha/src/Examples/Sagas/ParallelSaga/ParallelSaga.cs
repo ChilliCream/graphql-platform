@@ -246,7 +246,7 @@ public sealed class ReturnProcessingSaga : Saga<ReturnSagaState>
             })
             .TransitionTo(Completed);
 
-        // Done — no response since the saga was initiated by a published event (OnEvent)
+        // Done - no response since the saga was initiated by a published event (OnEvent)
         descriptor.Finally(Completed);
 
         // Failed final state

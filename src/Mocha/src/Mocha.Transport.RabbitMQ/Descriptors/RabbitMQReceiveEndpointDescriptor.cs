@@ -21,6 +21,20 @@ internal sealed class RabbitMQReceiveEndpointDescriptor
         return this;
     }
 
+    public new IRabbitMQReceiveEndpointDescriptor Handler(Type handlerType)
+    {
+        base.Handler(handlerType);
+
+        return this;
+    }
+
+    public new IRabbitMQReceiveEndpointDescriptor Consumer(Type consumerType)
+    {
+        base.Consumer(consumerType);
+
+        return this;
+    }
+
     public new IRabbitMQReceiveEndpointDescriptor Consumer<TConsumer>() where TConsumer : class, IConsumer
     {
         base.Consumer<TConsumer>();
@@ -77,29 +91,12 @@ internal sealed class RabbitMQReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
-    public new IRabbitMQReceiveEndpointDescriptor UseReceive(ReceiveMiddlewareConfiguration configuration)
+    public new IRabbitMQReceiveEndpointDescriptor UseReceive(
+        ReceiveMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null)
     {
-        base.UseReceive(configuration);
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public new IRabbitMQReceiveEndpointDescriptor AppendReceive(
-        string after,
-        ReceiveMiddlewareConfiguration configuration)
-    {
-        base.AppendReceive(after, configuration);
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public new IRabbitMQReceiveEndpointDescriptor PrependReceive(
-        string before,
-        ReceiveMiddlewareConfiguration configuration)
-    {
-        base.PrependReceive(before, configuration);
+        base.UseReceive(configuration, before, after);
 
         return this;
     }

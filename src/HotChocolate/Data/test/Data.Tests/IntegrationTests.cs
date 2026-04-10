@@ -1101,6 +1101,38 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
     }
 
     [Fact]
+    public async Task QueryContext_Selector_For_Record_With_Init_Properties_Should_Not_Be_Identity()
+    {
+        // arrange
+        var capture = new QueryContextRecordSelectorCapture();
+        var executor = await new ServiceCollection()
+            .AddSingleton(capture)
+            .AddGraphQL()
+            .AddQueryContext()
+            .AddFiltering()
+            .AddSorting()
+            .AddQueryType<QueryContextRecordSelectorQuery>()
+            .BuildRequestExecutorAsync();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                recordSelector {
+                    id
+                }
+            }
+            """);
+
+        // assert
+        var operationResult = result.ExpectOperationResult();
+        Assert.Empty(operationResult.Errors);
+        Assert.False(
+            capture.IsIdentitySelector,
+            $"Expected a projected selector but got identity selector: {capture.Selector}");
+    }
+
+    [Fact]
     public async Task AsSortDefinition_QueryContext_Custom_Field_Without_Member_Does_Not_Fail()
     {
         // arrange
@@ -1425,6 +1457,46 @@ public class IntegrationTests(AuthorFixture authorFixture) : IClassFixture<Autho
                 : _name;
             set => _name = value;
         }
+    }
+
+    public sealed class QueryContextRecordSelectorCapture
+    {
+        public bool IsIdentitySelector { get; set; }
+
+        public string? Selector { get; set; }
+    }
+
+    public class QueryContextRecordSelectorQuery
+    {
+        public QueryContextRecordSelectorEntity GetRecordSelector(
+            QueryContext<QueryContextRecordSelectorEntity> query,
+            [Service] QueryContextRecordSelectorCapture capture)
+        {
+            var entity = new QueryContextRecordSelectorEntity
+            {
+                Id = Guid.NewGuid(),
+                FirstName = "A",
+                LastName = "B",
+                BirthDate = new DateOnly(2000, 1, 1)
+            };
+
+            capture.Selector = query.Selector?.ToString();
+            capture.IsIdentitySelector = query.Selector is not null
+                && ReferenceEquals(query.Selector.Compile()(entity), entity);
+
+            return entity;
+        }
+    }
+
+    public sealed record QueryContextRecordSelectorEntity
+    {
+        public Guid Id { get; init; }
+
+        public string FirstName { get; init; } = string.Empty;
+
+        public string LastName { get; init; } = string.Empty;
+
+        public DateOnly BirthDate { get; init; }
     }
 
     public class QueryContextCustomSortQuery

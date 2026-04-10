@@ -39,27 +39,7 @@ response:
             }
           }
         ]
-      },
-      "errors": [
-        {
-          "message": "Unexpected Execution Error",
-          "path": [
-            "books",
-            0,
-            "author",
-            "name"
-          ]
-        },
-        {
-          "message": "Unexpected Execution Error",
-          "path": [
-            "books",
-            1,
-            "author",
-            "name"
-          ]
-        }
-      ]
+      }
     }
 sourceSchemas:
   - name: a
@@ -83,6 +63,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_fb4f667e_1 {
               books {
@@ -136,6 +117,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           kind: OperationBatch
           items:
             - document: |
@@ -205,10 +187,6 @@ sourceSchemas:
                   }
                 }
               }
-            - |
-              {}
-            - |
-              {}
 operationPlan:
   operation:
     - document: |

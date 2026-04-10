@@ -35,9 +35,14 @@ public readonly partial struct CompositeResultElement
     {
         var options = new JsonWriterOptions { Indented = indented };
         var jsonWriter = new JsonWriter(writer, options);
-        var formatter = new CompositeResultDocument.RawJsonFormatter(
-            _parent,
-            jsonWriter);
+        WriteTo(jsonWriter);
+    }
+
+    internal void WriteTo(JsonWriter jsonWriter)
+    {
+        CheckValidInstance();
+
+        var formatter = new CompositeResultDocument.RawJsonFormatter(_parent, jsonWriter);
         var row = _parent._metaDb.Get(_cursor);
         formatter.WriteValue(_cursor, row);
     }
@@ -424,6 +429,13 @@ public readonly partial struct CompositeResultElement
         CheckValidInstance();
 
         return _parent.TryGetNamedPropertyValue(_cursor, utf8PropertyName, out value);
+    }
+
+    internal CompositeResultElement GetPropertyBySelectionId(int selectionId)
+    {
+        CheckValidInstance();
+
+        return _parent.GetPropertyBySelectionId(_cursor, selectionId);
     }
 
     /// <summary>

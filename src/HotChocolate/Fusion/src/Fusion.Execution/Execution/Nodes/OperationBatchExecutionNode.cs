@@ -1,118 +1,74 @@
 using System.Buffers;
 using System.Collections.Immutable;
-using System.Runtime.InteropServices;
-using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Clients;
-using HotChocolate.Fusion.Text.Json;
+using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
 
 public sealed class OperationBatchExecutionNode : ExecutionNode
 {
-    private readonly OperationRequirement[] _requirements;
-    private readonly string[] _forwardedVariables;
-    private readonly string[] _responseNames;
-    private readonly ExecutionNodeCondition[] _conditions;
+    private readonly OperationDefinition[] _operations;
     private readonly bool _requiresFileUpload;
-    private readonly OperationSourceText _operation;
-    private readonly int? _batchingGroupId;
-    private readonly string? _schemaName;
-    private readonly SelectionPath[] _targets;
-    private readonly SelectionPath _source;
 
     internal OperationBatchExecutionNode(
         int id,
-        OperationSourceText operation,
-        string? schemaName,
-        SelectionPath[] targets,
-        SelectionPath source,
-        OperationRequirement[] requirements,
-        string[] forwardedVariables,
-        string[] responseNames,
-        ExecutionNodeCondition[] conditions,
-        int? batchingGroupId,
-        bool requiresFileUpload)
+        OperationDefinition[] operations)
     {
         Id = id;
-        _operation = operation;
-        _batchingGroupId = batchingGroupId;
-        _schemaName = schemaName;
-        _targets = targets;
-        _source = source;
-        _requirements = requirements;
-        _forwardedVariables = forwardedVariables;
-        _responseNames = responseNames;
-        _conditions = conditions;
-        _requiresFileUpload = requiresFileUpload;
+        _operations = operations;
+        SchemaName = operations[0].SchemaName!;
+        _requiresFileUpload = operations.Any(t => t.RequiresFileUpload);
     }
 
-    /// <inheritdoc />
     public override int Id { get; }
 
-    /// <inheritdoc />
     public override ExecutionNodeType Type => ExecutionNodeType.OperationBatch;
 
-    /// <inheritdoc />
-    public override ReadOnlySpan<ExecutionNodeCondition> Conditions => _conditions;
+    public override ReadOnlySpan<ExecutionNodeCondition> Conditions => [];
 
-    /// <summary>
-    /// Gets the operation definition that this execution node represents.
-    /// </summary>
-    public OperationSourceText Operation => _operation;
+    public override string SchemaName { get; }
 
-    /// <summary>
-    /// Gets the deterministic batching group identifier assigned at planning time.
-    /// </summary>
-    public int? BatchingGroupId => _batchingGroupId;
+    internal ReadOnlySpan<OperationDefinition> Operations => _operations;
 
-    /// <summary>
-    /// Gets the response names of the target selection sets that are fulfilled by this operation.
-    /// </summary>
-    public ReadOnlySpan<string> ResponseNames => _responseNames;
+    protected override IDisposable? CreateScope(OperationPlanContext context)
+        => context.DiagnosticEvents.ExecuteOperationBatchNode(context, this, SchemaName);
 
-    /// <inheritdoc />
-    public override string? SchemaName => _schemaName;
-
-    /// <summary>
-    /// Gets the paths to the selection sets for which this operation fetches data.
-    /// </summary>
-    public ReadOnlySpan<SelectionPath> Targets => _targets;
-
-    /// <summary>
-    /// Gets the path to the local selection set (the selection set within the source schema request)
-    /// to extract the data from.
-    /// </summary>
-    public SelectionPath Source => _source;
-
-    /// <summary>
-    /// Gets the data requirements that are needed to execute this operation.
-    /// </summary>
-    public ReadOnlySpan<OperationRequirement> Requirements => _requirements;
-
-    /// <summary>
-    /// Gets the variables that are needed to execute this operation.
-    /// </summary>
-    public ReadOnlySpan<string> ForwardedVariables => _forwardedVariables;
-
-    /// <summary>
-    /// Gets whether this operation contains one or more variables
-    /// that contain the Upload scalar.
-    /// </summary>
-    public bool RequiresFileUpload => _requiresFileUpload;
-
-    protected override async ValueTask<ExecutionStatus> OnExecuteAsync(
+    protected override ValueTask<ExecutionStatus> OnExecuteAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
-        var diagnosticEvents = context.DiagnosticEvents;
-        var variables = context.CreateVariableValueSets(_targets, _forwardedVariables, _requirements);
+        // When the batch holds a single non-merged operation, the planner
+        // promotes all of its dependencies onto the batch node as required.
+        // So if we reach this point, every dependency has already succeeded.
+        // We use the simpler ExecuteAsync path which avoids the batch
+        // streaming infrastructure (no lists, no receivedResults tracking).
+        // Note: BatchOperationDefinition (merged multi-target ops) uses the
+        // batch path because its deps are optional: some targets' deps may
+        // be skipped while others succeed.
+        if (_operations.Length == 1)
+        {
+            return ExecuteSingleAsync(context, cancellationToken);
+        }
 
-        if (variables.Length == 0 && (_requirements.Length > 0 || _forwardedVariables.Length > 0))
+        return ExecuteBatchAsync(context, cancellationToken);
+    }
+
+    private async ValueTask<ExecutionStatus> ExecuteSingleAsync(
+        OperationPlanContext context,
+        CancellationToken cancellationToken)
+    {
+        var diagnosticEvents = context.DiagnosticEvents;
+        var schemaName = SchemaName;
+        var operation = _operations[0];
+
+        var variables = CreateVariableValueSets(context, operation);
+
+        if (variables.Length == 0
+            && (operation.Requirements.Length > 0
+                || operation.ForwardedVariables.Length > 0))
         {
             return ExecutionStatus.Skipped;
         }
-
-        var schemaName = _schemaName ?? context.GetDynamicSchemaName(this);
 
         context.TrackVariableValueSets(this, variables);
 
@@ -120,204 +76,335 @@ public sealed class OperationBatchExecutionNode : ExecutionNode
         {
             Node = this,
             SchemaName = schemaName,
-            BatchingGroupId = _batchingGroupId,
-            OperationType = _operation.Type,
-            OperationSourceText = _operation.SourceText,
+            OperationType = operation.Operation.Type,
+            OperationSourceText = operation.Operation.SourceText,
             Variables = variables,
-            RequiresFileUpload = _requiresFileUpload
+            RequiresFileUpload = operation.RequiresFileUpload
         };
 
-        var index = 0;
-        var bufferLength = 0;
-        SourceSchemaResult[]? buffer = null;
-        SourceSchemaResult? singleResult = null;
         var hasSomeErrors = false;
 
         try
         {
-            // we execute the GraphQL request against a source schema
-            var response = await context.SourceSchemaScheduler
-                .ExecuteAsync(request, cancellationToken)
-                .ConfigureAwait(false);
+            var client = context.GetClient(schemaName, operation.Operation.Type);
+            var response = await client.ExecuteAsync(context, request, cancellationToken).ConfigureAwait(false);
             context.TrackSourceSchemaClientResponse(this, response);
 
-            // we read the responses from the response stream.
-            var totalPathCount = variables.Length;
-
-            for (var i = 0; i < variables.Length; i++)
+            await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken).ConfigureAwait(false))
             {
-                totalPathCount += variables[i].AdditionalPaths.Length;
-            }
-
-            var initialBufferLength = Math.Max(totalPathCount, 2);
-
-            await foreach (var result in response.ReadAsResultStreamAsync(cancellationToken))
-            {
-                // Store the first result without renting a buffer,
-                // since it might be the only one (e.g. a request-level error).
-                if (index == 0)
-                {
-                    singleResult = result;
-                    index = 1;
-                }
-                else
-                {
-                    // Once we see a second result, we know there are multiple,
-                    // so we rent a buffer and move the first result into it.
-                    if (buffer is null)
-                    {
-                        bufferLength = initialBufferLength;
-                        buffer = ArrayPool<SourceSchemaResult>.Shared.Rent(bufferLength);
-                        buffer[0] = singleResult!;
-                    }
-
-                    buffer[index++] = result;
-                }
-
-                // Parsing errors here allows the result store to reuse the cached value
-                // and avoids a second document lookup per result.
-                if (result.Errors is not null)
+                var hasErrors = result.Errors is not null;
+                if (hasErrors)
                 {
                     hasSomeErrors = true;
+                }
+
+                try
+                {
+                    context.AddPartialResult(
+                        operation.Source,
+                        result,
+                        operation.ResultSelectionSet,
+                        hasErrors);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    return ExecutionStatus.Failed;
+                }
+                catch (Exception exception)
+                {
+                    diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
+                    context.AddErrors(exception, variables, operation.ResultSelectionSet);
+                    return ExecutionStatus.Failed;
                 }
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            // If the execution of the node was cancelled, either the entire request was cancelled
-            // or the execution was halted. In both cases we do not want to produce any errors
-            // and just exit the node as quickly as possible.
+            return ExecutionStatus.Failed;
+        }
+        catch (Exception exception)
+        {
+            diagnosticEvents.SourceSchemaTransportError(context, this, schemaName, exception);
+            context.AddErrors(exception, variables, operation.ResultSelectionSet);
+            return ExecutionStatus.Failed;
+        }
+
+        return hasSomeErrors ? ExecutionStatus.PartialSuccess : ExecutionStatus.Success;
+    }
+
+    private async ValueTask<ExecutionStatus> ExecuteBatchAsync(
+        OperationPlanContext context,
+        CancellationToken cancellationToken)
+    {
+        var diagnosticEvents = context.DiagnosticEvents;
+        var schemaName = SchemaName;
+
+        var requestBuilder = ImmutableArray.CreateBuilder<SourceSchemaClientRequest>(_operations.Length);
+        var operationByIndex = ArrayPool<OperationDefinition>.Shared.Rent(_operations.Length);
+        var variablesByIndex = ArrayPool<ImmutableArray<VariableValues>>.Shared.Rent(_operations.Length);
+        var receivedResults = ArrayPool<bool>.Shared.Rent(_operations.Length);
+        var operationCount = 0;
+
+        try
+        {
+            operationCount = BuildRequests(context, schemaName, requestBuilder, operationByIndex, variablesByIndex);
+
+            if (operationCount == 0)
+            {
+                return ExecutionStatus.Skipped;
+            }
+
+            var requests = requestBuilder.DrainToImmutable();
+
+            // Obtain a transport client for the source schema and stream the batch
+            // response. As each individual result arrives, we merge it into the
+            // result store so downstream nodes can consume the data.
+            var client = context.GetClient(schemaName, requests[0].OperationType);
+            receivedResults.AsSpan(0, operationCount).Clear();
+            var overallStatus = ExecutionStatus.Success;
+
+            await foreach (var batchResult in client.ExecuteBatchStreamAsync(context, requests, cancellationToken))
+            {
+                var requestIndex = batchResult.RequestIndex;
+                var op = operationByIndex[requestIndex];
+                var result = batchResult.Result;
+                var hasErrors = result.Errors is not null;
+
+                receivedResults[requestIndex] = true;
+
+                try
+                {
+                    context.AddPartialResult(
+                        op.Source,
+                        result,
+                        op.ResultSelectionSet,
+                        hasErrors);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    return ExecutionStatus.Failed;
+                }
+                catch (Exception exception)
+                {
+                    diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
+                    context.AddErrors(exception, variablesByIndex[requestIndex], op.ResultSelectionSet);
+                    overallStatus = ExecutionStatus.Failed;
+                    continue;
+                }
+
+                if (hasErrors && overallStatus == ExecutionStatus.Success)
+                {
+                    overallStatus = ExecutionStatus.PartialSuccess;
+                }
+            }
+
+            // Verify that the downstream service returned a result for every
+            // operation in the batch. A missing result means the service did
+            // not implement the batch protocol correctly. We surface this as
+            // an error so the issue is easy to diagnose.
+            var missingCount = 0;
+
+            for (var i = 0; i < operationCount; i++)
+            {
+                if (!receivedResults[i])
+                {
+                    missingCount++;
+                    var operation = operationByIndex[i];
+                    context.AddErrors(
+                        ThrowHelper.MissingBatchResult(operation.Id),
+                        variablesByIndex[i],
+                        operation.ResultSelectionSet);
+                }
+            }
+
+            if (missingCount > 0)
+            {
+                overallStatus = missingCount == operationCount
+                    ? ExecutionStatus.Failed
+                    : ExecutionStatus.PartialSuccess;
+            }
+
+            return overallStatus;
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
             return ExecutionStatus.Failed;
         }
         catch (Exception exception)
         {
             diagnosticEvents.SourceSchemaTransportError(context, this, schemaName, exception);
 
-            // if there is an error, we need to make sure that the pooled buffers for the JsonDocuments
-            // are returned to the pool.
-            if (buffer is not null && bufferLength > 0)
+            // The transport itself failed, so every operation in the batch is affected.
+            // We attach the error to each operation's result selection set.
+            for (var i = 0; i < operationCount; i++)
             {
-                foreach (var result in buffer.AsSpan(0, index))
-                {
-                    // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
-                    result?.Dispose();
-                }
-
-                buffer.AsSpan(0, index).Clear();
-                ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
-            }
-            else if (singleResult is not null)
-            {
-                singleResult.Dispose();
+                context.AddErrors(exception, variablesByIndex[i], operationByIndex[i].ResultSelectionSet);
             }
 
-            AddErrors(context, exception, variables, _responseNames);
-            return ExecutionStatus.Failed;
-        }
-
-        try
-        {
-            if (buffer is not null)
-            {
-                context.AddPartialResults(
-                    _source,
-                    buffer.AsSpan(0, index),
-                    _responseNames,
-                    hasSomeErrors);
-            }
-            else if (singleResult is not null)
-            {
-                var firstResult = singleResult;
-                context.AddPartialResults(
-                    _source,
-                    MemoryMarshal.CreateReadOnlySpan(ref firstResult, 1),
-                    _responseNames,
-                    hasSomeErrors);
-            }
-            else
-            {
-                context.AddPartialResults(
-                    _source,
-                    [],
-                    _responseNames,
-                    hasSomeErrors);
-            }
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            // If the execution of the node was cancelled, either the entire request was cancelled
-            // or the execution was halted. In both cases we do not want to produce any errors
-            // and just exit the node as quickly as possible.
-            return ExecutionStatus.Failed;
-        }
-        catch (Exception exception)
-        {
-            diagnosticEvents.SourceSchemaStoreError(context, this, schemaName, exception);
-            AddErrors(context, exception, variables, _responseNames);
             return ExecutionStatus.Failed;
         }
         finally
         {
-            if (buffer is not null)
-            {
-                buffer.AsSpan(0, index).Clear();
-                ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
-            }
+            operationByIndex.AsSpan(0, operationCount).Clear();
+            variablesByIndex.AsSpan(0, operationCount).Clear();
+            ArrayPool<OperationDefinition>.Shared.Return(operationByIndex);
+            ArrayPool<ImmutableArray<VariableValues>>.Shared.Return(variablesByIndex);
+            ArrayPool<bool>.Shared.Return(receivedResults);
         }
-
-        return hasSomeErrors ? ExecutionStatus.PartialSuccess : ExecutionStatus.Success;
     }
 
-    protected override IDisposable CreateScope(OperationPlanContext context)
-    {
-        var schemaName = _schemaName ?? context.GetDynamicSchemaName(this);
-        return context.DiagnosticEvents.ExecuteOperationBatchNode(context, this, schemaName);
-    }
-
-    private static void AddErrors(
+    private int BuildRequests(
         OperationPlanContext context,
-        Exception exception,
-        ImmutableArray<VariableValues> variables,
-        ReadOnlySpan<string> responseNames)
+        string schemaName,
+        ImmutableArray<SourceSchemaClientRequest>.Builder requestBuilder,
+        OperationDefinition[] operationByIndex,
+        ImmutableArray<VariableValues>[] variablesByIndex)
     {
-        var error = ErrorBuilder.FromException(exception).Build();
+        var operationCount = 0;
 
-        if (variables.Length == 0)
+        foreach (var operation in _operations)
         {
-            context.AddErrors(error, responseNames, Path.Root);
+            if (IsSkipped(context, operation))
+            {
+                context.TrackSkippedDefinition(this, operation);
+                continue;
+            }
+
+            if (HasSkippedDependencies(context, operation))
+            {
+                context.TrackSkippedDefinition(this, operation);
+                continue;
+            }
+
+            var variables = CreateVariableValueSets(context, operation);
+
+            if (variables.Length == 0
+                && (operation.Requirements.Length > 0
+                    || operation.ForwardedVariables.Length > 0))
+            {
+                context.TrackSkippedDefinition(this, operation);
+                continue;
+            }
+
+            context.TrackVariableValueSets(this, variables);
+
+            requestBuilder.Add(new SourceSchemaClientRequest
+            {
+                Node = this,
+                SchemaName = schemaName,
+                OperationType = operation.Operation.Type,
+                OperationSourceText = operation.Operation.SourceText,
+                Variables = variables,
+                RequiresFileUpload = _requiresFileUpload
+            });
+
+            operationByIndex[operationCount] = operation;
+            variablesByIndex[operationCount] = variables;
+            operationCount++;
         }
-        else
+
+        return operationCount;
+    }
+
+    protected override bool IsSkipped(OperationPlanContext context)
+    {
+        if (_operations.Length == 1)
         {
-            var pathBufferLength = 0;
+            return IsSkipped(context, _operations[0]);
+        }
 
-            for (var i = 0; i < variables.Length; i++)
+        if (_operations.Length == 2)
+        {
+            return IsSkipped(context, _operations[0])
+                && IsSkipped(context, _operations[1]);
+        }
+
+        if (_operations.Length == 3)
+        {
+            return IsSkipped(context, _operations[0])
+                && IsSkipped(context, _operations[1])
+                && IsSkipped(context, _operations[2]);
+        }
+
+        if (_operations.Length == 4)
+        {
+            return IsSkipped(context, _operations[0])
+                && IsSkipped(context, _operations[1])
+                && IsSkipped(context, _operations[2])
+                && IsSkipped(context, _operations[3]);
+        }
+
+        foreach (var operation in _operations)
+        {
+            if (!IsSkipped(context, operation))
             {
-                pathBufferLength += 1 + variables[i].AdditionalPaths.Length;
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool IsSkipped(OperationPlanContext context, OperationDefinition operation)
+    {
+        if (operation.Conditions.Length == 0)
+        {
+            return false;
+        }
+
+        foreach (var condition in operation.Conditions)
+        {
+            if (!context.Variables.TryGetValue<BooleanValueNode>(condition.VariableName, out var booleanValueNode))
+            {
+                throw ThrowHelper.MissingBooleanVariable(condition.VariableName);
             }
 
-            var pathBuffer = ArrayPool<CompactPath>.Shared.Rent(pathBufferLength);
-
-            try
+            if (booleanValueNode.Value != condition.PassingValue)
             {
-                var pathBufferIndex = 0;
-
-                for (var i = 0; i < variables.Length; i++)
-                {
-                    pathBuffer[pathBufferIndex++] = variables[i].Path;
-
-                    foreach (var additionalPath in variables[i].AdditionalPaths)
-                    {
-                        pathBuffer[pathBufferIndex++] = additionalPath;
-                    }
-                }
-
-                context.AddErrors(error, responseNames, pathBuffer.AsSpan(0, pathBufferLength));
+                return true;
             }
-            finally
-            {
-                pathBuffer.AsSpan(0, pathBufferLength).Clear();
-                ArrayPool<CompactPath>.Shared.Return(pathBuffer);
-            }
+        }
+
+        return false;
+    }
+
+    protected override void OnSealingNode()
+    {
+        foreach (var operation in _operations)
+        {
+            operation.Seal();
         }
     }
+
+    private static bool HasSkippedDependencies(OperationPlanContext context, OperationDefinition operation)
+    {
+        foreach (var dep in operation.Dependencies)
+        {
+            if (context.IsNodeSkipped(dep.Id))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static ImmutableArray<VariableValues> CreateVariableValueSets(
+        OperationPlanContext context,
+        OperationDefinition operation)
+        => operation switch
+        {
+            SingleOperationDefinition single
+                => context.CreateVariableValueSets(
+                    single.Target,
+                    single.ForwardedVariables,
+                    single.Requirements),
+            BatchOperationDefinition batch
+                => context.CreateVariableValueSets(
+                    batch.Targets,
+                    batch.ForwardedVariables,
+                    batch.Requirements),
+            _ => throw new InvalidOperationException(
+                $"Unknown operation definition type: {operation.GetType().Name}")
+        };
 }

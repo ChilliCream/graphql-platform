@@ -40,7 +40,29 @@ internal static class MessageHelper
     public static async ValueTask SendSubscribeMessageAsync(
         this WebSocket socket,
         string operationSessionId,
-        OperationRequest request,
+        IOperationRequest request,
+        CancellationToken ct)
+    {
+        using var arrayWriter = new PooledArrayWriter();
+        await using var jsonWriter = new Utf8JsonWriter(arrayWriter, JsonOptionDefaults.WriterOptions);
+
+        jsonWriter.WriteStartObject();
+        jsonWriter.WriteString(Utf8MessageProperties.IdProp, operationSessionId);
+        jsonWriter.WriteString(Utf8MessageProperties.TypeProp, Utf8Messages.Subscribe);
+        jsonWriter.WritePropertyName(Utf8MessageProperties.PayloadProp);
+
+        request.WriteTo(jsonWriter);
+
+        jsonWriter.WriteEndObject();
+        await jsonWriter.FlushAsync(ct).ConfigureAwait(false);
+
+        await socket.SendAsync(arrayWriter.WrittenMemory, Text, true, ct).ConfigureAwait(false);
+    }
+
+    public static async ValueTask SendSubscribeMessageAsync(
+        this WebSocket socket,
+        string operationSessionId,
+        OperationBatchRequest request,
         CancellationToken ct)
     {
         using var arrayWriter = new PooledArrayWriter();

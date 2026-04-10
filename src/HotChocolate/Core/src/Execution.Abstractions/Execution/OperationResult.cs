@@ -48,11 +48,7 @@ public sealed class OperationResult : ExecutionResult
 
         if (data.MemoryHolder is { } memoryHolder)
         {
-            RegisterForCleanup(() =>
-            {
-                memoryHolder.Dispose();
-                return ValueTask.CompletedTask;
-            });
+            RegisterForCleanup(memoryHolder);
         }
     }
 

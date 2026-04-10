@@ -42,6 +42,26 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
             });
         formatter.Format(buffer, originalPlan);
 
+        var json = JsonNode.Parse(buffer.WrittenSpan)!;
+        var operationNodes = json["nodes"]!
+            .AsArray()
+            .Select(t => t!.AsObject())
+            .Where(t =>
+            {
+                var type = t["type"]?.GetValue<string>();
+                return type is "Operation" or "OperationBatch";
+            })
+            .ToList();
+
+        Assert.NotEmpty(operationNodes);
+        Assert.All(
+            operationNodes,
+            node =>
+            {
+                Assert.True(node.ContainsKey("resultSelectionSet"));
+                Assert.False(node.ContainsKey("responseNames"));
+            });
+
         // act
         var compiler = new OperationCompiler(
             compositeSchema,
@@ -53,6 +73,60 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         // assert
         var parsedPlanFormatted = formatter.Format(parsedPlan);
         parsedPlanFormatted.MatchInlineSnapshot(Encoding.UTF8.GetString(buffer.WrittenSpan));
+    }
+
+    [Fact]
+    public void Parse_Plan_Uses_SelectionSet_Syntax_When_Present()
+    {
+        // arrange
+        var compositeSchema = CreateCompositeSchema();
+        var originalPlan = PlanOperation(
+            compositeSchema,
+            """
+            {
+                productBySlug(slug: "1") {
+                    id
+                    name
+                }
+            }
+            """);
+
+        var formatter = new JsonOperationPlanFormatter(
+            new JsonWriterOptions
+            {
+                Indented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+        var json = JsonNode.Parse(formatter.Format(originalPlan))!;
+        var operationNode = json["nodes"]!
+            .AsArray()
+            .Select(t => t!.AsObject())
+            .First(t => t["type"]?.GetValue<string>() is "Operation");
+        var operationNodeId = operationNode["id"]!.GetValue<int>();
+
+        operationNode["resultSelectionSet"] = "{ __typename }";
+
+        var planSource = Encoding.UTF8.GetBytes(
+            json.ToJsonString(
+                new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                }));
+
+        var compiler = new OperationCompiler(
+            compositeSchema,
+            new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+        var parser = new JsonOperationPlanParser(compiler);
+
+        // act
+        var parsedPlan = parser.Parse(planSource);
+        var parsedOperationNode = parsedPlan.AllNodes
+            .OfType<OperationExecutionNode>()
+            .Single(t => t.Id == operationNodeId);
+
+        // assert
+        Assert.Equal("{ __typename }", parsedOperationNode.ResultSelectionSet.ToString(indented: false));
     }
 
     [Fact]
@@ -174,8 +248,8 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         var parsedPlan = parser.Parse(legacyPlanSource);
 
         // assert
-        Assert.All(
-            parsedPlan.AllNodes.OfType<OperationExecutionNode>(),
-            node => Assert.Null(node.BatchingGroupId));
+        // BatchingGroupId no longer exists on OperationExecutionNode;
+        // the legacy plan without batchingGroupId should still parse successfully.
+        Assert.NotEmpty(parsedPlan.AllNodes.OfType<OperationExecutionNode>());
     }
 }

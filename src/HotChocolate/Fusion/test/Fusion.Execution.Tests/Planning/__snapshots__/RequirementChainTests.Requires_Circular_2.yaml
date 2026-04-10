@@ -30,10 +30,7 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_byNovice: Boolean!
-          $__fusion_2_id: ID!
-      ) {
+      query Op_123456789101112_2($__fusion_1_byNovice: Boolean!, $__fusion_2_id: ID!) {
         postById(id: $__fusion_2_id) {
           byExpert(byNovice: $__fusion_1_byNovice)
         }
@@ -49,7 +46,6 @@ nodes:
           id
     dependencies:
       - id: 3
-      - id: 4
   - id: 3
     type: Operation
     schema: b
@@ -64,7 +60,7 @@ nodes:
       }
     source: $.postById
     target: $.feed
-    batchingGroupId: 1
+    batchingGroupId: 3
     requirements:
       - name: __fusion_3_id
         selectionMap: >-
@@ -78,16 +74,14 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_4(
-        $__fusion_5_id: ID!
-      ) {
+      query Op_123456789101112_4($__fusion_5_id: ID!) {
         postById(id: $__fusion_5_id) {
           id
         }
       }
     source: $.postById
     target: $.feed
-    batchingGroupId: 1
+    batchingGroupId: 3
     requirements:
       - name: __fusion_5_id
         selectionMap: >-

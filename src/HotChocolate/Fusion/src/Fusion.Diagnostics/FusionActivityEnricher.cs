@@ -66,6 +66,13 @@ public class FusionActivityEnricher(InstrumentationOptions options) : ActivityEn
     {
     }
 
+    public virtual void EnrichAddedOperationPlanToCache(
+        RequestContext context,
+        string operationPlanId,
+        Activity activity)
+    {
+    }
+
     public virtual void EnrichSubscriptionEventError(
         OperationPlanContext context,
         ExecutionNode node,

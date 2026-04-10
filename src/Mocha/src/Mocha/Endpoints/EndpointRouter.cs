@@ -8,7 +8,11 @@ namespace Mocha;
 /// </summary>
 public sealed class EndpointRouter : IEndpointRouter
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _lock = new();
+#else
     private readonly object _lock = new();
+#endif
 
     // Primary storage - endpoint -> tracked addresses
     private readonly Dictionary<DispatchEndpoint, ImmutableHashSet<Uri>> _endpoints = [];
@@ -105,7 +109,7 @@ public sealed class EndpointRouter : IEndpointRouter
                 }
             }
 
-            throw new InvalidOperationException($"No transport can handle address: {address}");
+            throw ThrowHelper.NoTransportForAddress(address.ToString());
         }
     }
 
@@ -130,7 +134,7 @@ public sealed class EndpointRouter : IEndpointRouter
         {
             if (!_endpoints.TryGetValue(endpoint, out var addresses))
             {
-                throw new InvalidOperationException("Endpoint must be registered before adding addresses");
+                throw ThrowHelper.EndpointMustBeRegistered();
             }
 
             if (addresses.Contains(address))

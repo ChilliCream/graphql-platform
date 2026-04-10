@@ -24,8 +24,8 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// <param name="supportedOperations">
     /// The supported operations.
     /// </param>
-    /// <param name="batchingMode">
-    /// The batching mode.
+    /// <param name="capabilities">
+    /// The client capabilities.
     /// </param>
     /// <param name="defaultAcceptHeaderValues">
     /// The <c>Accept</c> header values sent in case of a single, non-Subscription GraphQL request.
@@ -53,7 +53,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         string name,
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
-        SourceSchemaHttpClientBatchingMode batchingMode = SourceSchemaHttpClientBatchingMode.VariableBatching,
+        SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.All,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
@@ -66,7 +66,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
             name,
             baseAddress,
             supportedOperations,
-            batchingMode,
+            capabilities,
             defaultAcceptHeaderValues,
             batchingAcceptHeaderValues,
             subscriptionAcceptHeaderValues,
@@ -92,8 +92,8 @@ public static partial class CoreFusionGatewayBuilderExtensions
     /// <param name="supportedOperations">
     /// The supported operations.
     /// </param>
-    /// <param name="batchingMode">
-    /// The batching mode.
+    /// <param name="capabilities">
+    /// The client capabilities.
     /// </param>
     /// <param name="defaultAcceptHeaderValues">
     /// The <c>Accept</c> header values sent in case of a single, non-Subscription GraphQL request.
@@ -122,7 +122,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
         string httpClientName,
         Uri baseAddress,
         SupportedOperationType supportedOperations = SupportedOperationType.All,
-        SourceSchemaHttpClientBatchingMode batchingMode = SourceSchemaHttpClientBatchingMode.VariableBatching,
+        SourceSchemaClientCapabilities capabilities = SourceSchemaClientCapabilities.All,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null,
         ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null,
@@ -142,7 +142,7 @@ public static partial class CoreFusionGatewayBuilderExtensions
                 httpClientName,
                 baseAddress,
                 supportedOperations,
-                batchingMode,
+                capabilities,
                 defaultAcceptHeaderValues,
                 batchingAcceptHeaderValues,
                 subscriptionAcceptHeaderValues,

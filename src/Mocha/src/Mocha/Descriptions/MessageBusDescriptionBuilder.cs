@@ -34,7 +34,7 @@ public sealed class MessageBusDescriptionVisitor : MessagingVisitor<MessageBusDe
 
         internal MessageBusDescription ToDescription()
             => new(
-                Host ?? throw new InvalidOperationException("Host description is missing."),
+                Host ?? throw ThrowHelper.HostDescriptionMissing(),
                 MessageTypes,
                 Consumers,
                 new RoutesDescription(InboundRoutes, OutboundRoutes),

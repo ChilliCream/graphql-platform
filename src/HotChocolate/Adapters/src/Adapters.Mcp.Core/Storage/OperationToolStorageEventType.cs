@@ -5,11 +5,8 @@ namespace HotChocolate.Adapters.Mcp.Storage;
 /// </summary>
 public enum OperationToolStorageEventType
 {
-    /// <summary>A new tool was added to storage.</summary>
-    Added,
-
-    /// <summary>An existing tool was modified in storage.</summary>
-    Modified,
+    /// <summary>A tool was added to or updated in storage.</summary>
+    Updated,
 
     /// <summary>A tool was removed from storage.</summary>
     Removed

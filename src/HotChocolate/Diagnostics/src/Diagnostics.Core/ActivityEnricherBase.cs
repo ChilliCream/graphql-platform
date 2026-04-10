@@ -15,89 +15,124 @@ public abstract class ActivityEnricherBase
     public virtual void EnrichExecuteHttpRequest(
         HttpContext httpContext,
         HttpRequestKind kind,
-        Activity activity) { }
+        Activity activity)
+    { }
 
     public virtual void EnrichSingleRequest(
         HttpContext httpContext,
         GraphQLRequest request,
-        Activity activity) { }
+        Activity activity)
+    { }
 
     public virtual void EnrichBatchRequest(
         HttpContext httpContext,
         IReadOnlyList<GraphQLRequest> batch,
-        Activity activity) { }
+        Activity activity)
+    { }
 
     public virtual void EnrichOperationBatchRequest(
         HttpContext httpContext,
         GraphQLRequest request,
         IReadOnlyList<string> operations,
-        Activity activity) { }
+        Activity activity)
+    { }
 
     public virtual void EnrichHttpRequestError(
         HttpContext httpContext,
         IError error,
-        Activity activity) { }
+        Activity activity)
+    { }
 
     public virtual void EnrichHttpRequestError(
         HttpContext httpContext,
         Exception exception,
-        Activity activity) { }
+        Activity activity)
+    { }
 
     public virtual void EnrichParseHttpRequest(
         HttpContext httpContext,
-        Activity activity) { }
+        Activity activity)
+    { }
 
     public virtual void EnrichParserErrors(
         HttpContext httpContext,
         IReadOnlyList<IError> errors,
-        Activity activity) { }
+        Activity activity)
+    { }
 
     public virtual void EnrichFormatHttpResponse(
         HttpContext httpContext,
-        Activity activity) { }
+        Activity activity)
+    { }
 
     public virtual void EnrichExecuteRequest(
         RequestContext context,
-        Activity activity) { }
+        Activity activity)
+    { }
 
     public virtual void EnrichRequestError(
         RequestContext context,
         Exception exception,
-        Activity activity) { }
+        Activity activity)
+    { }
 
     public virtual void EnrichRequestError(
         RequestContext context,
         IError error,
-        Activity activity) { }
+        Activity activity)
+    { }
 
     public virtual void EnrichParseDocument(
         RequestContext context,
-        Activity activity) { }
+        Activity activity)
+    { }
 
     public virtual void EnrichValidateDocument(
         RequestContext context,
-        Activity activity) { }
+        Activity activity)
+    { }
 
     public virtual void EnrichValidationErrors(
         RequestContext context,
         IReadOnlyList<IError> errors,
-        Activity activity) { }
+        Activity activity)
+    { }
 
     public virtual void EnrichAnalyzeOperationCost(
         RequestContext context,
-        Activity activity) { }
+        Activity activity)
+    { }
 
     public virtual void EnrichOperationCost(
         RequestContext context,
         double fieldCost,
         double typeCost,
-        Activity activity) { }
+        Activity activity)
+    { }
 
     public virtual void EnrichCoerceVariables(
         RequestContext context,
-        Activity activity) { }
+        Activity activity)
+    { }
 
     public virtual void EnrichExecuteOperation(
         RequestContext context,
-        Activity activity) { }
+        Activity activity)
+    { }
+
+    public virtual void EnrichDocumentNotFoundInStorage(
+        RequestContext context,
+        OperationDocumentId documentId,
+        Activity activity)
+    { }
+
+    public virtual void EnrichUntrustedDocumentRejected(
+        RequestContext context,
+        Activity activity)
+    { }
+
+    public virtual void EnrichAddedDocumentToCache(
+        RequestContext context,
+        Activity activity)
+    { }
 }

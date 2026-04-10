@@ -77,7 +77,11 @@ public interface IMessageRouter
 /// </summary>
 public sealed class MessageRouter : IMessageRouter
 {
+#if NET9_0_OR_GREATER
+    private readonly Lock _lock = new();
+#else
     private readonly object _lock = new();
+#endif
 
     // Inbound storage and indexes
     private readonly Dictionary<InboundRoute, InboundTrackedState> _inboundRoutes = [];
@@ -176,7 +180,7 @@ public sealed class MessageRouter : IMessageRouter
             }
             route.Complete(context);
 
-            throw new InvalidOperationException($"No transport can handle message type: {messageType}");
+            throw ThrowHelper.NoTransportForMessageType(messageType);
         }
     }
 
@@ -186,7 +190,7 @@ public sealed class MessageRouter : IMessageRouter
 
         if (!route.IsInitialized)
         {
-            throw new InvalidOperationException("Route must be initialized");
+            throw ThrowHelper.RouteMustBeInitialized();
         }
 
         lock (_lock)
@@ -236,7 +240,7 @@ public sealed class MessageRouter : IMessageRouter
         ArgumentNullException.ThrowIfNull(route);
         if (!route.IsInitialized)
         {
-            throw new InvalidOperationException("Route must be initialized");
+            throw ThrowHelper.RouteMustBeInitialized();
         }
 
         lock (_lock)

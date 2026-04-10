@@ -302,9 +302,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetHero GraphQL operation
     /// <code>
-    /// query GetHero(
-    ///   $episode: Episode
-    /// ) {
+    /// query GetHero($episode: Episode) {
     ///   hero(episode: $episode) {
     ///     __typename
     ///     name
@@ -339,9 +337,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetHero GraphQL operation
     /// <code>
-    /// query GetHero(
-    ///   $episode: Episode
-    /// ) {
+    /// query GetHero($episode: Episode) {
     ///   hero(episode: $episode) {
     ///     __typename
     ///     name
@@ -437,9 +433,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetHero GraphQL operation
     /// <code>
-    /// query GetHero(
-    ///   $episode: Episode
-    /// ) {
+    /// query GetHero($episode: Episode) {
     ///   hero(episode: $episode) {
     ///     __typename
     ///     name

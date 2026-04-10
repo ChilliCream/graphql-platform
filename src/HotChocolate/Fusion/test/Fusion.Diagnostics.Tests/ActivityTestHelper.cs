@@ -92,7 +92,7 @@ public static partial class ActivityTestHelper
         data["OperationName"] = activity.OperationName;
         data["DisplayName"] = activity.DisplayName;
         data["Status"] = activity.Status;
-        data["tags"] = activity.Tags;
+        data["tags"] = activity.TagObjects;
         data["event"] = activity.Events.Select(t => new
         {
             t.Name,
@@ -119,8 +119,7 @@ public static partial class ActivityTestHelper
                     StackTracePathRegex().Replace(stackTrace, match =>
                     {
                         var fileName = System.IO.Path.GetFileName(match.Groups["path"].Value);
-                        var lineNumber = match.Groups["line"].Value;
-                        return $" in {fileName}:line {lineNumber}";
+                        return $" in {fileName}";
                     }));
             }
             else

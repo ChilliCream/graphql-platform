@@ -2,6 +2,7 @@ using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Fusion.Types.Metadata;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Types;
 
@@ -31,7 +32,10 @@ internal sealed class PlannerTopologyCache
     {
         ArgumentNullException.ThrowIfNull(schema);
 
-        var complexTypes = schema.Types.AsEnumerable().OfType<FusionComplexTypeDefinition>().ToArray();
+        var complexTypes = schema.Types.AsEnumerable()
+            .OfType<FusionComplexTypeDefinition>()
+            .Where(t => !((ITypeDefinition)t).IsIntrospectionType)
+            .ToArray();
         var schemaNames = CollectSchemaNames(complexTypes);
         var fieldResolutions = BuildFieldResolutions(complexTypes);
         var orderedLookups = BuildOrderedLookups(schema, complexTypes, schemaNames);
@@ -153,6 +157,7 @@ internal sealed class PlannerTopologyCache
     {
         var directTransitions = new Dictionary<TransitionKey, Lookup>();
         var impossibleDirectTransitions = new HashSet<TransitionKey>();
+        var visitor = new KeyTransitionVisitor();
 
         foreach (var complexType in complexTypes)
         {
@@ -161,10 +166,11 @@ internal sealed class PlannerTopologyCache
                 foreach (var toSchema in schemaNames)
                 {
                     var key = new TransitionKey(complexType.Name, fromSchema, toSchema);
+                    var bestLookup = FindBestDirectLookup(schema, visitor, complexType, fromSchema, toSchema);
 
-                    if (schema.TryGetBestDirectLookup(complexType, fromSchema, toSchema, out var lookup))
+                    if (bestLookup is not null)
                     {
-                        directTransitions[key] = lookup;
+                        directTransitions[key] = bestLookup;
                     }
                     else
                     {
@@ -175,6 +181,65 @@ internal sealed class PlannerTopologyCache
         }
 
         return (directTransitions, impossibleDirectTransitions);
+    }
+
+    private static Lookup? FindBestDirectLookup(
+        FusionSchemaDefinition schema,
+        KeyTransitionVisitor visitor,
+        FusionComplexTypeDefinition type,
+        string fromSchema,
+        string toSchema)
+    {
+        var context = new KeyTransitionVisitor.Context
+        {
+            CompositeSchema = schema,
+            SourceSchema = fromSchema,
+            Types = [type]
+        };
+
+        Lookup? bestLookup = null;
+        var fields = 0;
+        var fragments = 0;
+
+        foreach (var possibleLookup in schema.GetPossibleLookups(type, toSchema))
+        {
+            context.Reset();
+            visitor.Visit(possibleLookup.Requirements, context);
+
+            if (context.NeedsTransition)
+            {
+                continue;
+            }
+
+            if (context is { Fields: 1, Fragments: 0 })
+            {
+                return possibleLookup;
+            }
+
+            if (bestLookup is null)
+            {
+                bestLookup = possibleLookup;
+                fields = context.Fields;
+                fragments = context.Fragments;
+                continue;
+            }
+
+            if (context.Fields < fields)
+            {
+                bestLookup = possibleLookup;
+                fields = context.Fields;
+                fragments = context.Fragments;
+            }
+
+            if (context.Fields == fields && context.Fragments < fragments)
+            {
+                bestLookup = possibleLookup;
+                fields = context.Fields;
+                fragments = context.Fragments;
+            }
+        }
+
+        return bestLookup;
     }
 
     private static Dictionary<string, TypeScatterInfo> BuildTypeScatter(
@@ -243,40 +308,3 @@ internal sealed class PlannerTopologyCache
 
     private readonly record struct TransitionKey(string TypeName, string FromSchema, string ToSchema);
 }
-
-internal readonly record struct FieldResolutionInfo(
-    ImmutableArray<string> Schemas,
-    ImmutableArray<string> SchemasWithRequirements)
-{
-    public bool ContainsSchema(string schemaName)
-    {
-        foreach (var candidate in Schemas)
-        {
-            if (candidate.Equals(schemaName, StringComparison.Ordinal))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public bool HasRequirements(string schemaName)
-    {
-        foreach (var candidate in SchemasWithRequirements)
-        {
-            if (candidate.Equals(schemaName, StringComparison.Ordinal))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-}
-
-internal readonly record struct TypeScatterInfo(
-    int TotalFields,
-    int SchemaCount,
-    int MaxCoverage,
-    double ScatterRatio);

@@ -1,12 +1,12 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Types.Collections;
 using HotChocolate.Fusion.Types.Completion;
 using HotChocolate.Fusion.Types.Metadata;
 using HotChocolate.Language;
-using HotChocolate.Language.Visitors;
 using HotChocolate.Serialization;
 using HotChocolate.Types;
 
@@ -21,7 +21,6 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
 #endif
     private readonly ConcurrentDictionary<string, ImmutableArray<FusionObjectTypeDefinition>> _possibleTypes = new();
     private readonly ConcurrentDictionary<(string, string?), ImmutableArray<Lookup>> _possibleLookups = new();
-    private readonly ConcurrentDictionary<TransitionKey, Lookup> _bestDirectLookup = new();
     private readonly IServiceProvider _services;
     private PlannerTopologyCache? _plannerTopologyCache;
     private ImmutableArray<FusionUnionTypeDefinition> _unionTypes;
@@ -225,7 +224,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         {
             if (abstractType is FusionUnionTypeDefinition unionType)
             {
-                return [.. unionType.Types.AsEnumerable()];
+                return [.. unionType.Types.AsEnumerable().OrderBy(t => t.Name, StringComparer.Ordinal)];
             }
 
             if (abstractType is FusionInterfaceTypeDefinition interfaceType)
@@ -240,6 +239,7 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
                     }
                 }
 
+                builder.Sort((a, b) => StringComparer.Ordinal.Compare(a.Name, b.Name));
                 return builder.ToImmutable();
             }
 
@@ -283,13 +283,14 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(type);
 
-        if (_plannerTopologyCache is { } topology
-            && topology.TryGetOrderedLookups(type.Name, schemaName, out var lookups))
+        EnsurePlannerTopologyCacheInitialized();
+
+        if (_plannerTopologyCache.TryGetOrderedLookups(type.Name, schemaName, out var lookups))
         {
             return lookups;
         }
 
-        return [.. GetPossibleLookups(type, schemaName).OrderBy(CreateLookupOrderingKey, StringComparer.Ordinal)];
+        return [];
     }
 
     internal bool TryGetFieldResolution(
@@ -300,21 +301,10 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         ArgumentNullException.ThrowIfNull(type);
         ArgumentException.ThrowIfNullOrEmpty(fieldName);
 
-        if (_plannerTopologyCache is { } topology
-            && topology.TryGetFieldResolution(type.Name, fieldName, out fieldResolution))
-        {
-            return true;
-        }
+        EnsurePlannerTopologyCacheInitialized();
 
-        if (type.Fields.TryGetField(fieldName, allowInaccessibleFields: true, out var field))
+        if (_plannerTopologyCache.TryGetFieldResolution(type.Name, fieldName, out fieldResolution))
         {
-            fieldResolution = new FieldResolutionInfo(
-                field.Sources.Schemas.OrderBy(static s => s, StringComparer.Ordinal).ToImmutableArray(),
-                field.Sources.Members
-                    .Where(static s => s.Requirements is not null)
-                    .Select(static s => s.SchemaName)
-                    .OrderBy(static s => s, StringComparer.Ordinal)
-                    .ToImmutableArray());
             return true;
         }
 
@@ -328,8 +318,9 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
     {
         ArgumentNullException.ThrowIfNull(type);
 
-        if (_plannerTopologyCache is { } topology
-            && topology.TryGetTypeScatter(type.Name, out typeScatter))
+        EnsurePlannerTopologyCacheInitialized();
+
+        if (_plannerTopologyCache.TryGetTypeScatter(type.Name, out typeScatter))
         {
             return true;
         }
@@ -454,83 +445,15 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         ArgumentException.ThrowIfNullOrEmpty(fromSchema);
         ArgumentException.ThrowIfNullOrEmpty(toSchema);
 
-        if (_plannerTopologyCache is { } topology)
-        {
-            if (topology.TryGetDirectTransition(type.Name, fromSchema, toSchema, out lookup))
-            {
-                return true;
-            }
+        EnsurePlannerTopologyCacheInitialized();
 
-            if (topology.IsDirectTransitionImpossible(type.Name, fromSchema, toSchema))
-            {
-                lookup = null;
-                return false;
-            }
+        if (_plannerTopologyCache.TryGetDirectTransition(type.Name, fromSchema, toSchema, out lookup))
+        {
+            return true;
         }
 
-        if (!_bestDirectLookup.TryGetValue(new TransitionKey(type.Name, fromSchema, toSchema), out lookup))
-        {
-            var keyTransitionVisitor = new KeyTransitionVisitor();
-
-            var context = new KeyTransitionVisitor.Context
-            {
-                CompositeSchema = this,
-                SourceSchema = fromSchema,
-                Types = [type]
-            };
-
-            Lookup? bestLookup = null;
-            var fields = 0;
-            var fragments = 0;
-
-            foreach (var possibleLookup in GetPossibleLookups(type, toSchema))
-            {
-                context.Reset();
-                keyTransitionVisitor.Visit(possibleLookup.Requirements, context);
-
-                if (context.NeedsTransition)
-                {
-                    continue;
-                }
-
-                if (context is { Fields: 1, Fragments: 0 })
-                {
-                    bestLookup = possibleLookup;
-                    break;
-                }
-
-                if (bestLookup is null)
-                {
-                    bestLookup = possibleLookup;
-                    fields = context.Fields;
-                    fragments = context.Fragments;
-                    continue;
-                }
-
-                if (context.Fields < fields)
-                {
-                    bestLookup = possibleLookup;
-                    fields = context.Fields;
-                    fragments = context.Fragments;
-                }
-
-                if (context.Fields == fields && context.Fragments < fragments)
-                {
-                    bestLookup = possibleLookup;
-                    fields = context.Fields;
-                    fragments = context.Fragments;
-                }
-            }
-
-            if (bestLookup is not null)
-            {
-                _bestDirectLookup.TryAdd(new TransitionKey(type.Name, fromSchema, toSchema), bestLookup);
-            }
-
-            lookup = bestLookup;
-        }
-
-        return lookup is not null;
+        lookup = null;
+        return false;
     }
 
     public IEnumerable<INameProvider> GetAllDefinitions()
@@ -558,9 +481,17 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
         _unionTypes = [.. Types.AsEnumerable().OfType<FusionUnionTypeDefinition>()];
     }
 
-    internal void InitializePlannerTopologyCache()
+    [MemberNotNull(nameof(_plannerTopologyCache))]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal void EnsurePlannerTopologyCacheInitialized()
     {
-        _plannerTopologyCache ??= PlannerTopologyCache.Build(this);
+        if (_plannerTopologyCache is null)
+        {
+            lock (_lock)
+            {
+                _plannerTopologyCache ??= PlannerTopologyCache.Build(this);
+            }
+        }
     }
 
     public override string ToString()
@@ -587,98 +518,6 @@ public sealed class FusionSchemaDefinition : ISchemaDefinition, IAsyncDisposable
             }
 
             _disposed = true;
-        }
-    }
-
-    private readonly record struct TransitionKey(string TypeName, string From, string To);
-
-    private static string CreateLookupOrderingKey(Lookup lookup)
-    {
-        var path = lookup.Path.Length == 0
-            ? string.Empty
-            : string.Join('.', lookup.Path);
-
-        return string.Concat(
-            lookup.SchemaName,
-            ":",
-            lookup.FieldName,
-            ":",
-            path,
-            ":",
-            lookup.Arguments.Length.ToString(),
-            ":",
-            lookup.Fields.Length.ToString());
-    }
-}
-
-internal sealed class KeyTransitionVisitor : SyntaxWalker<KeyTransitionVisitor.Context>
-{
-    protected override ISyntaxVisitorAction Enter(FieldNode node, Context context)
-    {
-        var type = (FusionComplexTypeDefinition)context.Types.Peek();
-        var field = type.Fields.GetField(node.Name.Value, allowInaccessibleFields: true);
-
-        if (!field.Sources.TryGetMember(context.SourceSchema, out var member) || member.Requirements is not null)
-        {
-            context.NeedsTransition = true;
-            return Break;
-        }
-
-        context.Fields++;
-        context.Types.Push(field.Type.NamedType());
-        return base.Enter(node, context);
-    }
-
-    protected override ISyntaxVisitorAction Leave(FieldNode node, Context context)
-    {
-        context.Types.Pop();
-        return base.Leave(node, context);
-    }
-
-    protected override ISyntaxVisitorAction Enter(InlineFragmentNode node, Context context)
-    {
-        context.Fragments++;
-
-        if (node.TypeCondition is { Name: { } typeName })
-        {
-            context.Types.Push(context.CompositeSchema.Types[typeName.Value]);
-        }
-
-        return base.Enter(node, context);
-    }
-
-    protected override ISyntaxVisitorAction Leave(InlineFragmentNode node, Context context)
-    {
-        if (node.TypeCondition is not null)
-        {
-            context.Types.Pop();
-        }
-
-        return base.Leave(node, context);
-    }
-
-    public sealed class Context
-    {
-        public required FusionSchemaDefinition CompositeSchema { get; init; }
-
-        public required string SourceSchema { get; init; }
-
-        public required List<ITypeDefinition> Types { get; init; }
-
-        public bool NeedsTransition { get; set; }
-
-        public int Fields { get; set; }
-
-        public int Fragments { get; set; }
-
-        public void Reset()
-        {
-            var first = Types[0];
-            Types.Clear();
-            NeedsTransition = false;
-            Fields = 0;
-            Fragments = 0;
-            Types.Push(first);
         }
     }
 }

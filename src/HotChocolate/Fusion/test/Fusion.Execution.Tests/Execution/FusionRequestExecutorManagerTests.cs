@@ -1,6 +1,10 @@
+using System.Text.Json;
+using HotChocolate.Buffers;
 using HotChocolate.Collections.Immutable;
 using HotChocolate.Execution;
+using HotChocolate.Features;
 using HotChocolate.Fusion.Configuration;
+using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,6 +13,17 @@ namespace HotChocolate.Fusion.Execution;
 
 public class FusionRequestExecutorManagerTests : FusionTestBase
 {
+    private const string DefaultAcceptHeader =
+        "application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, "
+        + "application/jsonl; charset=utf-8, text/event-stream; charset=utf-8";
+
+    private const string BatchingAcceptHeader =
+        "application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, "
+        + "application/graphql-response+json; charset=utf-8, application/json; charset=utf-8";
+
+    private const string SubscriptionAcceptHeader =
+        "application/jsonl; charset=utf-8, text/event-stream; charset=utf-8";
+
     [Fact]
     public async Task GetExecutorAsync_Throws_If_Schema_Does_Not_Exist()
     {
@@ -325,6 +340,325 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
         cts.Dispose();
     }
 
+    [Fact]
+    public async Task CreateHttpClientConfiguration_Should_UseDefaults_When_NoCapabilitiesSpecified()
+    {
+        // arrange
+        var config = CreateConfigurationWithSettings(
+            """
+            {
+                "sourceSchemas": {
+                    "a": {
+                        "transports": {
+                            "http": {
+                                "url": "http://localhost:5000/graphql"
+                            }
+                        }
+                    }
+                }
+            }
+            """);
+
+        var configProvider = new TestFusionConfigurationProvider(config);
+
+        var services =
+            new ServiceCollection()
+                .AddGraphQLGateway()
+                .AddConfigurationProvider(_ => configProvider)
+                .Services
+                .BuildServiceProvider();
+
+        var manager = services.GetRequiredService<FusionRequestExecutorManager>();
+
+        // act
+        var executor = await manager.GetExecutorAsync();
+
+        // assert
+        var clientConfigs = executor.Schema.Features.GetRequired<SourceSchemaClientConfigurations>();
+        Assert.True(clientConfigs.TryGet("a", OperationType.Query, out var queryConfig));
+        Assert.True(clientConfigs.TryGet("a", OperationType.Mutation, out _));
+        Assert.True(clientConfigs.TryGet("a", OperationType.Subscription, out _));
+
+        var httpConfig = Assert.IsType<SourceSchemaHttpClientConfiguration>(queryConfig);
+        Assert.Equal("a", httpConfig.Name);
+        Assert.Equal(SourceSchemaHttpClientConfiguration.DefaultClientName, httpConfig.HttpClientName);
+        Assert.Equal(new Uri("http://localhost:5000/graphql"), httpConfig.BaseAddress);
+        Assert.Equal(SourceSchemaClientCapabilities.All, httpConfig.Capabilities);
+        Assert.Equal(SupportedOperationType.All, httpConfig.SupportedOperations);
+        Assert.Equal(DefaultAcceptHeader, httpConfig.DefaultAcceptHeaderValue);
+        Assert.Equal(BatchingAcceptHeader, httpConfig.BatchingAcceptHeaderValue);
+        Assert.Equal(SubscriptionAcceptHeader, httpConfig.SubscriptionAcceptHeaderValue);
+    }
+
+    [Fact]
+    public async Task CreateHttpClientConfiguration_Should_UseCustomClientName_When_Specified()
+    {
+        // arrange
+        var config = CreateConfigurationWithSettings(
+            """
+            {
+                "sourceSchemas": {
+                    "a": {
+                        "transports": {
+                            "http": {
+                                "url": "http://localhost:5000/graphql",
+                                "clientName": "my-custom-client"
+                            }
+                        }
+                    }
+                }
+            }
+            """);
+
+        var configProvider = new TestFusionConfigurationProvider(config);
+
+        var services =
+            new ServiceCollection()
+                .AddGraphQLGateway()
+                .AddConfigurationProvider(_ => configProvider)
+                .Services
+                .BuildServiceProvider();
+
+        var manager = services.GetRequiredService<FusionRequestExecutorManager>();
+
+        // act
+        var executor = await manager.GetExecutorAsync();
+
+        // assert
+        var clientConfigs = executor.Schema.Features.GetRequired<SourceSchemaClientConfigurations>();
+        Assert.True(clientConfigs.TryGet("a", OperationType.Query, out var queryConfig));
+
+        var httpConfig = Assert.IsType<SourceSchemaHttpClientConfiguration>(queryConfig);
+        Assert.Equal("a", httpConfig.Name);
+        Assert.Equal("my-custom-client", httpConfig.HttpClientName);
+        Assert.Equal(new Uri("http://localhost:5000/graphql"), httpConfig.BaseAddress);
+        Assert.Equal(SourceSchemaClientCapabilities.All, httpConfig.Capabilities);
+        Assert.Equal(SupportedOperationType.All, httpConfig.SupportedOperations);
+        Assert.Equal(DefaultAcceptHeader, httpConfig.DefaultAcceptHeaderValue);
+        Assert.Equal(BatchingAcceptHeader, httpConfig.BatchingAcceptHeaderValue);
+        Assert.Equal(SubscriptionAcceptHeader, httpConfig.SubscriptionAcceptHeaderValue);
+    }
+
+    [Fact]
+    public async Task CreateHttpClientConfiguration_Should_DisableVariableBatching_When_SetToFalse()
+    {
+        // arrange
+        var config = CreateConfigurationWithSettings(
+            """
+            {
+                "sourceSchemas": {
+                    "a": {
+                        "transports": {
+                            "http": {
+                                "url": "http://localhost:5000/graphql",
+                                "capabilities": {
+                                    "batching": {
+                                        "variableBatching": false
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            """);
+
+        var configProvider = new TestFusionConfigurationProvider(config);
+
+        var services =
+            new ServiceCollection()
+                .AddGraphQLGateway()
+                .AddConfigurationProvider(_ => configProvider)
+                .Services
+                .BuildServiceProvider();
+
+        var manager = services.GetRequiredService<FusionRequestExecutorManager>();
+
+        // act
+        var executor = await manager.GetExecutorAsync();
+
+        // assert
+        var clientConfigs = executor.Schema.Features.GetRequired<SourceSchemaClientConfigurations>();
+        Assert.True(clientConfigs.TryGet("a", OperationType.Query, out var queryConfig));
+
+        var httpConfig = Assert.IsType<SourceSchemaHttpClientConfiguration>(queryConfig);
+        Assert.Equal("a", httpConfig.Name);
+        Assert.Equal(SourceSchemaHttpClientConfiguration.DefaultClientName, httpConfig.HttpClientName);
+        Assert.Equal(new Uri("http://localhost:5000/graphql"), httpConfig.BaseAddress);
+        Assert.Equal(SourceSchemaClientCapabilities.RequestBatching, httpConfig.Capabilities);
+        Assert.Equal(SupportedOperationType.All, httpConfig.SupportedOperations);
+        Assert.Equal(DefaultAcceptHeader, httpConfig.DefaultAcceptHeaderValue);
+        Assert.Equal(BatchingAcceptHeader, httpConfig.BatchingAcceptHeaderValue);
+        Assert.Equal(SubscriptionAcceptHeader, httpConfig.SubscriptionAcceptHeaderValue);
+    }
+
+    [Fact]
+    public async Task CreateHttpClientConfiguration_Should_DisableRequestBatching_When_SetToFalse()
+    {
+        // arrange
+        var config = CreateConfigurationWithSettings(
+            """
+            {
+                "sourceSchemas": {
+                    "a": {
+                        "transports": {
+                            "http": {
+                                "url": "http://localhost:5000/graphql",
+                                "capabilities": {
+                                    "batching": {
+                                        "requestBatching": false
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            """);
+
+        var configProvider = new TestFusionConfigurationProvider(config);
+
+        var services =
+            new ServiceCollection()
+                .AddGraphQLGateway()
+                .AddConfigurationProvider(_ => configProvider)
+                .Services
+                .BuildServiceProvider();
+
+        var manager = services.GetRequiredService<FusionRequestExecutorManager>();
+
+        // act
+        var executor = await manager.GetExecutorAsync();
+
+        // assert
+        var clientConfigs = executor.Schema.Features.GetRequired<SourceSchemaClientConfigurations>();
+        Assert.True(clientConfigs.TryGet("a", OperationType.Query, out var queryConfig));
+
+        var httpConfig = Assert.IsType<SourceSchemaHttpClientConfiguration>(queryConfig);
+        Assert.Equal("a", httpConfig.Name);
+        Assert.Equal(SourceSchemaHttpClientConfiguration.DefaultClientName, httpConfig.HttpClientName);
+        Assert.Equal(new Uri("http://localhost:5000/graphql"), httpConfig.BaseAddress);
+        Assert.Equal(SourceSchemaClientCapabilities.VariableBatching, httpConfig.Capabilities);
+        Assert.Equal(SupportedOperationType.All, httpConfig.SupportedOperations);
+        Assert.Equal(DefaultAcceptHeader, httpConfig.DefaultAcceptHeaderValue);
+        Assert.Equal(BatchingAcceptHeader, httpConfig.BatchingAcceptHeaderValue);
+        Assert.Equal(SubscriptionAcceptHeader, httpConfig.SubscriptionAcceptHeaderValue);
+    }
+
+    [Fact]
+    public async Task CreateHttpClientConfiguration_Should_DisableSubscriptions_When_NotSupported()
+    {
+        // arrange
+        var config = CreateConfigurationWithSettings(
+            """
+            {
+                "sourceSchemas": {
+                    "a": {
+                        "transports": {
+                            "http": {
+                                "url": "http://localhost:5000/graphql",
+                                "capabilities": {
+                                    "subscriptions": {
+                                        "supported": false
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            """);
+
+        var configProvider = new TestFusionConfigurationProvider(config);
+
+        var services =
+            new ServiceCollection()
+                .AddGraphQLGateway()
+                .AddConfigurationProvider(_ => configProvider)
+                .Services
+                .BuildServiceProvider();
+
+        var manager = services.GetRequiredService<FusionRequestExecutorManager>();
+
+        // act
+        var executor = await manager.GetExecutorAsync();
+
+        // assert
+        var clientConfigs = executor.Schema.Features.GetRequired<SourceSchemaClientConfigurations>();
+        Assert.True(clientConfigs.TryGet("a", OperationType.Query, out var queryConfig));
+
+        var httpConfig = Assert.IsType<SourceSchemaHttpClientConfiguration>(queryConfig);
+        Assert.Equal("a", httpConfig.Name);
+        Assert.Equal(SourceSchemaHttpClientConfiguration.DefaultClientName, httpConfig.HttpClientName);
+        Assert.Equal(new Uri("http://localhost:5000/graphql"), httpConfig.BaseAddress);
+        Assert.Equal(SourceSchemaClientCapabilities.All, httpConfig.Capabilities);
+        Assert.Equal(SupportedOperationType.Query | SupportedOperationType.Mutation, httpConfig.SupportedOperations);
+        Assert.Equal(DefaultAcceptHeader, httpConfig.DefaultAcceptHeaderValue);
+        Assert.Equal(BatchingAcceptHeader, httpConfig.BatchingAcceptHeaderValue);
+        Assert.Equal(SubscriptionAcceptHeader, httpConfig.SubscriptionAcceptHeaderValue);
+
+        Assert.False(clientConfigs.TryGet("a", OperationType.Subscription, out _));
+    }
+
+    [Fact]
+    public async Task CreateHttpClientConfiguration_Should_UseCustomFormats_When_Specified()
+    {
+        // arrange
+        var config = CreateConfigurationWithSettings(
+            """
+            {
+                "sourceSchemas": {
+                    "a": {
+                        "transports": {
+                            "http": {
+                                "url": "http://localhost:5000/graphql",
+                                "capabilities": {
+                                    "standard": {
+                                        "formats": ["application/json", "text/plain"]
+                                    },
+                                    "batching": {
+                                        "formats": ["application/jsonl"]
+                                    },
+                                    "subscriptions": {
+                                        "formats": ["text/event-stream"]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            """);
+
+        var configProvider = new TestFusionConfigurationProvider(config);
+
+        var services =
+            new ServiceCollection()
+                .AddGraphQLGateway()
+                .AddConfigurationProvider(_ => configProvider)
+                .Services
+                .BuildServiceProvider();
+
+        var manager = services.GetRequiredService<FusionRequestExecutorManager>();
+
+        // act
+        var executor = await manager.GetExecutorAsync();
+
+        // assert
+        var clientConfigs = executor.Schema.Features.GetRequired<SourceSchemaClientConfigurations>();
+        Assert.True(clientConfigs.TryGet("a", OperationType.Query, out var queryConfig));
+
+        var httpConfig = Assert.IsType<SourceSchemaHttpClientConfiguration>(queryConfig);
+        Assert.Equal("a", httpConfig.Name);
+        Assert.Equal(SourceSchemaHttpClientConfiguration.DefaultClientName, httpConfig.HttpClientName);
+        Assert.Equal(new Uri("http://localhost:5000/graphql"), httpConfig.BaseAddress);
+        Assert.Equal(SourceSchemaClientCapabilities.All, httpConfig.Capabilities);
+        Assert.Equal(SupportedOperationType.All, httpConfig.SupportedOperations);
+        Assert.Equal("application/json, text/plain", httpConfig.DefaultAcceptHeaderValue);
+        Assert.Equal("application/jsonl", httpConfig.BatchingAcceptHeaderValue);
+        Assert.Equal("text/event-stream", httpConfig.SubscriptionAcceptHeaderValue);
+    }
+
 #pragma warning disable CS9113 // Parameter is unread.
     private sealed class CustomWarmupTask(IDocumentCache documentCache, SomeService service) : IRequestExecutorWarmupTask
 #pragma warning restore CS9113 // Parameter is unread.
@@ -346,5 +680,15 @@ public class FusionRequestExecutorManagerTests : FusionTestBase
             """;
 
         return CreateFusionConfiguration(sourceSchemaText);
+    }
+
+    private static FusionConfiguration CreateConfigurationWithSettings(string settingsJson)
+    {
+        var compositeSchema = ComposeSchemaDocument("type Query { foo: String }");
+        var settings = JsonDocument.Parse(settingsJson);
+
+        return new FusionConfiguration(
+            compositeSchema,
+            new JsonDocumentOwner(settings));
     }
 }

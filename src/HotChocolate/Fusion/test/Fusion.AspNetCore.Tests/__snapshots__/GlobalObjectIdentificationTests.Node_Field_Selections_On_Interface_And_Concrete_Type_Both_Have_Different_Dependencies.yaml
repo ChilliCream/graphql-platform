@@ -1,9 +1,7 @@
 title: Node_Field_Selections_On_Interface_And_Concrete_Type_Both_Have_Different_Dependencies
 request:
   document: |
-    query testQuery(
-      $id: ID!
-    ) {
+    query testQuery($id: ID!) {
       node(id: $id) {
         __typename
         id
@@ -86,10 +84,9 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_f7a0a31d_3(
-              $id: ID!
-            ) {
+            query testQuery_f7a0a31d_3($id: ID!) {
               node(id: $id) {
                 __typename
                 ... on Item2 {
@@ -153,10 +150,9 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_f7a0a31d_4(
-              $__fusion_1_id: ID!
-            ) {
+            query testQuery_f7a0a31d_4($__fusion_1_id: ID!) {
               node(id: $__fusion_1_id) {
                 __typename
                 ... on Product {
@@ -165,22 +161,10 @@ sourceSchemas:
               }
             }
           variables: |
-            [
-              {
-                "__fusion_1_id": "UHJvZHVjdDo0"
-              },
-              {
-                "__fusion_1_id": "UHJvZHVjdDox"
-              },
-              {
-                "__fusion_1_id": "UHJvZHVjdDoy"
-              },
-              {
-                "__fusion_1_id": "UHJvZHVjdDoz"
-              }
-            ]
+            {
+              "__fusion_1_id": "UHJvZHVjdDo0"
+            }
         response:
-          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -191,6 +175,32 @@ sourceSchemas:
                   }
                 }
               }
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query testQuery_f7a0a31d_5($__fusion_2_id: ID!) {
+              node(id: $__fusion_2_id) {
+                __typename
+                ... on Product {
+                  name
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "__fusion_2_id": "UHJvZHVjdDox"
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDoy"
+              },
+              {
+                "__fusion_2_id": "UHJvZHVjdDoz"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
             - |
               {
                 "data": {
@@ -221,9 +231,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $id: ID!
-        ) {
+        query testQuery($id: ID!) {
           node(id: $id) {
             __typename
             id
@@ -258,9 +266,7 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query testQuery_f7a0a31d_2(
-          $id: ID!
-        ) {
+        query testQuery_f7a0a31d_2($id: ID!) {
           node(id: $id) {
             __typename
             id
@@ -274,9 +280,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_f7a0a31d_3(
-          $id: ID!
-        ) {
+        query testQuery_f7a0a31d_3($id: ID!) {
           node(id: $id) {
             __typename
             ... on Item2 {
@@ -291,18 +295,15 @@ operationPlan:
             }
           }
         }
-      batchingGroupId: 1
       forwardedVariables:
         - id
       dependencies:
         - id: 1
     - id: 4
-      type: OperationBatch
+      type: Operation
       schema: B
       operation: |
-        query testQuery_f7a0a31d_4(
-          $__fusion_1_id: ID!
-        ) {
+        query testQuery_f7a0a31d_4($__fusion_1_id: ID!) {
           node(id: $__fusion_1_id) {
             __typename
             ... on Product {
@@ -311,12 +312,29 @@ operationPlan:
           }
         }
       source: $.node<Product>
-      targets:
-        - $.node<Item2>.singularProduct
-        - $.node<Item2>.products
-      batchingGroupId: 2
+      target: $.node<Item2>.singularProduct
       requirements:
         - name: __fusion_1_id
+          selectionMap: >-
+            id
+      dependencies:
+        - id: 3
+    - id: 5
+      type: Operation
+      schema: B
+      operation: |
+        query testQuery_f7a0a31d_5($__fusion_2_id: ID!) {
+          node(id: $__fusion_2_id) {
+            __typename
+            ... on Product {
+              name
+            }
+          }
+        }
+      source: $.node<Product>
+      target: $.node<Item2>.products
+      requirements:
+        - name: __fusion_2_id
           selectionMap: >-
             id
       dependencies:
@@ -325,9 +343,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_f7a0a31d_6(
-          $id: ID!
-        ) {
+        query testQuery_f7a0a31d_6($id: ID!) {
           node(id: $id) {
             __typename
             ... on Item1 {
@@ -339,7 +355,6 @@ operationPlan:
             }
           }
         }
-      batchingGroupId: 1
       forwardedVariables:
         - id
       dependencies:
@@ -348,9 +363,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_f7a0a31d_7(
-          $__fusion_3_id: ID!
-        ) {
+        query testQuery_f7a0a31d_7($__fusion_3_id: ID!) {
           node(id: $__fusion_3_id) {
             __typename
             ... on Product {
@@ -360,7 +373,6 @@ operationPlan:
         }
       source: $.node<Product>
       target: $.node<Item1>.products
-      batchingGroupId: 2
       requirements:
         - name: __fusion_3_id
           selectionMap: >-

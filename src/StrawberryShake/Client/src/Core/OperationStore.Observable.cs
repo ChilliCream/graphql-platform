@@ -46,7 +46,11 @@ public sealed partial class OperationStore
         : IObservable<OperationUpdate>
         , IDisposable
     {
+#if NET9_0_OR_GREATER
+        private readonly Lock _sync = new();
+#else
         private readonly object _sync = new();
+#endif
         private ImmutableList<OperationStoreSession> _sessions = [];
 
         public void Next(OperationUpdate operationUpdate)

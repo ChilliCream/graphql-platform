@@ -35,16 +35,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
     .AddMessageBus()
-    // AddInstrumentation() registers the built-in OpenTelemetryDiagnosticObserver.
-    // Without this call, Mocha uses a no-op observer with zero overhead.
-    // Spans are emitted to the "Mocha" activity source — subscribe via AddSource("Mocha").
+    // AddInstrumentation() registers the built-in ActivityMessagingDiagnosticListener.
+    // Without this call, Mocha uses a no-op listener with zero overhead.
+    // Spans are emitted to the "Mocha" activity source - subscribe via AddSource("Mocha").
     .AddInstrumentation()
+    // Register a custom listener alongside the built-in one for application-level telemetry.
+    // Multiple listeners compose automatically — no manual aggregation needed.
+    .AddDiagnosticEventListener<ConsoleDiagnosticObserver>()
     .AddEventHandler<OrderPlacedHandler>()
     .AddInMemory();
-
-// Register a custom observer alongside the built-in one for application-level telemetry.
-// The built-in observer emits OpenTelemetry spans. This observer logs to console.
-builder.Services.AddSingleton<IBusDiagnosticObserver, ConsoleDiagnosticObserver>();
 
 var app = builder.Build();
 
@@ -53,9 +52,9 @@ app.MapGet("/orders", async (IMessageBus bus) =>
     var orderId = Guid.NewGuid();
 
     // Three linked spans are created per message flow:
-    //   1. "publish {destination}" — created by dispatch instrumentation
-    //   2. "receive {endpoint}"   — created by receive instrumentation
-    //   3. "consumer {handler}"   — created as a child of the receive span
+    //   1. "publish {destination}" - created by dispatch instrumentation
+    //   2. "receive {endpoint}"   - created by receive instrumentation
+    //   3. "consumer {handler}"   - created as a child of the receive span
     await bus.PublishAsync(
         new OrderPlaced(orderId, "Mechanical Keyboard", 149.99m),
         CancellationToken.None);
@@ -86,7 +85,7 @@ public class OrderPlacedHandler(ILogger<OrderPlacedHandler> logger)
         // Log entries written here automatically include TraceId and SpanId
         // when OpenTelemetry logging is configured, enabling log-trace correlation.
         logger.LogInformation(
-            "Order received: {OrderId} — {ProductName} for {Amount:C}",
+            "Order received: {OrderId} - {ProductName} for {Amount:C}",
             message.OrderId,
             message.ProductName,
             message.Amount);
@@ -95,14 +94,15 @@ public class OrderPlacedHandler(ILogger<OrderPlacedHandler> logger)
     }
 }
 
-// --- Custom diagnostic observer ---
+// --- Custom diagnostic listener ---
 
-// Implement IBusDiagnosticObserver to collect telemetry or integrate with a
-// non-OpenTelemetry backend. Each method returns an IDisposable whose disposal
-// marks the end of the observed scope, enabling duration measurement.
-public sealed class ConsoleDiagnosticObserver : IBusDiagnosticObserver
+// Extend MessagingDiagnosticEventListener to collect telemetry or integrate with a
+// non-OpenTelemetry backend. Override only the methods you care about — the base
+// class provides no-op defaults for the rest. Each scope method returns an
+// IDisposable whose disposal marks the end of the observed scope.
+public sealed class ConsoleDiagnosticObserver : MessagingDiagnosticEventListener
 {
-    public IDisposable Dispatch(IDispatchContext context)
+    public override IDisposable Dispatch(IDispatchContext context)
     {
         var startTime = DateTimeOffset.UtcNow;
         Console.WriteLine($"[Dispatch] -> {context.DestinationAddress}");
@@ -114,25 +114,25 @@ public sealed class ConsoleDiagnosticObserver : IBusDiagnosticObserver
         });
     }
 
-    public IDisposable Receive(IReceiveContext context)
+    public override IDisposable Receive(IReceiveContext context)
     {
         Console.WriteLine($"[Receive]  <- {context.Endpoint.Address}");
         return new Scope(() => Console.WriteLine("[Receive]  completed"));
     }
 
-    public IDisposable Consume(IConsumeContext context)
+    public override IDisposable Consume(IConsumeContext context)
     {
         Console.WriteLine($"[Consume]  message {context.MessageId}");
         return new Scope(() => Console.WriteLine("[Consume]  completed"));
     }
 
-    public void OnDispatchError(IDispatchContext context, Exception exception)
+    public override void DispatchError(IDispatchContext context, Exception exception)
         => Console.WriteLine($"[Dispatch] error: {exception.Message}");
 
-    public void OnReceiveError(IReceiveContext context, Exception exception)
+    public override void ReceiveError(IReceiveContext context, Exception exception)
         => Console.WriteLine($"[Receive]  error: {exception.Message}");
 
-    public void OnConsumeError(IConsumeContext context, Exception exception)
+    public override void ConsumeError(IConsumeContext context, Exception exception)
         => Console.WriteLine($"[Consume]  error: {exception.Message}");
 
     private sealed class Scope(Action onDispose) : IDisposable

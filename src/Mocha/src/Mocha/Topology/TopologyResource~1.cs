@@ -10,7 +10,7 @@ public abstract class TopologyResource<T> : TopologyResource where T : TopologyC
 
     protected sealed override void OnInitialize(TopologyConfiguration configuration)
     {
-        Topology = configuration.Topology ?? throw new InvalidOperationException("Topology is required");
+        Topology = configuration.Topology ?? throw ThrowHelper.TopologyRequired();
 
         OnInitialize((T)configuration);
     }

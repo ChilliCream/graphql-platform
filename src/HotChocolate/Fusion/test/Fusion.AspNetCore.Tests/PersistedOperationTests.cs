@@ -2,11 +2,13 @@ using System.Text;
 using HotChocolate.AspNetCore;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Configuration;
-using HotChocolate.Fusion.Transport.Http;
 using HotChocolate.Language;
 using HotChocolate.PersistedOperations;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using GraphQLHttpClient = HotChocolate.Transport.Http.GraphQLHttpClient;
+using GraphQLHttpMethod = HotChocolate.Transport.Http.GraphQLHttpMethod;
+using GraphQLHttpRequest = HotChocolate.Transport.Http.GraphQLHttpRequest;
 using OperationRequest = HotChocolate.Transport.OperationRequest;
 
 namespace HotChocolate.Fusion;
@@ -33,9 +35,11 @@ public class PersistedOperationTests : FusionTestBase
         var request = new OperationRequest(id: key.Value);
 
         // act
-        using var result = await client.PostAsync(
-            request,
-            new Uri("http://localhost:5000/graphql"));
+        using var result = await client.SendAsync(
+            new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
+            {
+                Method = GraphQLHttpMethod.Post
+            });
 
         // arrange
         result.HttpResponseMessage.MatchSnapshot();
@@ -62,9 +66,11 @@ public class PersistedOperationTests : FusionTestBase
         var request = new OperationRequest(id: key.Value);
 
         // act
-        using var result = await client.PostAsync(
-            request,
-            new Uri("http://localhost:5000/graphql"));
+        using var result = await client.SendAsync(
+            new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
+            {
+                Method = GraphQLHttpMethod.Post
+            });
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -91,9 +97,11 @@ public class PersistedOperationTests : FusionTestBase
         var request = new OperationRequest(id: key.Value);
 
         // act
-        using var result = await client.PostAsync(
-            request,
-            new Uri("http://localhost:5000/graphql"));
+        using var result = await client.SendAsync(
+            new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
+            {
+                Method = GraphQLHttpMethod.Post
+            });
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -120,9 +128,11 @@ public class PersistedOperationTests : FusionTestBase
         var request = new OperationRequest(id: key.Value);
 
         // act
-        using var result = await client.PostAsync(
-            request,
-            new Uri("http://localhost:5000/graphql"));
+        using var result = await client.SendAsync(
+            new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
+            {
+                Method = GraphQLHttpMethod.Post
+            });
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -149,9 +159,11 @@ public class PersistedOperationTests : FusionTestBase
         var request = new OperationRequest(query: string.Empty, id: key.Value);
 
         // act
-        using var result = await client.PostAsync(
-            request,
-            new Uri("http://localhost:5000/graphql"));
+        using var result = await client.SendAsync(
+            new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
+            {
+                Method = GraphQLHttpMethod.Post
+            });
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -177,9 +189,11 @@ public class PersistedOperationTests : FusionTestBase
         var request = CreateApolloStyleRequest(hashProvider.Name, key.Value);
 
         // act
-        using var result = await client.PostAsync(
-            request,
-            new Uri("http://localhost:5000/graphql"));
+        using var result = await client.SendAsync(
+            new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
+            {
+                Method = GraphQLHttpMethod.Post
+            });
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -206,9 +220,11 @@ public class PersistedOperationTests : FusionTestBase
         var request = CreateApolloStyleRequest(hashProvider.Name, key.Value);
 
         // act
-        using var result = await client.PostAsync(
-            request,
-            new Uri("http://localhost:5000/graphql"));
+        using var result = await client.SendAsync(
+            new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
+            {
+                Method = GraphQLHttpMethod.Post
+            });
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -235,9 +251,11 @@ public class PersistedOperationTests : FusionTestBase
         var request = CreateApolloStyleRequest(hashProvider.Name, key.Value);
 
         // act
-        using var result = await client.PostAsync(
-            request,
-            new Uri("http://localhost:5000/graphql"));
+        using var result = await client.SendAsync(
+            new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
+            {
+                Method = GraphQLHttpMethod.Post
+            });
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -264,9 +282,11 @@ public class PersistedOperationTests : FusionTestBase
         var request = CreateApolloStyleRequest(hashProvider.Name, key.Value);
 
         // act
-        using var result = await client.PostAsync(
-            request,
-            new Uri("http://localhost:5000/graphql"));
+        using var result = await client.SendAsync(
+            new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
+            {
+                Method = GraphQLHttpMethod.Post
+            });
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -289,9 +309,11 @@ public class PersistedOperationTests : FusionTestBase
         var request = new OperationRequest(query: query);
 
         // act
-        using var result = await client.PostAsync(
-            request,
-            new Uri("http://localhost:5000/graphql"));
+        using var result = await client.SendAsync(
+            new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
+            {
+                Method = GraphQLHttpMethod.Post
+            });
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -315,9 +337,11 @@ public class PersistedOperationTests : FusionTestBase
         var request = new OperationRequest(query: query);
 
         // act
-        using var result = await client.PostAsync(
-            request,
-            new Uri("http://localhost:5000/graphql"));
+        using var result = await client.SendAsync(
+            new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
+            {
+                Method = GraphQLHttpMethod.Post
+            });
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -344,9 +368,11 @@ public class PersistedOperationTests : FusionTestBase
         var request = new OperationRequest(query: query);
 
         // act
-        using var result = await client.PostAsync(
-            request,
-            new Uri("http://localhost:5000/graphql"));
+        using var result = await client.SendAsync(
+            new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
+            {
+                Method = GraphQLHttpMethod.Post
+            });
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -377,9 +403,11 @@ public class PersistedOperationTests : FusionTestBase
         var request = new OperationRequest(query: query);
 
         // act
-        using var result = await client.PostAsync(
-            request,
-            new Uri("http://localhost:5000/graphql"));
+        using var result = await client.SendAsync(
+            new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
+            {
+                Method = GraphQLHttpMethod.Post
+            });
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -410,9 +438,11 @@ public class PersistedOperationTests : FusionTestBase
         var request = new OperationRequest(query: query);
 
         // act
-        using var result = await client.PostAsync(
-            request,
-            new Uri("http://localhost:5000/graphql"));
+        using var result = await client.SendAsync(
+            new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
+            {
+                Method = GraphQLHttpMethod.Post
+            });
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();
@@ -425,7 +455,11 @@ public class PersistedOperationTests : FusionTestBase
         var storage = new OperationStorage();
 
         using var gateway = await CreateGatewayAsync(b => b
-            .ModifyRequestOptions(o => o.PersistedOperations.OnlyAllowPersistedDocuments = true)
+            .ModifyRequestOptions(o =>
+            {
+                o.PersistedOperations.OnlyAllowPersistedDocuments = true;
+                o.PersistedOperations.AllowDocumentBody = true;
+            })
             .ConfigureSchemaServices((_, sc) => sc.AddSingleton<IOperationDocumentStorage>(storage))
             .UsePersistedOperationPipeline()
             .AddHttpRequestInterceptor<AllowNonPersistedOperationInterceptor>());
@@ -437,9 +471,11 @@ public class PersistedOperationTests : FusionTestBase
         var request = new OperationRequest(query: query);
 
         // act
-        using var result = await client.PostAsync(
-            request,
-            new Uri("http://localhost:5000/graphql"));
+        using var result = await client.SendAsync(
+            new GraphQLHttpRequest(request, new Uri("http://localhost:5000/graphql"))
+            {
+                Method = GraphQLHttpMethod.Post
+            });
 
         // assert
         result.HttpResponseMessage.MatchSnapshot();

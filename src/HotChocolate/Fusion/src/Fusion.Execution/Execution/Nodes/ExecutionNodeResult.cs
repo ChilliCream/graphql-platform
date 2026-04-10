@@ -10,5 +10,6 @@ internal sealed record ExecutionNodeResult(
     TimeSpan Duration,
     Exception? Exception,
     ImmutableArray<ExecutionNode> DependentsToExecute,
+    ImmutableArray<IOperationPlanNode> SkippedDefinitions,
     ImmutableArray<VariableValues> VariableValueSets,
     (Uri? Uri, string? ContentType) TransportDetails = default);

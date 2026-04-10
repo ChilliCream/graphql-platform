@@ -2,6 +2,7 @@ using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Features;
@@ -14,114 +15,84 @@ using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution;
 
-public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
+/// <summary>
+/// Provides the execution context for a single Fusion operation plan execution.
+/// </summary>
+public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 {
     private static readonly JsonOperationPlanFormatter s_planFormatter = new();
-    private readonly NodeCompletionSet?[] _nodesToComplete;
-    private readonly int _dependentBitsetWordCount;
-    private readonly string?[] _schemaNames;
-    private readonly ImmutableArray<VariableValues>[] _variableValueSets;
-    private readonly Uri?[] _transportUris;
-    private readonly string?[] _transportContentTypes;
+    private NodeCompletionSet?[] _nodesToComplete = [];
+    private int _dependentBitsetWordCount;
+    private string?[] _schemaNames = [];
+    private ImmutableArray<VariableValues>[] _variableValueSets = [];
+    private Uri?[] _transportUris = [];
+    private string?[] _transportContentTypes = [];
+    private List<IOperationPlanNode>?[] _skippedDefinitions = [];
     private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
-    private readonly FetchResultStorePool _resultStorePool;
     private readonly FetchResultStore _resultStore;
     private readonly ExecutionState _executionState;
-    private readonly SourceSchemaRequestDispatcher _sourceSchemaDispatcher;
     private readonly INodeIdParser _nodeIdParser;
-    private readonly bool _collectTelemetry;
-    private ISourceSchemaClientScope _clientScope;
+    private readonly IErrorHandler _errorHandler;
+    private bool _collectTelemetry;
+    private ISourceSchemaClientScope _clientScope = default!;
     private string? _traceId;
     private long _start;
     private bool _disposed;
+    private int _nodeSlotCapacity;
+    internal OperationPlanContextPool? _pool;
 
-    public OperationPlanContext(
-        RequestContext requestContext,
-        OperationPlan operationPlan,
-        CancellationTokenSource cancellationTokenSource)
-        : this(requestContext, requestContext.VariableValues[0], operationPlan, cancellationTokenSource)
-    {
-    }
+    /// <summary>
+    /// Gets the operation plan being executed.
+    /// </summary>
+    public OperationPlan OperationPlan { get; private set; } = default!;
 
-    public OperationPlanContext(
-        RequestContext requestContext,
-        IVariableValueCollection variables,
-        OperationPlan operationPlan,
-        CancellationTokenSource cancellationTokenSource)
-    {
-        ArgumentNullException.ThrowIfNull(requestContext);
-        ArgumentNullException.ThrowIfNull(variables);
-        ArgumentNullException.ThrowIfNull(operationPlan);
+    /// <summary>
+    /// Gets the coerced variable values for the current request.
+    /// </summary>
+    public IVariableValueCollection Variables { get; private set; } = default!;
 
-        RequestContext = requestContext;
-        Variables = variables;
-        OperationPlan = operationPlan;
-        IncludeFlags = operationPlan.Operation.CreateIncludeFlags(variables);
-
-        _collectTelemetry = requestContext.CollectOperationPlanTelemetry();
-        _clientScope = requestContext.CreateClientScope();
-        _nodeIdParser = requestContext.Schema.Services.GetRequiredService<INodeIdParser>();
-        _diagnosticEvents = requestContext.Schema.Services.GetRequiredService<IFusionExecutionDiagnosticEvents>();
-        var errorHandler = requestContext.Schema.Services.GetRequiredService<IErrorHandler>();
-
-        _resultStorePool = requestContext.Schema.Services.GetRequiredService<FetchResultStorePool>();
-        _resultStore = _resultStorePool.Rent();
-        _resultStore.Initialize(
-            requestContext.Schema,
-            errorHandler,
-            operationPlan.Operation,
-            requestContext.ErrorHandlingMode(),
-            IncludeFlags,
-            requestContext.Schema.GetOptions().PathSegmentLocalPoolCapacity);
-
-        _executionState = new ExecutionState(_collectTelemetry, cancellationTokenSource);
-        _sourceSchemaDispatcher = new SourceSchemaRequestDispatcher(this);
-
-        var maxNodeId = 0;
-
-        foreach (var executionNode in operationPlan.AllNodes)
-        {
-            if (executionNode.Id > maxNodeId)
-            {
-                maxNodeId = executionNode.Id;
-            }
-        }
-
-        var nodeSlotCount = maxNodeId + 1;
-        _dependentBitsetWordCount = (maxNodeId >> 6) + 1;
-        _nodesToComplete = new NodeCompletionSet?[nodeSlotCount];
-        _schemaNames = new string?[nodeSlotCount];
-        _variableValueSets = new ImmutableArray<VariableValues>[nodeSlotCount];
-        _transportUris = new Uri?[nodeSlotCount];
-        _transportContentTypes = new string?[nodeSlotCount];
-    }
-
-    public OperationPlan OperationPlan { get; }
-
-    public IVariableValueCollection Variables { get; }
-
+    /// <summary>
+    /// Gets the schema definition associated with this execution.
+    /// </summary>
     public ISchemaDefinition Schema => RequestContext.Schema;
 
-    public RequestContext RequestContext { get; }
+    /// <summary>
+    /// Gets the request context for the current request.
+    /// </summary>
+    public RequestContext RequestContext { get; private set; } = default!;
 
+    /// <summary>
+    /// Gets the source schema client scope used to obtain HTTP clients for downstream subgraphs.
+    /// </summary>
     public ISourceSchemaClientScope ClientScope => _clientScope;
-
-    public ISourceSchemaScheduler SourceSchemaScheduler => _sourceSchemaDispatcher;
-
-    public ISourceSchemaDispatcher SourceSchemaDispatcher => _sourceSchemaDispatcher;
 
     internal ExecutionState ExecutionState => _executionState;
 
-    public ulong IncludeFlags { get; }
+    internal bool IsNodeSkipped(int nodeId)
+        => _executionState.IsNodeSkipped(nodeId);
 
+    /// <summary>
+    /// Gets the evaluated include flags derived from <c>@skip</c> and <c>@include</c> directives.
+    /// </summary>
+    public ulong IncludeFlags { get; private set; }
+
+    /// <summary>
+    /// Gets a value indicating whether operation plan telemetry is being collected for this request.
+    /// </summary>
     public bool CollectTelemetry => _collectTelemetry;
 
+    /// <summary>
+    /// Gets the feature collection associated with the current request.
+    /// </summary>
     public IFeatureCollection Features => RequestContext.Features;
 
+    /// <summary>
+    /// Gets the execution traces collected during plan execution.
+    /// Only populated when <see cref="CollectTelemetry"/> is <c>true</c>.
+    /// </summary>
     public ImmutableDictionary<int, ExecutionNodeTrace> Traces { get; internal set; } =
 #if NET10_0_OR_GREATER
         [];
@@ -129,6 +100,9 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         ImmutableDictionary<int, ExecutionNodeTrace>.Empty;
 #endif
 
+    /// <summary>
+    /// Gets the diagnostic events handler for the Fusion execution pipeline.
+    /// </summary>
     public IFusionExecutionDiagnosticEvents DiagnosticEvents => _diagnosticEvents;
 
     internal void EnqueueForExecution(ExecutionNode node, ExecutionNode dependentNode)
@@ -151,9 +125,50 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         return nodeCompletionSet?.GetSnapshot() ?? [];
     }
 
+    internal void TrackSkippedDefinition(ExecutionNode node, IOperationPlanNode skippedDefinition)
+    {
+        var nodeId = node.Id;
+        var list = _skippedDefinitions[nodeId];
+
+        if (list is null)
+        {
+            list = [];
+            _skippedDefinitions[nodeId] = list;
+        }
+
+        list.Add(skippedDefinition);
+    }
+
+    internal ImmutableArray<IOperationPlanNode> GetSkippedDefinitions(ExecutionNode node)
+    {
+        var list = _skippedDefinitions[node.Id];
+
+        if (list is null or { Count: 0 })
+        {
+            return [];
+        }
+
+        var array = new IOperationPlanNode[list.Count];
+
+        for (var i = 0; i < list.Count; i++)
+        {
+            array[i] = list[i];
+        }
+
+        return ImmutableCollectionsMarshal.AsImmutableArray(array);
+    }
+
     internal void SetDynamicSchemaName(ExecutionNode node, string schemaName)
         => _schemaNames[node.Id] = schemaName;
 
+    /// <summary>
+    /// Gets the dynamically resolved schema name for the specified execution node.
+    /// </summary>
+    /// <param name="node">The execution node whose schema name to retrieve.</param>
+    /// <returns>The schema name assigned to the node.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when no schema name has been assigned to the node.
+    /// </exception>
     public string GetDynamicSchemaName(ExecutionNode node)
     {
         var schemaName = _schemaNames[node.Id];
@@ -219,11 +234,11 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
     internal ImmutableArray<VariableValues> CreateVariableValueSets(
         SelectionPath selectionSet,
         ReadOnlySpan<string> forwardedVariables,
-        ReadOnlySpan<OperationRequirement> requiredData)
+        ReadOnlySpan<OperationRequirement> requirements)
     {
         ArgumentNullException.ThrowIfNull(selectionSet);
 
-        if (requiredData.Length == 0)
+        if (requirements.Length == 0)
         {
             if (forwardedVariables.Length == 0)
             {
@@ -232,16 +247,16 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
                     return [];
                 }
 
-                return [new VariableValues(ToResultPath(selectionSet), new ObjectValueNode([]))];
+                return [_resultStore.CreateVariableValueSets(ToResultPath(selectionSet), [])];
             }
 
             var variableValues = GetPathThroughVariables(forwardedVariables);
-            return [new VariableValues(CompactPath.Root, new ObjectValueNode(variableValues))];
+            return [_resultStore.CreateVariableValueSets(CompactPath.Root, variableValues)];
         }
         else
         {
             var variableValues = GetPathThroughVariables(forwardedVariables);
-            return _resultStore.CreateVariableValueSets(selectionSet, variableValues, requiredData);
+            return _resultStore.CreateVariableValueSets(selectionSet, variableValues, requirements);
         }
     }
 
@@ -258,7 +273,7 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             }
 
             var variableValues = GetPathThroughVariables(forwardedVariables);
-            return [new VariableValues(CompactPath.Root, new ObjectValueNode(variableValues))];
+            return [_resultStore.CreateVariableValueSets(CompactPath.Root, variableValues)];
         }
         else
         {
@@ -321,18 +336,29 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         return builder.ToPath();
     }
 
+    internal void AddPartialResult(
+        SelectionPath sourcePath,
+        SourceSchemaResult result,
+        ResultSelectionSet resultSelectionSet,
+        bool containsErrors)
+    {
+        var canExecutionContinue =
+            _resultStore.AddPartialResult(sourcePath, result, resultSelectionSet, containsErrors);
+
+        if (!canExecutionContinue)
+        {
+            ExecutionState.CancelProcessing();
+        }
+    }
+
     internal void AddPartialResults(
         SelectionPath sourcePath,
         ReadOnlySpan<SourceSchemaResult> results,
-        ReadOnlySpan<string> responseNames,
-        bool containsErrors = true)
+        ResultSelectionSet resultSelectionSet,
+        bool containsErrors)
     {
         var canExecutionContinue =
-            _resultStore.AddPartialResults(
-                sourcePath,
-                results,
-                responseNames,
-                containsErrors);
+            _resultStore.AddPartialResults(sourcePath, results, resultSelectionSet, containsErrors);
 
         if (!canExecutionContinue)
         {
@@ -340,9 +366,9 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         }
     }
 
-    internal void AddPartialResults(SourceResultDocument result, ReadOnlySpan<string> responseNames)
+    internal void AddPartialResults(SourceResultDocument result, ResultSelectionSet resultSelectionSet)
     {
-        var canExecutionContinue = _resultStore.AddPartialResults(result, responseNames);
+        var canExecutionContinue = _resultStore.AddPartialResults(result, resultSelectionSet);
 
         if (!canExecutionContinue)
         {
@@ -350,9 +376,12 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         }
     }
 
-    internal void AddErrors(IError error, ReadOnlySpan<string> responseNames, params ReadOnlySpan<Path> paths)
+    internal void AddErrors(
+        IError error,
+        ResultSelectionSet resultSelectionSet,
+        params ReadOnlySpan<Path> paths)
     {
-        var canExecutionContinue = _resultStore.AddErrors(error, responseNames, paths);
+        var canExecutionContinue = _resultStore.AddErrors(error, resultSelectionSet, paths);
 
         if (!canExecutionContinue)
         {
@@ -360,9 +389,9 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         }
     }
 
-    internal void AddErrors(IError error, ReadOnlySpan<string> responseNames, ReadOnlySpan<CompactPath> paths)
+    internal void AddErrors(IError error, ResultSelectionSet resultSelectionSet, ReadOnlySpan<CompactPath> paths)
     {
-        var canExecutionContinue = _resultStore.AddErrors(error, responseNames, paths);
+        var canExecutionContinue = _resultStore.AddErrors(error, resultSelectionSet, paths);
 
         if (!canExecutionContinue)
         {
@@ -386,6 +415,8 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
     internal OperationResult Complete(bool reusable = false)
     {
+        _resultStore.FinalizePocketedErrors();
+
         var environment = Schema.TryGetEnvironment();
 
         var trace = _collectTelemetry
@@ -411,10 +442,13 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         // we take over the memory owners from the result context
         // and store them on the response so that the server can
         // dispose them when it disposes of the result itself.
-        while (_resultStore.MemoryOwners.TryPop(out var disposable))
+        var memoryOwners = _resultStore.MemoryOwners;
+        foreach (var disposable in memoryOwners)
         {
             operationResult.RegisterForCleanup(disposable);
         }
+
+        memoryOwners.Clear();
 
         operationResult.Features.Set(OperationPlan);
 
@@ -457,34 +491,36 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
             return Array.Empty<ObjectFieldNode>();
         }
 
-        var variables = new List<ObjectFieldNode>(forwardedVariables.Length);
+        var buffer = new ObjectFieldNode[forwardedVariables.Length];
+        var count = 0;
 
         foreach (var variableName in forwardedVariables)
         {
-            // we pass through the required pass through variables,
-            // if they were not omitted.
-            //
-            // it is valid for the GraphQL request to omit nullable variables.
-            //
-            // if they were not nullable we would not get here as the
-            // GraphQL validation would reject such a request.
-            //
-            // but even if the validation failed we do not need to
-            // guard against it and can just pass this to the
-            // source schema which would in any case validate
-            // any request and would reject it if a required
-            // variable was missing.
             if (Variables.TryGetValue<IValueNode>(variableName, out var variableValue))
             {
-                variables.Add(new ObjectFieldNode(variableName, variableValue));
+                buffer[count++] = new ObjectFieldNode(variableName, variableValue);
             }
         }
 
-        return variables.Count == 0
-            ? Array.Empty<ObjectFieldNode>()
-            : variables;
+        if (count == 0)
+        {
+            return Array.Empty<ObjectFieldNode>();
+        }
+
+        if (count == buffer.Length)
+        {
+            return buffer;
+        }
+
+        return buffer.AsMemory(0, count).ToArray();
     }
 
+    /// <summary>
+    /// Gets or creates a source schema client for the specified schema and operation type.
+    /// </summary>
+    /// <param name="schemaName">The name of the downstream subgraph schema.</param>
+    /// <param name="operationType">The GraphQL operation type (query, mutation, subscription).</param>
+    /// <returns>The source schema client for communicating with the downstream subgraph.</returns>
     public ISourceSchemaClient GetClient(string schemaName, OperationType operationType)
     {
         ArgumentException.ThrowIfNullOrEmpty(schemaName);
@@ -492,24 +528,19 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
         return ClientScope.GetClient(schemaName, operationType);
     }
 
+    /// <summary>
+    /// Tries to extract the type name from a relay-style global node identifier.
+    /// </summary>
+    /// <param name="id">The global node identifier to parse.</param>
+    /// <param name="typeName">When successful, the extracted type name.</param>
+    /// <returns><c>true</c> if the type name was successfully extracted; otherwise, <c>false</c>.</returns>
     public bool TryParseTypeNameFromId(string id, [NotNullWhen(true)] out string? typeName)
         => _nodeIdParser.TryParseTypeName(id, out typeName);
-
-    public async ValueTask DisposeAsync()
-    {
-        if (!_disposed)
-        {
-            _disposed = true;
-            DisposeNodeState();
-            _sourceSchemaDispatcher.Abort();
-            _resultStorePool.Return(_resultStore);
-            await _clientScope.DisposeAsync();
-        }
-    }
 
     private void ResetNodeState()
     {
         Array.Clear(_schemaNames);
+        Array.Clear(_skippedDefinitions);
 
         if (_collectTelemetry)
         {
@@ -534,7 +565,11 @@ public sealed class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 
     private sealed class NodeCompletionSet(int bitsetWordCount) : IDisposable
     {
+#if NET9_0_OR_GREATER
+        private readonly Lock _sync = new();
+#else
         private readonly object _sync = new();
+#endif
         private ExecutionNode[] _dependents = [];
         private ulong[]? _seenDependents;
         private int _count;

@@ -198,15 +198,15 @@ builder.Services
     .AddMessageBus(bus =>
     {
         // Insert after ReceiveInstrumentation, before DeadLetter
-        bus.AppendReceive(
-            "ReceiveInstrumentation",
-            LoggingReceiveMiddleware.Create());
+        bus.UseReceive(
+            LoggingReceiveMiddleware.Create(),
+            after: "ReceiveInstrumentation");
     })
     .AddEventHandler<OrderPlacedHandler>()
     .AddInMemory();
 ```
 
-`AppendReceive("ReceiveInstrumentation", ...)` places your middleware immediately after the named middleware. The receive pipeline then executes: TransportCircuitBreaker, ConcurrencyLimiter, ReceiveInstrumentation, **Logging**, DeadLetter, Fault, and so on.
+`UseReceive(..., after: "ReceiveInstrumentation")` places your middleware immediately after the named middleware. The receive pipeline then executes: TransportCircuitBreaker, ConcurrencyLimiter, ReceiveInstrumentation, **Logging**, DeadLetter, Fault, and so on.
 
 # Dispatch middleware
 
@@ -249,7 +249,9 @@ Register before all other dispatch middleware so every outgoing message carries 
 builder.Services
     .AddMessageBus(bus =>
     {
-        bus.PrependDispatch(TenantDispatchMiddleware.Create("acme"));
+        bus.UseDispatch(
+            TenantDispatchMiddleware.Create("acme"),
+            before: "Instrumentation");
     })
     .AddEventHandler<OrderPlacedHandler>()
     .AddInMemory();
@@ -282,25 +284,21 @@ The factory lambda in `ReceiveMiddlewareConfiguration`, `ConsumerMiddlewareConfi
 
 # Control middleware ordering
 
-All ordering methods are available on `IMessageBusBuilder` for each pipeline type:
+Each pipeline type has a single registration method with optional `before` and `after` parameters:
 
-| Method                         | Pipeline | Behavior                                        |
-| ------------------------------ | -------- | ----------------------------------------------- |
-| `UseReceive(config)`           | Receive  | Add after built-in defaults                     |
-| `PrependReceive(config)`       | Receive  | Insert at the beginning                         |
-| `AppendReceive(config)`        | Receive  | Append at the end                               |
-| `PrependReceive(key, config)`  | Receive  | Insert before the middleware with the given key |
-| `AppendReceive(key, config)`   | Receive  | Insert after the middleware with the given key  |
-| `UseDispatch(config)`          | Dispatch | Add after built-in defaults                     |
-| `PrependDispatch(config)`      | Dispatch | Insert at the beginning                         |
-| `AppendDispatch(config)`       | Dispatch | Append at the end                               |
-| `PrependDispatch(key, config)` | Dispatch | Insert before the middleware with the given key |
-| `AppendDispatch(key, config)`  | Dispatch | Insert after the middleware with the given key  |
-| `UseConsume(config)`           | Consumer | Add after built-in defaults                     |
-| `PrependConsume(config)`       | Consumer | Insert at the beginning                         |
-| `AppendConsume(config)`        | Consumer | Append at the end                               |
-| `PrependConsume(key, config)`  | Consumer | Insert before the middleware with the given key |
-| `AppendConsume(key, config)`   | Consumer | Insert after the middleware with the given key  |
+| Method                                              | Pipeline | Behavior                                        |
+| --------------------------------------------------- | -------- | ----------------------------------------------- |
+| `UseReceive(config)`                                | Receive  | Append to the pipeline                          |
+| `UseReceive(config, before: "key")`                 | Receive  | Insert before the middleware with the given key |
+| `UseReceive(config, after: "key")`                  | Receive  | Insert after the middleware with the given key  |
+| `UseDispatch(config)`                               | Dispatch | Append to the pipeline                          |
+| `UseDispatch(config, before: "key")`                | Dispatch | Insert before the middleware with the given key |
+| `UseDispatch(config, after: "key")`                 | Dispatch | Insert after the middleware with the given key  |
+| `UseConsume(config)`                                | Consumer | Append to the pipeline                          |
+| `UseConsume(config, before: "key")`                 | Consumer | Insert before the middleware with the given key |
+| `UseConsume(config, after: "key")`                  | Consumer | Insert after the middleware with the given key  |
+
+Only one of `before` or `after` can be specified at the same time. If neither is specified, the middleware is appended after the built-in defaults.
 
 Middleware is compiled once at startup into a single delegate chain. Register all middleware during bus configuration, before the service provider is built. Middleware added after the bus starts has no effect.
 
@@ -310,9 +308,9 @@ Middleware can also be registered at transport or endpoint scope. Bus-level midd
 
 The built-in middleware in the receive pipeline implements the reliability and observability features described on their own pages:
 
-- The `Inbox` middleware deduplicates incoming messages based on `MessageId`, described in [Reliability](/docs/mocha/v1/reliability#deduplicate-messages-with-the-transactional-inbox). It runs in the **consumer pipeline** after the transaction middleware so that the inbox claim participates in the same database transaction as the handler's business data. Use `PrependConsume` and `AppendConsume` with the `"Inbox"` key to position your middleware relative to it.
-- The `CircuitBreaker` and `DeadLetter` middleware implement the circuit breaker and dead-letter behaviors described in [Reliability](/docs/mocha/v1/reliability). Use `PrependReceive` and `AppendReceive` with their keys to position your middleware relative to them.
-- The `ReceiveInstrumentation` middleware generates the OpenTelemetry spans and metrics described in [Observability](/docs/mocha/v1/observability). Place logging or correlation middleware after `ReceiveInstrumentation` so telemetry context is available.
+- The `Inbox` middleware deduplicates incoming messages based on `MessageId`, described in [Reliability](/docs/mocha/v1/reliability#deduplicate-messages-with-the-transactional-inbox). It runs in the **consumer pipeline** after the transaction middleware so that the inbox claim participates in the same database transaction as the handler's business data. Use `UseConsume(config, before: "Inbox")` or `UseConsume(config, after: "Inbox")` to position your middleware relative to it.
+- The `CircuitBreaker` and `DeadLetter` middleware implement the circuit breaker and dead-letter behaviors described in [Reliability](/docs/mocha/v1/reliability). Use `UseReceive(config, before: "key")` or `UseReceive(config, after: "key")` with their keys to position your middleware relative to them.
+- The `ReceiveInstrumentation` middleware generates the OpenTelemetry spans and metrics described in [Observability](/docs/mocha/v1/observability). Place logging or correlation middleware after `ReceiveInstrumentation` using `UseReceive(config, after: "ReceiveInstrumentation")`.
 
 # Next steps
 

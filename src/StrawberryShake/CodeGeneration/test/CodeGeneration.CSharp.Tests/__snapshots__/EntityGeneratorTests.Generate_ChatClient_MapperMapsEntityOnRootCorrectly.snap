@@ -1192,10 +1192,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the WriteMessage GraphQL operation
     /// <code>
-    /// mutation WriteMessage(
-    ///   $text: String!
-    ///     $address: String!
-    /// ) {
+    /// mutation WriteMessage($text: String!, $address: String!) {
     ///   sendMessage(input: { text: $text, recipientEmail: $address }) {
     ///     __typename
     ///     message {
@@ -1250,10 +1247,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the WriteMessage GraphQL operation
     /// <code>
-    /// mutation WriteMessage(
-    ///   $text: String!
-    ///     $address: String!
-    /// ) {
+    /// mutation WriteMessage($text: String!, $address: String!) {
     ///   sendMessage(input: { text: $text, recipientEmail: $address }) {
     ///     __typename
     ///     message {
@@ -1378,10 +1372,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the WriteMessage GraphQL operation
     /// <code>
-    /// mutation WriteMessage(
-    ///   $text: String!
-    ///     $address: String!
-    /// ) {
+    /// mutation WriteMessage($text: String!, $address: String!) {
     ///   sendMessage(input: { text: $text, recipientEmail: $address }) {
     ///     __typename
     ///     message {

@@ -1,9 +1,7 @@
 title: NodeField_Skip_On_Type_Refinement
 request:
   document: |
-    query testQuery(
-      $skip: Boolean!
-    ) {
+    query testQuery($skip: Boolean!) {
       node(id: "RGlzY3Vzc2lvbjox") {
         __typename
         ... on Discussion @skip(if: $skip) {
@@ -45,10 +43,9 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_fbcbdaf4_3(
-              $skip: Boolean!
-            ) {
+            query testQuery_fbcbdaf4_3($skip: Boolean!) {
               node(id: "RGlzY3Vzc2lvbjox") {
                 __typename
                 ... on Discussion {
@@ -76,9 +73,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $skip: Boolean!
-        ) {
+        query testQuery($skip: Boolean!) {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename
             ... on Discussion @skip(if: $skip) {
@@ -112,9 +107,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_fbcbdaf4_3(
-          $skip: Boolean!
-        ) {
+        query testQuery_fbcbdaf4_3($skip: Boolean!) {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename
             ... on Discussion {

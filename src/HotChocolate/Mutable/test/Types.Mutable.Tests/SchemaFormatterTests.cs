@@ -253,7 +253,7 @@ public class SchemaFormatterTests
               a: Boolean
             }
 
-            directive @foo(a: String! b: [Foo] c: [Int!]) on FIELD_DEFINITION
+            directive @foo(a: String!, b: [Foo], c: [Int!]) on FIELD_DEFINITION
             """);
     }
 
@@ -282,14 +282,14 @@ public class SchemaFormatterTests
         // assert
         formattedSdl.MatchInlineSnapshot(
             """
-            directive @foo(b: [Foo] c: [Int!] a: String!) on FIELD_DEFINITION
+            directive @foo(b: [Foo], c: [Int!], a: String!) on FIELD_DEFINITION
 
             input Foo {
-                a: Boolean
+              a: Boolean
             }
 
             input Bar {
-                a: Boolean
+              a: Boolean
             }
             """);
     }

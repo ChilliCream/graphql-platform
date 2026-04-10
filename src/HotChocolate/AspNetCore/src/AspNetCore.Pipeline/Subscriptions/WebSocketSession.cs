@@ -47,9 +47,10 @@ internal sealed class WebSocketSession : ISocketSession
     public static async Task AcceptAsync(
         HttpContext context,
         ExecutorSession executorSession,
-        GraphQLSocketOptions socketOptions)
+        GraphQLServerOptions serverOptions)
     {
         using var connection = new WebSocketConnection(context, executorSession);
+        connection.Features.Set(serverOptions);
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(
             context.RequestAborted,
             connection.ApplicationStopping);
@@ -59,7 +60,7 @@ internal sealed class WebSocketSession : ISocketSession
         if (protocol is not null)
         {
             using var session = new WebSocketSession(connection, protocol, executorSession);
-            var options = socketOptions;
+            var options = serverOptions.Sockets;
 
             try
             {

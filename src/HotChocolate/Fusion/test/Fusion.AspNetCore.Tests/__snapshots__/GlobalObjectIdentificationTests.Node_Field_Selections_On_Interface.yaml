@@ -1,9 +1,7 @@
 title: Node_Field_Selections_On_Interface
 request:
   document: |
-    query testQuery(
-      $id: ID!
-    ) {
+    query testQuery($id: ID!) {
       node(id: $id) {
         ... on Votable {
           viewerCanVote
@@ -54,10 +52,9 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_63ca3aaf_3(
-              $id: ID!
-            ) {
+            query testQuery_63ca3aaf_3($id: ID!) {
               node(id: $id) {
                 __typename
                 ... on Discussion {
@@ -84,9 +81,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $id: ID!
-        ) {
+        query testQuery($id: ID!) {
           node(id: $id) {
             __typename @fusion__requirement
             ... on Votable {
@@ -110,9 +105,7 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query testQuery_63ca3aaf_2(
-          $id: ID!
-        ) {
+        query testQuery_63ca3aaf_2($id: ID!) {
           node(id: $id) {
             __typename
           }
@@ -125,9 +118,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_63ca3aaf_3(
-          $id: ID!
-        ) {
+        query testQuery_63ca3aaf_3($id: ID!) {
           node(id: $id) {
             __typename
             ... on Discussion {
@@ -136,7 +127,6 @@ operationPlan:
             }
           }
         }
-      batchingGroupId: 1
       forwardedVariables:
         - id
       dependencies:
@@ -145,9 +135,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_63ca3aaf_4(
-          $id: ID!
-        ) {
+        query testQuery_63ca3aaf_4($id: ID!) {
           node(id: $id) {
             __typename
             ... on Comment {
@@ -156,7 +144,6 @@ operationPlan:
             }
           }
         }
-      batchingGroupId: 1
       forwardedVariables:
         - id
       dependencies:

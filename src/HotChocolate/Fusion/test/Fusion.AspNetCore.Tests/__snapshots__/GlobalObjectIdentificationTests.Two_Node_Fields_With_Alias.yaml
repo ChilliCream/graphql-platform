@@ -49,25 +49,16 @@ sourceSchemas:
       }
     interactions:
       - request:
-          kind: OperationBatch
-          items:
-            - document: |
-                query Op_a361113f_3 {
-                  b: discussionById(discussionId: "RGlzY3Vzc2lvbjoy") {
-                    __typename
-                    title
-                    id
-                  }
-                }
-            - document: |
-                query Op_a361113f_7 {
-                  a: discussionById(discussionId: "RGlzY3Vzc2lvbjox") {
-                    __typename
-                    title
-                  }
-                }
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_a361113f_3 {
+              b: discussionById(discussionId: "RGlzY3Vzc2lvbjoy") {
+                __typename
+                title
+                id
+              }
+            }
         response:
-          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
@@ -79,6 +70,17 @@ sourceSchemas:
                   }
                 }
               }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_a361113f_7 {
+              a: discussionById(discussionId: "RGlzY3Vzc2lvbjox") {
+                __typename
+                title
+              }
+            }
+        response:
+          results:
             - |
               {
                 "data": {
@@ -109,10 +111,9 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_a361113f_4(
-              $__fusion_1_id: ID!
-            ) {
+            query Op_a361113f_4($__fusion_1_id: ID!) {
               discussion(id: $__fusion_1_id) {
                 commentCount
               }
@@ -169,7 +170,6 @@ operationPlan:
             __typename
           }
         }
-      batchingGroupId: 2
       dependencies:
         - id: 1
     - id: 3
@@ -183,16 +183,13 @@ operationPlan:
             id
           }
         }
-      batchingGroupId: 1
       dependencies:
         - id: 1
     - id: 4
       type: Operation
       schema: B
       operation: |
-        query Op_a361113f_4(
-          $__fusion_1_id: ID!
-        ) {
+        query Op_a361113f_4($__fusion_1_id: ID!) {
           discussion(id: $__fusion_1_id) {
             commentCount
           }
@@ -220,7 +217,6 @@ operationPlan:
             __typename
           }
         }
-      batchingGroupId: 2
       dependencies:
         - id: 5
     - id: 7
@@ -233,6 +229,5 @@ operationPlan:
             title
           }
         }
-      batchingGroupId: 1
       dependencies:
         - id: 5

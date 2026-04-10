@@ -78,6 +78,7 @@ sourceSchemas:
       union Post = Photo | Discussion
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query testQuery_ec963286_1 {
               postEdges {
@@ -145,10 +146,9 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query testQuery_ec963286_2(
-              $__fusion_1_id: ID!
-            ) {
+            query testQuery_ec963286_2($__fusion_1_id: ID!) {
               productById(id: $__fusion_1_id) {
                 subgraph2
               }
@@ -244,9 +244,7 @@ operationPlan:
       type: OperationBatch
       schema: B
       operation: |
-        query testQuery_ec963286_2(
-          $__fusion_1_id: ID!
-        ) {
+        query testQuery_ec963286_2($__fusion_1_id: ID!) {
           productById(id: $__fusion_1_id) {
             subgraph2
           }
@@ -255,7 +253,7 @@ operationPlan:
       targets:
         - $.postEdges.node<Discussion>.product
         - $.postEdges.node<Photo>.product
-      batchingGroupId: 1
+      batchingGroupId: 2
       requirements:
         - name: __fusion_1_id
           selectionMap: >-

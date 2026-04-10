@@ -21,7 +21,11 @@ namespace HotChocolate.Fetching;
 public sealed partial class BatchDispatcher : IBatchDispatcher
 {
     private readonly AsyncAutoResetEvent _signal = new();
+#if NET9_0_OR_GREATER
+    private readonly Lock _sync = new();
+#else
     private readonly object _sync = new();
+#endif
     private readonly HashSet<Batch> _enqueuedBatches = [];
     private readonly CancellationTokenSource _coordinatorCts = new();
     private readonly IDataLoaderDiagnosticEvents _diagnosticEvents;

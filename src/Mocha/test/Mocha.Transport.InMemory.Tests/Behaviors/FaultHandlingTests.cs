@@ -56,7 +56,7 @@ public class FaultHandlingTests
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act & assert — fault middleware sends NotAcknowledgedEvent back to the caller,
+        // act & assert - fault middleware sends NotAcknowledgedEvent back to the caller,
         // which surfaces as RemoteErrorException
         var ex = await Assert.ThrowsAsync<RemoteErrorException>(async () =>
             await bus.RequestAsync(new GetOrderStatus { OrderId = "ORD-FAIL" }, CancellationToken.None)

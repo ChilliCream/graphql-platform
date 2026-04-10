@@ -63,6 +63,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_fb4f667e_1 {
               books {
@@ -112,7 +113,9 @@ sourceSchemas:
       }
 
       type InternalLookups @internal {
-        author(by: AuthorByInput! @is(field: "{\n  id\n} | {\n  name\n}")): Author! @lookup @internal
+        author(by: AuthorByInput! @is(field: "{\n  id\n} | {\n  name\n}")): Author!
+          @lookup
+          @internal
       }
 
       type Query {
@@ -128,10 +131,9 @@ sourceSchemas:
       directive @oneOf on INPUT_OBJECT
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Op_fb4f667e_2(
-              $__fusion_1_by: AuthorByInput!
-            ) {
+            query Op_fb4f667e_2($__fusion_1_by: AuthorByInput!) {
               lookups {
                 author(by: $__fusion_1_by) {
                   name
@@ -160,26 +162,6 @@ sourceSchemas:
                   "lookups": {
                     "author": {
                       "name": "Jon Skeet"
-                    }
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "lookups": {
-                    "author": {
-                      "name": "JRR Tolkien"
-                    }
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "lookups": {
-                    "author": {
-                      "name": "JRR Tolkien"
                     }
                   }
                 }
@@ -238,9 +220,7 @@ operationPlan:
       type: Operation
       schema: b
       operation: |
-        query Op_fb4f667e_2(
-          $__fusion_1_by: AuthorByInput!
-        ) {
+        query Op_fb4f667e_2($__fusion_1_by: AuthorByInput!) {
           lookups {
             author(by: $__fusion_1_by) {
               name

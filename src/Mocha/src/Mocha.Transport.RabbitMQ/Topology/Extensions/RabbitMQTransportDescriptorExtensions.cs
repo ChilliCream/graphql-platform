@@ -10,12 +10,17 @@ public static class RabbitMQTransportDescriptorExtensions
     internal static IRabbitMQMessagingTransportDescriptor AddDefaults(
         this IRabbitMQMessagingTransportDescriptor descriptor)
     {
-        descriptor.AddConvention(new RabbitMQDefaultReceiveEndpointEndpointConvention());
+        descriptor.AddConvention(new RabbitMQDefaultReceiveEndpointConvention());
         descriptor.AddConvention(new RabbitMQReceiveEndpointTopologyConvention());
         descriptor.AddConvention(new RabbitMQDispatchEndpointTopologyConvention());
 
-        descriptor.AppendReceive(ReceiveMiddlewares.ConcurrencyLimiter.Key, RabbitMQReceiveMiddlewares.Acknowledgement);
-        descriptor.AppendReceive(RabbitMQReceiveMiddlewares.Acknowledgement.Key, RabbitMQReceiveMiddlewares.Parsing);
+        descriptor
+            .UseReceive(RabbitMQReceiveMiddlewares.Acknowledgement, after: ReceiveMiddlewares.ConcurrencyLimiter.Key);
+        descriptor
+            .UseReceive(RabbitMQReceiveMiddlewares.Parsing, after: RabbitMQReceiveMiddlewares.Acknowledgement.Key);
+
+        descriptor
+            .UseDispatch(RabbitMQDispatchMiddlewares.RoutingKey, before: DispatchMiddlewares.Serialization.Key);
 
         return descriptor;
     }

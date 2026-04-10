@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using Microsoft.AspNetCore.Http;
-using OpenTelemetry.Trace;
 using static HotChocolate.Diagnostics.HotChocolateActivitySource;
 
 namespace HotChocolate.Diagnostics.Listeners;
@@ -313,11 +313,30 @@ internal sealed class ActivityExecutionDiagnosticListener(
         }
     }
 
+    public override void DocumentNotFoundInStorage(RequestContext context, OperationDocumentId documentId)
+    {
+        if (context.Features.TryGet<ExecuteRequestSpan>(out var span))
+        {
+            span.Activity.AddEvent(new(nameof(DocumentNotFoundInStorage)));
+            enricher.EnrichDocumentNotFoundInStorage(context, documentId, span.Activity);
+        }
+    }
+
+    public override void UntrustedDocumentRejected(RequestContext context)
+    {
+        if (context.Features.TryGet<ExecuteRequestSpan>(out var span))
+        {
+            span.Activity.AddEvent(new(nameof(UntrustedDocumentRejected)));
+            enricher.EnrichUntrustedDocumentRejected(context, span.Activity);
+        }
+    }
+
     public override void AddedDocumentToCache(RequestContext context)
     {
         if (context.Features.TryGet<ExecuteRequestSpan>(out var span))
         {
             span.Activity.AddEvent(new(nameof(AddedDocumentToCache)));
+            enricher.EnrichAddedDocumentToCache(context, span.Activity);
         }
     }
 
@@ -326,6 +345,7 @@ internal sealed class ActivityExecutionDiagnosticListener(
         if (context.Features.TryGet<ExecuteRequestSpan>(out var span))
         {
             span.Activity.AddEvent(new(nameof(AddedOperationToCache)));
+            enricher.EnrichAddedOperationToCache(context, span.Activity);
         }
     }
 

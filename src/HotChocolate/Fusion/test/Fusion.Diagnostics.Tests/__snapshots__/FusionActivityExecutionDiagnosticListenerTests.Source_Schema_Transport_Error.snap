@@ -16,6 +16,10 @@
         {
           "Key": "graphql.document.body",
           "Value": "{\n  sayHello\n}"
+        },
+        {
+          "Key": "graphql.errors.count",
+          "Value": 1
         }
       ],
       "event": [
@@ -124,7 +128,7 @@
                 },
                 {
                   "Key": "graphql.operation.step.plan.id",
-                  "Value": "456132b93ebaf15a39534753bf72f9f4bfa1152a08d04bc8a88539feec1cb52c"
+                  "Value": "f6d09983b9640d3dc20ac4774cc4e3cc75407a02d5135467b9ba3ec3d0fa7fbb"
                 },
                 {
                   "Key": "graphql.source.name",
@@ -153,7 +157,7 @@
                     },
                     {
                       "Key": "exception.stacktrace",
-                      "Value": "System.Net.Http.HttpRequestException: Response status code does not indicate success: 500 (Internal Server Error).\n   at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()\n   at HotChocolate.Fusion.Transport.Http.GraphQLHttpResponse.ReadAsResultAsync(CancellationToken cancellationToken) in GraphQLHttpResponse.cs:line 292\n   at HotChocolate.Fusion.Execution.Clients.SourceSchemaHttpClient.Response.ReadAsResultStreamAsync(CancellationToken cancellationToken)+MoveNext() in SourceSchemaHttpClient.cs:line 578\n   at HotChocolate.Fusion.Execution.Clients.SourceSchemaHttpClient.Response.ReadAsResultStreamAsync(CancellationToken cancellationToken)+System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetResult()\n   at HotChocolate.Fusion.Execution.Nodes.OperationExecutionNode.OnExecuteAsync(OperationPlanContext context, CancellationToken cancellationToken) in OperationExecutionNode.cs:line 160\n   at HotChocolate.Fusion.Execution.Nodes.OperationExecutionNode.OnExecuteAsync(OperationPlanContext context, CancellationToken cancellationToken) in OperationExecutionNode.cs:line 160"
+                      "Value": "System.Net.Http.HttpRequestException: Response status code does not indicate success: 500 (Internal Server Error).\n   at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()\n   at HotChocolate.Fusion.Transport.Http.GraphQLHttpResponse.ReadAsResultAsync(CancellationToken cancellationToken) in GraphQLHttpResponse.cs\n   at HotChocolate.Fusion.Execution.Clients.SourceSchemaHttpClient.Response.ReadAsResultStreamCoreAsync(CancellationToken cancellationToken)+MoveNext() in SourceSchemaHttpClient.cs\n   at HotChocolate.Fusion.Execution.Clients.SourceSchemaHttpClient.Response.ReadAsResultStreamCoreAsync(CancellationToken cancellationToken)+System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetResult()\n   at HotChocolate.Fusion.Execution.Clients.SourceSchemaHttpClient.Response.WithResultCallback(IAsyncEnumerable`1 results, OperationPlanContext context, ExecutionNode node, Action`3 onSourceSchemaResult, CancellationToken cancellationToken)+MoveNext() in SourceSchemaHttpClient.cs\n   at HotChocolate.Fusion.Execution.Clients.SourceSchemaHttpClient.Response.WithResultCallback(IAsyncEnumerable`1 results, OperationPlanContext context, ExecutionNode node, Action`3 onSourceSchemaResult, CancellationToken cancellationToken)+MoveNext() in SourceSchemaHttpClient.cs\n   at HotChocolate.Fusion.Execution.Clients.SourceSchemaHttpClient.Response.WithResultCallback(IAsyncEnumerable`1 results, OperationPlanContext context, ExecutionNode node, Action`3 onSourceSchemaResult, CancellationToken cancellationToken)+System.Threading.Tasks.Sources.IValueTaskSource<System.Boolean>.GetResult()\n   at HotChocolate.Fusion.Execution.Nodes.OperationExecutionNode.OnExecuteAsync(OperationPlanContext context, CancellationToken cancellationToken) in OperationExecutionNode.cs\n   at HotChocolate.Fusion.Execution.Nodes.OperationExecutionNode.OnExecuteAsync(OperationPlanContext context, CancellationToken cancellationToken) in OperationExecutionNode.cs"
                     },
                     {
                       "Key": "exception.type",

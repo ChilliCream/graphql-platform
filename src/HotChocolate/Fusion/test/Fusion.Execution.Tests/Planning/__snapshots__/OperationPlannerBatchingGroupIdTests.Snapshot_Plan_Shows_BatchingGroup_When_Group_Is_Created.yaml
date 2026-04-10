@@ -34,9 +34,7 @@ nodes:
     type: OperationBatch
     schema: b
     operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_id: ID!
-      ) {
+      query Op_123456789101112_2($__fusion_1_id: ID!) {
         productById(id: $__fusion_1_id) {
           rating
         }
@@ -45,7 +43,7 @@ nodes:
     targets:
       - $.second
       - $.first
-    batchingGroupId: 1
+    batchingGroupId: 2
     requirements:
       - name: __fusion_1_id
         selectionMap: >-
@@ -56,9 +54,7 @@ nodes:
     type: OperationBatch
     schema: c
     operation: |
-      query Op_123456789101112_3(
-        $__fusion_2_id: ID!
-      ) {
+      query Op_123456789101112_3($__fusion_2_id: ID!) {
         productById(id: $__fusion_2_id) {
           deliveryEstimate
         }
@@ -67,7 +63,7 @@ nodes:
     targets:
       - $.second
       - $.first
-    batchingGroupId: 2
+    batchingGroupId: 3
     requirements:
       - name: __fusion_2_id
         selectionMap: >-

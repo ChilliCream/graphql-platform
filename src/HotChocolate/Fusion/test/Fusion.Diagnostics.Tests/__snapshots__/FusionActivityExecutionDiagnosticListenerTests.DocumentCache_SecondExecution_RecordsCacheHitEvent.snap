@@ -12,6 +12,10 @@
         {
           "Key": "graphql.document.hash",
           "Value": "md5:f7e9989fbb67af7fa747a9983313c9e5"
+        },
+        {
+          "Key": "graphql.errors.count",
+          "Value": 0
         }
       ],
       "event": [
@@ -68,7 +72,7 @@
                 },
                 {
                   "Key": "graphql.operation.step.plan.id",
-                  "Value": "456132b93ebaf15a39534753bf72f9f4bfa1152a08d04bc8a88539feec1cb52c"
+                  "Value": "f6d09983b9640d3dc20ac4774cc4e3cc75407a02d5135467b9ba3ec3d0fa7fbb"
                 },
                 {
                   "Key": "graphql.source.name",

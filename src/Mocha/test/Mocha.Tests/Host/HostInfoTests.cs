@@ -34,7 +34,7 @@ public class HostInfoTests
         // arrange & act
         var runtime = CreateRuntime(b => b.AddEventHandler<OrderCreatedHandler>());
 
-        // assert — MachineName should match the current machine
+        // assert - MachineName should match the current machine
         Assert.Equal(Environment.MachineName, runtime.Host.MachineName);
     }
 
@@ -44,7 +44,7 @@ public class HostInfoTests
         // arrange & act
         var runtime = CreateRuntime(b => b.AddEventHandler<OrderCreatedHandler>());
 
-        // assert — ProcessName should match the current process
+        // assert - ProcessName should match the current process
         using var process = Process.GetCurrentProcess();
         Assert.Equal(process.ProcessName, runtime.Host.ProcessName);
     }
@@ -65,7 +65,7 @@ public class HostInfoTests
         // arrange & act
         var runtime = CreateRuntime(b => b.AddEventHandler<OrderCreatedHandler>());
 
-        // assert — FrameworkVersion should match the runtime framework description
+        // assert - FrameworkVersion should match the runtime framework description
         Assert.Equal(RuntimeInformation.FrameworkDescription, runtime.Host.FrameworkVersion);
     }
 
@@ -75,7 +75,7 @@ public class HostInfoTests
         // arrange & act
         var runtime = CreateRuntime(b => b.AddEventHandler<OrderCreatedHandler>());
 
-        // assert — OperatingSystemVersion should match the OS description
+        // assert - OperatingSystemVersion should match the OS description
         Assert.Equal(RuntimeInformation.OSDescription, runtime.Host.OperatingSystemVersion);
     }
 
@@ -126,7 +126,7 @@ public class HostInfoTests
         // arrange & act
         var runtime = CreateRuntime(b => b.AddEventHandler<OrderCreatedHandler>());
 
-        // assert — RuntimeIdentifier should match the runtime identifier
+        // assert - RuntimeIdentifier should match the runtime identifier
         Assert.Equal(RuntimeInformation.RuntimeIdentifier, runtime.Host.RuntimeInfo.RuntimeIdentifier);
     }
 

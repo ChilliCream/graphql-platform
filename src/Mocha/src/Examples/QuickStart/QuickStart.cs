@@ -54,7 +54,7 @@ public class OrderPlacedHandler(ILogger<OrderPlacedHandler> logger)
         CancellationToken cancellationToken)
     {
         logger.LogInformation(
-            "Order received: {OrderId} — {ProductName} for {Amount:C}",
+            "Order received: {OrderId} - {ProductName} for {Amount:C}",
             message.OrderId,
             message.ProductName,
             message.Amount);

@@ -10,6 +10,12 @@ public interface IInMemoryReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     new IInMemoryReceiveEndpointDescriptor Handler<THandler>() where THandler : class, IHandler;
 
     /// <inheritdoc />
+    new IInMemoryReceiveEndpointDescriptor Handler(Type handlerType);
+
+    /// <inheritdoc />
+    new IInMemoryReceiveEndpointDescriptor Consumer(Type consumerType);
+
+    /// <inheritdoc />
     new IInMemoryReceiveEndpointDescriptor Consumer<TConsumer>() where TConsumer : class, IConsumer;
 
     /// <inheritdoc />
@@ -32,11 +38,8 @@ public interface IInMemoryReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     IInMemoryReceiveEndpointDescriptor Queue(string name);
 
     /// <inheritdoc />
-    new IInMemoryReceiveEndpointDescriptor UseReceive(ReceiveMiddlewareConfiguration configuration);
-
-    /// <inheritdoc />
-    new IInMemoryReceiveEndpointDescriptor AppendReceive(string after, ReceiveMiddlewareConfiguration configuration);
-
-    /// <inheritdoc />
-    new IInMemoryReceiveEndpointDescriptor PrependReceive(string before, ReceiveMiddlewareConfiguration configuration);
+    new IInMemoryReceiveEndpointDescriptor UseReceive(
+        ReceiveMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null);
 }

@@ -16,12 +16,12 @@ var messageBus = builder.Services.AddMessageBus();
 
 messageBus.ConfigureMessageBus(bus =>
 {
-    // Prepend tenant dispatch middleware so every outgoing message carries the tenant header.
-    bus.PrependDispatch(TenantDispatchMiddleware.Create("acme"));
+    // Add tenant dispatch middleware so every outgoing message carries the tenant header.
+    bus.UseDispatch(TenantDispatchMiddleware.Create("acme"));
 
     // Insert logging receive middleware after ReceiveInstrumentation so telemetry spans are
     // already open when our middleware runs.
-    bus.AppendReceive("ReceiveInstrumentation", LoggingReceiveMiddleware.Create());
+    bus.UseReceive(LoggingReceiveMiddleware.Create(), after: "ReceiveInstrumentation");
 });
 
 messageBus
@@ -64,7 +64,7 @@ public class OrderPlacedHandler(ILogger<OrderPlacedHandler> logger)
         CancellationToken cancellationToken)
     {
         logger.LogInformation(
-            "Order received: {OrderId} — {ProductName} for {Amount:C}",
+            "Order received: {OrderId} - {ProductName} for {Amount:C}",
             message.OrderId,
             message.ProductName,
             message.Amount);

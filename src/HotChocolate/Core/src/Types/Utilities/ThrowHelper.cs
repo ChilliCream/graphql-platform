@@ -207,7 +207,7 @@ internal static class ThrowHelper
         => new SchemaException(
             SchemaErrorBuilder.New()
                 .SetMessage(
-                    TypeResources.ThrowHelper_KeyValuePairType_InvalidRuntimeType,
+                    ThrowHelper_KeyValuePairType_InvalidRuntimeType,
                     typeName)
                 .Build());
 
@@ -362,7 +362,7 @@ internal static class ThrowHelper
                 .SetInputPath(path)
                 .SetExtension(
                     "specifiedBy",
-                    "https://spec.graphql.org/June2018/#sec-Type-System.List")
+                    "https://spec.graphql.org/September2025/#sec-List")
                 .Build(),
             type,
             path);

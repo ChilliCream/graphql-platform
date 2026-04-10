@@ -1,4 +1,6 @@
 using System.Collections.Concurrent;
+using System.Net;
+using System.Text;
 using System.Text.Json;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types.Composite;
@@ -151,6 +153,136 @@ public sealed class RequestGroupingExecutionTests : FusionTestBase
         Assert.Equal(JsonValueKind.Array, topProducts[0].GetProperty("reviews").ValueKind);
     }
 
+    [Fact]
+    public async Task Execute_With_RequestGrouping_Enabled_When_Subgraph_Rejects_Request_Without_Indexes()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema(
+            "a",
+            builder => builder.AddQueryType<SourceSchemaA.Query>());
+
+        using var serverB = CreateSourceSchema(
+            "b",
+            """
+            schema {
+              query: Query
+            }
+
+            type Product @key(fields: "id") {
+              id: Int!
+              rating: Int!
+            }
+
+            type Query {
+              productById(id: Int!): Product @lookup @internal
+            }
+            """,
+            httpClient: new HttpClient(new RejectedBeforeExecutionHandler()));
+
+        using var serverC = CreateSourceSchema(
+            "c",
+            builder => builder.AddQueryType<SourceSchemaC.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", serverA),
+                ("b", serverB),
+                ("c", serverC)
+            ],
+            configureGatewayBuilder: builder =>
+                builder.ModifyPlannerOptions(options => options.EnableRequestGrouping = true));
+
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        // act
+        using var result = await client.PostAsync(
+            """
+            {
+              first {
+                id
+                rating
+                deliveryEstimate
+              }
+              second {
+                id
+                rating
+                deliveryEstimate
+              }
+            }
+            """,
+            new Uri("http://localhost:5000/graphql"));
+
+        using var response = await result.ReadAsResultAsync();
+
+        // assert
+        Assert.Equal(JsonValueKind.Array, response.Errors.ValueKind);
+        Assert.True(response.Errors.GetArrayLength() > 0);
+
+        var bInteractions = AssertSchemaInteractions(gateway.Interactions, "b");
+        Assert.Contains(
+            bInteractions.Values.SelectMany(interaction => interaction.Results),
+            result => result.Contains("Cannot query field", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Execute_When_Subgraph_Rejects_Variable_Batch_Without_VariableIndex()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema(
+            "a",
+            builder => builder.AddQueryType<SourceSchemaA.Query>());
+
+        using var serverB = CreateSourceSchema(
+            "b",
+            """
+            schema {
+              query: Query
+            }
+
+            type Product @key(fields: "id") {
+              id: Int!
+              rating: Int!
+            }
+
+            type Query {
+              productById(id: Int!): Product @lookup @internal
+            }
+            """,
+            httpClient: new HttpClient(new RejectedBeforeExecutionHandler()));
+
+        using var gateway = await CreateCompositeSchemaAsync(
+            [
+                ("a", serverA),
+                ("b", serverB)
+            ]);
+
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        // act
+        using var result = await client.PostAsync(
+            """
+            {
+              products {
+                id
+                rating
+              }
+            }
+            """,
+            new Uri("http://localhost:5000/graphql"));
+
+        using var response = await result.ReadAsResultAsync();
+
+        // assert
+        Assert.Equal(JsonValueKind.Array, response.Errors.ValueKind);
+        Assert.True(response.Errors.GetArrayLength() > 0);
+
+        var bInteractions = AssertSchemaInteractions(gateway.Interactions, "b");
+        Assert.Contains(
+            bInteractions.Values.SelectMany(interaction => interaction.Results),
+            result => result.Contains("Cannot query field", StringComparison.Ordinal));
+        AssertAllRequestsAreVariableBatches(bInteractions, expectedVariablesCount: 2);
+    }
+
     private static ConcurrentDictionary<int, SourceSchemaInteraction> AssertSchemaInteractions(
         ConcurrentDictionary<string, ConcurrentDictionary<int, SourceSchemaInteraction>> interactions,
         string schemaName)
@@ -191,6 +323,8 @@ public sealed class RequestGroupingExecutionTests : FusionTestBase
             public Product GetFirst() => new(1);
 
             public Product GetSecond() => new(2);
+
+            public IReadOnlyList<Product> GetProducts() => [new(1), new(2)];
         }
     }
 
@@ -287,6 +421,26 @@ public sealed class RequestGroupingExecutionTests : FusionTestBase
             [Lookup]
             [Internal]
             public Product GetProductById(int id) => new(id);
+        }
+    }
+
+    private sealed class RejectedBeforeExecutionHandler : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            var response = new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(
+                    """
+                    {"errors":[{"message":"Cannot query field \"rating\" on type \"Product\"."}],"data":null}
+                    """,
+                    Encoding.UTF8,
+                    "application/json")
+            };
+
+            return Task.FromResult(response);
         }
     }
 }

@@ -1,0 +1,15 @@
+mutation ForceDeleteStageByApiIdCommandMutation($input: ForceDeleteStageByApiIdInput!) {
+  forceDeleteStageByApiId(input: $input) {
+    api {
+      stages {
+        ...StageDetailPrompt_Stage
+      }
+    }
+    errors {
+      ...Error
+      ...ApiNotFoundError
+      ...StageNotFoundError
+      ...UnauthorizedOperation
+    }
+  }
+}

@@ -9,7 +9,7 @@ internal sealed class InMemoryDispatchEndpointDescriptor
         Configuration = new InMemoryDispatchEndpointConfiguration { Name = name, TopicName = name };
     }
 
-    protected override InMemoryDispatchEndpointConfiguration Configuration { get; set; }
+    protected internal override InMemoryDispatchEndpointConfiguration Configuration { get; protected set; }
 
     public IInMemoryDispatchEndpointDescriptor ToQueue(string name)
     {
@@ -37,25 +37,12 @@ internal sealed class InMemoryDispatchEndpointDescriptor
         return this;
     }
 
-    public new IInMemoryDispatchEndpointDescriptor UseDispatch(DispatchMiddlewareConfiguration configuration)
+    public new IInMemoryDispatchEndpointDescriptor UseDispatch(
+        DispatchMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null)
     {
-        base.UseDispatch(configuration);
-        return this;
-    }
-
-    public new IInMemoryDispatchEndpointDescriptor AppendDispatch(
-        string after,
-        DispatchMiddlewareConfiguration configuration)
-    {
-        base.AppendDispatch(after, configuration);
-        return this;
-    }
-
-    public new IInMemoryDispatchEndpointDescriptor PrependDispatch(
-        string before,
-        DispatchMiddlewareConfiguration configuration)
-    {
-        base.PrependDispatch(before, configuration);
+        base.UseDispatch(configuration, before: before, after: after);
         return this;
     }
 

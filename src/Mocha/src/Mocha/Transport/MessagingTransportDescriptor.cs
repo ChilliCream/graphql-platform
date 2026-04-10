@@ -66,50 +66,30 @@ public interface IMessagingTransportDescriptor
     IMessagingTransportDescriptor IsDefaultTransport();
 
     /// <summary>
-    /// Adds a dispatch middleware to the transport-scoped outbound pipeline.
+    /// Adds a dispatch middleware to the transport-scoped outbound pipeline. Optionally positions it
+    /// relative to an existing middleware by specifying <paramref name="before"/> or <paramref name="after"/>.
     /// </summary>
     /// <param name="configuration">The middleware configuration to add.</param>
-    /// <returns>The descriptor for method chaining.</returns>
-    IMessagingTransportDescriptor UseDispatch(DispatchMiddlewareConfiguration configuration);
-
-    /// <summary>
-    /// Inserts a dispatch middleware into the transport-scoped outbound pipeline immediately after the middleware identified by <paramref name="after"/>.
-    /// </summary>
-    /// <param name="after">The name of the existing middleware to insert after.</param>
-    /// <param name="configuration">The middleware configuration to insert.</param>
-    /// <returns>The descriptor for method chaining.</returns>
-    IMessagingTransportDescriptor AppendDispatch(string after, DispatchMiddlewareConfiguration configuration);
-
-    /// <summary>
-    /// Inserts a dispatch middleware into the transport-scoped outbound pipeline immediately before the middleware identified by <paramref name="before"/>.
-    /// </summary>
     /// <param name="before">The name of the existing middleware to insert before.</param>
-    /// <param name="configuration">The middleware configuration to insert.</param>
+    /// <param name="after">The name of the existing middleware to insert after.</param>
     /// <returns>The descriptor for method chaining.</returns>
-    IMessagingTransportDescriptor PrependDispatch(string before, DispatchMiddlewareConfiguration configuration);
+    IMessagingTransportDescriptor UseDispatch(
+        DispatchMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null);
 
     /// <summary>
-    /// Adds a receive middleware to the transport-scoped inbound pipeline.
+    /// Adds a receive middleware to the transport-scoped inbound pipeline. Optionally positions it
+    /// relative to an existing middleware by specifying <paramref name="before"/> or <paramref name="after"/>.
     /// </summary>
     /// <param name="configuration">The middleware configuration to add.</param>
-    /// <returns>The descriptor for method chaining.</returns>
-    IMessagingTransportDescriptor UseReceive(ReceiveMiddlewareConfiguration configuration);
-
-    /// <summary>
-    /// Inserts a receive middleware into the transport-scoped inbound pipeline immediately after the middleware identified by <paramref name="after"/>.
-    /// </summary>
-    /// <param name="after">The name of the existing middleware to insert after.</param>
-    /// <param name="configuration">The middleware configuration to insert.</param>
-    /// <returns>The descriptor for method chaining.</returns>
-    IMessagingTransportDescriptor AppendReceive(string after, ReceiveMiddlewareConfiguration configuration);
-
-    /// <summary>
-    /// Inserts a receive middleware into the transport-scoped inbound pipeline immediately before the middleware identified by <paramref name="before"/>.
-    /// </summary>
     /// <param name="before">The name of the existing middleware to insert before.</param>
-    /// <param name="configuration">The middleware configuration to insert.</param>
+    /// <param name="after">The name of the existing middleware to insert after.</param>
     /// <returns>The descriptor for method chaining.</returns>
-    IMessagingTransportDescriptor PrependReceive(string before, ReceiveMiddlewareConfiguration configuration);
+    IMessagingTransportDescriptor UseReceive(
+        ReceiveMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null);
 }
 
 /// <summary>
@@ -165,16 +145,31 @@ public abstract class MessagingTransportDescriptor<T>(IMessagingSetupContext con
     }
 
     /// <inheritdoc />
-    public IMessagingTransportDescriptor UseDispatch(DispatchMiddlewareConfiguration configuration)
+    public IMessagingTransportDescriptor UseDispatch(
+        DispatchMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null)
     {
-        Configuration.DispatchMiddlewares.Add(configuration);
-        return this;
-    }
+        if (before is not null && after is not null)
+        {
+            throw ThrowHelper.BeforeAndAfterConflict();
+        }
 
-    /// <inheritdoc />
-    public IMessagingTransportDescriptor AppendDispatch(string after, DispatchMiddlewareConfiguration configuration)
-    {
-        Configuration.DispatchPipelineModifiers.Append(configuration, after);
+        if (before is null && after is null)
+        {
+            Configuration.DispatchMiddlewares.Add(configuration);
+            return this;
+        }
+
+        if (before is not null)
+        {
+            Configuration.DispatchPipelineModifiers.Prepend(configuration, before);
+        }
+        else
+        {
+            Configuration.DispatchPipelineModifiers.Append(configuration, after);
+        }
+
         return this;
     }
 
@@ -186,30 +181,31 @@ public abstract class MessagingTransportDescriptor<T>(IMessagingSetupContext con
     }
 
     /// <inheritdoc />
-    public IMessagingTransportDescriptor PrependDispatch(string before, DispatchMiddlewareConfiguration configuration)
+    public IMessagingTransportDescriptor UseReceive(
+        ReceiveMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null)
     {
-        Configuration.DispatchPipelineModifiers.Prepend(configuration, before);
-        return this;
-    }
+        if (before is not null && after is not null)
+        {
+            throw ThrowHelper.BeforeAndAfterConflict();
+        }
 
-    /// <inheritdoc />
-    public IMessagingTransportDescriptor UseReceive(ReceiveMiddlewareConfiguration configuration)
-    {
-        Configuration.ReceiveMiddlewares.Add(configuration);
-        return this;
-    }
+        if (before is null && after is null)
+        {
+            Configuration.ReceiveMiddlewares.Add(configuration);
+            return this;
+        }
 
-    /// <inheritdoc />
-    public IMessagingTransportDescriptor AppendReceive(string after, ReceiveMiddlewareConfiguration configuration)
-    {
-        Configuration.ReceivePipelineModifiers.Append(configuration, after);
-        return this;
-    }
+        if (before is not null)
+        {
+            Configuration.ReceivePipelineModifiers.Prepend(configuration, before);
+        }
+        else
+        {
+            Configuration.ReceivePipelineModifiers.Append(configuration, after);
+        }
 
-    /// <inheritdoc />
-    public IMessagingTransportDescriptor PrependReceive(string before, ReceiveMiddlewareConfiguration configuration)
-    {
-        Configuration.ReceivePipelineModifiers.Prepend(configuration, before);
         return this;
     }
 
@@ -217,8 +213,8 @@ public abstract class MessagingTransportDescriptor<T>(IMessagingSetupContext con
     /// Returns this descriptor as an extension point for the transport configuration, allowing additional
     /// configuration to be layered by external modules.
     /// </summary>
-    /// <returns>This descriptor cast as <see cref="IDescriptorExtension{MessagingTransportConfiguration}"/>.</returns>
-    public new IDescriptorExtension<MessagingTransportConfiguration> Extend()
+    /// <returns>This descriptor cast as <see cref="IMessagingDescriptorExtension{T}"/>.</returns>
+    public new IMessagingDescriptorExtension<MessagingTransportConfiguration> Extend()
     {
         return this;
     }
@@ -227,10 +223,14 @@ public abstract class MessagingTransportDescriptor<T>(IMessagingSetupContext con
     /// Applies an extension configuration delegate to this transport descriptor.
     /// </summary>
     /// <param name="configure">A delegate that configures the transport through the extension interface.</param>
-    /// <returns>This descriptor cast as <see cref="IDescriptorExtension{MessagingTransportConfiguration}"/>.</returns>
-    public IDescriptorExtension<MessagingTransportConfiguration> ExtendWith(
-        Action<IDescriptorExtension<MessagingTransportConfiguration>> configure)
+    /// <returns>This descriptor cast as <see cref="IMessagingDescriptorExtension{T}"/>.</returns>
+    public IMessagingDescriptorExtension<MessagingTransportConfiguration> ExtendWith(
+        Action<IMessagingDescriptorExtension<MessagingTransportConfiguration>> configure)
     {
+        ArgumentNullException.ThrowIfNull(configure);
+
+        configure(this);
+
         return this;
     }
 
@@ -240,20 +240,15 @@ public abstract class MessagingTransportDescriptor<T>(IMessagingSetupContext con
     /// <typeparam name="TState">The type of the state object passed to the delegate.</typeparam>
     /// <param name="configure">A delegate that configures the transport through the extension interface using the provided state.</param>
     /// <param name="state">The state object forwarded to the delegate.</param>
-    /// <returns>This descriptor cast as <see cref="IDescriptorExtension{MessagingTransportConfiguration}"/>.</returns>
-    public IDescriptorExtension<MessagingTransportConfiguration> ExtendWith<TState>(
-        Action<IDescriptorExtension<MessagingTransportConfiguration>, TState> configure,
+    /// <returns>This descriptor cast as <see cref="IMessagingDescriptorExtension{T}"/>.</returns>
+    public IMessagingDescriptorExtension<MessagingTransportConfiguration> ExtendWith<TState>(
+        Action<IMessagingDescriptorExtension<MessagingTransportConfiguration>, TState> configure,
         TState state)
     {
-        return this;
-    }
+        ArgumentNullException.ThrowIfNull(configure);
 
-    /// <summary>
-    /// Marks this descriptor as internal, preventing external consumers from using it.
-    /// </summary>
-    /// <exception cref="NotImplementedException">Always thrown; this method is not yet implemented.</exception>
-    public void Internal()
-    {
-        throw new NotImplementedException();
+        configure(this, state);
+
+        return this;
     }
 }

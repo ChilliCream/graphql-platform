@@ -1,4 +1,5 @@
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
@@ -12,29 +13,62 @@ internal sealed class SetDefaultWorkspaceCommand : Command
     public SetDefaultWorkspaceCommand() : base(Command)
     {
         Description =
-            "Use this command to select a workspace and set it as your default workspace";
+            "Set the default workspace.";
 
-        this.SetHandler(context => ExecuteAsync(
-            true,
-            context.BindingContext.GetRequiredService<IAnsiConsole>(),
-            context.BindingContext.GetRequiredService<IApiClient>(),
-            context.BindingContext.GetRequiredService<ISessionService>(),
-            context.BindingContext.GetRequiredService<CancellationToken>()));
+        Options.Add(Opt<OptionalWorkspaceIdOption>.Instance);
+
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples("workspace set-default");
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
+    }
+
+    private static async Task<int> ExecuteAsync(
+        ICommandServices services,
+        ParseResult parseResult,
+        CancellationToken cancellationToken)
+    {
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IWorkspacesClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+
+        parseResult.AssertHasAuthentication(sessionService);
+
+        var workspaceId = parseResult.GetValue(Opt<OptionalWorkspaceIdOption>.Instance);
+
+        if (workspaceId is not null)
+        {
+            var data = await client.GetWorkspaceAsync(workspaceId, cancellationToken);
+
+            if (data is not IShowWorkspaceCommandQuery_Node_Workspace node)
+            {
+                throw Exit($"The workspace with ID '{workspaceId}' was not found.");
+            }
+
+            var workspace = new Workspace(node.Id, node.Name);
+            await sessionService.SelectWorkspaceAsync(workspace, cancellationToken);
+            return ExitCodes.Success;
+        }
+
+        if (!console.IsInteractive)
+        {
+            throw MissingRequiredOption(OptionalWorkspaceIdOption.OptionName);
+        }
+
+        return await ExecuteAsync(true, console, client, sessionService, cancellationToken);
     }
 
     public static async Task<int> ExecuteAsync(
         bool forceSelection,
-        IAnsiConsole console,
-        IApiClient client,
+        INitroConsole console,
+        IWorkspacesClient client,
         ISessionService sessionService,
         CancellationToken cancellationToken)
     {
         const string message = "Which workspace do you want to use as your default?";
 
-        var paginationContainer = PaginationContainer.Create(
-            client.SetDefaultWorkspaceCommand_SelectWorkspace_Query.ExecuteAsync,
-            p => p.Me?.Workspaces?.PageInfo,
-            p => p.Me?.Workspaces?.Edges);
+        var paginationContainer = PaginationContainer.CreateConnectionData(client.SelectWorkspacesAsync);
 
         var current = await paginationContainer.GetCurrentAsync(cancellationToken);
         if (current.Count == 0)
@@ -48,7 +82,7 @@ internal sealed class SetDefaultWorkspaceCommand : Command
 
         if (current.Count == 1 && !forceSelection)
         {
-            var firstWorkspace = current[0].Node;
+            var firstWorkspace = current[0];
             workspace = new Workspace(firstWorkspace.Id, firstWorkspace.Name);
         }
         else
@@ -56,15 +90,15 @@ internal sealed class SetDefaultWorkspaceCommand : Command
             var selectedWorkspace = await PagedSelectionPrompt
                 .New(paginationContainer)
                 .Title(message.AsQuestion())
-                .UseConverter(x => x.Node.Name)
+                .UseConverter(x => x.Name)
                 .RenderAsync(console, cancellationToken);
 
             if (selectedWorkspace is null)
             {
-                throw Exit("No workspaces was selected as default");
+                throw Exit("No workspace was selected as default.");
             }
 
-            workspace = new Workspace(selectedWorkspace.Node.Id, selectedWorkspace.Node.Name);
+            workspace = new Workspace(selectedWorkspace.Id, selectedWorkspace.Name);
 
             wasPrompted = true;
         }

@@ -55,6 +55,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query testQuery_1703e95b_1 {
               authorable {
@@ -99,12 +100,11 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           kind: OperationBatch
           items:
             - document: |
-                query testQuery_1703e95b_2(
-                  $__fusion_1_id: ID!
-                ) {
+                query testQuery_1703e95b_2($__fusion_1_id: ID!) {
                   authorById(id: $__fusion_1_id) {
                     email
                   }
@@ -114,9 +114,7 @@ sourceSchemas:
                   "__fusion_1_id": "QXV0aG9yOjI="
                 }
             - document: |
-                query testQuery_1703e95b_3(
-                  $__fusion_2_id: ID!
-                ) {
+                query testQuery_1703e95b_3($__fusion_2_id: ID!) {
                   authorById(id: $__fusion_2_id) {
                     displayName
                   }
@@ -189,16 +187,14 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_1703e95b_2(
-          $__fusion_1_id: ID!
-        ) {
+        query testQuery_1703e95b_2($__fusion_1_id: ID!) {
           authorById(id: $__fusion_1_id) {
             email
           }
         }
       source: $.authorById
       target: $.authorable<Discussion>.author
-      batchingGroupId: 1
+      batchingGroupId: 2
       requirements:
         - name: __fusion_1_id
           selectionMap: >-
@@ -209,16 +205,14 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_1703e95b_3(
-          $__fusion_2_id: ID!
-        ) {
+        query testQuery_1703e95b_3($__fusion_2_id: ID!) {
           authorById(id: $__fusion_2_id) {
             displayName
           }
         }
       source: $.authorById
       target: $.authorable.author
-      batchingGroupId: 1
+      batchingGroupId: 2
       requirements:
         - name: __fusion_2_id
           selectionMap: >-

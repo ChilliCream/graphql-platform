@@ -20,6 +20,10 @@
         {
           "Key": "graphql.document.body",
           "Value": "query SayHelloOperation {\n  sayHello\n}"
+        },
+        {
+          "Key": "graphql.errors.count",
+          "Value": 0
         }
       ],
       "event": [
@@ -140,7 +144,7 @@
                 },
                 {
                   "Key": "graphql.operation.step.plan.id",
-                  "Value": "1334fb0da1250c6db5db84b6c98ccb2556f066942f8836d6ebd18fd870172787"
+                  "Value": "350468e4cc5182c2db3af1558b7e18d325546f77603413233fbe3940fa53cc86"
                 },
                 {
                   "Key": "graphql.source.name",

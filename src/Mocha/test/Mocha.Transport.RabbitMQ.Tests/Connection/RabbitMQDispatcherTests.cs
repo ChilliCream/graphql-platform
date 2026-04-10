@@ -89,7 +89,7 @@ public class RabbitMQDispatcherTests
         // act
         await dispatcher.ReturnChannelAsync(rented);
 
-        // assert — renting again should return the same pooled channel
+        // assert - renting again should return the same pooled channel
         var second = await dispatcher.RentChannelAsync(CancellationToken.None);
         Assert.Same(channelMock.Object, second);
     }
@@ -109,16 +109,16 @@ public class RabbitMQDispatcherTests
             rented[i] = await dispatcher.RentChannelAsync(CancellationToken.None);
         }
 
-        // Return first 10 — fills the pool
+        // Return first 10 - fills the pool
         for (var i = 0; i < 10; i++)
         {
             await dispatcher.ReturnChannelAsync(rented[i]);
         }
 
-        // act — return the 11th, which should be disposed (pool full)
+        // act - return the 11th, which should be disposed (pool full)
         await dispatcher.ReturnChannelAsync(rented[10]);
 
-        // assert — the 11th channel should have been disposed
+        // assert - the 11th channel should have been disposed
         channelMocks[10].Verify(c => c.DisposeAsync(), Times.AtLeastOnce());
     }
 
@@ -185,7 +185,7 @@ public class RabbitMQDispatcherTests
         // act
         await dispatcher.DisposeAsync();
 
-        // assert — all channels should have been disposed
+        // assert - all channels should have been disposed
         foreach (var ch in channelMocks)
         {
             ch.Verify(c => c.DisposeAsync(), Times.AtLeastOnce());

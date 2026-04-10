@@ -11,6 +11,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Moq" />
+    <PackageReference Include="Spectre.Console.Testing" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="$(MSBuildProjectDirectory)\__resources__\**\*.*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

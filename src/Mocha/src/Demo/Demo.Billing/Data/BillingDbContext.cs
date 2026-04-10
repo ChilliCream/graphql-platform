@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Mocha.Inbox;
 using Mocha.Outbox;
+using Mocha.Scheduling;
 
 namespace Demo.Billing.Data;
 
@@ -20,6 +21,7 @@ public class BillingDbContext(DbContextOptions<BillingDbContext> options) : DbCo
 
         modelBuilder.AddPostgresOutbox();
         modelBuilder.AddPostgresInbox();
+        modelBuilder.AddPostgresScheduledMessages();
 
         modelBuilder.Entity<Invoice>(entity =>
         {

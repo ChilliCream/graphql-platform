@@ -16,6 +16,20 @@ public interface IReceiveEndpointDescriptor<out TConfiguration>
     IReceiveEndpointDescriptor<TConfiguration> Handler<THandler>() where THandler : class, IHandler;
 
     /// <summary>
+    /// Binds a handler to this receive endpoint by its runtime type.
+    /// </summary>
+    /// <param name="handlerType">The handler type to bind.</param>
+    /// <returns>The descriptor instance for method chaining.</returns>
+    IReceiveEndpointDescriptor<TConfiguration> Handler(Type handlerType);
+
+    /// <summary>
+    /// Binds a consumer to this receive endpoint by its runtime type.
+    /// </summary>
+    /// <param name="consumerType">The consumer type to bind.</param>
+    /// <returns>The descriptor instance for method chaining.</returns>
+    IReceiveEndpointDescriptor<TConfiguration> Consumer(Type consumerType);
+
+    /// <summary>
     /// Binds a consumer to this receive endpoint, ensuring its messages are consumed on this
     /// endpoint.
     /// </summary>
@@ -52,29 +66,15 @@ public interface IReceiveEndpointDescriptor<out TConfiguration>
     IReceiveEndpointDescriptor<TConfiguration> SkippedEndpoint(string name);
 
     /// <summary>
-    /// Appends a receive middleware configuration to this endpoint's receive pipeline.
+    /// Adds a receive middleware to this endpoint's receive pipeline. Optionally positions it
+    /// relative to an existing middleware by specifying <paramref name="before"/> or <paramref name="after"/>.
     /// </summary>
     /// <param name="configuration">The receive middleware configuration to add.</param>
+    /// <param name="before">The name of the existing middleware to insert before.</param>
+    /// <param name="after">The name of the existing middleware to insert after.</param>
     /// <returns>The descriptor instance for method chaining.</returns>
-    IReceiveEndpointDescriptor<TConfiguration> UseReceive(ReceiveMiddlewareConfiguration configuration);
-
-    /// <summary>
-    /// Inserts a receive middleware configuration after the middleware with the specified name.
-    /// </summary>
-    /// <param name="after">The name of the existing middleware after which to insert.</param>
-    /// <param name="configuration">The receive middleware configuration to insert.</param>
-    /// <returns>The descriptor instance for method chaining.</returns>
-    IReceiveEndpointDescriptor<TConfiguration> AppendReceive(
-        string after,
-        ReceiveMiddlewareConfiguration configuration);
-
-    /// <summary>
-    /// Inserts a receive middleware configuration before the middleware with the specified name.
-    /// </summary>
-    /// <param name="before">The name of the existing middleware before which to insert.</param>
-    /// <param name="configuration">The receive middleware configuration to insert.</param>
-    /// <returns>The descriptor instance for method chaining.</returns>
-    IReceiveEndpointDescriptor<TConfiguration> PrependReceive(
-        string before,
-        ReceiveMiddlewareConfiguration configuration);
+    IReceiveEndpointDescriptor<TConfiguration> UseReceive(
+        ReceiveMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null);
 }

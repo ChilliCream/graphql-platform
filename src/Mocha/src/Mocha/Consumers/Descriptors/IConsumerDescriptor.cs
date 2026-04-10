@@ -22,27 +22,29 @@ public interface IConsumerDescriptor : IMessagingDescriptor<ConsumerConfiguratio
     IConsumerDescriptor AddRoute(Action<IInboundRouteDescriptor> configure);
 
     /// <summary>
-    /// Appends a consumer-scoped middleware configuration to the consumer's middleware pipeline.
+    /// Adds a consumer-scoped middleware configuration to the consumer's middleware pipeline.
+    /// When neither <paramref name="before"/> nor <paramref name="after"/> is specified, the
+    /// middleware is appended to the end of the pipeline.
+    /// When <paramref name="before"/> is specified, the middleware is inserted immediately before
+    /// the middleware with the given key.
+    /// When <paramref name="after"/> is specified, the middleware is inserted immediately after
+    /// the middleware with the given key.
     /// </summary>
     /// <param name="configuration">The consumer middleware configuration to add.</param>
+    /// <param name="before">
+    /// The key of the existing middleware before which to insert, or <c>null</c> to skip
+    /// positional insertion.
+    /// </param>
+    /// <param name="after">
+    /// The key of the existing middleware after which to insert, or <c>null</c> to skip
+    /// positional insertion.
+    /// </param>
     /// <returns>The descriptor instance for method chaining.</returns>
-    IConsumerDescriptor UseConsumer(ConsumerMiddlewareConfiguration configuration);
-
-    /// <summary>
-    /// Inserts a consumer-scoped middleware configuration immediately after the middleware with the
-    /// specified name.
-    /// </summary>
-    /// <param name="after">The name of the existing middleware after which to insert.</param>
-    /// <param name="configuration">The consumer middleware configuration to insert.</param>
-    /// <returns>The descriptor instance for method chaining.</returns>
-    IConsumerDescriptor AppendConsumer(string after, ConsumerMiddlewareConfiguration configuration);
-
-    /// <summary>
-    /// Inserts a consumer-scoped middleware configuration immediately before the middleware with
-    /// the specified name.
-    /// </summary>
-    /// <param name="before">The name of the existing middleware before which to insert.</param>
-    /// <param name="configuration">The consumer middleware configuration to insert.</param>
-    /// <returns>The descriptor instance for method chaining.</returns>
-    IConsumerDescriptor PrependConsumer(string before, ConsumerMiddlewareConfiguration configuration);
+    /// <exception cref="ArgumentException">
+    /// Thrown when both <paramref name="before"/> and <paramref name="after"/> are specified.
+    /// </exception>
+    IConsumerDescriptor UseConsumer(
+        ConsumerMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null);
 }

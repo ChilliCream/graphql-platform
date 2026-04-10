@@ -164,10 +164,10 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
     {
         AssertUninitialized();
 
-        Transport.Conventions.Configure(context, configuration);
+        Transport.Conventions.Configure(context, Transport, configuration);
         Configuration = configuration;
         Kind = configuration.Kind;
-        Name = configuration.Name ?? throw new InvalidOperationException("Name is required");
+        Name = configuration.Name ?? throw ThrowHelper.EndpointNameRequired();
         configuration.Features.CopyTo(Features);
 
         OnInitialize(context, Configuration);
@@ -324,7 +324,7 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
 
         if (IsInitialized)
         {
-            throw new InvalidOperationException("Endpoint already initialized");
+            throw ThrowHelper.EndpointAlreadyInitialized();
         }
     }
 

@@ -16,7 +16,14 @@ type GenericWrapperOfIPet {
 
 type QueryWithGenerics {
   pet(id: Int!): IPet
-  pets(arg1: Int arg2: Boolean arg3: Boolean arg4: String arg5: GenericWrapperOfStringInput arg6: GreetingsInput): GenericWrapperOfIPet!
+  pets(
+    arg1: Int
+    arg2: Boolean
+    arg3: Boolean
+    arg4: String
+    arg5: GenericWrapperOfStringInput
+    arg6: GreetingsInput
+  ): GenericWrapperOfIPet!
 }
 
 input GenericWrapperOfStringInput {

@@ -27,7 +27,7 @@
         },
         {
           "Key": "graphql.http.request.query.body",
-          "Value": "query GetGreeting(\n  $name: String!\n) {\n  greeting(name: $name)\n}"
+          "Value": "query GetGreeting($name: String!) {\n  greeting(name: $name)\n}"
         },
         {
           "Key": "graphql.http.request.variables",
@@ -63,6 +63,10 @@
             {
               "Key": "graphql.document.hash",
               "Value": "md5:111e40f921c6c6a35bc7eb0e3873630e"
+            },
+            {
+              "Key": "graphql.errors.count",
+              "Value": 0
             }
           ],
           "event": [
@@ -195,7 +199,7 @@
                     },
                     {
                       "Key": "graphql.operation.step.plan.id",
-                      "Value": "12136be79ce453a7feac5df83310a20585dbdb9c9675bc55b25c2c2ea1f871e1"
+                      "Value": "927ffd44733df2159203b1a097608f124eddb72cc45496f3c97e01a5ea40f2b3"
                     },
                     {
                       "Key": "graphql.source.name",
@@ -211,7 +215,7 @@
                     },
                     {
                       "Key": "graphql.source.operation.hash",
-                      "Value": "sha256:00692b6fbeb8014bcc1eb8932d5924dc0c5e5ea3e158e34979ec322c2e1b3c40"
+                      "Value": "sha256:107e4091ec962487f26df0844464aa76452bc9039d604d80523fc66325c088bc"
                     }
                   ],
                   "event": []

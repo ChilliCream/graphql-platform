@@ -16,6 +16,10 @@
         {
           "Key": "graphql.document.body",
           "Value": "{\n  sayHello\n  deepB {\n    deeperB {\n      causeFatalError\n    }\n  }\n}"
+        },
+        {
+          "Key": "graphql.errors.count",
+          "Value": 2
         }
       ],
       "event": [
@@ -124,7 +128,7 @@
                 },
                 {
                   "Key": "graphql.operation.step.plan.id",
-                  "Value": "6034e1863f163f1cf2ced76832d1f0f496fa230f34e6ea0bb0b1a9de5b0f7db5"
+                  "Value": "7e050d004b624ec0c905bfba84445a17dd0cc54657187f55d6c3b5ee61931c69"
                 },
                 {
                   "Key": "graphql.source.name",
@@ -172,7 +176,7 @@
                 },
                 {
                   "Key": "graphql.operation.step.plan.id",
-                  "Value": "6034e1863f163f1cf2ced76832d1f0f496fa230f34e6ea0bb0b1a9de5b0f7db5"
+                  "Value": "7e050d004b624ec0c905bfba84445a17dd0cc54657187f55d6c3b5ee61931c69"
                 },
                 {
                   "Key": "graphql.source.name",

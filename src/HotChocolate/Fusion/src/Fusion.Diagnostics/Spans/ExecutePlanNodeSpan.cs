@@ -52,10 +52,6 @@ internal sealed class ExecutePlanNodeSpan(
         {
             SetSourceSchemaTags(activity, operationExecutionNode.Operation, schemaName);
         }
-        else if (node is OperationBatchExecutionNode batchExecutionNode)
-        {
-            SetSourceSchemaTags(activity, batchExecutionNode.Operation, schemaName);
-        }
 
         return new ExecutePlanNodeSpan(activity, context, node, schemaName, enricher);
     }

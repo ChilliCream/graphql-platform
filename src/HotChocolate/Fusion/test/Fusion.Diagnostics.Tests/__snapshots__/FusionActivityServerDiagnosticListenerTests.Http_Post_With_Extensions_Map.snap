@@ -51,6 +51,10 @@
             {
               "Key": "graphql.document.hash",
               "Value": "md5:c46cf8c9811934ddea095f10ee722dc4"
+            },
+            {
+              "Key": "graphql.errors.count",
+              "Value": 0
             }
           ],
           "event": [
@@ -167,7 +171,7 @@
                     },
                     {
                       "Key": "graphql.operation.step.plan.id",
-                      "Value": "d58281f7cf44ca2751c4a435c0249e686bd1c146f6ddae23ed35ec6e4b83eb77"
+                      "Value": "b4bacbde0607aabd0bf40fc3e0be23f911f12863ecdf92b2af32c5f869b8d371"
                     },
                     {
                       "Key": "graphql.source.name",
@@ -183,7 +187,7 @@
                     },
                     {
                       "Key": "graphql.source.operation.hash",
-                      "Value": "sha256:a6738007b3546a7458414ee647c93aa373bc22ca57256f4a4a5c8ef3aa886470"
+                      "Value": "sha256:e9428697b2cd34a844a7960438916fa3792769cf1baba824c5af0e8cd2b7e6d6"
                     }
                   ],
                   "event": []

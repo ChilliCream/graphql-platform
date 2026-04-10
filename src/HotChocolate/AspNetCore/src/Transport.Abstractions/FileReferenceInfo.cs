@@ -1,4 +1,8 @@
-namespace HotChocolate.Transport.Http;
+#if FUSION
+namespace HotChocolate.Fusion.Transport;
+#else
+namespace HotChocolate.Transport;
+#endif
 
 /// <summary>
 /// The file reference info contains the actual

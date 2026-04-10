@@ -1,7 +1,9 @@
 using System.Collections.Immutable;
 using System.Net.Http.Headers;
+using HotChocolate.Language;
 #if FUSION
-using HotChocolate.Transport;
+using HotChocolate.Fusion.Execution;
+using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Transport.Http;
 #endif
 
@@ -37,7 +39,17 @@ public sealed class GraphQLHttpRequest
                 nameof(query));
         }
 
+#if FUSION
+        Body = new OperationRequest(
+            query,
+            id: null,
+            operationName: null,
+            onError: null,
+            variables: VariableValues.Empty,
+            extensions: JsonSegment.Empty);
+#else
         Body = new OperationRequest(query);
+#endif
         Uri = requestUri;
     }
 
@@ -52,10 +64,20 @@ public sealed class GraphQLHttpRequest
     /// </param>
     /// <exception cref="ArgumentException">
     /// <paramref name="body"/> has no <see cref="OperationRequest.Id"/>, <see cref="OperationRequest.Query"/>,
-    /// <see cref="OperationRequest.Extensions"/> or <see cref="OperationRequest.ExtensionsNode"/>.
+    /// or <see cref="OperationRequest.Extensions"/>.
     /// </exception>
     public GraphQLHttpRequest(OperationRequest body, Uri? requestUri = null)
     {
+#if FUSION
+        if (string.IsNullOrEmpty(body.Id)
+            && string.IsNullOrEmpty(body.Query)
+            && body.Extensions.IsEmpty)
+        {
+            throw new ArgumentException(
+                HttpResources.GraphQLHttpRequest_QueryIdAndExtensionsNullOrEmpty,
+                nameof(body));
+        }
+#else
         if (string.IsNullOrEmpty(body.Id)
             && string.IsNullOrEmpty(body.Query)
             && body.Extensions is null
@@ -65,6 +87,7 @@ public sealed class GraphQLHttpRequest
                 HttpResources.GraphQLHttpRequest_QueryIdAndExtensionsNullOrEmpty,
                 nameof(body));
         }
+#endif
 
         Body = body;
         Uri = requestUri;
@@ -81,10 +104,20 @@ public sealed class GraphQLHttpRequest
     /// </param>
     /// <exception cref="ArgumentException">
     /// <paramref name="body"/> has no <see cref="VariableBatchRequest.Id"/>, <see cref="VariableBatchRequest.Query"/>,
-    /// <see cref="VariableBatchRequest.Extensions"/> or <see cref="VariableBatchRequest.ExtensionsNode"/>.
+    /// or <see cref="VariableBatchRequest.Extensions"/>.
     /// </exception>
     public GraphQLHttpRequest(VariableBatchRequest body, Uri? requestUri = null)
     {
+#if FUSION
+        if (string.IsNullOrEmpty(body.Id)
+            && string.IsNullOrEmpty(body.Query)
+            && body.Extensions.IsEmpty)
+        {
+            throw new ArgumentException(
+                HttpResources.GraphQLHttpRequest_QueryIdAndExtensionsNullOrEmpty,
+                nameof(body));
+        }
+#else
         if (string.IsNullOrEmpty(body.Id)
             && string.IsNullOrEmpty(body.Query)
             && body.Extensions is null
@@ -94,6 +127,7 @@ public sealed class GraphQLHttpRequest
                 HttpResources.GraphQLHttpRequest_QueryIdAndExtensionsNullOrEmpty,
                 nameof(body));
         }
+#endif
 
         Body = body;
         Uri = requestUri;
@@ -113,7 +147,7 @@ public sealed class GraphQLHttpRequest
     /// </exception>
     public GraphQLHttpRequest(OperationBatchRequest body, Uri? requestUri = null)
     {
-        if (body.Requests is { Count: 0 })
+        if (body.Requests.IsDefaultOrEmpty)
         {
             throw new ArgumentException(
                 HttpResources.GraphQLHttpRequest_RequiresOneOrMoreRequests,
@@ -122,10 +156,16 @@ public sealed class GraphQLHttpRequest
 
         foreach (var request in body.Requests)
         {
+#if FUSION
+            if (string.IsNullOrEmpty(request.Id)
+                && string.IsNullOrEmpty(request.Query)
+                && request.Extensions.IsEmpty)
+#else
             if (string.IsNullOrEmpty(request.Id)
                 && string.IsNullOrEmpty(request.Query)
                 && request.Extensions is null
                 && request.ExtensionsNode is null)
+#endif
             {
                 throw new ArgumentException(
                     HttpResources.GraphQLHttpRequest_QueryIdAndExtensionsNullOrEmpty,
@@ -133,9 +173,22 @@ public sealed class GraphQLHttpRequest
             }
         }
 
-        Body = body.Requests.Count > 1 ? body : body.Requests[0];
+        Body = body.Requests.Length > 1 ? body : body.Requests[0];
         Uri = requestUri;
     }
+
+#if FUSION
+    /// <summary>
+    /// Initializes a new instance of <see cref="GraphQLHttpRequest"/> with a raw request body.
+    /// </summary>
+    /// <param name="body">The request body to send.</param>
+    /// <param name="requestUri">The GraphQL request URI.</param>
+    internal GraphQLHttpRequest(IRequestBody body, Uri? requestUri = null)
+    {
+        Body = body;
+        Uri = requestUri;
+    }
+#endif
 
     /// <summary>
     /// Gets the request body.
@@ -186,9 +239,26 @@ public sealed class GraphQLHttpRequest
     public bool PersistedDocumentUri { get; set; }
 
     /// <summary>
+    /// The <see cref="HttpRequestMessage.Options"/> key used to propagate the
+    /// <see cref="OperationKind"/> hint to message handlers.
+    /// </summary>
+    public static readonly HttpRequestOptionsKey<OperationType> OperationKindOptionsKey = new("GraphQL-OperationKind");
+
+    /// <summary>
+    /// Gets or sets the GraphQL operation type hint.
+    /// When set, this value is propagated to <see cref="HttpRequestMessage.Options"/>
+    /// so that message handlers can make decisions without parsing the request body.
+    /// </summary>
+    public OperationType? OperationKind { get; set; }
+
+    /// <summary>
     /// Allows to specify some custom request state, that will be passed into the request hooks.
     /// </summary>
+#if FUSION
+    public RequestCallbackState? State { get; set; }
+#else
     public object? State { get; set; }
+#endif
 
     public static implicit operator GraphQLHttpRequest(OperationRequest body) => new(body);
 

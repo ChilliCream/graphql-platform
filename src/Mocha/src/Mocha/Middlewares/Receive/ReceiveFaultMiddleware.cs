@@ -62,7 +62,7 @@ internal sealed class ReceiveFaultMiddleware(
         if (replyEndpoint is null)
         {
             // TODO critical error! (Poision Pill)
-            throw new InvalidOperationException($"No reply endpoint was found for {replyEndpoint} ");
+            throw ThrowHelper.NoReplyEndpointFound(responseAddress.ToString());
         }
 
         var messageType = context.Runtime.GetMessageType(typeof(NotAcknowledgedEvent));

@@ -2413,6 +2413,7 @@ public class ObjectTypeTests : TypeTestBase
 
         public static Task<string> FooAsync() => Task.FromResult("Foo");
 
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
         public static Task<bool> BarAsync(IResolverContext context)
             => Task.FromResult(context is not null);
     }

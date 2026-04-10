@@ -26,26 +26,23 @@ public sealed class SourceSchemaMergerGlobalObjectIdentificationTests : SourceSc
             ],
             """
             schema {
-                query: Query
+              query: Query
             }
 
-            type Query
-                @fusion__type(schema: A) {
-                node(id: ID!): Node
+            type Query @fusion__type(schema: A) {
+              node(id: ID!): Node
             }
 
             type Product implements Node
-                @fusion__type(schema: A)
-                @fusion__implements(schema: A, interface: "Node") {
-                id: ID!
-                    @fusion__field(schema: A)
+              @fusion__type(schema: A)
+              @fusion__implements(schema: A, interface: "Node") {
+              id: ID! @fusion__field(schema: A)
             }
 
             interface Node
-                @fusion__type(schema: A)
-                @fusion__lookup(schema: A, key: "id", field: "node(id: ID!): Node", map: ["id"], path: null, internal: false) {
-                id: ID!
-                    @fusion__field(schema: A)
+              @fusion__type(schema: A)
+              @fusion__lookup(schema: A, key: "id", field: "node(id: ID!): Node", map: ["id"], path: null, internal: false) {
+              id: ID! @fusion__field(schema: A)
             }
             """,
             options => options.EnableGlobalObjectIdentification = true);
@@ -70,19 +67,15 @@ public sealed class SourceSchemaMergerGlobalObjectIdentificationTests : SourceSc
             ],
             """
             schema {
-                query: Query
+              query: Query
             }
 
-            type Query
-                @fusion__type(schema: A) {
-                node: SomethingElse
-                    @fusion__field(schema: A)
+            type Query @fusion__type(schema: A) {
+              node: SomethingElse @fusion__field(schema: A)
             }
 
-            type SomethingElse
-                @fusion__type(schema: A) {
-                id: ID!
-                    @fusion__field(schema: A)
+            type SomethingElse @fusion__type(schema: A) {
+              id: ID! @fusion__field(schema: A)
             }
             """,
             options => options.EnableGlobalObjectIdentification = true);
@@ -112,25 +105,21 @@ public sealed class SourceSchemaMergerGlobalObjectIdentificationTests : SourceSc
             ],
             """
             schema {
-                query: Query
+              query: Query
             }
 
-            type Query
-                @fusion__type(schema: A) {
+            type Query @fusion__type(schema: A) {
 
             }
 
             type Product implements Node
-                @fusion__type(schema: A)
-                @fusion__implements(schema: A, interface: "Node") {
-                id: ID!
-                    @fusion__field(schema: A)
+              @fusion__type(schema: A)
+              @fusion__implements(schema: A, interface: "Node") {
+              id: ID! @fusion__field(schema: A)
             }
 
-            interface Node
-                @fusion__type(schema: A) {
-                id: ID!
-                    @fusion__field(schema: A)
+            interface Node @fusion__type(schema: A) {
+              id: ID! @fusion__field(schema: A)
             }
             """,
             options => options.EnableGlobalObjectIdentification = false);

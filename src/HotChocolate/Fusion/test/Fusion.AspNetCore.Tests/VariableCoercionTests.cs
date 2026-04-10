@@ -42,6 +42,117 @@ public class VariableCoercionTests : FusionTestBase
     }
 
     [Fact]
+    public async Task Float_Input_Accepts_Whole_Number()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema(
+            "A",
+            r => r.AddQueryType<SourceSchema2.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", serverA)
+        ]);
+
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        // act
+        var request = new OperationRequest(
+            """
+            query testQuery($input: Float!) {
+              field(input: $input)
+            }
+            """,
+            variables: new Dictionary<string, object?>
+            {
+                ["input"] = 500
+            });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        using var response = await result.ReadAsResultAsync();
+
+        // assert
+        Assert.Equal(500, response.Data.GetProperty("field").GetDouble());
+    }
+
+    [Fact]
+    public async Task Float_Input_Accepts_Zero_Decimal()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema(
+            "A",
+            r => r.AddQueryType<SourceSchema2.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", serverA)
+        ]);
+
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        // act
+        var request = new OperationRequest(
+            """
+            query testQuery($input: Float!) {
+              field(input: $input)
+            }
+            """,
+            variables: new Dictionary<string, object?>
+            {
+                ["input"] = 500.0
+            });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        using var response = await result.ReadAsResultAsync();
+
+        // assert
+        Assert.Equal(500, response.Data.GetProperty("field").GetDouble());
+    }
+
+    [Fact]
+    public async Task Float_Input_Accepts_Fractional_Decimal()
+    {
+        // arrange
+        using var serverA = CreateSourceSchema(
+            "A",
+            r => r.AddQueryType<SourceSchema2.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", serverA)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query testQuery($input: Float!) {
+              field(input: $input)
+            }
+            """,
+            variables: new Dictionary<string, object?>
+            {
+                ["input"] = 500.99
+            });
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        using var response = await result.ReadAsResultAsync();
+
+        // assert
+        Assert.Equal(500.99, response.Data.GetProperty("field").GetDouble(), precision: 2);
+    }
+
+    [Fact]
     public async Task InputObject_Invalid_Field()
     {
         // arrange
@@ -460,6 +571,14 @@ public class VariableCoercionTests : FusionTestBase
         public class Query
         {
             public string GetField(string input) => input;
+        }
+    }
+
+    public static class SourceSchema2
+    {
+        public class Query
+        {
+            public double GetField(double input) => input;
         }
     }
 }

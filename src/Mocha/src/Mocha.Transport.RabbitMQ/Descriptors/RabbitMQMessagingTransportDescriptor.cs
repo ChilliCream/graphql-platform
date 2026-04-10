@@ -57,57 +57,23 @@ public sealed class RabbitMQMessagingTransportDescriptor
     }
 
     /// <inheritdoc />
-    public new IRabbitMQMessagingTransportDescriptor UseDispatch(DispatchMiddlewareConfiguration configuration)
+    public new IRabbitMQMessagingTransportDescriptor UseDispatch(
+        DispatchMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null)
     {
-        base.UseDispatch(configuration);
+        base.UseDispatch(configuration, before, after);
 
         return this;
     }
 
     /// <inheritdoc />
-    public new IRabbitMQMessagingTransportDescriptor AppendDispatch(
-        string after,
-        DispatchMiddlewareConfiguration configuration)
+    public new IRabbitMQMessagingTransportDescriptor UseReceive(
+        ReceiveMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null)
     {
-        base.AppendDispatch(after, configuration);
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public new IRabbitMQMessagingTransportDescriptor PrependDispatch(
-        string before,
-        DispatchMiddlewareConfiguration configuration)
-    {
-        base.PrependDispatch(before, configuration);
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public new IRabbitMQMessagingTransportDescriptor UseReceive(ReceiveMiddlewareConfiguration configuration)
-    {
-        base.UseReceive(configuration);
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public new IRabbitMQMessagingTransportDescriptor AppendReceive(
-        string after,
-        ReceiveMiddlewareConfiguration configuration)
-    {
-        base.AppendReceive(after, configuration);
-
-        return this;
-    }
-
-    /// <inheritdoc />
-    public new IRabbitMQMessagingTransportDescriptor PrependReceive(
-        string before,
-        ReceiveMiddlewareConfiguration configuration)
-    {
-        base.PrependReceive(before, configuration);
+        base.UseReceive(configuration, before, after);
 
         return this;
     }
@@ -134,6 +100,26 @@ public sealed class RabbitMQMessagingTransportDescriptor
         base.BindHandlersExplicitly();
 
         return this;
+    }
+
+    /// <inheritdoc />
+    public IMessagingTransportHandlerDescriptor<IRabbitMQReceiveEndpointDescriptor> Handler<THandler>()
+        where THandler : class, IHandler
+    {
+        var name = Context.Naming.GetReceiveEndpointName(typeof(THandler), ReceiveEndpointKind.Default);
+        var endpoint = Endpoint(name);
+        endpoint.Handler(typeof(THandler));
+        return new MessagingTransportHandlerDescriptor<IRabbitMQReceiveEndpointDescriptor>(endpoint);
+    }
+
+    /// <inheritdoc />
+    public IMessagingTransportConsumerDescriptor<IRabbitMQReceiveEndpointDescriptor> Consumer<TConsumer>()
+        where TConsumer : class, IConsumer
+    {
+        var name = Context.Naming.GetReceiveEndpointName(typeof(TConsumer), ReceiveEndpointKind.Default);
+        var endpoint = Endpoint(name);
+        endpoint.Consumer(typeof(TConsumer));
+        return new MessagingTransportConsumerDescriptor<IRabbitMQReceiveEndpointDescriptor>(endpoint);
     }
 
     /// <inheritdoc />

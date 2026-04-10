@@ -9,6 +9,12 @@ public interface IRabbitMQReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.Handler{THandler}" />
     new IRabbitMQReceiveEndpointDescriptor Handler<THandler>() where THandler : class, IHandler;
 
+    /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.Handler(Type)" />
+    new IRabbitMQReceiveEndpointDescriptor Handler(Type handlerType);
+
+    /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.Consumer(Type)" />
+    new IRabbitMQReceiveEndpointDescriptor Consumer(Type consumerType);
+
     /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.Consumer{TConsumer}" />
     new IRabbitMQReceiveEndpointDescriptor Consumer<TConsumer>() where TConsumer : class, IConsumer;
 
@@ -41,11 +47,8 @@ public interface IRabbitMQReceiveEndpointDescriptor : IReceiveEndpointDescriptor
     IRabbitMQReceiveEndpointDescriptor MaxPrefetch(ushort maxPrefetch);
 
     /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.UseReceive" />
-    new IRabbitMQReceiveEndpointDescriptor UseReceive(ReceiveMiddlewareConfiguration configuration);
-
-    /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.AppendReceive" />
-    new IRabbitMQReceiveEndpointDescriptor AppendReceive(string after, ReceiveMiddlewareConfiguration configuration);
-
-    /// <inheritdoc cref="IReceiveEndpointDescriptor{TConfiguration}.PrependReceive" />
-    new IRabbitMQReceiveEndpointDescriptor PrependReceive(string before, ReceiveMiddlewareConfiguration configuration);
+    new IRabbitMQReceiveEndpointDescriptor UseReceive(
+        ReceiveMiddlewareConfiguration configuration,
+        string? before = null,
+        string? after = null);
 }
