@@ -194,6 +194,8 @@ public ref partial struct Utf8GraphQLParser
     /// </summary>
     private SelectionSetNode ParseSelectionSet()
     {
+        IncreaseDepth();
+
         var start = Start();
 
         if (_reader.Kind != TokenKind.LeftBrace)
@@ -222,6 +224,7 @@ public ref partial struct Utf8GraphQLParser
 
         var location = CreateLocation(in start);
 
+        DecreaseDepth();
         return new SelectionSetNode(
             location,
             selections);

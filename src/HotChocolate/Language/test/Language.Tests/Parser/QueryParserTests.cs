@@ -6,6 +6,149 @@ namespace HotChocolate.Language;
 public class QueryParserTests
 {
     [Fact]
+    public void Default_MaxAllowedRecursionDepth_Is_200()
+    {
+        Assert.Equal(200, ParserOptions.Default.MaxAllowedRecursionDepth);
+    }
+
+    [Fact]
+    public void Reject_Queries_Exceeding_Max_Recursion_Depth_Selection_Sets()
+    {
+        // Vector B: nested selection sets { a { a { ... } } }
+        const int depth = 201;
+        var query = string.Concat(Enumerable.Repeat("{ a", depth))
+            + string.Concat(Enumerable.Repeat(" }", depth));
+
+        Assert
+            .Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(query))
+            .Message
+            .MatchInlineSnapshot(
+                "Document exceeds the maximum allowed recursion depth of 200. Parsing aborted.");
+    }
+
+    [Fact]
+    public void Reject_Queries_Exceeding_Max_Recursion_Depth_Object_Values()
+    {
+        // Vector A: nested object values { a(x: {a: {a: ... 1 }}) }
+        const int depth = 201;
+        var query = "{ a(x: "
+            + string.Concat(Enumerable.Repeat("{a: ", depth))
+            + "1"
+            + string.Concat(Enumerable.Repeat("}", depth))
+            + ") }";
+
+        Assert
+            .Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(query))
+            .Message
+            .MatchInlineSnapshot(
+                "Document exceeds the maximum allowed recursion depth of 200. Parsing aborted.");
+    }
+
+    [Fact]
+    public void Reject_Queries_Exceeding_Max_Recursion_Depth_List_Values()
+    {
+        // Vector C: nested list values [[[...1...]]]
+        const int depth = 201;
+        var query = "{ a(x: "
+            + string.Concat(Enumerable.Repeat("[", depth))
+            + "1"
+            + string.Concat(Enumerable.Repeat("]", depth))
+            + ") }";
+
+        Assert
+            .Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(query))
+            .Message
+            .MatchInlineSnapshot(
+                "Document exceeds the maximum allowed recursion depth of 200. Parsing aborted.");
+    }
+
+    [Fact]
+    public void Reject_Queries_Exceeding_Max_Recursion_Depth_List_Types()
+    {
+        // Vector D: nested list types [[[...Int...]]]
+        const int depth = 201;
+        var query = $"query($v: {string.Concat(Enumerable.Repeat("[", depth))}Int{string.Concat(Enumerable.Repeat("]", depth))}) {{ a }}";
+
+        Assert
+            .Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(query))
+            .Message
+            .MatchInlineSnapshot(
+                "Document exceeds the maximum allowed recursion depth of 200. Parsing aborted.");
+    }
+
+    [Fact]
+    public void Allow_Queries_Within_Max_Recursion_Depth()
+    {
+        // 50 levels of nesting is well within the default 200 limit
+        const int depth = 50;
+        var query = string.Concat(Enumerable.Repeat("{ a", depth))
+            + string.Concat(Enumerable.Repeat(" }", depth));
+
+        var document = Utf8GraphQLParser.Parse(query);
+
+        Assert.NotNull(document);
+        Assert.Single(document.Definitions);
+    }
+
+    [Fact]
+    public void Reject_Queries_Exceeding_Custom_Recursion_Depth()
+    {
+        var options = new ParserOptions(maxAllowedRecursionDepth: 10);
+        const int depth = 11;
+        var query = string.Concat(Enumerable.Repeat("{ a", depth))
+            + string.Concat(Enumerable.Repeat(" }", depth));
+
+        Assert
+            .Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(query, options))
+            .Message
+            .MatchInlineSnapshot(
+                "Document exceeds the maximum allowed recursion depth of 10. Parsing aborted.");
+    }
+
+    [Fact]
+    public void Allow_Queries_Within_Custom_Recursion_Depth()
+    {
+        var options = new ParserOptions(maxAllowedRecursionDepth: 10);
+        const int depth = 10;
+        var query = string.Concat(Enumerable.Repeat("{ a", depth))
+            + string.Concat(Enumerable.Repeat(" }", depth));
+
+        var document = Utf8GraphQLParser.Parse(query, options);
+
+        Assert.NotNull(document);
+        Assert.Single(document.Definitions);
+    }
+
+    [Theory]
+    [InlineData(20_000)]
+    [InlineData(50_000)]
+    public void Reject_Attack_Payload_Nested_Selection_Sets(int depth)
+    {
+        // Payloads at these depths would cause a StackOverflowException
+        // (process-fatal, uncatchable) without the recursion depth limit.
+        // With the limit, they throw a catchable SyntaxException at depth 201.
+        var query = string.Concat(Enumerable.Repeat("{ a", depth))
+            + string.Concat(Enumerable.Repeat(" }", depth));
+
+        Assert.Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(query));
+    }
+
+    [Theory]
+    [InlineData(20_000)]
+    [InlineData(50_000)]
+    public void Reject_Attack_Payload_Nested_List_Values(int depth)
+    {
+        // Vector C from the vulnerability report — smallest crashing payload (~40 KB).
+        var query = "{ a(x: "
+            + string.Concat(Enumerable.Repeat("[", depth))
+            + "1"
+            + string.Concat(Enumerable.Repeat("]", depth))
+            + ") }";
+
+        Assert.Throws<SyntaxException>(() => Utf8GraphQLParser.Parse(query));
+    }
+
+    [Fact]
     public void Reject_Queries_With_More_Than_2048_Fields()
     {
         Assert
