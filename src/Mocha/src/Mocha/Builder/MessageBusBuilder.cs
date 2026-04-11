@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization.Metadata;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -66,6 +67,8 @@ public partial class MessageBusBuilder : IMessageBusBuilder
     }
 
     /// <inheritdoc />
+    [RequiresDynamicCode("Use source-generated AddHandlerConfiguration for AOT compatibility.")]
+    [RequiresUnreferencedCode("Use source-generated AddHandlerConfiguration for AOT compatibility.")]
     public IMessageBusBuilder AddHandler<THandler>(Action<IConsumerDescriptor>? configure = null)
         where THandler : class, IHandler
     {
@@ -83,9 +86,7 @@ public partial class MessageBusBuilder : IMessageBusBuilder
                         inner(d);
                         configure(d);
                     }
-#pragma warning disable format
-                    : configure;
-#pragma warning restore format
+                : configure;
             }
 
             return this;
@@ -143,12 +144,13 @@ public partial class MessageBusBuilder : IMessageBusBuilder
             throw ThrowHelper.InvalidHandlerType();
         }
 
-        _consumerRegistrations.Add(new ConsumerRegistration
-        {
-            HandlerType = handlerType,
-            Configure = configure,
-            Factory = factory
-        });
+        _consumerRegistrations.Add(
+            new ConsumerRegistration
+            {
+                HandlerType = handlerType,
+                Configure = configure,
+                Factory = factory
+            });
 
         return this;
     }
@@ -166,12 +168,13 @@ public partial class MessageBusBuilder : IMessageBusBuilder
             return this;
         }
 
-        _consumerRegistrations.Add(new ConsumerRegistration
-        {
-            HandlerType = handlerType,
-            Configure = null,
-            Factory = configuration.Factory
-        });
+        _consumerRegistrations.Add(
+            new ConsumerRegistration
+            {
+                HandlerType = handlerType,
+                Configure = null,
+                Factory = configuration.Factory
+            });
 
         return this;
     }
@@ -182,6 +185,8 @@ public partial class MessageBusBuilder : IMessageBusBuilder
     /// <typeparam name="THandler">The batch handler type.</typeparam>
     /// <param name="configure">Optional action to configure batch options.</param>
     /// <returns>The builder instance for method chaining.</returns>
+    [RequiresDynamicCode("Use source-generated AddHandlerConfiguration for AOT compatibility.")]
+    [RequiresUnreferencedCode("Use source-generated AddHandlerConfiguration for AOT compatibility.")]
     public IMessageBusBuilder AddBatchHandler<THandler>(Action<BatchOptions>? configure = null)
         where THandler : class, IBatchEventHandler
     {
@@ -198,12 +203,66 @@ public partial class MessageBusBuilder : IMessageBusBuilder
     {
         var sagaType = typeof(TSaga);
 
-        if (_sagaRegistrations.Exists(r => r.SagaType == sagaType))
-        {
-            return this;
-        }
+        _sagaRegistrations.RemoveAll(r => r.SagaType == sagaType);
 
         _sagaRegistrations.Add(new SagaRegistration { SagaType = sagaType, Factory = static () => new TSaga() });
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public IMessageBusBuilder AddMessageConfiguration(MessagingMessageConfiguration configuration)
+    {
+        var messageType = configuration.MessageType;
+        var serializer = configuration.Serializer;
+        var enclosedTypes = configuration.EnclosedTypes;
+
+        var configure = (IMessageTypeDescriptor descriptor) =>
+        {
+            descriptor.AddSerializer(serializer);
+
+            if (enclosedTypes is not null)
+            {
+                descriptor.Extend().Configuration.EnclosedTypes = enclosedTypes;
+            }
+        };
+
+        var existingDelegate = _messageDescriptors.GetValueOrDefault(messageType);
+
+        if (existingDelegate is not null)
+        {
+            var innerDelegate = existingDelegate;
+            _messageDescriptors[messageType] = descriptor =>
+            {
+                innerDelegate(descriptor);
+                configure(descriptor);
+            };
+        }
+        else
+        {
+            _messageDescriptors[messageType] = configure;
+        }
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public IMessageBusBuilder AddSagaConfiguration<TSaga>(MessagingSagaConfiguration configuration)
+        where TSaga : Saga, new()
+    {
+        var sagaType = typeof(TSaga);
+
+        _sagaRegistrations.RemoveAll(r => r.SagaType == sagaType);
+
+        _sagaRegistrations.Add(
+            new SagaRegistration
+            {
+                SagaType = sagaType,
+                Factory = static () => new TSaga(),
+                StateSerializer = configuration.StateSerializer
+            });
 
         return this;
     }
@@ -390,6 +449,12 @@ public partial class MessageBusBuilder : IMessageBusBuilder
         foreach (var reg in _sagaRegistrations)
         {
             var saga = reg.Factory();
+
+            if (reg.StateSerializer is not null)
+            {
+                saga.StateSerializer = reg.StateSerializer;
+            }
+
             sagas.Add(saga);
             consumerList.Add(saga.Consumer);
         }
@@ -454,6 +519,7 @@ public partial class MessageBusBuilder : IMessageBusBuilder
             configureDelegate(descriptor);
 
             var configuration = descriptor.CreateConfiguration();
+
             var messageType = new MessageType();
             messageType.Initialize(setupContext, configuration);
             messageRegistry.AddMessageType(messageType);

@@ -149,11 +149,7 @@ public abstract class MessagingVisitor<TContext>
 
     protected virtual VisitorAction VisitSaga(SagaConsumer consumer, TContext context)
     {
-        var saga = GetSagaFromConsumer(consumer);
-        if (saga is null)
-        {
-            return VisitorAction.Continue;
-        }
+        var saga = consumer.Saga;
 
         var action = Enter(saga, context);
         if (action == VisitorAction.Break)
@@ -168,22 +164,6 @@ public abstract class MessagingVisitor<TContext>
 
         Leave(saga, context);
         return VisitorAction.Continue;
-    }
-
-    private static Saga? GetSagaFromConsumer(SagaConsumer consumer)
-    {
-        var fields = typeof(SagaConsumer).GetFields(
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-        foreach (var field in fields)
-        {
-            if (typeof(Saga).IsAssignableFrom(field.FieldType))
-            {
-                return field.GetValue(consumer) as Saga;
-            }
-        }
-
-        return null;
     }
 
     protected virtual VisitorAction Enter(MessagingRuntime runtime, TContext context) => VisitorAction.Continue;

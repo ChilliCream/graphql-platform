@@ -13,6 +13,13 @@ namespace Microsoft.Extensions.DependencyInjection
     [global::System.CodeDom.Compiler.GeneratedCode("Mocha.Analyzers", "1.0.0")]
     public static class TestsMessageBusBuilderExtensions
     {
+        [global::Mocha.MessagingModuleInfo(
+            HandlerTypes = new global::System.Type[]
+            {
+                typeof(global::TestApp.GetOrderHandlerA),
+                typeof(global::TestApp.GetOrderHandlerB),
+            }
+        )]
         public static global::Mocha.IMessageBusHostBuilder AddTests(
             this global::Mocha.IMessageBusHostBuilder builder)
         {

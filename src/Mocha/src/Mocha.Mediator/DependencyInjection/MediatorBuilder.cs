@@ -1,6 +1,7 @@
 using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -15,22 +16,7 @@ namespace Mocha.Mediator;
 /// </summary>
 public sealed class MediatorBuilder : IMediatorBuilder
 {
-    private static readonly MethodInfo s_buildCommandPipeline =
-        typeof(PipelineBuilder).GetMethod(nameof(PipelineBuilder.BuildCommandPipeline))!;
-
-    private static readonly MethodInfo s_buildCommandResponsePipeline =
-        typeof(PipelineBuilder).GetMethod(nameof(PipelineBuilder.BuildCommandResponsePipeline))!;
-
-    private static readonly MethodInfo s_buildQueryPipeline =
-        typeof(PipelineBuilder).GetMethod(nameof(PipelineBuilder.BuildQueryPipeline))!;
-
-    private static readonly MethodInfo s_buildNotificationPipeline =
-        typeof(PipelineBuilder).GetMethod(nameof(PipelineBuilder.BuildNotificationPipeline))!;
-
-    private readonly List<MediatorMiddlewareConfiguration> _middlewares =
-    [
-        MediatorDiagnosticMiddleware.Create()
-    ];
+    private readonly List<MediatorMiddlewareConfiguration> _middlewares = [MediatorDiagnosticMiddleware.Create()];
 
     private readonly List<Action<List<MediatorMiddlewareConfiguration>>> _pipelineModifiers = [];
     private readonly Dictionary<Type, Action<MediatorHandlerDescriptor>> _handlerDescriptors = [];
@@ -106,8 +92,7 @@ public sealed class MediatorBuilder : IMediatorBuilder
     }
 
     /// <inheritdoc />
-    public void AddHandler<THandler>(Action<IMediatorHandlerDescriptor>? configure = null)
-        where THandler : class
+    public void AddHandler<THandler>(Action<IMediatorHandlerDescriptor>? configure = null) where THandler : class
     {
         var handlerType = typeof(THandler);
         var existing = _handlerDescriptors.GetValueOrDefault(handlerType);
@@ -172,6 +157,14 @@ public sealed class MediatorBuilder : IMediatorBuilder
     /// <param name="applicationServices">
     /// The application-level service provider used to resolve shared services.
     /// </param>
+    [UnconditionalSuppressMessage(
+        "Trimming",
+        "IL2026:RequiresUnreferencedCode",
+        Justification = "Reflection fallback only used for manual (non-generated) handler registration.")]
+    [UnconditionalSuppressMessage(
+        "AOT",
+        "IL3050:RequiresDynamicCode",
+        Justification = "Reflection fallback only used for manual (non-generated) handler registration.")]
     public MediatorRuntime Build(IServiceProvider applicationServices)
     {
         // Create the mediator's own internal service collection.
@@ -202,13 +195,13 @@ public sealed class MediatorBuilder : IMediatorBuilder
         // Compile pipelines using the internal provider for middleware factory context.
         var factoryCtx = new MediatorMiddlewareFactoryContext { Services = internalProvider, Features = features };
 
-        var middlewareConfigs = _middlewares.Count > 0
-            ? new IReadOnlyList<MediatorMiddlewareConfiguration>[] { _middlewares }
-            : [];
+        var middlewareConfigs =
+            _middlewares.Count > 0 ? new IReadOnlyList<MediatorMiddlewareConfiguration>[] { _middlewares } : [];
 
-        var modifiers = _pipelineModifiers.Count > 0
-            ? new IReadOnlyList<Action<List<MediatorMiddlewareConfiguration>>>[] { _pipelineModifiers }
-            : [];
+        var modifiers =
+            _pipelineModifiers.Count > 0
+                ? new IReadOnlyList<Action<List<MediatorMiddlewareConfiguration>>>[] { _pipelineModifiers }
+                : [];
 
         var pipelines = new Dictionary<Type, MediatorDelegate>();
         var notificationTerminals = new Dictionary<Type, List<MediatorDelegate>>();
@@ -236,8 +229,11 @@ public sealed class MediatorBuilder : IMediatorBuilder
                 factoryCtx.MessageType = config.MessageType!;
                 factoryCtx.ResponseType = config.ResponseType;
 
-                pipelines[config.MessageType!] =
-                    MediatorMiddlewareCompiler.Compile(factoryCtx, terminal, middlewareConfigs, modifiers);
+                pipelines[config.MessageType!] = MediatorMiddlewareCompiler.Compile(
+                    factoryCtx,
+                    terminal,
+                    middlewareConfigs,
+                    modifiers);
             }
         }
 
@@ -253,8 +249,8 @@ public sealed class MediatorBuilder : IMediatorBuilder
             var compiled = ImmutableArray.CreateBuilder<MediatorDelegate>(terminals.Count);
             for (var i = 0; i < terminals.Count; i++)
             {
-                compiled.Add(MediatorMiddlewareCompiler.Compile(
-                    factoryCtx, terminals[i], middlewareConfigs, modifiers));
+                compiled.Add(
+                    MediatorMiddlewareCompiler.Compile(factoryCtx, terminals[i], middlewareConfigs, modifiers));
             }
 
             notificationPipelines[notificationType] = compiled.ToImmutable();
@@ -270,27 +266,37 @@ public sealed class MediatorBuilder : IMediatorBuilder
             _options.NotificationPublishMode);
     }
 
+    [RequiresDynamicCode("Use source-generated AddHandlerConfiguration for AOT compatibility.")]
+    [RequiresUnreferencedCode("Use source-generated AddHandlerConfiguration for AOT compatibility.")]
     private static MediatorDelegate BuildPipelineViaReflection(MediatorHandlerConfiguration config)
     {
+        var buildCommandPipeline = typeof(PipelineBuilder).GetMethod(nameof(PipelineBuilder.BuildCommandPipeline))!;
+
+        var buildCommandResponsePipeline = typeof(PipelineBuilder).GetMethod(
+            nameof(PipelineBuilder.BuildCommandResponsePipeline))!;
+
+        var buildQueryPipeline = typeof(PipelineBuilder).GetMethod(nameof(PipelineBuilder.BuildQueryPipeline))!;
+
+        var buildNotificationPipeline = typeof(PipelineBuilder).GetMethod(
+            nameof(PipelineBuilder.BuildNotificationPipeline))!;
+
         return config.Kind switch
         {
-            MediatorHandlerKind.Command =>
-                (MediatorDelegate)s_buildCommandPipeline
-                    .MakeGenericMethod(config.HandlerType!, config.MessageType!)
-                    .Invoke(null, null)!,
+            MediatorHandlerKind.Command => (MediatorDelegate)
+                buildCommandPipeline.MakeGenericMethod(config.HandlerType!, config.MessageType!).Invoke(null, null)!,
 
-            MediatorHandlerKind.CommandResponse =>
-                (MediatorDelegate)s_buildCommandResponsePipeline
+            MediatorHandlerKind.CommandResponse => (MediatorDelegate)
+                buildCommandResponsePipeline
                     .MakeGenericMethod(config.HandlerType!, config.MessageType!, config.ResponseType!)
                     .Invoke(null, null)!,
 
-            MediatorHandlerKind.Query =>
-                (MediatorDelegate)s_buildQueryPipeline
+            MediatorHandlerKind.Query => (MediatorDelegate)
+                buildQueryPipeline
                     .MakeGenericMethod(config.HandlerType!, config.MessageType!, config.ResponseType!)
                     .Invoke(null, null)!,
 
-            MediatorHandlerKind.Notification =>
-                (MediatorDelegate)s_buildNotificationPipeline
+            MediatorHandlerKind.Notification => (MediatorDelegate)
+                buildNotificationPipeline
                     .MakeGenericMethod(config.HandlerType!, config.MessageType!)
                     .Invoke(null, null)!,
 

@@ -11,6 +11,12 @@ namespace Microsoft.Extensions.DependencyInjection
     [global::System.CodeDom.Compiler.GeneratedCode("Mocha.Analyzers", "1.0.0")]
     public static class ApiMessageBusBuilderExtensions
     {
+        [global::Mocha.MessagingModuleInfo(
+            HandlerTypes = new global::System.Type[]
+            {
+                typeof(global::TestApp.OrderPlacedHandler),
+            }
+        )]
         public static global::Mocha.IMessageBusHostBuilder AddApi(
             this global::Mocha.IMessageBusHostBuilder builder)
         {

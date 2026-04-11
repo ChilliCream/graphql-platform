@@ -11,13 +11,24 @@ namespace Microsoft.Extensions.DependencyInjection
     [global::System.CodeDom.Compiler.GeneratedCode("Mocha.Analyzers", "1.0.0")]
     public static class TestsMessageBusBuilderExtensions
     {
+        [global::Mocha.MessagingModuleInfo(
+            SagaTypes = new global::System.Type[]
+            {
+                typeof(global::TestApp.OrderFulfillmentSaga),
+            }
+        )]
         public static global::Mocha.IMessageBusHostBuilder AddTests(
             this global::Mocha.IMessageBusHostBuilder builder)
         {
 
-            // --- Sagas ---
-            global::Mocha.MessageBusHostBuilderExtensions.AddSaga<
-                global::TestApp.OrderFulfillmentSaga>(builder);
+            // --- Saga Configuration ---
+            global::Mocha.MessageBusHostBuilderExtensions.AddSagaConfiguration<
+                global::TestApp.OrderFulfillmentSaga>(
+                builder,
+                new global::Mocha.MessagingSagaConfiguration
+                {
+                    SagaType = typeof(global::TestApp.OrderFulfillmentSaga),
+                });
 
             return builder;
         }

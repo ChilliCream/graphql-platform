@@ -1,4 +1,6 @@
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.DependencyInjection;
 using Mocha.Features;
 
 namespace Mocha;
@@ -13,10 +15,14 @@ public sealed class MessageType
     /// </summary>
     public bool IsCompleted { get; private set; }
 
+    private Type[]? _enclosedTypes;
+
     private IMessageSerializerRegistry _serializerRegistry = null!;
 
-    private ImmutableDictionary<MessageContentType, IMessageSerializer> _serializer
-        = ImmutableDictionary<MessageContentType, IMessageSerializer>.Empty;
+    private ImmutableDictionary<MessageContentType, IMessageSerializer> _serializer = ImmutableDictionary<
+        MessageContentType,
+        IMessageSerializer
+    >.Empty;
 
     /// <summary>
     /// Gets the URN-based identity string that uniquely identifies this message type on the wire.
@@ -84,6 +90,8 @@ public sealed class MessageType
 
         _serializer = configuration.MessageSerializer.ToImmutableDictionary(k => k.Key, v => v.Value);
 
+        _enclosedTypes = configuration.EnclosedTypes;
+
         foreach (var routeConfiguration in configuration.Routes)
         {
             var outboundRoute = new OutboundRoute();
@@ -118,46 +126,80 @@ public sealed class MessageType
     /// Completes initialization by resolving the full type hierarchy and registering enclosed message types.
     /// </summary>
     /// <param name="context">The messaging configuration context.</param>
+    [UnconditionalSuppressMessage(
+        "Trimming",
+        "IL2075",
+        Justification = "Reflection path only executes when _enclosedTypes is null (non-AOT). AOT users provide enclosed types via source generator.")]
+    [UnconditionalSuppressMessage(
+        "Trimming",
+        "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code",
+        Justification = "Reflection path only executes when _enclosedTypes is null (non-AOT). AOT users provide enclosed types via source generator.")]
     public void Complete(IMessagingConfigurationContext context)
     {
-        var allTypes = GetAllTypesInHierarchy(RuntimeType, context);
-
-        // Sort by specificity (most specific first)
-        var sortedTypes = allTypes
-            .OrderByDescending(t => allTypes.Count(other => t != other && t.IsAssignableTo(other)))
-            .ToList();
-
         var enclosedMessageTypes = ImmutableArray.CreateBuilder<MessageType>();
         var enclosedMessageIdentities = ImmutableArray.CreateBuilder<string>();
 
-        foreach (var type in sortedTypes)
+        if (_enclosedTypes is not null)
         {
-            if (IsFrameworkBaseType(type))
-            {
-                // Don't register framework base types as standalone message types.
-                // Only include their identity string for wire-level message matching.
-                enclosedMessageIdentities.Add(context.Naming.GetMessageIdentity(type));
-            }
-            else
+            // AOT path: pre-sorted registered types only, no framework types
+            foreach (var type in _enclosedTypes)
             {
                 var mt = context.Messages.GetOrAdd(context, type);
                 enclosedMessageTypes.Add(mt);
                 enclosedMessageIdentities.Add(mt.Identity);
             }
+
+            // Response types already registered by generator — skip discovery
+        }
+        else
+        {
+            var options = context.Services.GetRequiredService<IReadOnlyMessagingOptions>();
+
+            if (options.IsAotCompatible)
+            {
+                throw new InvalidOperationException(
+                    $"No enclosed types provided for message type '{Identity}'. "
+                    + "Register enclosed types via the source generator. "
+                    + "Set IsAotCompatible = false to allow reflection-based type discovery.");
+            }
+
+            // Reflection path: existing code, completely unchanged
+            var allTypes = GetAllTypesInHierarchy(RuntimeType, context);
+
+            // Sort by specificity (most specific first)
+            var sortedTypes = allTypes
+                .OrderByDescending(t => allTypes.Count(other => t != other && t.IsAssignableTo(other)))
+                .ToList();
+
+            foreach (var type in sortedTypes)
+            {
+                if (IsFrameworkBaseType(type))
+                {
+                    // Don't register framework base types as standalone message types.
+                    // Only include their identity string for wire-level message matching.
+                    enclosedMessageIdentities.Add(context.Naming.GetMessageIdentity(type));
+                }
+                else
+                {
+                    var mt = context.Messages.GetOrAdd(context, type);
+                    enclosedMessageTypes.Add(mt);
+                    enclosedMessageIdentities.Add(mt.Identity);
+                }
+            }
+
+            foreach (var interfaceType in RuntimeType.GetInterfaces())
+            {
+                if (interfaceType.IsGenericType
+                    && interfaceType.GetGenericTypeDefinition() == typeof(IEventRequest<>))
+                {
+                    var responseType = interfaceType.GetGenericArguments()[0];
+                    context.Messages.GetOrAdd(context, responseType);
+                }
+            }
         }
 
         EnclosedMessageTypes = enclosedMessageTypes.ToImmutableArray();
         EnclosedMessageIdentities = enclosedMessageIdentities.ToImmutableArray();
-
-        var interfaces = RuntimeType.GetInterfaces();
-        foreach (var interfaceType in interfaces)
-        {
-            if (interfaceType.IsGenericType && interfaceType.GetGenericTypeDefinition() == typeof(IEventRequest<>))
-            {
-                var responseType = interfaceType.GetGenericArguments()[0];
-                context.Messages.GetOrAdd(context, responseType);
-            }
-        }
 
         IsCompleted = true;
     }
@@ -178,6 +220,7 @@ public sealed class MessageType
             EnclosedMessageIdentities.IsDefaultOrEmpty ? null : EnclosedMessageIdentities);
     }
 
+    [RequiresUnreferencedCode("Uses GetInterfaces and BaseType traversal which may reference trimmed types.")]
     private static List<Type> GetAllTypesInHierarchy(Type type, IMessagingConfigurationContext context)
     {
         var interfaces = type.GetInterfaces();

@@ -34,4 +34,9 @@ public class MessageTypeConfiguration : MessagingConfiguration
     /// Gets or sets a value indicating whether this message type is internal (not exposed for external routing).
     /// </summary>
     public bool IsInternal { get; set; }
+
+    /// <summary>
+    /// Pre-computed enclosed types from source generator.
+    /// </summary>
+    public Type[]? EnclosedTypes { get; set; }
 }

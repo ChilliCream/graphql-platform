@@ -237,9 +237,9 @@ public class HeadersJsonConverter : JsonConverter<IHeaders>
                 break;
 
             default:
-                // Fallback to default serialization for unknown types
-                JsonSerializer.Serialize(writer, value, value.GetType(), options);
-                break;
+                throw new InvalidOperationException(
+                    $"Header value type '{value.GetType().Name}' is not supported for serialization. "
+                    + "Headers must contain primitive types (string, int, long, double, bool, DateTime, etc.).");
         }
     }
 }
