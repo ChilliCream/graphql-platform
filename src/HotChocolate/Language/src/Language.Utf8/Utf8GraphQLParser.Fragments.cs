@@ -58,7 +58,7 @@ public ref partial struct Utf8GraphQLParser
               ParseVariableDefinitions();
             ExpectOnKeyword();
             NamedTypeNode typeCondition = ParseNamedType();
-            List<DirectiveNode> directives = ParseDirectives(false);
+            List<DirectiveNode> directives = ParseDirectives(false, isQueryLocation: true);
             SelectionSetNode selectionSet = ParseSelectionSet();
             Location? location = CreateLocation(in start);
 
@@ -77,7 +77,7 @@ public ref partial struct Utf8GraphQLParser
             NameNode name = ParseFragmentName();
             ExpectOnKeyword();
             NamedTypeNode typeCondition = ParseNamedType();
-            List<DirectiveNode> directives = ParseDirectives(false);
+            List<DirectiveNode> directives = ParseDirectives(false, isQueryLocation: true);
             SelectionSetNode selectionSet = ParseSelectionSet();
             Location? location = CreateLocation(in start);
 
@@ -104,7 +104,7 @@ public ref partial struct Utf8GraphQLParser
     private FragmentSpreadNode ParseFragmentSpread(in TokenInfo start)
     {
         NameNode name = ParseFragmentName();
-        List<DirectiveNode> directives = ParseDirectives(false);
+        List<DirectiveNode> directives = ParseDirectives(false, isQueryLocation: true);
         Location? location = CreateLocation(in start);
 
         return new FragmentSpreadNode
@@ -130,7 +130,7 @@ public ref partial struct Utf8GraphQLParser
         in TokenInfo start,
         NamedTypeNode? typeCondition)
     {
-        List<DirectiveNode> directives = ParseDirectives(false);
+        List<DirectiveNode> directives = ParseDirectives(false, isQueryLocation: true);
         SelectionSetNode selectionSet = ParseSelectionSet();
         Location? location = CreateLocation(in start);
 

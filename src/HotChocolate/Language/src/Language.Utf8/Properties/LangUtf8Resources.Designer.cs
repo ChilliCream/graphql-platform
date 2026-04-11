@@ -158,5 +158,17 @@ namespace HotChocolate.Language.Properties {
                 return ResourceManager.GetString("UnexpectedToken", resourceCulture);
             }
         }
+
+        internal static string Utf8GraphQLParser_ParseDirective_MaxAllowedDirectivesReached {
+            get {
+                return ResourceManager.GetString("Utf8GraphQLParser_ParseDirective_MaxAllowedDirectivesReached", resourceCulture);
+            }
+        }
+
+        internal static string Utf8GraphQLParser_Start_MaxAllowedRecursionDepthReached {
+            get {
+                return ResourceManager.GetString("Utf8GraphQLParser_Start_MaxAllowedRecursionDepthReached", resourceCulture);
+            }
+        }
     }
 }

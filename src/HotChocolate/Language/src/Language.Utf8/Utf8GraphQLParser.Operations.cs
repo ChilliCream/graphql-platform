@@ -25,7 +25,7 @@ public ref partial struct Utf8GraphQLParser
         OperationType operation = ParseOperationType();
         NameNode? name = _reader.Kind == TokenKind.Name ? ParseName() : null;
         List<VariableDefinitionNode> variableDefinitions = ParseVariableDefinitions();
-        List<DirectiveNode> directives = ParseDirectives(false);
+        List<DirectiveNode> directives = ParseDirectives(false, isQueryLocation: true);
         SelectionSetNode selectionSet = ParseSelectionSet();
         Location? location = CreateLocation(in start);
 
@@ -139,7 +139,7 @@ public ref partial struct Utf8GraphQLParser
             ? ParseValueLiteral(true)
             : null;
         List<DirectiveNode> directives =
-            ParseDirectives(true);
+            ParseDirectives(true, isQueryLocation: true);
 
         Location? location = CreateLocation(in start);
 
@@ -181,6 +181,7 @@ public ref partial struct Utf8GraphQLParser
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private SelectionSetNode ParseSelectionSet()
     {
+        IncreaseDepth();
         TokenInfo start = Start();
 
         if (_reader.Kind != TokenKind.LeftBrace)
@@ -208,6 +209,7 @@ public ref partial struct Utf8GraphQLParser
 
         Location? location = CreateLocation(in start);
 
+        DecreaseDepth();
         return new SelectionSetNode
         (
             location,
@@ -253,7 +255,7 @@ public ref partial struct Utf8GraphQLParser
 
         List<ArgumentNode> arguments = ParseArguments(false);
         INullabilityNode? required = ParseRequiredStatus();
-        List<DirectiveNode> directives = ParseDirectives(false);
+        List<DirectiveNode> directives = ParseDirectives(false, isQueryLocation: true);
         SelectionSetNode? selectionSet = _reader.Kind == TokenKind.LeftBrace
             ? ParseSelectionSet()
             : null;

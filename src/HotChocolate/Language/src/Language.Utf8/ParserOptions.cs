@@ -21,7 +21,36 @@ public sealed class ParserOptions
         NoLocations = noLocations;
         Experimental = new ParserOptionsExperimental(
             allowFragmentVariables);
+        MaxAllowedDirectives = 4;
+        MaxAllowedRecursionDepth = 200;
     }
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="ParserOptions"/> with security limits.
+    /// </summary>
+    public ParserOptions(
+        bool noLocations,
+        bool allowFragmentVariables,
+        int maxAllowedDirectives,
+        int maxAllowedRecursionDepth)
+    {
+        NoLocations = noLocations;
+        Experimental = new ParserOptionsExperimental(allowFragmentVariables);
+        MaxAllowedDirectives = maxAllowedDirectives;
+        MaxAllowedRecursionDepth = maxAllowedRecursionDepth;
+    }
+
+    /// <summary>
+    /// The maximum number of directives allowed per location (e.g. per field,
+    /// per operation, per fragment definition). Repeatable directives can be used
+    /// to exhaust CPU and memory resources if not limited.
+    /// </summary>
+    public int MaxAllowedDirectives { get; }
+
+    /// <summary>
+    /// Gets the maximum allowed recursion depth of a parsed document.
+    /// </summary>
+    public int MaxAllowedRecursionDepth { get; }
 
     /// <summary>
     /// By default, the parser creates <see cref="ISyntaxNode" />s
