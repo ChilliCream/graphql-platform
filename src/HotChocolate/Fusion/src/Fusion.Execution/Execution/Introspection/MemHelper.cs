@@ -1,3 +1,5 @@
+using System.Buffers;
+using System.Globalization;
 using HotChocolate.Fusion.Execution.Nodes;
 
 namespace HotChocolate.Fusion.Execution.Introspection;
@@ -22,4 +24,13 @@ internal static class MemHelper
 
     public static void WriteValue(this FieldContext context, ReadOnlySpan<byte> value)
         => context.FieldResult.SetStringValue(value);
+
+    public static void WriteFloatValue(this FieldContext context, float value)
+    {
+        Span<byte> buffer = stackalloc byte[32];
+        if (value.TryFormat(buffer, out var written, default, CultureInfo.InvariantCulture))
+        {
+            context.FieldResult.SetNumberValue(buffer[..written]);
+        }
+    }
 }

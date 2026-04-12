@@ -102,6 +102,7 @@ public class IntrospectionRuleTests
         => SchemaBuilder.New()
             .AddDocumentFromString(
                 FileResource.Open("IntrospectionSchema.graphql"))
+            .ModifyOptions(o => o.EnableSemanticIntrospection = false)
             .Use(_ => _ => default)
             .Create();
 }

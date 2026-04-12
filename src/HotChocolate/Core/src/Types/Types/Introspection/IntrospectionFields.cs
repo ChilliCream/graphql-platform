@@ -66,6 +66,180 @@ internal static class IntrospectionFields
         return CreateConfiguration(descriptor);
     }
 
+    internal static ObjectFieldConfiguration CreateSearchField(IDescriptorContext context)
+    {
+        var descriptor = ObjectFieldDescriptor.New(context, IntrospectionFieldNames.Search);
+
+        descriptor
+            .Argument("query", a => a.Type<NonNullType<StringType>>())
+            .Argument("first", a => a.Type<NonNullType<IntType>>().DefaultValue(10))
+            .Argument("after", a => a.Type<StringType>())
+            .Argument("min_score", a => a.Type<FloatType>())
+            .Type<NonNullType<ListType<NonNullType<__SearchResult>>>>()
+            .Resolve(Resolve);
+
+        var configuration = descriptor.Configuration;
+        configuration.Flags |= CoreFieldFlags.Introspection;
+
+        static async ValueTask<object?> Resolve(IResolverContext ctx)
+        {
+            var provider = ctx.Schema.Services.GetService<ISchemaSearchProvider>();
+
+            if (provider is null)
+            {
+                return Array.Empty<SearchResultInfo>();
+            }
+
+            var query = ctx.ArgumentValue<string>("query");
+            var first = ctx.ArgumentValue<int>("first");
+            var after = ctx.ArgumentOptional<string?>("after");
+            var minScore = ctx.ArgumentOptional<float?>("min_score");
+
+            var results = await provider.SearchAsync(
+                query,
+                first,
+                after.HasValue ? after.Value : null,
+                minScore.HasValue ? minScore.Value : null,
+                ctx.RequestAborted);
+
+            var searchResults = new List<SearchResultInfo>(results.Count);
+
+            foreach (var result in results)
+            {
+                var definition = ResolveCoordinate(ctx.Schema, result.Coordinate);
+
+                if (definition is null)
+                {
+                    continue;
+                }
+
+                var paths = await provider.GetPathsToRootAsync(
+                    result.Coordinate,
+                    maxPaths: 5,
+                    ctx.RequestAborted);
+
+                var pathStrings = new List<string>(paths.Count);
+
+                foreach (var path in paths)
+                {
+                    pathStrings.Add(string.Join(" > ", path.Select(c => c.ToString())));
+                }
+
+                searchResults.Add(new SearchResultInfo
+                {
+                    Coordinate = result.Coordinate,
+                    Definition = definition,
+                    PathsToRoot = pathStrings,
+                    Score = result.Score,
+                    Cursor = result.Cursor
+                });
+            }
+
+            return searchResults;
+        }
+
+        return CreateConfiguration(descriptor);
+    }
+
+    internal static ObjectFieldConfiguration CreateDefinitionsField(IDescriptorContext context)
+    {
+        var descriptor = ObjectFieldDescriptor.New(context, IntrospectionFieldNames.Definitions);
+
+        descriptor
+            .Argument("coordinates", a => a.Type<NonNullType<ListType<NonNullType<StringType>>>>())
+            .Type<NonNullType<ListType<NonNullType<__SchemaDefinition>>>>()
+            .Resolve(Resolve);
+
+        var configuration = descriptor.Configuration;
+        configuration.Flags |= CoreFieldFlags.Introspection;
+
+        static ValueTask<object?> Resolve(IResolverContext ctx)
+        {
+            var coordinates = ctx.ArgumentValue<string[]>("coordinates");
+            var definitions = new List<object>(coordinates.Length);
+
+            foreach (var coordinateString in coordinates)
+            {
+                if (!SchemaCoordinate.TryParse(coordinateString, out var coordinate))
+                {
+                    continue;
+                }
+
+                var definition = ResolveCoordinate(ctx.Schema, coordinate.Value);
+
+                if (definition is not null)
+                {
+                    definitions.Add(definition);
+                }
+            }
+
+            return new ValueTask<object?>(definitions);
+        }
+
+        return CreateConfiguration(descriptor);
+    }
+
+    private static object? ResolveCoordinate(Schema schema, SchemaCoordinate coordinate)
+    {
+        if (coordinate.OfDirective)
+        {
+            if (!schema.DirectiveTypes.TryGetDirective(coordinate.Name, out var directive))
+            {
+                return null;
+            }
+
+            if (coordinate.ArgumentName is not null)
+            {
+                return directive.Arguments.TryGetField(coordinate.ArgumentName, out var arg)
+                    ? arg
+                    : null;
+            }
+
+            return directive;
+        }
+
+        if (!schema.Types.TryGetType(coordinate.Name, out var type))
+        {
+            return null;
+        }
+
+        if (coordinate.MemberName is null)
+        {
+            return type;
+        }
+
+        switch (type)
+        {
+            case IComplexTypeDefinition complexType:
+                if (!complexType.Fields.TryGetField(coordinate.MemberName, out var field))
+                {
+                    return null;
+                }
+
+                if (coordinate.ArgumentName is not null)
+                {
+                    return field.Arguments.TryGetField(coordinate.ArgumentName, out var fieldArg)
+                        ? fieldArg
+                        : null;
+                }
+
+                return field;
+
+            case IEnumTypeDefinition enumType:
+                return enumType.Values.TryGetValue(coordinate.MemberName, out var enumValue)
+                    ? enumValue
+                    : null;
+
+            case IInputObjectTypeDefinition inputType:
+                return inputType.Fields.TryGetField(coordinate.MemberName, out var inputField)
+                    ? inputField
+                    : null;
+
+            default:
+                return null;
+        }
+    }
+
     private static ObjectFieldConfiguration CreateConfiguration(ObjectFieldDescriptor descriptor)
     {
         var configuration = descriptor.CreateConfiguration();

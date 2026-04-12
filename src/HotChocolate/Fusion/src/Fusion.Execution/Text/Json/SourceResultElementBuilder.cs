@@ -96,6 +96,26 @@ internal readonly partial struct SourceResultElementBuilder
     public void SetStringValue(string value)
         => SetStringValue(s_utf8Encoding.GetBytes(value));
 
+    public void SetNumberValue(ReadOnlySpan<byte> value)
+    {
+        AssertValidInstance();
+
+        Debug.Assert(_builder._metaDb.GetElementTokenType(_index)
+            is ElementTokenType.None or ElementTokenType.Null
+            or ElementTokenType.Number);
+
+        var writer = _builder._data;
+        var writeIndex = _builder._data.Length;
+
+        var target = writer.GetSpan(value.Length);
+        value.CopyTo(target);
+        writer.Advance(value.Length);
+
+        _builder._metaDb.SetLocation(_index, writeIndex);
+        _builder._metaDb.SetSizeOrLength(_index, value.Length);
+        _builder._metaDb.SetElementTokenType(_index, ElementTokenType.Number);
+    }
+
     public void SetBooleanValue(bool value)
     {
         AssertValidInstance();

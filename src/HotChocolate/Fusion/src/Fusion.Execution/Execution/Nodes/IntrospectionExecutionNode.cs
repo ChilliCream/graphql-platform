@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HotChocolate.Fusion.Execution.Introspection;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -100,9 +101,15 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
 
             if (!selection.IsLeaf)
             {
-                if (result.ValueKind is JsonValueKind.Object && selection.Type.IsObjectType())
+                var namedType = selection.Type.NamedType();
+
+                if (result.ValueKind is JsonValueKind.Object
+                    && (namedType.IsObjectType() || namedType.IsAbstractType()))
                 {
-                    var objectType = selection.Type.NamedType<IObjectTypeDefinition>();
+                    var objectType = ResolveObjectType(
+                        namedType,
+                        fieldContext.RuntimeResults[0],
+                        context.Schema);
                     var selectionSet = operation.GetSelectionSet(selection, objectType);
 
                     var j = 0;
@@ -121,10 +128,18 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
                 }
                 else if (result.ValueKind is JsonValueKind.Array
                     && selection.Type.IsListType()
-                    && selection.Type.NamedType().IsObjectType())
+                    && (namedType.IsObjectType() || namedType.IsAbstractType()))
                 {
-                    var objectType = selection.Type.NamedType<IObjectTypeDefinition>();
-                    var selectionSet = operation.GetSelectionSet(selection, objectType);
+                    var isAbstract = namedType.IsAbstractType();
+
+                    // For non-abstract list types, resolve the selection set once.
+                    SelectionSet? staticSelectionSet = null;
+                    if (!isAbstract)
+                    {
+                        var objectType = namedType as IObjectTypeDefinition
+                            ?? selection.Type.NamedType<IObjectTypeDefinition>();
+                        staticSelectionSet = operation.GetSelectionSet(selection, objectType);
+                    }
 
                     var i = 0;
                     foreach (var element in result.EnumerateArray())
@@ -135,6 +150,11 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
                         {
                             continue;
                         }
+
+                        var selectionSet = staticSelectionSet
+                            ?? operation.GetSelectionSet(
+                                selection,
+                                ResolveObjectType(namedType, runtimeResult, context.Schema));
 
                         var k = 0;
                         for (var j = 0; j < selectionSet.Selections.Length; j++)
@@ -153,5 +173,30 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
                 }
             }
         }
+    }
+
+    private static IObjectTypeDefinition ResolveObjectType(
+        IType namedType,
+        object? runtimeResult,
+        ISchemaDefinition schema)
+    {
+        if (namedType is IObjectTypeDefinition objectType)
+        {
+            return objectType;
+        }
+
+        // For abstract types, determine the concrete type from the runtime result.
+        var typeName = SchemaCoordinateResolver.GetTypeName(runtimeResult!);
+
+        if (typeName is not null
+            && schema.Types.TryGetType(typeName, out var resolvedType)
+            && resolvedType is IObjectTypeDefinition resolvedObjectType)
+        {
+            return resolvedObjectType;
+        }
+
+        throw new InvalidOperationException(
+            $"Cannot determine the concrete object type for abstract type '{namedType}'"
+            + $" from runtime result of type '{runtimeResult?.GetType().Name}'.");
     }
 }
