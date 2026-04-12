@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Text.Json;
 
@@ -47,6 +48,24 @@ internal readonly partial struct SourceResultElementBuilder
             or ElementTokenType.Reference);
 
         var selectionSet = parent.DeclaringSelectionSet.DeclaringOperation.GetSelectionSet(parent);
+        var objectIndex = _builder.CreateObjectValue(selectionSet.Selections, includeFlags);
+        var element = new SourceResultElementBuilder(_builder, objectIndex);
+        _builder.AssignReference(this, element);
+        return element;
+    }
+
+    public SourceResultElementBuilder CreateObjectValue(
+        Selection parent,
+        IObjectTypeDefinition typeContext,
+        ulong includeFlags)
+    {
+        AssertValidInstance();
+
+        Debug.Assert(_builder._metaDb.GetElementTokenType(_index)
+            is ElementTokenType.None or ElementTokenType.Null
+            or ElementTokenType.Reference);
+
+        var selectionSet = parent.DeclaringSelectionSet.DeclaringOperation.GetSelectionSet(parent, typeContext);
         var objectIndex = _builder.CreateObjectValue(selectionSet.Selections, includeFlags);
         var element = new SourceResultElementBuilder(_builder, objectIndex);
         _builder.AssignReference(this, element);
