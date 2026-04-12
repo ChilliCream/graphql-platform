@@ -286,17 +286,17 @@ The factory lambda in `ReceiveMiddlewareConfiguration`, `ConsumerMiddlewareConfi
 
 Each pipeline type has a single registration method with optional `before` and `after` parameters:
 
-| Method                                              | Pipeline | Behavior                                        |
-| --------------------------------------------------- | -------- | ----------------------------------------------- |
-| `UseReceive(config)`                                | Receive  | Append to the pipeline                          |
-| `UseReceive(config, before: "key")`                 | Receive  | Insert before the middleware with the given key |
-| `UseReceive(config, after: "key")`                  | Receive  | Insert after the middleware with the given key  |
-| `UseDispatch(config)`                               | Dispatch | Append to the pipeline                          |
-| `UseDispatch(config, before: "key")`                | Dispatch | Insert before the middleware with the given key |
-| `UseDispatch(config, after: "key")`                 | Dispatch | Insert after the middleware with the given key  |
-| `UseConsume(config)`                                | Consumer | Append to the pipeline                          |
-| `UseConsume(config, before: "key")`                 | Consumer | Insert before the middleware with the given key |
-| `UseConsume(config, after: "key")`                  | Consumer | Insert after the middleware with the given key  |
+| Method                               | Pipeline | Behavior                                        |
+| ------------------------------------ | -------- | ----------------------------------------------- |
+| `UseReceive(config)`                 | Receive  | Append to the pipeline                          |
+| `UseReceive(config, before: "key")`  | Receive  | Insert before the middleware with the given key |
+| `UseReceive(config, after: "key")`   | Receive  | Insert after the middleware with the given key  |
+| `UseDispatch(config)`                | Dispatch | Append to the pipeline                          |
+| `UseDispatch(config, before: "key")` | Dispatch | Insert before the middleware with the given key |
+| `UseDispatch(config, after: "key")`  | Dispatch | Insert after the middleware with the given key  |
+| `UseConsume(config)`                 | Consumer | Append to the pipeline                          |
+| `UseConsume(config, before: "key")`  | Consumer | Insert before the middleware with the given key |
+| `UseConsume(config, after: "key")`   | Consumer | Insert after the middleware with the given key  |
 
 Only one of `before` or `after` can be specified at the same time. If neither is specified, the middleware is appended after the built-in defaults.
 
