@@ -47,11 +47,12 @@ dotnet test src/HotChocolate/Fusion
 
 ### C# / .NET
 
-- Always use curly braces for loops and conditionals — no exceptions
+- Always use curly braces for loops and conditionals, no exceptions
 - File-scoped namespaces, 4-space indent
 - Test naming: `Method_Should_Outcome_When_Condition`
 - No vacuous assertions (`Assert.NotNull` alone is not a test)
 - If you need 8 stubs + reflection, you're at the wrong test tier
+- Do not use em dash style sentences in docs, comments, or XML documentation. Use commas, periods, parentheses, or colons instead.
 
 ### Testing
 
