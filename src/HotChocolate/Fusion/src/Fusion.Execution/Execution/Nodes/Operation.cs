@@ -34,9 +34,9 @@ public sealed class Operation : IOperation
         SelectionSet rootSelectionSet,
         OperationCompiler compiler,
         IncludeConditionCollection includeConditions,
+        bool hasIncrementalParts,
         int lastId,
-        object[] elementsById,
-        bool hasIncrementalParts)
+        object[] elementsById)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(hash);
@@ -56,9 +56,9 @@ public sealed class Operation : IOperation
         RootSelectionSet = rootSelectionSet;
         _compiler = compiler;
         _includeConditions = includeConditions;
+        _hasIncrementalParts = hasIncrementalParts;
         _lastId = lastId;
         _elementsById = elementsById;
-        _hasIncrementalParts = hasIncrementalParts;
 
         _features = new OperationFeatureCollection();
         rootSelectionSet.Seal(this);

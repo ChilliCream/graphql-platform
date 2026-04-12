@@ -87,7 +87,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
                 var groupNodes = groupElement.TryGetProperty("nodes", out var groupNodesElement)
                     ? ParseNodes(groupNodesElement, groupOperation)
-                    : ImmutableArray<ExecutionNode>.Empty;
+                    : [];
 
                 var rootGroupNodes = groupNodes
                     .Where(n => n.Dependencies.Length == 0 && n.OptionalDependencies.Length == 0)

@@ -13,14 +13,30 @@ public sealed class DeferredExecutionGroup
     /// <summary>
     /// Initializes a new instance of <see cref="DeferredExecutionGroup"/>.
     /// </summary>
-    /// <param name="deferId">A unique identifier for this deferred payload, used in <c>pending</c> and <c>completed</c> entries.</param>
-    /// <param name="label">The optional label from <c>@defer(label: "...")</c>.</param>
-    /// <param name="path">The path in the result tree where deferred data will be inserted.</param>
-    /// <param name="ifVariable">The variable name from <c>@defer(if: $var)</c>, or <c>null</c> if unconditional.</param>
-    /// <param name="parent">The parent deferred group for nested <c>@defer</c>, or <c>null</c> for top-level.</param>
-    /// <param name="operation">The compiled operation for this deferred group's result mapping.</param>
-    /// <param name="rootNodes">The root execution nodes that serve as entry points for this deferred group.</param>
-    /// <param name="allNodes">All execution nodes belonging to this deferred group.</param>
+    /// <param name="deferId">
+    /// A unique identifier for this deferred payload, used in <c>pending</c> and <c>completed</c> entries.
+    /// </param>
+    /// <param name="label">
+    /// The optional label from <c>@defer(label: "...")</c>.
+    /// </param>
+    /// <param name="path">
+    /// The path in the result tree where deferred data will be inserted.
+    /// </param>
+    /// <param name="ifVariable">
+    /// The variable name from <c>@defer(if: $var)</c>, or <c>null</c> if unconditional.
+    /// </param>
+    /// <param name="parent">
+    /// The parent deferred group for nested <c>@defer</c>, or <c>null</c> for top-level.
+    /// </param>
+    /// <param name="operation">
+    /// The compiled operation for this deferred group's result mapping.
+    /// </param>
+    /// <param name="rootNodes">
+    /// The root execution nodes that serve as entry points for this deferred group.
+    /// </param>
+    /// <param name="allNodes">
+    /// All execution nodes belonging to this deferred group.
+    /// </param>
     public DeferredExecutionGroup(
         int deferId,
         string? label,

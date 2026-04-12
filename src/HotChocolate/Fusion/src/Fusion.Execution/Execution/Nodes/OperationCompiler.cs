@@ -82,9 +82,9 @@ public sealed class OperationCompiler
                 selectionSet,
                 this,
                 includeConditions,
+                hasIncrementalParts,
                 lastId,
-                compilationContext.ElementsById,
-                hasIncrementalParts);
+                compilationContext.ElementsById);
         }
         finally
         {
@@ -400,9 +400,7 @@ public sealed class OperationCompiler
     }
 
     private static bool HasDeferDirective(OperationDefinitionNode operation)
-    {
-        return DeferDetectionVisitor.Instance.HasDefer(operation);
-    }
+        => DeferDetectionVisitor.Instance.HasDefer(operation);
 
     private sealed class DeferDetectionVisitor : SyntaxWalker<DeferDetectionVisitor.Context>
     {
@@ -445,9 +443,7 @@ public sealed class OperationCompiler
         {
             for (var i = 0; i < directives.Count; i++)
             {
-                if (directives[i].Name.Value.Equals(
-                    DirectiveNames.Defer.Name,
-                    StringComparison.Ordinal))
+                if (directives[i].Name.Value.Equals(DirectiveNames.Defer.Name, StringComparison.Ordinal))
                 {
                     return true;
                 }

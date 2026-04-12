@@ -163,10 +163,7 @@ public sealed class Selection : ISelection
         DeclaringSelectionSet = selectionSet;
     }
 
-    public bool IsDeferred(ulong deferFlags)
-    {
-        return (_deferMask & deferFlags) != 0;
-    }
+    public bool IsDeferred(ulong deferFlags) => (_deferMask & deferFlags) != 0;
 
     [Flags]
     private enum Flags

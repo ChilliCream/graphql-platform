@@ -143,9 +143,10 @@ operationPlan:
           }
         }
   deferredGroups:
-    - deferId: 0
+    - id: 0
       label: outer
       path: $.user
+      parentNodeId: 1
       nodes:
         - id: 1
           type: Operation
@@ -173,7 +174,7 @@ operationPlan:
                 id
           dependencies:
             - id: 1
-    - deferId: 1
+    - id: 1
       label: inner
       path: $.user
       parentId: 0
