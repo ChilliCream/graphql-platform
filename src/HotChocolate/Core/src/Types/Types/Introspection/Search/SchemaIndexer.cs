@@ -14,12 +14,9 @@ internal static class SchemaIndexer
     /// The schema definition to index.
     /// </param>
     /// <returns>
-    /// A tuple containing the list of documents and the reverse adjacency map.
-    /// The reverse adjacency map maps a type name to the list of (declaringTypeName, fieldName) pairs
-    /// where a field on the declaring type returns a value of that type.
+    /// A <see cref="SchemaIndexResult"/> containing the indexed documents and reverse adjacency map.
     /// </returns>
-    public static (List<BM25Document> Documents, Dictionary<string, List<TypeFieldReference>> ReverseMap) Index(
-        ISchemaDefinition schema)
+    public static SchemaIndexResult Index(ISchemaDefinition schema)
     {
         var documents = new List<BM25Document>();
         var reverseMap = new Dictionary<string, List<TypeFieldReference>>(StringComparer.Ordinal);
@@ -67,7 +64,7 @@ internal static class SchemaIndexer
                 BuildText(directive.Name, directive.Description)));
         }
 
-        return (documents, reverseMap);
+        return new SchemaIndexResult(documents, reverseMap);
     }
 
     private static void IndexComplexTypeFields(
@@ -139,4 +136,12 @@ internal static class SchemaIndexer
     /// used in the reverse adjacency map for path-to-root traversal.
     /// </summary>
     internal readonly record struct TypeFieldReference(string TypeName, string FieldName);
+
+    /// <summary>
+    /// The result of indexing a schema, containing the indexed documents
+    /// and a reverse adjacency map for path-to-root traversal.
+    /// </summary>
+    internal readonly record struct SchemaIndexResult(
+        List<BM25Document> Documents,
+        Dictionary<string, List<TypeFieldReference>> ReverseMap);
 }

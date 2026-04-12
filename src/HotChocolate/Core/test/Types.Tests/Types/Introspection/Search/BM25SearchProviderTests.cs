@@ -36,31 +36,27 @@ public class BM25SearchProviderTests
     }
 
     [Fact]
-    public async Task SearchAsync_Should_ReturnEmpty_When_FirstIsZero()
+    public async Task SearchAsync_Should_Throw_When_FirstIsZero()
     {
         // arrange
         var schema = CreateTestSchema();
         var provider = new BM25SearchProvider(schema);
 
-        // act
-        var results = await provider.SearchAsync("product", first: 0, after: null, minScore: null);
-
-        // assert
-        Assert.Empty(results);
+        // act & assert
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
+            () => provider.SearchAsync("product", first: 0, after: null, minScore: null).AsTask());
     }
 
     [Fact]
-    public async Task SearchAsync_Should_ReturnEmpty_When_FirstIsNegative()
+    public async Task SearchAsync_Should_Throw_When_FirstIsNegative()
     {
         // arrange
         var schema = CreateTestSchema();
         var provider = new BM25SearchProvider(schema);
 
-        // act
-        var results = await provider.SearchAsync("product", first: -1, after: null, minScore: null);
-
-        // assert
-        Assert.Empty(results);
+        // act & assert
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
+            () => provider.SearchAsync("product", first: -1, after: null, minScore: null).AsTask());
     }
 
     [Fact]

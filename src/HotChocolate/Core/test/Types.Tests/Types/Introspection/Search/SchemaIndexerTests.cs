@@ -13,7 +13,8 @@ public class SchemaIndexerTests
             .Resolve("world"));
 
         // act
-        var (documents, _) = SchemaIndexer.Index(schema);
+        var result = SchemaIndexer.Index(schema);
+        var documents = result.Documents;
 
         // assert
         Assert.Contains(documents, d => d.Coordinate == new SchemaCoordinate("Query"));
@@ -30,7 +31,8 @@ public class SchemaIndexerTests
             .Resolve("test"));
 
         // act
-        var (documents, _) = SchemaIndexer.Index(schema);
+        var result = SchemaIndexer.Index(schema);
+        var documents = result.Documents;
 
         // assert
         Assert.Contains(documents, d => d.Coordinate == new SchemaCoordinate("Query", "productName"));
@@ -47,7 +49,8 @@ public class SchemaIndexerTests
             .Resolve("world"));
 
         // act
-        var (documents, _) = SchemaIndexer.Index(schema);
+        var result = SchemaIndexer.Index(schema);
+        var documents = result.Documents;
 
         // assert
         Assert.DoesNotContain(documents,
@@ -68,7 +71,8 @@ public class SchemaIndexerTests
             .Create();
 
         // act
-        var (documents, _) = SchemaIndexer.Index(schema);
+        var result = SchemaIndexer.Index(schema);
+        var documents = result.Documents;
 
         // assert
         Assert.Contains(documents, d => d.Coordinate == new SchemaCoordinate("Status", "ACTIVE"));
@@ -90,7 +94,8 @@ public class SchemaIndexerTests
             .Create();
 
         // act
-        var (documents, _) = SchemaIndexer.Index(schema);
+        var result = SchemaIndexer.Index(schema);
+        var documents = result.Documents;
 
         // assert
         Assert.Contains(documents, d => d.Coordinate == new SchemaCoordinate("ProductFilterInput"));
@@ -112,7 +117,8 @@ public class SchemaIndexerTests
             .Create();
 
         // act
-        var (documents, _) = SchemaIndexer.Index(schema);
+        var result = SchemaIndexer.Index(schema);
+        var documents = result.Documents;
 
         // assert
         Assert.Contains(documents, d => d.Coordinate == new SchemaCoordinate("cached", ofDirective: true));
@@ -132,7 +138,7 @@ public class SchemaIndexerTests
             .Create();
 
         // act
-        var (_, reverseMap) = SchemaIndexer.Index(schema);
+        var reverseMap = SchemaIndexer.Index(schema).ReverseMap;
 
         // assert
         // Product is returned by Query.product, so reverse map should map Product -> Query
@@ -154,7 +160,8 @@ public class SchemaIndexerTests
             .Resolve("test"));
 
         // act
-        var (documents, _) = SchemaIndexer.Index(schema);
+        var result = SchemaIndexer.Index(schema);
+        var documents = result.Documents;
 
         // assert
         var fieldDoc = documents.First(d => d.Coordinate == new SchemaCoordinate("Query", "product"));
@@ -178,7 +185,8 @@ public class SchemaIndexerTests
             .Create();
 
         // act
-        var (documents, _) = SchemaIndexer.Index(schema);
+        var result = SchemaIndexer.Index(schema);
+        var documents = result.Documents;
 
         // assert
         Assert.Contains(documents, d => d.Coordinate == new SchemaCoordinate("Node", "id"));
