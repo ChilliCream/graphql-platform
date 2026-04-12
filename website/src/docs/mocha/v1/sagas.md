@@ -756,4 +756,4 @@ Understand how transports work in [Transports](/docs/mocha/v1/transports).
 
 > **Runnable examples:** [BasicSaga](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/Sagas/BasicSaga), [ParallelSaga](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/Sagas/ParallelSaga)
 >
-> **Full demo:** [Demo.Catalog](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Demo/Demo.Catalog) implements two production-style sagas: `QuickRefundSaga` (a simple two-state refund flow) and `ReturnProcessingSaga` (a complex multi-state saga with parallel inspection, restocking, and refund steps).
+> **Full demo:** [Demo.Catalog](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/examples/Demo/Demo.Catalog) implements two production-style sagas: `QuickRefundSaga` (a simple two-state refund flow) and `ReturnProcessingSaga` (a complex multi-state saga with parallel inspection, restocking, and refund steps).

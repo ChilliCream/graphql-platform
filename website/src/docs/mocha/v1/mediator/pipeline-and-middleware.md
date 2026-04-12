@@ -588,7 +588,7 @@ In `Sequential` mode (the default), the first handler exception stops execution 
 
 When using `NotificationPublishMode.Concurrent`, all handler pipelines execute in parallel but share the same scoped `IServiceProvider`. Scoped services like `DbContext` are not thread-safe. You will see race conditions or `ObjectDisposedException` if multiple handlers access the same scoped service concurrently. Switch to `Sequential` mode or create a new `IServiceScope` inside handlers that need their own scoped services.
 
-> **Full demo:** The [Demo application](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Demo) uses `UseEntityFrameworkTransactions` and `AddInstrumentation` alongside the mediator and message bus in a complete e-commerce system.
+> **Full demo:** The [Demo application](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/examples/Demo) uses `UseEntityFrameworkTransactions` and `AddInstrumentation` alongside the mediator and message bus in a complete e-commerce system.
 
 # Next steps
 
