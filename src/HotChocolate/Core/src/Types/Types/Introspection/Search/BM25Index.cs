@@ -122,10 +122,15 @@ internal sealed class BM25Index
     /// <param name="queryTokens">
     /// The tokenized query terms.
     /// </param>
+    /// <param name="cancellationToken">
+    /// The cancellation token.
+    /// </param>
     /// <returns>
     /// A list of document ID and raw BM25 score pairs, sorted by score descending.
     /// </returns>
-    public IReadOnlyList<ScoredDocument> Search(string[] queryTokens)
+    public IReadOnlyList<ScoredDocument> Search(
+        string[] queryTokens,
+        CancellationToken cancellationToken = default)
     {
         if (queryTokens.Length == 0 || _documentCount == 0)
         {
@@ -141,6 +146,8 @@ internal sealed class BM25Index
 
             foreach (var token in queryTokens)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 if (!_invertedIndex.TryGetValue(token, out var postings))
                 {
                     continue;

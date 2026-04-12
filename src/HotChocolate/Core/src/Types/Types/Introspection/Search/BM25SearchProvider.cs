@@ -44,7 +44,7 @@ internal sealed class BM25SearchProvider : ISchemaSearchProvider
 
         var data = EnsureIndex();
         var queryTokens = BM25Tokenizer.Tokenize(query);
-        var rawResults = data.Index.Search(queryTokens);
+        var rawResults = data.Index.Search(queryTokens, cancellationToken);
 
         if (rawResults.Count == 0)
         {
@@ -106,7 +106,7 @@ internal sealed class BM25SearchProvider : ISchemaSearchProvider
         // If it's a type coordinate, we start from that type directly.
         var startTypeName = coordinate.Name;
 
-        var paths = FindPathsToRoot(data, startTypeName, maxPaths);
+        var paths = FindPathsToRoot(data, startTypeName, maxPaths, cancellationToken);
 
         // Build SchemaCoordinatePath instances.
         // Each path is from the target coordinate back to a root type field.
@@ -151,7 +151,8 @@ internal sealed class BM25SearchProvider : ISchemaSearchProvider
     private static List<List<TypeFieldReference>> FindPathsToRoot(
         SearchData data,
         string startTypeName,
-        int maxPaths)
+        int maxPaths,
+        CancellationToken cancellationToken)
     {
         var rootTypeNames = data.RootTypeNames;
         var reverseMap = data.ReverseMap;
@@ -172,6 +173,8 @@ internal sealed class BM25SearchProvider : ISchemaSearchProvider
 
         while (queue.Count > 0 && paths.Count < maxPaths)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var (currentType, currentPath) = queue.Dequeue();
 
             if (!reverseMap.TryGetValue(currentType, out var references))
