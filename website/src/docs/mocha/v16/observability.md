@@ -79,7 +79,7 @@ sequenceDiagram
     B->>B: consumer span (Consumer)
 ```
 
-Tracing and metrics are injected by middleware in all three pipelines: `DispatchInstrumentation`, `ReceiveInstrumentation`, and `ConsumerInstrumentation`. See [Middleware and Pipelines](/docs/mocha/v1/middleware-and-pipelines) for how these fit into the pipeline architecture and how to reorder or replace them.
+Tracing and metrics are injected by middleware in all three pipelines: `DispatchInstrumentation`, `ReceiveInstrumentation`, and `ConsumerInstrumentation`. See [Middleware and Pipelines](/docs/mocha/v16/middleware-and-pipelines) for how these fit into the pipeline architecture and how to reorder or replace them.
 
 # How to implement a custom diagnostic observer
 
@@ -199,9 +199,9 @@ For more detail on .NET distributed tracing concepts and how `Activity` maps to 
 
 # Next steps
 
-- [Middleware and Pipelines](/docs/mocha/v1/middleware-and-pipelines) - Understand how `DispatchInstrumentation`, `ReceiveInstrumentation`, and `ConsumerInstrumentation` fit into each pipeline.
-- [Reliability](/docs/mocha/v1/reliability) - Configure fault handling and circuit breakers that work alongside observability.
-- [Sagas](/docs/mocha/v1/sagas) - For long-running workflows that span multiple messages, see Sagas.
+- [Middleware and Pipelines](/docs/mocha/v16/middleware-and-pipelines) - Understand how `DispatchInstrumentation`, `ReceiveInstrumentation`, and `ConsumerInstrumentation` fit into each pipeline.
+- [Reliability](/docs/mocha/v16/reliability) - Configure fault handling and circuit breakers that work alongside observability.
+- [Sagas](/docs/mocha/v16/sagas) - For long-running workflows that span multiple messages, see Sagas.
 
 > **Runnable example:** [OpenTelemetry](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/Observability/OpenTelemetry)
 >

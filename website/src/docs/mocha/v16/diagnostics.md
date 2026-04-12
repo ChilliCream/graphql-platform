@@ -23,7 +23,7 @@ Mocha uses a Roslyn source generator to validate your message handlers, consumer
 
 # Mediator diagnostics
 
-These diagnostics apply to the in-process [mediator](/docs/mocha/v1/mediator) - commands, queries, and notifications dispatched within a single process.
+These diagnostics apply to the in-process [mediator](/docs/mocha/v16/mediator) - commands, queries, and notifications dispatched within a single process.
 
 ## MO0001
 
@@ -129,7 +129,7 @@ public class PlaceOrderHandler : ICommandHandler<PlaceOrder>
 
 ### Cause
 
-A class implements a [handler](/docs/mocha/v1/handlers-and-consumers) interface (`ICommandHandler`, `IQueryHandler`, or `INotificationHandler`) but is declared `abstract`. The source generator skips abstract types because they cannot be instantiated.
+A class implements a [handler](/docs/mocha/v16/handlers-and-consumers) interface (`ICommandHandler`, `IQueryHandler`, or `INotificationHandler`) but is declared `abstract`. The source generator skips abstract types because they cannot be instantiated.
 
 ### Example
 
@@ -259,7 +259,7 @@ public class GetOrderHandler : IQueryHandler<GetOrder, Order>
 
 # Messaging diagnostics
 
-These diagnostics apply to the [message bus](/docs/mocha/v1/handlers-and-consumers) - event handlers, request handlers, batch handlers, consumers, and sagas that communicate across service boundaries.
+These diagnostics apply to the [message bus](/docs/mocha/v16/handlers-and-consumers) - event handlers, request handlers, batch handlers, consumers, and sagas that communicate across service boundaries.
 
 ## MO0011
 
@@ -272,7 +272,7 @@ These diagnostics apply to the [message bus](/docs/mocha/v1/handlers-and-consume
 
 ### Cause
 
-A request type (used with `SendAsync` or `RequestAsync`) has more than one [handler](/docs/mocha/v1/handlers-and-consumers) implementation. Request types require exactly one handler - the bus cannot route to multiple targets.
+A request type (used with `SendAsync` or `RequestAsync`) has more than one [handler](/docs/mocha/v16/handlers-and-consumers) implementation. Request types require exactly one handler - the bus cannot route to multiple targets.
 
 ### Example
 
@@ -376,7 +376,7 @@ public class OrderPlacedHandler : IEventHandler<OrderPlaced>
 
 ### Cause
 
-A class implements a messaging [handler](/docs/mocha/v1/handlers-and-consumers) interface but is declared `abstract`. The source generator skips abstract types because they cannot be instantiated.
+A class implements a messaging [handler](/docs/mocha/v16/handlers-and-consumers) interface but is declared `abstract`. The source generator skips abstract types because they cannot be instantiated.
 
 ### Example
 
@@ -423,7 +423,7 @@ public class OrderPlacedHandler : IEventHandler<OrderPlaced>
 
 ### Cause
 
-A [`Saga<TState>`](/docs/mocha/v1/sagas) subclass does not have a public parameterless constructor. The saga infrastructure requires this constructor to instantiate the saga type. This is enforced by the `new()` constraint on the `AddSaga<T>` registration method.
+A [`Saga<TState>`](/docs/mocha/v16/sagas) subclass does not have a public parameterless constructor. The saga infrastructure requires this constructor to instantiate the saga type. This is enforced by the `new()` constraint on the `AddSaga<T>` registration method.
 
 ### Example
 

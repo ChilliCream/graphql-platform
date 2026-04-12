@@ -113,6 +113,6 @@ The response is a JSON document describing the full bus topology: the host, regi
 
 # Next steps
 
-- [Observability](/docs/mocha/v1/observability) - Add OpenTelemetry tracing and metrics to the bus.
-- [Reliability](/docs/mocha/v1/reliability) - Configure outbox, inbox, and circuit breakers.
-- [Transports](/docs/mocha/v1/transports) - Configure RabbitMQ, InMemory, and multi-transport setups.
+- [Observability](/docs/mocha/v16/observability) - Add OpenTelemetry tracing and metrics to the bus.
+- [Reliability](/docs/mocha/v16/reliability) - Configure outbox, inbox, and circuit breakers.
+- [Transports](/docs/mocha/v16/transports) - Configure RabbitMQ, InMemory, and multi-transport setups.

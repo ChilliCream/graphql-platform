@@ -473,4 +473,4 @@ If your request record does not implement `IEventRequest<TResponse>`, you cannot
 >
 > **Full demo:** The [Demo application](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/examples/Demo) uses all three patterns: [Demo.Catalog](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/examples/Demo/Demo.Catalog) publishes `OrderPlacedEvent` (pub/sub), [Demo.Billing](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/examples/Demo/Demo.Billing) handles `ProcessRefundCommand` (send), and sagas use `RequestAsync` for request/reply coordination.
 
-Ready to implement these patterns? See [Handlers and Consumers](/docs/mocha/v1/handlers-and-consumers).
+Ready to implement these patterns? See [Handlers and Consumers](/docs/mocha/v16/handlers-and-consumers).

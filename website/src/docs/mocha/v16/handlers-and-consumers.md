@@ -19,7 +19,7 @@ Choose a handler interface based on the messaging pattern you are implementing:
 | `IBatchEventHandler<T>`            | Processing multiple events at once for throughput efficiency.                                   |
 | `IConsumer<T>`                     | Accessing raw envelope metadata - headers, correlation IDs, or the full consume context.        |
 
-If you have read [Messaging Patterns](/docs/mocha/v1/messaging-patterns), these map directly: `IEventHandler<T>` is for `PublishAsync`, `IEventRequestHandler<TReq>` is for `SendAsync`, and `IEventRequestHandler<TReq, TRes>` is for `RequestAsync`.
+If you have read [Messaging Patterns](/docs/mocha/v16/messaging-patterns), these map directly: `IEventHandler<T>` is for `PublishAsync`, `IEventRequestHandler<TReq>` is for `SendAsync`, and `IEventRequestHandler<TReq, TRes>` is for `RequestAsync`.
 
 # Event handler
 
@@ -87,7 +87,7 @@ var app = builder.Build();
 app.Run();
 ```
 
-`.AddMyApp()` is a source-generated extension method that discovers all handlers in the assembly and registers them. The source generator found `OrderPlacedHandler`, saw that it implements `IEventHandler<OrderPlaced>`, and emitted a registration call for it. For details on how the source generator works and how to customize the module name, see [Handler Registration](/docs/mocha/v1/handler-registration).
+`.AddMyApp()` is a source-generated extension method that discovers all handlers in the assembly and registers them. The source generator found `OrderPlacedHandler`, saw that it implements `IEventHandler<OrderPlaced>`, and emitted a registration call for it. For details on how the source generator works and how to customize the module name, see [Handler Registration](/docs/mocha/v16/handler-registration).
 
 ## Verify the handler runs
 
@@ -419,7 +419,7 @@ public class OrderAuditConsumer(ILogger<OrderAuditConsumer> logger)
 }
 ```
 
-`IConsumeContext<T>` gives you the deserialized message plus envelope fields: `MessageId`, `CorrelationId`, `ConversationId`, `CausationId`, `SourceAddress`, `DestinationAddress`, `SentAt`, `Headers`, `DeliveryCount`, and more. See [Messages](/docs/mocha/v1/messages) for how correlation identifiers relate to each other.
+`IConsumeContext<T>` gives you the deserialized message plus envelope fields: `MessageId`, `CorrelationId`, `ConversationId`, `CausationId`, `SourceAddress`, `DestinationAddress`, `SentAt`, `Headers`, `DeliveryCount`, and more. See [Messages](/docs/mocha/v16/messages) for how correlation identifiers relate to each other.
 
 Register with `.AddConsumer<T>()`:
 
@@ -461,11 +461,11 @@ Singleton services are resolved from the root container as usual. If you inject 
 
 When `HandleAsync` throws, the behavior depends on the handler type and the middleware pipeline:
 
-- **Event handlers and send handlers:** The exception is caught by the pipeline. By default, Mocha retries the message according to the configured retry policy, then moves it to the dead-letter queue if retries are exhausted. See [Reliability](/docs/mocha/v1/reliability) for retry and fault configuration.
+- **Event handlers and send handlers:** The exception is caught by the pipeline. By default, Mocha retries the message according to the configured retry policy, then moves it to the dead-letter queue if retries are exhausted. See [Reliability](/docs/mocha/v16/reliability) for retry and fault configuration.
 - **Request handlers:** The exception propagates back to the caller as a fault. If you use `RequestAsync`, it throws on the caller side. The caller receives the error, not a timeout.
 - **Batch handlers:** If the handler throws, all messages in the batch fault together. The pipeline treats the entire batch as a failed unit.
 
-When a message arrives, it passes through middleware before reaching your handler. The pipeline handles fault routing, dead-letter delivery, observability, and concurrency limits - without any code in your handler. See [Middleware and Pipelines](/docs/mocha/v1/middleware-and-pipelines) for details on writing custom pipeline middleware.
+When a message arrives, it passes through middleware before reaching your handler. The pipeline handles fault routing, dead-letter delivery, observability, and concurrency limits - without any code in your handler. See [Middleware and Pipelines](/docs/mocha/v16/middleware-and-pipelines) for details on writing custom pipeline middleware.
 
 # Publishing from a handler
 
@@ -504,17 +504,17 @@ public class OrderPlacedHandler(
 }
 ```
 
-Messages published from within a handler automatically inherit the `ConversationId` and `CorrelationId` from the inbound message. The bus sets `CausationId` on the outgoing message to the `MessageId` of the inbound message. This creates a traceable parent-child chain across services without any extra code. See [Messages](/docs/mocha/v1/messages) for how correlation identifiers work.
+Messages published from within a handler automatically inherit the `ConversationId` and `CorrelationId` from the inbound message. The bus sets `CausationId` on the outgoing message to the `MessageId` of the inbound message. This creates a traceable parent-child chain across services without any extra code. See [Messages](/docs/mocha/v16/messages) for how correlation identifiers work.
 
 # Further reading
 
-- [Handler Registration](/docs/mocha/v1/handler-registration) - How the source generator discovers handlers and how to customize registration.
+- [Handler Registration](/docs/mocha/v16/handler-registration) - How the source generator discovers handlers and how to customize registration.
 - [Event-Driven Consumer](https://www.enterpriseintegrationpatterns.com/patterns/messaging/EventDrivenConsumer.html) - The EIP pattern that defines push-based message consumption, which is what Mocha's handlers implement.
 - [Competing Consumers](https://www.enterpriseintegrationpatterns.com/patterns/messaging/CompetingConsumers.html) - When multiple instances of your service run, they compete for messages on the same queue. This is the concurrency model for Mocha handlers under load.
 
 # Next steps
 
-Your handlers are registered. Learn how the source generator discovers and registers them in [Handler Registration](/docs/mocha/v1/handler-registration), or how Mocha routes messages to them in [Routing and Endpoints](/docs/mocha/v1/routing-and-endpoints).
+Your handlers are registered. Learn how the source generator discovers and registers them in [Handler Registration](/docs/mocha/v16/handler-registration), or how Mocha routes messages to them in [Routing and Endpoints](/docs/mocha/v16/routing-and-endpoints).
 
 > **Runnable examples:** [BatchHandler](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/HandlersAndConsumers/BatchHandler), [LowLevelConsumer](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/HandlersAndConsumers/LowLevelConsumer), [CustomConsumer](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/HandlersAndConsumers/CustomConsumer)
 >

@@ -238,7 +238,7 @@ Each transport handles scheduling differently. Mocha adapts automatically based 
 
 **InMemory:** The transport schedules messages natively using an internal scheduler. Messages scheduled for a time in the past are delivered immediately. Scheduled messages are lost if the process restarts. Cancellation is not supported.
 
-**PostgreSQL:** The transport handles scheduling natively. When you set `ScheduledTime`, the transport writes a `scheduled_time` column alongside the message. Messages are only delivered to consumers after the scheduled time has passed. No additional setup is required beyond the standard [PostgreSQL transport configuration](/docs/mocha/v1/transports/postgres). Cancellation is not supported with native scheduling.
+**PostgreSQL:** The transport handles scheduling natively. When you set `ScheduledTime`, the transport writes a `scheduled_time` column alongside the message. Messages are only delivered to consumers after the scheduled time has passed. No additional setup is required beyond the standard [PostgreSQL transport configuration](/docs/mocha/v16/transports/postgres). Cancellation is not supported with native scheduling.
 
 **RabbitMQ:** RabbitMQ does not support native message scheduling. To enable scheduling, register `UsePostgresScheduling()` with an EF Core DbContext. Scheduled messages are intercepted before they reach the RabbitMQ transport and persisted to a Postgres `scheduled_messages` table. A background worker dispatches them at the scheduled time, routing through the RabbitMQ transport. Cancellation is fully supported - the `SchedulingResult` contains a token you can use with `CancelScheduledMessageAsync`.
 
@@ -252,7 +252,7 @@ When multiple instances of your service are running, each scheduled message is p
 
 ## Outbox integration
 
-When both the transactional outbox and scheduling are configured, scheduled messages participate in the transaction correctly. Messages with a `ScheduledTime` are intercepted by the scheduler and never reach the outbox. Messages dispatched by the background worker skip both the scheduler and the outbox, going directly to the transport. See [Reliability](/docs/mocha/v1/reliability) for outbox configuration.
+When both the transactional outbox and scheduling are configured, scheduled messages participate in the transaction correctly. Messages with a `ScheduledTime` are intercepted by the scheduler and never reach the outbox. Messages dispatched by the background worker skip both the scheduler and the outbox, going directly to the transport. See [Reliability](/docs/mocha/v16/reliability) for outbox configuration.
 
 # Schedule messages in sagas
 
@@ -296,9 +296,9 @@ x.WhenCompleted()
 
 Both `ScheduledPublish` and `ScheduledSend` are available on `ISagaTransitionDescriptor` and `ISagaLifeCycleDescriptor`. The factory receives the current saga state and returns the message to schedule.
 
-For automatic saga timeouts that cancel themselves on completion, see [Timeouts](/docs/mocha/v1/sagas#timeouts) in the Sagas guide.
+For automatic saga timeouts that cancel themselves on completion, see [Timeouts](/docs/mocha/v16/sagas#timeouts) in the Sagas guide.
 
-See [Sagas](/docs/mocha/v1/sagas) for the full saga configuration guide.
+See [Sagas](/docs/mocha/v16/sagas) for the full saga configuration guide.
 
 # Troubleshooting
 
@@ -331,7 +331,7 @@ No store-based scheduling provider is registered. Cancellation requires a provid
 
 # Next steps
 
-- [**Reliability**](/docs/mocha/v1/reliability) - Configure the transactional outbox and inbox for guaranteed delivery alongside scheduling.
-- [**Sagas**](/docs/mocha/v1/sagas) - Build multi-step workflows with state machines, timeouts, and scheduled side effects.
-- [**PostgreSQL Transport**](/docs/mocha/v1/transports/postgres) - Set up the Postgres transport that powers durable scheduling.
-- [**Messaging Patterns**](/docs/mocha/v1/messaging-patterns) - Understand the difference between publish (fan-out) and send (point-to-point) when choosing which scheduling method to use.
+- [**Reliability**](/docs/mocha/v16/reliability) - Configure the transactional outbox and inbox for guaranteed delivery alongside scheduling.
+- [**Sagas**](/docs/mocha/v16/sagas) - Build multi-step workflows with state machines, timeouts, and scheduled side effects.
+- [**PostgreSQL Transport**](/docs/mocha/v16/transports/postgres) - Set up the Postgres transport that powers durable scheduling.
+- [**Messaging Patterns**](/docs/mocha/v16/messaging-patterns) - Understand the difference between publish (fan-out) and send (point-to-point) when choosing which scheduling method to use.
