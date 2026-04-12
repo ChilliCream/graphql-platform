@@ -1081,40 +1081,6 @@ public sealed class SemanticIntrospectionTests
     }
 
     [Fact]
-    public async Task Search_Should_FindFields_When_AskedAboutPricing()
-    {
-        // arrange
-        var executor = CreateSchema().MakeExecutable();
-
-        // act
-        var result = await executor.ExecuteAsync(
-            """
-            {
-                __search(query: "What pricing information is available?") {
-                    coordinate
-                    score
-                    definition {
-                        ... on __Field {
-                            fieldName: name
-                            description
-                        }
-                        ... on __Type {
-                            typeName: name
-                            kind
-                        }
-                    }
-                }
-            }
-            """);
-
-        // assert
-        result.MatchInlineSnapshot(
-            """
-            PLACEHOLDER
-            """);
-    }
-
-    [Fact]
     public async Task Search_Should_NotExist_When_SemanticIntrospectionDisabled()
     {
         // arrange

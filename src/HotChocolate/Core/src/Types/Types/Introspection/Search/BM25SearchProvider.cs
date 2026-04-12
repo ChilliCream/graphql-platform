@@ -10,6 +10,8 @@ namespace HotChocolate.Types.Introspection;
 /// </summary>
 internal sealed class BM25SearchProvider : ISchemaSearchProvider
 {
+    private const int MaxQueryLength = 1024;
+
     private readonly ISchemaDefinition _schema;
     private volatile SearchData? _searchData;
     private readonly object _syncRoot = new();
@@ -35,11 +37,16 @@ internal sealed class BM25SearchProvider : ISchemaSearchProvider
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(query);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(first);
 
-        if (first <= 0)
+        if (query.Length > MaxQueryLength)
         {
-            return new ValueTask<IReadOnlyList<SchemaSearchResult>>(
-                Array.Empty<SchemaSearchResult>());
+            throw new SearchQueryTooLargeException();
+        }
+
+        if (after is { Length: 0 })
+        {
+            throw new ArgumentException("The cursor must not be empty.", nameof(after));
         }
 
         var data = EnsureIndex();
@@ -48,20 +55,16 @@ internal sealed class BM25SearchProvider : ISchemaSearchProvider
 
         if (rawResults.Count == 0)
         {
-            return new ValueTask<IReadOnlyList<SchemaSearchResult>>(
-                Array.Empty<SchemaSearchResult>());
+            return ValueTask.FromResult<IReadOnlyList<SchemaSearchResult>>(Array.Empty<SchemaSearchResult>());
         }
 
         // Determine the maximum raw score for normalization.
         var maxRawScore = rawResults[0].Score; // Results are sorted descending.
 
         // Decode the cursor to determine the starting offset.
-        var offset = 0;
-
-        if (after is not null)
-        {
-            offset = DecodeCursor(after);
-        }
+        var offset = after is not null
+            ? DecodeCursor(after, rawResults.Count)
+            : 0;
 
         var results = new List<SchemaSearchResult>(Math.Min(first, rawResults.Count));
 
@@ -83,7 +86,7 @@ internal sealed class BM25SearchProvider : ISchemaSearchProvider
                 EncodeCursor(i + 1)));
         }
 
-        return new ValueTask<IReadOnlyList<SchemaSearchResult>>(results);
+        return ValueTask.FromResult<IReadOnlyList<SchemaSearchResult>>(results);
     }
 
     /// <inheritdoc />
@@ -94,7 +97,7 @@ internal sealed class BM25SearchProvider : ISchemaSearchProvider
     {
         if (maxPaths <= 0)
         {
-            return new ValueTask<IReadOnlyList<SchemaCoordinatePath>>(
+            return ValueTask.FromResult<IReadOnlyList<SchemaCoordinatePath>>(
                 Array.Empty<SchemaCoordinatePath>());
         }
 
@@ -145,7 +148,7 @@ internal sealed class BM25SearchProvider : ISchemaSearchProvider
             result.RemoveRange(maxPaths, result.Count - maxPaths);
         }
 
-        return new ValueTask<IReadOnlyList<SchemaCoordinatePath>>(result);
+        return ValueTask.FromResult<IReadOnlyList<SchemaCoordinatePath>>(result);
     }
 
     private static List<List<TypeFieldReference>> FindPathsToRoot(
@@ -257,23 +260,32 @@ internal sealed class BM25SearchProvider : ISchemaSearchProvider
     private static string EncodeCursor(int offset)
         => Convert.ToBase64String(BitConverter.GetBytes(offset));
 
-    private static int DecodeCursor(string cursor)
+    private static int DecodeCursor(string cursor, int resultCount)
     {
+        int offset;
+
         try
         {
             var bytes = Convert.FromBase64String(cursor);
 
-            if (bytes.Length >= 4)
+            if (bytes.Length < 4)
             {
-                return BitConverter.ToInt32(bytes, 0);
+                throw new InvalidSearchCursorException();
             }
+
+            offset = BitConverter.ToInt32(bytes, 0);
         }
         catch (FormatException)
         {
-            // Invalid cursor format; start from the beginning.
+            throw new InvalidSearchCursorException();
         }
 
-        return 0;
+        if (offset < 0 || offset > resultCount)
+        {
+            throw new InvalidSearchCursorException();
+        }
+
+        return offset;
     }
 
     /// <summary>

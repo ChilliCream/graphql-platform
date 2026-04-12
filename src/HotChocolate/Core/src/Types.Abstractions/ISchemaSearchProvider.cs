@@ -31,6 +31,12 @@ public interface ISchemaSearchProvider
     /// <returns>
     /// A list of <see cref="SchemaSearchResult"/> ordered by relevance.
     /// </returns>
+    /// <exception cref="InvalidSearchCursorException">
+    /// Thrown when the <paramref name="after"/> cursor is malformed or out of range.
+    /// </exception>
+    /// <exception cref="SearchQueryTooLargeException">
+    /// Thrown when the <paramref name="query"/> exceeds the maximum allowed length.
+    /// </exception>
     ValueTask<IReadOnlyList<SchemaSearchResult>> SearchAsync(
         string query,
         int first,

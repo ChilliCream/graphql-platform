@@ -7,6 +7,8 @@ namespace HotChocolate.Types.Introspection;
 
 internal static class IntrospectionFields
 {
+    private const int MaxFirstLimit = 150;
+
     private static readonly PureFieldDelegate s_typeNameResolver =
         ctx => ctx.ObjectType.Name;
 
@@ -95,12 +97,47 @@ internal static class IntrospectionFields
             var after = ctx.ArgumentOptional<string?>("after");
             var minScore = ctx.ArgumentOptional<float?>("min_score");
 
-            var results = await provider.SearchAsync(
-                query,
-                first,
-                after.HasValue ? after.Value : null,
-                minScore.HasValue ? minScore.Value : null,
-                ctx.RequestAborted);
+            if (first <= 0)
+            {
+                throw new GraphQLException(
+                    ErrorBuilder.New()
+                        .SetMessage("The `first` argument must be greater than zero.")
+                        .Build());
+            }
+
+            if (first > MaxFirstLimit)
+            {
+                throw new GraphQLException(
+                    ErrorBuilder.New()
+                        .SetMessage($"The `first` argument must not exceed {MaxFirstLimit}.")
+                        .Build());
+            }
+
+            IReadOnlyList<SchemaSearchResult> results;
+
+            try
+            {
+                results = await provider.SearchAsync(
+                    query,
+                    first,
+                    after.HasValue ? after.Value : null,
+                    minScore.HasValue ? minScore.Value : null,
+                    ctx.RequestAborted);
+            }
+            catch (InvalidSearchCursorException)
+            {
+                throw new GraphQLException(
+                    ErrorBuilder.New()
+                        .SetMessage("The value of `after` is not a valid cursor.")
+                        .Build());
+            }
+            catch (SearchQueryTooLargeException)
+            {
+                throw new GraphQLException(
+                    ErrorBuilder.New()
+                        .SetMessage("The search query exceeds the maximum allowed length.")
+                        .Build());
+            }
 
             var searchResults = new List<SearchResultInfo>(results.Count);
 
@@ -156,6 +193,15 @@ internal static class IntrospectionFields
         static ValueTask<object?> Resolve(IResolverContext ctx)
         {
             var coordinates = ctx.ArgumentValue<string[]>("coordinates");
+
+            if (coordinates.Length > MaxFirstLimit)
+            {
+                throw new GraphQLException(
+                    ErrorBuilder.New()
+                        .SetMessage($"The `coordinates` argument must not exceed {MaxFirstLimit} items.")
+                        .Build());
+            }
+
             var definitions = new List<object>(coordinates.Length);
 
             foreach (var coordinateString in coordinates)

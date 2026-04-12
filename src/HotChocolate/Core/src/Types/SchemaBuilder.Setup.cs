@@ -601,6 +601,10 @@ public partial class SchemaBuilder
             });
 
         services.TryAddSingleton<ISchemaSearchProvider>(
-            static sp => new BM25SearchProvider(sp.GetRequiredService<ISchemaDefinition>()));
+            static sp =>
+            {
+                var schema = sp.GetRequiredService<ISchemaDefinition>();
+                return new BM25SearchProvider(schema);
+            });
     }
 }
