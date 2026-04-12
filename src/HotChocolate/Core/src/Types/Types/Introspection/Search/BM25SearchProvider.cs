@@ -96,74 +96,41 @@ internal sealed class BM25SearchProvider : ISchemaSearchProvider
         CancellationToken cancellationToken = default)
     {
         var data = EnsureIndex();
-
-        // Determine the type name to start BFS from.
-        // If the coordinate has a member name, it's a field/value on a type;
-        // the starting type is the coordinate's Name.
-        // If it's a type coordinate, we start from that type directly.
-        var startTypeName = coordinate.Name;
-
-        var paths = FindPathsToRoot(data, startTypeName, MaxPaths, cancellationToken);
-
-        // Build SchemaCoordinatePath instances.
-        // Each path is from the target coordinate back to a root type field.
-        var result = new List<SchemaCoordinatePath>(paths.Count);
-
-        foreach (var path in paths)
-        {
-            var segments = new List<SchemaCoordinate>();
-
-            // If the original coordinate has a member (it's a field/value),
-            // include it as the first segment.
-            if (coordinate.MemberName is not null)
-            {
-                segments.Add(coordinate);
-            }
-
-            // Add the type-level coordinate for the starting type.
-            segments.Add(new SchemaCoordinate(startTypeName));
-
-            // Add intermediate hops (type.field coordinates leading to root).
-            foreach (var (typeName, fieldName) in path)
-            {
-                segments.Add(new SchemaCoordinate(typeName, fieldName));
-                segments.Add(new SchemaCoordinate(typeName));
-            }
-
-            result.Add(new SchemaCoordinatePath(CollectionsMarshal.AsSpan(segments)));
-        }
+        var result = FindPathsToRoot(data, coordinate, MaxPaths, cancellationToken);
 
         // Sort by path length (shortest first).
         result.Sort(static (a, b) => a.Count.CompareTo(b.Count));
 
-        // Limit to MaxPaths.
-        if (result.Count > MaxPaths)
-        {
-            result.RemoveRange(MaxPaths, result.Count - MaxPaths);
-        }
-
         return ValueTask.FromResult<IReadOnlyList<SchemaCoordinatePath>>(result);
     }
 
-    private static List<List<TypeFieldReference>> FindPathsToRoot(
+    private static List<SchemaCoordinatePath> FindPathsToRoot(
         SearchData data,
-        string startTypeName,
+        SchemaCoordinate coordinate,
         int maxPaths,
         CancellationToken cancellationToken)
     {
         var rootTypeNames = data.RootTypeNames;
         var reverseMap = data.ReverseMap;
-        var paths = new List<List<TypeFieldReference>>();
+        var startTypeName = coordinate.Name;
+        var paths = new List<SchemaCoordinatePath>();
 
-        // If the start type is already a root type, return a single empty path.
+        // If the start type is already a root type, the path is just the coordinate itself
+        // for field coordinates, or empty for type coordinates.
         if (rootTypeNames.Contains(startTypeName))
         {
-            paths.Add([]);
+            if (coordinate.MemberName is not null)
+            {
+                paths.Add(new SchemaCoordinatePath([coordinate]));
+            }
+
             return paths;
         }
 
         // BFS: each queue entry is (currentTypeName, pathSoFar).
-        var queue = new Queue<(string TypeName, List<TypeFieldReference> Path)>();
+        // The path accumulates field hops only; the target coordinate is appended
+        // when finalizing a completed path.
+        var queue = new Queue<(string TypeName, List<SchemaCoordinate> Path)>();
         queue.Enqueue((startTypeName, []));
 
         var visited = new HashSet<string>(StringComparer.Ordinal) { startTypeName };
@@ -181,16 +148,22 @@ internal sealed class BM25SearchProvider : ISchemaSearchProvider
 
             foreach (var reference in references)
             {
-                if (!visited.Add(reference.TypeName))
+                if (!visited.Add(reference.Name))
                 {
                     continue;
                 }
 
-                var newPath = new List<TypeFieldReference>(currentPath) { reference };
+                var newPath = new List<SchemaCoordinate>(currentPath.Count + 1) { reference };
+                newPath.AddRange(currentPath);
 
-                if (rootTypeNames.Contains(reference.TypeName))
+                if (rootTypeNames.Contains(reference.Name))
                 {
-                    paths.Add(newPath);
+                    if (coordinate.MemberName is not null)
+                    {
+                        newPath.Add(coordinate);
+                    }
+
+                    paths.Add(new SchemaCoordinatePath(CollectionsMarshal.AsSpan(newPath)));
 
                     if (paths.Count >= maxPaths)
                     {
@@ -199,7 +172,7 @@ internal sealed class BM25SearchProvider : ISchemaSearchProvider
                 }
                 else
                 {
-                    queue.Enqueue((reference.TypeName, newPath));
+                    queue.Enqueue((reference.Name, newPath));
                 }
             }
         }
@@ -287,12 +260,12 @@ internal sealed class BM25SearchProvider : ISchemaSearchProvider
     /// </summary>
     private sealed class SearchData(
         BM25Index index,
-        FrozenDictionary<string, TypeFieldReference[]> reverseMap,
+        FrozenDictionary<string, SchemaCoordinate[]> reverseMap,
         FrozenSet<string> rootTypeNames)
     {
         public BM25Index Index { get; } = index;
 
-        public FrozenDictionary<string, TypeFieldReference[]> ReverseMap { get; } = reverseMap;
+        public FrozenDictionary<string, SchemaCoordinate[]> ReverseMap { get; } = reverseMap;
 
         public FrozenSet<string> RootTypeNames { get; } = rootTypeNames;
     }

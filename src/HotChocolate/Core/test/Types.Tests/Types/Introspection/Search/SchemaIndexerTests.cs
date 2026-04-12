@@ -103,7 +103,7 @@ public class SchemaIndexerTests
     }
 
     [Fact]
-    public void Index_Should_IndexDirectiveDefinitions()
+    public void Index_Should_NotIndexDirectiveDefinitions()
     {
         // arrange
         var schema = SchemaBuilder.New()
@@ -120,8 +120,8 @@ public class SchemaIndexerTests
         var result = SchemaIndexer.Index(schema);
         var documents = result.Documents;
 
-        // assert
-        Assert.Contains(documents, d => d.Coordinate == new SchemaCoordinate("cached", ofDirective: true));
+        // assert — directives have no fetch path and are excluded from search.
+        Assert.DoesNotContain(documents, d => d.Coordinate.OfDirective);
     }
 
     [Fact]
@@ -145,7 +145,7 @@ public class SchemaIndexerTests
         Assert.True(reverseMap.ContainsKey("Product"));
 
         var references = reverseMap["Product"];
-        Assert.Contains(references, r => r.TypeName == "Query" && r.FieldName == "product");
+        Assert.Contains(references, r => r.Name == "Query" && r.MemberName == "product");
     }
 
     [Fact]

@@ -19,7 +19,7 @@ internal static class SchemaIndexer
     public static SchemaIndexResult Index(ISchemaDefinition schema)
     {
         var documents = new List<BM25Document>();
-        var reverseMap = new Dictionary<string, List<TypeFieldReference>>(StringComparer.Ordinal);
+        var reverseMap = new Dictionary<string, List<SchemaCoordinate>>(StringComparer.Ordinal);
 
         foreach (var type in schema.Types)
         {
@@ -50,19 +50,8 @@ internal static class SchemaIndexer
             }
         }
 
-        // Index directive definitions.
-        foreach (var directive in schema.DirectiveDefinitions)
-        {
-            // Skip introspection directives.
-            if (directive.Name.StartsWith("__", StringComparison.Ordinal))
-            {
-                continue;
-            }
-
-            documents.Add(new BM25Document(
-                new SchemaCoordinate(directive.Name, ofDirective: true),
-                BuildText(directive.Name, directive.Description)));
-        }
+        // Directives are not indexed for search — they have no fetch path.
+        // They remain accessible via __definitions coordinate lookup.
 
         return new SchemaIndexResult(documents, reverseMap);
     }
@@ -70,7 +59,7 @@ internal static class SchemaIndexer
     private static void IndexComplexTypeFields(
         IComplexTypeDefinition complexType,
         List<BM25Document> documents,
-        Dictionary<string, List<TypeFieldReference>> reverseMap)
+        Dictionary<string, List<SchemaCoordinate>> reverseMap)
     {
         foreach (var field in complexType.Fields)
         {
@@ -93,7 +82,7 @@ internal static class SchemaIndexer
                 reverseMap[returnType.Name] = references;
             }
 
-            references.Add(new TypeFieldReference(complexType.Name, field.Name));
+            references.Add(new SchemaCoordinate(complexType.Name, field.Name));
         }
     }
 
@@ -132,16 +121,10 @@ internal static class SchemaIndexer
     }
 
     /// <summary>
-    /// Represents a reference from a type's field back to that type,
-    /// used in the reverse adjacency map for path-to-root traversal.
-    /// </summary>
-    internal readonly record struct TypeFieldReference(string TypeName, string FieldName);
-
-    /// <summary>
     /// The result of indexing a schema, containing the indexed documents
     /// and a reverse adjacency map for path-to-root traversal.
     /// </summary>
     internal readonly record struct SchemaIndexResult(
         List<BM25Document> Documents,
-        Dictionary<string, List<TypeFieldReference>> ReverseMap);
+        Dictionary<string, List<SchemaCoordinate>> ReverseMap);
 }

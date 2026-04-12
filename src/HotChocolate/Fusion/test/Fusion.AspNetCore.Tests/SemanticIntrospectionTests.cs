@@ -327,37 +327,64 @@ public class SemanticIntrospectionTests : FusionTestBase
                   {
                     "coordinate": "Product.name",
                     "pathsToRoot": [
-                      "Product.name > Product > Query.productSearch > Query"
+                      [
+                        "Product.name",
+                        "Product",
+                        "Query.productSearch",
+                        "Query"
+                      ]
                     ]
                   },
                   {
                     "coordinate": "Query.productSearch",
                     "pathsToRoot": [
-                      "Query.productSearch > Query"
+                      [
+                        "Query.productSearch",
+                        "Query"
+                      ]
                     ]
                   },
                   {
                     "coordinate": "User.name",
                     "pathsToRoot": [
-                      "User.name > User > Query.userByEmail > Query"
+                      [
+                        "User.name",
+                        "User",
+                        "Query.userByEmail",
+                        "Query"
+                      ]
                     ]
                   },
                   {
                     "coordinate": "Product",
                     "pathsToRoot": [
-                      "Product > Query.productSearch > Query"
+                      [
+                        "Product",
+                        "Query.productSearch",
+                        "Query"
+                      ]
                     ]
                   },
                   {
                     "coordinate": "Product.category",
                     "pathsToRoot": [
-                      "Product.category > Product > Query.productSearch > Query"
+                      [
+                        "Product.category",
+                        "Product",
+                        "Query.productSearch",
+                        "Query"
+                      ]
                     ]
                   },
                   {
                     "coordinate": "Product.price",
                     "pathsToRoot": [
-                      "Product.price > Product > Query.productSearch > Query"
+                      [
+                        "Product.price",
+                        "Product",
+                        "Query.productSearch",
+                        "Query"
+                      ]
                     ]
                   }
                 ]

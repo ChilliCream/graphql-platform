@@ -33,19 +33,19 @@ public sealed class SemanticIntrospectionTests
                   },
                   {
                     "coordinate": "Query.userByEmail",
-                    "score": 0.9113392233848572
+                    "score": 0.8974776268005371
                   },
                   {
                     "coordinate": "User.name",
-                    "score": 0.732876718044281
+                    "score": 0.71161288022995
                   },
                   {
                     "coordinate": "User.email",
-                    "score": 0.732876718044281
+                    "score": 0.71161288022995
                   },
                   {
                     "coordinate": "User.age",
-                    "score": 0.699621856212616
+                    "score": 0.6750305891036987
                   }
                 ]
               }
@@ -82,7 +82,7 @@ public sealed class SemanticIntrospectionTests
                   },
                   {
                     "coordinate": "Query.userByEmail",
-                    "score": 0.9289592504501343
+                    "score": 0.9191438555717468
                   }
                 ]
               }
@@ -119,7 +119,7 @@ public sealed class SemanticIntrospectionTests
                   },
                   {
                     "coordinate": "Product.name",
-                    "score": 0.827045202255249
+                    "score": 0.8174113631248474
                   }
                 ]
               }
@@ -281,37 +281,53 @@ public sealed class SemanticIntrospectionTests
                   {
                     "coordinate": "Product.name",
                     "pathsToRoot": [
-                      "Product.name > Product > Query.productSearch > Query"
+                      [
+                        "Query.productSearch",
+                        "Product.name"
+                      ]
                     ]
                   },
                   {
                     "coordinate": "Query.productSearch",
                     "pathsToRoot": [
-                      "Query.productSearch > Query"
+                      [
+                        "Query.productSearch"
+                      ]
                     ]
                   },
                   {
                     "coordinate": "User.name",
                     "pathsToRoot": [
-                      "User.name > User > Query.userByEmail > Query"
+                      [
+                        "Query.userByEmail",
+                        "User.name"
+                      ]
                     ]
                   },
                   {
                     "coordinate": "Product",
                     "pathsToRoot": [
-                      "Product > Query.productSearch > Query"
+                      [
+                        "Query.productSearch"
+                      ]
                     ]
                   },
                   {
                     "coordinate": "Product.category",
                     "pathsToRoot": [
-                      "Product.category > Product > Query.productSearch > Query"
+                      [
+                        "Query.productSearch",
+                        "Product.category"
+                      ]
                     ]
                   },
                   {
                     "coordinate": "Product.price",
                     "pathsToRoot": [
-                      "Product.price > Product > Query.productSearch > Query"
+                      [
+                        "Query.productSearch",
+                        "Product.price"
+                      ]
                     ]
                   }
                 ]
@@ -349,19 +365,19 @@ public sealed class SemanticIntrospectionTests
                   },
                   {
                     "coordinate": "Product.name",
-                    "score": 0.827045202255249
+                    "score": 0.8174113631248474
                   },
                   {
                     "coordinate": "Product.category",
-                    "score": 0.827045202255249
+                    "score": 0.8174113631248474
                   },
                   {
                     "coordinate": "Product.price",
-                    "score": 0.7444983124732971
+                    "score": 0.7237380146980286
                   },
                   {
                     "coordinate": "Query.productSearch",
-                    "score": 0.6475508809089661
+                    "score": 0.6175786256790161
                   }
                 ]
               }
@@ -437,6 +453,18 @@ public sealed class SemanticIntrospectionTests
                     }
                   },
                   {
+                    "coordinate": "Query.productSearch",
+                    "definition": {
+                      "name": "productSearch",
+                      "description": "Search for products by name or category",
+                      "args": [
+                        {
+                          "name": "term"
+                        }
+                      ]
+                    }
+                  },
+                  {
                     "coordinate": "User.name",
                     "definition": {
                       "name": "name",
@@ -451,22 +479,6 @@ public sealed class SemanticIntrospectionTests
                       "description": "The age of the user in years",
                       "args": []
                     }
-                  },
-                  {
-                    "coordinate": "Query.productSearch",
-                    "definition": {
-                      "name": "productSearch",
-                      "description": "Search for products by name or category",
-                      "args": [
-                        {
-                          "name": "term"
-                        }
-                      ]
-                    }
-                  },
-                  {
-                    "coordinate": "@specifiedBy",
-                    "definition": {}
                   },
                   {
                     "coordinate": "Float",
@@ -813,7 +825,7 @@ public sealed class SemanticIntrospectionTests
                   },
                   {
                     "coordinate": "User.email",
-                    "score": 0.6059101819992065,
+                    "score": 0.5982846021652222,
                     "definition": {
                       "fieldName": "email",
                       "description": "The email address of the user"
@@ -821,7 +833,7 @@ public sealed class SemanticIntrospectionTests
                   },
                   {
                     "coordinate": "User",
-                    "score": 0.19035416841506958,
+                    "score": 0.1880880743265152,
                     "definition": {
                       "typeName": "User",
                       "kind": "OBJECT"
@@ -829,15 +841,23 @@ public sealed class SemanticIntrospectionTests
                   },
                   {
                     "coordinate": "Query.orderById",
-                    "score": 0.1684975028038025,
+                    "score": 0.18292827904224396,
                     "definition": {
                       "fieldName": "orderById",
                       "description": "Retrieve an order by its unique identifier"
                     }
                   },
                   {
+                    "coordinate": "Query.productSearch",
+                    "score": 0.1353328675031662,
+                    "definition": {
+                      "fieldName": "productSearch",
+                      "description": "Search for products by name or category"
+                    }
+                  },
+                  {
                     "coordinate": "User.name",
-                    "score": 0.13950614631175995,
+                    "score": 0.13384589552879333,
                     "definition": {
                       "fieldName": "name",
                       "description": "The full name of the user"
@@ -845,28 +865,15 @@ public sealed class SemanticIntrospectionTests
                   },
                   {
                     "coordinate": "User.age",
-                    "score": 0.13317593932151794,
+                    "score": 0.1269652098417282,
                     "definition": {
                       "fieldName": "age",
                       "description": "The age of the user in years"
                     }
                   },
                   {
-                    "coordinate": "Query.productSearch",
-                    "score": 0.12739528715610504,
-                    "definition": {
-                      "fieldName": "productSearch",
-                      "description": "Search for products by name or category"
-                    }
-                  },
-                  {
-                    "coordinate": "@specifiedBy",
-                    "score": 0.11778272688388824,
-                    "definition": {}
-                  },
-                  {
                     "coordinate": "Float",
-                    "score": 0.07715816795825958,
+                    "score": 0.07807315140962601,
                     "definition": {
                       "typeName": "Float",
                       "kind": "SCALAR"
@@ -921,39 +928,19 @@ public sealed class SemanticIntrospectionTests
                   },
                   {
                     "coordinate": "ID",
-                    "score": 0.4061276316642761,
+                    "score": 0.5671203136444092,
                     "definition": {
                       "typeName": "ID",
                       "kind": "SCALAR"
                     }
                   },
                   {
-                    "coordinate": "@specifiedBy",
-                    "score": 0.354110985994339,
-                    "definition": {}
-                  },
-                  {
-                    "coordinate": "@skip",
-                    "score": 0.2957645654678345,
-                    "definition": {}
-                  },
-                  {
-                    "coordinate": "@include",
-                    "score": 0.286235511302948,
-                    "definition": {}
-                  },
-                  {
                     "coordinate": "Product",
-                    "score": 0.2594583332538605,
+                    "score": 0.2852042019367218,
                     "definition": {
                       "typeName": "Product",
                       "kind": "OBJECT"
                     }
-                  },
-                  {
-                    "coordinate": "@deprecated",
-                    "score": 0.19725997745990753,
-                    "definition": {}
                   }
                 ]
               }
@@ -1004,7 +991,7 @@ public sealed class SemanticIntrospectionTests
                   },
                   {
                     "coordinate": "Order.status",
-                    "score": 0.8016138672828674,
+                    "score": 0.789767861366272,
                     "definition": {
                       "fieldName": "status",
                       "description": "The current order status"
@@ -1012,7 +999,7 @@ public sealed class SemanticIntrospectionTests
                   },
                   {
                     "coordinate": "User.name",
-                    "score": 0.28660982847213745,
+                    "score": 0.32556161284446716,
                     "definition": {
                       "fieldName": "name",
                       "description": "The full name of the user"
@@ -1020,7 +1007,7 @@ public sealed class SemanticIntrospectionTests
                   },
                   {
                     "coordinate": "User.email",
-                    "score": 0.28660982847213745,
+                    "score": 0.32556161284446716,
                     "definition": {
                       "fieldName": "email",
                       "description": "The email address of the user"
@@ -1028,7 +1015,7 @@ public sealed class SemanticIntrospectionTests
                   },
                   {
                     "coordinate": "User",
-                    "score": 0.2793460786342621,
+                    "score": 0.31599652767181396,
                     "definition": {
                       "typeName": "User",
                       "kind": "OBJECT"
@@ -1036,7 +1023,7 @@ public sealed class SemanticIntrospectionTests
                   },
                   {
                     "coordinate": "User.age",
-                    "score": 0.27486422657966614,
+                    "score": 0.3104621171951294,
                     "definition": {
                       "fieldName": "age",
                       "description": "The age of the user in years"
@@ -1044,7 +1031,7 @@ public sealed class SemanticIntrospectionTests
                   },
                   {
                     "coordinate": "Order.id",
-                    "score": 0.25921085476875305,
+                    "score": 0.25484970211982727,
                     "definition": {
                       "fieldName": "id",
                       "description": "The unique order identifier"
@@ -1052,7 +1039,7 @@ public sealed class SemanticIntrospectionTests
                   },
                   {
                     "coordinate": "Order.total",
-                    "score": 0.25921085476875305,
+                    "score": 0.25484970211982727,
                     "definition": {
                       "fieldName": "total",
                       "description": "The order total amount"
@@ -1060,18 +1047,18 @@ public sealed class SemanticIntrospectionTests
                   },
                   {
                     "coordinate": "Order",
-                    "score": 0.25802066922187805,
+                    "score": 0.24078181385993958,
                     "definition": {
                       "typeName": "Order",
                       "kind": "OBJECT"
                     }
                   },
                   {
-                    "coordinate": "Query.orderById",
-                    "score": 0.2061748057603836,
+                    "coordinate": "String",
+                    "score": 0.2084837555885315,
                     "definition": {
-                      "fieldName": "orderById",
-                      "description": "Retrieve an order by its unique identifier"
+                      "typeName": "String",
+                      "kind": "SCALAR"
                     }
                   }
                 ]
@@ -1160,6 +1147,275 @@ public sealed class SemanticIntrospectionTests
                   }
                 }
               ]
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task PathsToRoot_Should_BeCorrect_When_CoordinateIsFieldOnRootType()
+    {
+        // arrange
+        var executor = CreateSchema().MakeExecutable();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                __search(query: "orderById", first: 1) {
+                    coordinate
+                    pathsToRoot
+                }
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "__search": [
+                  {
+                    "coordinate": "Query.orderById",
+                    "pathsToRoot": [
+                      [
+                        "Query.orderById"
+                      ]
+                    ]
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task PathsToRoot_Should_BeCorrect_When_CoordinateIsFieldOnNestedType()
+    {
+        // arrange
+        var executor = CreateSchema().MakeExecutable();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                __search(query: "email address", first: 1) {
+                    coordinate
+                    pathsToRoot
+                }
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "__search": [
+                  {
+                    "coordinate": "User.email",
+                    "pathsToRoot": [
+                      [
+                        "Query.userByEmail",
+                        "User.email"
+                      ]
+                    ]
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task PathsToRoot_Should_BeCorrect_When_CoordinateIsObjectType()
+    {
+        // arrange
+        var executor = CreateSchema().MakeExecutable();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                __search(query: "Product", first: 1) {
+                    coordinate
+                    pathsToRoot
+                }
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "__search": [
+                  {
+                    "coordinate": "Product",
+                    "pathsToRoot": [
+                      [
+                        "Query.productSearch"
+                      ]
+                    ]
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task PathsToRoot_Should_BeCorrect_When_CoordinateIsScalarType()
+    {
+        // arrange
+        var executor = CreateSchema().MakeExecutable();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                __search(query: "Decimal", first: 1) {
+                    coordinate
+                    pathsToRoot
+                }
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "__search": [
+                  {
+                    "coordinate": "Decimal",
+                    "pathsToRoot": [
+                      [
+                        "Query.productSearch",
+                        "Product.price"
+                      ]
+                    ]
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task PathsToRoot_Should_BeCorrect_When_CoordinateIsEnumType()
+    {
+        // arrange
+        var executor = CreateSchema().MakeExecutable();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                __search(query: "OrderStatus", first: 2) {
+                    coordinate
+                    pathsToRoot
+                }
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "__search": [
+                  {
+                    "coordinate": "Order.status",
+                    "pathsToRoot": [
+                      [
+                        "Query.orderById",
+                        "Order.status"
+                      ]
+                    ]
+                  },
+                  {
+                    "coordinate": "OrderStatus",
+                    "pathsToRoot": [
+                      [
+                        "Query.orderById",
+                        "Order.status"
+                      ]
+                    ]
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task PathsToRoot_Should_BeCorrect_When_CoordinateIsEnumValue()
+    {
+        // arrange
+        var executor = CreateSchema().MakeExecutable();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                __search(query: "PENDING", first: 1) {
+                    coordinate
+                    pathsToRoot
+                }
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "__search": [
+                  {
+                    "coordinate": "OrderStatus.PENDING",
+                    "pathsToRoot": [
+                      [
+                        "Query.orderById",
+                        "Order.status",
+                        "OrderStatus.PENDING"
+                      ]
+                    ]
+                  }
+                ]
+              }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task PathsToRoot_Should_BeEmpty_When_CoordinateIsRootType()
+    {
+        // arrange
+        var executor = CreateSchema().MakeExecutable();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                __search(query: "Query", first: 1) {
+                    coordinate
+                    pathsToRoot
+                }
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "data": {
+                "__search": [
+                  {
+                    "coordinate": "Query",
+                    "pathsToRoot": []
+                  }
+                ]
+              }
             }
             """);
     }

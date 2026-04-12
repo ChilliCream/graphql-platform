@@ -178,9 +178,8 @@ public class BM25SearchProviderTests
             new SchemaCoordinate("Query"));
 
         // assert
-        Assert.NotEmpty(paths);
-        // Path from root to itself should be short (just the type coordinate).
-        Assert.True(paths[0].Count <= 1);
+        // A root type is already at root — no field path needed.
+        Assert.Empty(paths);
     }
 
     [Fact]
@@ -213,8 +212,8 @@ public class BM25SearchProviderTests
 
         // assert
         Assert.NotEmpty(paths);
-        // The path should start with the field coordinate.
-        Assert.Equal(new SchemaCoordinate("Product", "name"), paths[0][0]);
+        // The path should end with the target field coordinate.
+        Assert.Equal(new SchemaCoordinate("Product", "name"), paths[0][^1]);
     }
 
     [Fact]
