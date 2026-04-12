@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HotChocolate.Fusion.Execution.Introspection;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -201,27 +202,6 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
             return objectType;
         }
 
-        // For abstract types (unions), determine the concrete introspection type
-        // from the runtime result.
-        var typeName = runtimeResult switch
-        {
-            ITypeDefinition => "__Type",
-            IOutputFieldDefinition => "__Field",
-            IInputValueDefinition => "__InputValue",
-            IEnumValue => "__EnumValue",
-            IDirectiveDefinition => "__Directive",
-            _ => throw new InvalidOperationException(
-                $"Cannot determine the concrete object type for abstract type '{namedType}'"
-                + $" from runtime result of type '{runtimeResult?.GetType().Name}'.")
-        };
-
-        if (schema.Types.TryGetType(typeName, out var resolvedType)
-            && resolvedType is IObjectTypeDefinition resolvedObjectType)
-        {
-            return resolvedObjectType;
-        }
-
-        throw new InvalidOperationException(
-            $"Introspection type '{typeName}' not found in schema.");
+        return SchemaDefinitionTypeResolver.ResolveObjectType(schema, runtimeResult);
     }
 }

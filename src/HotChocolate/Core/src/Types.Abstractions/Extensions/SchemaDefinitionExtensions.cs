@@ -9,6 +9,34 @@ namespace HotChocolate;
 public static class SchemaDefinitionExtensions
 {
     /// <summary>
+    /// Resolves a <see cref="ITypeSystemMember"/> by its <see cref="SchemaCoordinate"/>.
+    /// </summary>
+    /// <param name="schema">
+    /// The schema definition to resolve against.
+    /// </param>
+    /// <param name="coordinate">
+    /// The schema coordinate to resolve.
+    /// </param>
+    /// <returns>
+    /// The resolved type system member.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when no type system member exists for the given <paramref name="coordinate"/>.
+    /// </exception>
+    public static ITypeSystemMember GetMember(
+        this ISchemaDefinition schema,
+        SchemaCoordinate coordinate)
+    {
+        if (!schema.TryGetMember(coordinate, out var member))
+        {
+            throw new InvalidOperationException(
+                $"Failed to resolve schema coordinate '{coordinate}'.");
+        }
+
+        return member;
+    }
+
+    /// <summary>
     /// Tries to resolve a <see cref="ITypeSystemMember"/> by its <see cref="SchemaCoordinate"/>.
     /// </summary>
     /// <param name="schema">

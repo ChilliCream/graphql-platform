@@ -27,8 +27,10 @@ internal static class MemHelper
     public static void WriteFloatValue(this FieldContext context, float value)
     {
         Span<byte> buffer = stackalloc byte[32];
+        const string format = "R";
+        var doubleValue = (double)value;
 
-        if (!value.TryFormat(buffer, out var written, default, CultureInfo.InvariantCulture))
+        if (!doubleValue.TryFormat(buffer, out var written, format, CultureInfo.InvariantCulture))
         {
             throw new InvalidOperationException($"Failed to format float value '{value}'.");
         }

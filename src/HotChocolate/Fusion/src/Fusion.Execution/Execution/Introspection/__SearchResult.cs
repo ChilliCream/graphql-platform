@@ -43,13 +43,9 @@ internal sealed class __SearchResult : ITypeResolverInterceptor
     {
         var result = context.Parent<SchemaSearchResult>();
 
-        if (!context.Schema.TryGetMember(result.Coordinate, out var member))
-        {
-            throw new InvalidOperationException(
-                $"Failed to resolve schema coordinate '{result.Coordinate}'.");
-        }
-
-        context.FieldResult.CreateObjectValue(context.Selection, context.IncludeFlags);
+        var member = context.Schema.GetMember(result.Coordinate);
+        var objectType = SchemaDefinitionTypeResolver.ResolveObjectType(context.Schema, member);
+        context.FieldResult.CreateObjectValue(context.Selection, objectType, context.IncludeFlags);
         context.AddRuntimeResult(member);
     }
 

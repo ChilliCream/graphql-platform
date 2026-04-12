@@ -167,8 +167,10 @@ internal class Query : ITypeResolverInterceptor
         var i = 0;
         foreach (var element in list.EnumerateArray())
         {
-            context.AddRuntimeResult(definitions[i++]);
-            element.CreateObjectValue(context.Selection, context.IncludeFlags);
+            var definition = definitions[i++];
+            var objectType = SchemaDefinitionTypeResolver.ResolveObjectType(context.Schema, definition);
+            context.AddRuntimeResult(definition);
+            element.CreateObjectValue(context.Selection, objectType, context.IncludeFlags);
         }
     }
 }
