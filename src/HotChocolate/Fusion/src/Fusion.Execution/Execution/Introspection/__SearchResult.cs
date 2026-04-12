@@ -1,5 +1,6 @@
 using HotChocolate.Features;
 using HotChocolate.Fusion.Execution.Nodes;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution.Introspection;
 
@@ -23,7 +24,7 @@ internal sealed class __SearchResult : ITypeResolverInterceptor
                 break;
 
             case "pathsToRoot":
-                features.Set(new ResolveFieldValue(PathsToRoot));
+                features.Set(new AsyncResolveFieldValue(PathsToRootAsync));
                 break;
 
             case "score":
@@ -33,37 +34,57 @@ internal sealed class __SearchResult : ITypeResolverInterceptor
     }
 
     public static void Cursor(FieldContext context)
-        => context.WriteValue(context.Parent<SearchResultData>().Cursor);
+        => context.WriteValue(context.Parent<SchemaSearchResult>().Cursor);
 
     public static void Coordinate(FieldContext context)
-        => context.WriteValue(context.Parent<SearchResultData>().Coordinate.ToString());
+        => context.WriteValue(context.Parent<SchemaSearchResult>().Coordinate.ToString());
 
     public static void Definition(FieldContext context)
     {
-        var data = context.Parent<SearchResultData>();
+        var result = context.Parent<SchemaSearchResult>();
+
+        if (!context.Schema.TryGetMember(result.Coordinate, out var member))
+        {
+            throw new InvalidOperationException(
+                $"Failed to resolve schema coordinate '{result.Coordinate}'.");
+        }
+
         context.FieldResult.CreateObjectValue(context.Selection, context.IncludeFlags);
-        context.AddRuntimeResult(data.Definition);
+        context.AddRuntimeResult(member);
     }
 
-    public static void PathsToRoot(FieldContext context)
+    public static async ValueTask PathsToRootAsync(FieldContext context)
     {
-        var data = context.Parent<SearchResultData>();
-        var paths = data.PathsToRoot;
-        var list = context.FieldResult.CreateListValue(paths.Count);
+        var result = context.Parent<SchemaSearchResult>();
+        var provider = context.Schema.Services.GetRequiredService<ISchemaSearchProvider>();
+        var paths = await provider.GetPathsToRootAsync(
+            result.Coordinate,
+            context.RequestAborted)
+            .ConfigureAwait(false);
 
-        var index = 0;
-        foreach (var element in list.EnumerateArray())
+        var outerList = context.FieldResult.CreateListValue(paths.Count);
+
+        var outerIndex = 0;
+        foreach (var outerElement in outerList.EnumerateArray())
         {
-            element.SetStringValue(paths[index++]);
+            var path = paths[outerIndex++].ToStringArray();
+            var innerList = outerElement.CreateListValue(path.Length);
+
+            var innerIndex = 0;
+            foreach (var innerElement in innerList.EnumerateArray())
+            {
+                innerElement.SetStringValue(path[innerIndex++]);
+            }
         }
     }
 
     public static void Score(FieldContext context)
     {
-        var data = context.Parent<SearchResultData>();
-        if (data.Score.HasValue)
+        var result = context.Parent<SchemaSearchResult>();
+
+        if (result.Score.HasValue)
         {
-            context.WriteFloatValue(data.Score.Value);
+            context.WriteFloatValue(result.Score.Value);
         }
     }
 }

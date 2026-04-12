@@ -1,5 +1,4 @@
 using System.Text.Json;
-using HotChocolate.Fusion.Execution.Introspection;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -50,7 +49,7 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
     /// </summary>
     public ReadOnlySpan<Selection> Selections => _selections;
 
-    protected override ValueTask<ExecutionStatus> OnExecuteAsync(
+    protected override async ValueTask<ExecutionStatus> OnExecuteAsync(
         OperationPlanContext context,
         CancellationToken cancellationToken = default)
     {
@@ -61,7 +60,7 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
 
         foreach (var selection in _selections)
         {
-            if (selection.Resolver is null
+            if ((selection.Resolver is null && selection.AsyncResolver is null)
                 || !selection.Field.IsIntrospectionField
                 || !selection.IsIncluded(context.IncludeFlags))
             {
@@ -72,32 +71,49 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
             backlog.Push((null, selection, property));
         }
 
-        ExecuteSelections(context, backlog);
+        await ExecuteSelectionsAsync(context, backlog, cancellationToken).ConfigureAwait(false);
         context.AddPartialResults(resultBuilder.Build(), _resultSelectionSet);
 
-        return new ValueTask<ExecutionStatus>(ExecutionStatus.Success);
+        return ExecutionStatus.Success;
     }
 
     protected override IDisposable CreateScope(OperationPlanContext context)
         => context.DiagnosticEvents.ExecuteIntrospectionNode(context, this);
 
-    private static void ExecuteSelections(
+    private static async ValueTask ExecuteSelectionsAsync(
         OperationPlanContext context,
-        Stack<(object? Parent, Selection Selection, SourceResultElementBuilder Result)> backlog)
+        Stack<(object? Parent, Selection Selection, SourceResultElementBuilder Result)> backlog,
+        CancellationToken cancellationToken)
     {
         var operation = context.OperationPlan.Operation;
         var fieldContext = new ReusableFieldContext(
             context.Schema,
             context.Variables,
             context.IncludeFlags,
-            context.CreateRentedBuffer());
+            context.CreateRentedBuffer(),
+            cancellationToken);
 
         while (backlog.TryPop(out var current))
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var (parent, selection, result) = current;
             fieldContext.Initialize(parent, selection, result);
 
-            selection.Resolver?.Invoke(fieldContext);
+            if (selection.AsyncResolver is { } asyncResolver)
+            {
+                await asyncResolver.Invoke(fieldContext).ConfigureAwait(false);
+            }
+            else if (selection.Resolver is { } resolver)
+            {
+                resolver.Invoke(fieldContext);
+            }
+            else
+            {
+                throw new InvalidOperationException(
+                    $"No resolver found for selection '{selection.ResponseName}' "
+                    + $"on field '{selection.Field.Name}'.");
+            }
 
             if (!selection.IsLeaf)
             {
@@ -185,18 +201,27 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
             return objectType;
         }
 
-        // For abstract types, determine the concrete type from the runtime result.
-        var typeName = SchemaCoordinateResolver.GetTypeName(runtimeResult!);
+        // For abstract types (unions), determine the concrete introspection type
+        // from the runtime result.
+        var typeName = runtimeResult switch
+        {
+            ITypeDefinition => "__Type",
+            IOutputFieldDefinition => "__Field",
+            IInputValueDefinition => "__InputValue",
+            IEnumValue => "__EnumValue",
+            IDirectiveDefinition => "__Directive",
+            _ => throw new InvalidOperationException(
+                $"Cannot determine the concrete object type for abstract type '{namedType}'"
+                + $" from runtime result of type '{runtimeResult?.GetType().Name}'.")
+        };
 
-        if (typeName is not null
-            && schema.Types.TryGetType(typeName, out var resolvedType)
+        if (schema.Types.TryGetType(typeName, out var resolvedType)
             && resolvedType is IObjectTypeDefinition resolvedObjectType)
         {
             return resolvedObjectType;
         }
 
         throw new InvalidOperationException(
-            $"Cannot determine the concrete object type for abstract type '{namedType}'"
-            + $" from runtime result of type '{runtimeResult?.GetType().Name}'.");
+            $"Introspection type '{typeName}' not found in schema.");
     }
 }

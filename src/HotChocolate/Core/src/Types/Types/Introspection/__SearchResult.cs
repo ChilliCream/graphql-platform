@@ -75,7 +75,6 @@ internal sealed class __SearchResult : ObjectType
             var provider = context.Schema.Services.GetRequiredService<ISchemaSearchProvider>();
             var paths = await provider.GetPathsToRootAsync(
                 result.Coordinate,
-                maxPaths: 5,
                 context.RequestAborted)
                 .ConfigureAwait(false);
 

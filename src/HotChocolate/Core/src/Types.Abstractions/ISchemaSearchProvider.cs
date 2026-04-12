@@ -46,22 +46,20 @@ public interface ISchemaSearchProvider
 
     /// <summary>
     /// Gets the paths from the specified schema coordinate to a root type.
+    /// The implementation determines how many paths to return.
     /// </summary>
     /// <param name="coordinate">
     /// The schema coordinate from which to trace paths to a root type.
-    /// </param>
-    /// <param name="maxPaths">
-    /// The maximum number of paths to return.
     /// </param>
     /// <param name="cancellationToken">
     /// The cancellation token.
     /// </param>
     /// <returns>
     /// A list of <see cref="SchemaCoordinatePath"/> instances,
-    /// each representing an ordered path from the coordinate to a root type.
+    /// each representing an ordered path from the coordinate to a root type,
+    /// ordered by path length (shortest first).
     /// </returns>
     ValueTask<IReadOnlyList<SchemaCoordinatePath>> GetPathsToRootAsync(
         SchemaCoordinate coordinate,
-        int maxPaths,
         CancellationToken cancellationToken = default);
 }

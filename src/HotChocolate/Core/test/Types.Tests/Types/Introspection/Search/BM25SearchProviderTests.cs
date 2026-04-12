@@ -175,7 +175,7 @@ public class BM25SearchProviderTests
 
         // act
         var paths = await provider.GetPathsToRootAsync(
-            new SchemaCoordinate("Query"), maxPaths: 5);
+            new SchemaCoordinate("Query"));
 
         // assert
         Assert.NotEmpty(paths);
@@ -192,7 +192,7 @@ public class BM25SearchProviderTests
 
         // act
         var paths = await provider.GetPathsToRootAsync(
-            new SchemaCoordinate("Product"), maxPaths: 5);
+            new SchemaCoordinate("Product"));
 
         // assert
         Assert.NotEmpty(paths);
@@ -209,27 +209,12 @@ public class BM25SearchProviderTests
 
         // act
         var paths = await provider.GetPathsToRootAsync(
-            new SchemaCoordinate("Product", "name"), maxPaths: 5);
+            new SchemaCoordinate("Product", "name"));
 
         // assert
         Assert.NotEmpty(paths);
         // The path should start with the field coordinate.
         Assert.Equal(new SchemaCoordinate("Product", "name"), paths[0][0]);
-    }
-
-    [Fact]
-    public async Task GetPathsToRootAsync_Should_ReturnEmpty_When_MaxPathsIsZero()
-    {
-        // arrange
-        var schema = CreateTestSchema();
-        var provider = new BM25SearchProvider(schema);
-
-        // act
-        var paths = await provider.GetPathsToRootAsync(
-            new SchemaCoordinate("Product"), maxPaths: 0);
-
-        // assert
-        Assert.Empty(paths);
     }
 
     [Fact]
@@ -241,28 +226,13 @@ public class BM25SearchProviderTests
 
         // act
         var paths = await provider.GetPathsToRootAsync(
-            new SchemaCoordinate("Product"), maxPaths: 10);
+            new SchemaCoordinate("Product"));
 
         // assert
         for (var i = 1; i < paths.Count; i++)
         {
             Assert.True(paths[i - 1].Count <= paths[i].Count);
         }
-    }
-
-    [Fact]
-    public async Task GetPathsToRootAsync_Should_LimitResults_When_MaxPathsIsSmall()
-    {
-        // arrange
-        var schema = CreateTestSchema();
-        var provider = new BM25SearchProvider(schema);
-
-        // act
-        var paths = await provider.GetPathsToRootAsync(
-            new SchemaCoordinate("Product"), maxPaths: 1);
-
-        // assert
-        Assert.True(paths.Count <= 1);
     }
 
     [Fact]

@@ -11,6 +11,7 @@ namespace HotChocolate.Types.Introspection;
 internal sealed class BM25SearchProvider : ISchemaSearchProvider
 {
     private const int MaxQueryLength = 1024;
+    private const int MaxPaths = 5;
 
     private readonly ISchemaDefinition _schema;
     private volatile SearchData? _searchData;
@@ -92,15 +93,8 @@ internal sealed class BM25SearchProvider : ISchemaSearchProvider
     /// <inheritdoc />
     public ValueTask<IReadOnlyList<SchemaCoordinatePath>> GetPathsToRootAsync(
         SchemaCoordinate coordinate,
-        int maxPaths,
         CancellationToken cancellationToken = default)
     {
-        if (maxPaths <= 0)
-        {
-            return ValueTask.FromResult<IReadOnlyList<SchemaCoordinatePath>>(
-                Array.Empty<SchemaCoordinatePath>());
-        }
-
         var data = EnsureIndex();
 
         // Determine the type name to start BFS from.
@@ -109,7 +103,7 @@ internal sealed class BM25SearchProvider : ISchemaSearchProvider
         // If it's a type coordinate, we start from that type directly.
         var startTypeName = coordinate.Name;
 
-        var paths = FindPathsToRoot(data, startTypeName, maxPaths, cancellationToken);
+        var paths = FindPathsToRoot(data, startTypeName, MaxPaths, cancellationToken);
 
         // Build SchemaCoordinatePath instances.
         // Each path is from the target coordinate back to a root type field.
@@ -142,10 +136,10 @@ internal sealed class BM25SearchProvider : ISchemaSearchProvider
         // Sort by path length (shortest first).
         result.Sort(static (a, b) => a.Count.CompareTo(b.Count));
 
-        // Limit to maxPaths.
-        if (result.Count > maxPaths)
+        // Limit to MaxPaths.
+        if (result.Count > MaxPaths)
         {
-            result.RemoveRange(maxPaths, result.Count - maxPaths);
+            result.RemoveRange(MaxPaths, result.Count - MaxPaths);
         }
 
         return ValueTask.FromResult<IReadOnlyList<SchemaCoordinatePath>>(result);

@@ -1,8 +1,6 @@
-using System.Diagnostics;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
-using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution.Introspection;
@@ -29,7 +27,7 @@ internal class Query : ITypeResolverInterceptor
                 break;
 
             case "__search" when _enableSemanticIntrospection:
-                features.Set(new ResolveFieldValue(Search));
+                features.Set(new AsyncResolveFieldValue(SearchAsync));
                 break;
 
             case "__definitions" when _enableSemanticIntrospection:
@@ -54,7 +52,9 @@ internal class Query : ITypeResolverInterceptor
         }
     }
 
-    public static void Search(FieldContext context)
+    private const int MaxFirstLimit = 150;
+
+    public static async ValueTask SearchAsync(FieldContext context)
     {
         var provider = context.Schema.Services.GetService<ISchemaSearchProvider>();
 
@@ -67,8 +67,25 @@ internal class Query : ITypeResolverInterceptor
         var query = context.ArgumentValue<StringValueNode>("query").Value;
         var first = int.Parse(context.ArgumentValue<IntValueNode>("first").Value);
 
+        if (first <= 0)
+        {
+            throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage("The `first` argument must be greater than zero.")
+                    .Build());
+        }
+
+        if (first > MaxFirstLimit)
+        {
+            throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage($"The `first` argument must not exceed {MaxFirstLimit}.")
+                    .Build());
+        }
+
         string? after = null;
         var afterNode = context.ArgumentValue<IValueNode>("after");
+
         if (afterNode is StringValueNode afterString)
         {
             after = afterString.Value;
@@ -76,6 +93,7 @@ internal class Query : ITypeResolverInterceptor
 
         float? minScore = null;
         var minScoreNode = context.ArgumentValue<IValueNode>("min_score");
+
         if (minScoreNode is FloatValueNode floatNode)
         {
             minScore = float.Parse(floatNode.Value, System.Globalization.CultureInfo.InvariantCulture);
@@ -85,44 +103,38 @@ internal class Query : ITypeResolverInterceptor
             minScore = float.Parse(intNode.Value, System.Globalization.CultureInfo.InvariantCulture);
         }
 
-        var results = provider.SearchAsync(query, first, after, minScore).AsTask().GetAwaiter().GetResult();
+        IReadOnlyList<SchemaSearchResult> results;
 
-        var searchResults = new List<SearchResultData>(results.Count);
-
-        foreach (var result in results)
+        try
         {
-            var definition = SchemaCoordinateResolver.Resolve(context.Schema, result.Coordinate);
-
-            if (definition is null)
-            {
-                continue;
-            }
-
-            var paths = provider.GetPathsToRootAsync(result.Coordinate, maxPaths: 5).AsTask().GetAwaiter().GetResult();
-
-            var pathStrings = new List<string>(paths.Count);
-
-            foreach (var path in paths)
-            {
-                pathStrings.Add(string.Join(" > ", path.Select(c => c.ToString())));
-            }
-
-            searchResults.Add(new SearchResultData
-            {
-                Coordinate = result.Coordinate,
-                Definition = definition,
-                PathsToRoot = pathStrings,
-                Score = result.Score,
-                Cursor = result.Cursor
-            });
+            results = await provider.SearchAsync(
+                query,
+                first,
+                after,
+                minScore,
+                context.RequestAborted).ConfigureAwait(false);
+        }
+        catch (InvalidSearchCursorException)
+        {
+            throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage("The value of `after` is not a valid cursor.")
+                    .Build());
+        }
+        catch (SearchQueryTooLargeException)
+        {
+            throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage("The search query exceeds the maximum allowed length.")
+                    .Build());
         }
 
-        var list = context.FieldResult.CreateListValue(searchResults.Count);
+        var list = context.FieldResult.CreateListValue(results.Count);
 
         var i = 0;
         foreach (var element in list.EnumerateArray())
         {
-            context.AddRuntimeResult(searchResults[i++]);
+            context.AddRuntimeResult(results[i++]);
             element.CreateObjectValue(context.Selection, context.IncludeFlags);
         }
     }
@@ -144,9 +156,7 @@ internal class Query : ITypeResolverInterceptor
                 continue;
             }
 
-            var definition = SchemaCoordinateResolver.Resolve(context.Schema, coordinate.Value);
-
-            if (definition is not null)
+            if (context.Schema.TryGetMember(coordinate.Value, out var definition))
             {
                 definitions.Add(definition);
             }

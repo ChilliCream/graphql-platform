@@ -12,7 +12,7 @@ internal static class SemanticIntrospectionSchema
           cursor: String!
           coordinate: String!
           definition: __SchemaDefinition!
-          pathsToRoot: [String!]!
+          pathsToRoot: [[String!]!]!
           score: Float
         }
 
