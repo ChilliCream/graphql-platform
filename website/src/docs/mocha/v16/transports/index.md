@@ -183,7 +183,7 @@ Each transport manages its own connections, topology, and middleware pipeline in
 
 # Next steps
 
-- [InMemory Transport](/docs/mocha/v1/transports/in-memory) - Set up the InMemory transport for development and testing.
-- [RabbitMQ Transport](/docs/mocha/v1/transports/rabbitmq) - Configure the RabbitMQ transport for production deployments.
+- [InMemory Transport](/docs/mocha/v16/transports/in-memory) - Set up the InMemory transport for development and testing.
+- [RabbitMQ Transport](/docs/mocha/v16/transports/rabbitmq) - Configure the RabbitMQ transport for production deployments.
 
 > **Runnable example:** [MultiTransport](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/Transports/MultiTransport)

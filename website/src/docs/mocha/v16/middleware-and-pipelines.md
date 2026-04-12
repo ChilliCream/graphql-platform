@@ -302,18 +302,18 @@ Only one of `before` or `after` can be specified at the same time. If neither is
 
 Middleware is compiled once at startup into a single delegate chain. Register all middleware during bus configuration, before the service provider is built. Middleware added after the bus starts has no effect.
 
-Middleware can also be registered at transport or endpoint scope. Bus-level middleware applies to all transports and endpoints. Transport-level middleware applies to all endpoints on that transport. Endpoint-level middleware applies to a single endpoint. The most specific scope wins. This is the same scope hierarchy described in [Routing and Endpoints](/docs/mocha/v1/routing-and-endpoints).
+Middleware can also be registered at transport or endpoint scope. Bus-level middleware applies to all transports and endpoints. Transport-level middleware applies to all endpoints on that transport. Endpoint-level middleware applies to a single endpoint. The most specific scope wins. This is the same scope hierarchy described in [Routing and Endpoints](/docs/mocha/v16/routing-and-endpoints).
 
 # Built-in middleware and feature pages
 
 The built-in middleware in the receive pipeline implements the reliability and observability features described on their own pages:
 
-- The `Inbox` middleware deduplicates incoming messages based on `MessageId`, described in [Reliability](/docs/mocha/v1/reliability#deduplicate-messages-with-the-transactional-inbox). It runs in the **consumer pipeline** after the transaction middleware so that the inbox claim participates in the same database transaction as the handler's business data. Use `UseConsume(config, before: "Inbox")` or `UseConsume(config, after: "Inbox")` to position your middleware relative to it.
-- The `CircuitBreaker` and `DeadLetter` middleware implement the circuit breaker and dead-letter behaviors described in [Reliability](/docs/mocha/v1/reliability). Use `UseReceive(config, before: "key")` or `UseReceive(config, after: "key")` with their keys to position your middleware relative to them.
-- The `ReceiveInstrumentation` middleware generates the OpenTelemetry spans and metrics described in [Observability](/docs/mocha/v1/observability). Place logging or correlation middleware after `ReceiveInstrumentation` using `UseReceive(config, after: "ReceiveInstrumentation")`.
+- The `Inbox` middleware deduplicates incoming messages based on `MessageId`, described in [Reliability](/docs/mocha/v16/reliability#deduplicate-messages-with-the-transactional-inbox). It runs in the **consumer pipeline** after the transaction middleware so that the inbox claim participates in the same database transaction as the handler's business data. Use `UseConsume(config, before: "Inbox")` or `UseConsume(config, after: "Inbox")` to position your middleware relative to it.
+- The `CircuitBreaker` and `DeadLetter` middleware implement the circuit breaker and dead-letter behaviors described in [Reliability](/docs/mocha/v16/reliability). Use `UseReceive(config, before: "key")` or `UseReceive(config, after: "key")` with their keys to position your middleware relative to them.
+- The `ReceiveInstrumentation` middleware generates the OpenTelemetry spans and metrics described in [Observability](/docs/mocha/v16/observability). Place logging or correlation middleware after `ReceiveInstrumentation` using `UseReceive(config, after: "ReceiveInstrumentation")`.
 
 # Next steps
 
-The pipeline handles failures automatically. Learn how circuit breaking, dead-letter routing, the transactional outbox, and the idempotent inbox work in [Reliability](/docs/mocha/v1/reliability).
+The pipeline handles failures automatically. Learn how circuit breaking, dead-letter routing, the transactional outbox, and the idempotent inbox work in [Reliability](/docs/mocha/v16/reliability).
 
 > **Runnable examples:** [CustomMiddleware](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/Middleware/CustomMiddleware), [UnitOfWork](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/Middleware/UnitOfWork)

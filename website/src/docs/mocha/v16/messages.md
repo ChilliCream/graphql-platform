@@ -202,6 +202,6 @@ When you need to refactor a message type's CLR namespace without changing its wi
 
 Now that you understand message structure, learn the three messaging patterns.
 
-- [**Messaging Patterns**](/docs/mocha/v1/messaging-patterns) - Pub/sub events, point-to-point commands, and request/reply.
+- [**Messaging Patterns**](/docs/mocha/v16/messaging-patterns) - Pub/sub events, point-to-point commands, and request/reply.
 
 > **Full demo:** [Demo.Contracts](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/examples/Demo/Demo.Contracts) contains a complete set of message contracts for an e-commerce system - events (`OrderPlacedEvent`, `PaymentCompletedEvent`), send messages (`ProcessRefundCommand`, `ReserveInventoryCommand`), and request/reply pairs used by sagas.

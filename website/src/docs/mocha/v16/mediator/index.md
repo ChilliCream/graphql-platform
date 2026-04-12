@@ -491,4 +491,4 @@ Each named mediator resolves handlers from the same DI container. Make sure you 
 
 You have a working mediator with CQRS dispatch. Here is where to go next:
 
-- **Customize the pipeline:** [Pipeline & Middleware](/docs/mocha/v1/mediator/pipeline-and-middleware) - add validation, logging, transactions, and other cross-cutting concerns. Configure notification publish modes and OpenTelemetry instrumentation.
+- **Customize the pipeline:** [Pipeline & Middleware](/docs/mocha/v16/mediator/pipeline-and-middleware) - add validation, logging, transactions, and other cross-cutting concerns. Configure notification publish modes and OpenTelemetry instrumentation.

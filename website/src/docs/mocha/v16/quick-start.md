@@ -111,7 +111,7 @@ app.Run();
 Each registration line has a single responsibility:
 
 - `AddMessageBus()` - registers the bus runtime and core services into DI.
-- `AddMochaQuickStart()` - source-generated method that discovers and registers all handlers in this assembly. Named after the project - to customize the name, see [Handler Registration](/docs/mocha/v1/handler-registration).
+- `AddMochaQuickStart()` - source-generated method that discovers and registers all handlers in this assembly. Named after the project - to customize the name, see [Handler Registration](/docs/mocha/v16/handler-registration).
 - `AddInMemory()` - adds the InMemory transport; messages stay in-process.
 
 # Publish and verify
@@ -151,11 +151,11 @@ Your POST request hit the `/orders` endpoint, which called `PublishAsync` on `IM
 
 You have a working message bus. Here is where to go next:
 
-- **Understand messages:** [Messages](/docs/mocha/v1/messages) - learn what a message is, how the envelope wraps it, and naming conventions for events and commands.
-- **Learn the three patterns:** [Messaging Patterns](/docs/mocha/v1/messaging-patterns) - understand when to use pub/sub events, commands, and request/reply.
-- **Move to production:** [Transports](/docs/mocha/v1/transports) - switch from InMemory to RabbitMQ for real workloads.
+- **Understand messages:** [Messages](/docs/mocha/v16/messages) - learn what a message is, how the envelope wraps it, and naming conventions for events and commands.
+- **Learn the three patterns:** [Messaging Patterns](/docs/mocha/v16/messaging-patterns) - understand when to use pub/sub events, commands, and request/reply.
+- **Move to production:** [Transports](/docs/mocha/v16/transports) - switch from InMemory to RabbitMQ for real workloads.
 
-Now that you have a working app, learn how messages work in [Messages](/docs/mocha/v1/messages).
+Now that you have a working app, learn how messages work in [Messages](/docs/mocha/v16/messages).
 
 > **Runnable example:** [Examples/QuickStart](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/QuickStart)
 >

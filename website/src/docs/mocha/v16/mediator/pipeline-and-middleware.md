@@ -592,7 +592,7 @@ When using `NotificationPublishMode.Concurrent`, all handler pipelines execute i
 
 # Next steps
 
-- **Mediator overview:** [Overview](/docs/mocha/v1/mediator) - messages, handlers, dispatching, and registration.
-- **Message bus middleware:** [Middleware & Pipelines](/docs/mocha/v1/middleware-and-pipelines) - the message bus has its own three-layer pipeline (dispatch, receive, consume) using the same middleware model.
-- **Cross service boundaries:** [Messaging Patterns](/docs/mocha/v1/messaging-patterns) - when your commands need to reach another service, switch to the message bus.
-- **Coordinate workflows:** [Sagas](/docs/mocha/v1/sagas) - orchestrate multi-step processes across services.
+- **Mediator overview:** [Overview](/docs/mocha/v16/mediator) - messages, handlers, dispatching, and registration.
+- **Message bus middleware:** [Middleware & Pipelines](/docs/mocha/v16/middleware-and-pipelines) - the message bus has its own three-layer pipeline (dispatch, receive, consume) using the same middleware model.
+- **Cross service boundaries:** [Messaging Patterns](/docs/mocha/v16/messaging-patterns) - when your commands need to reach another service, switch to the message bus.
+- **Coordinate workflows:** [Sagas](/docs/mocha/v16/sagas) - orchestrate multi-step processes across services.
