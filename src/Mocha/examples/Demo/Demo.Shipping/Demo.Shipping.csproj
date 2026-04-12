@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Demo.Shipping</AssemblyName>
+    <RootNamespace>HotChocolate.Demo.Shipping</RootNamespace>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Demo.ServiceDefaults\Demo.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\Demo.Contracts\Demo.Contracts.csproj" />
+    <ProjectReference Include="..\..\..\src\Mocha\Mocha.csproj" />
+    <ProjectReference Include="..\..\..\src\Mocha.Mediator\Mocha.Mediator.csproj" />
+    <ProjectReference Include="..\..\..\src\Mocha.Analyzers\Mocha.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\..\src\Mocha.EntityFrameworkCore.Postgres\Mocha.EntityFrameworkCore.Postgres.csproj" />
+    <ProjectReference Include="..\..\..\src\Mocha.Transport.RabbitMQ\Mocha.Transport.RabbitMQ.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Aspire.RabbitMQ.Client" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+</Project>

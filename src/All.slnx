@@ -362,14 +362,6 @@
     <Project Path="Mocha/src/Mocha.Utilities/Mocha.Utilities.csproj" />
     <Project Path="Mocha/src/Mocha/Mocha.csproj" />
   </Folder>
-  <Folder Name="/Mocha/src/Demo/">
-    <Project Path="Mocha/src/Demo/Demo.AppHost/Demo.AppHost.csproj" />
-    <Project Path="Mocha/src/Demo/Demo.Billing/Demo.Billing.csproj" />
-    <Project Path="Mocha/src/Demo/Demo.Catalog/Demo.Catalog.csproj" />
-    <Project Path="Mocha/src/Demo/Demo.Contracts/Demo.Contracts.csproj" />
-    <Project Path="Mocha/src/Demo/Demo.ServiceDefaults/Demo.ServiceDefaults.csproj" />
-    <Project Path="Mocha/src/Demo/Demo.Shipping/Demo.Shipping.csproj" />
-  </Folder>
   <Folder Name="/Mocha/test/">
     <Project Path="Mocha/test/Demo.Catalog.Tests/Demo.Catalog.Tests.csproj" />
     <Project Path="Mocha/test/Mocha.Analyzers.Tests/Mocha.Analyzers.Tests.csproj" />
