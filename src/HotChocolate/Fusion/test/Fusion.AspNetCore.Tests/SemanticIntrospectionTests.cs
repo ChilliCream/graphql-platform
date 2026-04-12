@@ -12,7 +12,7 @@ public class SemanticIntrospectionTests : FusionTestBase
     public async Task Search_Should_ReturnResults_When_QueryMatchesFieldName()
     {
         // arrange
-        using var server = CreateSourceSchema("A", _sourceSchema);
+        using var server = CreateSourceSchema("A", SourceSchema);
 
         using var gateway = await CreateGatewayAsync(server);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -43,19 +43,19 @@ public class SemanticIntrospectionTests : FusionTestBase
                   },
                   {
                     "coordinate": "Query.userByEmail",
-                    "score": 0.8877184
+                    "score": 0.8974776268005371
                   },
                   {
                     "coordinate": "User.email",
-                    "score": 0.69699603
+                    "score": 0.71161288022995
                   },
                   {
                     "coordinate": "User.name",
-                    "score": 0.69699603
+                    "score": 0.71161288022995
                   },
                   {
                     "coordinate": "User.age",
-                    "score": 0.65830594
+                    "score": 0.6750305891036987
                   }
                 ]
               }
@@ -67,7 +67,7 @@ public class SemanticIntrospectionTests : FusionTestBase
     public async Task Search_Should_ReturnResults_When_QueryMatchesDescription()
     {
         // arrange
-        using var server = CreateSourceSchema("A", _sourceSchema);
+        using var server = CreateSourceSchema("A", SourceSchema);
 
         using var gateway = await CreateGatewayAsync(server);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -98,7 +98,7 @@ public class SemanticIntrospectionTests : FusionTestBase
                   },
                   {
                     "coordinate": "Query.userByEmail",
-                    "score": 0.9123855
+                    "score": 0.9191438555717468
                   }
                 ]
               }
@@ -110,7 +110,7 @@ public class SemanticIntrospectionTests : FusionTestBase
     public async Task Search_Should_RespectFirstArgument()
     {
         // arrange
-        using var server = CreateSourceSchema("A", _sourceSchema);
+        using var server = CreateSourceSchema("A", SourceSchema);
 
         using var gateway = await CreateGatewayAsync(server);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -141,7 +141,7 @@ public class SemanticIntrospectionTests : FusionTestBase
                   },
                   {
                     "coordinate": "Product.category",
-                    "score": 0.81051797
+                    "score": 0.8174113631248474
                   }
                 ]
               }
@@ -153,7 +153,7 @@ public class SemanticIntrospectionTests : FusionTestBase
     public async Task Search_Should_FilterByMinScore()
     {
         // arrange
-        using var server = CreateSourceSchema("A", _sourceSchema);
+        using var server = CreateSourceSchema("A", SourceSchema);
 
         using var gateway = await CreateGatewayAsync(server);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -192,7 +192,7 @@ public class SemanticIntrospectionTests : FusionTestBase
     public async Task Search_Should_ReturnCursors_And_SupportPagination()
     {
         // arrange
-        using var server = CreateSourceSchema("A", _sourceSchema);
+        using var server = CreateSourceSchema("A", SourceSchema);
 
         using var gateway = await CreateGatewayAsync(server);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -265,7 +265,7 @@ public class SemanticIntrospectionTests : FusionTestBase
     public async Task Search_Should_ReturnEmptyList_When_NoMatches()
     {
         // arrange
-        using var server = CreateSourceSchema("A", _sourceSchema);
+        using var server = CreateSourceSchema("A", SourceSchema);
 
         using var gateway = await CreateGatewayAsync(server);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -299,7 +299,7 @@ public class SemanticIntrospectionTests : FusionTestBase
     public async Task Search_Should_IncludePathsToRoot()
     {
         // arrange
-        using var server = CreateSourceSchema("A", _sourceSchema);
+        using var server = CreateSourceSchema("A", SourceSchema);
 
         using var gateway = await CreateGatewayAsync(server);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -328,10 +328,8 @@ public class SemanticIntrospectionTests : FusionTestBase
                     "coordinate": "Product.name",
                     "pathsToRoot": [
                       [
-                        "Product.name",
-                        "Product",
                         "Query.productSearch",
-                        "Query"
+                        "Product.name"
                       ]
                     ]
                   },
@@ -339,8 +337,7 @@ public class SemanticIntrospectionTests : FusionTestBase
                     "coordinate": "Query.productSearch",
                     "pathsToRoot": [
                       [
-                        "Query.productSearch",
-                        "Query"
+                        "Query.productSearch"
                       ]
                     ]
                   },
@@ -348,10 +345,8 @@ public class SemanticIntrospectionTests : FusionTestBase
                     "coordinate": "User.name",
                     "pathsToRoot": [
                       [
-                        "User.name",
-                        "User",
                         "Query.userByEmail",
-                        "Query"
+                        "User.name"
                       ]
                     ]
                   },
@@ -359,9 +354,7 @@ public class SemanticIntrospectionTests : FusionTestBase
                     "coordinate": "Product",
                     "pathsToRoot": [
                       [
-                        "Product",
-                        "Query.productSearch",
-                        "Query"
+                        "Query.productSearch"
                       ]
                     ]
                   },
@@ -369,10 +362,8 @@ public class SemanticIntrospectionTests : FusionTestBase
                     "coordinate": "Product.category",
                     "pathsToRoot": [
                       [
-                        "Product.category",
-                        "Product",
                         "Query.productSearch",
-                        "Query"
+                        "Product.category"
                       ]
                     ]
                   },
@@ -380,10 +371,8 @@ public class SemanticIntrospectionTests : FusionTestBase
                     "coordinate": "Product.price",
                     "pathsToRoot": [
                       [
-                        "Product.price",
-                        "Product",
                         "Query.productSearch",
-                        "Query"
+                        "Product.price"
                       ]
                     ]
                   }
@@ -397,7 +386,7 @@ public class SemanticIntrospectionTests : FusionTestBase
     public async Task Search_Should_ReturnScoresInDescendingOrder()
     {
         // arrange
-        using var server = CreateSourceSchema("A", _sourceSchema);
+        using var server = CreateSourceSchema("A", SourceSchema);
 
         using var gateway = await CreateGatewayAsync(server);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -428,19 +417,19 @@ public class SemanticIntrospectionTests : FusionTestBase
                   },
                   {
                     "coordinate": "Product.category",
-                    "score": 0.81051797
+                    "score": 0.8174113631248474
                   },
                   {
                     "coordinate": "Product.name",
-                    "score": 0.81051797
+                    "score": 0.8174113631248474
                   },
                   {
                     "coordinate": "Product.price",
-                    "score": 0.70929694
+                    "score": 0.7237380146980286
                   },
                   {
                     "coordinate": "Query.productSearch",
-                    "score": 0.5973899
+                    "score": 0.6175786256790161
                   }
                 ]
               }
@@ -452,7 +441,7 @@ public class SemanticIntrospectionTests : FusionTestBase
     public async Task Search_Should_ResolveDefinition_AsField()
     {
         // arrange
-        using var server = CreateSourceSchema("A", _sourceSchema);
+        using var server = CreateSourceSchema("A", SourceSchema);
 
         using var gateway = await CreateGatewayAsync(server);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -484,7 +473,76 @@ public class SemanticIntrospectionTests : FusionTestBase
             """
             {
               "data": {
-                "__search": null
+                "__search": [
+                  {
+                    "coordinate": "Query.userByEmail",
+                    "definition": {
+                      "name": "userByEmail",
+                      "description": "Retrieve a user by their email address",
+                      "args": [
+                        {
+                          "name": "email"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "coordinate": "User.email",
+                    "definition": {
+                      "name": "email",
+                      "description": "The email address of the user",
+                      "args": []
+                    }
+                  },
+                  {
+                    "coordinate": "User",
+                    "definition": {}
+                  },
+                  {
+                    "coordinate": "Query.orderById",
+                    "definition": {
+                      "name": "orderById",
+                      "description": "Retrieve an order by its unique identifier",
+                      "args": [
+                        {
+                          "name": "id"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "coordinate": "Query.productSearch",
+                    "definition": {
+                      "name": "productSearch",
+                      "description": "Search for products by name or category",
+                      "args": [
+                        {
+                          "name": "term"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "coordinate": "User.name",
+                    "definition": {
+                      "name": "name",
+                      "description": "The full name of the user",
+                      "args": []
+                    }
+                  },
+                  {
+                    "coordinate": "User.age",
+                    "definition": {
+                      "name": "age",
+                      "description": "The age of the user in years",
+                      "args": []
+                    }
+                  },
+                  {
+                    "coordinate": "Float",
+                    "definition": {}
+                  }
+                ]
               }
             }
             """);
@@ -494,7 +552,7 @@ public class SemanticIntrospectionTests : FusionTestBase
     public async Task Search_Should_ResolveDefinition_AsType()
     {
         // arrange
-        using var server = CreateSourceSchema("A", _sourceSchema);
+        using var server = CreateSourceSchema("A", SourceSchema);
 
         using var gateway = await CreateGatewayAsync(server);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -514,6 +572,7 @@ public class SemanticIntrospectionTests : FusionTestBase
                                     name
                                 }
                             }
+                            __typename
                         }
                     }
                 }
@@ -526,7 +585,51 @@ public class SemanticIntrospectionTests : FusionTestBase
             """
             {
               "data": {
-                "__search": null
+                "__search": [
+                  {
+                    "coordinate": "Product",
+                    "definition": {
+                      "__typename": "__Type",
+                      "name": "Product",
+                      "kind": "OBJECT",
+                      "fields": [
+                        {
+                          "name": "category"
+                        },
+                        {
+                          "name": "name"
+                        },
+                        {
+                          "name": "price"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "coordinate": "Product.category",
+                    "definition": {
+                      "__typename": "__Field"
+                    }
+                  },
+                  {
+                    "coordinate": "Product.name",
+                    "definition": {
+                      "__typename": "__Field"
+                    }
+                  },
+                  {
+                    "coordinate": "Product.price",
+                    "definition": {
+                      "__typename": "__Field"
+                    }
+                  },
+                  {
+                    "coordinate": "Query.productSearch",
+                    "definition": {
+                      "__typename": "__Field"
+                    }
+                  }
+                ]
               }
             }
             """);
@@ -536,7 +639,7 @@ public class SemanticIntrospectionTests : FusionTestBase
     public async Task Definitions_Should_ResolveTypeByCoordinate()
     {
         // arrange
-        using var server = CreateSourceSchema("A", _sourceSchema);
+        using var server = CreateSourceSchema("A", SourceSchema);
 
         using var gateway = await CreateGatewayAsync(server);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -565,7 +668,23 @@ public class SemanticIntrospectionTests : FusionTestBase
             """
             {
               "data": {
-                "__definitions": null
+                "__definitions": [
+                  {
+                    "name": "User",
+                    "kind": "OBJECT",
+                    "fields": [
+                      {
+                        "name": "age"
+                      },
+                      {
+                        "name": "email"
+                      },
+                      {
+                        "name": "name"
+                      }
+                    ]
+                  }
+                ]
               }
             }
             """);
@@ -575,7 +694,7 @@ public class SemanticIntrospectionTests : FusionTestBase
     public async Task Definitions_Should_ResolveFieldByCoordinate()
     {
         // arrange
-        using var server = CreateSourceSchema("A", _sourceSchema);
+        using var server = CreateSourceSchema("A", SourceSchema);
 
         using var gateway = await CreateGatewayAsync(server);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -608,7 +727,21 @@ public class SemanticIntrospectionTests : FusionTestBase
             """
             {
               "data": {
-                "__definitions": null
+                "__definitions": [
+                  {
+                    "name": "userByEmail",
+                    "description": "Retrieve a user by their email address",
+                    "args": [
+                      {
+                        "name": "email",
+                        "type": {
+                          "name": null,
+                          "kind": "NON_NULL"
+                        }
+                      }
+                    ]
+                  }
+                ]
               }
             }
             """);
@@ -618,7 +751,7 @@ public class SemanticIntrospectionTests : FusionTestBase
     public async Task Definitions_Should_ResolveMultipleCoordinates()
     {
         // arrange
-        using var server = CreateSourceSchema("A", _sourceSchema);
+        using var server = CreateSourceSchema("A", SourceSchema);
 
         using var gateway = await CreateGatewayAsync(server);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -648,7 +781,20 @@ public class SemanticIntrospectionTests : FusionTestBase
             """
             {
               "data": {
-                "__definitions": null
+                "__definitions": [
+                  {
+                    "typeName": "User",
+                    "kind": "OBJECT"
+                  },
+                  {
+                    "typeName": "Product",
+                    "kind": "OBJECT"
+                  },
+                  {
+                    "fieldName": "orderById",
+                    "description": "Retrieve an order by its unique identifier"
+                  }
+                ]
               }
             }
             """);
@@ -658,7 +804,7 @@ public class SemanticIntrospectionTests : FusionTestBase
     public async Task Definitions_Should_SkipInvalidCoordinates()
     {
         // arrange
-        using var server = CreateSourceSchema("A", _sourceSchema);
+        using var server = CreateSourceSchema("A", SourceSchema);
 
         using var gateway = await CreateGatewayAsync(server);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -686,7 +832,14 @@ public class SemanticIntrospectionTests : FusionTestBase
             """
             {
               "data": {
-                "__definitions": null
+                "__definitions": [
+                  {
+                    "typeName": "User"
+                  },
+                  {
+                    "fieldName": "orderById"
+                  }
+                ]
               }
             }
             """);
@@ -696,7 +849,7 @@ public class SemanticIntrospectionTests : FusionTestBase
     public async Task Definitions_Should_ResolveEnumValueByCoordinate()
     {
         // arrange
-        using var server = CreateSourceSchema("A", _sourceSchema);
+        using var server = CreateSourceSchema("A", SourceSchema);
 
         using var gateway = await CreateGatewayAsync(server);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -722,7 +875,12 @@ public class SemanticIntrospectionTests : FusionTestBase
             """
             {
               "data": {
-                "__definitions": null
+                "__definitions": [
+                  {
+                    "name": "PENDING",
+                    "description": "Order is pending processing"
+                  }
+                ]
               }
             }
             """);
@@ -732,7 +890,7 @@ public class SemanticIntrospectionTests : FusionTestBase
     public async Task Search_Should_NotExist_When_SemanticIntrospectionDisabled()
     {
         // arrange
-        using var server = CreateSourceSchema("A", _sourceSchema);
+        using var server = CreateSourceSchema("A", SourceSchema);
 
         using var gateway = await CreateGatewayAsync(server, enableSemanticIntrospection: false);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -779,7 +937,7 @@ public class SemanticIntrospectionTests : FusionTestBase
     public async Task Definitions_Should_NotExist_When_SemanticIntrospectionDisabled()
     {
         // arrange
-        using var server = CreateSourceSchema("A", _sourceSchema);
+        using var server = CreateSourceSchema("A", SourceSchema);
 
         using var gateway = await CreateGatewayAsync(server, enableSemanticIntrospection: false);
         using var client = GraphQLHttpClient.Create(gateway.CreateClient());
@@ -842,7 +1000,7 @@ public class SemanticIntrospectionTests : FusionTestBase
             });
     }
 
-    private const string _sourceSchema =
+    private const string SourceSchema =
         """
         "A registered user of the system"
         type User {
@@ -859,7 +1017,7 @@ public class SemanticIntrospectionTests : FusionTestBase
           "The product name"
           name: String!
           "The product price in dollars"
-          price: Float!
+          price: Decimal!
           "The product category"
           category: String!
         }
@@ -869,7 +1027,7 @@ public class SemanticIntrospectionTests : FusionTestBase
           "The unique order identifier"
           id: ID!
           "The order total amount"
-          total: Float!
+          total: Decimal!
           "The current order status"
           status: OrderStatus
         }
@@ -889,6 +1047,8 @@ public class SemanticIntrospectionTests : FusionTestBase
         type Query {
           "Retrieve a user by their email address"
           userByEmail(email: String!): User
+          "List all users with optional filtering"
+          users: [User]
           "Search for products by name or category"
           productSearch(term: String!): [Product]
           "Retrieve an order by its unique identifier"
