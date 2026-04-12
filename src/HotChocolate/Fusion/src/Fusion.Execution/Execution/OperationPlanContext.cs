@@ -80,6 +80,11 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     public ulong IncludeFlags { get; private set; }
 
     /// <summary>
+    /// Gets the evaluated defer flags derived from <c>@defer</c> directives.
+    /// </summary>
+    public ulong DeferFlags { get; private set; }
+
+    /// <summary>
     /// Gets a value indicating whether operation plan telemetry is being collected for this request.
     /// </summary>
     public bool CollectTelemetry => _collectTelemetry;

@@ -35,6 +35,7 @@ public sealed partial class OperationPlanContext
         Variables = variables;
         OperationPlan = operationPlan;
         IncludeFlags = operationPlan.Operation.CreateIncludeFlags(variables);
+        DeferFlags = operationPlan.Operation.CreateDeferFlags(variables);
         _collectTelemetry = requestContext.CollectOperationPlanTelemetry();
         _clientScope = requestContext.CreateClientScope();
 
@@ -44,6 +45,7 @@ public sealed partial class OperationPlanContext
             operationPlan.Operation,
             requestContext.ErrorHandlingMode(),
             IncludeFlags,
+            DeferFlags,
             requestContext.Schema.GetOptions().PathSegmentLocalPoolCapacity);
 
         _executionState.Initialize(_collectTelemetry, cancellationTokenSource);
@@ -75,6 +77,7 @@ public sealed partial class OperationPlanContext
         RequestContext = default!;
         Variables = default!;
         OperationPlan = default!;
+        DeferFlags = 0;
         _clientScope = default!;
         Traces =
 #if NET10_0_OR_GREATER
