@@ -1,5 +1,3 @@
-using System.Collections.Immutable;
-using System.Runtime.InteropServices;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
@@ -91,7 +89,7 @@ internal static class IntrospectionFields
 
             if (provider is null)
             {
-                return Array.Empty<SearchResultInfo>();
+                return Array.Empty<SchemaSearchResult>();
             }
 
             var query = ctx.ArgumentValue<string>("query");
@@ -115,11 +113,9 @@ internal static class IntrospectionFields
                         .Build());
             }
 
-            IReadOnlyList<SchemaSearchResult> results;
-
             try
             {
-                results = await provider.SearchAsync(
+                return await provider.SearchAsync(
                     query,
                     first,
                     after.HasValue ? after.Value : null,
@@ -140,41 +136,6 @@ internal static class IntrospectionFields
                         .SetMessage("The search query exceeds the maximum allowed length.")
                         .Build());
             }
-
-            var searchResults = new List<SearchResultInfo>(results.Count);
-
-            foreach (var result in results)
-            {
-                var definition = ResolveCoordinate(ctx.Schema, result.Coordinate);
-
-                if (definition is null)
-                {
-                    continue;
-                }
-
-                var paths = await provider.GetPathsToRootAsync(
-                    result.Coordinate,
-                    maxPaths: 5,
-                    ctx.RequestAborted);
-
-                var pathsToRoot = new ImmutableArray<string>[paths.Count];
-
-                for (var i = 0; i < paths.Count; i++)
-                {
-                    pathsToRoot[i] = paths[i].ToStringArray();
-                }
-
-                searchResults.Add(new SearchResultInfo
-                {
-                    Coordinate = result.Coordinate,
-                    Definition = definition,
-                    PathsToRoot = ImmutableCollectionsMarshal.AsImmutableArray(pathsToRoot),
-                    Score = result.Score,
-                    Cursor = result.Cursor
-                });
-            }
-
-            return searchResults;
         }
 
         return CreateConfiguration(descriptor);
@@ -213,9 +174,7 @@ internal static class IntrospectionFields
                     continue;
                 }
 
-                var definition = ResolveCoordinate(ctx.Schema, coordinate.Value);
-
-                if (definition is not null)
+                if (ctx.Schema.TryGetMember(coordinate.Value, out var definition))
                 {
                     definitions.Add(definition);
                 }
@@ -225,67 +184,6 @@ internal static class IntrospectionFields
         }
 
         return CreateConfiguration(descriptor);
-    }
-
-    private static object? ResolveCoordinate(Schema schema, SchemaCoordinate coordinate)
-    {
-        if (coordinate.OfDirective)
-        {
-            if (!schema.DirectiveTypes.TryGetDirective(coordinate.Name, out var directive))
-            {
-                return null;
-            }
-
-            if (coordinate.ArgumentName is not null)
-            {
-                return directive.Arguments.TryGetField(coordinate.ArgumentName, out var arg)
-                    ? arg
-                    : null;
-            }
-
-            return directive;
-        }
-
-        if (!schema.Types.TryGetType(coordinate.Name, out var type))
-        {
-            return null;
-        }
-
-        if (coordinate.MemberName is null)
-        {
-            return type;
-        }
-
-        switch (type)
-        {
-            case IComplexTypeDefinition complexType:
-                if (!complexType.Fields.TryGetField(coordinate.MemberName, out var field))
-                {
-                    return null;
-                }
-
-                if (coordinate.ArgumentName is not null)
-                {
-                    return field.Arguments.TryGetField(coordinate.ArgumentName, out var fieldArg)
-                        ? fieldArg
-                        : null;
-                }
-
-                return field;
-
-            case IEnumTypeDefinition enumType:
-                return enumType.Values.TryGetValue(coordinate.MemberName, out var enumValue)
-                    ? enumValue
-                    : null;
-
-            case IInputObjectTypeDefinition inputType:
-                return inputType.Fields.TryGetField(coordinate.MemberName, out var inputField)
-                    ? inputField
-                    : null;
-
-            default:
-                return null;
-        }
     }
 
     private static ObjectFieldConfiguration CreateConfiguration(ObjectFieldDescriptor descriptor)

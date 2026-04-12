@@ -20,7 +20,7 @@ internal sealed class __SearchResult : ObjectType
         return new ObjectTypeConfiguration(
             Names.__SearchResult,
             description: "A search result representing a matched schema element.",
-            typeof(SearchResultInfo))
+            typeof(SchemaSearchResult))
         {
             Fields =
             {
@@ -39,7 +39,7 @@ internal sealed class __SearchResult : ObjectType
                 new(Names.PathsToRoot,
                     "Paths from this element to a root type, each as a list of schema coordinates.",
                     nonNullStringListListType,
-                    pureResolver: Resolvers.PathsToRoot),
+                    resolver: Resolvers.PathsToRootAsync),
                 new(Names.Score,
                     "The relevance score of the match, or null if scoring is not supported.",
                     floatType,
@@ -51,19 +51,46 @@ internal sealed class __SearchResult : ObjectType
     private static class Resolvers
     {
         public static object Cursor(IResolverContext context)
-            => context.Parent<SearchResultInfo>().Cursor;
+            => context.Parent<SchemaSearchResult>().Cursor;
 
         public static object Coordinate(IResolverContext context)
-            => context.Parent<SearchResultInfo>().Coordinate.ToString();
+            => context.Parent<SchemaSearchResult>().Coordinate.ToString();
 
         public static object Definition(IResolverContext context)
-            => context.Parent<SearchResultInfo>().Definition;
+        {
+            var result = context.Parent<SchemaSearchResult>();
 
-        public static object PathsToRoot(IResolverContext context)
-            => context.Parent<SearchResultInfo>().PathsToRoot;
+            if (!context.Schema.TryGetMember(result.Coordinate, out var member))
+            {
+                throw new InvalidOperationException(
+                    $"Failed to resolve schema coordinate '{result.Coordinate}'.");
+            }
+
+            return member;
+        }
+
+        public static async ValueTask<object?> PathsToRootAsync(IResolverContext context)
+        {
+            var result = context.Parent<SchemaSearchResult>();
+            var provider = context.Schema.Services.GetRequiredService<ISchemaSearchProvider>();
+            var paths = await provider.GetPathsToRootAsync(
+                result.Coordinate,
+                maxPaths: 5,
+                context.RequestAborted)
+                .ConfigureAwait(false);
+
+            var pathsToRoot = new IReadOnlyList<string>[paths.Count];
+
+            for (var i = 0; i < paths.Count; i++)
+            {
+                pathsToRoot[i] = paths[i].ToStringArray();
+            }
+
+            return pathsToRoot;
+        }
 
         public static object? Score(IResolverContext context)
-            => context.Parent<SearchResultInfo>().Score;
+            => context.Parent<SchemaSearchResult>().Score;
     }
 
     public static class Names
