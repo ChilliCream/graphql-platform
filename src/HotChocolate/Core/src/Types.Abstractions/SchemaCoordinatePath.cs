@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Immutable;
 
 namespace HotChocolate;
 
@@ -9,6 +10,7 @@ namespace HotChocolate;
 public sealed class SchemaCoordinatePath : IReadOnlyList<SchemaCoordinate>
 {
     private readonly SchemaCoordinate[] _segments;
+    private ImmutableArray<string>? _stringSegments;
 
     /// <summary>
     /// Initializes a new instance of <see cref="SchemaCoordinatePath"/>.
@@ -37,6 +39,34 @@ public sealed class SchemaCoordinatePath : IReadOnlyList<SchemaCoordinate>
 
     /// <inheritdoc />
     public SchemaCoordinate this[int index] => _segments[index];
+
+    /// <summary>
+    /// Returns the path segments as an immutable array of their string representations.
+    /// The result is cached for subsequent calls.
+    /// </summary>
+    /// <returns>
+    /// An <see cref="ImmutableArray{T}"/> of schema coordinate strings,
+    /// ordered from the matched element to the root type.
+    /// </returns>
+    public ImmutableArray<string> ToStringArray()
+    {
+        if (_stringSegments is not null)
+        {
+            return _stringSegments.Value;
+        }
+
+        lock (_segments)
+        {
+            if (_stringSegments is not null)
+            {
+                return _stringSegments.Value;
+            }
+
+            var strings = _segments.Select(s => s.ToString()).ToImmutableArray();
+            _stringSegments = strings;
+            return strings;
+        }
+    }
 
     /// <inheritdoc />
     public IEnumerator<SchemaCoordinate> GetEnumerator()

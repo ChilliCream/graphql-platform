@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
@@ -155,18 +157,18 @@ internal static class IntrospectionFields
                     maxPaths: 5,
                     ctx.RequestAborted);
 
-                var pathStrings = new List<string>(paths.Count);
+                var pathsToRoot = new ImmutableArray<string>[paths.Count];
 
-                foreach (var path in paths)
+                for (var i = 0; i < paths.Count; i++)
                 {
-                    pathStrings.Add(string.Join(" > ", path.Select(c => c.ToString())));
+                    pathsToRoot[i] = paths[i].ToStringArray();
                 }
 
                 searchResults.Add(new SearchResultInfo
                 {
                     Coordinate = result.Coordinate,
                     Definition = definition,
-                    PathsToRoot = pathStrings,
+                    PathsToRoot = ImmutableCollectionsMarshal.AsImmutableArray(pathsToRoot),
                     Score = result.Score,
                     Cursor = result.Cursor
                 });

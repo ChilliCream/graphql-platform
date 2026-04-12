@@ -15,7 +15,7 @@ internal sealed class __SearchResult : ObjectType
         var nonNullStringType = Parse($"{ScalarNames.String}!");
         var floatType = Create(ScalarNames.Float);
         var nonNullSchemaDefinitionType = Parse($"{nameof(__SchemaDefinition)}!");
-        var nonNullStringListType = Parse($"[{ScalarNames.String}!]!");
+        var nonNullStringListListType = Parse($"[[{ScalarNames.String}!]!]!");
 
         return new ObjectTypeConfiguration(
             Names.__SearchResult,
@@ -37,8 +37,8 @@ internal sealed class __SearchResult : ObjectType
                     nonNullSchemaDefinitionType,
                     pureResolver: Resolvers.Definition),
                 new(Names.PathsToRoot,
-                    "Paths from this element to a root type, each as a dot-separated string of schema coordinates.",
-                    nonNullStringListType,
+                    "Paths from this element to a root type, each as a list of schema coordinates.",
+                    nonNullStringListListType,
                     pureResolver: Resolvers.PathsToRoot),
                 new(Names.Score,
                     "The relevance score of the match, or null if scoring is not supported.",
