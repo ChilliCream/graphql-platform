@@ -205,4 +205,4 @@ For more detail on .NET distributed tracing concepts and how `Activity` maps to 
 
 > **Runnable example:** [OpenTelemetry](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/Observability/OpenTelemetry)
 >
-> **Full demo:** [Demo.ServiceDefaults](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Demo/Demo.ServiceDefaults) shows how to configure OpenTelemetry tracing and metrics for all services in a shared project, including the `"Mocha"` activity source. The [Demo.AppHost](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Demo/Demo.AppHost) orchestrates everything with .NET Aspire for end-to-end observability.
+> **Full demo:** [Demo.ServiceDefaults](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/examples/Demo/Demo.ServiceDefaults) shows how to configure OpenTelemetry tracing and metrics for all services in a shared project, including the `"Mocha"` activity source. The [Demo.AppHost](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/examples/Demo/Demo.AppHost) orchestrates everything with .NET Aspire for end-to-end observability.

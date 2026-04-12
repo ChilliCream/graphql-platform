@@ -1,4 +1,6 @@
-# Demo Scripts
+# Demo
+
+In ./http you will find .http files that you can use with the VS Code REST Client extension to interact with the e-commerce demo services. These scripts demonstrate typical order flows, including placing orders, processing payments, and handling returns. Each file contains a series of requests that you can execute step-by-step to see how the different services interact through events and commands.
 
 HTTP files for [VS Code REST Client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) to interact with the e-commerce demo services.
 

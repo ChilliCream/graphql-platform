@@ -30,6 +30,7 @@ public class InitiateReturnCommandHandler(
     {
         var order = await db.Orders.Include(o => o.Product)
             .FirstOrDefaultAsync(o => o.Id == command.OrderId, cancellationToken);
+
         if (order is null)
         {
             return new InitiateReturnResult(false, Error: "Order not found");

@@ -159,4 +159,4 @@ Now that you have a working app, learn how messages work in [Messages](/docs/moc
 
 > **Runnable example:** [Examples/QuickStart](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Examples/QuickStart)
 >
-> **Full demo:** The [Demo application](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/src/Demo) shows a complete e-commerce system with Catalog, Billing, and Shipping services communicating through Mocha and orchestrated with .NET Aspire.
+> **Full demo:** The [Demo application](https://github.com/ChilliCream/graphql-platform/tree/main/src/Mocha/examples/Demo) shows a complete e-commerce system with Catalog, Billing, and Shipping services communicating through Mocha and orchestrated with .NET Aspire.
