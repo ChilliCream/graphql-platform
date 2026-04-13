@@ -116,6 +116,9 @@ public class SchemaOptions : IReadOnlySchemaOptions
     /// <inheritdoc cref="IReadOnlySchemaOptions.EnableOptInFeatures"/>
     public bool EnableOptInFeatures { get; set; }
 
+    /// <inheritdoc cref="IReadOnlySchemaOptions.EnableSemanticIntrospection"/>
+    public bool EnableSemanticIntrospection { get; set; } = true;
+
     /// <inheritdoc cref="IReadOnlySchemaOptions.DefaultQueryDependencyInjectionScope"/>
     public DependencyInjectionScope DefaultQueryDependencyInjectionScope { get; set; } =
         DependencyInjectionScope.Resolver;
@@ -226,6 +229,7 @@ public class SchemaOptions : IReadOnlySchemaOptions
             StripLeadingIFromInterface = options.StripLeadingIFromInterface,
             EnableTag = options.EnableTag,
             EnableOptInFeatures = options.EnableOptInFeatures,
+            EnableSemanticIntrospection = options.EnableSemanticIntrospection,
             DefaultQueryDependencyInjectionScope = options.DefaultQueryDependencyInjectionScope,
             DefaultMutationDependencyInjectionScope = options.DefaultMutationDependencyInjectionScope,
             LazyInitialization = options.LazyInitialization,

@@ -5,7 +5,7 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
 internal static class FusionMigrationHelpers
 {
-    private static readonly JsonWriterOptions _writerOptions = new()
+    private static readonly JsonWriterOptions s_writerOptions = new()
     {
         Indented = true,
         Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
@@ -17,7 +17,7 @@ internal static class FusionMigrationHelpers
         var root = document.RootElement;
 
         var buffer = new ArrayBufferWriter<byte>();
-        using var writer = new Utf8JsonWriter(buffer, _writerOptions);
+        using var writer = new Utf8JsonWriter(buffer, s_writerOptions);
 
         writer.WriteStartObject();
 
@@ -83,7 +83,7 @@ internal static class FusionMigrationHelpers
         var root = document.RootElement;
 
         var buffer = new ArrayBufferWriter<byte>();
-        using var writer = new Utf8JsonWriter(buffer, _writerOptions);
+        using var writer = new Utf8JsonWriter(buffer, s_writerOptions);
 
         writer.WriteStartObject();
 

@@ -32,8 +32,8 @@ Hot Chocolate implements the [GraphQL multipart request specification](https://g
 Register the `Upload` scalar to use file upload streams in your input types or as an argument:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddType<UploadType>();
 ```
 

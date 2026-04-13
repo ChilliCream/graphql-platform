@@ -1,6 +1,3 @@
-using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.PersonalAccessTokens;
-
 namespace ChilliCream.Nitro.Client.PersonalAccessTokens;
 
 internal sealed class PersonalAccessTokensClient(IApiClient apiClient) : IPersonalAccessTokensClient

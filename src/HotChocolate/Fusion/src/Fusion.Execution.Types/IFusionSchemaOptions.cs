@@ -16,4 +16,10 @@ public interface IFusionSchemaOptions
     /// and deferred execution is disabled.
     /// </summary>
     bool EnableDefer { get; }
+
+    /// <summary>
+    /// Enables the <c>__search</c> and <c>__definitions</c> introspection fields
+    /// for semantic schema discovery.
+    /// </summary>
+    bool EnableSemanticIntrospection { get; }
 }

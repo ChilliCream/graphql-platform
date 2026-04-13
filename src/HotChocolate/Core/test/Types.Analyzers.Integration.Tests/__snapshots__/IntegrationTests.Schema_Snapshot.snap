@@ -36,6 +36,13 @@ type IntsEdge {
   node: Int!
 }
 
+type IsSelectedNode implements Node {
+  id: ID!
+  name: String!
+  description: String!
+  wasNameSelected: Boolean!
+}
+
 type Issue8057Entity implements Node {
   id: ID!
 }
@@ -71,6 +78,7 @@ type ProductsEdge {
 }
 
 type Query {
+  isSelectedTest: IsSelectedNode!
   """
   Gets the product.
   

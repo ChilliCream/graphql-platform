@@ -6,16 +6,16 @@ namespace ChilliCream.Nitro.CommandLine.Helpers;
 
 internal static class CommandExamples
 {
-    private static readonly ConditionalWeakTable<Command, string[]> _examples = [];
+    private static readonly ConditionalWeakTable<Command, string[]> s_examples = [];
 
     public static void AddExamples(Command command, string[] examples)
     {
-        _examples.AddOrUpdate(command, examples);
+        s_examples.AddOrUpdate(command, examples);
     }
 
     public static bool TryGetExamples(Command command, out string[]? examples)
     {
-        return _examples.TryGetValue(command, out examples);
+        return s_examples.TryGetValue(command, out examples);
     }
 
     public static void Install(RootCommand rootCommand)
@@ -49,7 +49,7 @@ internal sealed class ExamplesHelpAction : SynchronousCommandLineAction
 
         if (CommandExamples.TryGetExamples(command, out var examples) && examples is not null)
         {
-            var console = CommandExecutionContext.Services.Value
+            var console = CommandExecutionContext.s_services.Value
                 ?.GetRequiredService<INitroConsole>();
 
             if (console is not null)

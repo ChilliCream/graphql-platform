@@ -20,8 +20,8 @@ Install the `HotChocolate.Spatial` package:
 Register the spatial types on the schema builder:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddSpatialTypes();
 ```
 
@@ -32,8 +32,8 @@ If you use data extensions to project data from a database, also install `HotCho
 Register the data extensions:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddSpatialTypes()
     .AddFiltering()
     .AddProjections()
@@ -163,8 +163,8 @@ scalar Geometry
 Register the spatial projection handler with `.AddSpatialProjections()`:
 
 ```csharp
-services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddProjections()
     .AddSpatialTypes()
     .AddSpatialProjections()
@@ -185,8 +185,8 @@ public IQueryable<Pub> GetPubs(SomeDbContext someDbContext)
 Entity Framework supports filtering on NetTopologySuite objects. `HotChocolate.Spatial` provides handlers for filtering spatial types on `IQueryable`. Register them with `.AddSpatialFiltering()`:
 
 ```csharp
-services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddFiltering()
     .AddSpatialTypes()
     .AddSpatialFiltering()

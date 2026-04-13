@@ -180,6 +180,14 @@ public interface IReadOnlySchemaOptions
     bool EnableOptInFeatures { get; }
 
     /// <summary>
+    /// Enables semantic introspection, including the <c>__search</c> and <c>__definitions</c>
+    /// introspection fields for AI-driven schema discovery.
+    /// When core introspection is disabled, semantic introspection is also disabled
+    /// regardless of this setting.
+    /// </summary>
+    bool EnableSemanticIntrospection { get; }
+
+    /// <summary>
     /// Specifies the default dependency injection scope for query fields.
     /// </summary>
     DependencyInjectionScope DefaultQueryDependencyInjectionScope { get; }

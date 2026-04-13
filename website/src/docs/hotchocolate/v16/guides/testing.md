@@ -17,7 +17,7 @@ public class ProductTests
     {
         // arrange
         var executor = await new ServiceCollection()
-            .AddGraphQLServer()
+            .AddGraphQL()
             .AddQueryType<Query>()
             .BuildRequestExecutorAsync();
 
@@ -30,13 +30,13 @@ public class ProductTests
 }
 ```
 
-You can register any services your resolvers depend on before calling `AddGraphQLServer()`. This lets you inject real or mock implementations.
+You can register any services your resolvers depend on before calling `AddGraphQL()`. This lets you inject real or mock implementations.
 
 ```csharp
 // Tests/ProductTests.cs
 var executor = await new ServiceCollection()
     .AddSingleton<ICatalogService>(new FakeCatalogService())
-    .AddGraphQLServer()
+    .AddGraphQL()
     .AddQueryType<Query>()
     .BuildRequestExecutorAsync();
 ```
@@ -53,7 +53,7 @@ public async Task Get_Product_Returns_Expected_Data()
     // arrange
     var executor = await new ServiceCollection()
         .AddSingleton<ICatalogService>(new FakeCatalogService())
-        .AddGraphQLServer()
+        .AddGraphQL()
         .AddQueryType<Query>()
         .BuildRequestExecutorAsync();
 
@@ -78,7 +78,7 @@ public async Task Get_Product_By_Id()
     // arrange
     var executor = await new ServiceCollection()
         .AddSingleton<ICatalogService>(new FakeCatalogService())
-        .AddGraphQLServer()
+        .AddGraphQL()
         .AddQueryType<Query>()
         .BuildRequestExecutorAsync();
 
@@ -111,7 +111,7 @@ public async Task Get_Product_Snapshot()
     // arrange
     var executor = await new ServiceCollection()
         .AddSingleton<ICatalogService>(new FakeCatalogService())
-        .AddGraphQLServer()
+        .AddGraphQL()
         .AddQueryType<Query>()
         .BuildRequestExecutorAsync();
 
@@ -137,7 +137,7 @@ public async Task Get_Product_Inline()
     // arrange
     var executor = await new ServiceCollection()
         .AddSingleton<ICatalogService>(new FakeCatalogService())
-        .AddGraphQLServer()
+        .AddGraphQL()
         .AddQueryType<Query>()
         .BuildRequestExecutorAsync();
 
@@ -221,7 +221,7 @@ public class SchemaTests
     {
         // arrange
         var executor = await new ServiceCollection()
-            .AddGraphQLServer()
+            .AddGraphQL()
             .AddQueryType<Query>()
             .BuildRequestExecutorAsync();
 
@@ -241,7 +241,7 @@ You can also use `executor.Schema.ToString()` to get the SDL as a string if you 
 public async Task Schema_Contains_Product_Type()
 {
     var executor = await new ServiceCollection()
-        .AddGraphQLServer()
+        .AddGraphQL()
         .AddQueryType<Query>()
         .BuildRequestExecutorAsync();
 
@@ -266,7 +266,7 @@ public async Task Logging_Middleware_Does_Not_Alter_Result()
 {
     // arrange
     var executor = await new ServiceCollection()
-        .AddGraphQLServer()
+        .AddGraphQL()
         .AddQueryType<Query>()
         .UseField<LoggingMiddleware>()
         .BuildRequestExecutorAsync();
@@ -291,7 +291,7 @@ public async Task Error_Filter_Masks_Internal_Errors()
 {
     // arrange
     var executor = await new ServiceCollection()
-        .AddGraphQLServer()
+        .AddGraphQL()
         .AddQueryType<QueryWithError>()
         .AddErrorFilter(error =>
             error.WithMessage("An unexpected error occurred."))

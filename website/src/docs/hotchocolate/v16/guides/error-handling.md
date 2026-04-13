@@ -31,8 +31,8 @@ During development, if a debugger is attached, Hot Chocolate includes the origin
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = true);
 ```
 
@@ -46,8 +46,8 @@ Register an error filter with `AddErrorFilter`. The filter receives an `IError` 
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddErrorFilter(error =>
     {
         if (error.Exception is not null)
@@ -96,8 +96,8 @@ public class LoggingErrorFilter : IErrorFilter
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddErrorFilter<LoggingErrorFilter>();
 ```
 
@@ -385,8 +385,8 @@ public interface IUserError
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddMutationConventions(applyToAllMutations: true)
     .AddErrorInterfaceType<IUserError>();
 ```
@@ -409,8 +409,8 @@ public class CustomErrorInterfaceType : InterfaceType
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddMutationConventions(applyToAllMutations: true)
     .AddErrorInterfaceType<CustomErrorInterfaceType>();
 ```

@@ -315,7 +315,9 @@ internal sealed partial class FetchResultStore : IDisposable
 
             return _valueCompletion.BuildResult(
                 partial,
-                data, errorTrie: null, resultSelectionSet: resultSelectionSet);
+                data,
+                errorTrie: null,
+                resultSelectionSet: resultSelectionSet);
         }
     }
 

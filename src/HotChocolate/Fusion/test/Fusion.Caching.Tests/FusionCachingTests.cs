@@ -1,10 +1,10 @@
 using System.Text;
-using global::HotChocolate.Caching;
-using CacheControlAttribute = global::HotChocolate.Caching.CacheControlAttribute;
+using HotChocolate.Caching;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Planning;
 using Microsoft.Extensions.DependencyInjection;
+using CacheControlAttribute = HotChocolate.Caching.CacheControlAttribute;
 
 namespace HotChocolate.Fusion.Caching;
 

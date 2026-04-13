@@ -2238,7 +2238,7 @@ public sealed partial class OperationPlanner
         out ImmutableStack<ConditionedSelectionSet> unresolvable,
         uint? resolvableRegistrationId = null)
     {
-        unresolvable = ImmutableStack<ConditionedSelectionSet>.Empty;
+        unresolvable = [];
 
         var wrappedSelections = WrapSelectionsInFragments(match.AncestorFragments, requirements);
 

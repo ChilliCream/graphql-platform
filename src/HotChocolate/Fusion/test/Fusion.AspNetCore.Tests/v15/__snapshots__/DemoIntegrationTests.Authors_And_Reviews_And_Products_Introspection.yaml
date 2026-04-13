@@ -143,6 +143,13 @@ response:
                     "name": "__Type",
                     "kind": "OBJECT"
                   }
+                },
+                {
+                  "name": "isOneOf",
+                  "type": {
+                    "name": "Boolean",
+                    "kind": "SCALAR"
+                  }
                 }
               ]
             },

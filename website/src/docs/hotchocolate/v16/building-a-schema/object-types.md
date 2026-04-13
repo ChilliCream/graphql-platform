@@ -83,8 +83,8 @@ Since multiple classes could inherit from `ObjectType<Author>` with different co
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddType<AuthorType>();
 ```
 
@@ -399,8 +399,8 @@ You can also set this globally, which affects all types.
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyOptions(options =>
     {
         options.DefaultBindingBehavior = BindingBehavior.Explicit;

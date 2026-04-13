@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using Moq;
 using UserSession = ChilliCream.Nitro.CommandLine.Services.Sessions.Session;
@@ -17,7 +16,7 @@ public abstract class SessionCommandTestBase : CommandTestBase
 
     protected void SetupLogin()
     {
-        SessionServiceMock
+        _sessionServiceMock
             .Setup(x => x.LoginAsync(
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
@@ -26,7 +25,7 @@ public abstract class SessionCommandTestBase : CommandTestBase
 
     protected void SetupLogin(string url)
     {
-        SessionServiceMock
+        _sessionServiceMock
             .Setup(x => x.LoginAsync(
                 url,
                 It.IsAny<CancellationToken>()))
@@ -35,7 +34,7 @@ public abstract class SessionCommandTestBase : CommandTestBase
 
     protected void SetupLoginReturnsNull()
     {
-        SessionServiceMock
+        _sessionServiceMock
             .Setup(x => x.LoginAsync(
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
@@ -44,7 +43,7 @@ public abstract class SessionCommandTestBase : CommandTestBase
 
     protected void SetupLoginThrows(string message)
     {
-        SessionServiceMock
+        _sessionServiceMock
             .Setup(x => x.LoginAsync(
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()))
@@ -57,21 +56,21 @@ public abstract class SessionCommandTestBase : CommandTestBase
 
     protected void SetupLogout()
     {
-        SessionServiceMock
+        _sessionServiceMock
             .Setup(x => x.LogoutAsync(It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
     }
 
     protected void SetupLogoutThrows()
     {
-        SessionServiceMock
+        _sessionServiceMock
             .Setup(x => x.LogoutAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Something unexpected happened."));
     }
 
     protected void SetupLogoutThrowsExitException(string message = "Session deletion failed.")
     {
-        SessionServiceMock
+        _sessionServiceMock
             .Setup(x => x.LogoutAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new ExitException(message));
     }
@@ -93,7 +92,7 @@ public abstract class SessionCommandTestBase : CommandTestBase
 
     protected void SetupSelectWorkspace(string workspaceId, string workspaceName)
     {
-        SessionServiceMock
+        _sessionServiceMock
             .Setup(x => x.SelectWorkspaceAsync(
                 It.Is<Workspace>(w => w.Id == workspaceId && w.Name == workspaceName),
                 It.IsAny<CancellationToken>()))
@@ -102,7 +101,7 @@ public abstract class SessionCommandTestBase : CommandTestBase
 
     protected void SetupSelectWorkspaceAny()
     {
-        SessionServiceMock
+        _sessionServiceMock
             .Setup(x => x.SelectWorkspaceAsync(
                 It.IsAny<Workspace>(),
                 It.IsAny<CancellationToken>()))
@@ -123,7 +122,7 @@ public abstract class SessionCommandTestBase : CommandTestBase
             ? new Workspace(workspaceId, workspaceName)
             : null;
 
-        SessionServiceMock
+        _sessionServiceMock
             .SetupGet(x => x.Session)
             .Returns(new UserSession(
                 "session-1",

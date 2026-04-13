@@ -96,7 +96,7 @@ internal static class ErrorHelper
 
     public static IError BatchSizeExceeded(int maxBatchSize)
         => ErrorBuilder.New()
-            .SetMessage(string.Format(ErrorHelper_BatchSizeExceeded, maxBatchSize))
+            .SetMessage(ErrorHelper_BatchSizeExceeded, maxBatchSize)
             .SetCode(ErrorCodes.Server.RequestInvalid)
             .Build();
 }

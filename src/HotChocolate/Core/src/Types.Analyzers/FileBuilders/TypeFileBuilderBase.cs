@@ -666,6 +666,8 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             {
                 WriteResolverField(resolver);
             }
+
+            WriteIsSelectedFields(resolver);
         }
     }
 
@@ -692,23 +694,34 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         WriteResolverConstructor(
             type,
             typeLookup,
-            type.Resolvers.Any(t => t.RequiresParameterBindings));
+            type.Resolvers.Any(t => t.RequiresParameterBindings),
+            type.Resolvers.Any(HasIsSelectedFields));
     }
 
     protected void WriteResolverConstructor(
         IOutputTypeInfo type,
         ILocalTypeLookup typeLookup,
-        bool requiresParameterBindings)
+        bool requiresParameterBindings,
+        bool requiresIsSelectedInit = false)
     {
-        if (!requiresParameterBindings)
+        if (!requiresParameterBindings && !requiresIsSelectedInit)
         {
             return;
         }
 
         Writer.WriteLine();
-        Writer.WriteIndentedLine(
-            "public __Resolvers(global::{0} bindingResolver)",
-            WellKnownTypes.ParameterBindingResolver);
+
+        if (requiresParameterBindings)
+        {
+            Writer.WriteIndentedLine(
+                "public __Resolvers(global::{0} bindingResolver)",
+                WellKnownTypes.ParameterBindingResolver);
+        }
+        else
+        {
+            Writer.WriteIndentedLine("public __Resolvers()");
+        }
+
         Writer.WriteIndentedLine("{");
 
         using (Writer.IncreaseIndent())
@@ -725,6 +738,7 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
         foreach (var resolver in type.Resolvers)
         {
             WriteResolverBindingInitialization(resolver, typeLookup);
+            WriteIsSelectedInitialization(resolver);
         }
     }
 
@@ -1700,6 +1714,63 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
                         i);
                     break;
 
+                case ResolverParameterKind.IsSelected:
+                    var (variant, fieldNames, _) = GetIsSelectedInfo(parameter);
+
+                    switch (variant)
+                    {
+                        case IsSelectedVariant.SingleField:
+                            Writer.WriteIndentedLine(
+                                "var args{0} = context.Select().IsSelected(\"{1}\");",
+                                i,
+                                fieldNames[0]);
+                            break;
+
+                        case IsSelectedVariant.MultipleFields:
+                            var sb = new StringBuilder();
+                            for (var j = 0; j < fieldNames.Length; j++)
+                            {
+                                if (j > 0)
+                                {
+                                    sb.Append(", ");
+                                }
+
+                                sb.Append('"');
+                                sb.Append(fieldNames[j]);
+                                sb.Append('"');
+                            }
+
+                            Writer.WriteIndentedLine(
+                                "var args{0} = context.Select().IsSelected({1});",
+                                i,
+                                sb.ToString());
+                            break;
+
+                        case IsSelectedVariant.FieldSet:
+                            Writer.WriteIndentedLine(
+                                "var args{0} = context.Select().IsSelected(_isSelected_{1}_{2});",
+                                i,
+                                resolver.Member.Name,
+                                parameter.Name);
+                            break;
+
+                        case IsSelectedVariant.Pattern:
+                            Writer.WriteIndentedLine(
+                                "var args{0}_selectionContext = new global::HotChocolate.Resolvers.IsSelectedContext(context.Schema, context.Select());",
+                                i);
+                            Writer.WriteIndentedLine(
+                                "global::HotChocolate.Resolvers.IsSelectedVisitor.Instance.Visit(_isSelected_{0}_{1}, args{2}_selectionContext);",
+                                resolver.Member.Name,
+                                parameter.Name,
+                                i);
+                            Writer.WriteIndentedLine(
+                                "var args{0} = args{0}_selectionContext.AllSelected;",
+                                i);
+                            break;
+                    }
+
+                    break;
+
                 case ResolverParameterKind.Unknown:
                     Writer.WriteIndentedLine(
                         "var args{0} = _binding_{1}_{2}.Execute<{3}>(context);",
@@ -1964,6 +2035,165 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
             '\t' => "\\t",
             _ => c.ToString()
         };
+    }
+
+    protected void WriteIsSelectedFields(Resolver resolver)
+    {
+        foreach (var parameter in resolver.Parameters)
+        {
+            if (parameter.Kind != ResolverParameterKind.IsSelected)
+            {
+                continue;
+            }
+
+            var (variant, _, _) = GetIsSelectedInfo(parameter);
+
+            switch (variant)
+            {
+                case IsSelectedVariant.FieldSet:
+                    Writer.WriteIndentedLine(
+                        "private readonly global::System.Collections.Generic.HashSet<string> _isSelected_{0}_{1};",
+                        resolver.Member.Name,
+                        parameter.Name);
+                    break;
+
+                case IsSelectedVariant.Pattern:
+                    Writer.WriteIndentedLine(
+                        "private readonly global::HotChocolate.Language.SelectionSetNode _isSelected_{0}_{1};",
+                        resolver.Member.Name,
+                        parameter.Name);
+                    break;
+            }
+        }
+    }
+
+    protected void WriteIsSelectedInitialization(Resolver resolver)
+    {
+        foreach (var parameter in resolver.Parameters)
+        {
+            if (parameter.Kind != ResolverParameterKind.IsSelected)
+            {
+                continue;
+            }
+
+            var (variant, fieldNames, patternString) = GetIsSelectedInfo(parameter);
+
+            switch (variant)
+            {
+                case IsSelectedVariant.FieldSet:
+                    var sb = new StringBuilder();
+                    for (var i = 0; i < fieldNames.Length; i++)
+                    {
+                        if (i > 0)
+                        {
+                            sb.Append(", ");
+                        }
+
+                        sb.Append('"');
+                        sb.Append(fieldNames[i]);
+                        sb.Append('"');
+                    }
+
+                    Writer.WriteIndentedLine(
+                        "_isSelected_{0}_{1} = new global::System.Collections.Generic.HashSet<string>([{2}]);",
+                        resolver.Member.Name,
+                        parameter.Name,
+                        sb.ToString());
+                    break;
+
+                case IsSelectedVariant.Pattern:
+                    Writer.WriteIndentedLine(
+                        $"_isSelected_{resolver.Member.Name}_{parameter.Name} = global::HotChocolate.Language.Utf8GraphQLParser.Syntax.ParseSelectionSet(\"{{ {patternString} }}\");");
+                    break;
+            }
+        }
+    }
+
+    protected static bool HasIsSelectedFields(Resolver? resolver)
+    {
+        if (resolver is null)
+        {
+            return false;
+        }
+
+        foreach (var parameter in resolver.Parameters)
+        {
+            if (parameter.Kind != ResolverParameterKind.IsSelected)
+            {
+                continue;
+            }
+
+            var (variant, _, _) = GetIsSelectedInfo(parameter);
+            if (variant is IsSelectedVariant.FieldSet or IsSelectedVariant.Pattern)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static (IsSelectedVariant Variant, string[] FieldNames, string? PatternString) GetIsSelectedInfo(
+        ResolverParameter parameter)
+    {
+        AttributeData? attr = null;
+        foreach (var a in parameter.Attributes)
+        {
+            if (a.AttributeClass?.ToDisplayString() == WellKnownAttributes.IsSelectedAttribute)
+            {
+                attr = a;
+                break;
+            }
+        }
+
+        if (attr is null)
+        {
+            throw new InvalidOperationException("The parameter does not have an IsSelectedAttribute.");
+        }
+
+        var args = attr.ConstructorArguments;
+
+        // params string[] constructor (4+ fields)
+        if (args.Length == 1 && args[0].Kind == TypedConstantKind.Array)
+        {
+            var names = new string[args[0].Values.Length];
+            for (var i = 0; i < names.Length; i++)
+            {
+                names[i] = (string)args[0].Values[i].Value!;
+            }
+
+            return (IsSelectedVariant.FieldSet, names, null);
+        }
+
+        // Single string constructor
+        if (args.Length == 1)
+        {
+            var fieldName = (string)args[0].Value!;
+
+            if (fieldName.IndexOf(' ') < 0 && fieldName.IndexOf('{') < 0)
+            {
+                return (IsSelectedVariant.SingleField, [fieldName], null);
+            }
+
+            return (IsSelectedVariant.Pattern, [], fieldName);
+        }
+
+        // 2 or 3 explicit string args
+        var fieldNames = new string[args.Length];
+        for (var i = 0; i < fieldNames.Length; i++)
+        {
+            fieldNames[i] = (string)args[i].Value!;
+        }
+
+        return (IsSelectedVariant.MultipleFields, fieldNames, null);
+    }
+
+    private enum IsSelectedVariant
+    {
+        SingleField,
+        MultipleFields,
+        FieldSet,
+        Pattern
     }
 
     public void Flush() => Writer.Flush();

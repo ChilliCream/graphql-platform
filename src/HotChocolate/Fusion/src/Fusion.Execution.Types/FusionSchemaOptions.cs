@@ -6,6 +6,8 @@ internal struct FusionSchemaOptions : IFusionSchemaOptions
 
     public bool EnableDefer { get; private set; } = true;
 
+    public bool EnableSemanticIntrospection { get; private set; }
+
     public FusionSchemaOptions() { }
 
     public static FusionSchemaOptions From(IFusionSchemaOptions? options)
@@ -16,6 +18,7 @@ internal struct FusionSchemaOptions : IFusionSchemaOptions
         {
             copy.ApplySerializeAsToScalars = options.ApplySerializeAsToScalars;
             copy.EnableDefer = options.EnableDefer;
+            copy.EnableSemanticIntrospection = options.EnableSemanticIntrospection;
         }
 
         return copy;

@@ -16,8 +16,8 @@ Register filtering on the schema:
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddFiltering();
 ```
 
@@ -259,8 +259,8 @@ public class CustomFilterConvention : FilterConvention
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddConvention<IFilterConvention, CustomFilterConvention>();
 ```
 
@@ -299,8 +299,8 @@ public class EmailAddressOperationFilterInputType : FilterInputType
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddFiltering(x => x
         .AddDefaults()
         .BindRuntimeType<string, EmailAddressOperationFilterInputType>());

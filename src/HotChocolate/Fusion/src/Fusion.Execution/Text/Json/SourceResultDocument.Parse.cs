@@ -158,8 +158,10 @@ public sealed partial class SourceResultDocument
     private static void ParseJson(ref Utf8JsonReader reader, ref MetaDb metaDb, bool skipInitialRead = false)
     {
         Span<Cursor> containerStart = stackalloc Cursor[64];
+        Span<int> containerStartLocation = stackalloc int[64];
         Span<int> containerChildCount = stackalloc int[64];
         var containerIsArrayBits = 0UL;
+        var containerHasComplexBits = 0UL;
         var stackIndex = 0;
 
         while (skipInitialRead || reader.Read())
@@ -192,15 +194,31 @@ public sealed partial class SourceResultDocument
             switch (tokenType)
             {
                 case JsonTokenType.StartObject:
-                    containerStart[stackIndex] = metaDb.Append(tokenType, location);
+                    // The new container is a complex child of its parent.
+                    if (stackIndex > 0)
+                    {
+                        containerHasComplexBits |= 1UL << (stackIndex - 1);
+                    }
+
+                    containerStart[stackIndex] = metaDb.Reserve();
+                    containerStartLocation[stackIndex] = location;
                     containerChildCount[stackIndex] = 0;
                     containerIsArrayBits &= ~(1UL << stackIndex);
+                    containerHasComplexBits &= ~(1UL << stackIndex);
                     stackIndex++;
                     break;
 
                 case JsonTokenType.EndObject:
                     --stackIndex;
-                    CloseObject(ref metaDb, containerStart[stackIndex], location, containerChildCount[stackIndex]);
+                    CloseContainer(
+                        ref metaDb,
+                        JsonTokenType.StartObject,
+                        JsonTokenType.EndObject,
+                        containerStart[stackIndex],
+                        containerStartLocation[stackIndex],
+                        location,
+                        containerChildCount[stackIndex],
+                        (containerHasComplexBits & (1UL << stackIndex)) != 0);
 
                     if (stackIndex == 0)
                     {
@@ -209,15 +227,30 @@ public sealed partial class SourceResultDocument
                     break;
 
                 case JsonTokenType.StartArray:
-                    containerStart[stackIndex] = metaDb.Append(tokenType, location);
+                    if (stackIndex > 0)
+                    {
+                        containerHasComplexBits |= 1UL << (stackIndex - 1);
+                    }
+
+                    containerStart[stackIndex] = metaDb.Reserve();
+                    containerStartLocation[stackIndex] = location;
                     containerChildCount[stackIndex] = 0;
                     containerIsArrayBits |= 1UL << stackIndex;
+                    containerHasComplexBits &= ~(1UL << stackIndex);
                     stackIndex++;
                     break;
 
                 case JsonTokenType.EndArray:
                     --stackIndex;
-                    CloseArray(ref metaDb, containerStart[stackIndex], location, containerChildCount[stackIndex]);
+                    CloseContainer(
+                        ref metaDb,
+                        JsonTokenType.StartArray,
+                        JsonTokenType.EndArray,
+                        containerStart[stackIndex],
+                        containerStartLocation[stackIndex],
+                        location,
+                        containerChildCount[stackIndex],
+                        (containerHasComplexBits & (1UL << stackIndex)) != 0);
                     break;
 
                 case JsonTokenType.PropertyName:
@@ -253,31 +286,30 @@ public sealed partial class SourceResultDocument
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void CloseObject(ref MetaDb metaDb, Cursor startId, int location, int properties)
+    private static void CloseContainer(
+        ref MetaDb metaDb,
+        JsonTokenType startTokenType,
+        JsonTokenType endTokenType,
+        Cursor startCursor,
+        int startLocation,
+        int endLocation,
+        int sizeOrLength,
+        bool hasComplexChildren)
     {
-        Debug.Assert(metaDb.Get(startId).TokenType == JsonTokenType.StartObject);
+        // NextCursor is where the end row will land, so the inclusive
+        // distance from the start cursor is the total row count.
+        var endCursor = metaDb.NextCursor;
+        var rows = CursorDistance(startCursor, endCursor);
 
-        var endId = metaDb.Append(JsonTokenType.EndObject, location);
-        var rows = CursorDistance(startId, endId);
+        metaDb.Replace(
+            startCursor,
+            startTokenType,
+            startLocation,
+            sizeOrLength,
+            rows,
+            hasComplexChildren);
 
-        metaDb.SetLength(startId, properties);
-        metaDb.SetNumberOfRows(startId, rows);
-        metaDb.SetLength(endId, properties);
-        metaDb.SetNumberOfRows(endId, rows);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void CloseArray(ref MetaDb metaDb, Cursor startCursor, int location, int elements)
-    {
-        Debug.Assert(metaDb.Get(startCursor).TokenType == JsonTokenType.StartArray);
-
-        var endId = metaDb.Append(JsonTokenType.EndArray, location);
-        var rows = CursorDistance(startCursor, endId);
-
-        metaDb.SetLength(startCursor, elements);
-        metaDb.SetNumberOfRows(startCursor, rows);
-        metaDb.SetLength(endId, elements);
-        metaDb.SetNumberOfRows(endId, rows);
+        metaDb.Append(endTokenType, endLocation, sizeOrLength, rows);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -296,7 +328,11 @@ public sealed partial class SourceResultDocument
         var adjustedLocation = startLocation + 1;
         var adjustedLength = tokenLength - 2;
 
-        metaDb.Append(tokenType, adjustedLocation, adjustedLength, ContainsEscapeSequences(reader));
+        metaDb.Append(
+            tokenType,
+            adjustedLocation,
+            adjustedLength,
+            hasComplexChildren: ContainsEscapeSequences(reader));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -309,7 +345,7 @@ public sealed partial class SourceResultDocument
             JsonTokenType.Number,
             startLocation,
             tokenLength,
-            ContainsScientificNotation(reader.ValueSpan));
+            hasComplexChildren: ContainsScientificNotation(reader.ValueSpan));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static bool ContainsEscapeSequences(Utf8JsonReader reader)

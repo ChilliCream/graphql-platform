@@ -738,7 +738,7 @@ file static class ValueCompletionExtensions
         => type switch
         {
             ListType listType => listType.ElementType,
-            NonNullType nonNullType => nonNullType.NullableType,
-            _ => type
+            NonNullType { NullableType: ListType listType } => listType.ElementType,
+            _ => throw new ArgumentException($"The type '{type}' is not a list type.", nameof(type))
         };
 }

@@ -71,7 +71,12 @@ internal static class CompositeSchemaBuilder
             }
         }
 
-        foreach (var definition in IntrospectionSchema.Document.Definitions.Concat(schemaDocument.Definitions))
+        var introspectionDefinitions = options.EnableSemanticIntrospection
+            ? IntrospectionSchema.Document.Definitions
+                .Concat(SemanticIntrospectionSchema.Document.Definitions)
+            : IntrospectionSchema.Document.Definitions.AsEnumerable();
+
+        foreach (var definition in introspectionDefinitions.Concat(schemaDocument.Definitions))
         {
             if (definition is IHasName namedSyntaxNode
                 && (FusionBuiltIns.IsBuiltInType(namedSyntaxNode.Name.Value)
@@ -85,7 +90,8 @@ internal static class CompositeSchemaBuilder
                 case ObjectTypeDefinitionNode objectType:
                     var type = CreateObjectType(
                         objectType,
-                        objectType.Name.Value.Equals(queryType, StringComparison.Ordinal));
+                        objectType.Name.Value.Equals(queryType, StringComparison.Ordinal),
+                        options.EnableSemanticIntrospection);
                     types.Add(type);
                     typeDefinitions.Add(objectType.Name.Value, objectType);
                     break;
@@ -196,7 +202,8 @@ internal static class CompositeSchemaBuilder
 
     private static FusionObjectTypeDefinition CreateObjectType(
         ObjectTypeDefinitionNode definition,
-        bool isQuery)
+        bool isQuery,
+        bool enableSemanticIntrospection)
     {
         var isInaccessible = InaccessibleDirectiveParser.Parse(definition.Directives);
 
@@ -204,7 +211,7 @@ internal static class CompositeSchemaBuilder
             definition.Name.Value,
             definition.Description?.Value,
             isInaccessible,
-            CreateOutputFields(definition.Fields, isQuery));
+            CreateOutputFields(definition.Fields, isQuery, enableSemanticIntrospection));
     }
 
     private static FusionInterfaceTypeDefinition CreateInterfaceType(
@@ -216,7 +223,7 @@ internal static class CompositeSchemaBuilder
             definition.Name.Value,
             definition.Description?.Value,
             isInaccessible,
-            CreateOutputFields(definition.Fields, false));
+            CreateOutputFields(definition.Fields, isQuery: false, enableSemanticIntrospection: false));
     }
 
     private static FusionUnionTypeDefinition CreateUnionType(
@@ -278,14 +285,23 @@ internal static class CompositeSchemaBuilder
 
     private static FusionOutputFieldDefinitionCollection CreateOutputFields(
         IReadOnlyList<FieldDefinitionNode> fields,
-        bool isQuery)
+        bool isQuery,
+        bool enableSemanticIntrospection)
     {
-        var size = isQuery ? fields.Count + 3 : fields.Count;
+        var introspectionFieldCount = isQuery ? 3 : 0;
+        if (isQuery && enableSemanticIntrospection)
+        {
+            introspectionFieldCount += 2; // __search and __definitions
+        }
+
+        var size = fields.Count + introspectionFieldCount;
         var sourceFields = new FusionOutputFieldDefinition[size];
 
         if (isQuery)
         {
-            sourceFields[0] = new FusionOutputFieldDefinition(
+            var fieldIndex = 0;
+
+            sourceFields[fieldIndex++] = new FusionOutputFieldDefinition(
                 IntrospectionFieldNames.Schema,
                 null,
                 isDeprecated: false,
@@ -293,7 +309,7 @@ internal static class CompositeSchemaBuilder
                 isInaccessible: false,
                 arguments: FusionInputFieldDefinitionCollection.Empty);
 
-            sourceFields[1] = new FusionOutputFieldDefinition(
+            sourceFields[fieldIndex++] = new FusionOutputFieldDefinition(
                 IntrospectionFieldNames.Type,
                 null,
                 isDeprecated: false,
@@ -311,7 +327,7 @@ internal static class CompositeSchemaBuilder
                         isInaccessible: false)
                 ]));
 
-            sourceFields[2] = new FusionOutputFieldDefinition(
+            sourceFields[fieldIndex++] = new FusionOutputFieldDefinition(
                 IntrospectionFieldNames.TypeName,
                 null,
                 isDeprecated: false,
@@ -319,13 +335,76 @@ internal static class CompositeSchemaBuilder
                 isInaccessible: false,
                 arguments: FusionInputFieldDefinitionCollection.Empty);
 
+            if (enableSemanticIntrospection)
+            {
+                sourceFields[fieldIndex++] = new FusionOutputFieldDefinition(
+                    IntrospectionFieldNames.Search,
+                    null,
+                    isDeprecated: false,
+                    deprecationReason: null,
+                    isInaccessible: false,
+                    arguments: new FusionInputFieldDefinitionCollection(
+                    [
+                        new FusionInputFieldDefinition(
+                            0,
+                            "query",
+                            null,
+                            null,
+                            isDeprecated: false,
+                            deprecationReason: null,
+                            isInaccessible: false),
+                        new FusionInputFieldDefinition(
+                            1,
+                            "first",
+                            null,
+                            new IntValueNode(10),
+                            isDeprecated: false,
+                            deprecationReason: null,
+                            isInaccessible: false),
+                        new FusionInputFieldDefinition(
+                            2,
+                            "after",
+                            null,
+                            null,
+                            isDeprecated: false,
+                            deprecationReason: null,
+                            isInaccessible: false),
+                        new FusionInputFieldDefinition(
+                            3,
+                            "min_score",
+                            null,
+                            null,
+                            isDeprecated: false,
+                            deprecationReason: null,
+                            isInaccessible: false)
+                    ]));
+
+                sourceFields[fieldIndex++] = new FusionOutputFieldDefinition(
+                    IntrospectionFieldNames.Definitions,
+                    null,
+                    isDeprecated: false,
+                    deprecationReason: null,
+                    isInaccessible: false,
+                    arguments: new FusionInputFieldDefinitionCollection(
+                    [
+                        new FusionInputFieldDefinition(
+                            0,
+                            "coordinates",
+                            null,
+                            null,
+                            isDeprecated: false,
+                            deprecationReason: null,
+                            isInaccessible: false)
+                    ]));
+            }
+
             for (var i = 0; i < fields.Count; i++)
             {
                 var field = fields[i];
                 var isDeprecated = DeprecatedDirectiveParser.TryParse(field.Directives, out var deprecated);
                 var isInaccessible = InaccessibleDirectiveParser.Parse(field.Directives);
 
-                sourceFields[i + 3] = new FusionOutputFieldDefinition(
+                sourceFields[fieldIndex + i] = new FusionOutputFieldDefinition(
                     field.Name.Value,
                     field.Description?.Value,
                     isDeprecated,
@@ -452,6 +531,7 @@ internal static class CompositeSchemaBuilder
                     CompleteObjectType(
                         objectType,
                         context.GetTypeDefinition<ObjectTypeDefinitionNode>(objectType.Name),
+                        options,
                         context);
                     break;
 
@@ -538,6 +618,7 @@ internal static class CompositeSchemaBuilder
     private static void CompleteObjectType(
         FusionObjectTypeDefinition type,
         ObjectTypeDefinitionNode typeDef,
+        FusionSchemaOptions options,
         CompositeSchemaBuilderContext context)
     {
         var operationType = GetOperationType(typeDef.Name.Value, context);
@@ -574,6 +655,25 @@ internal static class CompositeSchemaBuilder
                 type.Fields[IntrospectionFieldNames.TypeName],
                 Utf8GraphQLParser.Syntax.ParseFieldDefinition("__typename: String!"),
                 context);
+
+            if (options.EnableSemanticIntrospection)
+            {
+                CompleteOutputField(
+                    type,
+                    operationType,
+                    type.Fields[IntrospectionFieldNames.Search],
+                    Utf8GraphQLParser.Syntax.ParseFieldDefinition(
+                        "__search(query: String!, first: Int! = 10, after: String, min_score: Float): [__SearchResult!]!"),
+                    context);
+
+                CompleteOutputField(
+                    type,
+                    operationType,
+                    type.Fields[IntrospectionFieldNames.Definitions],
+                    Utf8GraphQLParser.Syntax.ParseFieldDefinition(
+                        "__definitions(coordinates: [String!]!): [__SchemaDefinition!]!"),
+                    context);
+            }
         }
 
         var directives = CompletionTools.CreateDirectiveCollection(typeDef.Directives, context);
