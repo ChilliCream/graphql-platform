@@ -33,6 +33,7 @@ request:
       name
       description
       specifiedByURL
+      isOneOf
       fields(includeDeprecated: true) {
         name
         description
@@ -118,6 +119,7 @@ response:
               "name": "__Schema",
               "description": null,
               "specifiedByURL": null,
+              "isOneOf": null,
               "fields": [
                 {
                   "name": "description",
@@ -230,6 +232,7 @@ response:
               "name": "__Type",
               "description": null,
               "specifiedByURL": null,
+              "isOneOf": null,
               "fields": [
                 {
                   "name": "kind",
@@ -445,6 +448,18 @@ response:
                   },
                   "isDeprecated": false,
                   "deprecationReason": null
+                },
+                {
+                  "name": "isOneOf",
+                  "description": null,
+                  "args": [],
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "Boolean",
+                    "ofType": null
+                  },
+                  "isDeprecated": false,
+                  "deprecationReason": null
                 }
               ],
               "inputFields": null,
@@ -457,6 +472,7 @@ response:
               "name": "__TypeKind",
               "description": null,
               "specifiedByURL": null,
+              "isOneOf": null,
               "fields": null,
               "inputFields": null,
               "interfaces": null,
@@ -517,6 +533,7 @@ response:
               "name": "__Field",
               "description": null,
               "specifiedByURL": null,
+              "isOneOf": null,
               "fields": [
                 {
                   "name": "name",
@@ -642,6 +659,7 @@ response:
               "name": "__InputValue",
               "description": null,
               "specifiedByURL": null,
+              "isOneOf": null,
               "fields": [
                 {
                   "name": "name",
@@ -738,6 +756,7 @@ response:
               "name": "__EnumValue",
               "description": null,
               "specifiedByURL": null,
+              "isOneOf": null,
               "fields": [
                 {
                   "name": "name",
@@ -806,6 +825,7 @@ response:
               "name": "__Directive",
               "description": null,
               "specifiedByURL": null,
+              "isOneOf": null,
               "fields": [
                 {
                   "name": "name",
@@ -927,6 +947,7 @@ response:
               "name": "__DirectiveLocation",
               "description": null,
               "specifiedByURL": null,
+              "isOneOf": null,
               "fields": null,
               "inputFields": null,
               "interfaces": null,
@@ -1053,6 +1074,7 @@ response:
               "name": "Query",
               "description": "Object type description",
               "specifiedByURL": null,
+              "isOneOf": null,
               "fields": [
                 {
                   "name": "node",
@@ -1212,6 +1234,7 @@ response:
               "name": "Mutation",
               "description": null,
               "specifiedByURL": null,
+              "isOneOf": null,
               "fields": [
                 {
                   "name": "postReview",
@@ -1249,6 +1272,7 @@ response:
               "name": "Subscription",
               "description": null,
               "specifiedByURL": null,
+              "isOneOf": null,
               "fields": [
                 {
                   "name": "onNewReview",
@@ -1273,6 +1297,7 @@ response:
               "name": "Post",
               "description": null,
               "specifiedByURL": null,
+              "isOneOf": null,
               "fields": [
                 {
                   "name": "id",
@@ -1324,6 +1349,7 @@ response:
               "name": "Review",
               "description": null,
               "specifiedByURL": null,
+              "isOneOf": null,
               "fields": [
                 {
                   "name": "id",
@@ -1363,6 +1389,7 @@ response:
               "name": "Node",
               "description": null,
               "specifiedByURL": null,
+              "isOneOf": null,
               "fields": [
                 {
                   "name": "id",
@@ -1402,6 +1429,7 @@ response:
               "name": "Votable",
               "description": "Interface description",
               "specifiedByURL": null,
+              "isOneOf": null,
               "fields": [
                 {
                   "name": "id",
@@ -1447,6 +1475,7 @@ response:
               "name": "UserCreation",
               "description": "Union description",
               "specifiedByURL": null,
+              "isOneOf": null,
               "fields": null,
               "inputFields": null,
               "interfaces": null,
@@ -1469,6 +1498,7 @@ response:
               "name": "PostReviewInput",
               "description": null,
               "specifiedByURL": null,
+              "isOneOf": true,
               "fields": null,
               "inputFields": [
                 {
@@ -1509,6 +1539,7 @@ response:
               "name": "PostReviewPro",
               "description": null,
               "specifiedByURL": null,
+              "isOneOf": false,
               "fields": null,
               "inputFields": [
                 {
@@ -1537,6 +1568,7 @@ response:
               "name": "PostsFilter",
               "description": "Input object type description",
               "specifiedByURL": null,
+              "isOneOf": false,
               "fields": null,
               "inputFields": [
                 {
@@ -1561,6 +1593,7 @@ response:
               "name": "PostKind",
               "description": "Enum description",
               "specifiedByURL": null,
+              "isOneOf": null,
               "fields": null,
               "inputFields": null,
               "interfaces": null,
@@ -1583,8 +1616,9 @@ response:
             {
               "kind": "SCALAR",
               "name": "String",
-              "description": null,
+              "description": "The \u0060String\u0060 scalar type represents textual data, represented as a sequence of Unicode code points.",
               "specifiedByURL": null,
+              "isOneOf": null,
               "fields": null,
               "inputFields": null,
               "interfaces": null,
@@ -1594,8 +1628,9 @@ response:
             {
               "kind": "SCALAR",
               "name": "Boolean",
-              "description": null,
+              "description": "The \u0060Boolean\u0060 scalar type represents \u0060true\u0060 or \u0060false\u0060.",
               "specifiedByURL": null,
+              "isOneOf": null,
               "fields": null,
               "inputFields": null,
               "interfaces": null,
@@ -1605,8 +1640,9 @@ response:
             {
               "kind": "SCALAR",
               "name": "ID",
-              "description": null,
+              "description": "The \u0060ID\u0060 scalar type represents a unique identifier, often used to refetch an object or as the key for a cache.",
               "specifiedByURL": null,
+              "isOneOf": null,
               "fields": null,
               "inputFields": null,
               "interfaces": null,
@@ -1616,8 +1652,9 @@ response:
             {
               "kind": "SCALAR",
               "name": "Int",
-              "description": null,
+              "description": "The \u0060Int\u0060 scalar type represents a signed 32-bit numeric non-fractional value.",
               "specifiedByURL": null,
+              "isOneOf": null,
               "fields": null,
               "inputFields": null,
               "interfaces": null,
@@ -1824,6 +1861,7 @@ operationPlan:
               name
               description
               specifiedByURL
+              isOneOf
               fields(includeDeprecated: true) {
                 name
                 description
@@ -2011,7 +2049,7 @@ operationPlan:
           }
         }
       name: IntrospectionQuery
-      hash: a1ed729bdd8eeff7c48797c59222c723
+      hash: 100115cb7dd55b6a817c8f83458b8fc5
       searchSpace: 1
       expandedNodes: 1
   nodes:
