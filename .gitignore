@@ -305,6 +305,7 @@ artifacts/
 __mismatch__
 coverage.opencover.xml
 output
+!src/Nitro/CommandLine/src/CommandLine/Output/
 src/All.sln
 src/Build.CheckApi.sln
 src/Build.Sonar.sln
