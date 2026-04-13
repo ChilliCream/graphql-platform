@@ -49,7 +49,7 @@ sourceSchemas:
       }
 
       type InternalLookups @internal {
-        author(by: AuthorByInput! @is(field: "{\n  id\n} | {\n  name\n}")): Author!
+        author(by: AuthorByInput! @is(field: "{\n  id\n} | {\n  name\n}")): Author
           @lookup
           @internal
       }

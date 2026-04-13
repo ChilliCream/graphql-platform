@@ -1272,7 +1272,7 @@ public class AbstractTypeTests : FusionTestBase
                 => [new Discussion(1)];
 
             [Lookup]
-            public Author GetAuthorById(int id) => new Author(id);
+            public Author? GetAuthorById(int id) => new Author(id);
         }
 
         [InterfaceType]
@@ -1300,7 +1300,7 @@ public class AbstractTypeTests : FusionTestBase
         public class Query
         {
             [Lookup]
-            public OtherInterface GetOtherInterface(int id)
+            public OtherInterface? GetOtherInterface(int id)
                 => new Author(id, id * 5);
 
             [Lookup]

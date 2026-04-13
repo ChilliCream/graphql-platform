@@ -134,7 +134,7 @@ public class OperationPlannerInterceptorTests : FusionTestBase
                 };
 
             [Lookup]
-            public Book GetBookById(int id)
+            public Book? GetBookById(int id)
                 => _books[id];
 
             [UsePaging]
@@ -182,12 +182,12 @@ public class OperationPlannerInterceptorTests : FusionTestBase
 
             [Internal]
             [Lookup]
-            public Book GetBookById(int id)
+            public Book? GetBookById(int id)
                 => _books[id];
 
             [Internal]
             [Lookup]
-            public Author GetAuthorById(int id)
+            public Author? GetAuthorById(int id)
                 => _authors[id];
 
             [UsePaging]

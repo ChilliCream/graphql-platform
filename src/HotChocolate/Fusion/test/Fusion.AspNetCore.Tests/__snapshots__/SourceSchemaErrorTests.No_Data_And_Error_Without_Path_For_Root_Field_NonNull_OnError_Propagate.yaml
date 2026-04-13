@@ -9,6 +9,9 @@ request:
 response:
   body: |
     {
+      "data": {
+        "productById": null
+      },
       "errors": [
         {
           "message": "A global error"
@@ -34,7 +37,7 @@ sourceSchemas:
       }
 
       type Query {
-        productById(id: Int!): Product! @lookup
+        productById(id: Int!): Product @lookup
       }
     interactions:
       - request:

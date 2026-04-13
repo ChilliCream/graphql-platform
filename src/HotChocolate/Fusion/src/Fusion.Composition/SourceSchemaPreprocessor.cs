@@ -388,7 +388,15 @@ internal sealed partial class SourceSchemaPreprocessor(
         var lookupFieldDefinitions =
             schema.Types
                 .OfType<MutableComplexTypeDefinition>()
-                .SelectMany(t => t.Fields.AsEnumerable().Where(f => f.Directives.ContainsName(Lookup)));
+                .SelectMany(t => t.Fields.AsEnumerable().Where(f =>
+                {
+                    if (f.Arguments.Count == 0 || f.Type.IsNonNullType() || f.Type.IsListType())
+                    {
+                        return false;
+                    }
+
+                    return f.Directives.ContainsName(Lookup);
+                }));
 
         foreach (var lookupFieldDefinition in lookupFieldDefinitions)
         {
