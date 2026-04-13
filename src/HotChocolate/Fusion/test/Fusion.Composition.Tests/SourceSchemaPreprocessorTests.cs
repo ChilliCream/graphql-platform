@@ -375,7 +375,9 @@ public sealed class SourceSchemaPreprocessorTests
                 }
 
                 type Person {
-                    id: ID!
+                    id1: ID!
+                    id2: ID!
+                    id3: ID!
                 }
                 """);
         var compositionLog = new CompositionLog();
@@ -392,9 +394,9 @@ public sealed class SourceSchemaPreprocessorTests
 
         // assert
         Assert.True(result.IsSuccess);
-        Assert.Single(
-            schema.Types["Person"].Directives.Where(
-                d => d.Name == WellKnownDirectiveNames.Key).ToArray());
+        var keyDirective =
+            Assert.Single(schema.Types["Person"].Directives, d => d.Name == WellKnownDirectiveNames.Key);
+        Assert.Equal("id1", keyDirective.Arguments["fields"].Value);
     }
 
     [Fact]
