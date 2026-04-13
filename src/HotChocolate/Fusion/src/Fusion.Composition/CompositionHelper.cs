@@ -151,6 +151,11 @@ internal static class CompositionHelper
 
         if (legacyArchive is not null)
         {
+            if (legacyArchive.CanSeek)
+            {
+                legacyArchive.Position = 0;
+            }
+
             await archive.SetFileAsync("legacy-v1-archive.fgp", legacyArchive, cancellationToken);
         }
 

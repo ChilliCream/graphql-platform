@@ -6,6 +6,7 @@ using System.Text.Json;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
+using ChilliCream.Nitro.CommandLine.FusionCompatibility;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
@@ -275,28 +276,133 @@ internal sealed class FusionPublishCommand : Command
             INitroConsoleActivity activity,
             Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas)
         {
-            // download
-            var existingArchiveStream = await DownloadExistingFusionConfigurationAsync(activity);
+            Stream? existingArchiveStream = null;
+            MemoryStream? legacyBuffer = null;
+            CompositionSettings? compositionSettings = null;
 
-            // compose
+            await using (var downloadActivity = activity.StartChildActivity(
+                             $"Downloading existing configuration from '{stageName}'",
+                             "Failed to download the existing Fusion configuration."))
+            {
+                existingArchiveStream = await client.DownloadLatestFusionArchiveAsync(
+                    apiId,
+                    stageName,
+                    WellKnownVersions.LatestGatewayFormatVersion.ToString(),
+                    ArchiveFormats.Far,
+                    cancellationToken);
+
+                Stream? serverLegacyStream = null;
+
+                if (existingArchiveStream is not null)
+                {
+                    downloadActivity.Success($"Downloaded existing configuration from '{stageName}'.");
+                }
+                else
+                {
+                    serverLegacyStream = await client.DownloadLatestFusionArchiveAsync(
+                        apiId,
+                        stageName,
+                        WellKnownVersions.LegacyGatewayFormatVersion.ToString(),
+                        ArchiveFormats.Fgp,
+                        cancellationToken);
+
+                    if (serverLegacyStream is not null)
+                    {
+                        downloadActivity.Success(
+                            $"Downloaded existing legacy v1 configuration from '{stageName}'.");
+                    }
+                    else
+                    {
+                        downloadActivity.Warning($"There is no existing configuration on '{stageName}'.");
+                    }
+                }
+
+                // Precedence:
+                //   server .far present        -> existingArchiveStream (flag silently ignored;
+                //                                 embedded .fgp carries forward via Update mode)
+                //   server .fgp + local flag   -> local flag wins (no warning — expected mid-migration)
+                //   server .fgp + no flag      -> server .fgp is the base
+                //   nothing + local flag       -> local flag is the base (bootstrap)
+                //   nothing + no flag          -> fresh compose
+                if (existingArchiveStream is null)
+                {
+                    if (legacyArchiveFile is not null)
+                    {
+                        if (serverLegacyStream is not null)
+                        {
+                            await serverLegacyStream.DisposeAsync();
+                        }
+
+                        try
+                        {
+                            await using var fs = fileSystem.OpenReadStream(legacyArchiveFile);
+                            legacyBuffer = await LegacyFusionArchiveMigrator.BufferAsync(
+                                fs,
+                                cancellationToken);
+                        }
+                        catch (IOException ex)
+                        {
+                            throw new ExitException(
+                                Messages.FailedToOpenLegacyArchive(legacyArchiveFile, ex.Message));
+                        }
+
+                        // Bootstrap warning only: if the server already had a legacy archive the
+                        // combination is expected during migration and warning would be noise.
+                        if (serverLegacyStream is null)
+                        {
+                            activity.Update(
+                                Messages.LegacyArchiveAsCompositionBase(legacyArchiveFile),
+                                ActivityUpdateKind.Warning);
+                        }
+                    }
+                    else if (serverLegacyStream is not null)
+                    {
+                        legacyBuffer = await LegacyFusionArchiveMigrator.BufferAsync(
+                            serverLegacyStream,
+                            cancellationToken);
+                        await serverLegacyStream.DisposeAsync();
+
+                        activity.Update(
+                            Messages.LegacyArchiveFromRegistryAsCompositionBase(stageName),
+                            ActivityUpdateKind.Warning);
+                    }
+                }
+            }
+
             await using var composeActivity = activity.StartChildActivity(
                 "Composing new configuration",
                 "Failed to compose new configuration.");
 
-            Stream? legacyStream = legacyArchiveFile is not null
-                ? fileSystem.OpenReadStream(legacyArchiveFile)
-                : null;
-
             try
             {
+                if (legacyBuffer is not null)
+                {
+                    try
+                    {
+                        var migratedSettings = await LegacyFusionArchiveMigrator.MergeIntoAsync(
+                            legacyBuffer,
+                            newSourceSchemas,
+                            newSourceSchemas.Keys,
+                            cancellationToken);
+
+                        compositionSettings = new CompositionSettings().MergeInto(
+                            migratedSettings ?? new CompositionSettings());
+                    }
+                    catch (FusionGraphPackageException ex) when (legacyArchiveFile is not null)
+                    {
+                        throw new ExitException(
+                            Messages.FailedToOpenLegacyArchive(legacyArchiveFile, ex.Message));
+                    }
+                }
+
                 var archiveStream = new MemoryStream();
                 var (result, compositionLog) = await FusionPublishHelpers.ComposeAsync(
                     archiveStream,
                     existingArchiveStream,
                     stageName,
                     newSourceSchemas,
-                    null,
-                    legacyStream,
+                    compositionSettings,
+                    legacyBuffer,
                     cancellationToken);
 
                 if (result.IsSuccess)
@@ -328,9 +434,9 @@ internal sealed class FusionPublishCommand : Command
             }
             finally
             {
-                if (legacyStream is not null)
+                if (legacyBuffer is not null)
                 {
-                    await legacyStream.DisposeAsync();
+                    await legacyBuffer.DisposeAsync();
                 }
             }
         }
@@ -487,31 +593,6 @@ internal sealed class FusionPublishCommand : Command
 
                 throw;
             }
-        }
-
-        async Task<Stream?> DownloadExistingFusionConfigurationAsync(INitroConsoleActivity activity)
-        {
-            await using var downloadActivity = activity.StartChildActivity(
-                $"Downloading existing configuration from '{stageName}'",
-                "Failed to download the existing Fusion configuration.");
-
-            var existingArchiveStream = await client.DownloadLatestFusionArchiveAsync(
-                apiId,
-                stageName,
-                WellKnownVersions.LatestGatewayFormatVersion.ToString(),
-                ArchiveFormats.Far,
-                cancellationToken);
-
-            if (existingArchiveStream is null)
-            {
-                downloadActivity.Warning($"There is no existing configuration on '{stageName}'.");
-            }
-            else
-            {
-                downloadActivity.Success($"Downloaded existing configuration from '{stageName}'.");
-            }
-
-            return existingArchiveStream;
         }
     }
 

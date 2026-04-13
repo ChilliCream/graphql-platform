@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using System.Threading.Channels;
+using ChilliCream.Nitro.CommandLine.FusionCompatibility;
 using ChilliCream.Nitro.CommandLine.Services;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Logging;
@@ -440,19 +441,50 @@ internal sealed class FusionComposeCommand : Command
 
             var compositionLog = new CompositionLog();
 
-            Stream? legacyArchiveStream = legacyArchiveFile is not null
-                ? fileSystem.OpenReadStream(legacyArchiveFile)
-                : null;
+            MemoryStream? legacyBuffer = null;
+
+            if (legacyArchiveFile is not null)
+            {
+                await using var legacyFileStream = fileSystem.OpenReadStream(legacyArchiveFile);
+                legacyBuffer = await LegacyFusionArchiveMigrator.BufferAsync(
+                    legacyFileStream,
+                    cancellationToken);
+
+                console.WriteLine(
+                    $"⚠️ {Messages.LegacyArchiveAsCompositionBase(legacyArchiveFile)}");
+            }
 
             try
             {
+                if (legacyBuffer is not null)
+                {
+                    CompositionSettings? migratedSettings;
+
+                    try
+                    {
+                        migratedSettings = await LegacyFusionArchiveMigrator.MergeIntoAsync(
+                            legacyBuffer,
+                            sourceSchemas,
+                            sourceSchemas.Keys,
+                            cancellationToken);
+                    }
+                    catch (FusionGraphPackageException ex)
+                    {
+                        throw new ExitException(
+                            Messages.FailedToOpenLegacyArchive(legacyArchiveFile!, ex.Message));
+                    }
+
+                    compositionSettings = compositionSettings.MergeInto(
+                        migratedSettings ?? new CompositionSettings());
+                }
+
                 var result = await CompositionHelper.ComposeAsync(
                     compositionLog,
                     sourceSchemas,
                     archive,
                     environment,
                     compositionSettings,
-                    legacyArchiveStream,
+                    legacyBuffer,
                     cancellationToken);
 
                 WriteCompositionLog(
@@ -477,9 +509,9 @@ internal sealed class FusionComposeCommand : Command
             }
             finally
             {
-                if (legacyArchiveStream is not null)
+                if (legacyBuffer is not null)
                 {
-                    await legacyArchiveStream.DisposeAsync();
+                    await legacyBuffer.DisposeAsync();
                 }
             }
 

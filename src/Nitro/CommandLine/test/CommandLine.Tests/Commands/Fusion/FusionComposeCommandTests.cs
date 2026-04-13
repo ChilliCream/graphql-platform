@@ -618,6 +618,86 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
         sourceText.ReplaceLineEndings("\n").MatchInlineSnapshot(s_validExample1CompositeSchema);
     }
 
+    [Fact]
+    public async Task Compose_WithLegacyArchive_MigratesAndEmbedsAndEmitsWarning()
+    {
+        // arrange
+        var archiveFileName = CreateTempFile();
+        var legacyBytes = await LegacyArchiveE2EFixtures.BuildLegacyV1BytesAsync();
+        SetupFile(LegacyArchiveFile, new MemoryStream(legacyBytes));
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--archive",
+            archiveFileName,
+            "--legacy-v1-archive",
+            LegacyArchiveFile);
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.Contains(
+            Messages.LegacyArchiveAsCompositionBase(
+                Path.Combine("/some/working/directory", LegacyArchiveFile)),
+            result.StdOut);
+        Assert.True(File.Exists(archiveFileName));
+
+        using var archive = FusionArchive.Open(archiveFileName);
+        var config = await archive.TryGetGatewayConfigurationAsync(WellKnownVersions.LatestGatewayFormatVersion);
+        Assert.NotNull(config);
+        var schema = await ReadSchemaAsync(config);
+        Assert.Contains("USERS", schema);
+        Assert.Contains("REVIEWS", schema);
+
+        var embeddedBytes = await LegacyArchiveE2EFixtures.ReadEmbeddedLegacyAsync(archive);
+        Assert.NotNull(embeddedBytes);
+        Assert.Equal(legacyBytes, embeddedBytes);
+    }
+
+    [Fact]
+    public async Task Compose_WithLegacyArchive_CliExcludeTag_OverridesMigratedSetting()
+    {
+        // arrange
+        var archiveFileName = CreateTempFile();
+        var legacyBytes = await LegacyArchiveE2EFixtures.BuildLegacyV1BytesAsync();
+        SetupFile(LegacyArchiveFile, new MemoryStream(legacyBytes));
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "compose",
+            "--archive",
+            archiveFileName,
+            "--legacy-v1-archive",
+            LegacyArchiveFile,
+            "--exclude-by-tag",
+            "internal",
+            "--enable-global-object-identification");
+
+        // assert
+        Assert.Equal(0, result.ExitCode);
+        Assert.True(File.Exists(archiveFileName));
+
+        using var archive = FusionArchive.Open(archiveFileName);
+        var settings = await archive.GetCompositionSettingsAsync();
+        Assert.NotNull(settings);
+
+        var root = settings.RootElement;
+        var merger = root.GetProperty("merger");
+        Assert.True(merger.GetProperty("enableGlobalObjectIdentification").GetBoolean());
+
+        var preprocessor = root.GetProperty("preprocessor");
+        var excludeByTag = preprocessor.GetProperty("excludeByTag");
+        var excludedTags = excludeByTag.EnumerateArray()
+            .Select(x => x.GetString())
+            .ToArray();
+
+        Assert.Contains("internal", excludedTags);
+        Assert.DoesNotContain("alpha", excludedTags);
+        Assert.DoesNotContain("beta", excludedTags);
+    }
+
     private static async Task<string> ReadSchemaAsync(GatewayConfiguration config)
     {
         await using var stream = await config.OpenReadSchemaAsync();
