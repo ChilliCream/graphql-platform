@@ -72,7 +72,31 @@ public sealed class IntrospectionExecutionNode : ExecutionNode
             backlog.Push((null, selection, property));
         }
 
-        await ExecuteSelectionsAsync(context, backlog, cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await ExecuteSelectionsAsync(context, backlog, cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            return ExecutionStatus.Failed;
+        }
+        catch (GraphQLException ex)
+        {
+            foreach (var error in ex.Errors)
+            {
+                context.AddErrors(error, _resultSelectionSet, Path.Root);
+            }
+
+            return ExecutionStatus.Failed;
+        }
+        catch (Exception ex)
+        {
+            var error = ErrorBuilder.FromException(ex).Build();
+            context.AddErrors(error, _resultSelectionSet, Path.Root);
+
+            return ExecutionStatus.Failed;
+        }
+
         context.AddPartialResults(resultBuilder.Build(), _resultSelectionSet);
 
         return ExecutionStatus.Success;

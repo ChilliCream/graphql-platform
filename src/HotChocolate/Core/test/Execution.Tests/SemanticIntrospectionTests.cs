@@ -709,7 +709,7 @@ public sealed class SemanticIntrospectionTests
     }
 
     [Fact]
-    public async Task Definitions_Should_SkipInvalidCoordinates()
+    public async Task Definitions_Should_ErrorOn_UnknownCoordinate()
     {
         // arrange
         var executor = CreateSchema().MakeExecutable();
@@ -730,21 +730,7 @@ public sealed class SemanticIntrospectionTests
             """);
 
         // assert
-        result.MatchInlineSnapshot(
-            """
-            {
-              "data": {
-                "__definitions": [
-                  {
-                    "typeName": "User"
-                  },
-                  {
-                    "fieldName": "orderById"
-                  }
-                ]
-              }
-            }
-            """);
+        result.MatchSnapshot();
     }
 
     [Fact]

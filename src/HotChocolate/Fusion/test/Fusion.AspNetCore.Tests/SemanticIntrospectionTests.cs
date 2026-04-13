@@ -801,7 +801,7 @@ public class SemanticIntrospectionTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Definitions_Should_SkipInvalidCoordinates()
+    public async Task Definitions_Should_ErrorOn_UnknownCoordinate()
     {
         // arrange
         using var server = CreateSourceSchema("A", SourceSchema);
@@ -831,16 +831,14 @@ public class SemanticIntrospectionTests : FusionTestBase
         response.MatchInlineSnapshot(
             """
             {
-              "data": {
-                "__definitions": [
-                  {
-                    "typeName": "User"
-                  },
-                  {
-                    "fieldName": "orderById"
-                  }
-                ]
-              }
+              "errors": [
+                {
+                  "message": "No schema member was found for the coordinate 'NonExistentType'.",
+                  "path": [
+                    "__definitions"
+                  ]
+                }
+              ]
             }
             """);
     }

@@ -148,18 +148,32 @@ internal class Query : ITypeResolverInterceptor
         {
             if (item is not StringValueNode coordinateString)
             {
-                continue;
+                throw new GraphQLException(
+                    ErrorBuilder.New()
+                        .SetMessage(
+                            "Each entry in the `coordinates` argument must be a string value.")
+                        .Build());
             }
 
             if (!SchemaCoordinate.TryParse(coordinateString.Value, out var coordinate))
             {
-                continue;
+                throw new GraphQLException(
+                    ErrorBuilder.New()
+                        .SetMessage(
+                            $"The value '{coordinateString.Value}' is not a valid schema coordinate.")
+                        .Build());
             }
 
-            if (context.Schema.TryGetMember(coordinate.Value, out var definition))
+            if (!context.Schema.TryGetMember(coordinate.Value, out var definition))
             {
-                definitions.Add(definition);
+                throw new GraphQLException(
+                    ErrorBuilder.New()
+                        .SetMessage(
+                            $"No schema member was found for the coordinate '{coordinate.Value}'.")
+                        .Build());
             }
+
+            definitions.Add(definition);
         }
 
         var list = context.FieldResult.CreateListValue(definitions.Count);
