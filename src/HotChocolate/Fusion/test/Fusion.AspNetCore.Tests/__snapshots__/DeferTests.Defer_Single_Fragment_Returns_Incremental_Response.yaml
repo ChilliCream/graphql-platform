@@ -147,7 +147,7 @@ operationPlan:
           }
         }
   deferredGroups:
-    - deferId: 0
+    - id: 0
       label: reviews
       path: $.user
       nodes:

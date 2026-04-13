@@ -1,11 +1,15 @@
-title: Defer_With_Error_In_Deferred_Fragment_Should_Return_Error_In_Incremental_Payload
+title: Defer_Two_Siblings_With_Overlapping_Fields_Should_Deduplicate
 request:
   document: |
-    query GetUser {
+    {
       user(id: "1") {
         name
-        ... @defer(label: "email") {
+        ... @defer(label: "contact") {
           email
+        }
+        ... @defer(label: "location") {
+          email
+          address
         }
       }
     }
@@ -18,6 +22,8 @@ responseStream:
           }
         }
       }
+  - body: |
+      {}
   - body: |
       {}
 sourceSchemas:
@@ -39,7 +45,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query GetUser_28690061_1 {
+            query Op_29ccee0f_1 {
               user(id: "1") {
                 name
               }
@@ -51,6 +57,14 @@ sourceSchemas:
                 "data": {
                   "user": {
                     "name": "User: VXNlcjox"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "user": {
+                    "id": "VXNlcjox"
                   }
                 }
               }
@@ -74,13 +88,14 @@ sourceSchemas:
 
       type User @key(fields: "id") {
         id: ID!
-        email: String! @error
+        email: String!
+        address: String!
       }
     interactions:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query GetUser_defer_2($__fusion_1_id: ID!) {
+            query Op_defer_2($__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
                 email
               }
@@ -93,29 +108,30 @@ sourceSchemas:
           results:
             - |
               {
-                "errors": [
-                  {
-                    "message": "Unexpected Execution Error",
-                    "path": [
-                      "userById",
-                      "email"
-                    ]
-                  }
-                ],
                 "data": {
-                  "userById": null
+                  "userById": {
+                    "email": "User: VXNlcjox"
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "email": "User: VXNlcjox",
+                    "address": "User: VXNlcjox"
+                  }
                 }
               }
 operationPlan:
   operation:
     - document: |
-        query GetUser {
+        {
           user(id: "1") {
             name
           }
         }
-      name: GetUser
-      hash: 286900619fe56222f78d6a6c45482586
+      hash: 29ccee0fa1c82a6cb002b417ee776893
       searchSpace: 1
       expandedNodes: 1
   nodes:
@@ -123,21 +139,21 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query GetUser_28690061_1 {
+        query Op_29ccee0f_1 {
           user(id: "1") {
             name
           }
         }
   deferredGroups:
     - id: 0
-      label: email
+      label: contact
       path: $.user
       nodes:
         - id: 1
           type: Operation
           schema: A
           operation: |
-            query GetUser_defer_1 {
+            query Op_defer_1 {
               user(id: "1") {
                 id
               }
@@ -146,9 +162,40 @@ operationPlan:
           type: Operation
           schema: B
           operation: |
-            query GetUser_defer_2($__fusion_1_id: ID!) {
+            query Op_defer_2($__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
                 email
+              }
+            }
+          source: $.userById
+          target: $.user
+          requirements:
+            - name: __fusion_1_id
+              selectionMap: >-
+                id
+          dependencies:
+            - id: 1
+    - id: 1
+      label: location
+      path: $.user
+      nodes:
+        - id: 1
+          type: Operation
+          schema: A
+          operation: |
+            query Op_defer_1 {
+              user(id: "1") {
+                id
+              }
+            }
+        - id: 2
+          type: Operation
+          schema: B
+          operation: |
+            query Op_defer_2($__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                email
+                address
               }
             }
           source: $.userById

@@ -198,7 +198,7 @@ operationPlan:
       dependencies:
         - id: 1
   deferredGroups:
-    - deferId: 0
+    - id: 0
       label: reviews
       path: $.user
       ifVariable: $shouldDefer
