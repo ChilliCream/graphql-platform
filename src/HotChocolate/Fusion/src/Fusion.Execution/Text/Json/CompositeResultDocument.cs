@@ -13,6 +13,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     private readonly List<SourceResultDocument> _sources = [];
     private readonly Operation _operation;
     private readonly ulong _includeFlags;
+    private readonly ulong _deferFlags;
     private readonly PathSegmentLocalPool? _pathPool;
     internal MetaDb _metaDb;
     private bool _disposed;
@@ -20,11 +21,13 @@ public sealed partial class CompositeResultDocument : IDisposable
     internal CompositeResultDocument(
         Operation operation,
         ulong includeFlags,
+        ulong deferFlags = 0,
         PathSegmentLocalPool? pathPool = null)
     {
         _metaDb = MetaDb.CreateForEstimatedRows(Cursor.RowsPerChunk * 8);
         _operation = operation;
         _includeFlags = includeFlags;
+        _deferFlags = deferFlags;
         _pathPool = pathPool;
 
         Data = CreateObject(Cursor.Zero, operation.RootSelectionSet);
@@ -492,7 +495,7 @@ public sealed partial class CompositeResultDocument : IDisposable
             flags = ElementFlags.IsInternal;
         }
 
-        if (!selection.IsIncluded(_includeFlags))
+        if (!selection.IsIncluded(_includeFlags) || selection.IsDeferred(_deferFlags))
         {
             flags |= ElementFlags.IsExcluded;
         }

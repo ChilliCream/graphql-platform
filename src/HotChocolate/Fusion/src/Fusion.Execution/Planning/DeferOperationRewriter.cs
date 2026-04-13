@@ -11,6 +11,12 @@ namespace HotChocolate.Fusion.Planning;
 internal sealed class DeferOperationRewriter
 {
     private int _nextDeferId;
+    private readonly bool _inlineUnlabeledNestedDefers;
+
+    internal DeferOperationRewriter(bool inlineUnlabeledNestedDefers = true)
+    {
+        _inlineUnlabeledNestedDefers = inlineUnlabeledNestedDefers;
+    }
 
     /// <summary>
     /// Fast check whether the operation contains any <c>@defer</c> directives.
@@ -121,6 +127,33 @@ internal sealed class DeferOperationRewriter
 
                 // If @defer(if: false) literal, keep the fragment inline (don't defer)
                 if (ShouldSkipDefer(inlineFragment))
+                {
+                    var stripped = StripDeferDirective(inlineFragment);
+                    var newInnerSelectionSet = StripDeferFragments(
+                        stripped.SelectionSet,
+                        parentPath,
+                        deferredFragments,
+                        rootOperation,
+                        parentDeferFragment);
+
+                    if (!ReferenceEquals(newInnerSelectionSet, stripped.SelectionSet))
+                    {
+                        stripped = stripped.WithSelectionSet(newInnerSelectionSet);
+                    }
+
+                    selections.Add(stripped);
+                    modified = true;
+                    continue;
+                }
+
+                // If inlining unlabeled nested defers, treat an unlabeled @defer inside
+                // a parent defer the same as @defer(if: false) — keep it inline.
+                // Only inline when the condition matches the parent (or has no condition),
+                // otherwise the conditional semantics would be lost.
+                if (_inlineUnlabeledNestedDefers
+                    && label is null
+                    && parentDeferFragment is not null
+                    && (ifVariable is null || ifVariable == parentDeferFragment.IfVariable))
                 {
                     var stripped = StripDeferDirective(inlineFragment);
                     var newInnerSelectionSet = StripDeferFragments(

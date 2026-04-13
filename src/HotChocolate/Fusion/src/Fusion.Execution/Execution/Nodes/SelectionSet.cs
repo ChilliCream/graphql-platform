@@ -19,7 +19,12 @@ public sealed class SelectionSet : ISelectionSet
     private readonly bool _hasIncrementalParts;
     private bool _isSealed;
 
-    public SelectionSet(int id, IObjectTypeDefinition type, Selection[] selections, bool isConditional, bool hasIncrementalParts = false)
+    public SelectionSet(
+        int id,
+        IObjectTypeDefinition type,
+        Selection[] selections,
+        bool isConditional,
+        bool hasIncrementalParts)
     {
         ArgumentNullException.ThrowIfNull(selections);
 

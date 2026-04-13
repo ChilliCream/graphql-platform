@@ -104,7 +104,7 @@ public sealed partial class OperationPlanner
 
             if (_options.EnableDefer && DeferOperationRewriter.HasDeferDirective(operationDefinition))
             {
-                var rewriter = new DeferOperationRewriter();
+                var rewriter = new DeferOperationRewriter(_options.InlineUnlabeledDeferFragments);
                 var splitResult = rewriter.Split(operationDefinition);
 
                 if (!splitResult.DeferredFragments.IsEmpty)
