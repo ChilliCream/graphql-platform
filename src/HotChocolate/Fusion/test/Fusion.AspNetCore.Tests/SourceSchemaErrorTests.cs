@@ -993,7 +993,7 @@ public class SourceSchemaErrorTests : FusionTestBase
         public class Query
         {
             [Lookup]
-            public Product GetProductById(int id, IResolverContext context)
+            public Product? GetProductById(int id, IResolverContext context)
                 => throw new GraphQLException(ErrorBuilder.New().SetMessage("Could not resolve Product")
                     .SetPath(context.Path).Build());
         }
@@ -1023,7 +1023,7 @@ public class SourceSchemaErrorTests : FusionTestBase
         public class Query
         {
             [Lookup]
-            public Product GetProductById(int id) => new(id);
+            public Product? GetProductById(int id) => new(id);
         }
 
         public record Product(int Id)

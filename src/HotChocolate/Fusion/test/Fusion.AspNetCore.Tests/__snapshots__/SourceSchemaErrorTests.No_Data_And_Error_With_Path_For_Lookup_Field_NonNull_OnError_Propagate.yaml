@@ -71,7 +71,7 @@ sourceSchemas:
       }
 
       type Query {
-        productById(id: Int!): Product! @lookup
+        productById(id: Int!): Product @lookup
       }
     interactions:
       - request:
@@ -98,7 +98,9 @@ sourceSchemas:
                     ]
                   }
                 ],
-                "data": null
+                "data": {
+                  "productById": null
+                }
               }
 operationPlan:
   operation:

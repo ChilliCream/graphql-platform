@@ -108,7 +108,7 @@ sourceSchemas:
       }
 
       type InternalLookups @internal {
-        authorById(id: ID!): Author! @lookup
+        authorById(id: ID!): Author @lookup
       }
 
       type Query {
