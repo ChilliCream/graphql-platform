@@ -360,6 +360,44 @@ public sealed class SourceSchemaPreprocessorTests
     }
 
     [Fact]
+    public void Preprocess_InferKeysFromLookups_DoesNotApplyToInvalidLookups()
+    {
+        // arrange
+        var sourceSchemaText =
+            new SourceSchemaText(
+                "A",
+                """
+                type Query {
+                    personById(id1: ID!): Person @lookup
+                    personByIdNoArguments: Person @lookup
+                    personByIdNonNull(id2: ID!): Person! @lookup
+                    personByIdListType(id3: ID!): [Person] @lookup
+                }
+
+                type Person {
+                    id: ID!
+                }
+                """);
+        var compositionLog = new CompositionLog();
+        var sourceSchemaParser = new SourceSchemaParser(sourceSchemaText, compositionLog);
+        var schema = sourceSchemaParser.Parse().Value;
+        var preprocessor =
+            new SourceSchemaPreprocessor(
+                schema,
+                [],
+                compositionLog);
+
+        // act
+        var result = preprocessor.Preprocess();
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Single(
+            schema.Types["Person"].Directives.Where(
+                d => d.Name == WellKnownDirectiveNames.Key).ToArray());
+    }
+
+    [Fact]
     public void Preprocess_InheritInterfaceKeysEnabled_InheritsInterfaceKeys()
     {
         // arrange
