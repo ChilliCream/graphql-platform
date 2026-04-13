@@ -1583,7 +1583,7 @@ response:
             {
               "kind": "SCALAR",
               "name": "String",
-              "description": null,
+              "description": "The \u0060String\u0060 scalar type represents textual data, represented as a sequence of Unicode code points.",
               "specifiedByURL": null,
               "fields": null,
               "inputFields": null,
@@ -1594,7 +1594,7 @@ response:
             {
               "kind": "SCALAR",
               "name": "Boolean",
-              "description": null,
+              "description": "The \u0060Boolean\u0060 scalar type represents \u0060true\u0060 or \u0060false\u0060.",
               "specifiedByURL": null,
               "fields": null,
               "inputFields": null,
@@ -1605,7 +1605,7 @@ response:
             {
               "kind": "SCALAR",
               "name": "ID",
-              "description": null,
+              "description": "The \u0060ID\u0060 scalar type represents a unique identifier, often used to refetch an object or as the key for a cache.",
               "specifiedByURL": null,
               "fields": null,
               "inputFields": null,
@@ -1616,7 +1616,7 @@ response:
             {
               "kind": "SCALAR",
               "name": "Int",
-              "description": null,
+              "description": "The \u0060Int\u0060 scalar type represents a signed 32-bit numeric non-fractional value.",
               "specifiedByURL": null,
               "fields": null,
               "inputFields": null,
