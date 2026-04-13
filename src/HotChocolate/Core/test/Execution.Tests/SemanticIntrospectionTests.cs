@@ -128,6 +128,108 @@ public sealed class SemanticIntrospectionTests
     }
 
     [Fact]
+    public async Task Search_Should_ErrorOn_FirstExceedingLimit()
+    {
+        // arrange
+        var executor = CreateSchema().MakeExecutable();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                __search(query: "product", first: 151) {
+                    coordinate
+                }
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The `first` argument must not exceed 150.",
+                  "path": [
+                    "__search"
+                  ]
+                }
+              ],
+              "data": null
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Search_Should_ErrorOn_FirstLessThanOrEqualToZero()
+    {
+        // arrange
+        var executor = CreateSchema().MakeExecutable();
+
+        // act
+        var result = await executor.ExecuteAsync(
+            """
+            {
+                __search(query: "product", first: 0) {
+                    coordinate
+                }
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The `first` argument must be greater than zero.",
+                  "path": [
+                    "__search"
+                  ]
+                }
+              ],
+              "data": null
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Definitions_Should_ErrorOn_CoordinatesExceedingLimit()
+    {
+        // arrange
+        var executor = CreateSchema().MakeExecutable();
+        var coordinates = string.Join(", ", Enumerable.Repeat("\"User\"", 151));
+
+        // act
+        var result = await executor.ExecuteAsync(
+            $$"""
+            {
+                __definitions(coordinates: [{{coordinates}}]) {
+                    ... on __Type {
+                        name
+                    }
+                }
+            }
+            """);
+
+        // assert
+        result.MatchInlineSnapshot(
+            """
+            {
+              "errors": [
+                {
+                  "message": "The `coordinates` argument must not exceed 150 items.",
+                  "path": [
+                    "__definitions"
+                  ]
+                }
+              ],
+              "data": null
+            }
+            """);
+    }
+
+    [Fact]
     public async Task Search_Should_FilterByMinScore()
     {
         // arrange

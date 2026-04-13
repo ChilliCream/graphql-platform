@@ -150,6 +150,127 @@ public class SemanticIntrospectionTests : FusionTestBase
     }
 
     [Fact]
+    public async Task Search_Should_ErrorOn_FirstExceedingLimit()
+    {
+        // arrange
+        using var server = CreateSourceSchema("A", SourceSchema);
+
+        using var gateway = await CreateGatewayAsync(server);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        // act
+        using var result = await client.PostAsync(
+            new OperationRequest(
+                """
+                {
+                    __search(query: "product", first: 151) {
+                        coordinate
+                    }
+                }
+                """),
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        using var response = await result.ReadAsResultAsync();
+        response.MatchInlineSnapshot(
+            """
+            {
+              "data": null,
+              "errors": [
+                {
+                  "message": "The `first` argument must not exceed 150.",
+                  "path": [
+                    "__search"
+                  ]
+                }
+              ]
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Search_Should_ErrorOn_FirstLessThanOrEqualToZero()
+    {
+        // arrange
+        using var server = CreateSourceSchema("A", SourceSchema);
+
+        using var gateway = await CreateGatewayAsync(server);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        // act
+        using var result = await client.PostAsync(
+            new OperationRequest(
+                """
+                {
+                    __search(query: "product", first: 0) {
+                        coordinate
+                    }
+                }
+                """),
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        using var response = await result.ReadAsResultAsync();
+        response.MatchInlineSnapshot(
+            """
+            {
+              "data": null,
+              "errors": [
+                {
+                  "message": "The `first` argument must be greater than zero.",
+                  "path": [
+                    "__search"
+                  ]
+                }
+              ]
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task Definitions_Should_ErrorOn_CoordinatesExceedingLimit()
+    {
+        // arrange
+        using var server = CreateSourceSchema("A", SourceSchema);
+
+        using var gateway = await CreateGatewayAsync(server);
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var coordinates = string.Join(", ", Enumerable.Repeat("\"User\"", 151));
+
+        // act
+        using var result = await client.PostAsync(
+            new OperationRequest(
+                $$"""
+                {
+                    __definitions(coordinates: [{{coordinates}}]) {
+                        ... on __Type {
+                            name
+                        }
+                    }
+                }
+                """),
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        using var response = await result.ReadAsResultAsync();
+        response.MatchInlineSnapshot(
+            """
+            {
+              "data": null,
+              "errors": [
+                {
+                  "message": "The `coordinates` argument must not exceed 150 items.",
+                  "path": [
+                    "__definitions"
+                  ]
+                }
+              ]
+            }
+            """);
+    }
+
+    [Fact]
     public async Task Search_Should_FilterByMinScore()
     {
         // arrange
@@ -831,6 +952,7 @@ public class SemanticIntrospectionTests : FusionTestBase
         response.MatchInlineSnapshot(
             """
             {
+              "data": null,
               "errors": [
                 {
                   "message": "No schema member was found for the coordinate 'NonExistentType'.",

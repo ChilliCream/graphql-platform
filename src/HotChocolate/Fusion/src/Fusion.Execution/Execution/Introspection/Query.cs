@@ -142,6 +142,16 @@ internal class Query : ITypeResolverInterceptor
     public static void Definitions(FieldContext context)
     {
         var coordinatesNode = context.ArgumentValue<ListValueNode>("coordinates");
+
+        if (coordinatesNode.Items.Count > MaxFirstLimit)
+        {
+            throw new GraphQLException(
+                ErrorBuilder.New()
+                    .SetMessage(
+                        $"The `coordinates` argument must not exceed {MaxFirstLimit} items.")
+                    .Build());
+        }
+
         var definitions = new List<object>(coordinatesNode.Items.Count);
 
         foreach (var item in coordinatesNode.Items)
