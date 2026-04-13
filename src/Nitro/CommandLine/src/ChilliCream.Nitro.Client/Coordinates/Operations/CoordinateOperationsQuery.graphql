@@ -1,0 +1,48 @@
+query coordinateOperationsQuery(
+  $apiId: ID!
+  $coordinate: String!
+  $from: DateTime!
+  $to: DateTime!
+  $operationsPerClient: Int! = 100
+) {
+  apiById(id: $apiId) {
+    id
+    name
+    stages {
+      name
+      coordinate(coordinate: $coordinate) {
+        coordinate
+        isDeprecated
+        metrics {
+          clientUsages(from: $from, to: $to) {
+            name
+            client {
+              id
+              name
+            }
+            metrics {
+              operations(first: $operationsPerClient) {
+                nodes {
+                  ...CoordinateClientUsageOperationFields
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+fragment CoordinateClientUsageOperationFields on CoordinateClientUsageOperationInsight {
+  operationName
+  hash
+  kind
+  opm
+  totalCount
+  totalCountWithErrors
+  errorRate
+  averageLatency
+  impact
+  totalVersions
+}

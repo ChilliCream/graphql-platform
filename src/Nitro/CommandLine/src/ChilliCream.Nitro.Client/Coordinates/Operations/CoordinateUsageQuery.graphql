@@ -1,0 +1,35 @@
+query coordinateUsageQuery(
+  $apiId: ID!
+  $coordinate: String!
+  $from: DateTime
+  $to: DateTime
+) {
+  apiById(id: $apiId) {
+    id
+    name
+    stages {
+      name
+      coordinate(coordinate: $coordinate) {
+        ...CoordinateUsageFields
+      }
+    }
+  }
+}
+
+fragment CoordinateUsageFields on GraphQLTypeSystemMember {
+  coordinate
+  isDeprecated
+  usage(from: $from, to: $to) {
+    ...CoordinateUsageMetricsFields
+  }
+}
+
+fragment CoordinateUsageMetricsFields on CoordinateUsage {
+  totalRequests
+  clientCount
+  operationCount
+  firstSeen
+  lastSeen
+  errorRate
+  meanDuration
+}

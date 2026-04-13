@@ -18,6 +18,14 @@ internal static class EnvironmentVariables
     public const string MockSchemaName = "MOCK_SCHEMA_NAME";
     public const string OutputFile = "OUTPUT_FILE";
     public const string OutputFormat = "OUTPUT_FORMAT";
+    public const string Format = "FORMAT";
+    public const string From = "FROM";
+    public const string To = "TO";
+    public const string Record = "RECORD";
+    public const string Replay = "REPLAY";
+    public const string Coordinate = "COORDINATE";
+    public const string CoordinateKinds = "COORDINATE_KINDS";
+    public const string DeprecatedOnly = "DEPRECATED_ONLY";
     public const string RequestId = "REQUEST_ID";
     public const string SubgraphId = "SUBGRAPH_ID";
     public const string SubgraphName = "SUBGRAPH_NAME";

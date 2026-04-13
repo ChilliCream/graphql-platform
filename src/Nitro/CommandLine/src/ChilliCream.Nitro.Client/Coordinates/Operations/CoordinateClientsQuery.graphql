@@ -1,0 +1,34 @@
+query coordinateClientsQuery(
+  $apiId: ID!
+  $coordinate: String!
+  $from: DateTime!
+  $to: DateTime!
+) {
+  apiById(id: $apiId) {
+    id
+    name
+    stages {
+      name
+      coordinate(coordinate: $coordinate) {
+        coordinate
+        isDeprecated
+        metrics {
+          clientUsages(from: $from, to: $to) {
+            ...CoordinateClientUsageFields
+          }
+        }
+      }
+    }
+  }
+}
+
+fragment CoordinateClientUsageFields on CoordinateClientUsage {
+  name
+  totalVersions
+  totalOperations
+  totalRequests
+  client {
+    id
+    name
+  }
+}

@@ -1,6 +1,7 @@
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys;
 using ChilliCream.Nitro.CommandLine.Commands.Apis;
 using ChilliCream.Nitro.CommandLine.Commands.Clients;
+using ChilliCream.Nitro.CommandLine.Commands.Config;
 using ChilliCream.Nitro.CommandLine.Commands.Environments;
 using ChilliCream.Nitro.CommandLine.Commands.Fusion;
 using ChilliCream.Nitro.CommandLine.Commands.Launch;
@@ -38,6 +39,7 @@ internal sealed class NitroRootCommand : RootCommand
         Subcommands.Add(new ApiKeyCommand());
         Subcommands.Add(new ApiCommand());
         Subcommands.Add(new ClientCommand());
+        Subcommands.Add(new ConfigCommand());
         Subcommands.Add(new EnvironmentCommand());
         Subcommands.Add(new FusionCommand());
         Subcommands.Add(new LaunchCommand());

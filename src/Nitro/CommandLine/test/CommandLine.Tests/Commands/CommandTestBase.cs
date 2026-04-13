@@ -4,6 +4,7 @@ using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.ApiKeys;
 using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Clients;
+using ChilliCream.Nitro.Client.Coordinates;
 using ChilliCream.Nitro.Client.Environments;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.Client.Mcp;
@@ -36,6 +37,7 @@ public abstract class CommandTestBase
     private readonly Mock<IFileSystem> _fileSystemMock = new();
     private readonly Mock<IEnvironmentVariableProvider> _environmentVariableProviderMock = new();
     protected readonly Mock<ISchemasClient> SchemasClientMock = new(MockBehavior.Strict);
+    protected readonly Mock<ICoordinatesClient> CoordinatesClientMock = new(MockBehavior.Strict);
     protected readonly Mock<IFusionConfigurationClient> FusionConfigurationClientMock = new(MockBehavior.Strict);
     protected readonly Mock<IClientsClient> ClientsClientMock = new(MockBehavior.Strict);
     protected readonly Mock<IApisClient> ApisClientMock = new(MockBehavior.Strict);
@@ -218,6 +220,7 @@ public abstract class CommandTestBase
         services.Replace(ServiceDescriptor.Singleton(_sessionServiceMock.Object));
         services.Replace(ServiceDescriptor.Singleton(WorkspacesClientMock.Object));
         services.Replace(ServiceDescriptor.Singleton(SchemasClientMock.Object));
+        services.Replace(ServiceDescriptor.Singleton(CoordinatesClientMock.Object));
         services.Replace(ServiceDescriptor.Singleton(FusionConfigurationClientMock.Object));
         services.Replace(ServiceDescriptor.Singleton(ClientsClientMock.Object));
         services.Replace(ServiceDescriptor.Singleton(ApisClientMock.Object));
@@ -377,6 +380,7 @@ public abstract class CommandTestBase
         }
 
         SchemasClientMock.VerifyAll();
+        CoordinatesClientMock.VerifyAll();
         FusionConfigurationClientMock.VerifyAll();
         ClientsClientMock.VerifyAll();
         ApisClientMock.VerifyAll();

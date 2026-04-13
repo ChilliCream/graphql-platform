@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using ChilliCream.Nitro.Client.ApiKeys;
 using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Clients;
+using ChilliCream.Nitro.Client.Coordinates;
 using ChilliCream.Nitro.Client.Environments;
 using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.Client.Mcp;
@@ -28,6 +29,7 @@ public static class NitroClientServiceCollectionExtensions
             .AddNitroApisClient()
             .AddNitroApiKeysClient()
             .AddNitroClientsClient()
+            .AddNitroCoordinatesClient()
             .AddNitroEnvironmentsClient()
             .AddNitroMcpClient()
             .AddNitroMocksClient()
@@ -37,6 +39,16 @@ public static class NitroClientServiceCollectionExtensions
             .AddNitroStagesClient()
             .AddNitroWorkspacesClient()
             .AddNitroFusionConfigurationClient();
+
+        return services;
+    }
+
+    public static IServiceCollection AddNitroCoordinatesClient(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        TryAddNitroApiClient(services);
+        services.TryAddSingleton<ICoordinatesClient, CoordinatesClient>();
 
         return services;
     }

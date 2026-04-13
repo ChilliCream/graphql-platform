@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization.Metadata;
+using ChilliCream.Nitro.CommandLine.Output;
 using ChilliCream.Nitro.CommandLine.Services.Configuration;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Sessions;
@@ -34,4 +35,23 @@ internal class Session(
     public Tokens? Tokens { get; set; } = tokens;
 
     public Workspace? Workspace { get; set; } = workspace;
+
+    /// <summary>
+    /// The default API id used by analytical commands when no <c>--api-id</c> flag is
+    /// supplied. Persisted via <c>nitro config set api</c>.
+    /// </summary>
+    public string? DefaultApiId { get; set; }
+
+    /// <summary>
+    /// The default stage name used by analytical commands when no <c>--stage</c> flag is
+    /// supplied. Persisted via <c>nitro config set stage</c>.
+    /// </summary>
+    public string? DefaultStage { get; set; }
+
+    /// <summary>
+    /// The default output format used by analytical commands when no <c>--format</c> flag
+    /// is supplied and stdout's TTY state should not be consulted. Persisted via
+    /// <c>nitro config set format</c>.
+    /// </summary>
+    public OutputFormat? DefaultFormat { get; set; }
 }

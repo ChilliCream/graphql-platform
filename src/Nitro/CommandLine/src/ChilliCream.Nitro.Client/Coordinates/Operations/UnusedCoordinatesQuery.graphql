@@ -1,0 +1,35 @@
+query unusedCoordinatesQuery(
+  $apiId: ID!
+  $from: DateTime!
+  $to: DateTime!
+  $kinds: [CoordinateKind!]
+  $isDeprecated: Boolean
+  $first: Int! = 100
+) {
+  apiById(id: $apiId) {
+    id
+    name
+    stages {
+      name
+      coordinates(
+        first: $first
+        from: $from
+        to: $to
+        kinds: $kinds
+        isDeprecated: $isDeprecated
+        orderBy: [{ totalRequests: ASC }]
+      ) {
+        nodes {
+          coordinate
+          isDeprecated
+          usage(from: $from, to: $to) {
+            totalRequests
+            clientCount
+            operationCount
+            lastSeen
+          }
+        }
+      }
+    }
+  }
+}

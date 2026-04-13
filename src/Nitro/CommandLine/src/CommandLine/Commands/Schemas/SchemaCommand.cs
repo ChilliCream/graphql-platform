@@ -18,5 +18,10 @@ internal sealed class SchemaCommand : Command
         Subcommands.Add(new ValidateSchemaCommand());
         Subcommands.Add(new UploadSchemaCommand());
         Subcommands.Add(new DownloadSchemaCommand());
+        Subcommands.Add(new UsageSchemaCommand());
+        Subcommands.Add(new ClientsSchemaCommand());
+        Subcommands.Add(new OperationsSchemaCommand());
+        Subcommands.Add(new UnusedSchemaCommand());
+        Subcommands.Add(new ImpactSchemaCommand());
     }
 }

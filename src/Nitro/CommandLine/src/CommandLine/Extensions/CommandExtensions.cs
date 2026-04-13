@@ -94,4 +94,23 @@ internal static class CommandExtensions
 
         return command;
     }
+
+    /// <summary>
+    /// Adds the analytical command global options (<c>--format</c>, <c>--from</c>,
+    /// <c>--to</c>, <c>--record</c>, <c>--replay</c>) on top of the baseline options added
+    /// by <see cref="AddGlobalNitroOptions"/>. Used by the commands under
+    /// <c>nitro schema</c> and <c>nitro stage</c> that read usage analytics.
+    /// </summary>
+    public static Command AddAnalyticsGlobalOptions(this Command command)
+    {
+        command.AddGlobalNitroOptions();
+
+        command.Options.Add(Opt<FormatOption>.Instance);
+        command.Options.Add(Opt<FromOption>.Instance);
+        command.Options.Add(Opt<ToOption>.Instance);
+        command.Options.Add(Opt<RecordOption>.Instance);
+        command.Options.Add(Opt<ReplayOption>.Instance);
+
+        return command;
+    }
 }

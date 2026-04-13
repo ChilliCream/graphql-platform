@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Output;
 using ChilliCream.Nitro.CommandLine.Services.Configuration;
 using Duende.IdentityModel.Client;
 using Duende.IdentityModel.OidcClient;
@@ -19,6 +20,34 @@ internal class SessionService : ISessionService
     }
 
     public Session? Session { get; private set; }
+
+    public async Task<Session> SetDefaultsAsync(
+        SessionDefault<string>? apiId,
+        SessionDefault<string>? stage,
+        SessionDefault<OutputFormat>? format,
+        CancellationToken cancellationToken)
+    {
+        await EnsureSessionAsync(cancellationToken);
+
+        if (apiId is { } apiIdValue)
+        {
+            Session!.DefaultApiId = apiIdValue.IsUnset ? null : apiIdValue.Value;
+        }
+
+        if (stage is { } stageValue)
+        {
+            Session!.DefaultStage = stageValue.IsUnset ? null : stageValue.Value;
+        }
+
+        if (format is { } formatValue)
+        {
+            Session!.DefaultFormat = formatValue.IsUnset ? null : formatValue.Value;
+        }
+
+        await _configurationService.SaveAsync(Session!, cancellationToken);
+
+        return Session!;
+    }
 
     public async Task LogoutAsync(CancellationToken cancellationToken)
     {
