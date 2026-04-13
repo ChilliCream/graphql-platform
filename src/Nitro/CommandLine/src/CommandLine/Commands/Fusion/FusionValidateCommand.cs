@@ -128,28 +128,14 @@ internal sealed class FusionValidateCommand : Command
 
         async Task<int> ValidateWithSourceSchemaFiles()
         {
-            for (var i = 0; i < sourceSchemaFiles.Count; i++)
-            {
-                var sourceSchemaFile = sourceSchemaFiles[i];
-
-                if (!Path.IsPathRooted(sourceSchemaFile))
-                {
-                    sourceSchemaFiles[i] = sourceSchemaFile = Path.Combine(fileSystem.GetCurrentDirectory(), sourceSchemaFile);
-                }
-
-                if (!fileSystem.FileExists(sourceSchemaFile))
-                {
-                    throw new ExitException(Messages.SchemaFileDoesNotExist(sourceSchemaFile));
-                }
-            }
+            var newSourceSchemas = await FusionCompositionHelpers.ReadSourceSchemasAsync(
+                fileSystem,
+                workingDirectory: null,
+                sourceSchemaFiles,
+                ct);
 
             await using (var activity = StartActivity())
             {
-                var newSourceSchemas = await FusionComposeCommand.ReadSourceSchemasAsync(
-                    fileSystem,
-                    sourceSchemaFiles,
-                    ct);
-
                 await using var archiveStream = new MemoryStream();
                 Stream? existingArchiveStream = null;
                 MemoryStream? legacyBuffer = null;
@@ -242,7 +228,7 @@ internal sealed class FusionValidateCommand : Command
 
                 await using (var composeActivity = activity.StartChildActivity(
                                  "Composing new Fusion configuration",
-                                 "Failed to compose new Fusion configuration."))
+                                 "Failed to compose new configuration."))
                 {
                     try
                     {

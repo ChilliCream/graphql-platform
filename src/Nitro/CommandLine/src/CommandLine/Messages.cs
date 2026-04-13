@@ -19,6 +19,8 @@ internal static class Messages
 
     public static string SchemaFileDoesNotExist(string path) => $"Schema file '{path}' does not exist.";
 
+    public static string SchemaSettingsFileDoesNotExist(string path) => $"Schema settings file '{path}' does not exist.";
+
     public static string ArchiveFileDoesNotExist(string path) => $"Archive file '{path}' does not exist.";
 
     public static string LegacyArchiveFileDoesNotExist(string path) => $"Legacy archive file '{path}' does not exist.";

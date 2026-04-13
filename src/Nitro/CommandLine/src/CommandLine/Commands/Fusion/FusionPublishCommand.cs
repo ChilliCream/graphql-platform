@@ -179,27 +179,13 @@ internal sealed class FusionPublishCommand : Command
 
         async Task<int> PublishFusionConfigurationWithSourceSchemaFilesAsync()
         {
-            for (var i = 0; i < sourceSchemaFiles.Count; i++)
-            {
-                var sourceSchemaFile = sourceSchemaFiles[i];
-
-                if (!Path.IsPathRooted(sourceSchemaFile))
-                {
-                    sourceSchemaFiles[i] = sourceSchemaFile = Path.Combine(workingDirectory, sourceSchemaFile);
-                }
-
-                if (!fileSystem.FileExists(sourceSchemaFile))
-                {
-                    throw new ExitException(Messages.SchemaFileDoesNotExist(sourceSchemaFile));
-                }
-            }
-
-            await using var activity = StartPublishActivity(console, stageName, apiId, tag, force);
-
-            var newSourceSchemas = await FusionComposeCommand.ReadSourceSchemasAsync(
+            var newSourceSchemas = await FusionCompositionHelpers.ReadSourceSchemasAsync(
                 fileSystem,
+                workingDirectory,
                 sourceSchemaFiles,
                 cancellationToken);
+
+            await using var activity = StartPublishActivity(console, stageName, apiId, tag, force);
 
             return await ExecutePublishAsync(
                 activity,
