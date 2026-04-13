@@ -28,6 +28,7 @@ import {
   MAX_CONTENT_WIDTH,
   THEME_COLORS,
 } from "@/style";
+import { sanitizeImageSrc } from "@/utils/url-helpers";
 
 // Icons
 import AngleLeftIconSvg from "@/images/icons/angle-left.svg";
@@ -487,7 +488,7 @@ const PlatformNavItem: FC<PlatformNavItemProps> = ({
                 {latestBlogPost.featuredImage && (
                   <TeaserImage>
                     <img
-                      src={latestBlogPost.featuredImage}
+                      src={sanitizeImageSrc(latestBlogPost.featuredImage)}
                       alt={latestBlogPost.title}
                       width={320}
                       height={180}
