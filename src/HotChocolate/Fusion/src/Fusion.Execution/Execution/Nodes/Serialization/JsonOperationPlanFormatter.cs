@@ -194,7 +194,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
     {
         jsonWriter.WriteStartObject();
 
-        jsonWriter.WritePropertyName("deferId");
+        jsonWriter.WritePropertyName("id");
         jsonWriter.WriteNumberValue(group.DeferId);
 
         if (group.Label is not null)

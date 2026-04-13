@@ -70,7 +70,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
     private static void WriteDeferredGroup(DeferredExecutionGroup group, CodeWriter writer)
     {
-        writer.WriteLine("- deferId: {0}", group.DeferId);
+        writer.WriteLine("- id: {0}", group.DeferId);
         writer.Indent();
 
         if (group.Label is not null)

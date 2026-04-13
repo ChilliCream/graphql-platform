@@ -225,6 +225,7 @@ public sealed class OperationCompiler
         var i = 0;
         var selections = new Selection[fieldMap.Count];
         var isConditional = false;
+        var hasIncrementalParts = false;
         var includeFlags = new List<ulong>();
         var deferUsages = new List<DeferUsage>();
         var selectionSetId = ++lastId;
@@ -314,6 +315,8 @@ public sealed class OperationCompiler
                 {
                     deferMask |= 1ul << usage.DeferConditionIndex;
                 }
+
+                hasIncrementalParts = true;
             }
 
             IOutputFieldDefinition field = first.Node.Name.Value.Equals(IntrospectionFieldNames.TypeName)
@@ -339,7 +342,7 @@ public sealed class OperationCompiler
             }
         }
 
-        return new SelectionSet(selectionSetId, typeContext, selections, isConditional);
+        return new SelectionSet(selectionSetId, typeContext, selections, isConditional, hasIncrementalParts);
     }
 
     private static void CollapseIncludeFlags(List<ulong> includeFlags)

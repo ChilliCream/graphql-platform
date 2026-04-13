@@ -16,7 +16,6 @@ public sealed class SelectionSet : ISelectionSet
     private readonly Selection[] _selections;
     private readonly FrozenDictionary<string, Selection> _responseNameLookup;
     private readonly SelectionLookup _utf8ResponseNameLookup;
-    private readonly bool _hasIncrementalParts;
     private bool _isSealed;
 
     public SelectionSet(
@@ -36,7 +35,7 @@ public sealed class SelectionSet : ISelectionSet
         Id = id;
         Type = type;
         IsConditional = isConditional;
-        _hasIncrementalParts = hasIncrementalParts;
+        HasIncrementalParts = hasIncrementalParts;
         _selections = selections;
         _responseNameLookup = _selections.ToFrozenDictionary(t => t.ResponseName);
         _utf8ResponseNameLookup = SelectionLookup.Create(this);
@@ -69,7 +68,10 @@ public sealed class SelectionSet : ISelectionSet
     /// </summary>
     public ReadOnlySpan<Selection> Selections => _selections;
 
-    public bool HasIncrementalParts => _hasIncrementalParts;
+    /// <summary>
+    /// Gets a value indicating whether the selection set contains deferred selections.
+    /// </summary>
+    public bool HasIncrementalParts { get; }
 
     IEnumerable<ISelection> ISelectionSet.GetSelections() => _selections;
 

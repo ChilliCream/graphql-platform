@@ -61,7 +61,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
             foreach (var groupElement in deferredGroupsElement.EnumerateArray())
             {
-                var deferId = groupElement.GetProperty("deferId").GetInt32();
+                var deferId = groupElement.GetProperty("id").GetInt32();
 
                 string? label = null;
                 if (groupElement.TryGetProperty("label", out var labelElement))
