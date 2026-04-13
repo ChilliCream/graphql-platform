@@ -5949,7 +5949,7 @@
             },
             {
               "name": "pathsToRoot",
-              "description": "Paths from this element to a root type, each as a dot-separated string of schema coordinates.",
+              "description": "Paths from this element to a root type, each as a list of schema coordinates.",
               "args": [],
               "type": {
                 "kind": "NON_NULL",
@@ -5961,8 +5961,8 @@
                     "kind": "NON_NULL",
                     "name": null,
                     "ofType": {
-                      "kind": "SCALAR",
-                      "name": "String"
+                      "kind": "LIST",
+                      "name": null
                     }
                   }
                 }

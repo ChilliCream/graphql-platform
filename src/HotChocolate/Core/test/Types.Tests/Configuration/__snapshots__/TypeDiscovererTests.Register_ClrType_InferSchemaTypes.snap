@@ -74,11 +74,11 @@
     },
     {
       "type": "HotChocolate.Types.Introspection.__SearchResult",
-      "runtimeType": "HotChocolate.Types.Introspection.SearchResultInfo",
+      "runtimeType": "HotChocolate.SchemaSearchResult",
       "references": [
         "HotChocolate.Types.Introspection.__SearchResult (Output)",
         "__SearchResult (Output)",
-        "ObjectType<SearchResultInfo> (Output)"
+        "ObjectType<SchemaSearchResult!> (Output)"
       ]
     },
     {
@@ -190,7 +190,7 @@
     "ISchemaDefinition (Output)": "HotChocolate.Types.Introspection.__Schema (Output)",
     "IType (Output)": "HotChocolate.Types.Introspection.__Type (Output)",
     "TypeKind!": "HotChocolate.Types.Introspection.__TypeKind",
-    "SearchResultInfo (Output)": "HotChocolate.Types.Introspection.__SearchResult (Output)",
+    "SchemaSearchResult! (Output)": "HotChocolate.Types.Introspection.__SearchResult (Output)",
     "Int32!": "HotChocolate.Types.IntType",
     "Double!": "HotChocolate.Types.FloatType",
     "DeprecatedDirective": "HotChocolate.Types.DeprecatedDirectiveType",
