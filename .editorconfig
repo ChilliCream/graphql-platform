@@ -282,6 +282,8 @@ dotnet_diagnostic.RCS1021.severity = warning
 dotnet_diagnostic.IDE0053.severity = none # see https://github.com/dotnet/roslyn/issues/79246
 # Remove unnecessary braces in switch section.
 dotnet_diagnostic.RCS1031.severity = warning
+# Remove 'partial' modifier from type with a single part.
+dotnet_diagnostic.RCS1043.severity = warning
 # Simplify boolean comparison.
 dotnet_diagnostic.RCS1049.severity = warning
 # Include/omit parentheses when creating new object.
