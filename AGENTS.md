@@ -27,6 +27,10 @@ Build or test a subset directly (each area has its own solution file):
 dotnet test src/HotChocolate/Fusion
 ```
 
+### Nitro CommandLine
+
+When modifying the Nitro CommandLine — especially `*.graphql` files — see `src/Nitro/CommandLine/src/ChilliCream.Nitro.Client/README.md` for the required GraphQL client codegen steps. Persisted operations must be regenerated before merging.
+
 ## Orchestration
 
 - You are the orchestrator, not the worker.
