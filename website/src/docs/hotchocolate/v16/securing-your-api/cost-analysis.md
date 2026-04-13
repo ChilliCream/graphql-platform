@@ -267,8 +267,8 @@ Increase the limits if legitimate queries are rejected. Decrease them if you wan
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyCostOptions(options =>
     {
         options.MaxFieldCost = 5_000;
@@ -290,8 +290,8 @@ public static async Task<Report> GetReportAsync(/* ... */)
 Force clients to specify `first` or `last` on paginated fields. Without this, the cost analyzer uses `MaxPageSize` as the assumed list size, which may overestimate the cost of well-behaved queries:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyPagingOptions(opt => opt.RequirePagingBoundaries = true);
 ```
 
@@ -344,8 +344,8 @@ Now the cost drops to a level within the default budget.
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyCostOptions(options =>
     {
         options.MaxFieldCost = 5_000;
@@ -389,8 +389,8 @@ If you protect your API through other means (such as trusted documents), you can
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyCostOptions(o => o.EnforceCostLimits = false);
 ```
 

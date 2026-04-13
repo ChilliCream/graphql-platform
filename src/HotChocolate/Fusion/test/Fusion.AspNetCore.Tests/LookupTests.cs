@@ -184,7 +184,7 @@ public class LookupTests : FusionTestBase
                 };
 
                 [Lookup]
-                public Author GetAuthorById([ID] int id)
+                public Author? GetAuthorById([ID] int id)
                     => _authors[id];
             }
 
@@ -241,7 +241,7 @@ public class LookupTests : FusionTestBase
                 };
 
                 [Lookup, Internal]
-                public Author GetAuthor([Is("{ id } | { name }")] AuthorByInput by)
+                public Author? GetAuthor([Is("{ id } | { name }")] AuthorByInput by)
                 {
                     if (by.Id is not null)
                     {

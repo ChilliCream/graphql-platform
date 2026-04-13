@@ -9,7 +9,7 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// Extension methods for configuring an <see cref="DocumentValidatorBuilder"/>
 /// </summary>
-public static partial class HotChocolateValidationBuilderExtensions
+public static class HotChocolateValidationBuilderExtensions
 {
     /// <summary>
     /// Every argument provided to a field or directive must be defined

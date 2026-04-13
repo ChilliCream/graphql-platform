@@ -2866,11 +2866,11 @@
     "title": "Mocha",
     "description": "Messaging Bus for .NET",
     "metaDescription": "Mocha is a messaging framework for .NET that combines simplicity, flexibility, and observability with deep Nitro integration.",
-    "latestStableVersion": "v1",
+    "latestStableVersion": "v16",
     "versions": [
       {
-        "path": "v1",
-        "title": "v1",
+        "path": "v16",
+        "title": "v16",
         "items": [
           {
             "path": "index",

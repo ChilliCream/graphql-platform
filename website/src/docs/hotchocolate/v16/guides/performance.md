@@ -10,8 +10,8 @@ The schema is constructed eagerly at startup by default. You can go a step furth
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddWarmupTask(async (executor, cancellationToken) =>
     {
         var request = OperationRequestBuilder.New()
@@ -37,8 +37,8 @@ Hot Chocolate caches parsed and compiled operations so that repeated requests sk
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyOptions(options =>
     {
         options.PreparedOperationCacheSize = 1024;
@@ -128,8 +128,8 @@ Cost analysis calculates the cost of every operation before execution and reject
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyCostOptions(options =>
     {
         options.MaxFieldCost = 5_000;
@@ -154,8 +154,8 @@ Enable these directives in schema options:
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyOptions(options =>
     {
         options.EnableDefer = true;
@@ -217,8 +217,8 @@ public class PerformanceEventListener : ExecutionDiagnosticEventListener
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddDiagnosticEventListener<PerformanceEventListener>();
 ```
 

@@ -38,8 +38,8 @@ Then configure the server:
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<Query>()
     .AddNitro()
     .UsePersistedOperationPipeline()
@@ -135,8 +135,8 @@ public class DevToolsInterceptor : DefaultHttpRequestInterceptor
 Register the interceptor:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<Query>()
     .AddNitro()
     .AddHttpRequestInterceptor<DevToolsInterceptor>()
@@ -169,8 +169,8 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<Query>()
     .AddMutationType<Mutation>()
     .AddAuthorization()

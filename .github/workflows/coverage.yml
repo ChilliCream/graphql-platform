@@ -12,6 +12,9 @@ concurrency:
   group: main-coverage
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   configure:
     name: Generate Test Matrix

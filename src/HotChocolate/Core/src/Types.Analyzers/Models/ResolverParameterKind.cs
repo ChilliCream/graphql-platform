@@ -24,5 +24,6 @@ public enum ResolverParameterKind
     QueryContext,
     PagingArguments,
     ConnectionFlags,
-    Selection
+    Selection,
+    IsSelected
 }

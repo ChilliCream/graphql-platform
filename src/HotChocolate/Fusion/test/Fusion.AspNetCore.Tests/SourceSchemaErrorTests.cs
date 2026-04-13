@@ -590,48 +590,6 @@ public class SourceSchemaErrorTests : FusionTestBase
     [Theory]
     [InlineData(ErrorHandlingMode.Propagate)]
     [InlineData(ErrorHandlingMode.Null)]
-    public async Task No_Data_And_Error_With_Path_For_Lookup_Field_NonNull(ErrorHandlingMode onError)
-    {
-        // arrange
-        using var server1 = CreateSourceSchema(
-            "A",
-            b => b.AddQueryType<SourceSchema1.Query>());
-
-        using var server2 = CreateSourceSchema(
-            "B",
-            b => b.AddQueryType<SourceSchema4.Query>());
-
-        using var gateway = await CreateCompositeSchemaAsync(
-        [
-            ("A", server1),
-            ("B", server2)
-        ]);
-
-        // act
-        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-
-        var request = new OperationRequest(
-            """
-            {
-              topProduct {
-                price
-                name
-              }
-            }
-            """,
-            onError: onError);
-
-        using var result = await client.PostAsync(
-            request,
-            new Uri("http://localhost:5000/graphql"));
-
-        // assert
-        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
-    }
-
-    [Theory]
-    [InlineData(ErrorHandlingMode.Propagate)]
-    [InlineData(ErrorHandlingMode.Null)]
     public async Task No_Data_And_Error_With_Path_For_Lookup_Leaf_NonNull(ErrorHandlingMode onError)
     {
         // arrange
@@ -993,7 +951,7 @@ public class SourceSchemaErrorTests : FusionTestBase
         public class Query
         {
             [Lookup]
-            public Product GetProductById(int id, IResolverContext context)
+            public Product? GetProductById(int id, IResolverContext context)
                 => throw new GraphQLException(ErrorBuilder.New().SetMessage("Could not resolve Product")
                     .SetPath(context.Path).Build());
         }
@@ -1023,7 +981,7 @@ public class SourceSchemaErrorTests : FusionTestBase
         public class Query
         {
             [Lookup]
-            public Product GetProductById(int id) => new(id);
+            public Product? GetProductById(int id) => new(id);
         }
 
         public record Product(int Id)

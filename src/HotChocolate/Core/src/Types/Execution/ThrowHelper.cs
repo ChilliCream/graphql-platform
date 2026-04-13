@@ -272,7 +272,7 @@ internal static class ThrowHelper
     public static GraphQLException OneOfFieldMustBeNonNull(
         SchemaCoordinate field)
         => new(ErrorBuilder.New()
-            .SetMessage(string.Format(ThrowHelper_OneOfFieldMustBeNonNull, field.MemberName))
+            .SetMessage(ThrowHelper_OneOfFieldMustBeNonNull, field.MemberName)
             .SetCode(ErrorCodes.Execution.OneOfFieldMustBeNonNull)
             .SetExtension(nameof(field), field.ToString())
             .Build());

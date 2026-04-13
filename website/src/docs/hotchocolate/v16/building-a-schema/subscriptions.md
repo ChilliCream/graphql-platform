@@ -68,8 +68,8 @@ public class BookSubscriptions
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddSubscriptionType<BookSubscriptions>();
 ```
 
@@ -245,8 +245,8 @@ The in-memory provider works without any external infrastructure. It is suitable
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddInMemorySubscriptions();
 ```
 
@@ -262,8 +262,8 @@ Install the package:
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddRedisSubscriptions(
         _ => ConnectionMultiplexer.Connect("localhost:6379"));
 ```
@@ -293,8 +293,8 @@ builder.Services
                     Url = "nats://localhost:4222"
                 })));
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddSubscriptionType<BookSubscriptions>()
     .AddNatsSubscriptions();
 ```
@@ -305,8 +305,8 @@ If multiple GraphQL servers share the same NATS broker, set a `TopicPrefix` to i
 // Program.cs
 using HotChocolate.Subscriptions;
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddSubscriptionType<BookSubscriptions>()
     .AddNatsSubscriptions(
         new SubscriptionOptions
@@ -325,8 +325,8 @@ Install the package:
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddSubscriptionType<BookSubscriptions>()
     .AddPostgresSubscriptions(options =>
         options.ConnectionFactory = ct => /* create your NpgsqlConnection */);

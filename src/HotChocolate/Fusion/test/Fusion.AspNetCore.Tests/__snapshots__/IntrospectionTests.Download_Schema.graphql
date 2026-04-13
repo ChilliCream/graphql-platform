@@ -13,7 +13,7 @@ type Query {
     "Returns the last _n_ elements from the list."
     last: Int
   ): AuthorsConnection
-  bookById(id: Int!): Book!
+  bookById(id: Int!): Book
   books(
     "Returns the elements in the list that come after the specified cursor."
     after: String

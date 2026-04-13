@@ -62,8 +62,8 @@ Hot Chocolate uses MD5 for document hashing by default. If you need FIPS complia
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddSha256DocumentHashProvider();
 ```
 
