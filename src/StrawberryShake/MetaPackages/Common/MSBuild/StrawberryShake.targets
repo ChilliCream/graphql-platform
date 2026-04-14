@@ -42,11 +42,12 @@
       <DotNetMajor Condition="$([MSBuild]::VersionGreaterThanOrEquals($(NETCoreSdkVersion), 8))">8</DotNetMajor>
       <DotNetMajor Condition="$([MSBuild]::VersionGreaterThanOrEquals($(NETCoreSdkVersion), 9))">9</DotNetMajor>
       <DotNetMajor Condition="$([MSBuild]::VersionGreaterThanOrEquals($(NETCoreSdkVersion), 10))">10</DotNetMajor>
+      <DotNetMajor Condition="$([MSBuild]::VersionGreaterThanOrEquals($(NETCoreSdkVersion), 11))">11</DotNetMajor>
     </PropertyGroup>
 
     <Error
-      Text="The Strawberry Shake code generation requires .NET SDK 8, 9, or 10 to work."
-      Condition="'$(DotNetMajor)' != '8' AND '$(DotNetMajor)' != '9' AND '$(DotNetMajor)' != '10'" />
+      Text="The Strawberry Shake code generation requires .NET SDK 8, 9, 10, or 11 to work."
+      Condition="'$(DotNetMajor)' != '8' AND '$(DotNetMajor)' != '9' AND '$(DotNetMajor)' != '10' AND '$(DotNetMajor)' != '11'" />
 
     <PropertyGroup>
       <GraphQLOperationGenerationRoot>$(MSBuildProjectDirectory)\$(GraphQLPersistedOperationOutput.TrimEnd('/').TrimEnd('\'))</GraphQLOperationGenerationRoot>
