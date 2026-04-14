@@ -8,9 +8,9 @@ internal sealed class InputCostVisitorContext
 
     public List<IInputValueDefinition> Fields { get; } = [];
 
-    public List<InputObjectType> Backlog { get; } = [];
+    public HashSet<InputObjectType> Processed { get; } = [];
 
-    public HashSet<IInputType> Processed { get; } = [];
+    public Dictionary<InputObjectType, double> CostCache { get; } = [];
 
     public double Cost { get; set; }
 
@@ -25,8 +25,8 @@ internal sealed class InputCostVisitorContext
     {
         Types.Clear();
         Fields.Clear();
-        Backlog.Clear();
         Processed.Clear();
+        CostCache.Clear();
         Cost = 0;
     }
 }
