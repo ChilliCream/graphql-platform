@@ -256,4 +256,13 @@ public static class Errors
             category: "TypeSystem",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor LookupReturnsNonNullableType =
+        new(
+            id: "HC0113",
+            title: "Lookup Must Return Nullable Type",
+            messageFormat: "A method or property with the [Lookup] attribute must return a nullable type",
+            category: "TypeSystem",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
 }
