@@ -265,4 +265,13 @@ public static class Errors
             category: "TypeSystem",
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor LookupReturnsListType =
+        new(
+            id: "HC0114",
+            title: "Lookup Must Not Return List Type",
+            messageFormat: "A method or property with the [Lookup] attribute must not return a list type",
+            category: "TypeSystem",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
 }

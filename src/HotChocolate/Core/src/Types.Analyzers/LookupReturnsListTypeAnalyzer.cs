@@ -8,10 +8,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace HotChocolate.Types.Analyzers;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public sealed class LookupReturnsNonNullableTypeAnalyzer : DiagnosticAnalyzer
+public sealed class LookupReturnsListTypeAnalyzer : DiagnosticAnalyzer
 {
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
-        [Errors.LookupReturnsNonNullableType];
+        [Errors.LookupReturnsListType];
 
     public override void Initialize(AnalysisContext context)
     {
@@ -40,18 +40,13 @@ public sealed class LookupReturnsNonNullableTypeAnalyzer : DiagnosticAnalyzer
             ? innerType
             : methodSymbol.ReturnType;
 
-        if (returnType is IArrayTypeSymbol || returnType.IsListType(out _))
-        {
-            return;
-        }
-
-        if (returnType.IsNullableType())
+        if (!IsListType(returnType))
         {
             return;
         }
 
         var diagnostic = Diagnostic.Create(
-            Errors.LookupReturnsNonNullableType,
+            Errors.LookupReturnsListType,
             methodDeclaration.ReturnType.GetLocation());
 
         context.ReportDiagnostic(diagnostic);
@@ -76,22 +71,20 @@ public sealed class LookupReturnsNonNullableTypeAnalyzer : DiagnosticAnalyzer
             ? innerType
             : propertySymbol.Type;
 
-        if (propertyType is IArrayTypeSymbol || propertyType.IsListType(out _))
-        {
-            return;
-        }
-
-        if (propertyType.IsNullableType())
+        if (!IsListType(propertyType))
         {
             return;
         }
 
         var diagnostic = Diagnostic.Create(
-            Errors.LookupReturnsNonNullableType,
+            Errors.LookupReturnsListType,
             propertyDeclaration.Type.GetLocation());
 
         context.ReportDiagnostic(diagnostic);
     }
+
+    private static bool IsListType(ITypeSymbol typeSymbol)
+        => typeSymbol is IArrayTypeSymbol || typeSymbol.IsListType(out _);
 
     private static bool HasLookupAttribute(
         SyntaxNodeAnalysisContext context,
