@@ -2,7 +2,6 @@ using System.Collections.Immutable;
 using HotChocolate.Fusion.Errors;
 using HotChocolate.Fusion.Events;
 using HotChocolate.Fusion.Events.Contracts;
-using HotChocolate.Fusion.Extensions;
 using HotChocolate.Fusion.Logging.Contracts;
 using HotChocolate.Fusion.Results;
 using HotChocolate.Types.Mutable;
@@ -33,11 +32,6 @@ internal sealed class SourceSchemaValidator(
 
             foreach (var type in schema.Types)
             {
-                if (type is MutableObjectTypeDefinition { IsInternal: true })
-                {
-                    continue;
-                }
-
                 PublishEvent(new TypeEvent(type, schema), context);
 
                 if (type is MutableComplexTypeDefinition complexType)
@@ -46,11 +40,6 @@ internal sealed class SourceSchemaValidator(
 
                     foreach (var field in complexType.Fields)
                     {
-                        if (field.IsInternal)
-                        {
-                            continue;
-                        }
-
                         PublishEvent(new OutputFieldEvent(field, type, schema), context);
 
                         foreach (var argument in field.Arguments)
