@@ -174,6 +174,62 @@ public class LookupReturnsNonNullableTypeAnalyzerTests
     }
 
     [Fact]
+    public async Task Method_FullyQualifiedTaskNonNullableReturn_RaisesWarning()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            ["""
+            #nullable enable
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+
+            namespace TestNamespace;
+
+            [QueryType]
+            internal static partial class Query
+            {
+                [Lookup]
+                public static System.Threading.Tasks.Task<User> GetUserByIdAsync(int id) => default!;
+            }
+
+            public class User
+            {
+                public int Id { get; set; }
+                public string? Name { get; set; }
+            }
+            """],
+            enableAnalyzers: true).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task Method_FullyQualifiedTaskNullableReturn_NoWarning()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+            ["""
+            #nullable enable
+            using HotChocolate;
+            using HotChocolate.Types;
+            using HotChocolate.Types.Composite;
+
+            namespace TestNamespace;
+
+            [QueryType]
+            internal static partial class Query
+            {
+                [Lookup]
+                public static System.Threading.Tasks.Task<User?> GetUserByIdAsync(int id) => default!;
+            }
+
+            public class User
+            {
+                public int Id { get; set; }
+                public string? Name { get; set; }
+            }
+            """],
+            enableAnalyzers: true).MatchMarkdownAsync();
+    }
+
+    [Fact]
     public async Task Method_NoLookupAttribute_NoWarning()
     {
         await TestHelper.GetGeneratedSourceSnapshot(

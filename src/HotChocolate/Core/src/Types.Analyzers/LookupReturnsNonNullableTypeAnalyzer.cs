@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using HotChocolate.Types.Analyzers.Helpers;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -37,7 +38,7 @@ public sealed class LookupReturnsNonNullableTypeAnalyzer : DiagnosticAnalyzer
 
         var returnType = UnwrapTaskType(methodSymbol.ReturnType);
 
-        if (IsNullableType(returnType))
+        if (returnType.IsNullableType())
         {
             return;
         }
@@ -66,7 +67,7 @@ public sealed class LookupReturnsNonNullableTypeAnalyzer : DiagnosticAnalyzer
 
         var propertyType = UnwrapTaskType(propertySymbol.Type);
 
-        if (IsNullableType(propertyType))
+        if (propertyType.IsNullableType())
         {
             return;
         }
@@ -115,21 +116,5 @@ public sealed class LookupReturnsNonNullableTypeAnalyzer : DiagnosticAnalyzer
         }
 
         return typeSymbol;
-    }
-
-    private static bool IsNullableType(ITypeSymbol typeSymbol)
-    {
-        if (typeSymbol.NullableAnnotation == NullableAnnotation.Annotated)
-        {
-            return true;
-        }
-
-        if (typeSymbol is INamedTypeSymbol namedType
-            && namedType.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
-        {
-            return true;
-        }
-
-        return false;
     }
 }

@@ -76,12 +76,16 @@ public sealed class LookupReturnsNonNullableTypeCodeFixProvider : CodeFixProvide
             return document;
         }
 
+        // Unwrap NullableTypeSyntax to handle cases like Task<User>?.
+        var effectiveType = typeSyntax is NullableTypeSyntax nullableType
+            ? nullableType.ElementType
+            : typeSyntax;
+
+        var genericName = FindTaskGenericName(effectiveType);
+
         TypeSyntax newTypeSyntax;
 
-        // If the type is Task<T> or ValueTask<T>, wrap the inner type argument.
-        if (typeSyntax is GenericNameSyntax genericName
-            && genericName.TypeArgumentList.Arguments.Count == 1
-            && genericName.Identifier.Text is nameof(Task) or nameof(ValueTask))
+        if (genericName is not null)
         {
             var innerType = genericName.TypeArgumentList.Arguments[0];
 
@@ -94,7 +98,12 @@ public sealed class LookupReturnsNonNullableTypeCodeFixProvider : CodeFixProvide
             var nullableInnerType = SyntaxFactory.NullableType(innerType);
             var newTypeArgumentList = genericName.TypeArgumentList.WithArguments(
                 SyntaxFactory.SingletonSeparatedList<TypeSyntax>(nullableInnerType));
-            newTypeSyntax = genericName.WithTypeArgumentList(newTypeArgumentList);
+            var newGenericName = genericName.WithTypeArgumentList(newTypeArgumentList);
+
+            // Replace the generic name within the effective type to preserve qualification.
+            newTypeSyntax = effectiveType == genericName
+                ? newGenericName
+                : effectiveType.ReplaceNode(genericName, newGenericName);
         }
         else
         {
@@ -110,5 +119,29 @@ public sealed class LookupReturnsNonNullableTypeCodeFixProvider : CodeFixProvide
         newTypeSyntax = newTypeSyntax.WithTriviaFrom(typeSyntax);
         var newRoot = root.ReplaceNode(typeSyntax, newTypeSyntax);
         return document.WithSyntaxRoot(newRoot);
+    }
+
+    private static GenericNameSyntax? FindTaskGenericName(TypeSyntax typeSyntax)
+    {
+        switch (typeSyntax)
+        {
+            case GenericNameSyntax genericName
+                when genericName.TypeArgumentList.Arguments.Count == 1
+                    && genericName.Identifier.Text is nameof(Task) or nameof(ValueTask):
+                return genericName;
+
+            case QualifiedNameSyntax { Right: GenericNameSyntax qualifiedGeneric }
+                when qualifiedGeneric.TypeArgumentList.Arguments.Count == 1
+                    && qualifiedGeneric.Identifier.Text is nameof(Task) or nameof(ValueTask):
+                return qualifiedGeneric;
+
+            case AliasQualifiedNameSyntax { Name: GenericNameSyntax aliasGeneric }
+                when aliasGeneric.TypeArgumentList.Arguments.Count == 1
+                    && aliasGeneric.Identifier.Text is nameof(Task) or nameof(ValueTask):
+                return aliasGeneric;
+
+            default:
+                return null;
+        }
     }
 }
