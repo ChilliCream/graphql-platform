@@ -36,7 +36,9 @@ public sealed class LookupReturnsNonNullableTypeAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        var returnType = UnwrapTaskType(methodSymbol.ReturnType);
+        var returnType = context.Compilation.IsTaskOrValueTask(methodSymbol.ReturnType, out var innerType)
+            ? innerType
+            : methodSymbol.ReturnType;
 
         if (returnType.IsNullableType())
         {
@@ -65,7 +67,9 @@ public sealed class LookupReturnsNonNullableTypeAnalyzer : DiagnosticAnalyzer
             return;
         }
 
-        var propertyType = UnwrapTaskType(propertySymbol.Type);
+        var propertyType = context.Compilation.IsTaskOrValueTask(propertySymbol.Type, out var innerType)
+            ? innerType
+            : propertySymbol.Type;
 
         if (propertyType.IsNullableType())
         {
@@ -104,17 +108,5 @@ public sealed class LookupReturnsNonNullableTypeAnalyzer : DiagnosticAnalyzer
         }
 
         return false;
-    }
-
-    private static ITypeSymbol UnwrapTaskType(ITypeSymbol typeSymbol)
-    {
-        if (typeSymbol is INamedTypeSymbol namedType
-            && namedType.TypeArguments.Length == 1
-            && namedType.Name is nameof(Task) or nameof(ValueTask))
-        {
-            return namedType.TypeArguments[0];
-        }
-
-        return typeSymbol;
     }
 }

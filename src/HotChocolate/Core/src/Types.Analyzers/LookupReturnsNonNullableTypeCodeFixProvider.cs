@@ -122,26 +122,15 @@ public sealed class LookupReturnsNonNullableTypeCodeFixProvider : CodeFixProvide
     }
 
     private static GenericNameSyntax? FindTaskGenericName(TypeSyntax typeSyntax)
-    {
-        switch (typeSyntax)
+        => typeSyntax switch
         {
-            case GenericNameSyntax genericName
-                when genericName.TypeArgumentList.Arguments.Count == 1
-                    && genericName.Identifier.Text is nameof(Task) or nameof(ValueTask):
-                return genericName;
-
-            case QualifiedNameSyntax { Right: GenericNameSyntax qualifiedGeneric }
-                when qualifiedGeneric.TypeArgumentList.Arguments.Count == 1
-                    && qualifiedGeneric.Identifier.Text is nameof(Task) or nameof(ValueTask):
-                return qualifiedGeneric;
-
-            case AliasQualifiedNameSyntax { Name: GenericNameSyntax aliasGeneric }
-                when aliasGeneric.TypeArgumentList.Arguments.Count == 1
-                    && aliasGeneric.Identifier.Text is nameof(Task) or nameof(ValueTask):
-                return aliasGeneric;
-
-            default:
-                return null;
-        }
-    }
+            GenericNameSyntax { TypeArgumentList.Arguments.Count: 1 } genericName
+                when genericName.Identifier.Text is nameof(Task) or nameof(ValueTask)
+                => genericName,
+            QualifiedNameSyntax qualifiedName
+                => FindTaskGenericName(qualifiedName.Right),
+            AliasQualifiedNameSyntax aliasName
+                => FindTaskGenericName(aliasName.Name),
+            _ => null
+        };
 }
