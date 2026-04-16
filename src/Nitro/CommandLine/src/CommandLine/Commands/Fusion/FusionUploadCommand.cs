@@ -92,7 +92,7 @@ internal sealed class FusionUploadCommand : Command
 
         if (result.Errors?.Count > 0)
         {
-            activity.Fail();
+            await activity.FailAllAsync();
 
             foreach (var error in result.Errors)
             {

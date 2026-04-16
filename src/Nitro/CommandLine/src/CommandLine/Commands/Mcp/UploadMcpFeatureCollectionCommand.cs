@@ -84,7 +84,7 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
 
         if (data.Errors?.Count > 0)
         {
-            activity.Fail();
+            await activity.FailAllAsync();
 
             foreach (var error in data.Errors)
             {
@@ -109,7 +109,7 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
 
         if (data.McpFeatureCollectionVersion is null)
         {
-            activity.Fail();
+            await activity.FailAllAsync();
             console.Error.WriteErrorLine("Could not upload MCP Feature Collection version.");
             return ExitCodes.Error;
         }

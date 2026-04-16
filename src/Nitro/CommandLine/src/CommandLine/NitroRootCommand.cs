@@ -1,3 +1,4 @@
+using ChilliCream.Nitro.CommandLine.Commands.Demo;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys;
 using ChilliCream.Nitro.CommandLine.Commands.Apis;
 using ChilliCream.Nitro.CommandLine.Commands.Clients;
@@ -51,6 +52,8 @@ internal sealed class NitroRootCommand : RootCommand
         Subcommands.Add(new StageCommand());
         Subcommands.Add(new StatusCommand());
         Subcommands.Add(new WorkspaceCommand());
+
+        Subcommands.Add(new DemoCommand());
 
         CommandExamples.Install(this);
     }

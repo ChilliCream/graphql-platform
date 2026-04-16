@@ -16,6 +16,11 @@ internal sealed class InteractiveNitroConsoleChildActivity(
         ActivityUpdateKind kind = ActivityUpdateKind.Regular,
         IRenderable? details = null)
     {
+        if (_completed)
+        {
+            return;
+        }
+
         var state = kind switch
         {
             ActivityUpdateKind.Warning => ActivityState.Warning,
@@ -37,6 +42,8 @@ internal sealed class InteractiveNitroConsoleChildActivity(
             return;
         }
 
+        tree.FailActiveDescendants(entry);
+
         if (entry.Children.Count > 0)
         {
             tree.SetEntryState(entry, ActivityState.Warning);
@@ -56,6 +63,8 @@ internal sealed class InteractiveNitroConsoleChildActivity(
         {
             return;
         }
+
+        tree.FailActiveDescendants(entry);
 
         if (entry.Children.Count > 0)
         {
@@ -77,6 +86,8 @@ internal sealed class InteractiveNitroConsoleChildActivity(
             return;
         }
 
+        tree.FailActiveDescendants(entry);
+
         if (entry.Children.Count > 0)
         {
             tree.SetEntryState(entry, ActivityState.Failed);
@@ -96,6 +107,8 @@ internal sealed class InteractiveNitroConsoleChildActivity(
         {
             return;
         }
+
+        tree.FailActiveDescendants(entry);
 
         ActivityEntry failEntry;
 

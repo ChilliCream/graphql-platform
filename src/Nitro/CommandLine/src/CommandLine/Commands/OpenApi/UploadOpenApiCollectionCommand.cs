@@ -76,7 +76,7 @@ internal sealed class UploadOpenApiCollectionCommand : Command
 
         if (data.Errors?.Count > 0)
         {
-            activity.Fail();
+            await activity.FailAllAsync();
 
             foreach (var error in data.Errors)
             {
@@ -100,7 +100,7 @@ internal sealed class UploadOpenApiCollectionCommand : Command
 
         if (data.OpenApiCollectionVersion is null)
         {
-            activity.Fail();
+            await activity.FailAllAsync();
             console.Error.WriteErrorLine("Could not upload OpenAPI collection version.");
             return ExitCodes.Error;
         }

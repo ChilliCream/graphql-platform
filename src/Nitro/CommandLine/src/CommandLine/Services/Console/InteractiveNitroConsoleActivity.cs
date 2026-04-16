@@ -30,6 +30,11 @@ internal sealed class InteractiveNitroConsoleActivity : INitroConsoleActivity
         ActivityUpdateKind kind = ActivityUpdateKind.Regular,
         IRenderable? details = null)
     {
+        if (_completed)
+        {
+            return;
+        }
+
         var state = kind switch
         {
             ActivityUpdateKind.Warning => ActivityState.Warning,
@@ -78,6 +83,7 @@ internal sealed class InteractiveNitroConsoleActivity : INitroConsoleActivity
         }
 
         _tree.SetEntryState(_rootEntry, ActivityState.Failed);
+        _tree.FailActiveDescendants(_rootEntry);
         _tree.AddChild(_rootEntry, message, ActivityState.Failed);
         _completed = true;
         _refreshTimer.Dispose();
@@ -91,6 +97,7 @@ internal sealed class InteractiveNitroConsoleActivity : INitroConsoleActivity
         }
 
         _tree.SetEntryState(_rootEntry, ActivityState.Failed);
+        _tree.FailActiveDescendants(_rootEntry);
         var failChild = _tree.AddChild(_rootEntry, _failureMessage, ActivityState.Failed);
         _tree.SetEntryDetails(failChild, details);
         _completed = true;
@@ -122,6 +129,7 @@ internal sealed class InteractiveNitroConsoleActivity : INitroConsoleActivity
         }
 
         _tree.SetEntryState(_rootEntry, ActivityState.Failed);
+        _tree.FailActiveDescendants(_rootEntry);
         _completed = true;
         _refreshTimer.Dispose();
     }

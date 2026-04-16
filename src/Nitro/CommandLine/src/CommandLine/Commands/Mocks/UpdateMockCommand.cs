@@ -121,7 +121,7 @@ internal sealed class UpdateMockCommand : Command
 
             if (updatedMock.Errors?.Count > 0)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
 
                 foreach (var error in updatedMock.Errors)
                 {

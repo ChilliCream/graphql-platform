@@ -63,6 +63,27 @@ internal sealed class ActivityTree : Renderable
         }
     }
 
+    public void FailActiveDescendants(ActivityEntry entry)
+    {
+        lock (_lock)
+        {
+            FailActiveDescendantsCore(entry);
+        }
+    }
+
+    private static void FailActiveDescendantsCore(ActivityEntry entry)
+    {
+        foreach (var child in entry.Children)
+        {
+            if (child.State == ActivityState.Active)
+            {
+                child.State = ActivityState.Failed;
+            }
+
+            FailActiveDescendantsCore(child);
+        }
+    }
+
     protected override IEnumerable<Segment> Render(RenderOptions options, int maxWidth)
     {
         lock (_lock)
@@ -89,7 +110,7 @@ internal sealed class ActivityTree : Renderable
         segments.Add(new Segment(prefix));
         segments.Add(new Segment(connector));
 
-        RenderIcon(segments, entry);
+        var iconWidth = RenderIcon(segments, entry);
 
         var textStyle = entry.State switch
         {
@@ -98,8 +119,55 @@ internal sealed class ActivityTree : Renderable
             _ => Style.Plain
         };
 
+        var hasContentBelow = entry.Children.Count > 0 || entry.Details is not null;
+        string continuationGuide;
+
+        if (connector.Length > 0)
+        {
+            continuationGuide = (connector == "└── " ? "    " : "│   ")
+                + new string(' ', iconWidth);
+        }
+        else if (hasContentBelow)
+        {
+            continuationGuide = "│" + new string(' ', Math.Max(iconWidth - 1, 0));
+        }
+        else
+        {
+            continuationGuide = new string(' ', iconWidth);
+        }
+
+        var continuationPrefix = prefix + continuationGuide;
+
+        var availableWidth = maxWidth - prefix.Length - connector.Length - iconWidth;
+
+        if (availableWidth <= 0)
+        {
+            availableWidth = 1;
+        }
+
         var markup = new Markup(entry.Text, textStyle);
-        segments.AddRange(((IRenderable)markup).Render(options, maxWidth - prefix.Length - connector.Length));
+        var textSegments = ((IRenderable)markup).Render(options, availableWidth);
+        var atLineStart = false;
+
+        foreach (var segment in textSegments)
+        {
+            if (segment.IsLineBreak)
+            {
+                segments.Add(Segment.LineBreak);
+                atLineStart = true;
+            }
+            else
+            {
+                if (atLineStart)
+                {
+                    segments.Add(new Segment(continuationPrefix));
+                    atLineStart = false;
+                }
+
+                segments.Add(segment);
+            }
+        }
+
         segments.Add(Segment.LineBreak);
 
         for (var i = 0; i < entry.Children.Count; i++)
@@ -166,7 +234,7 @@ internal sealed class ActivityTree : Renderable
         }
     }
 
-    private void RenderIcon(List<Segment> segments, ActivityEntry entry)
+    private int RenderIcon(List<Segment> segments, ActivityEntry entry)
     {
         switch (entry.State)
         {
@@ -176,30 +244,31 @@ internal sealed class ActivityTree : Renderable
                     % _spinner.Frames.Count];
                 segments.Add(new Segment(frame, new Style(Color.DeepPink1_1, decoration: Decoration.Bold)));
                 segments.Add(new Segment(" "));
-                break;
+                return 2;
 
             case ActivityState.Completed:
                 segments.Add(new Segment("✓", new Style(Color.Green, decoration: Decoration.Bold)));
                 segments.Add(new Segment(" "));
-                break;
+                return 2;
 
             case ActivityState.Failed:
                 segments.Add(new Segment("✕", new Style(Color.Red, decoration: Decoration.Bold)));
                 segments.Add(new Segment(" "));
-                break;
+                return 2;
 
             case ActivityState.Warning:
                 segments.Add(new Segment("!", new Style(Color.Yellow, decoration: Decoration.Bold)));
                 segments.Add(new Segment(" "));
-                break;
+                return 2;
 
             case ActivityState.Waiting:
                 segments.Add(new Segment("⏳", new Style(Color.Blue, decoration: Decoration.Bold)));
                 segments.Add(new Segment(" "));
-                break;
+                return 2;
 
             case ActivityState.Info:
-                break;
+            default:
+                return 0;
         }
     }
 }

@@ -438,7 +438,7 @@ internal sealed class FusionPublishCommand : Command
                     {
                         console.Error.WriteErrorLine(
                             "Encountered an unexpected exception while trying to release the deployment slot after an error during the publishing process:");
-                        console.Error.WriteErrorLine(exception.Message);
+                        console.Error.WriteErrorLine(exception.Message.EscapeMarkup());
                         console.Error.WriteErrorLine("This is the error that caused the publishing process to fail in the first place:");
                     }
                 }

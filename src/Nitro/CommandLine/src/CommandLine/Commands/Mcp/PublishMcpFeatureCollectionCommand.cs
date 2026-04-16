@@ -85,7 +85,7 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
 
             if (publishRequest.Errors?.Count > 0)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
 
                 foreach (var error in publishRequest.Errors)
                 {
@@ -190,7 +190,7 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
                 }
             }
 
-            activity.Fail();
+            await activity.FailAllAsync();
         }
 
         return ExitCodes.Error;

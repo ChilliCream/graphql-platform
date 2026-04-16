@@ -74,7 +74,7 @@ internal sealed class ValidateClientCommand : Command
 
             if (validationRequest.Errors?.Count > 0)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
 
                 foreach (var error in validationRequest.Errors)
                 {
@@ -144,7 +144,7 @@ internal sealed class ValidateClientCommand : Command
                 }
             }
 
-            activity.Fail();
+            await activity.FailAllAsync();
         }
 
         return ExitCodes.Error;

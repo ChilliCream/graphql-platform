@@ -450,7 +450,7 @@ internal sealed class FusionComposeCommand : Command
         }
         catch (Exception e)
         {
-            console.Error.WriteErrorLine(e.Message);
+            console.Error.WriteErrorLine(e.Message.EscapeMarkup());
             return 1;
         }
     }

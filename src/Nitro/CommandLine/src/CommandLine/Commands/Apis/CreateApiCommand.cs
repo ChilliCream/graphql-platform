@@ -66,7 +66,7 @@ internal sealed class CreateApiCommand : Command
 
             if (payload.Errors?.Count > 0)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
 
                 foreach (var mutationError in payload.Errors)
                 {
@@ -89,7 +89,7 @@ internal sealed class CreateApiCommand : Command
 
             if (changeResult.Error is IError error)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
                 console.Error.WriteErrorLine(error.Message);
                 return ExitCodes.Error;
             }

@@ -84,7 +84,7 @@ internal sealed class PublishClientCommand : Command
 
             if (publishRequest.Errors?.Count > 0)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
 
                 foreach (var error in publishRequest.Errors)
                 {
@@ -196,7 +196,7 @@ internal sealed class PublishClientCommand : Command
                 }
             }
 
-            activity.Fail();
+            await activity.FailAllAsync();
         }
 
         return ExitCodes.Error;

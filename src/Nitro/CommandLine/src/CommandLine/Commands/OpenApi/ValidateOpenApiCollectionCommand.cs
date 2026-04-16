@@ -59,7 +59,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
 
             if (files.Length < 1)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
                 throw new ExitException("Could not find any OpenAPI documents with the provided pattern.");
             }
 
@@ -78,7 +78,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
 
             if (validationRequest.Errors?.Count > 0)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
 
                 foreach (var error in validationRequest.Errors)
                 {
@@ -150,7 +150,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
                 }
             }
 
-            activity.Fail();
+            await activity.FailAllAsync();
         }
 
         return ExitCodes.Error;

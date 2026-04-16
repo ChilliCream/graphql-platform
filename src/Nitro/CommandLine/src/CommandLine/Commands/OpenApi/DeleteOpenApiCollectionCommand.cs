@@ -53,7 +53,7 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
 
             var selectedOpenApiCollection = await SelectOpenApiCollectionPrompt
                 .New(client, apiId)
-                .Title( "Which OpenAPI collection do you want to delete?")
+                .Title("Which OpenAPI collection do you want to delete?")
                 .RenderAsync(console, cancellationToken) ?? throw new ExitException("You did not select an OpenAPI collection!");
 
             openApiCollectionId = selectedOpenApiCollection.Id;
@@ -83,7 +83,7 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
 
                 foreach (var error in data.Errors)
                 {

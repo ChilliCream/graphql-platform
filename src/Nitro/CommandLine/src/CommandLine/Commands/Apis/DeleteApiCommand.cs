@@ -65,7 +65,7 @@ internal sealed class DeleteApiCommand : Command
         var data = await client.DeleteApiAsync(apiId, cancellationToken);
         if (data.Errors?.Count > 0)
         {
-            activity.Fail();
+            await activity.FailAllAsync();
 
             foreach (var mutationError in data.Errors)
             {

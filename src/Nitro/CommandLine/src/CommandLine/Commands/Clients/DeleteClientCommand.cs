@@ -90,7 +90,7 @@ internal sealed class DeleteClientCommand : Command
 
             if (deletedClient.Errors?.Count > 0)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
 
                 foreach (var error in deletedClient.Errors)
                 {

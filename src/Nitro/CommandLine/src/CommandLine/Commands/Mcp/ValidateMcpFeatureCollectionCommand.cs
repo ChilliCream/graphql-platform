@@ -64,7 +64,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
 
             if (promptFiles.Length < 1 && toolFiles.Length < 1)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
                 console.Error.WriteErrorLine(
                     "Could not find any MCP prompt or tool definition files with the provided patterns.");
                 return ExitCodes.Error;
@@ -86,7 +86,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
 
             if (validationRequest.Errors?.Count > 0)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
 
                 foreach (var error in validationRequest.Errors)
                 {
@@ -158,7 +158,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
                 }
             }
 
-            activity.Fail();
+            await activity.FailAllAsync();
         }
 
         return ExitCodes.Error;
