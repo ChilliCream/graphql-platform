@@ -1,6 +1,5 @@
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
-using RequestDelegate = HotChocolate.Execution.RequestDelegate;
 
 namespace HotChocolate.CostAnalysis;
 
@@ -343,7 +342,7 @@ public sealed class OneOfCostTests
         Assert.Equal(401, (int)GetFieldCost(result));
     }
 
-    private static ValueTask<IRequestExecutor> CreateRequestExecutor(string schema)
+    internal static ValueTask<IRequestExecutor> CreateRequestExecutor(string schema)
     {
         return new ServiceCollection()
             .AddGraphQLServer()
@@ -358,7 +357,7 @@ public sealed class OneOfCostTests
             .BuildRequestExecutorAsync();
     }
 
-    private static double GetFieldCost(IExecutionResult result)
+    internal static double GetFieldCost(IExecutionResult result)
     {
         var operationResult = result.ExpectOperationResult();
         var metrics = operationResult.Extensions["operationCost"] as IReadOnlyDictionary<string, object>;
