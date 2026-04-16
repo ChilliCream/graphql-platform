@@ -38,14 +38,6 @@ internal sealed class ActivityTree : Renderable
         }
     }
 
-    public void SetEntryText(ActivityEntry entry, string text)
-    {
-        lock (_lock)
-        {
-            entry.Text = text;
-        }
-    }
-
     public void SetEntryTextAndState(ActivityEntry entry, string text, ActivityState state)
     {
         lock (_lock)
@@ -92,8 +84,16 @@ internal sealed class ActivityTree : Renderable
 
             foreach (var root in _rootEntries)
             {
-                RenderEntry(segments, root, prefix: "", connector: "", options, maxWidth);
+                RenderEntry(segments, root, prefix: "", isLast: null, options, maxWidth);
             }
+
+            // Workaround for a Spectre.Console bug: LiveRenderable.PositionCursor emits
+            // `CSI 0 A` when the rendered shape is one line tall, and most terminals treat
+            // that as `CSI 1 A` (move cursor up one row) per ECMA-48 default-parameter
+            // handling. The result is that a single-line tree drifts up one row on every
+            // refresh and overwrites previously-printed output. Forcing the shape to be at
+            // least two lines tall keeps Spectre on the `CursorUp(n>=1)` path.
+            segments.Add(Segment.LineBreak);
 
             return segments;
         }
@@ -103,10 +103,24 @@ internal sealed class ActivityTree : Renderable
         List<Segment> segments,
         ActivityEntry entry,
         string prefix,
-        string connector,
+        bool? isLast,
         RenderOptions options,
         int maxWidth)
     {
+        var connector = isLast switch
+        {
+            true => "└── ",
+            false => "├── ",
+            null => ""
+        };
+
+        var childIndent = isLast switch
+        {
+            true => "    ",
+            false => "│   ",
+            null => ""
+        };
+
         segments.Add(new Segment(prefix));
         segments.Add(new Segment(connector));
 
@@ -119,13 +133,15 @@ internal sealed class ActivityTree : Renderable
             _ => Style.Plain
         };
 
-        var hasContentBelow = entry.Children.Count > 0 || entry.Details is not null;
+        var hasChildrenBelow = entry.Children.Count > 0;
+        var hasContentBelow = hasChildrenBelow || entry.Details is not null;
         string continuationGuide;
 
-        if (connector.Length > 0)
+        if (isLast.HasValue)
         {
-            continuationGuide = (connector == "└── " ? "    " : "│   ")
-                + new string(' ', iconWidth);
+            continuationGuide = hasChildrenBelow
+                ? childIndent + "│" + new string(' ', Math.Max(iconWidth - 1, 0))
+                : childIndent + new string(' ', iconWidth);
         }
         else if (hasContentBelow)
         {
@@ -137,7 +153,6 @@ internal sealed class ActivityTree : Renderable
         }
 
         var continuationPrefix = prefix + continuationGuide;
-
         var availableWidth = maxWidth - prefix.Length - connector.Length - iconWidth;
 
         if (availableWidth <= 0)
@@ -170,25 +185,18 @@ internal sealed class ActivityTree : Renderable
 
         segments.Add(Segment.LineBreak);
 
+        var childPrefix = prefix + childIndent;
+
         for (var i = 0; i < entry.Children.Count; i++)
         {
             var child = entry.Children[i];
-            var isLast = i == entry.Children.Count - 1 && entry.Details is null;
-            var childConnector = isLast ? "└── " : "├── ";
-            var childPrefix = prefix + (connector.Length > 0
-                ? (connector == "└── " ? "    " : "│   ")
-                : "");
-
-            RenderEntry(segments, child, childPrefix, childConnector, options, maxWidth);
+            var childIsLast = i == entry.Children.Count - 1 && entry.Details is null;
+            RenderEntry(segments, child, childPrefix, childIsLast, options, maxWidth);
         }
 
         if (entry.Details is not null)
         {
-            var detailsPrefix = prefix + (connector.Length > 0
-                ? (connector == "└── " ? "    " : "│   ")
-                : "");
-
-            RenderDetails(segments, entry.Details, detailsPrefix, options, maxWidth);
+            RenderDetails(segments, entry.Details, childPrefix, options, maxWidth);
         }
     }
 

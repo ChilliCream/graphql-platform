@@ -1,4 +1,3 @@
-using System.Text;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using Spectre.Console.Rendering;
 
@@ -156,33 +155,36 @@ internal sealed class NitroConsoleActivity(
             return;
         }
 
-        var lineBuffer = new StringBuilder();
+        var output = new List<Segment>();
+        var atLineStart = true;
         var isFirstLine = true;
 
         foreach (var segment in segments)
         {
             if (segment.IsLineBreak)
             {
-                if (lineBuffer.Length > 0)
-                {
-                    var pfx = isFirstLine ? linePrefix : continuationPrefix;
-                    console.MarkupLine(pfx + lineBuffer.ToString().EscapeMarkup());
-                    lineBuffer.Clear();
-                }
-
+                output.Add(Segment.LineBreak);
+                atLineStart = true;
                 isFirstLine = false;
             }
             else
             {
-                lineBuffer.Append(segment.Text);
+                if (atLineStart)
+                {
+                    output.Add(new Segment(isFirstLine ? linePrefix : continuationPrefix));
+                    atLineStart = false;
+                }
+
+                output.Add(segment);
             }
         }
 
-        if (lineBuffer.Length > 0)
+        if (!atLineStart)
         {
-            var pfx = isFirstLine ? linePrefix : continuationPrefix;
-            console.MarkupLine(pfx + lineBuffer.ToString().EscapeMarkup());
+            output.Add(Segment.LineBreak);
         }
+
+        console.Write(new SegmentRenderable(output));
     }
 
     private void WriteIndented(IRenderable renderable, string linePrefix)
@@ -197,27 +199,41 @@ internal sealed class NitroConsoleActivity(
         var options = RenderOptions.Create(console, console.Profile.Capabilities);
         var segments = renderable.Render(options, availableWidth);
 
-        var lineBuffer = new StringBuilder();
+        var output = new List<Segment>();
+        var atLineStart = true;
 
         foreach (var segment in segments)
         {
             if (segment.IsLineBreak)
             {
-                if (lineBuffer.Length > 0)
-                {
-                    console.MarkupLine(linePrefix + lineBuffer.ToString().EscapeMarkup());
-                    lineBuffer.Clear();
-                }
+                output.Add(Segment.LineBreak);
+                atLineStart = true;
             }
             else
             {
-                lineBuffer.Append(segment.Text);
+                if (atLineStart)
+                {
+                    output.Add(new Segment(linePrefix));
+                    atLineStart = false;
+                }
+
+                output.Add(segment);
             }
         }
 
-        if (lineBuffer.Length > 0)
+        if (!atLineStart)
         {
-            console.MarkupLine(linePrefix + lineBuffer.ToString().EscapeMarkup());
+            output.Add(Segment.LineBreak);
+        }
+
+        console.Write(new SegmentRenderable(output));
+    }
+
+    private sealed class SegmentRenderable(IReadOnlyList<Segment> segments) : Renderable
+    {
+        protected override IEnumerable<Segment> Render(RenderOptions options, int maxWidth)
+        {
+            return segments;
         }
     }
 }

@@ -51,16 +51,6 @@ internal sealed class SetDefaultWorkspaceCommand : Command
             return ExitCodes.Success;
         }
 
-        return await ExecuteAsync(true, console, client, sessionService, cancellationToken);
-    }
-
-    public static async Task<int> ExecuteAsync(
-        bool forceSelection,
-        INitroConsole console,
-        IWorkspacesClient client,
-        ISessionService sessionService,
-        CancellationToken cancellationToken)
-    {
         var paginationContainer = PaginationContainer.CreateConnectionData(client.SelectWorkspacesAsync);
 
         var current = await paginationContainer.GetCurrentAsync(cancellationToken);
@@ -69,38 +59,21 @@ internal sealed class SetDefaultWorkspaceCommand : Command
             throw new ExitException("You do not have any workspaces. Run `nitro launch` and create one.");
         }
 
-        Workspace? workspace;
-        var wasPrompted = false;
+        var selected = await PagedSelectionPrompt
+            .New(paginationContainer)
+            .Title("Which workspace do you want to use as your default?".AsQuestion())
+            .UseConverter(x => x.Name)
+            .RenderAsync(console, cancellationToken);
 
-        if (current.Count == 1 && !forceSelection)
+        if (selected is null)
         {
-            var firstWorkspace = current[0];
-            workspace = new Workspace(firstWorkspace.Id, firstWorkspace.Name);
-        }
-        else
-        {
-            var selectedWorkspace = await PagedSelectionPrompt
-                .New(paginationContainer)
-                .Title("Which workspace do you want to use as your default?".AsQuestion())
-                .UseConverter(x => x.Name)
-                .RenderAsync(console, cancellationToken);
-
-            if (selectedWorkspace is null)
-            {
-                throw Exit("No workspace was selected as default.");
-            }
-
-            workspace = new Workspace(selectedWorkspace.Id, selectedWorkspace.Name);
-
-            wasPrompted = true;
+            throw Exit("No workspace was selected as default.");
         }
 
-        await sessionService.SelectWorkspaceAsync(workspace, cancellationToken);
+        var selectedWorkspace = new Workspace(selected.Id, selected.Name);
+        await sessionService.SelectWorkspaceAsync(selectedWorkspace, cancellationToken);
 
-        if (wasPrompted)
-        {
-            console.OkQuestion("Which workspace do you want to use as your default?", workspace.Name);
-        }
+        console.OkQuestion("Which workspace do you want to use as your default?", selectedWorkspace.Name);
 
         return ExitCodes.Success;
     }

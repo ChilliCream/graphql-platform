@@ -55,7 +55,8 @@ public static class Program
                 new NitroConsole(
                     outConsole,
                     errorConsole,
-                    sp.GetRequiredService<IEnvironmentVariableProvider>()));
+                    sp.GetRequiredService<IEnvironmentVariableProvider>(),
+                    new LiveActivityRenderDriverFactory()));
 
         await using var provider = services.BuildServiceProvider();
 

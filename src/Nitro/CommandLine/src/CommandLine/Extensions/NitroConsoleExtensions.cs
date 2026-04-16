@@ -7,19 +7,6 @@ namespace ChilliCream.Nitro.CommandLine;
 
 internal static class NitroConsoleExtensions
 {
-    public static INitroConsoleActivity StartActivity(
-        this INitroConsole console,
-        string title,
-        string failureMessage)
-    {
-        if (!console.IsInteractive)
-        {
-            return NitroConsoleActivity.Start(console, title, failureMessage);
-        }
-
-        return InteractiveNitroConsoleActivity.Start(console, title, failureMessage);
-    }
-
     public static async Task<string> PromptAsync(
         this INitroConsole console,
         string question,

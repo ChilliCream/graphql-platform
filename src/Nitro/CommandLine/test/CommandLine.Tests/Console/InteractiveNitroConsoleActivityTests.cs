@@ -6,7 +6,7 @@ using Spectre.Console.Testing;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Console;
 
-public sealed class NitroConsoleActivityTests
+public sealed class InteractiveNitroConsoleActivityTests
 {
     private static (INitroConsole Console, StringWriter Writer) CreateConsole(
         int width = Constants.DefaultPrintWidth)
@@ -16,7 +16,7 @@ public sealed class NitroConsoleActivityTests
         var outConsole = new TestConsole();
         outConsole.Profile.Out = new AnsiConsoleOutput(writer);
         outConsole.Profile.Width = width;
-        outConsole.Profile.Capabilities.Interactive = false;
+        outConsole.Profile.Capabilities.Interactive = true;
 
         var errConsole = new TestConsole();
 
@@ -38,14 +38,26 @@ public sealed class NitroConsoleActivityTests
         return writer.ToString().TrimEnd();
     }
 
+    private static INitroConsoleActivity StartActivity(
+        INitroConsole console,
+        string title,
+        string failureMessage)
+    {
+        return InteractiveNitroConsoleActivity.Start(
+            console,
+            title,
+            failureMessage,
+            new SnapshotActivityRenderDriverFactory());
+    }
+
     [Fact]
-    public async Task Success_Should_WriteCheckGlyph_When_ActivityCompletes()
+    public async Task Success_Should_RenderCheckGlyph_When_ActivityCompletes()
     {
         // arrange
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Doing work", "Work failed"))
+        await using (var activity = StartActivity(console, "Doing work", "Work failed"))
         {
             activity.Success("Done");
         }
@@ -53,19 +65,19 @@ public sealed class NitroConsoleActivityTests
         // assert
         GetOutput(writer).MatchInlineSnapshot(
             """
-            Doing work
+            ✓ Doing work
             └── ✓ Done
             """);
     }
 
     [Fact]
-    public async Task Fail_Should_WriteCrossGlyph_When_CalledWithMessage()
+    public async Task Fail_Should_RenderCrossGlyph_When_CalledWithMessage()
     {
         // arrange
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Doing work", "Work failed"))
+        await using (var activity = StartActivity(console, "Doing work", "Work failed"))
         {
             activity.Fail("Something went wrong");
         }
@@ -73,19 +85,19 @@ public sealed class NitroConsoleActivityTests
         // assert
         GetOutput(writer).MatchInlineSnapshot(
             """
-            Doing work
+            ✕ Doing work
             └── ✕ Something went wrong
             """);
     }
 
     [Fact]
-    public async Task Fail_Should_WriteCrossGlyphWithDetails_When_CalledWithRenderable()
+    public async Task Fail_Should_RenderCrossGlyphWithDetails_When_CalledWithRenderable()
     {
         // arrange
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Doing work", "Work failed"))
+        await using (var activity = StartActivity(console, "Doing work", "Work failed"))
         {
             activity.Fail(new Text("Error detail line 1\nError detail line 2"));
         }
@@ -93,7 +105,7 @@ public sealed class NitroConsoleActivityTests
         // assert
         GetOutput(writer).MatchInlineSnapshot(
             """
-            Doing work
+            ✕ Doing work
             └── ✕ Work failed
                 Error detail line 1
                 Error detail line 2
@@ -101,13 +113,13 @@ public sealed class NitroConsoleActivityTests
     }
 
     [Fact]
-    public async Task StartChildActivity_Should_WriteTreeStructure_When_ChildSucceeds()
+    public async Task StartChildActivity_Should_RenderTreeStructure_When_ChildSucceeds()
     {
         // arrange
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Root failed"))
+        await using (var activity = StartActivity(console, "Root", "Root failed"))
         {
             await using (var child = activity.StartChildActivity("Child step", "Child failed"))
             {
@@ -120,21 +132,20 @@ public sealed class NitroConsoleActivityTests
         // assert
         GetOutput(writer).MatchInlineSnapshot(
             """
-            Root
-            ├── Child step
-            │   └── ✓ Child done
+            ✓ Root
+            ├── ✓ Child done
             └── ✓ Root done
             """);
     }
 
     [Fact]
-    public async Task StartChildActivity_Should_WriteTreeStructure_When_ChildFails()
+    public async Task StartChildActivity_Should_RenderTreeStructure_When_ChildFails()
     {
         // arrange
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Root failed"))
+        await using (var activity = StartActivity(console, "Root", "Root failed"))
         {
             await using (var child = activity.StartChildActivity("Child step", "Child failed"))
             {
@@ -147,21 +158,20 @@ public sealed class NitroConsoleActivityTests
         // assert
         GetOutput(writer).MatchInlineSnapshot(
             """
-            Root
-            ├── Child step
-            │   └── ✕ Child error
+            ✕ Root
+            ├── ✕ Child error
             └── ✕ Root error
             """);
     }
 
     [Fact]
-    public async Task StartChildActivity_Should_WriteNestedTreeStructure_When_GrandchildSucceeds()
+    public async Task StartChildActivity_Should_RenderNestedTreeStructure_When_GrandchildSucceeds()
     {
         // arrange
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Root failed"))
+        await using (var activity = StartActivity(console, "Root", "Root failed"))
         {
             await using (var child = activity.StartChildActivity("Child", "Child failed"))
             {
@@ -179,10 +189,9 @@ public sealed class NitroConsoleActivityTests
         // assert
         GetOutput(writer).MatchInlineSnapshot(
             """
-            Root
-            ├── Child
-            │   ├── Grandchild
-            │   │   └── ✓ Grandchild done
+            ✓ Root
+            ├── ✓ Child
+            │   ├── ✓ Grandchild done
             │   └── ✓ Child done
             └── ✓ Root done
             """);
@@ -195,23 +204,19 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Root failed"))
+        await using (var activity = StartActivity(console, "Root", "Root failed"))
         {
             await using (var child = activity.StartChildActivity("Child", "Child failed"))
             {
                 // child is not completed — DisposeAsync will call FailAllAsync
             }
-
-            // root is already failed via FailAllAsync, so this is a no-op
         }
 
         // assert
         GetOutput(writer).MatchInlineSnapshot(
             """
-            Root
-            ├── Child
-            │   └── ✕ Child failed
-            └── ✕ Root failed
+            ✕ Root
+            └── ✕ Child
             """);
     }
 
@@ -222,7 +227,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Doing work", "Work failed"))
+        await using (var activity = StartActivity(console, "Doing work", "Work failed"))
         {
             activity.Success("Done");
             activity.Update("This should be ignored");
@@ -231,19 +236,19 @@ public sealed class NitroConsoleActivityTests
         // assert
         GetOutput(writer).MatchInlineSnapshot(
             """
-            Doing work
+            ✓ Doing work
             └── ✓ Done
             """);
     }
 
     [Fact]
-    public async Task Update_Should_WriteMultipleUpdates_When_CalledWithDifferentKinds()
+    public async Task Update_Should_RenderMultipleUpdates_When_CalledWithDifferentKinds()
     {
         // arrange
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Doing work", "Work failed"))
+        await using (var activity = StartActivity(console, "Doing work", "Work failed"))
         {
             activity.Update("Regular update");
             activity.Update("Warning update", ActivityUpdateKind.Warning);
@@ -255,7 +260,7 @@ public sealed class NitroConsoleActivityTests
         // assert
         GetOutput(writer).MatchInlineSnapshot(
             """
-            Doing work
+            ✓ Doing work
             ├── Regular update
             ├── ! Warning update
             ├── ⏳ Waiting update
@@ -265,13 +270,13 @@ public sealed class NitroConsoleActivityTests
     }
 
     [Fact]
-    public async Task Warning_Should_WriteExclamationGlyph_When_ActivityCompletes()
+    public async Task Warning_Should_RenderExclamationGlyph_When_ActivityCompletes()
     {
         // arrange
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Doing work", "Work failed"))
+        await using (var activity = StartActivity(console, "Doing work", "Work failed"))
         {
             activity.Warning("Something is off");
         }
@@ -279,7 +284,7 @@ public sealed class NitroConsoleActivityTests
         // assert
         GetOutput(writer).MatchInlineSnapshot(
             """
-            Doing work
+            ! Doing work
             └── ! Something is off
             """);
     }
@@ -291,7 +296,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole(width: 30);
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(
+        await using (var activity = StartActivity(
             console,
             "This is a very long root title that should wrap",
             "Failed"))
@@ -302,7 +307,7 @@ public sealed class NitroConsoleActivityTests
         // assert
         GetOutput(writer).MatchInlineSnapshot(
             """
-            This is a very long root
+            ✓ This is a very long root
             │ title that should wrap
             └── ✓ Done
             """);
@@ -315,7 +320,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole(width: 30);
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Failed"))
+        await using (var activity = StartActivity(console, "Root", "Failed"))
         {
             activity.Update("This update message is long enough to wrap at narrow width");
             activity.Success("Done");
@@ -324,7 +329,7 @@ public sealed class NitroConsoleActivityTests
         // assert
         GetOutput(writer).MatchInlineSnapshot(
             """
-            Root
+            ✓ Root
             ├── This update message is
             │   long enough to wrap at
             │   narrow width
@@ -339,7 +344,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole(width: 30);
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Failed"))
+        await using (var activity = StartActivity(console, "Root", "Failed"))
         {
             activity.Success("This success message is long enough to wrap at narrow width");
         }
@@ -347,10 +352,10 @@ public sealed class NitroConsoleActivityTests
         // assert
         GetOutput(writer).MatchInlineSnapshot(
             """
-            Root
-            └── ✓ This success message
-                  is long enough to wrap
-                  at narrow width
+            ✓ Root
+            └── ✓ This success message is
+                  long enough to wrap at
+                  narrow width
             """);
     }
 
@@ -361,7 +366,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole(width: 30);
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Failed"))
+        await using (var activity = StartActivity(console, "Root", "Failed"))
         {
             activity.Fail("This failure message is long enough to wrap at narrow width");
         }
@@ -369,10 +374,10 @@ public sealed class NitroConsoleActivityTests
         // assert
         GetOutput(writer).MatchInlineSnapshot(
             """
-            Root
-            └── ✕ This failure message
-                  is long enough to wrap
-                  at narrow width
+            ✕ Root
+            └── ✕ This failure message is
+                  long enough to wrap at
+                  narrow width
             """);
     }
 
@@ -383,12 +388,14 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole(width: 30);
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Failed"))
+        await using (var activity = StartActivity(console, "Root", "Failed"))
         {
             await using (var child = activity.StartChildActivity(
                 "This child title is long enough to wrap",
                 "Child failed"))
             {
+                // give child a sub-update so its title is preserved on success
+                child.Update("Working");
                 child.Success("Done");
             }
 
@@ -398,9 +405,10 @@ public sealed class NitroConsoleActivityTests
         // assert
         GetOutput(writer).MatchInlineSnapshot(
             """
-            Root
-            ├── This child title is long
-            │   enough to wrap
+            ✓ Root
+            ├── ✓ This child title is long
+            │   │ enough to wrap
+            │   ├── Working
             │   └── ✓ Done
             └── ✓ Root done
             """);
@@ -413,7 +421,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole(width: 30);
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Failed"))
+        await using (var activity = StartActivity(console, "Root", "Failed"))
         {
             await using (var child = activity.StartChildActivity("Child", "Child failed"))
             {
@@ -427,8 +435,8 @@ public sealed class NitroConsoleActivityTests
         // assert
         GetOutput(writer).MatchInlineSnapshot(
             """
-            Root
-            ├── Child
+            ✓ Root
+            ├── ✓ Child
             │   ├── This child update is
             │   │   long enough to wrap
             │   └── ✓ Done
@@ -443,7 +451,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole(width: 30);
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Failed"))
+        await using (var activity = StartActivity(console, "Root", "Failed"))
         {
             await using (var child = activity.StartChildActivity("Child", "Child failed"))
             {
@@ -456,10 +464,9 @@ public sealed class NitroConsoleActivityTests
         // assert
         GetOutput(writer).MatchInlineSnapshot(
             """
-            Root
-            ├── Child
-            │   └── ✓ This child success
-            │         message wraps
+            ✓ Root
+            ├── ✓ This child success
+            │     message wraps
             └── ✓ Root done
             """);
     }
@@ -471,7 +478,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole(width: 30);
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Failed"))
+        await using (var activity = StartActivity(console, "Root", "Failed"))
         {
             await using (var child = activity.StartChildActivity("Child", "Child failed"))
             {
@@ -484,22 +491,21 @@ public sealed class NitroConsoleActivityTests
         // assert
         GetOutput(writer).MatchInlineSnapshot(
             """
-            Root
-            ├── Child
-            │   └── ✕ This child failure
-            │         message wraps
+            ✕ Root
+            ├── ✕ This child failure
+            │     message wraps
             └── ✕ Root error
             """);
     }
 
     [Fact]
-    public async Task Update_Should_WriteDetails_When_CalledWithRenderable()
+    public async Task Update_Should_RenderDetails_When_CalledWithRenderable()
     {
         // arrange
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Doing work", "Work failed"))
+        await using (var activity = StartActivity(console, "Doing work", "Work failed"))
         {
             activity.Update("Status", details: new Text("Detail line 1\nDetail line 2"));
             activity.Success("Done");
@@ -508,7 +514,7 @@ public sealed class NitroConsoleActivityTests
         // assert
         GetOutput(writer).MatchInlineSnapshot(
             """
-            Doing work
+            ✓ Doing work
             ├── Status
             │   Detail line 1
             │   Detail line 2
@@ -517,13 +523,13 @@ public sealed class NitroConsoleActivityTests
     }
 
     [Fact]
-    public async Task ChildUpdate_Should_WriteDetails_When_CalledWithRenderable()
+    public async Task ChildUpdate_Should_RenderDetails_When_CalledWithRenderable()
     {
         // arrange
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Root failed"))
+        await using (var activity = StartActivity(console, "Root", "Root failed"))
         {
             await using (var child = activity.StartChildActivity("Child", "Child failed"))
             {
@@ -537,8 +543,8 @@ public sealed class NitroConsoleActivityTests
         // assert
         GetOutput(writer).MatchInlineSnapshot(
             """
-            Root
-            ├── Child
+            ✓ Root
+            ├── ✓ Child
             │   ├── Status
             │   │   Detail line 1
             │   │   Detail line 2
@@ -548,13 +554,13 @@ public sealed class NitroConsoleActivityTests
     }
 
     [Fact]
-    public async Task ChildFail_Should_WriteCrossGlyphWithDetails_When_CalledWithRenderable()
+    public async Task ChildFail_Should_RenderCrossGlyphWithDetails_When_CalledWithRenderable()
     {
         // arrange
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Root failed"))
+        await using (var activity = StartActivity(console, "Root", "Root failed"))
         {
             await using (var child = activity.StartChildActivity("Child", "Child failed"))
             {
@@ -567,23 +573,22 @@ public sealed class NitroConsoleActivityTests
         // assert
         GetOutput(writer).MatchInlineSnapshot(
             """
-            Root
-            ├── Child
-            │   └── ✕ Child failed
-            │       Error detail line 1
-            │       Error detail line 2
+            ✕ Root
+            ├── ✕ Child failed
+            │   Error detail line 1
+            │   Error detail line 2
             └── ✕ Root error
             """);
     }
 
     [Fact]
-    public async Task ChildWarning_Should_WriteExclamationGlyph_When_ActivityCompletes()
+    public async Task ChildWarning_Should_RenderExclamationGlyph_When_ActivityCompletes()
     {
         // arrange
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Root failed"))
+        await using (var activity = StartActivity(console, "Root", "Root failed"))
         {
             await using (var child = activity.StartChildActivity("Child", "Child failed"))
             {
@@ -596,21 +601,20 @@ public sealed class NitroConsoleActivityTests
         // assert
         GetOutput(writer).MatchInlineSnapshot(
             """
-            Root
-            ├── Child
-            │   └── ! Something is off
+            ✓ Root
+            ├── ! Something is off
             └── ✓ Root done
             """);
     }
 
     [Fact]
-    public async Task StartChildActivity_Should_WriteTreeStructure_When_MultipleSiblings()
+    public async Task StartChildActivity_Should_RenderTreeStructure_When_MultipleSiblings()
     {
         // arrange
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Root failed"))
+        await using (var activity = StartActivity(console, "Root", "Root failed"))
         {
             await using (var first = activity.StartChildActivity("First child", "First failed"))
             {
@@ -628,11 +632,9 @@ public sealed class NitroConsoleActivityTests
         // assert
         GetOutput(writer).MatchInlineSnapshot(
             """
-            Root
-            ├── First child
-            │   └── ✓ First done
-            ├── Second child
-            │   └── ✓ Second done
+            ✓ Root
+            ├── ✓ First done
+            ├── ✓ Second done
             └── ✓ Root done
             """);
     }
@@ -644,7 +646,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Root failed"))
+        await using (var activity = StartActivity(console, "Root", "Root failed"))
         {
             await using (var child = activity.StartChildActivity("Child", "Child failed"))
             {
@@ -652,33 +654,26 @@ public sealed class NitroConsoleActivityTests
                 {
                     // grandchild not completed — DisposeAsync cascades up
                 }
-
-                // child already failed via FailAllAsync
             }
-
-            // root already failed via FailAllAsync
         }
 
         // assert
         GetOutput(writer).MatchInlineSnapshot(
             """
-            Root
-            ├── Child
-            │   ├── Grandchild
-            │   │   └── ✕ Grandchild failed
-            │   └── ✕ Child failed
-            └── ✕ Root failed
+            ✕ Root
+            └── ✕ Child
+                └── ✕ Grandchild
             """);
     }
 
     [Fact]
-    public async Task Update_Should_WriteClockGlyph_When_CalledWithWaitingKind()
+    public async Task Update_Should_RenderClockGlyph_When_CalledWithWaitingKind()
     {
         // arrange
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Doing work", "Work failed"))
+        await using (var activity = StartActivity(console, "Doing work", "Work failed"))
         {
             activity.Update("Please wait", ActivityUpdateKind.Waiting);
             activity.Success("Done");
@@ -687,7 +682,7 @@ public sealed class NitroConsoleActivityTests
         // assert
         GetOutput(writer).MatchInlineSnapshot(
             """
-            Doing work
+            ✓ Doing work
             ├── ⏳ Please wait
             └── ✓ Done
             """);
@@ -700,7 +695,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Doing work", "Work failed"))
+        await using (var activity = StartActivity(console, "Doing work", "Work failed"))
         {
             // no explicit completion — DisposeAsync should trigger failure
         }
@@ -708,8 +703,40 @@ public sealed class NitroConsoleActivityTests
         // assert
         GetOutput(writer).MatchInlineSnapshot(
             """
-            Doing work
+            ✕ Doing work
             └── ✕ Work failed
+            """);
+    }
+
+    [Fact]
+    public async Task ChildSuccess_Should_FailActiveDescendants_When_LeakedGrandchild()
+    {
+        // arrange
+        var (console, writer) = CreateConsole();
+
+        // act
+        await using (var activity = StartActivity(console, "Root", "Root failed"))
+        {
+            await using (var child = activity.StartChildActivity("Child", "Child failed"))
+            {
+                // leak grandchild — its active state is flipped to Failed by child.Success
+                var grandchild = child.StartChildActivity("Grandchild", "Grandchild failed");
+                _ = grandchild;
+
+                child.Success("Child done");
+            }
+
+            activity.Success("Root done");
+        }
+
+        // assert
+        GetOutput(writer).MatchInlineSnapshot(
+            """
+            ✓ Root
+            ├── ✓ Child
+            │   ├── ✕ Grandchild
+            │   └── ✓ Child done
+            └── ✓ Root done
             """);
     }
 }

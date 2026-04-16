@@ -5,25 +5,27 @@ namespace ChilliCream.Nitro.CommandLine;
 internal sealed class InteractiveNitroConsoleActivity : INitroConsoleActivity
 {
     private readonly ActivityTree _tree;
-    private readonly ActivityEntry _rootEntry;
+    private readonly ActivityEntry _entry;
     private readonly string _failureMessage;
-    private readonly Task _liveTask;
-    private readonly PeriodicTimer _refreshTimer;
+    private readonly InteractiveNitroConsoleActivity? _parent;
+    private readonly IActivityRenderDriver? _driver;
     private bool _completed;
 
     private InteractiveNitroConsoleActivity(
         ActivityTree tree,
-        ActivityEntry rootEntry,
+        ActivityEntry entry,
         string failureMessage,
-        Task liveTask,
-        PeriodicTimer refreshTimer)
+        InteractiveNitroConsoleActivity? parent,
+        IActivityRenderDriver? driver)
     {
         _tree = tree;
-        _rootEntry = rootEntry;
+        _entry = entry;
         _failureMessage = failureMessage;
-        _liveTask = liveTask;
-        _refreshTimer = refreshTimer;
+        _parent = parent;
+        _driver = driver;
     }
+
+    private bool IsRoot => _parent is null;
 
     public void Update(
         string message,
@@ -42,7 +44,8 @@ internal sealed class InteractiveNitroConsoleActivity : INitroConsoleActivity
             ActivityUpdateKind.Success => ActivityState.Completed,
             _ => ActivityState.Info
         };
-        var child = _tree.AddChild(_rootEntry, message, state);
+
+        var child = _tree.AddChild(_entry, message, state);
         if (details is not null)
         {
             _tree.SetEntryDetails(child, details);
@@ -51,57 +54,22 @@ internal sealed class InteractiveNitroConsoleActivity : INitroConsoleActivity
 
     public void Warning(string message)
     {
-        if (_completed)
-        {
-            return;
-        }
-
-        _tree.SetEntryState(_rootEntry, ActivityState.Warning);
-        _tree.AddChild(_rootEntry, message, ActivityState.Warning);
-        _completed = true;
-        _refreshTimer.Dispose();
+        Complete(message, ActivityState.Warning);
     }
 
     public void Success(string message)
     {
-        if (_completed)
-        {
-            return;
-        }
-
-        _tree.SetEntryState(_rootEntry, ActivityState.Completed);
-        _tree.AddChild(_rootEntry, message, ActivityState.Completed);
-        _completed = true;
-        _refreshTimer.Dispose();
+        Complete(message, ActivityState.Completed);
     }
 
     public void Fail(string message)
     {
-        if (_completed)
-        {
-            return;
-        }
-
-        _tree.SetEntryState(_rootEntry, ActivityState.Failed);
-        _tree.FailActiveDescendants(_rootEntry);
-        _tree.AddChild(_rootEntry, message, ActivityState.Failed);
-        _completed = true;
-        _refreshTimer.Dispose();
+        CompleteFail(message, details: null);
     }
 
     public void Fail(IRenderable details)
     {
-        if (_completed)
-        {
-            return;
-        }
-
-        _tree.SetEntryState(_rootEntry, ActivityState.Failed);
-        _tree.FailActiveDescendants(_rootEntry);
-        var failChild = _tree.AddChild(_rootEntry, _failureMessage, ActivityState.Failed);
-        _tree.SetEntryDetails(failChild, details);
-        _completed = true;
-        _refreshTimer.Dispose();
+        CompleteFail(_failureMessage, details);
     }
 
     public void Fail()
@@ -112,13 +80,103 @@ internal sealed class InteractiveNitroConsoleActivity : INitroConsoleActivity
     public async ValueTask FailAllAsync()
     {
         FailSilent();
-        await _liveTask;
+
+        if (_parent is not null)
+        {
+            await _parent.FailAllAsync();
+        }
+        else if (_driver is not null)
+        {
+            await _driver.Completion;
+        }
     }
 
     public INitroConsoleActivity StartChildActivity(string title, string failureMessage)
     {
-        var childEntry = _tree.AddChild(_rootEntry, title, ActivityState.Active);
-        return new InteractiveNitroConsoleChildActivity(_tree, childEntry, failureMessage, this);
+        var childEntry = _tree.AddChild(_entry, title, ActivityState.Active);
+        return new InteractiveNitroConsoleActivity(
+            _tree,
+            childEntry,
+            failureMessage,
+            parent: this,
+            driver: null);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (!_completed)
+        {
+            if (IsRoot)
+            {
+                Fail();
+            }
+            else
+            {
+                await FailAllAsync();
+                return;
+            }
+        }
+
+        if (_driver is not null)
+        {
+            await _driver.Completion;
+        }
+    }
+
+    private void Complete(string message, ActivityState state)
+    {
+        if (_completed)
+        {
+            return;
+        }
+
+        if (!IsRoot)
+        {
+            _tree.FailActiveDescendants(_entry);
+        }
+
+        if (IsRoot || _entry.Children.Count > 0)
+        {
+            _tree.SetEntryState(_entry, state);
+            _tree.AddChild(_entry, message, state);
+        }
+        else
+        {
+            _tree.SetEntryTextAndState(_entry, message, state);
+        }
+
+        _completed = true;
+        _driver?.Stop();
+    }
+
+    private void CompleteFail(string message, IRenderable? details)
+    {
+        if (_completed)
+        {
+            return;
+        }
+
+        _tree.FailActiveDescendants(_entry);
+
+        ActivityEntry failEntry;
+        if (IsRoot || _entry.Children.Count > 0)
+        {
+            _tree.SetEntryState(_entry, ActivityState.Failed);
+            failEntry = _tree.AddChild(_entry, message, ActivityState.Failed);
+        }
+        else
+        {
+            _tree.SetEntryTextAndState(_entry, message, ActivityState.Failed);
+            failEntry = _entry;
+        }
+
+        if (details is not null)
+        {
+            _tree.SetEntryDetails(failEntry, details);
+        }
+
+        _completed = true;
+        _driver?.Stop();
     }
 
     private void FailSilent()
@@ -128,50 +186,27 @@ internal sealed class InteractiveNitroConsoleActivity : INitroConsoleActivity
             return;
         }
 
-        _tree.SetEntryState(_rootEntry, ActivityState.Failed);
-        _tree.FailActiveDescendants(_rootEntry);
+        _tree.SetEntryState(_entry, ActivityState.Failed);
+        _tree.FailActiveDescendants(_entry);
         _completed = true;
-        _refreshTimer.Dispose();
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (!_completed)
-        {
-            Fail();
-        }
-
-        await _liveTask;
+        _driver?.Stop();
     }
 
     public static INitroConsoleActivity Start(
         INitroConsole console,
         string title,
-        string failureMessage)
+        string failureMessage,
+        IActivityRenderDriverFactory driverFactory)
     {
         var tree = new ActivityTree();
         var rootEntry = tree.AddRoot(title);
-        var refreshTimer = new PeriodicTimer(TimeSpan.FromMilliseconds(100));
-
-        var liveTask = console
-            .Live(tree)
-            .AutoClear(false)
-            .Overflow(VerticalOverflow.Visible)
-            .StartAsync(async ctx =>
-            {
-                while (await refreshTimer.WaitForNextTickAsync())
-                {
-                    ctx.Refresh();
-                }
-
-                ctx.Refresh();
-            });
+        var driver = driverFactory.Create(console, tree);
 
         return new InteractiveNitroConsoleActivity(
             tree,
             rootEntry,
             failureMessage,
-            liveTask,
-            refreshTimer);
+            parent: null,
+            driver);
     }
 }

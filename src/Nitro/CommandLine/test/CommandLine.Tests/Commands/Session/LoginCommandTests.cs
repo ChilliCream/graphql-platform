@@ -85,7 +85,7 @@ public sealed class LoginCommandTests(NitroCommandFixture fixture) : SessionComm
     }
 
     [Fact]
-    public async Task NoWorkspacesAvailable_ReturnsError()
+    public async Task NoWorkspacesAvailable_ReturnsSuccess_WithWarning()
     {
         // arrange
         SetupInteractionMode(InteractionMode.Interactive);
@@ -96,11 +96,15 @@ public sealed class LoginCommandTests(NitroCommandFixture fixture) : SessionComm
         var result = await ExecuteCommandAsync("login");
 
         // assert
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertSuccess(
             """
-            You do not have any workspaces. Run `nitro launch` and create one.
+            ✓ Logging in via browser
+            ├── Browser opened at identity.chillicream.com. Continue login there.
+            ├── ! You do not have any workspaces. Run `nitro launch` and create one.
+            └── ✓ Logged in as user@test.com
             """);
-        Assert.Equal(1, result.ExitCode);
+
+        VerifyNoWorkspaceSelected();
     }
 
     [Fact]
@@ -116,8 +120,14 @@ public sealed class LoginCommandTests(NitroCommandFixture fixture) : SessionComm
         var result = await ExecuteCommandAsync("login");
 
         // assert
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccess(
+            """
+            ✓ Logging in via browser
+            ├── Browser opened at identity.chillicream.com. Continue login there.
+            └── ✓ Logged in as user@test.com (Workspace: my-workspace)
+            """);
+
+        VerifyWorkspaceSelected("ws-1", "my-workspace");
     }
 
     [Fact]
@@ -138,8 +148,9 @@ public sealed class LoginCommandTests(NitroCommandFixture fixture) : SessionComm
         var result = await command.RunToCompletionAsync();
 
         // assert
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
+        result.AssertSuccess();
+
+        VerifyWorkspaceSelected("ws-1", "first-workspace");
     }
 
     [Fact]

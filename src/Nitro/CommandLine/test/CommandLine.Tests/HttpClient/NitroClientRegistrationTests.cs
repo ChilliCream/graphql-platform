@@ -14,6 +14,7 @@ using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
+using ChilliCream.Nitro.CommandLine.Tests.Console;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
@@ -163,7 +164,11 @@ public class NitroClientRegistrationTests
         var testConsole = new TestConsole();
         var errorConsole = new TestConsole();
         services.AddSingleton<INitroConsole>(
-            new NitroConsole(testConsole, errorConsole, new EnvironmentVariableProvider()));
+            new NitroConsole(
+                testConsole,
+                errorConsole,
+                new EnvironmentVariableProvider(),
+                new SnapshotActivityRenderDriverFactory()));
 
         var provider = services.BuildServiceProvider();
         var rootCommand = new NitroRootCommand();
