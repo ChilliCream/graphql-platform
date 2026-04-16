@@ -82,7 +82,7 @@ internal sealed class InputCostVisitor : SyntaxWalker<InputCostVisitorContext>
 
         if (type.IsOneOf)
         {
-            // @oneOf: exactly one field is provided → take the maximum cost of all field.
+            // @oneOf: exactly one field is provided → take the maximum cost of all fields.
             var maxCost = 0.0;
             foreach (var field in type.Fields)
             {
