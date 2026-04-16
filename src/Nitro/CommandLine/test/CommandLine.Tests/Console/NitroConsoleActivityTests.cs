@@ -79,7 +79,7 @@ public sealed class NitroConsoleActivityTests
     }
 
     [Fact]
-    public async Task Fail_Should_WriteCrossGlyphWithDetails_When_CalledWithRenderable()
+    public async Task FailAllAsync_Should_WriteCrossGlyphWithDetails_When_CalledWithRenderable()
     {
         // arrange
         var (console, writer) = CreateConsole();
@@ -87,7 +87,7 @@ public sealed class NitroConsoleActivityTests
         // act
         await using (var activity = console.StartActivity( "Doing work", "Work failed"))
         {
-            activity.Fail(new Text("Error detail line 1\nError detail line 2"));
+            await activity.FailAllAsync(new Text("Error detail line 1\nError detail line 2"));
         }
 
         // assert
@@ -547,7 +547,7 @@ public sealed class NitroConsoleActivityTests
     }
 
     [Fact]
-    public async Task ChildFail_Should_WriteCrossGlyphWithDetails_When_CalledWithRenderable()
+    public async Task ChildFailAllAsync_Should_WriteCrossGlyphWithDetails_When_CalledWithRenderable()
     {
         // arrange
         var (console, writer) = CreateConsole();
@@ -557,10 +557,8 @@ public sealed class NitroConsoleActivityTests
         {
             await using (var child = activity.StartChildActivity("Child", "Child failed"))
             {
-                child.Fail(new Text("Error detail line 1\nError detail line 2"));
+                await child.FailAllAsync(new Text("Error detail line 1\nError detail line 2"));
             }
-
-            activity.Fail("Root error");
         }
 
         // assert
@@ -571,7 +569,7 @@ public sealed class NitroConsoleActivityTests
             │   └── ✕ Child failed
             │       Error detail line 1
             │       Error detail line 2
-            └── ✕ Root error
+            └── ✕ Root failed
             """);
     }
 
@@ -689,6 +687,40 @@ public sealed class NitroConsoleActivityTests
             Doing work
             ├── ⏳ Please wait
             └── ✓ Done
+            """);
+    }
+
+    [Fact]
+    public async Task FailAllAsync_Should_KeepAllSiblings_When_MultipleSiblingsFailed()
+    {
+        // arrange
+        var (console, writer) = CreateConsole();
+
+        // act — one sibling explicitly fails, the next propagates failure via
+        // FailAllAsync (no details). Parent ends up with two failed children and
+        // no terminator of its own.
+        await using (var activity = console.StartActivity("Root", "Root failed"))
+        {
+            await using (var first = activity.StartChildActivity("First", "First failed"))
+            {
+                first.Fail("First error");
+            }
+
+            await using (var second = activity.StartChildActivity("Second", "Second failed"))
+            {
+                await second.FailAllAsync();
+            }
+        }
+
+        // assert — every sibling stays visible; none is dropped by the renderer
+        GetOutput(writer).MatchInlineSnapshot(
+            """
+            Root
+            ├── First
+            │   └── ✕ First error
+            ├── Second
+            │   └── ✕ Second failed
+            └── ✕ Root failed
             """);
     }
 

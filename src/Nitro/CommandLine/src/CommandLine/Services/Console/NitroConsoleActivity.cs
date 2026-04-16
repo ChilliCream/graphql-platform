@@ -22,7 +22,14 @@ internal sealed class NitroConsoleActivity : INitroConsoleActivity
         _parent = parent;
     }
 
-    private bool IsRoot => _parent is null;
+    public static INitroConsoleActivity Start(
+        IActivitySink sink,
+        string title,
+        string failureMessage)
+    {
+        var root = sink.AddRoot(title);
+        return new NitroConsoleActivity(sink, root, failureMessage, parent: null);
+    }
 
     public void Update(
         string message,
@@ -58,19 +65,19 @@ internal sealed class NitroConsoleActivity : INitroConsoleActivity
         Complete(message, ActivityState.Failed, details: null);
     }
 
-    public void Fail(IRenderable details)
-    {
-        Complete(_failureMessage, ActivityState.Failed, details);
-    }
-
     public void Fail()
     {
         Fail(_failureMessage);
     }
 
-    public async ValueTask FailAllAsync()
+    public void Fail(IRenderable details)
     {
-        FailSilent();
+        Complete(_failureMessage, ActivityState.Failed, details);
+    }
+
+    public async ValueTask FailAllAsync(IRenderable? details = null)
+    {
+        Complete(_failureMessage, ActivityState.Failed, details);
 
         if (_parent is not null)
         {
@@ -109,14 +116,7 @@ internal sealed class NitroConsoleActivity : INitroConsoleActivity
         }
     }
 
-    public static INitroConsoleActivity Start(
-        IActivitySink sink,
-        string title,
-        string failureMessage)
-    {
-        var root = sink.AddRoot(title);
-        return new NitroConsoleActivity(sink, root, failureMessage, parent: null);
-    }
+    private bool IsRoot => _parent is null;
 
     private void Complete(string message, ActivityState state, IRenderable? details)
     {
@@ -147,22 +147,6 @@ internal sealed class NitroConsoleActivity : INitroConsoleActivity
             _sink.SetDetails(target, details);
         }
 
-        _completed = true;
-
-        if (IsRoot)
-        {
-            _sink.Stop();
-        }
-    }
-
-    private void FailSilent()
-    {
-        if (_completed)
-        {
-            return;
-        }
-
-        _sink.FailSilent(_entry, _failureMessage);
         _completed = true;
 
         if (IsRoot)

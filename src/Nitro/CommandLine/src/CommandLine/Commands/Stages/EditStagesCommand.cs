@@ -219,7 +219,7 @@ file static class ClientExtensions
                     }
                 }
 
-                activity.Fail(errorTree);
+                await activity.FailAllAsync(errorTree);
 
                 throw new ExitException("Stage update failed.");
             }

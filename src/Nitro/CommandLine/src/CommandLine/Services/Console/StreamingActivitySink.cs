@@ -48,7 +48,7 @@ internal sealed class StreamingActivitySink : IActivitySink
 
         TreeLineWriter.WriteWrapped(_console, linePrefix, continuationPrefix, markupText);
 
-        var entry = parent.AddChild(text, state);
+        var entry = parent.AddChild(text, state, isTerminator: true);
         _meta[entry] = new EntryMeta(
             Prefix: parentMeta.Prefix + "    ",
             DetailsPrefix: parentMeta.Prefix + "    ");
@@ -84,18 +84,6 @@ internal sealed class StreamingActivitySink : IActivitySink
     public void FailActiveDescendants(ActivityEntry entry)
     {
         // Streaming is append-only; descendant state does not affect already-written output.
-    }
-
-    public void FailSilent(ActivityEntry entry, string failureMessage)
-    {
-        var entryMeta = _meta[entry];
-        var markupText = FormatTerminator(failureMessage, ActivityState.Failed);
-        var linePrefix = entryMeta.Prefix + "└── ";
-        var continuationPrefix = entryMeta.Prefix + "    " + "  ";
-
-        TreeLineWriter.WriteWrapped(_console, linePrefix, continuationPrefix, markupText);
-
-        entry.State = ActivityState.Failed;
     }
 
     public void Stop()

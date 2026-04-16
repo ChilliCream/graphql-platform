@@ -27,11 +27,11 @@ internal sealed class ActivityTree : Renderable
         }
     }
 
-    public ActivityEntry AddChild(ActivityEntry parent, string text, ActivityState state)
+    public ActivityEntry AddChild(ActivityEntry parent, string text, ActivityState state, bool isTerminator = false)
     {
         lock (_lock)
         {
-            return parent.AddChild(text, state);
+            return parent.AddChild(text, state, isTerminator);
         }
     }
 
@@ -117,7 +117,21 @@ internal sealed class ActivityTree : Renderable
         var icon = IconFor(entry);
         var textStyle = TextStyleFor(entry.State);
 
-        var hasChildren = entry.Children.Count > 0;
+        // When a failed entry's own terminator child duplicates a preceding failed
+        // child, suppress the terminator — the preceding child already conveys the
+        // failure. Only the explicitly marked terminator can be hidden; real children
+        // are never dropped.
+        var visibleChildCount = entry.Children.Count;
+        if (entry.State == ActivityState.Failed
+            && visibleChildCount > 1
+            && entry.Children[visibleChildCount - 1].IsTerminator
+            && entry.Children[visibleChildCount - 1].State == ActivityState.Failed
+            && entry.Children[visibleChildCount - 2].State == ActivityState.Failed)
+        {
+            visibleChildCount--;
+        }
+
+        var hasChildren = visibleChildCount > 0;
         var hasDetails = entry.Details is not null;
         var continuationPrefix = BuildContinuationPrefix(
             parentPrefix,
@@ -139,9 +153,9 @@ internal sealed class ActivityTree : Renderable
         segments.Add(Segment.LineBreak);
 
         var childPrefix = parentPrefix + lane;
-        for (var i = 0; i < entry.Children.Count; i++)
+        for (var i = 0; i < visibleChildCount; i++)
         {
-            var isLastChild = i == entry.Children.Count - 1 && !hasDetails;
+            var isLastChild = i == visibleChildCount - 1 && !hasDetails;
             var childPosition = isLastChild ? NodePosition.Last : NodePosition.Middle;
             RenderEntry(segments, entry.Children[i], childPrefix, childPosition, options, maxWidth);
         }

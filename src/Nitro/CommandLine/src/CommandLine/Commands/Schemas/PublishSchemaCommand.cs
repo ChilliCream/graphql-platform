@@ -164,7 +164,7 @@ internal sealed class PublishSchemaCommand : Command
                             }
                         }
 
-                        activity.Fail(errorTree);
+                        await activity.FailAllAsync(errorTree);
 
                         throw new ExitException("Schema publish failed.");
 

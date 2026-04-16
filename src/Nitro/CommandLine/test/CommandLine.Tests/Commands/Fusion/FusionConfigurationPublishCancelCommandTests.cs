@@ -127,7 +127,7 @@ public sealed class FusionConfigurationPublishCancelCommandTests(NitroCommandFix
     }
 
     [Fact]
-    public async Task RequestIdFromArg_Success()
+    public async Task RequestIdFromArg_Success_ReturnsSuccess()
     {
         // arrange
         SetupFusionPublishingStateCache(RequestId);
@@ -145,7 +145,7 @@ public sealed class FusionConfigurationPublishCancelCommandTests(NitroCommandFix
     }
 
     [Fact]
-    public async Task RequestIdFromStateFile_Success()
+    public async Task RequestIdFromStateFile_Success_ReturnsSuccess()
     {
         // arrange
         SetupFusionPublishingStateCache(RequestId);

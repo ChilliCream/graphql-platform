@@ -74,6 +74,11 @@ internal sealed class ValidateSchemaCommand : Command
             source,
             ct);
 
-        return isValid ? ExitCodes.Success : ExitCodes.Error;
+        if (!isValid)
+        {
+            throw new ExitException("Schema validation failed.");
+        }
+
+        return ExitCodes.Success;
     }
 }

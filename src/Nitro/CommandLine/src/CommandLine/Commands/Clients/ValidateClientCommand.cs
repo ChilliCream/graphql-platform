@@ -124,7 +124,7 @@ internal sealed class ValidateClientCommand : Command
                             }
                         }
 
-                        activity.Fail(errorTree);
+                        await activity.FailAllAsync(errorTree);
 
                         throw new ExitException("Client validation failed.");
 

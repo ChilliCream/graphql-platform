@@ -142,7 +142,7 @@ internal sealed class PublishOpenApiCollectionCommand : Command
                             }
                         }
 
-                        activity.Fail(errorTree);
+                        await activity.FailAllAsync(errorTree);
 
                         throw new ExitException("OpenAPI collection publish failed.");
 

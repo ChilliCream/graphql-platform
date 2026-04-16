@@ -79,7 +79,7 @@ public sealed class InteractiveNitroConsoleActivityTests
     }
 
     [Fact]
-    public async Task Fail_Should_RenderCrossGlyphWithDetails_When_CalledWithRenderable()
+    public async Task FailAllAsync_Should_RenderCrossGlyphWithDetails_When_CalledWithRenderable()
     {
         // arrange
         var (console, writer) = CreateConsole();
@@ -87,7 +87,7 @@ public sealed class InteractiveNitroConsoleActivityTests
         // act
         await using (var activity = console.StartActivity("Doing work", "Work failed"))
         {
-            activity.Fail(new Text("Error detail line 1\nError detail line 2"));
+            await activity.FailAllAsync(new Text("Error detail line 1\nError detail line 2"));
         }
 
         // assert
@@ -127,7 +127,62 @@ public sealed class InteractiveNitroConsoleActivityTests
     }
 
     [Fact]
-    public async Task StartChildActivity_Should_RenderTreeStructure_When_ChildFails()
+    public async Task ChildSuccess_Should_CollapseToSingleLine_When_ChildHasNoUpdates()
+    {
+        // arrange
+        var (console, writer) = CreateConsole();
+
+        // act
+        await using (var activity = console.StartActivity("Root", "Root failed"))
+        {
+            await using (var child = activity.StartChildActivity("Child step", "Child failed"))
+            {
+                child.Success("Child done");
+            }
+
+            activity.Success("Root done");
+        }
+
+        // assert — child collapses: entry text replaced with success message, no nested terminator
+        GetOutput(writer).MatchInlineSnapshot(
+            """
+            ✓ Root
+            ├── ✓ Child done
+            └── ✓ Root done
+            """);
+    }
+
+    [Fact]
+    public async Task ChildSuccess_Should_NotCollapse_When_ChildHasUpdates()
+    {
+        // arrange
+        var (console, writer) = CreateConsole();
+
+        // act
+        await using (var activity = console.StartActivity("Root", "Root failed"))
+        {
+            await using (var child = activity.StartChildActivity("Child step", "Child failed"))
+            {
+                child.Update("working...");
+                child.Success("Child done");
+            }
+
+            activity.Success("Root done");
+        }
+
+        // assert — child entry stays, success appended as a nested terminator
+        GetOutput(writer).MatchInlineSnapshot(
+            """
+            ✓ Root
+            ├── ✓ Child step
+            │   ├── working...
+            │   └── ✓ Child done
+            └── ✓ Root done
+            """);
+    }
+
+    [Fact]
+    public async Task ChildFail_Should_FoldIntoTitle_When_ChildHasNoUpdates()
     {
         // arrange
         var (console, writer) = CreateConsole();
@@ -143,12 +198,41 @@ public sealed class InteractiveNitroConsoleActivityTests
             activity.Fail("Root error");
         }
 
-        // assert
+        // assert — child title collapses; root's own terminator is suppressed
+        // because the last child already conveys the failure
         GetOutput(writer).MatchInlineSnapshot(
             """
             ✕ Root
-            ├── ✕ Child error
-            └── ✕ Root error
+            └── ✕ Child error
+            """);
+    }
+
+    [Fact]
+    public async Task ChildFail_Should_NotFold_When_ChildHasUpdates()
+    {
+        // arrange
+        var (console, writer) = CreateConsole();
+
+        // act
+        await using (var activity = console.StartActivity("Root", "Root failed"))
+        {
+            await using (var child = activity.StartChildActivity("Child step", "Child failed"))
+            {
+                child.Update("working...");
+                child.Fail("Child error");
+            }
+
+            activity.Fail("Root error");
+        }
+
+        // assert — child retains title; root's own terminator is suppressed because
+        // the last child already conveys the failure
+        GetOutput(writer).MatchInlineSnapshot(
+            """
+            ✕ Root
+            └── ✕ Child step
+                ├── working...
+                └── ✕ Child error
             """);
     }
 
@@ -186,6 +270,72 @@ public sealed class InteractiveNitroConsoleActivityTests
     }
 
     [Fact]
+    public async Task GrandchildFail_Should_CollapseTerminators_AtEveryLevel()
+    {
+        // arrange
+        var (console, writer) = CreateConsole();
+
+        // act
+        await using (var activity = console.StartActivity("Root", "Root failed"))
+        {
+            await using (var child = activity.StartChildActivity("Child", "Child failed"))
+            {
+                await using (var grandchild = child.StartChildActivity("Grandchild", "Grandchild failed"))
+                {
+                    grandchild.Fail("Grandchild error");
+                }
+
+                child.Fail("Child aborted");
+            }
+
+            activity.Fail("Root error");
+        }
+
+        // assert — explicit terminators at root and child are suppressed; the grandchild
+        // failure stays as the final error line
+        GetOutput(writer).MatchInlineSnapshot(
+            """
+            ✕ Root
+            └── ✕ Child
+                └── ✕ Grandchild error
+            """);
+    }
+
+    [Fact]
+    public async Task GrandchildFail_Should_PreserveUpdatesAtEachLevel()
+    {
+        // arrange
+        var (console, writer) = CreateConsole();
+
+        // act
+        await using (var activity = console.StartActivity("Root", "Root failed"))
+        {
+            await using (var child = activity.StartChildActivity("Child", "Child failed"))
+            {
+                child.Update("Child step 1");
+
+                await using (var grandchild = child.StartChildActivity("Grandchild", "Grandchild failed"))
+                {
+                    grandchild.Update("Grandchild step 1");
+                    grandchild.Fail("Grandchild error");
+                }
+            }
+        }
+
+        // assert — updates at child and grandchild stay visible; dispose-driven failure
+        // cascade doesn't add extra terminators at child or root
+        GetOutput(writer).MatchInlineSnapshot(
+            """
+            ✕ Root
+            └── ✕ Child
+                ├── Child step 1
+                └── ✕ Grandchild
+                    ├── Grandchild step 1
+                    └── ✕ Grandchild error
+            """);
+    }
+
+    [Fact]
     public async Task FailAllAsync_Should_PropagateFailure_When_ChildDisposesWithoutCompletion()
     {
         // arrange
@@ -204,7 +354,7 @@ public sealed class InteractiveNitroConsoleActivityTests
         GetOutput(writer).MatchInlineSnapshot(
             """
             ✕ Root
-            └── ✕ Child
+            └── ✕ Child failed
             """);
     }
 
@@ -479,9 +629,8 @@ public sealed class InteractiveNitroConsoleActivityTests
         GetOutput(writer).MatchInlineSnapshot(
             """
             ✕ Root
-            ├── ✕ This child failure
-            │     message wraps
-            └── ✕ Root error
+            └── ✕ This child failure
+                  message wraps
             """);
     }
 
@@ -541,7 +690,7 @@ public sealed class InteractiveNitroConsoleActivityTests
     }
 
     [Fact]
-    public async Task ChildFail_Should_RenderCrossGlyphWithDetails_When_CalledWithRenderable()
+    public async Task ChildFailAllAsync_Should_RenderCrossGlyphWithDetails_When_CalledWithRenderable()
     {
         // arrange
         var (console, writer) = CreateConsole();
@@ -551,20 +700,17 @@ public sealed class InteractiveNitroConsoleActivityTests
         {
             await using (var child = activity.StartChildActivity("Child", "Child failed"))
             {
-                child.Fail(new Text("Error detail line 1\nError detail line 2"));
+                await child.FailAllAsync(new Text("Error detail line 1\nError detail line 2"));
             }
-
-            activity.Fail("Root error");
         }
 
         // assert
         GetOutput(writer).MatchInlineSnapshot(
             """
             ✕ Root
-            ├── ✕ Child failed
-            │   Error detail line 1
-            │   Error detail line 2
-            └── ✕ Root error
+            └── ✕ Child failed
+                Error detail line 1
+                Error detail line 2
             """);
     }
 
@@ -649,7 +795,7 @@ public sealed class InteractiveNitroConsoleActivityTests
             """
             ✕ Root
             └── ✕ Child
-                └── ✕ Grandchild
+                └── ✕ Grandchild failed
             """);
     }
 
@@ -692,6 +838,39 @@ public sealed class InteractiveNitroConsoleActivityTests
             """
             ✕ Doing work
             └── ✕ Work failed
+            """);
+    }
+
+    [Fact]
+    public async Task FailAllAsync_Should_KeepAllSiblings_When_MultipleSiblingsFailed()
+    {
+        // arrange
+        var (console, writer) = CreateConsole();
+
+        // act — one sibling explicitly fails, the next propagates failure via
+        // FailAllAsync (no details). Parent ends up with two failed children and
+        // no terminator of its own. Guards against the earlier heuristic that
+        // hid the last sibling whenever two consecutive children were failed.
+        await using (var activity = console.StartActivity("Root", "Root failed"))
+        {
+            await using (var first = activity.StartChildActivity("First", "First failed"))
+            {
+                first.Fail("First error");
+            }
+
+            await using (var second = activity.StartChildActivity("Second", "Second failed"))
+            {
+                await second.FailAllAsync();
+            }
+        }
+
+        // assert — both siblings stay visible; suppression only fires for explicit
+        // terminator children added via CompleteChild
+        GetOutput(writer).MatchInlineSnapshot(
+            """
+            ✕ Root
+            ├── ✕ First error
+            └── ✕ Second failed
             """);
     }
 
