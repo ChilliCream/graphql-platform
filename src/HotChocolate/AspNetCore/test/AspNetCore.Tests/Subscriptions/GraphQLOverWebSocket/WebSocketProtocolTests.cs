@@ -27,7 +27,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
 {
     [Fact]
     public Task Send_Connect_Accept()
-        => TryTest(
+        => RunTest(
             async ct =>
             {
                 // arrange
@@ -46,7 +46,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
 
     [Fact]
     public Task Send_Multiple_Connect_Messages_Close_Connection()
-        => TryTest(
+        => RunTest(
             async ct =>
             {
                 // arrange
@@ -61,14 +61,14 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 await webSocket.SendConnectionInitAsync(ct);
 
                 // assert
-                await webSocket.ReceiveServerMessageAsync(ct);
+                await WaitForServerClose(webSocket, ct);
                 Assert.True(webSocket.CloseStatus.HasValue);
                 Assert.Equal(CloseReasons.TooManyInitAttempts, (int)webSocket.CloseStatus!.Value);
             });
 
     [Fact]
     public Task Send_Connect_Accept_Ping()
-        => TryTest(
+        => RunTest(
             async ct =>
             {
                 // arrange
@@ -100,7 +100,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
 
     [Fact]
     public Task No_ConnectionInit_Timeout()
-        => TryTest(
+        => RunTest(
             async ct =>
             {
                 // arrange
@@ -119,7 +119,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
 
                 // assert
-                await webSocket.ReceiveServerMessageAsync(ct);
+                await WaitForServerClose(webSocket, ct);
                 Assert.True(webSocket.CloseStatus.HasValue, "Connection is closed.");
                 Assert.Equal(
                     CloseReasons.ConnectionInitWaitTimeout,
@@ -128,7 +128,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
 
     [Fact]
     public Task Send_Connect_With_Auth_Accept()
-        => TryTest(
+        => RunTest(
             async ct =>
             {
                 // arrange
@@ -151,7 +151,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
 
     [Fact]
     public Task Send_Connect_With_Auth_Reject()
-        => TryTest(
+        => RunTest(
             async ct =>
             {
                 // arrange
@@ -167,14 +167,14 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 await webSocket.SendConnectionInitAsync(ct);
 
                 // assert
-                await webSocket.ReceiveServerMessageAsync(ct);
+                await WaitForServerClose(webSocket, ct);
                 Assert.True(webSocket.CloseStatus.HasValue, "Connection is closed.");
                 Assert.Equal(CloseReasons.Unauthorized, (int)webSocket.CloseStatus!.Value);
             });
 
     [Fact]
     public Task Send_Connect_Accept_Explicit_Route()
-        => TryTest(
+        => RunTest(
             async ct =>
             {
                 // arrange
@@ -195,7 +195,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
 
     [Fact]
     public Task Send_Connect_Accept_Explicit_Route_Explicit_Path()
-        => TryTest(
+        => RunTest(
             async ct =>
             {
                 // arrange
@@ -216,7 +216,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
 
     [Fact]
     public Task Connect_With_Invalid_Protocol()
-        => TryTest(
+        => RunTest(
             async ct =>
             {
                 // arrange
@@ -228,7 +228,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 using var socket = await client.ConnectAsync(SubscriptionUri, ct);
 
                 // assert
-                await socket.ReceiveServerMessageAsync(ct);
+                await WaitForServerClose(socket, ct);
                 Assert.True(socket.CloseStatus.HasValue);
                 Assert.Equal(ProtocolError, socket.CloseStatus!.Value);
             });
@@ -238,7 +238,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
     {
         var snapshot = new Snapshot();
 
-        return TryTest(
+        return RunTest(
             async ct =>
             {
                 // arrange
@@ -290,7 +290,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
 
     [Fact]
     public Task Subscribe_With_PersistedQuery_Extension_Only_Works()
-        => TryTest(
+        => RunTest(
             async ct =>
             {
                 // arrange
@@ -357,7 +357,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
     [Fact]
     public Task Subscribe_Id_Not_Unique()
     {
-        return TryTest(
+        return RunTest(
             async ct =>
             {
                 // arrange
@@ -374,7 +374,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 await webSocket.SendSubscribeAsync(subscriptionId, payload, ct);
 
                 // assert
-                await webSocket.ReceiveServerMessageAsync(ct);
+                await WaitForServerClose(webSocket, ct);
                 Assert.True(webSocket.CloseStatus.HasValue);
                 Assert.Equal(CloseReasons.SubscriberNotUnique, (int)webSocket.CloseStatus!.Value);
             });
@@ -382,7 +382,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
 
     [Fact]
     public Task Send_Subscribe_No_Auth_Close()
-        => TryTest(
+        => RunTest(
             async ct =>
             {
                 // arrange
@@ -397,14 +397,14 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 await webSocket.SendSubscribeAsync(subscriptionId, payload, ct);
 
                 // assert
-                await webSocket.ReceiveServerMessageAsync(ct);
+                await WaitForServerClose(webSocket, ct);
                 Assert.True(webSocket.CloseStatus.HasValue);
                 Assert.Equal(CloseReasons.Unauthorized, (int)webSocket.CloseStatus!.Value);
             });
 
     [Fact]
     public Task Send_Subscribe_No_Id()
-        => TryTest(
+        => RunTest(
             async ct =>
             {
                 // arrange
@@ -417,14 +417,14 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 await webSocket.SendMessageAsync("{ \"type\": \"subscribe\" }", ct);
 
                 // assert
-                await webSocket.ReceiveServerMessageAsync(ct);
+                await WaitForServerClose(webSocket, ct);
                 Assert.True(webSocket.CloseStatus.HasValue);
                 Assert.Equal(CloseReasons.ProtocolError, (int)webSocket.CloseStatus!.Value);
             });
 
     [Fact]
     public Task Send_Subscribe_Empty_Id()
-        => TryTest(
+        => RunTest(
             async ct =>
             {
                 // arrange
@@ -437,7 +437,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 await webSocket.SendMessageAsync("{ \"type\": \"subscribe\", \"id\": \"\" }", ct);
 
                 // assert
-                await webSocket.ReceiveServerMessageAsync(ct);
+                await WaitForServerClose(webSocket, ct);
                 Assert.True(webSocket.CloseStatus.HasValue);
                 Assert.Equal(CloseReasons.ProtocolError, (int)webSocket.CloseStatus!.Value);
             });
@@ -445,7 +445,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
     [Fact]
     public async Task Send_Subscribe_Complete()
     {
-        await TryTest(
+        await RunTest(
             async ct =>
             {
                 // arrange
@@ -516,7 +516,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
     [Fact]
     public async Task Send_Subscribe_Complete_From_Server()
     {
-        await TryTest(
+        await RunTest(
             async ct =>
             {
                 // arrange
@@ -578,7 +578,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
     [Fact]
     public async Task Send_Subscribe_100x_Complete_From_Server()
     {
-        await TryTest(
+        await RunTest(
             async ct =>
             {
                 // arrange
@@ -650,7 +650,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
     {
         var snapshot = new Snapshot();
 
-        return TryTest(
+        return RunTest(
             async ct =>
             {
                 // arrange
@@ -677,7 +677,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
     {
         var snapshot = new Snapshot();
 
-        return TryTest(
+        return RunTest(
             async ct =>
             {
                 // arrange
@@ -704,7 +704,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
     {
         var snapshot = new Snapshot();
 
-        return TryTest(
+        return RunTest(
             async ct =>
             {
                 // arrange
@@ -731,7 +731,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
     {
         var snapshot = new Snapshot();
 
-        return TryTest(
+        return RunTest(
             async ct =>
             {
                 // arrange
@@ -757,7 +757,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
 
     [Fact]
     public Task Send_Pong()
-        => TryTest(
+        => RunTest(
             async ct =>
             {
                 // arrange
@@ -782,7 +782,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
     {
         var snapshot = new Snapshot();
 
-        return TryTest(
+        return RunTest(
             async ct =>
             {
                 // arrange
@@ -808,7 +808,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
 
     [Fact]
     public Task Send_Invalid_Message_String()
-        => TryTest(
+        => RunTest(
             async ct =>
             {
                 // arrange
@@ -820,14 +820,14 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 await webSocket.SendMessageAsync("hello", ct);
 
                 // assert
-                await webSocket.ReceiveServerMessageAsync(ct);
+                await WaitForServerClose(webSocket, ct);
                 Assert.True(webSocket.CloseStatus.HasValue, "Connection is closed.");
                 Assert.Equal(InternalServerError, webSocket.CloseStatus!.Value);
             });
 
     [Fact]
     public Task Send_Invalid_Message_No_Type()
-        => TryTest(
+        => RunTest(
             async ct =>
             {
                 // arrange
@@ -839,14 +839,14 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 await webSocket.SendMessageAsync("{ }", ct);
 
                 // assert
-                await webSocket.ReceiveServerMessageAsync(ct);
+                await WaitForServerClose(webSocket, ct);
                 Assert.True(webSocket.CloseStatus.HasValue, "Connection is closed.");
                 Assert.Equal(CloseReasons.ProtocolError, (int)webSocket.CloseStatus!.Value);
             });
 
     [Fact]
     public Task Send_Invalid_Message_Invalid_Type()
-        => TryTest(
+        => RunTest(
             async ct =>
             {
                 // arrange
@@ -858,14 +858,14 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 await webSocket.SendMessageAsync("{ \"type\": \"abc\" }", ct);
 
                 // assert
-                await webSocket.ReceiveServerMessageAsync(ct);
+                await WaitForServerClose(webSocket, ct);
                 Assert.True(webSocket.CloseStatus.HasValue, "Connection is closed.");
                 Assert.Equal(CloseReasons.ProtocolError, (int)webSocket.CloseStatus!.Value);
             });
 
     [Fact]
     public Task Send_Invalid_Message_Not_An_Object()
-        => TryTest(
+        => RunTest(
             async ct =>
             {
                 // arrange
@@ -877,14 +877,14 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 await webSocket.SendMessageAsync("[]", ct);
 
                 // assert
-                await webSocket.ReceiveServerMessageAsync(ct);
+                await WaitForServerClose(webSocket, ct);
                 Assert.True(webSocket.CloseStatus.HasValue, "Connection is closed.");
                 Assert.Equal(CloseReasons.ProtocolError, (int)webSocket.CloseStatus!.Value);
             });
 
     [Fact]
     public Task Normal_Closure()
-        => TryTest(
+        => RunTest(
             async ct =>
             {
                 // arrange
@@ -897,19 +897,16 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
                 using var webSocket = await client.ConnectAsync(SubscriptionUri, ct);
                 await webSocket.SendConnectionInitAsync(ct);
 
-                // act
-                // ReSharper disable once AccessToDisposedClosure
-                async Task Close() => await webSocket.CloseAsync(NormalClosure, "I want to close.", ct);
-
-                // assert
-                var error = await Assert.ThrowsAsync<IOException>(Close);
-                Assert.Equal("The remote end closed the connection.", error.Message);
+                // act & assert
+                await WaitForServerClose(webSocket, ct);
+                Assert.True(webSocket.CloseStatus.HasValue, "Connection is closed.");
+                Assert.Equal(CloseReasons.Unauthorized, (int)webSocket.CloseStatus!.Value);
             });
 
     [Fact]
     public Task Subscribe_Cancel()
     {
-        return TryTest(
+        return RunTest(
             async ct =>
             {
                 // arrange
@@ -944,7 +941,7 @@ public class WebSocketProtocolTests(TestServerFactory serverFactory, ITestOutput
 
     [Fact]
     public Task Subscribe_ReceiveDataOnMutation_StripNull()
-        => TryTest(
+        => RunTest(
             async ct =>
             {
                 // arrange
