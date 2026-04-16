@@ -141,17 +141,7 @@ public sealed partial class DescriptorContext
 
         public T? GetService<T>() where T : class
         {
-            if (_appServices is not null)
-            {
-                var service = _appServices.GetService<T?>();
-
-                if (service is not null)
-                {
-                    return service;
-                }
-            }
-
-            return _schemaServices.GetService<T?>();
+            return _appServices?.GetService<T?>() ?? _schemaServices.GetService<T?>();
         }
     }
 }

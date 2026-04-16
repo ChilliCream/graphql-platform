@@ -72,13 +72,10 @@ internal sealed class ActivityMessagingDiagnosticListener : MessagingDiagnosticE
         public void Dispose()
         {
             // Enrich activity with context state after all middlewares have run
-            if (_activity is not null)
-            {
-                _activity
-                    .EnrichMessageDefault()
-                    .SetMessageId(_context.MessageId ?? string.Empty)
-                    .SetConversationId(_context.CorrelationId ?? string.Empty);
-            }
+            _activity?
+                .EnrichMessageDefault()
+                .SetMessageId(_context.MessageId ?? string.Empty)
+                .SetConversationId(_context.CorrelationId ?? string.Empty);
 
             _activity?.Dispose();
         }
@@ -151,15 +148,12 @@ internal sealed class ActivityMessagingDiagnosticListener : MessagingDiagnosticE
             var transportName = _context.Transport.Name;
 
             // Enrich activity with context state after all middlewares have run
-            if (_activity is not null)
-            {
-                _activity
-                    .SetMessageId(_context.MessageId ?? string.Empty)
-                    .SetConversationId(_context.ConversationId ?? string.Empty)
-                    .SetInstanceId(_context.Host.InstanceId)
-                    .SetDestinationTemporary(false)
-                    .SetDestinationAddress(destination);
-            }
+            _activity?
+                .SetMessageId(_context.MessageId ?? string.Empty)
+                .SetConversationId(_context.ConversationId ?? string.Empty)
+                .SetInstanceId(_context.Host.InstanceId)
+                .SetDestinationTemporary(false)
+                .SetDestinationAddress(destination);
 
             _activity?.Dispose();
 

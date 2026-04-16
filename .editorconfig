@@ -124,6 +124,7 @@ resharper_enforce_using_statement_braces_highlighting = error
 resharper_enforce_while_statement_braces_highlighting = error
 resharper_redundant_string_format_call_highlighting = error
 resharper_unused_variable_highlighting = warning
+resharper_use_null_propagation_highlighting = warning
 resharper_use_utf8_string_literal_highlighting = error
 resharper_use_verbatim_string_highlighting = error
 
