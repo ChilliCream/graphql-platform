@@ -1,4 +1,4 @@
-﻿using HotChocolate.Execution;
+using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using RequestDelegate = HotChocolate.Execution.RequestDelegate;
 
