@@ -139,7 +139,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
                             }
                         }
 
-                        activity.Fail(errorTree);
+                        await activity.FailAllAsync(errorTree);
 
                         throw new ExitException("MCP feature collection validation failed.");
 

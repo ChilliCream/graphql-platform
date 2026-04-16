@@ -22,7 +22,14 @@ internal sealed class NitroConsoleActivity : INitroConsoleActivity
         _parent = parent;
     }
 
-    private bool IsRoot => _parent is null;
+    public static INitroConsoleActivity Start(
+        IActivitySink sink,
+        string title,
+        string failureMessage)
+    {
+        var root = sink.AddRoot(title);
+        return new NitroConsoleActivity(sink, root, failureMessage, parent: null);
+    }
 
     public void Update(
         string message,
@@ -58,19 +65,21 @@ internal sealed class NitroConsoleActivity : INitroConsoleActivity
         Complete(message, ActivityState.Failed, details: null);
     }
 
-    public void Fail(IRenderable details)
-    {
-        Complete(_failureMessage, ActivityState.Failed, details);
-    }
-
     public void Fail()
     {
         Fail(_failureMessage);
     }
 
-    public async ValueTask FailAllAsync()
+    public async ValueTask FailAllAsync(IRenderable? details = null)
     {
-        FailSilent();
+        if (details is not null)
+        {
+            Complete(_failureMessage, ActivityState.Failed, details);
+        }
+        else
+        {
+            FailSilent();
+        }
 
         if (_parent is not null)
         {
@@ -109,14 +118,7 @@ internal sealed class NitroConsoleActivity : INitroConsoleActivity
         }
     }
 
-    public static INitroConsoleActivity Start(
-        IActivitySink sink,
-        string title,
-        string failureMessage)
-    {
-        var root = sink.AddRoot(title);
-        return new NitroConsoleActivity(sink, root, failureMessage, parent: null);
-    }
+    private bool IsRoot => _parent is null;
 
     private void Complete(string message, ActivityState state, IRenderable? details)
     {
@@ -131,7 +133,7 @@ internal sealed class NitroConsoleActivity : INitroConsoleActivity
         }
 
         ActivityEntry target;
-        if (IsRoot || _entry.Children.Count > 0)
+        if (IsRoot || _entry.Children.Count > 0 || state is not ActivityState.Completed)
         {
             _sink.SetState(_entry, state);
             target = _sink.CompleteChild(_entry, message, state);

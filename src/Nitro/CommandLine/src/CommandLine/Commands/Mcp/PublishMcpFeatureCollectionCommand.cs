@@ -143,7 +143,7 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
                             }
                         }
 
-                        activity.Fail(errorTree);
+                        await activity.FailAllAsync(errorTree);
 
                         throw new ExitException("MCP feature collection publish failed.");
 

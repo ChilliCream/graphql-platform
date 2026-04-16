@@ -142,7 +142,7 @@ internal sealed class PublishClientCommand : Command
                             }
                         }
 
-                        activity.Fail(errorTree);
+                        await activity.FailAllAsync(errorTree);
 
                         throw new ExitException("Client publish failed.");
 

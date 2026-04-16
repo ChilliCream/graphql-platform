@@ -103,8 +103,9 @@ internal static class FusionPublishHelpers
                         }
                     }
 
-                    activity.Fail(errorTree);
-                    throw Exit("Your request has failed.");
+                    await activity.FailAllAsync(errorTree);
+
+                    throw new ExitException("Your request has failed.");
 
                 case IFusionConfigurationPublishingSuccess:
                     await subscriptionCancellation.CancelAsync();
@@ -225,7 +226,7 @@ internal static class FusionPublishHelpers
                         }
                     }
 
-                    activity.Fail(publishErrorTree);
+                    await activity.FailAllAsync(publishErrorTree);
                     throw new ExitException("Failed to publish the new configuration.");
 
                 case IFusionConfigurationPublishingSuccess:
@@ -376,7 +377,8 @@ internal static class FusionPublishHelpers
                         }
                     }
 
-                    activity.Fail(errorTree);
+                    await activity.FailAllAsync(errorTree);
+
                     return false;
 
                 case IFusionConfigurationValidationSuccess:
@@ -386,7 +388,7 @@ internal static class FusionPublishHelpers
                 case IValidationInProgress:
                 case IWaitForApproval:
                 case IProcessingTaskApproved:
-                    // activity.Update(Messages.Validating);
+                    activity.Update(Messages.Validating);
                     break;
 
                 default:

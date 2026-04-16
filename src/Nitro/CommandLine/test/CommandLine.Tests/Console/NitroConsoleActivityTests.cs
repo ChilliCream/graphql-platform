@@ -79,7 +79,7 @@ public sealed class NitroConsoleActivityTests
     }
 
     [Fact]
-    public async Task Fail_Should_WriteCrossGlyphWithDetails_When_CalledWithRenderable()
+    public async Task FailAllAsync_Should_WriteCrossGlyphWithDetails_When_CalledWithRenderable()
     {
         // arrange
         var (console, writer) = CreateConsole();
@@ -87,7 +87,7 @@ public sealed class NitroConsoleActivityTests
         // act
         await using (var activity = console.StartActivity( "Doing work", "Work failed"))
         {
-            activity.Fail(new Text("Error detail line 1\nError detail line 2"));
+            await activity.FailAllAsync(new Text("Error detail line 1\nError detail line 2"));
         }
 
         // assert
@@ -547,7 +547,7 @@ public sealed class NitroConsoleActivityTests
     }
 
     [Fact]
-    public async Task ChildFail_Should_WriteCrossGlyphWithDetails_When_CalledWithRenderable()
+    public async Task ChildFailAllAsync_Should_WriteCrossGlyphWithDetails_When_CalledWithRenderable()
     {
         // arrange
         var (console, writer) = CreateConsole();
@@ -557,10 +557,8 @@ public sealed class NitroConsoleActivityTests
         {
             await using (var child = activity.StartChildActivity("Child", "Child failed"))
             {
-                child.Fail(new Text("Error detail line 1\nError detail line 2"));
+                await child.FailAllAsync(new Text("Error detail line 1\nError detail line 2"));
             }
-
-            activity.Fail("Root error");
         }
 
         // assert
@@ -571,7 +569,7 @@ public sealed class NitroConsoleActivityTests
             │   └── ✕ Child failed
             │       Error detail line 1
             │       Error detail line 2
-            └── ✕ Root error
+            └── ✕ Root failed
             """);
     }
 

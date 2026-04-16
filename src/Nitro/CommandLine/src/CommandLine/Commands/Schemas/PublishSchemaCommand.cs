@@ -67,7 +67,7 @@ internal sealed class PublishSchemaCommand : Command
 
         await using (var activity = console.StartActivity(
             $"Publishing new schema version '{tag.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}'",
-            "Failed to publish a new schema version."))
+            "Failed to publish new schema version."))
         {
             if (force)
             {
@@ -164,7 +164,7 @@ internal sealed class PublishSchemaCommand : Command
                             }
                         }
 
-                        activity.Fail(errorTree);
+                        await activity.FailAllAsync(errorTree);
 
                         throw new ExitException("Schema publish failed.");
 

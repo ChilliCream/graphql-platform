@@ -267,7 +267,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -306,7 +306,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -351,7 +351,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
              """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✕ Failed to request a deployment slot.
             └── ✕ Failed to publish Fusion configuration.
@@ -386,7 +386,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✕ Failed to request a deployment slot.
             └── ✕ Failed to publish Fusion configuration.
@@ -427,7 +427,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
              """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -467,7 +467,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -511,7 +511,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
              """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -554,7 +554,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -595,7 +595,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -642,7 +642,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -710,7 +710,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── ! Force push is enabled.
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
@@ -781,7 +781,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -843,7 +843,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -904,7 +904,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
              """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -951,7 +951,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -999,7 +999,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -1050,7 +1050,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -1097,7 +1097,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
              """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -1172,7 +1172,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -1219,7 +1219,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -1268,7 +1268,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
              """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✕ Failed to request a deployment slot.
             └── ✕ Failed to publish Fusion configuration.
@@ -1303,7 +1303,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✕ Failed to request a deployment slot.
             └── ✕ Failed to publish Fusion configuration.
@@ -1344,7 +1344,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
              """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -1384,7 +1384,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -1425,7 +1425,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -1468,7 +1468,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -1521,7 +1521,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
              """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -1569,7 +1569,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -1621,7 +1621,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -1694,7 +1694,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── ! Force push is enabled.
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
@@ -1768,7 +1768,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -1817,7 +1817,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -1884,7 +1884,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -1950,7 +1950,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
              """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -2002,7 +2002,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -2055,7 +2055,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -2110,7 +2110,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -2157,7 +2157,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
              """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
@@ -2197,7 +2197,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✕ Could not find source schema 'products' with version 'v1'.
             └── ✕ Failed to publish Fusion configuration.
@@ -2231,7 +2231,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✕ Failed to download source schemas.
             └── ✕ Failed to publish Fusion configuration.
@@ -2269,7 +2269,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
@@ -2318,7 +2318,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
@@ -2371,7 +2371,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
@@ -2422,7 +2422,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
              """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
@@ -2459,7 +2459,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
@@ -2502,7 +2502,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
              """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
@@ -2544,7 +2544,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
@@ -2587,7 +2587,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
@@ -2638,7 +2638,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
@@ -2687,7 +2687,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
              """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
@@ -2738,7 +2738,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
@@ -2787,11 +2787,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Failed to validate configuration.
+            Fusion configuration validation failed.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
@@ -2866,7 +2866,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── ! Force push is enabled.
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
@@ -2942,7 +2942,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
@@ -2993,7 +2993,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
@@ -3062,7 +3062,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
@@ -3130,7 +3130,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
              """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
@@ -3184,7 +3184,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
@@ -3239,7 +3239,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
@@ -3296,7 +3296,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
@@ -3345,7 +3345,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
              """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing Fusion configuration of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot

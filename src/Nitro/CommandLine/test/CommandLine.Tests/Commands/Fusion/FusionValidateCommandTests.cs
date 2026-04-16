@@ -204,7 +204,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         // assert
         result.AssertSuccess(
             """
-            Validating Fusion configuration against stage 'dev' of API 'api-1'
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Validation request created. (ID: request-id)
             └── ✓ Schema validation successful.
             """);
@@ -231,7 +231,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         // assert
         result.AssertSuccess(
             """
-            Validating Fusion configuration against stage 'dev' of API 'api-1'
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Validation request created. (ID: request-id)
             └── ✓ Schema validation successful.
             """);
@@ -263,7 +263,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating Fusion configuration against stage 'dev' of API 'api-1'
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
             └── ✕ Failed to validate the Fusion configuration.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -294,7 +294,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating Fusion configuration against stage 'dev' of API 'api-1'
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
             └── ✕ Failed to validate the Fusion configuration.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -330,7 +330,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating Fusion configuration against stage 'dev' of API 'api-1'
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Validation request created. (ID: request-id)
             ├── Validating...
             ├── Validating...
@@ -418,7 +418,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         // assert
         result.AssertSuccess(
             """
-            Validating Fusion configuration against stage 'dev' of API 'api-1'
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Downloading existing Fusion configuration
             │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new Fusion configuration
@@ -451,7 +451,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         // assert
         result.AssertSuccess(
             """
-            Validating Fusion configuration against stage 'dev' of API 'api-1'
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Downloading existing Fusion configuration
             │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new Fusion configuration
@@ -488,7 +488,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating Fusion configuration against stage 'dev' of API 'api-1'
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Downloading existing Fusion configuration
             │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new Fusion configuration
@@ -524,7 +524,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating Fusion configuration against stage 'dev' of API 'api-1'
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Downloading existing Fusion configuration
             │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new Fusion configuration
@@ -564,7 +564,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating Fusion configuration against stage 'dev' of API 'api-1'
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Downloading existing Fusion configuration
             │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new Fusion configuration
@@ -626,7 +626,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating Fusion configuration against stage 'dev' of API 'api-1'
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Downloading existing Fusion configuration
             │   └── ✕ Failed to download existing Fusion configuration.
             └── ✕ Failed to validate the Fusion configuration.
@@ -659,7 +659,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating Fusion configuration against stage 'dev' of API 'api-1'
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Downloading existing Fusion configuration
             │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new Fusion configuration

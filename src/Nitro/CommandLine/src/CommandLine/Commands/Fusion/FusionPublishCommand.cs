@@ -144,7 +144,7 @@ internal sealed class FusionPublishCommand : Command
                 throw new ExitException(Messages.ArchiveFileDoesNotExist(archiveFile));
             }
 
-            await using var activity = StartPublishActivity(console, stageName, apiId, force);
+            await using var activity = StartPublishActivity(console, stageName, apiId, tag, force);
             await using var archiveStream = fileSystem.OpenReadStream(archiveFile);
 
             return await ExecutePublishAsync(
@@ -170,7 +170,7 @@ internal sealed class FusionPublishCommand : Command
                 }
             }
 
-            await using var activity = StartPublishActivity(console, stageName, apiId, force);
+            await using var activity = StartPublishActivity(console, stageName, apiId, tag, force);
 
             var newSourceSchemas = await FusionComposeCommand.ReadSourceSchemasAsync(
                 fileSystem,
@@ -189,7 +189,7 @@ internal sealed class FusionPublishCommand : Command
                 .Select(i => ParseSourceSchemaVersion(i, tag))
                 .ToArray();
 
-            await using var activity = StartPublishActivity(console, stageName, apiId, force);
+            await using var activity = StartPublishActivity(console, stageName, apiId, tag, force);
 
             var newSourceSchemas = new Dictionary<string, (SourceSchemaText, JsonDocument)>();
 
@@ -365,14 +365,12 @@ internal sealed class FusionPublishCommand : Command
                         client,
                         cancellationToken);
 
-                    if (isValidArchive)
+                    if (!isValidArchive)
                     {
-                        validationActivity.Success("Validated configuration.");
+                        throw new ExitException("Fusion configuration validation failed.");
                     }
-                    else if (!force)
-                    {
-                        throw new ExitException("Failed to validate configuration.");
-                    }
+
+                    validationActivity.Success("Validated configuration.");
                 }
 
                 bool uploaded;
@@ -477,11 +475,12 @@ internal sealed class FusionPublishCommand : Command
         INitroConsole console,
         string stageName,
         string apiId,
+        string tag,
         bool force)
     {
         var activity = console.StartActivity(
-            $"Publishing Fusion configuration to stage '{stageName}' of API '{apiId.EscapeMarkup()}'",
-            "Failed to publish Fusion configuration.");
+            $"Publishing new Fusion configuration version '{tag.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}' to stage '{stageName.EscapeMarkup()}'",
+            "Failed to publish a new Fusion configuration version.");
 
         if (force)
         {

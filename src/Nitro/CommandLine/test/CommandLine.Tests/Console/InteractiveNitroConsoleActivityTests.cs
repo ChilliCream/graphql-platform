@@ -79,7 +79,7 @@ public sealed class InteractiveNitroConsoleActivityTests
     }
 
     [Fact]
-    public async Task Fail_Should_RenderCrossGlyphWithDetails_When_CalledWithRenderable()
+    public async Task FailAllAsync_Should_RenderCrossGlyphWithDetails_When_CalledWithRenderable()
     {
         // arrange
         var (console, writer) = CreateConsole();
@@ -87,7 +87,7 @@ public sealed class InteractiveNitroConsoleActivityTests
         // act
         await using (var activity = console.StartActivity("Doing work", "Work failed"))
         {
-            activity.Fail(new Text("Error detail line 1\nError detail line 2"));
+            await activity.FailAllAsync(new Text("Error detail line 1\nError detail line 2"));
         }
 
         // assert
@@ -127,6 +127,61 @@ public sealed class InteractiveNitroConsoleActivityTests
     }
 
     [Fact]
+    public async Task ChildSuccess_Should_CollapseToSingleLine_When_ChildHasNoUpdates()
+    {
+        // arrange
+        var (console, writer) = CreateConsole();
+
+        // act
+        await using (var activity = console.StartActivity("Root", "Root failed"))
+        {
+            await using (var child = activity.StartChildActivity("Child step", "Child failed"))
+            {
+                child.Success("Child done");
+            }
+
+            activity.Success("Root done");
+        }
+
+        // assert — child collapses: entry text replaced with success message, no nested terminator
+        GetOutput(writer).MatchInlineSnapshot(
+            """
+            ✓ Root
+            ├── ✓ Child done
+            └── ✓ Root done
+            """);
+    }
+
+    [Fact]
+    public async Task ChildSuccess_Should_NotCollapse_When_ChildHasUpdates()
+    {
+        // arrange
+        var (console, writer) = CreateConsole();
+
+        // act
+        await using (var activity = console.StartActivity("Root", "Root failed"))
+        {
+            await using (var child = activity.StartChildActivity("Child step", "Child failed"))
+            {
+                child.Update("working...");
+                child.Success("Child done");
+            }
+
+            activity.Success("Root done");
+        }
+
+        // assert — child entry stays, success appended as a nested terminator
+        GetOutput(writer).MatchInlineSnapshot(
+            """
+            ✓ Root
+            ├── ✓ Child step
+            │   ├── working...
+            │   └── ✓ Child done
+            └── ✓ Root done
+            """);
+    }
+
+    [Fact]
     public async Task StartChildActivity_Should_RenderTreeStructure_When_ChildFails()
     {
         // arrange
@@ -147,7 +202,8 @@ public sealed class InteractiveNitroConsoleActivityTests
         GetOutput(writer).MatchInlineSnapshot(
             """
             ✕ Root
-            ├── ✕ Child error
+            ├── ✕ Child step
+            │   └── ✕ Child error
             └── ✕ Root error
             """);
     }
@@ -479,8 +535,9 @@ public sealed class InteractiveNitroConsoleActivityTests
         GetOutput(writer).MatchInlineSnapshot(
             """
             ✕ Root
-            ├── ✕ This child failure
-            │     message wraps
+            ├── ✕ Child
+            │   └── ✕ This child failure
+            │         message wraps
             └── ✕ Root error
             """);
     }
@@ -541,7 +598,7 @@ public sealed class InteractiveNitroConsoleActivityTests
     }
 
     [Fact]
-    public async Task ChildFail_Should_RenderCrossGlyphWithDetails_When_CalledWithRenderable()
+    public async Task ChildFailAllAsync_Should_RenderCrossGlyphWithDetails_When_CalledWithRenderable()
     {
         // arrange
         var (console, writer) = CreateConsole();
@@ -551,20 +608,18 @@ public sealed class InteractiveNitroConsoleActivityTests
         {
             await using (var child = activity.StartChildActivity("Child", "Child failed"))
             {
-                child.Fail(new Text("Error detail line 1\nError detail line 2"));
+                await child.FailAllAsync(new Text("Error detail line 1\nError detail line 2"));
             }
-
-            activity.Fail("Root error");
         }
 
         // assert
         GetOutput(writer).MatchInlineSnapshot(
             """
             ✕ Root
-            ├── ✕ Child failed
-            │   Error detail line 1
-            │   Error detail line 2
-            └── ✕ Root error
+            └── ✕ Child
+                └── ✕ Child failed
+                    Error detail line 1
+                    Error detail line 2
             """);
     }
 
@@ -589,7 +644,8 @@ public sealed class InteractiveNitroConsoleActivityTests
         GetOutput(writer).MatchInlineSnapshot(
             """
             ✓ Root
-            ├── ! Something is off
+            ├── ! Child
+            │   └── ! Something is off
             └── ✓ Root done
             """);
     }
