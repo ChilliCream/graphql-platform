@@ -97,7 +97,9 @@ internal sealed class ActivityTree : Renderable
             ActivityState.Warning => new Style(Color.Yellow),
             _ => Style.Plain
         };
-        segments.Add(new Segment(entry.Text, textStyle));
+
+        var markup = new Markup(entry.Text, textStyle);
+        segments.AddRange(((IRenderable)markup).Render(options, maxWidth - prefix.Length - connector.Length));
         segments.Add(Segment.LineBreak);
 
         for (var i = 0; i < entry.Children.Count; i++)

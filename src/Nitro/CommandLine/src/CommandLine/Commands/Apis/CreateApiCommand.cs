@@ -48,7 +48,7 @@ internal sealed class CreateApiCommand : Command
         var name = await console.PromptAsync("Name", defaultValue: null, parseResult, Opt<ApiNameOption>.Instance, ct);
         var pathResult = await console
             .PromptAsync(
-                "Path [dim](e.g. /foo/bar)[/]",
+                $"Path {"(e.g. /foo/bar)".Dim()}",
                 defaultValue: "/",
                 parseResult,
                 Opt<ApiPathOption>.Instance,

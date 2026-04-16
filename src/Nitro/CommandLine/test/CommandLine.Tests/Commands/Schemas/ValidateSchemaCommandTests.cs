@@ -301,7 +301,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
                 │   ├── ✓ Type system member NewType was added.
                 │   └── ✕ Type system member OldType was removed.
                 ├── Invalid GraphQL schema
-                │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+                │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
                 ├── Client 'TestClient' (ID: client-1)
                 │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
                 │       └── foo (10:10)

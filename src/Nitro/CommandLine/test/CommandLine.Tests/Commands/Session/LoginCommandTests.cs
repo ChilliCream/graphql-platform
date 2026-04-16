@@ -43,7 +43,7 @@ public sealed class LoginCommandTests(NitroCommandFixture fixture) : SessionComm
         // assert
         result.AssertError(
             """
-            'nitro login' requires an interactive console. Use '--api-key' to authenticate command invocations in non-interactive environments.
+            `nitro login` requires an interactive console. Use '--api-key' to authenticate command invocations in non-interactive environments.
             """);
     }
 

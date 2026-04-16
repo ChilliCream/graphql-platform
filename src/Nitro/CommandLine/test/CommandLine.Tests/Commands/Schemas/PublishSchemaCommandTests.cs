@@ -371,7 +371,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
             ├── Processing
             │   ├── ! Validation failed.
             │   │   ├── Invalid GraphQL schema
-            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── GraphQL schema changes
             │   │   │   ├── ✕ Directive foo was modified
             │   │   │   │   ├── ✓ Directive location FieldDefinition added
@@ -436,7 +436,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
             ├── Processing
             │   ├── ! Validation failed.
             │   │   ├── Invalid GraphQL schema
-            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── GraphQL schema changes
             │   │   │   ├── ✕ Directive foo was modified
             │   │   │   │   ├── ✓ Directive location FieldDefinition added
