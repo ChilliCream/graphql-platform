@@ -21,7 +21,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Xunit.Sdk;
@@ -38,7 +37,8 @@ public abstract partial class FusionTestBase : IDisposable
         Action<IServiceCollection>? configureServices = null,
         Action<IApplicationBuilder>? configureApplication = null,
         Action<IFusionGatewayBuilder>? configureGatewayBuilder = null,
-        [StringSyntax("json")] string? gatewaySettings = null)
+        [StringSyntax("json")] string? gatewaySettings = null,
+        string? environmentName = "Development")
     {
         var sourceSchemas = new List<SourceSchemaText>();
         var gatewayServices = new ServiceCollection();
@@ -181,15 +181,10 @@ public abstract partial class FusionTestBase : IDisposable
                     services.Add(serviceDescriptor);
                 }
 
-                // Default to Development so security policies added by AddGraphQLGatewayServer
-                // do not interfere with tests. Individual tests that need production behavior
-                // can override IHostEnvironment via their own configureServices callback.
-                services.AddSingleton<IHostEnvironment>(
-                    new TestHostEnvironment(Environments.Development));
-
                 configureServices?.Invoke(services);
             },
-            configureApplication);
+            configureApplication,
+            environmentName);
 
         return new Gateway(gatewayTestServer, sourceSchemas, interactions);
 
@@ -405,13 +400,5 @@ public abstract partial class FusionTestBase : IDisposable
         public Memory<byte> Memory => default;
 
         public void Dispose() { }
-    }
-
-    internal sealed class TestHostEnvironment(string environmentName) : IHostEnvironment
-    {
-        public string EnvironmentName { get; set; } = environmentName;
-        public string ApplicationName { get; set; } = "TestApp";
-        public string ContentRootPath { get; set; } = Directory.GetCurrentDirectory();
-        public IFileProvider ContentRootFileProvider { get; set; } = new NullFileProvider();
     }
 }
