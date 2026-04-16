@@ -55,6 +55,10 @@ public abstract class ExecutionTask : IExecutionTask
         _task = ExecuteInternalAsync(cancellationToken);
     }
 
+    /// <inheritdoc />
+    public Task WaitForCompletionAsync(CancellationToken _)
+        => _task ?? Task.CompletedTask;
+
     private async Task ExecuteInternalAsync(CancellationToken cancellationToken)
     {
         try

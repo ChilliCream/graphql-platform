@@ -91,8 +91,10 @@ public sealed class InboundRoute
     /// <summary>
     /// Completes the route initialization, verifying that an endpoint has been connected.
     /// </summary>
-    /// <param name="_">The messaging configuration context.</param>
-    public void Complete(IMessagingConfigurationContext _)
+    /// <param name="context">The messaging configuration context.</param>
+#pragma warning disable RCS1163 // Unused parameter
+    public void Complete(IMessagingConfigurationContext context)
+#pragma warning restore RCS1163 // Unused parameter
     {
         AssertInitialized();
         AssertNotCompleted();

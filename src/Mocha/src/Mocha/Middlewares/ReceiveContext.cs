@@ -228,12 +228,14 @@ public sealed class ReceiveContext : IReceiveContext, IConsumeContext
     /// <param name="services">The scoped service provider for this receive operation.</param>
     /// <param name="endpoint">The receive endpoint that owns this operation.</param>
     /// <param name="runtime">The messaging runtime providing host info and global options.</param>
-    /// <param name="_">Cancellation token reserved for future use; not currently consumed by this method.</param>
+    /// <param name="cancellationToken">Reserved for future use; not currently consumed by this method.</param>
     public void Initialize(
         IServiceProvider services,
         ReceiveEndpoint endpoint,
         IMessagingRuntime runtime,
-        CancellationToken _)
+#pragma warning disable RCS1163 // Unused parameter
+        CancellationToken cancellationToken)
+#pragma warning restore RCS1163 // Unused parameter
     {
         Services = services;
         Endpoint = endpoint;
