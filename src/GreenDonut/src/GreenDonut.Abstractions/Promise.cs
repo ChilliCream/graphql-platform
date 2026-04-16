@@ -6,7 +6,7 @@ namespace GreenDonut;
 /// a <see cref="Task{TResult}"/>,
 /// or a <see cref="TaskCompletionSource{TResult}"/>.
 /// </summary>
-/// <typeparam name="TValue"></typeparam>
+/// <typeparam name="TValue">The type of the value that the promise will produce.</typeparam>
 public readonly struct Promise<TValue> : IPromise
 {
     private readonly TaskCompletionSource<TValue>? _completionSource;

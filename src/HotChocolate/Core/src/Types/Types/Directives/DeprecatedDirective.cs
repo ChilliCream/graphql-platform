@@ -40,7 +40,7 @@ public sealed class DeprecatedDirective
     /// <summary>
     /// Returns a deprecation directive syntax node representation.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The directive syntax node representation.</returns>
     public DirectiveNode ToNode() => CreateNode(Reason);
 
     /// <summary>

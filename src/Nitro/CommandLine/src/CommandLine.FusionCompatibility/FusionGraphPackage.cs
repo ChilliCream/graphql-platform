@@ -46,7 +46,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
     /// <param name="access">
     /// The access mode for the Fusion graph package.
     /// </param>
-    /// <returns></returns>
+    /// <returns>The opened Fusion graph package.</returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="stream"/> is <c>null</c>.
     /// </exception>
@@ -78,7 +78,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
     /// <param name="access">
     /// The access mode for the Fusion graph package.
     /// </param>
-    /// <returns></returns>
+    /// <returns>The opened Fusion graph package.</returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="path"/> is <c>null</c>.
     /// </exception>

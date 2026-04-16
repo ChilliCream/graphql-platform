@@ -23,13 +23,13 @@ public interface IPromise
     /// <summary>
     /// Tries to set the result of the async work for this promise.
     /// </summary>
-    /// <param name="result"></param>
+    /// <param name="result">The result of the async work.</param>
     void TrySetResult(object? result);
 
     /// <summary>
     /// Tries to set an exception for the async work for this promise.
     /// </summary>
-    /// <param name="exception"></param>
+    /// <param name="exception">The exception to set.</param>
     void TrySetError(Exception exception);
 
     /// <summary>
