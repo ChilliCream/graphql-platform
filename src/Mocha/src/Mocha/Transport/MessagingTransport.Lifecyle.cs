@@ -96,6 +96,7 @@ public abstract partial class MessagingTransport
                 // in case we have found a matching route that has no endpoint and no destination,
                 // we need to connect it to the endpoint
                 if (route is not null
+                    // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
                     && route.Endpoint is null
                     && route.Destination is not null)
                 {
@@ -202,6 +203,7 @@ public abstract partial class MessagingTransport
         // TODO i am not sure if this is correct.
         foreach (var route in router.OutboundRoutes)
         {
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             if (route.Endpoint is null)
             {
                 ConnectRoute(context, route);
@@ -246,6 +248,7 @@ public abstract partial class MessagingTransport
                 outboundRoute.Initialize(context, outboundRouteConfiguration);
             }
 
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             if (outboundRoute.Endpoint is null)
             {
                 var outboundEndpoint = ConnectRoute(context, outboundRoute);
