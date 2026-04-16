@@ -40,6 +40,10 @@
                   "short",
                   "string",
                   "unknown",
+                  "unsignedByte",
+                  "unsignedInt",
+                  "unsignedLong",
+                  "unsignedShort",
                   "uri",
                   "url",
                   "uuid"
@@ -80,7 +84,7 @@
                   "byte": {
                     "type": "integer",
                     "description": "The `Byte` scalar type represents a signed 8-bit integer.",
-                    "format": "int32"
+                    "format": "int8"
                   },
                   "date": {
                     "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
@@ -96,8 +100,7 @@
                   },
                   "decimal": {
                     "type": "number",
-                    "description": "The `Decimal` scalar type represents a decimal floating-point number with high precision.",
-                    "format": "float"
+                    "description": "The `Decimal` scalar type represents a decimal floating-point number with high precision."
                   },
                   "duration": {
                     "pattern": "^-?P(?:\\d+W|(?=\\d|T(?:\\d|$))(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?)$",
@@ -114,7 +117,7 @@
                   },
                   "float": {
                     "type": "number",
-                    "format": "float"
+                    "format": "double"
                   },
                   "id": {
                     "oneOf": [
@@ -178,7 +181,7 @@
                   "long": {
                     "type": "integer",
                     "description": "The `Long` scalar type represents a signed 64-bit integer.",
-                    "format": "int32"
+                    "format": "int64"
                   },
                   "object": {
                     "required": [
@@ -214,13 +217,33 @@
                   "short": {
                     "type": "integer",
                     "description": "The `Short` scalar type represents a signed 16-bit integer.",
-                    "format": "int32"
+                    "format": "int16"
                   },
                   "string": {
                     "type": "string"
                   },
                   "unknown": {
                     "type": "string"
+                  },
+                  "unsignedByte": {
+                    "type": "integer",
+                    "description": "The `UnsignedByte` scalar type represents an unsigned 8-bit integer.",
+                    "format": "uint8"
+                  },
+                  "unsignedInt": {
+                    "type": "integer",
+                    "description": "The `UnsignedInt` scalar type represents an unsigned 32-bit integer.",
+                    "format": "uint32"
+                  },
+                  "unsignedLong": {
+                    "type": "integer",
+                    "description": "The `UnsignedLong` scalar type represents an unsigned 64-bit integer.",
+                    "format": "uint64"
+                  },
+                  "unsignedShort": {
+                    "type": "integer",
+                    "description": "The `UnsignedShort` scalar type represents an unsigned 16-bit integer.",
+                    "format": "uint16"
                   },
                   "uri": {
                     "type": "string",
@@ -321,7 +344,7 @@
                         "integer"
                       ],
                       "description": "The `Byte` scalar type represents a signed 8-bit integer.",
-                      "format": "int32"
+                      "format": "int8"
                     },
                     "date": {
                       "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
@@ -346,8 +369,7 @@
                         "null",
                         "number"
                       ],
-                      "description": "The `Decimal` scalar type represents a decimal floating-point number with high precision.",
-                      "format": "float"
+                      "description": "The `Decimal` scalar type represents a decimal floating-point number with high precision."
                     },
                     "duration": {
                       "pattern": "^-?P(?:\\d+W|(?=\\d|T(?:\\d|$))(?:\\d+Y)?(?:\\d+M)?(?:\\d+D)?(?:T(?:\\d+H)?(?:\\d+M)?(?:\\d+(?:\\.\\d+)?S)?)?)$",
@@ -373,7 +395,7 @@
                         "null",
                         "number"
                       ],
-                      "format": "float"
+                      "format": "double"
                     },
                     "id": {
                       "oneOf": [
@@ -458,7 +480,7 @@
                         "integer"
                       ],
                       "description": "The `Long` scalar type represents a signed 64-bit integer.",
-                      "format": "int32"
+                      "format": "int64"
                     },
                     "object": {
                       "required": [
@@ -507,7 +529,7 @@
                         "integer"
                       ],
                       "description": "The `Short` scalar type represents a signed 16-bit integer.",
-                      "format": "int32"
+                      "format": "int16"
                     },
                     "string": {
                       "type": [
