@@ -66,8 +66,7 @@ internal sealed class SetDefaultWorkspaceCommand : Command
         var current = await paginationContainer.GetCurrentAsync(cancellationToken);
         if (current.Count == 0)
         {
-            throw new ExitException(
-                $"You do not have any workspaces. Run {"nitro launch".AsCommand()} and create one.");
+            throw new ExitException("You do not have any workspaces. Run `nitro launch` and create one.");
         }
 
         Workspace? workspace;

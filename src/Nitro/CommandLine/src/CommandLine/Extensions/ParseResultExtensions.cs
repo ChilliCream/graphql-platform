@@ -17,7 +17,7 @@ internal static class ParseResultExtensions
 
         throw new ExitException(
             "This command requires an authenticated user. "
-            + $"Either specify '{OptionalApiKeyOption.OptionName}' or run {"nitro login".AsCommand()}.");
+            + $"Either specify '{OptionalApiKeyOption.OptionName}' or run `nitro login`.");
     }
 
     public static string GetWorkspaceId(
@@ -26,7 +26,7 @@ internal static class ParseResultExtensions
     {
         return sessionService.Session?.Workspace?.Id
             ?? parseResult.GetValue(Opt<OptionalWorkspaceIdOption>.Instance)
-            ?? throw new ExitException($"Could not determine workspace. Either login via {"nitro login".AsCommand()} or specify the '{OptionalWorkspaceIdOption.OptionName}' option.");
+            ?? throw new ExitException($"Could not determine workspace. Either login via `nitro login` or specify the '{OptionalWorkspaceIdOption.OptionName}' option.");
     }
 
     public static T? GetRequiredValueIfNotInteractive<T>(

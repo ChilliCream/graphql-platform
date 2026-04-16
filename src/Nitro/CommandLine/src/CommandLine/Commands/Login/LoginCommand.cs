@@ -34,11 +34,11 @@ internal sealed class LoginCommand : Command
         if (!console.IsInteractive)
         {
             throw new ExitException(
-                "'nitro login' requires an interactive console. "
+                "`nitro login` requires an interactive console. "
                 + $"Use '{OptionalApiKeyOption.OptionName}' to authenticate command invocations in non-interactive environments.");
         }
 
-        var cloudUrl = parseResult.GetRequiredValue(Opt<IdentityCloudUrlOption>.Instance);
+        var cloudUrl = parseResult.GetValue(Opt<IdentityCloudUrlOption>.Instance);
         var url = parseResult.GetValue(Opt<IdentityCloudUrlArgument>.Instance);
 
         url ??= cloudUrl;
