@@ -365,12 +365,18 @@ internal sealed class FusionPublishCommand : Command
                         client,
                         cancellationToken);
 
-                    if (!isValidArchive)
+                    if (isValidArchive)
                     {
-                        throw new ExitException("Fusion configuration validation failed.");
+                        validationActivity.Success("Validated configuration.");
                     }
-
-                    validationActivity.Success("Validated configuration.");
+                    else if (!force)
+                    {
+                        // Write directly instead of throwing so the release-slot fallback
+                        // in the outer catch is not triggered — the publish hasn't actually
+                        // reserved any remote state that needs tearing down here.
+                        console.Error.WriteErrorLine("Fusion configuration validation failed.");
+                        return ExitCodes.Error;
+                    }
                 }
 
                 bool uploaded;

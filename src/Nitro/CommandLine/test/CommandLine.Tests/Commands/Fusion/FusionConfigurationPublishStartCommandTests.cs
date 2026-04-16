@@ -79,7 +79,7 @@ public sealed class FusionConfigurationPublishStartCommandTests(NitroCommandFixt
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task RequestIdFromStateFile_Success(InteractionMode mode)
+    public async Task RequestIdFromStateFile_Success_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
         SetupFusionPublishingStateCache(RequestId);
@@ -118,7 +118,7 @@ public sealed class FusionConfigurationPublishStartCommandTests(NitroCommandFixt
     }
 
     [Fact]
-    public async Task Success_WithRequestIdOption()
+    public async Task Success_WithRequestIdOption_ReturnsSuccess()
     {
         // arrange
         SetupClaimDeploymentSlotMutation();

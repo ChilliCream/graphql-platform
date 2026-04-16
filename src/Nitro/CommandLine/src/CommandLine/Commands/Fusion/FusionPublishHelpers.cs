@@ -1,6 +1,7 @@
 using System.Text.Json;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
+using ChilliCream.Nitro.CommandLine.Helpers;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Packaging;
@@ -68,7 +69,7 @@ internal static class FusionPublishHelpers
             throw MutationReturnedNoData();
         }
 
-        // activity.Update($"Request ID: {requestId.EscapeMarkup()}");
+        activity.Update($"Publication request created. {$"(ID: {requestId.EscapeMarkup()})".Dim()}");
 
         using var subscriptionCancellation =
             CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -337,17 +338,17 @@ internal static class FusionPublishHelpers
             {
                 case IProcessingTaskIsQueued:
                     throw Exit(
-                        "Your request is in the queued state. Try to run `fusion-configuration publish start` once the request is ready ");
+                        "Your request is in the queued state. Try to run `fusion-configuration publish start` once the request is ready.");
 
                 case IFusionConfigurationPublishingFailed:
-                    throw Exit("Your request has already failed");
+                    throw Exit("Your request has already failed.");
 
                 case IFusionConfigurationPublishingSuccess:
-                    throw Exit("You request is already published");
+                    throw Exit("Your request is already published.");
 
                 case IProcessingTaskIsReady:
                     throw Exit(
-                        "Your request is ready for the composition. Run `fusion-configuration publish start`");
+                        "Your request is ready for the composition. Run `fusion-configuration publish start`.");
 
                 case IFusionConfigurationValidationFailed { Errors: var errors }:
                     var errorTree = new Tree("");
@@ -377,7 +378,7 @@ internal static class FusionPublishHelpers
                         }
                     }
 
-                    await activity.FailAllAsync(errorTree);
+                    activity.Fail(errorTree);
 
                     return false;
 

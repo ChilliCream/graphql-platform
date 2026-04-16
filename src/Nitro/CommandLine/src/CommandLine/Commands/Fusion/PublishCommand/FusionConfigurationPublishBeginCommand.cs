@@ -82,6 +82,8 @@ internal sealed class FusionConfigurationPublishBeginCommand : Command
                 fusionConfigurationClient,
                 cancellationToken);
 
+            activity.Success("Deployment slot ready.");
+
             resultHolder.SetResult(new ObjectResult(new FusionConfigurationPublishBeginCommandResult { RequestId = requestId }));
 
             await FusionConfigurationPublishingState.SetRequestId(

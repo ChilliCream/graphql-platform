@@ -178,7 +178,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests(NitroCommandFixt
     }
 
     [Fact]
-    public async Task Success_DeploymentSlotReady()
+    public async Task Success_DeploymentSlotReady_ReturnsSuccess()
     {
         // arrange
         SetupRequestDeploymentSlotMutation();
@@ -200,7 +200,8 @@ public sealed class FusionConfigurationPublishBeginCommandTests(NitroCommandFixt
         result.AssertSuccess(
             """
             Requesting deployment slot for stage 'dev' of API 'api-1'
-            └── ✕ Failed to request a deployment slot.
+            ├── Publication request created. (ID: request-id)
+            └── ✓ Deployment slot ready.
 
             {
               "requestId": "request-id"
@@ -209,7 +210,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests(NitroCommandFixt
     }
 
     [Fact]
-    public async Task Success_DeploymentSlotReady_JsonOutput()
+    public async Task Success_DeploymentSlotReady_ReturnsSuccess_JsonOutput()
     {
         // arrange
         SetupInteractionMode(InteractionMode.JsonOutput);
@@ -238,7 +239,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests(NitroCommandFixt
     }
 
     [Fact]
-    public async Task Begin_Should_HandleQueuePosition_When_ProcessingTaskIsQueued()
+    public async Task Begin_Should_HandleQueuePosition_When_ProcessingTaskIsQueued_ReturnsSuccess()
     {
         // arrange
         SetupRequestDeploymentSlotMutation();
@@ -262,8 +263,9 @@ public sealed class FusionConfigurationPublishBeginCommandTests(NitroCommandFixt
         result.AssertSuccess(
             """
             Requesting deployment slot for stage 'dev' of API 'api-1'
+            ├── Publication request created. (ID: request-id)
             ├── ⏳ Your request is queued at position 3.
-            └── ✕ Failed to request a deployment slot.
+            └── ✓ Deployment slot ready.
 
             {
               "requestId": "request-id"
@@ -272,7 +274,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests(NitroCommandFixt
     }
 
     [Fact]
-    public async Task Begin_Should_PassSubgraphId_When_Provided()
+    public async Task Begin_Should_PassSubgraphId_When_Provided_ReturnsSuccess()
     {
         // arrange
         SetupRequestDeploymentSlotMutation(subgraphId: "subgraph-1");
@@ -297,7 +299,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests(NitroCommandFixt
     }
 
     [Fact]
-    public async Task Begin_Should_PassSubgraphName_When_Provided()
+    public async Task Begin_Should_PassSubgraphName_When_Provided_ReturnsSuccess()
     {
         // arrange
         SetupRequestDeploymentSlotMutation(subgraphName: "subgraph-1");
@@ -322,7 +324,7 @@ public sealed class FusionConfigurationPublishBeginCommandTests(NitroCommandFixt
     }
 
     [Fact]
-    public async Task Begin_Should_PassWaitForApproval_When_Provided()
+    public async Task Begin_Should_PassWaitForApproval_When_Provided_ReturnsSuccess()
     {
         // arrange
         SetupRequestDeploymentSlotMutation(waitForApproval: true);

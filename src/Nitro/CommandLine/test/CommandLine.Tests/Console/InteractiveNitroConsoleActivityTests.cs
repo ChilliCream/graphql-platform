@@ -182,7 +182,7 @@ public sealed class InteractiveNitroConsoleActivityTests
     }
 
     [Fact]
-    public async Task StartChildActivity_Should_RenderTreeStructure_When_ChildFails()
+    public async Task ChildFail_Should_FoldIntoTitle_When_ChildHasNoUpdates()
     {
         // arrange
         var (console, writer) = CreateConsole();
@@ -198,13 +198,41 @@ public sealed class InteractiveNitroConsoleActivityTests
             activity.Fail("Root error");
         }
 
-        // assert
+        // assert — child title collapses; root's own terminator is suppressed
+        // because the last child already conveys the failure
         GetOutput(writer).MatchInlineSnapshot(
             """
             ✕ Root
-            ├── ✕ Child step
-            │   └── ✕ Child error
-            └── ✕ Root error
+            └── ✕ Child error
+            """);
+    }
+
+    [Fact]
+    public async Task ChildFail_Should_NotFold_When_ChildHasUpdates()
+    {
+        // arrange
+        var (console, writer) = CreateConsole();
+
+        // act
+        await using (var activity = console.StartActivity("Root", "Root failed"))
+        {
+            await using (var child = activity.StartChildActivity("Child step", "Child failed"))
+            {
+                child.Update("working...");
+                child.Fail("Child error");
+            }
+
+            activity.Fail("Root error");
+        }
+
+        // assert — child retains title; root's own terminator is suppressed because
+        // the last child already conveys the failure
+        GetOutput(writer).MatchInlineSnapshot(
+            """
+            ✕ Root
+            └── ✕ Child step
+                ├── working...
+                └── ✕ Child error
             """);
     }
 
@@ -238,6 +266,72 @@ public sealed class InteractiveNitroConsoleActivityTests
             │   ├── ✓ Grandchild done
             │   └── ✓ Child done
             └── ✓ Root done
+            """);
+    }
+
+    [Fact]
+    public async Task GrandchildFail_Should_CollapseTerminators_AtEveryLevel()
+    {
+        // arrange
+        var (console, writer) = CreateConsole();
+
+        // act
+        await using (var activity = console.StartActivity("Root", "Root failed"))
+        {
+            await using (var child = activity.StartChildActivity("Child", "Child failed"))
+            {
+                await using (var grandchild = child.StartChildActivity("Grandchild", "Grandchild failed"))
+                {
+                    grandchild.Fail("Grandchild error");
+                }
+
+                child.Fail("Child aborted");
+            }
+
+            activity.Fail("Root error");
+        }
+
+        // assert — explicit terminators at root and child are suppressed; the grandchild
+        // failure stays as the final error line
+        GetOutput(writer).MatchInlineSnapshot(
+            """
+            ✕ Root
+            └── ✕ Child
+                └── ✕ Grandchild error
+            """);
+    }
+
+    [Fact]
+    public async Task GrandchildFail_Should_PreserveUpdatesAtEachLevel()
+    {
+        // arrange
+        var (console, writer) = CreateConsole();
+
+        // act
+        await using (var activity = console.StartActivity("Root", "Root failed"))
+        {
+            await using (var child = activity.StartChildActivity("Child", "Child failed"))
+            {
+                child.Update("Child step 1");
+
+                await using (var grandchild = child.StartChildActivity("Grandchild", "Grandchild failed"))
+                {
+                    grandchild.Update("Grandchild step 1");
+                    grandchild.Fail("Grandchild error");
+                }
+            }
+        }
+
+        // assert — updates at child and grandchild stay visible; dispose-driven failure
+        // cascade doesn't add extra terminators at child or root
+        GetOutput(writer).MatchInlineSnapshot(
+            """
+            ✕ Root
+            └── ✕ Child
+                ├── Child step 1
+                └── ✕ Grandchild
+                    ├── Grandchild step 1
+                    └── ✕ Grandchild error
             """);
     }
 
@@ -535,10 +629,8 @@ public sealed class InteractiveNitroConsoleActivityTests
         GetOutput(writer).MatchInlineSnapshot(
             """
             ✕ Root
-            ├── ✕ Child
-            │   └── ✕ This child failure
-            │         message wraps
-            └── ✕ Root error
+            └── ✕ This child failure
+                  message wraps
             """);
     }
 
@@ -616,10 +708,9 @@ public sealed class InteractiveNitroConsoleActivityTests
         GetOutput(writer).MatchInlineSnapshot(
             """
             ✕ Root
-            └── ✕ Child
-                └── ✕ Child failed
-                    Error detail line 1
-                    Error detail line 2
+            └── ✕ Child failed
+                Error detail line 1
+                Error detail line 2
             """);
     }
 
@@ -644,8 +735,7 @@ public sealed class InteractiveNitroConsoleActivityTests
         GetOutput(writer).MatchInlineSnapshot(
             """
             ✓ Root
-            ├── ! Child
-            │   └── ! Something is off
+            ├── ! Something is off
             └── ✓ Root done
             """);
     }

@@ -86,7 +86,7 @@ internal sealed class StreamingActivitySink : IActivitySink
         // Streaming is append-only; descendant state does not affect already-written output.
     }
 
-    public void FailSilent(ActivityEntry entry, string failureMessage)
+    public void Fail(ActivityEntry entry, string failureMessage)
     {
         var entryMeta = _meta[entry];
         var markupText = FormatTerminator(failureMessage, ActivityState.Failed);

@@ -70,15 +70,26 @@ internal sealed class NitroConsoleActivity : INitroConsoleActivity
         Fail(_failureMessage);
     }
 
+    public void Fail(IRenderable details)
+    {
+        Complete(_failureMessage, ActivityState.Failed, details);
+    }
+
     public async ValueTask FailAllAsync(IRenderable? details = null)
     {
         if (details is not null)
         {
             Complete(_failureMessage, ActivityState.Failed, details);
         }
-        else
+        else if (!_completed)
         {
-            FailSilent();
+            _sink.Fail(_entry, _failureMessage);
+            _completed = true;
+
+            if (IsRoot)
+            {
+                _sink.Stop();
+            }
         }
 
         if (_parent is not null)
@@ -133,7 +144,7 @@ internal sealed class NitroConsoleActivity : INitroConsoleActivity
         }
 
         ActivityEntry target;
-        if (IsRoot || _entry.Children.Count > 0 || state is not ActivityState.Completed)
+        if (IsRoot || _entry.Children.Count > 0)
         {
             _sink.SetState(_entry, state);
             target = _sink.CompleteChild(_entry, message, state);
@@ -149,22 +160,6 @@ internal sealed class NitroConsoleActivity : INitroConsoleActivity
             _sink.SetDetails(target, details);
         }
 
-        _completed = true;
-
-        if (IsRoot)
-        {
-            _sink.Stop();
-        }
-    }
-
-    private void FailSilent()
-    {
-        if (_completed)
-        {
-            return;
-        }
-
-        _sink.FailSilent(_entry, _failureMessage);
         _completed = true;
 
         if (IsRoot)

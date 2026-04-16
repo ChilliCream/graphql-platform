@@ -49,7 +49,7 @@ internal sealed class SnapshotActivitySink : IActivitySink
         _tree.FailActiveDescendants(entry);
     }
 
-    public void FailSilent(ActivityEntry entry, string failureMessage)
+    public void Fail(ActivityEntry entry, string failureMessage)
     {
         _tree.SetEntryState(entry, ActivityState.Failed);
         _tree.FailActiveDescendants(entry);
