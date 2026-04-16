@@ -211,13 +211,30 @@ internal sealed class OperationPlanExecutor
             var childGroups = new List<DeferredExecutionGroup>();
             foreach (var candidate in deferredGroups)
             {
-                if (candidate.Parent?.DeferId == group.DeferId)
+                if (candidate.Parent?.DeferId != group.DeferId)
                 {
-                    childGroups.Add(candidate);
-                    pendingCount++;
-                    _ = ExecuteDeferredGroupInBackground(
-                        requestContext, variables, operationPlan, candidate, channel.Writer, cancellationToken);
+                    continue;
                 }
+
+                // If the child defer is conditional, evaluate the condition
+                if (candidate.IfVariable is not null)
+                {
+                    if (!variables.TryGetValue<BooleanValueNode>(candidate.IfVariable, out var boolValue)
+                        || !boolValue.Value)
+                    {
+                        continue;
+                    }
+                }
+
+                childGroups.Add(candidate);
+                pendingCount++;
+                _ = ExecuteDeferredGroupInBackground(
+                    requestContext,
+                    variables,
+                    operationPlan,
+                    candidate,
+                    channel.Writer,
+                    cancellationToken);
             }
 
             // Build the incremental payload following the GraphQL incremental delivery spec:
