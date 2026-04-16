@@ -101,7 +101,7 @@ public sealed class CreateOpenApiCollectionCommandTests(NitroCommandFixture fixt
             "--name",
             OpenApiCollectionName);
 
-        // assertÎ
+        // assert
         result.AssertError(
             """
             Missing required option '--api-id'.
