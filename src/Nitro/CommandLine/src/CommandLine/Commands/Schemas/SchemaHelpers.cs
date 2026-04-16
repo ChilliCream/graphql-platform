@@ -1,5 +1,6 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Schemas;
+using ChilliCream.Nitro.CommandLine.Helpers;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Schemas;
 
@@ -52,7 +53,7 @@ internal static class SchemaHelpers
             throw new ExitException("Could not create validation request!");
         }
 
-        activity.Update($"Validation request created (ID: {requestId.EscapeMarkup()}).");
+        activity.Update($"Validation request created {$"(ID: {requestId})".Dim()}.");
 
         await foreach (var @event in client.SubscribeToSchemaValidationAsync(requestId, ct))
         {

@@ -66,7 +66,7 @@ public sealed class ListOpenApiCollectionCommandTests(NitroCommandFixture fixtur
         // assert
         result.AssertError(
             """
-            The '--api-id' option is required in non-interactive mode.
+            Missing required option '--api-id'.
             """);
     }
 

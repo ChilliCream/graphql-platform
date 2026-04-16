@@ -42,15 +42,10 @@ internal sealed class DeleteClientCommand : Command
 
         const string clientMessage = "Which client do you want to delete?";
 
-        var clientId = parseResult.GetValue(Opt<OptionalIdArgument>.Instance);
+        var clientId = parseResult.GetRequiredValueIfNotInteractive(Opt<OptionalIdArgument>.Instance, console);
 
         if (clientId is null)
         {
-            if (!console.IsInteractive)
-            {
-                throw MissingRequiredOption("id");
-            }
-
             var workspaceId = parseResult.GetWorkspaceId(sessionService);
 
             var apiId = await console.PromptForApiIdAsync(

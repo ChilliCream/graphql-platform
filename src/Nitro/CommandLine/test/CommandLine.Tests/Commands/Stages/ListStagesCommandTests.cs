@@ -70,7 +70,7 @@ public sealed class ListStagesCommandTests(NitroCommandFixture fixture) : Stages
         // assert
         result.AssertError(
             """
-            The '--api-id' option is required in non-interactive mode.
+            Missing required option '--api-id'.
             """);
     }
 

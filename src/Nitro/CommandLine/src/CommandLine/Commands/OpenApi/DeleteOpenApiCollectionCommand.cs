@@ -40,15 +40,10 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        var openApiCollectionId = parseResult.GetValue(Opt<OptionalIdArgument>.Instance);
+        var openApiCollectionId = parseResult.GetRequiredValueIfNotInteractive(Opt<OptionalIdArgument>.Instance, console);
 
         if (openApiCollectionId is null)
         {
-            if (!console.IsInteractive)
-            {
-                throw MissingRequiredOption("id");
-            }
-
             var workspaceId = parseResult.GetWorkspaceId(sessionService);
             var apiId = await console.PromptForApiIdAsync(
                 apisClient,

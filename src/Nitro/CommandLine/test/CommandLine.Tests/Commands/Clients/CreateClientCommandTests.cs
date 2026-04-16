@@ -63,8 +63,27 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : Clie
             """);
     }
 
+    [Fact]
+    public async Task NoWorkspaceInSession_And_NoApiId_ReturnsError_Interactive()
+    {
+        // arrange & act
+        SetupSession();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var result = await ExecuteCommandAsync(
+            "client",
+            "create",
+            "--name",
+            ClientName);
+
+        // assert
+        result.AssertError(
+            """
+            Could not determine workspace. Either login via `nitro login` or specify the '--workspace-id' option.
+            """);
+    }
+
     [Theory]
-    [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
     public async Task NoWorkspaceInSession_And_NoApiId_ReturnsError(InteractionMode mode)
@@ -82,7 +101,7 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : Clie
         // assert
         result.AssertError(
             """
-            Could not determine workspace. Either login via `nitro login` or specify the '--workspace-id' option.
+            Missing required option '--api-id'.
             """);
     }
 

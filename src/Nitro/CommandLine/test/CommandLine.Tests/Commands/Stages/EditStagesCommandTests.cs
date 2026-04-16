@@ -79,7 +79,7 @@ public sealed class EditStagesCommandTests(NitroCommandFixture fixture) : Stages
         // assert
         result.AssertError(
             """
-            Could not determine workspace. Either login via `nitro login` or specify the '--workspace-id' option.
+            Missing required option '--api-id'.
             """);
     }
 

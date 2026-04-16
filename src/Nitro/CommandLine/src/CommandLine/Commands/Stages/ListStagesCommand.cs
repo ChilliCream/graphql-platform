@@ -84,11 +84,7 @@ internal sealed class ListStagesCommand : Command
         IResultHolder resultHolder,
         CancellationToken ct)
     {
-        var apiId = parseResult.GetValue(Opt<OptionalApiIdOption>.Instance);
-        if (apiId is null)
-        {
-            throw ThrowHelper.MissingRequiredOption(ApiIdOption.OptionName);
-        }
+        var apiId = parseResult.GetRequiredOptionalValue(Opt<OptionalApiIdOption>.Instance);
 
         var data = await client.ListStagesAsync(apiId, ct) ?? [];
         var items = data

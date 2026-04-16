@@ -118,7 +118,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
                 }
 
                 requestId = id;
-                child.Success($"Validation request created (ID: {requestId.EscapeMarkup()}).");
+                child.Success($"Validation request created {$"(ID: {requestId})".Dim()}.");
             }
 
             await using (var child = rootActivity.StartChildActivity(

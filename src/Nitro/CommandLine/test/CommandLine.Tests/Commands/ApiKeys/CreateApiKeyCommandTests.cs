@@ -104,7 +104,7 @@ public sealed class CreateApiKeyCommandTests(NitroCommandFixture fixture) : ApiK
         // assert
         result.AssertError(
             """
-            The '--workspace-id' or '--api-id' option is required in non-interactive mode.
+            Missing required option '--workspace-id' or '--api-id'.
             """);
     }
 

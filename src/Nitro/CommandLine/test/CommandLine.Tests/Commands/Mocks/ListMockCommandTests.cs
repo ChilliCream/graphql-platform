@@ -90,7 +90,7 @@ public sealed class ListMockCommandTests(NitroCommandFixture fixture) : MocksCom
         // assert
         result.AssertError(
             """
-            The '--api-id' option is required in non-interactive mode.
+            Missing required option '--api-id'.
             """);
     }
 

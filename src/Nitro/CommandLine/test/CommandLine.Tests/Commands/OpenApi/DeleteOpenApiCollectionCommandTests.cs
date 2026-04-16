@@ -76,7 +76,7 @@ public sealed class DeleteOpenApiCollectionCommandTests(NitroCommandFixture fixt
         // assert
         result.AssertError(
             """
-            The 'id' option is required in non-interactive mode.
+            Missing required argument 'id'.
             """);
     }
 

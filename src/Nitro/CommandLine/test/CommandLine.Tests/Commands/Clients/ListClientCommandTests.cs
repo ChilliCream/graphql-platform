@@ -91,7 +91,7 @@ public sealed class ListClientCommandTests(NitroCommandFixture fixture) : Client
         // assert
         result.AssertError(
             """
-            The '--api-id' option is required in non-interactive mode.
+            Missing required option '--api-id'.
             """);
     }
 
@@ -278,7 +278,6 @@ public sealed class ListClientCommandTests(NitroCommandFixture fixture) : Client
         // assert
         result.AssertError(
             """
-            There was an issue with the request to the server.
             The API was not found.
             """);
     }

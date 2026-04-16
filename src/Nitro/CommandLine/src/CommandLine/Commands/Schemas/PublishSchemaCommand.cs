@@ -118,7 +118,7 @@ internal sealed class PublishSchemaCommand : Command
                 }
 
                 requestId = id;
-                child.Success($"Publish request created (ID: {requestId.EscapeMarkup()}).");
+                child.Success($"Publish request created {$"(ID: {requestId})".Dim()}.");
             }
 
             await using (var child = rootActivity.StartChildActivity(

@@ -35,7 +35,7 @@ internal sealed class SetDefaultWorkspaceCommand : Command
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        var workspaceId = parseResult.GetValue(Opt<OptionalWorkspaceIdOption>.Instance);
+        var workspaceId = parseResult.GetRequiredValueIfNotInteractive(Opt<OptionalWorkspaceIdOption>.Instance, console);
 
         if (workspaceId is not null)
         {
@@ -49,11 +49,6 @@ internal sealed class SetDefaultWorkspaceCommand : Command
             var workspace = new Workspace(node.Id, node.Name);
             await sessionService.SelectWorkspaceAsync(workspace, cancellationToken);
             return ExitCodes.Success;
-        }
-
-        if (!console.IsInteractive)
-        {
-            throw MissingRequiredOption(OptionalWorkspaceIdOption.OptionName);
         }
 
         return await ExecuteAsync(true, console, client, sessionService, cancellationToken);

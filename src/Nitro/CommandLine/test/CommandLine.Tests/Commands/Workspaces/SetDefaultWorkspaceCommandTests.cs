@@ -131,7 +131,7 @@ public sealed class SetDefaultWorkspaceCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertError(
             """
-            The '--workspace-id' option is required in non-interactive mode.
+            Missing required option '--workspace-id'.
             """);
     }
 

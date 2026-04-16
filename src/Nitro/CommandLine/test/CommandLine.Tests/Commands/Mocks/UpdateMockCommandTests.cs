@@ -117,7 +117,7 @@ public sealed class UpdateMockCommandTests(NitroCommandFixture fixture) : MocksC
         // assert
         result.AssertError(
             """
-            The 'id' option is required in non-interactive mode.
+            Missing required option 'id'.
             """);
     }
 

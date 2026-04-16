@@ -28,4 +28,48 @@ internal static class ParseResultExtensions
             ?? parseResult.GetValue(Opt<OptionalWorkspaceIdOption>.Instance)
             ?? throw new ExitException($"Could not determine workspace. Either login via {"nitro login".AsCommand()} or specify the '{OptionalWorkspaceIdOption.OptionName}' option.");
     }
+
+    public static T? GetRequiredValueIfNotInteractive<T>(
+        this ParseResult parseResult,
+        Option<T> option,
+        INitroConsole console)
+    {
+        var value = parseResult.GetValue(option);
+
+        if (value is null && !console.IsInteractive)
+        {
+            throw ThrowHelper.MissingRequiredOption(option.Name);
+        }
+
+        return value;
+    }
+
+    public static T? GetRequiredValueIfNotInteractive<T>(
+        this ParseResult parseResult,
+        Argument<T> argument,
+        INitroConsole console)
+    {
+        var value = parseResult.GetValue(argument);
+
+        if (value is null && !console.IsInteractive)
+        {
+            throw ThrowHelper.MissingRequiredArgument(argument.Name);
+        }
+
+        return value;
+    }
+
+    public static T GetRequiredOptionalValue<T>(
+        this ParseResult parseResult,
+        Option<T> option)
+    {
+        var value = parseResult.GetValue(option);
+
+        if (value is null)
+        {
+            throw ThrowHelper.MissingRequiredOption(option.Name);
+        }
+
+        return value;
+    }
 }

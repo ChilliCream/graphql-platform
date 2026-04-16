@@ -73,7 +73,7 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
         // assert
         result.AssertError(
             """
-            The '--client-id' option is required in non-interactive mode.
+            Missing required option '--client-id'.
             """);
     }
 
@@ -343,7 +343,6 @@ public sealed class ListClientPublishedVersionsCommandTests(NitroCommandFixture 
         // assert
         result.AssertError(
             """
-            There was an issue with the request to the server.
             The client was not found.
             """);
     }

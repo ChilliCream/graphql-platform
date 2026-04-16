@@ -4,8 +4,6 @@ using ChilliCream.Nitro.CommandLine.Commands.Mocks.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
-using static ChilliCream.Nitro.CommandLine.ThrowHelper;
-
 namespace ChilliCream.Nitro.CommandLine.Commands.Mocks;
 
 internal sealed class ListMockCommand : Command
@@ -86,11 +84,7 @@ internal sealed class ListMockCommand : Command
         string? cursor,
         CancellationToken ct)
     {
-        var apiId = parseResult.GetValue(Opt<OptionalApiIdOption>.Instance);
-        if (apiId is null)
-        {
-            throw MissingRequiredOption(ApiIdOption.OptionName);
-        }
+        var apiId = parseResult.GetRequiredOptionalValue(Opt<OptionalApiIdOption>.Instance);
 
         var data = await client.ListMockSchemasAsync(apiId, cursor, 10, ct);
         var items = data.Items

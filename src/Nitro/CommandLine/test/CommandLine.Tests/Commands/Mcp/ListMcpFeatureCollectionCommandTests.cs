@@ -87,7 +87,7 @@ public sealed class ListMcpFeatureCollectionCommandTests(NitroCommandFixture fix
         // assert
         result.AssertError(
             """
-            The '--api-id' option is required in non-interactive mode.
+            Missing required option '--api-id'.
             """);
     }
 

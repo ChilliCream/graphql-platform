@@ -40,15 +40,10 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        var mcpFeatureCollectionId = parseResult.GetValue(Opt<OptionalIdArgument>.Instance);
+        var mcpFeatureCollectionId = parseResult.GetRequiredValueIfNotInteractive(Opt<OptionalIdArgument>.Instance, console);
 
         if (mcpFeatureCollectionId is null)
         {
-            if (!console.IsInteractive)
-            {
-                throw MissingRequiredOption("id");
-            }
-
             var workspaceId = parseResult.GetWorkspaceId(sessionService);
             var apiId = await console.PromptForApiIdAsync(
                 apisClient,
