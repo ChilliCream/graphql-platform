@@ -79,7 +79,7 @@ public sealed class OneOfCostTests
         var result = await executor.ExecuteAsync(request);
 
         // assert
-        // 0 (field) + 1 (arg) + max(400, 900) = 801
+        // 0 (field) + 1 (arg) + max(400, 800) = 801
         Assert.Equal(801, (int)GetFieldCost(result));
     }
 
