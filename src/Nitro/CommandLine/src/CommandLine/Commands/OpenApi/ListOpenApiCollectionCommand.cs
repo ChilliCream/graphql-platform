@@ -44,6 +44,7 @@ internal sealed class ListOpenApiCollectionCommand : Command
                 apisClient,
                 sessionService,
                 resultHolder,
+                cursor,
                 ct);
         }
 
@@ -57,13 +58,14 @@ internal sealed class ListOpenApiCollectionCommand : Command
         IApisClient apisClient,
         ISessionService sessionService,
         IResultHolder resultHolder,
+        string? cursor,
         CancellationToken ct)
     {
         var apiId = await console.GetOrPromptForApiIdAsync("For which API do you want to list the OpenAPI collections?", parseResult, apisClient, sessionService, ct);
 
         var container = PaginationContainer
             .CreateConnectionData(async (after, first, token) =>
-                await client.ListOpenApiCollectionsAsync(apiId, after, first, token)
+                await client.ListOpenApiCollectionsAsync(apiId, after ?? cursor, first, token)
                     ?? throw new ExitException("The API was not found."))
             .PageSize(10);
 
