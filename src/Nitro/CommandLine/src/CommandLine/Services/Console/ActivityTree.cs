@@ -4,6 +4,11 @@ namespace ChilliCream.Nitro.CommandLine;
 
 internal sealed class ActivityTree : Renderable
 {
+    private const string BranchConnector = "├── ";
+    private const string LastConnector = "└── ";
+    private const string BranchLane = "│   ";
+    private const string LastLane = "    ";
+
 #if NET9_0_OR_GREATER
     private readonly Lock _lock = new();
 #else
@@ -84,7 +89,7 @@ internal sealed class ActivityTree : Renderable
 
             foreach (var root in _rootEntries)
             {
-                RenderEntry(segments, root, prefix: "", isLast: null, options, maxWidth);
+                RenderEntry(segments, root, parentPrefix: "", NodePosition.Root, options, maxWidth);
             }
 
             // Workaround for a Spectre.Console bug: LiveRenderable.PositionCursor emits
@@ -102,96 +107,43 @@ internal sealed class ActivityTree : Renderable
     private void RenderEntry(
         List<Segment> segments,
         ActivityEntry entry,
-        string prefix,
-        bool? isLast,
+        string parentPrefix,
+        NodePosition position,
         RenderOptions options,
         int maxWidth)
     {
-        var connector = isLast switch
-        {
-            true => "└── ",
-            false => "├── ",
-            null => ""
-        };
+        var connector = ConnectorFor(position);
+        var lane = LaneFor(position);
+        var icon = IconFor(entry);
+        var textStyle = TextStyleFor(entry.State);
 
-        var childIndent = isLast switch
-        {
-            true => "    ",
-            false => "│   ",
-            null => ""
-        };
+        var hasChildren = entry.Children.Count > 0;
+        var hasDetails = entry.Details is not null;
+        var continuationPrefix = BuildContinuationPrefix(
+            parentPrefix,
+            lane,
+            position,
+            icon.Width,
+            hasChildren,
+            hasDetails);
 
-        segments.Add(new Segment(prefix));
+        segments.Add(new Segment(parentPrefix));
         segments.Add(new Segment(connector));
+        icon.Write(segments);
 
-        var iconWidth = RenderIcon(segments, entry);
-
-        var textStyle = entry.State switch
-        {
-            ActivityState.Failed => new Style(Color.Red),
-            ActivityState.Warning => new Style(Color.Yellow),
-            _ => Style.Plain
-        };
-
-        var hasChildrenBelow = entry.Children.Count > 0;
-        var hasContentBelow = hasChildrenBelow || entry.Details is not null;
-        string continuationGuide;
-
-        if (isLast.HasValue)
-        {
-            continuationGuide = hasChildrenBelow
-                ? childIndent + "│" + new string(' ', Math.Max(iconWidth - 1, 0))
-                : childIndent + new string(' ', iconWidth);
-        }
-        else if (hasContentBelow)
-        {
-            continuationGuide = "│" + new string(' ', Math.Max(iconWidth - 1, 0));
-        }
-        else
-        {
-            continuationGuide = new string(' ', iconWidth);
-        }
-
-        var continuationPrefix = prefix + continuationGuide;
-        var availableWidth = maxWidth - prefix.Length - connector.Length - iconWidth;
-
-        if (availableWidth <= 0)
-        {
-            availableWidth = 1;
-        }
-
+        var availableWidth = Math.Max(1, maxWidth - parentPrefix.Length - connector.Length - icon.Width);
         var markup = new Markup(entry.Text, textStyle);
         var textSegments = ((IRenderable)markup).Render(options, availableWidth);
-        var atLineStart = false;
 
-        foreach (var segment in textSegments)
-        {
-            if (segment.IsLineBreak)
-            {
-                segments.Add(Segment.LineBreak);
-                atLineStart = true;
-            }
-            else
-            {
-                if (atLineStart)
-                {
-                    segments.Add(new Segment(continuationPrefix));
-                    atLineStart = false;
-                }
-
-                segments.Add(segment);
-            }
-        }
-
+        WritePrefixed(segments, textSegments, continuationPrefix, prefixFirstLine: false);
         segments.Add(Segment.LineBreak);
 
-        var childPrefix = prefix + childIndent;
-
+        var childPrefix = parentPrefix + lane;
         for (var i = 0; i < entry.Children.Count; i++)
         {
-            var child = entry.Children[i];
-            var childIsLast = i == entry.Children.Count - 1 && entry.Details is null;
-            RenderEntry(segments, child, childPrefix, childIsLast, options, maxWidth);
+            var isLastChild = i == entry.Children.Count - 1 && !hasDetails;
+            var childPosition = isLastChild ? NodePosition.Last : NodePosition.Middle;
+            RenderEntry(segments, entry.Children[i], childPrefix, childPosition, options, maxWidth);
         }
 
         if (entry.Details is not null)
@@ -215,9 +167,23 @@ internal sealed class ActivityTree : Renderable
         }
 
         var detailSegments = details.Render(options, availableWidth);
-        var atLineStart = true;
+        var endedAtLineStart = WritePrefixed(segments, detailSegments, prefix, prefixFirstLine: true);
 
-        foreach (var segment in detailSegments)
+        if (!endedAtLineStart)
+        {
+            segments.Add(Segment.LineBreak);
+        }
+    }
+
+    private static bool WritePrefixed(
+        List<Segment> segments,
+        IEnumerable<Segment> rendered,
+        string continuationPrefix,
+        bool prefixFirstLine)
+    {
+        var atLineStart = prefixFirstLine;
+
+        foreach (var segment in rendered)
         {
             if (segment.IsLineBreak)
             {
@@ -228,7 +194,7 @@ internal sealed class ActivityTree : Renderable
             {
                 if (atLineStart)
                 {
-                    segments.Add(new Segment(prefix));
+                    segments.Add(new Segment(continuationPrefix));
                     atLineStart = false;
                 }
 
@@ -236,47 +202,92 @@ internal sealed class ActivityTree : Renderable
             }
         }
 
-        if (!atLineStart)
-        {
-            segments.Add(Segment.LineBreak);
-        }
+        return atLineStart;
     }
 
-    private int RenderIcon(List<Segment> segments, ActivityEntry entry)
+    private static string BuildContinuationPrefix(
+        string parentPrefix,
+        string lane,
+        NodePosition position,
+        int iconWidth,
+        bool hasChildren,
+        bool hasDetails)
     {
-        switch (entry.State)
+        // Root entries use (children || details) to decide whether to draw a vertical
+        // guide under the icon; non-root entries use children only. Preserved as-is
+        // from the original implementation — changing it would shift layout.
+        var drawGuide = position == NodePosition.Root
+            ? hasChildren || hasDetails
+            : hasChildren;
+
+        var underIcon = drawGuide
+            ? "│" + Spaces(iconWidth - 1)
+            : Spaces(iconWidth);
+
+        return parentPrefix + lane + underIcon;
+    }
+
+    private static string ConnectorFor(NodePosition position) => position switch
+    {
+        NodePosition.Middle => BranchConnector,
+        NodePosition.Last => LastConnector,
+        _ => ""
+    };
+
+    private static string LaneFor(NodePosition position) => position switch
+    {
+        NodePosition.Middle => BranchLane,
+        NodePosition.Last => LastLane,
+        _ => ""
+    };
+
+    private static Style TextStyleFor(ActivityState state) => state switch
+    {
+        ActivityState.Failed => new Style(Color.Red),
+        ActivityState.Warning => new Style(Color.Yellow),
+        _ => Style.Plain
+    };
+
+    private ActivityIcon IconFor(ActivityEntry entry) => entry.State switch
+    {
+        ActivityState.Active => new ActivityIcon(CurrentSpinnerFrame(entry), new Style(Color.DeepPink1_1, decoration: Decoration.Bold)),
+        ActivityState.Completed => new ActivityIcon("✓", new Style(Color.Green, decoration: Decoration.Bold)),
+        ActivityState.Failed => new ActivityIcon("✕", new Style(Color.Red, decoration: Decoration.Bold)),
+        ActivityState.Warning => new ActivityIcon("!", new Style(Color.Yellow, decoration: Decoration.Bold)),
+        ActivityState.Waiting => new ActivityIcon("⏳", new Style(Color.Blue, decoration: Decoration.Bold)),
+        _ => ActivityIcon.None
+    };
+
+    private string CurrentSpinnerFrame(ActivityEntry entry)
+    {
+        var frameIndex =
+            (int)(entry.Elapsed.TotalMilliseconds / _spinner.Interval.TotalMilliseconds)
+            % _spinner.Frames.Count;
+        return _spinner.Frames[frameIndex];
+    }
+
+    private static string Spaces(int count) => count <= 0 ? "" : new string(' ', count);
+
+    private enum NodePosition
+    {
+        Root,
+        Middle,
+        Last
+    }
+
+    private readonly record struct ActivityIcon(string Glyph, Style Style, int Width = 2)
+    {
+        public static ActivityIcon None { get; } = new("", Spectre.Console.Style.Plain, Width: 0);
+
+        public void Write(List<Segment> segments)
         {
-            case ActivityState.Active:
-                var frame = _spinner.Frames[
-                    (int)(entry.Elapsed.TotalMilliseconds / _spinner.Interval.TotalMilliseconds)
-                    % _spinner.Frames.Count];
-                segments.Add(new Segment(frame, new Style(Color.DeepPink1_1, decoration: Decoration.Bold)));
-                segments.Add(new Segment(" "));
-                return 2;
+            if (Width == 0)
+            {
+                return;
+            }
 
-            case ActivityState.Completed:
-                segments.Add(new Segment("✓", new Style(Color.Green, decoration: Decoration.Bold)));
-                segments.Add(new Segment(" "));
-                return 2;
-
-            case ActivityState.Failed:
-                segments.Add(new Segment("✕", new Style(Color.Red, decoration: Decoration.Bold)));
-                segments.Add(new Segment(" "));
-                return 2;
-
-            case ActivityState.Warning:
-                segments.Add(new Segment("!", new Style(Color.Yellow, decoration: Decoration.Bold)));
-                segments.Add(new Segment(" "));
-                return 2;
-
-            case ActivityState.Waiting:
-                segments.Add(new Segment("⏳", new Style(Color.Blue, decoration: Decoration.Bold)));
-                segments.Add(new Segment(" "));
-                return 2;
-
-            case ActivityState.Info:
-            default:
-                return 0;
+            segments.Add(new Segment(Glyph, Style));
+            segments.Add(new Segment(" "));
         }
     }
 }
