@@ -21,10 +21,14 @@ public static class FusionServerAspNetCoreHostingBuilderExtensions
     /// <param name="maxAllowedRequestSize">
     /// The max allowed GraphQL request size.
     /// </param>
+    /// <param name="disableDefaultSecurity">
+    /// Defines if the default security policy should be disabled.
+    /// </param>
     /// <returns></returns>
     public static IFusionGatewayBuilder AddGraphQLGateway(
         this IHostApplicationBuilder builder,
         string? name = null,
-        int maxAllowedRequestSize = ServerDefaults.MaxAllowedRequestSize)
-        => builder.Services.AddGraphQLGatewayServer(name, maxAllowedRequestSize);
+        int maxAllowedRequestSize = ServerDefaults.MaxAllowedRequestSize,
+        bool disableDefaultSecurity = false)
+        => builder.Services.AddGraphQLGatewayServer(name, maxAllowedRequestSize, disableDefaultSecurity);
 }
