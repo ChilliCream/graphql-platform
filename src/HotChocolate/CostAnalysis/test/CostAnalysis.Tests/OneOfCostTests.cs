@@ -6,7 +6,7 @@ namespace HotChocolate.CostAnalysis;
 public sealed class OneOfCostTests
 {
     [Fact]
-    public async Task OneOfVariable_NoFields()
+    public async Task OneOfVariable_WithFieldValue()
     {
         // arrange
         const string schema =
