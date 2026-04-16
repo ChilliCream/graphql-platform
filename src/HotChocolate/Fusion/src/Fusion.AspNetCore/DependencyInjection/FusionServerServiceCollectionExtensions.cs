@@ -38,13 +38,13 @@ public static class FusionServerServiceCollectionExtensions
                 (sp, _) =>
                 {
                     var environment = sp.GetService<IHostEnvironment>();
-                    return environment?.IsDevelopment() == false;
+                    return environment?.IsDevelopment() != true;
                 });
             builder.AddMaxAllowedFieldCycleDepthRule(
                 isEnabled: (sp, _) =>
                 {
                     var environment = sp.GetService<IHostEnvironment>();
-                    return environment?.IsDevelopment() == false;
+                    return environment?.IsDevelopment() != true;
                 });
         }
 
