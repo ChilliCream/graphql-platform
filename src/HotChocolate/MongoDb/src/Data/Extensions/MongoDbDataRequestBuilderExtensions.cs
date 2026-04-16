@@ -37,7 +37,9 @@ public static class MongoDbDataRequestBuilderExtensions
     /// <param name="builder">
     /// The <see cref="IRequestExecutorBuilder"/>.
     /// </param>
-    /// <param name="name">The name of the sorting configuration.</param>
+    /// <param name="name">
+    /// The name of the sorting convention.
+    /// </param>
     /// <returns>
     /// Returns the <see cref="IRequestExecutorBuilder"/>.
     /// </returns>
