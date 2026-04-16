@@ -611,12 +611,8 @@ public static class SymbolExtensions
         var methodName = qualifiedName.Substring(lastDotIndex + 1);
 
         var typeSymbol = ResolveTypeSymbol(typeName, compilation);
-        if (typeSymbol == null)
-        {
-            return null;
-        }
 
-        return typeSymbol
+        return typeSymbol?
             .GetMembers(methodName)
             .OfType<IMethodSymbol>()
             .FirstOrDefault(m => m.ToString() == documentationId);

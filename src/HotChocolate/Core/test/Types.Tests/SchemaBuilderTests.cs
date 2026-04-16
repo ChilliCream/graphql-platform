@@ -1923,10 +1923,7 @@ public class SchemaBuilderTests
         {
             if (convention is MockConvention mockConvention)
             {
-                if (mockConvention.Configuration != null)
-                {
-                    mockConvention.Configuration.IsExtended = true;
-                }
+                mockConvention.Configuration?.IsExtended = true;
             }
         }
     }

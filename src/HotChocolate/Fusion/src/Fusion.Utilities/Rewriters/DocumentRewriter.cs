@@ -895,12 +895,7 @@ public sealed class DocumentRewriter(ISchemaDefinition schema, bool removeStatic
 
         public void RemoveReferenceToConditionalContext(ISelectionNode selectionNode)
         {
-            if (ReferencesInConditionalContexts is null)
-            {
-                return;
-            }
-
-            ReferencesInConditionalContexts.Remove(selectionNode);
+            ReferencesInConditionalContexts?.Remove(selectionNode);
         }
 
         public bool HasField(FieldNode fieldNode, out Context? fieldContext)

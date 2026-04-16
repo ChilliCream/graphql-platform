@@ -191,9 +191,9 @@ public sealed class OperationExecutionNode : ExecutionNode
                 buffer.AsSpan(0, index).Clear();
                 ArrayPool<SourceSchemaResult>.Shared.Return(buffer);
             }
-            else if (singleResult is not null)
+            else
             {
-                singleResult.Dispose();
+                singleResult?.Dispose();
             }
 
             context.AddErrors(exception, variables, _resultSelectionSet);
