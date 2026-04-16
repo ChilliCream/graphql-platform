@@ -283,7 +283,7 @@ public abstract partial class MessagingTransport
         }
     }
 
-    internal void Finalize(IMessagingSetupContext context)
+    internal void Finalize(IMessagingSetupContext _)
     {
         _features = _features?.ToReadOnly() ?? FeatureCollection.Empty;
         Configuration = null!;

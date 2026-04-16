@@ -433,7 +433,9 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
     /// </exception>
     public Task RemoveSubgraphConfigurationAsync(
         string subgraphName,
+#pragma warning disable RCS1163 // Unused parameter
         CancellationToken cancellationToken = default)
+#pragma warning restore RCS1163 // Unused parameter
     {
         ArgumentNullException.ThrowIfNull(subgraphName);
 

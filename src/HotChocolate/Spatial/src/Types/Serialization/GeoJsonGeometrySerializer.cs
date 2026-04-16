@@ -44,7 +44,7 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
             return false;
         }
 
-        if (!TryGetGeometryKindFromJson(type, inputValue, out var geometryType))
+        if (!TryGetGeometryKindFromJson(inputValue, out var geometryType))
         {
             return false;
         }
@@ -89,7 +89,7 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
             throw Serializer_Parse_ValueKindInvalid(type, SyntaxKind.ObjectValue);
         }
 
-        if (!TryGetGeometryKindFromJson(type, inputValue, out var geometryType))
+        if (!TryGetGeometryKindFromJson(inputValue, out var geometryType))
         {
             throw Geometry_Parse_InvalidType(type);
         }
@@ -211,7 +211,6 @@ internal sealed class GeoJsonGeometrySerializer : IGeoJsonSerializer
     }
 
     private bool TryGetGeometryKindFromJson(
-        IType type,
         JsonElement inputValue,
         out GeoJsonGeometryType geometryType)
     {
