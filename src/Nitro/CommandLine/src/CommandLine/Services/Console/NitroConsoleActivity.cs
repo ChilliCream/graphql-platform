@@ -77,20 +77,7 @@ internal sealed class NitroConsoleActivity : INitroConsoleActivity
 
     public async ValueTask FailAllAsync(IRenderable? details = null)
     {
-        if (details is not null)
-        {
-            Complete(_failureMessage, ActivityState.Failed, details);
-        }
-        else if (!_completed)
-        {
-            _sink.Fail(_entry, _failureMessage);
-            _completed = true;
-
-            if (IsRoot)
-            {
-                _sink.Stop();
-            }
-        }
+        Complete(_failureMessage, ActivityState.Failed, details);
 
         if (_parent is not null)
         {

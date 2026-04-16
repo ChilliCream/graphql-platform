@@ -29,7 +29,7 @@ internal sealed class LiveActivitySink : IActivitySink
 
     public ActivityEntry CompleteChild(ActivityEntry parent, string text, ActivityState state)
     {
-        return _tree.AddChild(parent, text, state);
+        return _tree.AddChild(parent, text, state, isTerminator: true);
     }
 
     public void SetState(ActivityEntry entry, ActivityState state)
@@ -49,12 +49,6 @@ internal sealed class LiveActivitySink : IActivitySink
 
     public void FailActiveDescendants(ActivityEntry entry)
     {
-        _tree.FailActiveDescendants(entry);
-    }
-
-    public void Fail(ActivityEntry entry, string failureMessage)
-    {
-        _tree.SetEntryState(entry, ActivityState.Failed);
         _tree.FailActiveDescendants(entry);
     }
 

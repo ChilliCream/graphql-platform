@@ -20,7 +20,5 @@ internal interface IActivitySink
 
     void FailActiveDescendants(ActivityEntry entry);
 
-    void Fail(ActivityEntry entry, string failureMessage);
-
     void Stop();
 }

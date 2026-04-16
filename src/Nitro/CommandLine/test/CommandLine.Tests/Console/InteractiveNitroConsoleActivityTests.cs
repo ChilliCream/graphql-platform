@@ -354,7 +354,7 @@ public sealed class InteractiveNitroConsoleActivityTests
         GetOutput(writer).MatchInlineSnapshot(
             """
             ✕ Root
-            └── ✕ Child
+            └── ✕ Child failed
             """);
     }
 
@@ -795,7 +795,7 @@ public sealed class InteractiveNitroConsoleActivityTests
             """
             ✕ Root
             └── ✕ Child
-                └── ✕ Grandchild
+                └── ✕ Grandchild failed
             """);
     }
 
@@ -838,6 +838,39 @@ public sealed class InteractiveNitroConsoleActivityTests
             """
             ✕ Doing work
             └── ✕ Work failed
+            """);
+    }
+
+    [Fact]
+    public async Task FailAllAsync_Should_KeepAllSiblings_When_MultipleSiblingsFailed()
+    {
+        // arrange
+        var (console, writer) = CreateConsole();
+
+        // act — one sibling explicitly fails, the next propagates failure via
+        // FailAllAsync (no details). Parent ends up with two failed children and
+        // no terminator of its own. Guards against the earlier heuristic that
+        // hid the last sibling whenever two consecutive children were failed.
+        await using (var activity = console.StartActivity("Root", "Root failed"))
+        {
+            await using (var first = activity.StartChildActivity("First", "First failed"))
+            {
+                first.Fail("First error");
+            }
+
+            await using (var second = activity.StartChildActivity("Second", "Second failed"))
+            {
+                await second.FailAllAsync();
+            }
+        }
+
+        // assert — both siblings stay visible; suppression only fires for explicit
+        // terminator children added via CompleteChild
+        GetOutput(writer).MatchInlineSnapshot(
+            """
+            ✕ Root
+            ├── ✕ First error
+            └── ✕ Second failed
             """);
     }
 

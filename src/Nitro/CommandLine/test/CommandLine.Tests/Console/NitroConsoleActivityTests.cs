@@ -691,6 +691,40 @@ public sealed class NitroConsoleActivityTests
     }
 
     [Fact]
+    public async Task FailAllAsync_Should_KeepAllSiblings_When_MultipleSiblingsFailed()
+    {
+        // arrange
+        var (console, writer) = CreateConsole();
+
+        // act — one sibling explicitly fails, the next propagates failure via
+        // FailAllAsync (no details). Parent ends up with two failed children and
+        // no terminator of its own.
+        await using (var activity = console.StartActivity("Root", "Root failed"))
+        {
+            await using (var first = activity.StartChildActivity("First", "First failed"))
+            {
+                first.Fail("First error");
+            }
+
+            await using (var second = activity.StartChildActivity("Second", "Second failed"))
+            {
+                await second.FailAllAsync();
+            }
+        }
+
+        // assert — every sibling stays visible; none is dropped by the renderer
+        GetOutput(writer).MatchInlineSnapshot(
+            """
+            Root
+            ├── First
+            │   └── ✕ First error
+            ├── Second
+            │   └── ✕ Second failed
+            └── ✕ Root failed
+            """);
+    }
+
+    [Fact]
     public async Task DisposeAsync_Should_TriggerFailure_When_NoCompletionCalled()
     {
         // arrange

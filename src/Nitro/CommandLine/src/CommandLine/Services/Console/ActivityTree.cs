@@ -27,11 +27,11 @@ internal sealed class ActivityTree : Renderable
         }
     }
 
-    public ActivityEntry AddChild(ActivityEntry parent, string text, ActivityState state)
+    public ActivityEntry AddChild(ActivityEntry parent, string text, ActivityState state, bool isTerminator = false)
     {
         lock (_lock)
         {
-            return parent.AddChild(text, state);
+            return parent.AddChild(text, state, isTerminator);
         }
     }
 
@@ -117,12 +117,14 @@ internal sealed class ActivityTree : Renderable
         var icon = IconFor(entry);
         var textStyle = TextStyleFor(entry.State);
 
-        // When a failed entry has more than one child and its last two children are
-        // both failed, suppress the entry's own terminator — the preceding child
-        // already conveys the failure.
+        // When a failed entry's own terminator child duplicates a preceding failed
+        // child, suppress the terminator — the preceding child already conveys the
+        // failure. Only the explicitly marked terminator can be hidden; real children
+        // are never dropped.
         var visibleChildCount = entry.Children.Count;
         if (entry.State == ActivityState.Failed
             && visibleChildCount > 1
+            && entry.Children[visibleChildCount - 1].IsTerminator
             && entry.Children[visibleChildCount - 1].State == ActivityState.Failed
             && entry.Children[visibleChildCount - 2].State == ActivityState.Failed)
         {
