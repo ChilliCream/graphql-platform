@@ -13,11 +13,17 @@ internal sealed class TestServerSession : IDisposable
 
     public TestServer CreateServer(
         Action<IServiceCollection> configureServices,
-        Action<IApplicationBuilder> configureApplication)
+        Action<IApplicationBuilder> configureApplication,
+        string? environmentName = null)
     {
         var builder = WebApplication.CreateSlimBuilder();
         builder.WebHost.UseTestServer();
         configureServices(builder.Services);
+
+        if (environmentName is not null)
+        {
+            builder.Environment.EnvironmentName = environmentName;
+        }
 
         var app = builder.Build();
         configureApplication(app);

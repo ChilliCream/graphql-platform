@@ -35,8 +35,8 @@ Register projections on the schema:
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddProjections();
 ```
 

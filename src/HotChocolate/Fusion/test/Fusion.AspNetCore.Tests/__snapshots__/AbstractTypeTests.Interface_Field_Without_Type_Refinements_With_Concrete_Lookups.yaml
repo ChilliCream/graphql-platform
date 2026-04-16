@@ -41,6 +41,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_fb4e28df_1 {
               votable {
@@ -86,12 +87,10 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Op_fb4e28df_2(
-              $__fusion_1_id: ID!
-            ) {
+            query Op_fb4e28df_2($__fusion_1_id: ID!) {
               discussionById(id: $__fusion_1_id) {
-                __typename
                 viewerCanVote
               }
             }
@@ -105,7 +104,6 @@ sourceSchemas:
               {
                 "data": {
                   "discussionById": {
-                    "__typename": "Discussion",
                     "viewerCanVote": true
                   }
                 }
@@ -139,11 +137,8 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_fb4e28df_2(
-          $__fusion_1_id: ID!
-        ) {
+        query Op_fb4e28df_2($__fusion_1_id: ID!) {
           discussionById(id: $__fusion_1_id) {
-            __typename
             viewerCanVote
           }
         }
@@ -160,11 +155,8 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_fb4e28df_3(
-          $__fusion_2_id: ID!
-        ) {
+        query Op_fb4e28df_3($__fusion_2_id: ID!) {
           commentById(id: $__fusion_2_id) {
-            __typename
             viewerCanVote
           }
         }

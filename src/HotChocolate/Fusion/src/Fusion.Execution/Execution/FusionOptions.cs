@@ -168,6 +168,21 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
     }
 
     /// <summary>
+    /// Enables the <c>__search</c> and <c>__definitions</c> introspection fields
+    /// for semantic schema discovery.
+    /// </summary>
+    public bool EnableSemanticIntrospection
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    }
+
+    /// <summary>
     /// Clones the options into a new mutable instance.
     /// </summary>
     /// <returns>
@@ -185,7 +200,8 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
             DefaultErrorHandlingMode = DefaultErrorHandlingMode,
             LazyInitialization = LazyInitialization,
             NodeIdSerializerFormat = NodeIdSerializerFormat,
-            ApplySerializeAsToScalars = ApplySerializeAsToScalars
+            ApplySerializeAsToScalars = ApplySerializeAsToScalars,
+            EnableSemanticIntrospection = EnableSemanticIntrospection
         };
     }
 

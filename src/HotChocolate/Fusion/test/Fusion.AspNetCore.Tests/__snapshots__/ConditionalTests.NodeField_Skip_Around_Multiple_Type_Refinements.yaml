@@ -1,9 +1,7 @@
 title: NodeField_Skip_Around_Multiple_Type_Refinements
 request:
   document: |
-    query testQuery(
-      $skip: Boolean!
-    ) {
+    query testQuery($skip: Boolean!) {
       node(id: "RGlzY3Vzc2lvbjox") {
         ... @skip(if: $skip) {
           ... on Discussion {
@@ -47,10 +45,9 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_235aa91a_3(
-              $skip: Boolean!
-            ) {
+            query testQuery_235aa91a_3($skip: Boolean!) {
               node(id: "RGlzY3Vzc2lvbjox") {
                 __typename
                 ... on Discussion {
@@ -96,9 +93,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $skip: Boolean!
-        ) {
+        query testQuery($skip: Boolean!) {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename @fusion__requirement
             ... @skip(if: $skip) {
@@ -138,9 +133,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_235aa91a_3(
-          $skip: Boolean!
-        ) {
+        query testQuery_235aa91a_3($skip: Boolean!) {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename
             ... on Discussion {
@@ -159,9 +152,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_235aa91a_4(
-          $skip: Boolean!
-        ) {
+        query testQuery_235aa91a_4($skip: Boolean!) {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename
             ... on Author {

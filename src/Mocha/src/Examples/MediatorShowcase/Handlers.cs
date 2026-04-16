@@ -122,7 +122,7 @@ public sealed class OrderShippedEmailHandler(ILogger<OrderShippedEmailHandler> l
 {
     public ValueTask HandleAsync(OrderShippedNotification notification, CancellationToken cancellationToken)
     {
-        logger.LogInformation("[Email] Order {OrderId} shipped — email sent to customer", notification.OrderId);
+        logger.LogInformation("[Email] Order {OrderId} shipped - email sent to customer", notification.OrderId);
         return ValueTask.CompletedTask;
     }
 }
@@ -135,7 +135,7 @@ public sealed class OrderShippedAnalyticsHandler(ILogger<OrderShippedAnalyticsHa
 {
     public ValueTask HandleAsync(OrderShippedNotification notification, CancellationToken cancellationToken)
     {
-        logger.LogInformation("[Analytics] Order {OrderId} shipped — metrics recorded", notification.OrderId);
+        logger.LogInformation("[Analytics] Order {OrderId} shipped - metrics recorded", notification.OrderId);
         return ValueTask.CompletedTask;
     }
 }

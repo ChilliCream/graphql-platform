@@ -30,6 +30,7 @@ public sealed class PostgresMessageStore
         ReadOnlyMemory<byte> body,
         ReadOnlyMemory<byte> headers,
         string topicName,
+        DateTimeOffset? scheduledTime,
         CancellationToken cancellationToken)
     {
         await using var connection = await _connectionManager.OpenConnectionAsync(cancellationToken);
@@ -37,8 +38,8 @@ public sealed class PostgresMessageStore
 
         command.CommandText = $"""
             WITH inserted_messages AS (
-                INSERT INTO {_schemaOptions.MessageTable} (body, headers, queue_id)
-                SELECT @body, @headers, qs.destination_id
+                INSERT INTO {_schemaOptions.MessageTable} (body, headers, scheduled_time, queue_id)
+                SELECT @body, @headers, @scheduled_time, qs.destination_id
                 FROM {_schemaOptions.QueueSubscriptionTable} qs
                 INNER JOIN {_schemaOptions.TopicTable} t ON qs.source_id = t.id
                 WHERE t.name = @topic_name
@@ -56,6 +57,11 @@ public sealed class PostgresMessageStore
         command.Parameters.Add(
             new NpgsqlParameter("headers", NpgsqlDbType.Jsonb) { Value = !headers.IsEmpty ? headers : DBNull.Value });
         command.Parameters.Add(new NpgsqlParameter("topic_name", NpgsqlDbType.Text) { Value = topicName });
+        command.Parameters.Add(
+            new NpgsqlParameter("scheduled_time", NpgsqlDbType.TimestampTz)
+            {
+                Value = scheduledTime.HasValue ? scheduledTime.Value.UtcDateTime : DBNull.Value
+            });
 
         await command.ExecuteNonQueryAsync(cancellationToken);
     }
@@ -67,6 +73,7 @@ public sealed class PostgresMessageStore
         ReadOnlyMemory<byte> body,
         ReadOnlyMemory<byte> headers,
         string queueName,
+        DateTimeOffset? scheduledTime,
         CancellationToken cancellationToken)
     {
         await using var connection = await _connectionManager.OpenConnectionAsync(cancellationToken);
@@ -77,8 +84,8 @@ public sealed class PostgresMessageStore
                 SELECT id FROM {_schemaOptions.QueueTable} WHERE name = @queue_name LIMIT 1
             ),
             inserted_message AS (
-                INSERT INTO {_schemaOptions.MessageTable} (body, headers, queue_id)
-                SELECT @body, @headers, queue_info.id
+                INSERT INTO {_schemaOptions.MessageTable} (body, headers, scheduled_time, queue_id)
+                SELECT @body, @headers, @scheduled_time, queue_info.id
                 FROM queue_info
                 RETURNING queue_id
             )
@@ -94,6 +101,11 @@ public sealed class PostgresMessageStore
         command.Parameters.Add(
             new NpgsqlParameter("headers", NpgsqlDbType.Jsonb) { Value = !headers.IsEmpty ? headers : DBNull.Value });
         command.Parameters.Add(new NpgsqlParameter("queue_name", NpgsqlDbType.Text) { Value = queueName });
+        command.Parameters.Add(
+            new NpgsqlParameter("scheduled_time", NpgsqlDbType.TimestampTz)
+            {
+                Value = scheduledTime.HasValue ? scheduledTime.Value.UtcDateTime : DBNull.Value
+            });
 
         await command.ExecuteNonQueryAsync(cancellationToken);
     }

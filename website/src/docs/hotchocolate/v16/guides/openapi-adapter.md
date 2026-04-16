@@ -24,8 +24,8 @@ builder.Services
     .AddRouting()
     .AddOpenApi(options => options.AddGraphQLTransformer());
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<Query>()
     .AddMutationType<Mutation>()
     .AddOpenApiDefinitionStorage(myStorage);
@@ -239,8 +239,8 @@ Register it with your GraphQL server:
 // Program.cs
 var storage = new MyOpenApiStorage();
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<Query>()
     .AddOpenApiDefinitionStorage(storage);
 ```
@@ -255,12 +255,12 @@ Each endpoint definition's description becomes the OpenAPI operation summary. Ro
 
 # Fusion Integration
 
-The OpenAPI adapter works with Fusion gateway servers. Replace `AddGraphQLServer()` with `AddGraphQLGatewayServer()` and the rest of the configuration remains the same:
+The OpenAPI adapter works with Fusion gateway servers. Replace `AddGraphQL()` with `AddGraphQLGateway()` and the rest of the configuration remains the same:
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLGatewayServer()
+builder
+    .AddGraphQLGateway()
     .AddInMemoryConfiguration(compositeSchema)
     .AddHttpClientConfiguration("Subgraph", subgraphUri)
     .AddOpenApiDefinitionStorage(myStorage);

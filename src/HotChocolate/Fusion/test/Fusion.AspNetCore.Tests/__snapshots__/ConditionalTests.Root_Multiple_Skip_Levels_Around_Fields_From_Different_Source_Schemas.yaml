@@ -1,10 +1,7 @@
 title: Root_Multiple_Skip_Levels_Around_Fields_From_Different_Source_Schemas
 request:
   document: |
-    query testQuery(
-      $skip1: Boolean!
-        $skip2: Boolean!
-    ) {
+    query testQuery($skip1: Boolean!, $skip2: Boolean!) {
       ... @skip(if: $skip1) {
         ... @skip(if: $skip2) {
           productBySlug(slug: "product") {
@@ -57,10 +54,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $skip1: Boolean!
-            $skip2: Boolean!
-        ) {
+        query testQuery($skip1: Boolean!, $skip2: Boolean!) {
           ... @skip(if: $skip1) {
             ... @skip(if: $skip2) {
               productBySlug(slug: "product") {

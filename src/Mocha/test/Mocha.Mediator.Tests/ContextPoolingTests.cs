@@ -83,7 +83,7 @@ public sealed class ContextPoolingTests : IDisposable
                 // Synchronize all threads to maximize contention
                 barrier.SignalAndWait();
 
-                var result = await mediator.SendAsync<string>(
+                var result = await mediator.SendAsync(
                     new PoolTestCommandWithResponse($"thread-{index}"));
                 capturedMessages[index] = result;
             }, TaskCreationOptions.LongRunning).Unwrap();
@@ -133,7 +133,7 @@ public sealed class ContextPoolingTests : IDisposable
         var command = new ContextCaptureCommand("payload");
 
         // Act
-        await mediator.SendAsync<string>(command, cts.Token);
+        await mediator.SendAsync(command, cts.Token);
 
         // Assert: the capturing middleware recorded the correct context fields.
         Assert.Same(scope.ServiceProvider, ContextCapture.CapturedServices);

@@ -401,9 +401,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-            ) {
+            query($skip: Boolean!) {
               productById(id: 1) {
                 description
                 id @skip(if: $skip)
@@ -443,9 +441,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-            ) {
+            query($skip: Boolean!) {
               productById(id: 1) {
                 id
                 name @include(if: $skip)
@@ -495,9 +491,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $slug: String!
-            ) {
+            query($slug: String!) {
               productBySlug(slug: $slug) {
                 reviews {
                   nodes {
@@ -542,9 +536,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $slug: String!
-            ) {
+            query($slug: String!) {
               productBySlug(slug: $slug) {
                 a: name
                 name
@@ -579,9 +571,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-            ) {
+            query($skip: Boolean!) {
               productById(id: 1) {
                 id @fusion__requirement
               }
@@ -613,9 +603,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-            ) {
+            query($skip: Boolean!) {
               productBySlug(slug: "a") {
                 name
               }
@@ -649,9 +637,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-            ) {
+            query($skip: Boolean!) {
               productBySlug(slug: "a") {
                 name
               }
@@ -685,9 +671,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-            ) {
+            query($skip: Boolean!) {
               productBySlug(slug: "a") {
                 description
                 name @skip(if: $skip)
@@ -722,9 +706,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-            ) {
+            query($skip: Boolean!) {
               productBySlug(slug: "a") {
                 name
                 description @skip(if: $skip)
@@ -763,9 +745,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-            ) {
+            query($skip: Boolean!) {
               productBySlug(slug: "a") {
                 dimension {
                   width
@@ -806,9 +786,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-            ) {
+            query($skip: Boolean!) {
               productBySlug(slug: "a") {
                 dimension {
                   height
@@ -849,9 +827,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-            ) {
+            query($skip: Boolean!) {
               productBySlug(slug: "a") {
                 dimension {
                   width
@@ -892,9 +868,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-            ) {
+            query($skip: Boolean!) {
               productBySlug(slug: "a") {
                 dimension {
                   height
@@ -928,9 +902,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-            ) {
+            query($skip: Boolean!) {
               productBySlug(slug: "a") @skip(if: $skip) {
                 name
               }
@@ -964,9 +936,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-            ) {
+            query($skip: Boolean!) {
               productBySlug(slug: "a") {
                 name @skip(if: $skip)
               }
@@ -1004,9 +974,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-            ) {
+            query($skip: Boolean!) {
               productBySlug(slug: "a") {
                 dimension {
                   ... @skip(if: $skip) {
@@ -1045,10 +1013,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-              $include: Boolean!
-            ) {
+            query($skip: Boolean!, $include: Boolean!) {
               productBySlug(slug: "a") {
                 name @skip(if: $skip) @include(if: $include)
               }
@@ -1086,9 +1051,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-            ) {
+            query($skip: Boolean!) {
               productBySlug(slug: "a") {
                 description
                 name @skip(if: $skip)
@@ -1127,9 +1090,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-            ) {
+            query($skip: Boolean!) {
               productBySlug(slug: "a") {
                 name
                 description @skip(if: $skip)
@@ -1182,9 +1143,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-            ) {
+            query($skip: Boolean!) {
               votables {
                 ... on Product {
                   viewerCanVote
@@ -1238,9 +1197,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-            ) {
+            query($skip: Boolean!) {
               votables {
                 ... on Product {
                   voteCount
@@ -1295,9 +1252,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-            ) {
+            query($skip: Boolean!) {
               votables {
                 ... on Product {
                   voteCount
@@ -1355,9 +1310,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-            ) {
+            query($skip: Boolean!) {
               votables {
                 ... on Product {
                   voteCount
@@ -1412,9 +1365,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-            ) {
+            query($skip: Boolean!) {
               votables {
                 ... on Product {
                   voteCount
@@ -1468,10 +1419,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip1: Boolean!
-              $skip2: Boolean!
-            ) {
+            query($skip1: Boolean!, $skip2: Boolean!) {
               productBySlug(slug: "a") {
                 name
                 ... @skip(if: $skip1) {
@@ -1508,10 +1456,7 @@ public class DocumentRewriterTests
 
         var doc = Utf8GraphQLParser.Parse(
             """
-            query(
-              $skip1: Boolean!
-              $skip2: Boolean!
-            ) {
+            query($skip1: Boolean!, $skip2: Boolean!) {
               productBySlug(slug: "a") {
                 name
                 ... @skip(if: $skip1) {
@@ -1533,10 +1478,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip1: Boolean!
-              $skip2: Boolean!
-            ) {
+            query($skip1: Boolean!, $skip2: Boolean!) {
               productBySlug(slug: "a") {
                 name
                 ... @skip(if: $skip1) {
@@ -1567,10 +1509,7 @@ public class DocumentRewriterTests
 
         var doc = Utf8GraphQLParser.Parse(
             """
-            query(
-              $skip1: Boolean!
-              $skip2: Boolean!
-            ) {
+            query($skip1: Boolean!, $skip2: Boolean!) {
               productBySlug(slug: "a") {
                 name @skip(if: $skip1)
                 name @skip(if: $skip2)
@@ -1585,10 +1524,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip1: Boolean!
-              $skip2: Boolean!
-            ) {
+            query($skip1: Boolean!, $skip2: Boolean!) {
               productBySlug(slug: "a") {
                 name @skip(if: $skip1)
                 name @skip(if: $skip2)
@@ -1621,10 +1557,7 @@ public class DocumentRewriterTests
 
         var doc = Utf8GraphQLParser.Parse(
             """
-            query(
-              $skip1: Boolean!,
-              $skip2: Boolean!
-            ) {
+            query($skip1: Boolean!,, $skip2: Boolean!) {
               votables {
                 ... on Product @skip(if: $skip1) {
                   voteCount
@@ -1644,10 +1577,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip1: Boolean!
-              $skip2: Boolean!
-            ) {
+            query($skip1: Boolean!, $skip2: Boolean!) {
               votables {
                 ... on Product @skip(if: $skip1) {
                   voteCount
@@ -1687,10 +1617,7 @@ public class DocumentRewriterTests
 
         var doc = Utf8GraphQLParser.Parse(
             """
-            query(
-              $skip1: Boolean!,
-              $skip2: Boolean!
-            ) {
+            query($skip1: Boolean!,, $skip2: Boolean!) {
               votables {
                 ... on Product @skip(if: $skip1) {
                   voteCount
@@ -1711,10 +1638,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip1: Boolean!
-              $skip2: Boolean!
-            ) {
+            query($skip1: Boolean!, $skip2: Boolean!) {
               votables {
                 voteCount
                 ... on Product @skip(if: $skip1) {
@@ -1758,10 +1682,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-              $include: Boolean!
-            ) {
+            query($skip: Boolean!, $include: Boolean!) {
               productBySlug(slug: "a") @skip(if: $skip) {
                 dimension @include(if: $include) {
                   width
@@ -1802,10 +1723,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-              $include: Boolean!
-            ) {
+            query($skip: Boolean!, $include: Boolean!) {
               productBySlug(slug: "a") {
                 dimension @skip(if: $skip) @include(if: $include) {
                   width
@@ -1869,9 +1787,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-            ) {
+            query($skip: Boolean!) {
               productBySlug(slug: "a") {
                 name
                 dimension @skip(if: $skip) {
@@ -1910,10 +1826,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-              $include: Boolean!
-            ) {
+            query($skip: Boolean!, $include: Boolean!) {
               productBySlug(slug: "a") @skip(if: $skip) {
                 name
                 description @include(if: $include)
@@ -1980,11 +1893,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip1: Boolean!
-              $skip2: Boolean!
-              $skip3: Boolean!
-            ) {
+            query($skip1: Boolean!, $skip2: Boolean!, $skip3: Boolean!) {
               productBySlug(slug: "a") {
                 name
                 dimension @skip(if: $skip1) {
@@ -2050,9 +1959,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-            ) {
+            query($skip: Boolean!) {
               productBySlug(slug: "a") {
                 dimension {
                   ... @skip(if: $skip) {
@@ -2097,9 +2004,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-            ) {
+            query($skip: Boolean!) {
               productBySlug(slug: "a") {
                 name
                 ... @skip(if: $skip) {
@@ -2137,9 +2042,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-            ) {
+            query($skip: Boolean!) {
               productBySlug(slug: "a") {
                 secondaryName: name
                 primaryName: name @skip(if: $skip)
@@ -2176,9 +2079,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-            ) {
+            query($skip: Boolean!) {
               productBySlug(slug: "a") {
                 name
                 description
@@ -2220,9 +2121,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-            ) {
+            query($skip: Boolean!) {
               productBySlug(slug: "a") {
                 name
                 dimension {
@@ -2260,9 +2159,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $include: Boolean!
-            ) {
+            query($include: Boolean!) {
               productBySlug(slug: "a") {
                 ... @include(if: $include) {
                   name
@@ -2325,10 +2222,7 @@ public class DocumentRewriterTests
         // assert - should merge dimension fields appropriately
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip1: Boolean!
-              $skip2: Boolean!
-            ) {
+            query($skip1: Boolean!, $skip2: Boolean!) {
               productBySlug(slug: "a") {
                 name
                 dimension {
@@ -2387,9 +2281,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-            ) {
+            query($skip: Boolean!) {
               votables {
                 ... @skip(if: $skip) {
                   viewerCanVote
@@ -2435,9 +2327,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-            ) {
+            query($skip: Boolean!) {
               productBySlug(slug: "a") {
                 name
                 ... @skip(if: $skip) {
@@ -2477,9 +2367,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip: Boolean!
-            ) {
+            query($skip: Boolean!) {
               product1: productBySlug(slug: "a") {
                 name
               }
@@ -2550,10 +2438,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $skip1: Boolean!
-              $skip2: Boolean!
-            ) {
+            query($skip1: Boolean!, $skip2: Boolean!) {
               productBySlug(slug: "a") {
                 name
                 dimension @skip(if: $skip1) {
@@ -2612,9 +2497,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $conditional: Boolean!
-            ) {
+            query($conditional: Boolean!) {
               productBySlug(slug: "a") @skip(if: $conditional) {
                 name
               }
@@ -2663,9 +2546,7 @@ public class DocumentRewriterTests
         // assert
         rewritten.MatchInlineSnapshot(
             """
-            query(
-              $conditional: Boolean!
-            ) {
+            query($conditional: Boolean!) {
               productBySlug(slug: "a") @include(if: $conditional) {
                 name
               }

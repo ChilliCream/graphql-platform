@@ -3,6 +3,10 @@ using HotChocolate.Caching;
 
 namespace HotChocolate.Types;
 
+/// <summary>
+/// Provides extension methods for <see cref="IUnionTypeDescriptor"/>
+/// to apply <c>@cacheControl</c> directives to union types.
+/// </summary>
 public static class CacheControlUnionTypeDescriptorExtensions
 {
     /// <summary>

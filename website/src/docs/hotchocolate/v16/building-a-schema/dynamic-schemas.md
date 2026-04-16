@@ -15,8 +15,8 @@ When you fire the `TypesChanged` event, Hot Chocolate phases out the old schema 
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddTypeModule<MyTypeModule>();
 ```
 
@@ -211,8 +211,8 @@ mutationDef.Fields.Add(createProductField);
 
 var mutationType = ObjectType.CreateUnsafe(mutationDef);
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType()
     .AddMutationType(mutationType)
     .AddType(productInputType)

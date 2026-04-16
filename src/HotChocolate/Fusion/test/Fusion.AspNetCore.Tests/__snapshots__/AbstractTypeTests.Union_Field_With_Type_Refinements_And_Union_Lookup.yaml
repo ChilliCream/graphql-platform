@@ -42,6 +42,7 @@ sourceSchemas:
       union SearchResult = User | Product
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_465e7f4e_1 {
               search {
@@ -88,10 +89,9 @@ sourceSchemas:
       union SearchResult = User | Product
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Op_465e7f4e_3(
-              $__fusion_2_id: ID!
-            ) {
+            query Op_465e7f4e_3($__fusion_2_id: ID!) {
               searchResultById(id: $__fusion_2_id) {
                 __typename
                 ... on User {
@@ -153,9 +153,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_465e7f4e_2(
-          $__fusion_1_id: ID!
-        ) {
+        query Op_465e7f4e_2($__fusion_1_id: ID!) {
           searchResultById(id: $__fusion_1_id) {
             __typename
             ... on Product {
@@ -176,9 +174,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_465e7f4e_3(
-          $__fusion_2_id: ID!
-        ) {
+        query Op_465e7f4e_3($__fusion_2_id: ID!) {
           searchResultById(id: $__fusion_2_id) {
             __typename
             ... on User {

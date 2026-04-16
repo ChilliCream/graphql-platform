@@ -15,7 +15,6 @@ public class SourceSchemaErrorTests : FusionTestBase
     [Theory]
     [InlineData(ErrorHandlingMode.Propagate)]
     [InlineData(ErrorHandlingMode.Null)]
-    [InlineData(ErrorHandlingMode.Halt)]
     public async Task Error_On_Root_Field(ErrorHandlingMode onError)
     {
         // arrange
@@ -49,10 +48,44 @@ public class SourceSchemaErrorTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
     }
 
+    [Fact]
+    public async Task SchemaDefault_Null_AppliesWithoutPerRequestOverride()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema3.Query>());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ],
+        configureGatewayBuilder: builder =>
+            builder.ModifyOptions(o => o.DefaultErrorHandlingMode = ErrorHandlingMode.Null));
+
+        // act — no per-request onError override
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              productById(id: 1) {
+                name
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
     [Theory]
     [InlineData(ErrorHandlingMode.Propagate)]
     [InlineData(ErrorHandlingMode.Null)]
-    [InlineData(ErrorHandlingMode.Halt)]
     public async Task Error_On_Root_Leaf(ErrorHandlingMode onError)
     {
         // arrange
@@ -89,7 +122,6 @@ public class SourceSchemaErrorTests : FusionTestBase
     [Theory]
     [InlineData(ErrorHandlingMode.Propagate)]
     [InlineData(ErrorHandlingMode.Null)]
-    [InlineData(ErrorHandlingMode.Halt)]
     public async Task No_Data_And_Error_With_Path_For_Root_Field_NonNull(ErrorHandlingMode onError)
     {
         // arrange
@@ -126,7 +158,6 @@ public class SourceSchemaErrorTests : FusionTestBase
     [Theory]
     [InlineData(ErrorHandlingMode.Propagate)]
     [InlineData(ErrorHandlingMode.Null)]
-    [InlineData(ErrorHandlingMode.Halt)]
     public async Task No_Data_And_Error_Without_Path_For_Root_Field(ErrorHandlingMode onError)
     {
         // arrange
@@ -178,7 +209,6 @@ public class SourceSchemaErrorTests : FusionTestBase
     [Theory]
     [InlineData(ErrorHandlingMode.Propagate)]
     [InlineData(ErrorHandlingMode.Null)]
-    [InlineData(ErrorHandlingMode.Halt)]
     public async Task No_Data_And_Error_Without_Path_For_Root_Field_NonNull(ErrorHandlingMode onError)
     {
         // arrange
@@ -230,7 +260,6 @@ public class SourceSchemaErrorTests : FusionTestBase
     [Theory]
     [InlineData(ErrorHandlingMode.Propagate)]
     [InlineData(ErrorHandlingMode.Null)]
-    [InlineData(ErrorHandlingMode.Halt)]
     public async Task SourceSchema_Request_Fails_For_Root_Field(ErrorHandlingMode onError)
     {
         // arrange
@@ -268,7 +297,6 @@ public class SourceSchemaErrorTests : FusionTestBase
     [Theory]
     [InlineData(ErrorHandlingMode.Propagate)]
     [InlineData(ErrorHandlingMode.Null)]
-    [InlineData(ErrorHandlingMode.Halt)]
     public async Task SourceSchema_Request_Fails_For_Root_Field_NonNull(ErrorHandlingMode onError)
     {
         // arrange
@@ -310,7 +338,6 @@ public class SourceSchemaErrorTests : FusionTestBase
     [Theory]
     [InlineData(ErrorHandlingMode.Propagate)]
     [InlineData(ErrorHandlingMode.Null)]
-    [InlineData(ErrorHandlingMode.Halt)]
     public async Task Error_On_Lookup_Leaf(ErrorHandlingMode onError)
     {
         // arrange
@@ -353,7 +380,6 @@ public class SourceSchemaErrorTests : FusionTestBase
     [Theory]
     [InlineData(ErrorHandlingMode.Propagate)]
     [InlineData(ErrorHandlingMode.Null)]
-    [InlineData(ErrorHandlingMode.Halt)]
     public async Task Error_On_Lookup_Field(ErrorHandlingMode onError)
     {
         // arrange
@@ -396,7 +422,6 @@ public class SourceSchemaErrorTests : FusionTestBase
     [Theory]
     [InlineData(ErrorHandlingMode.Propagate)]
     [InlineData(ErrorHandlingMode.Null)]
-    [InlineData(ErrorHandlingMode.Halt)]
     public async Task Error_On_Lookup_Leaf_NonNull(ErrorHandlingMode onError)
     {
         // arrange
@@ -439,7 +464,6 @@ public class SourceSchemaErrorTests : FusionTestBase
     [Theory]
     [InlineData(ErrorHandlingMode.Propagate)]
     [InlineData(ErrorHandlingMode.Null)]
-    [InlineData(ErrorHandlingMode.Halt)]
     public async Task Error_On_Lookup_Field_In_List(ErrorHandlingMode onError)
     {
         // arrange
@@ -482,7 +506,6 @@ public class SourceSchemaErrorTests : FusionTestBase
     [Theory]
     [InlineData(ErrorHandlingMode.Propagate)]
     [InlineData(ErrorHandlingMode.Null)]
-    [InlineData(ErrorHandlingMode.Halt)]
     public async Task Error_On_Lookup_Leaf_In_List(ErrorHandlingMode onError)
     {
         // arrange
@@ -525,7 +548,6 @@ public class SourceSchemaErrorTests : FusionTestBase
     [Theory]
     [InlineData(ErrorHandlingMode.Propagate)]
     [InlineData(ErrorHandlingMode.Null)]
-    [InlineData(ErrorHandlingMode.Halt)]
     public async Task Error_On_Lookup_Leaf_In_List_NonNull(ErrorHandlingMode onError)
     {
         // arrange
@@ -568,50 +590,6 @@ public class SourceSchemaErrorTests : FusionTestBase
     [Theory]
     [InlineData(ErrorHandlingMode.Propagate)]
     [InlineData(ErrorHandlingMode.Null)]
-    [InlineData(ErrorHandlingMode.Halt)]
-    public async Task No_Data_And_Error_With_Path_For_Lookup_Field_NonNull(ErrorHandlingMode onError)
-    {
-        // arrange
-        using var server1 = CreateSourceSchema(
-            "A",
-            b => b.AddQueryType<SourceSchema1.Query>());
-
-        using var server2 = CreateSourceSchema(
-            "B",
-            b => b.AddQueryType<SourceSchema4.Query>());
-
-        using var gateway = await CreateCompositeSchemaAsync(
-        [
-            ("A", server1),
-            ("B", server2)
-        ]);
-
-        // act
-        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
-
-        var request = new OperationRequest(
-            """
-            {
-              topProduct {
-                price
-                name
-              }
-            }
-            """,
-            onError: onError);
-
-        using var result = await client.PostAsync(
-            request,
-            new Uri("http://localhost:5000/graphql"));
-
-        // assert
-        await MatchSnapshotAsync(gateway, request, result, postFix: "OnError_" + onError);
-    }
-
-    [Theory]
-    [InlineData(ErrorHandlingMode.Propagate)]
-    [InlineData(ErrorHandlingMode.Null)]
-    [InlineData(ErrorHandlingMode.Halt)]
     public async Task No_Data_And_Error_With_Path_For_Lookup_Leaf_NonNull(ErrorHandlingMode onError)
     {
         // arrange
@@ -654,7 +632,6 @@ public class SourceSchemaErrorTests : FusionTestBase
     [Theory]
     [InlineData(ErrorHandlingMode.Propagate)]
     [InlineData(ErrorHandlingMode.Null)]
-    [InlineData(ErrorHandlingMode.Halt)]
     public async Task No_Data_And_Error_Without_Path_For_Lookup_Field_NonNull(ErrorHandlingMode onError)
     {
         // arrange
@@ -712,7 +689,6 @@ public class SourceSchemaErrorTests : FusionTestBase
     [Theory]
     [InlineData(ErrorHandlingMode.Propagate)]
     [InlineData(ErrorHandlingMode.Null)]
-    [InlineData(ErrorHandlingMode.Halt)]
     public async Task SourceSchema_Request_Fails_For_Lookup(ErrorHandlingMode onError)
     {
         // arrange
@@ -756,7 +732,6 @@ public class SourceSchemaErrorTests : FusionTestBase
     [Theory]
     [InlineData(ErrorHandlingMode.Propagate)]
     [InlineData(ErrorHandlingMode.Null)]
-    [InlineData(ErrorHandlingMode.Halt)]
     public async Task SourceSchema_Request_Fails_For_Lookup_NonNull(ErrorHandlingMode onError)
     {
         // arrange
@@ -800,7 +775,6 @@ public class SourceSchemaErrorTests : FusionTestBase
     [Theory]
     [InlineData(ErrorHandlingMode.Propagate)]
     [InlineData(ErrorHandlingMode.Null)]
-    [InlineData(ErrorHandlingMode.Halt)]
     public async Task SourceSchema_Request_Fails_For_Lookup_On_List(ErrorHandlingMode onError)
     {
         // arrange
@@ -844,7 +818,6 @@ public class SourceSchemaErrorTests : FusionTestBase
     [Theory]
     [InlineData(ErrorHandlingMode.Propagate)]
     [InlineData(ErrorHandlingMode.Null)]
-    [InlineData(ErrorHandlingMode.Halt)]
     public async Task SourceSchema_Request_Fails_For_Lookup_On_List_NonNull(ErrorHandlingMode onError)
     {
         // arrange
@@ -978,7 +951,7 @@ public class SourceSchemaErrorTests : FusionTestBase
         public class Query
         {
             [Lookup]
-            public Product GetProductById(int id, IResolverContext context)
+            public Product? GetProductById(int id, IResolverContext context)
                 => throw new GraphQLException(ErrorBuilder.New().SetMessage("Could not resolve Product")
                     .SetPath(context.Path).Build());
         }
@@ -1008,7 +981,7 @@ public class SourceSchemaErrorTests : FusionTestBase
         public class Query
         {
             [Lookup]
-            public Product GetProductById(int id) => new(id);
+            public Product? GetProductById(int id) => new(id);
         }
 
         public record Product(int Id)

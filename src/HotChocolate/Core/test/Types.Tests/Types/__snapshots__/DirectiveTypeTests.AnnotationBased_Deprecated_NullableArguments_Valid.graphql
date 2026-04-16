@@ -6,4 +6,8 @@ type Query {
   bar: String @deprecated2
 }
 
-directive @deprecated2(obsoleteWithReason: Int @deprecated(reason: "reason") obsolete: Int @deprecated deprecated: Int @deprecated(reason: "reason")) on FIELD_DEFINITION
+directive @deprecated2(
+  obsoleteWithReason: Int @deprecated(reason: "reason")
+  obsolete: Int @deprecated
+  deprecated: Int @deprecated(reason: "reason")
+) on FIELD_DEFINITION

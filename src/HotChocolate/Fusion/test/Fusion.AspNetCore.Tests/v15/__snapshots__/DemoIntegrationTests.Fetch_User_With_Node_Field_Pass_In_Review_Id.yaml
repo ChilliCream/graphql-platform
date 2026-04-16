@@ -1,9 +1,7 @@
 title: Fetch_User_With_Node_Field_Pass_In_Review_Id
 request:
   document: |
-    query FetchNode(
-      $id: ID!
-    ) {
+    query FetchNode($id: ID!) {
       node(id: $id) {
         ... on User {
           id
@@ -37,7 +35,7 @@ sourceSchemas:
         nodes(ids: [ID!]!): [Node]! @shareable
         userById(id: ID!): User!
         users: [User!]!
-        testWithTwoArgumentsDifferingNullability(first: Int! second: Int): String!
+        testWithTwoArgumentsDifferingNullability(first: Int!, second: Int): String!
       }
 
       type User implements Node {
@@ -82,10 +80,9 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query FetchNode_7eae38bd_2(
-              $id: ID!
-            ) {
+            query FetchNode_7eae38bd_2($id: ID!) {
               node(id: $id) {
                 __typename
               }
@@ -148,9 +145,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query FetchNode(
-          $id: ID!
-        ) {
+        query FetchNode($id: ID!) {
           node(id: $id) {
             __typename @fusion__requirement
             ... on User {
@@ -173,9 +168,7 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query FetchNode_7eae38bd_2(
-          $id: ID!
-        ) {
+        query FetchNode_7eae38bd_2($id: ID!) {
           node(id: $id) {
             __typename
           }
@@ -188,9 +181,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query FetchNode_7eae38bd_3(
-          $id: ID!
-        ) {
+        query FetchNode_7eae38bd_3($id: ID!) {
           node(id: $id) {
             __typename
             ... on User {

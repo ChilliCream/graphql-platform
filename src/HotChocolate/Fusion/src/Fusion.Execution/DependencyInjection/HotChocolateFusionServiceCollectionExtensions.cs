@@ -5,7 +5,6 @@ using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Language;
-using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Options;
@@ -29,6 +28,22 @@ public static class HotChocolateFusionServiceCollectionExtensions
 
         return CreateBuilder(services, name);
     }
+
+    /// <summary>
+    /// Builds a <see cref="ServiceProvider"/> from the <paramref name="services"/> and
+    /// resolves the Fusion gateway executor.
+    /// </summary>
+    /// <param name="services">The service collection containing the gateway configuration.</param>
+    /// <param name="cancellationToken">A token to cancel the operation.</param>
+    /// <returns>The gateway request executor.</returns>
+    public static async ValueTask<IRequestExecutor> BuildGatewayAsync(
+        this IServiceCollection services,
+        CancellationToken cancellationToken = default)
+        => await services
+            .BuildServiceProvider()
+            .GetRequiredService<FusionRequestExecutorManager>()
+            .GetExecutorAsync(cancellationToken: cancellationToken)
+            .ConfigureAwait(false);
 
     private static void AddCore(
         IServiceCollection services)
@@ -60,9 +75,13 @@ public static class HotChocolateFusionServiceCollectionExtensions
     private static void AddSourceSchemaScope(
         IServiceCollection services)
     {
+        services.AddSingleton<ISourceSchemaClientFactory>(
+            static sp => new HttpSourceSchemaClientFactory(
+                sp.GetRequiredService<IHttpClientFactory>()));
+
         services.TryAddSingleton<ISourceSchemaClientScopeFactory>(
             static sp => new DefaultSourceSchemaClientScopeFactory(
-                sp.GetRequiredService<IHttpClientFactory>()));
+                sp.GetServices<ISourceSchemaClientFactory>().ToArray()));
     }
 
     private static DefaultFusionGatewayBuilder CreateBuilder(

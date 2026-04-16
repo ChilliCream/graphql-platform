@@ -107,7 +107,7 @@ sourceSchemas:
         nodes(ids: [ID!]!): [Node]! @shareable
         userById(id: ID!): User!
         users: [User!]!
-        testWithTwoArgumentsDifferingNullability(first: Int! second: Int): String!
+        testWithTwoArgumentsDifferingNullability(first: Int!, second: Int): String!
       }
 
       type User implements Node {
@@ -152,10 +152,9 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query TopProducts_b7ed3f85_2(
-              $__fusion_1_id: ID!
-            ) {
+            query TopProducts_b7ed3f85_2($__fusion_1_id: ID!) {
               node(id: $__fusion_1_id) {
                 __typename
                 ... on Product {
@@ -310,6 +309,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query TopProducts_b7ed3f85_1 {
               __typename
@@ -376,9 +376,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query TopProducts_b7ed3f85_2(
-          $__fusion_1_id: ID!
-        ) {
+        query TopProducts_b7ed3f85_2($__fusion_1_id: ID!) {
           node(id: $__fusion_1_id) {
             __typename
             ... on Product {

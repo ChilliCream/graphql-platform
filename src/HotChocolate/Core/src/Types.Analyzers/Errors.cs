@@ -52,7 +52,7 @@ public static class Errors
 
     public static readonly DiagnosticDescriptor InterfaceTypeStaticKeywordMissing =
         new(
-            id: "HC0107",
+            id: "HC0112",
             title: "Static Keyword Missing",
             messageFormat: "A split interface type class needs to be a static class",
             category: "TypeSystem",
@@ -79,7 +79,7 @@ public static class Errors
 
     public static readonly DiagnosticDescriptor DataLoaderCannotBeGeneric =
         new(
-            id: "HC0085",
+            id: "HC0111",
             title: "DataLoader Cannot Be Generic",
             messageFormat: "The DataLoader source generator cannot generate generic DataLoaders",
             category: "DataLoader",
@@ -88,7 +88,7 @@ public static class Errors
 
     public static readonly DiagnosticDescriptor ConnectionSingleGenericTypeArgument =
         new(
-            id: "HC0086",
+            id: "HC0110",
             title: "Invalid Connection Structure",
             messageFormat: "A generic connection/edge type must have a single generic type argument that represents the node type",
             category: "TypeSystem",
@@ -97,7 +97,7 @@ public static class Errors
 
     public static readonly DiagnosticDescriptor ConnectionNameFormatIsInvalid =
         new(
-            id: "HC0087",
+            id: "HC0109",
             title: "Invalid Connection/Edge Name Format",
             messageFormat: "A connection/edge name must be in the format `{0}Edge` or `{0}Connection`",
             category: "TypeSystem",
@@ -106,7 +106,7 @@ public static class Errors
 
     public static readonly DiagnosticDescriptor ConnectionNameDuplicate =
         new(
-            id: "HC0088",
+            id: "HC0108",
             title: "Invalid Connection/Edge Name",
             messageFormat: "The type `{0}` cannot be mapped to the GraphQL type name `{1}` as `{2}` is already mapped to it",
             category: "TypeSystem",
@@ -253,6 +253,24 @@ public static class Errors
             id: "HC0106",
             title: "Microsoft Authorization Attribute Not Allowed",
             messageFormat: "Use HotChocolate.Authorization.{0} instead",
+            category: "TypeSystem",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor LookupReturnsNonNullableType =
+        new(
+            id: "HC0113",
+            title: "Lookup Must Return Nullable Type",
+            messageFormat: "A method or property with the [Lookup] attribute must return a nullable type",
+            category: "TypeSystem",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor LookupReturnsListType =
+        new(
+            id: "HC0114",
+            title: "Lookup Must Not Return List Type",
+            messageFormat: "A method or property with the [Lookup] attribute must not return a list type",
             category: "TypeSystem",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);

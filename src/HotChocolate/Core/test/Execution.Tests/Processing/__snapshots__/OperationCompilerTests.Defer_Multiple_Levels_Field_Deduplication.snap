@@ -40,9 +40,12 @@
             deeperObject @__execute(id: 6, kind: DEFAULT, type: COMPOSITE) {
               ... on DeeperObject {
                 foo @__execute(id: 8, kind: DEFAULT, type: LEAF)
-                bar @__execute(id: 9, kind: DEFAULT, type: LEAF, isDeferred: true)
-                baz @__execute(id: 10, kind: DEFAULT, type: LEAF, isDeferred: true)
-                bak @__execute(id: 11, kind: DEFAULT, type: LEAF, isDeferred: true)
+                bar
+                  @__execute(id: 9, kind: DEFAULT, type: LEAF, isDeferred: true)
+                baz
+                  @__execute(id: 10, kind: DEFAULT, type: LEAF, isDeferred: true)
+                bak
+                  @__execute(id: 11, kind: DEFAULT, type: LEAF, isDeferred: true)
               }
             }
           }

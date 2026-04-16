@@ -235,12 +235,14 @@ internal sealed class OperationPlanExecutor
             static state => Unsafe.As<AsyncAutoResetEvent>(state)!.TryResetToIdle(),
             executionState.Signal);
 
+        var schemaName = subscriptionNode.SchemaName ?? context.GetDynamicSchemaName(subscriptionNode);
+
         await foreach (var eventArgs in stream)
         {
             using var scope = context.DiagnosticEvents.OnSubscriptionEvent(
                 context,
                 subscriptionNode,
-                subscriptionNode.SchemaName ?? context.GetDynamicSchemaName(subscriptionNode),
+                schemaName,
                 subscriptionResult.Id);
 
             OperationResult result;
@@ -295,7 +297,7 @@ internal sealed class OperationPlanExecutor
                 context.DiagnosticEvents.SubscriptionEventError(
                     context,
                     subscriptionNode,
-                    subscriptionNode.SchemaName ?? context.GetDynamicSchemaName(subscriptionNode),
+                    schemaName,
                     subscriptionResult.Id,
                     ex);
                 throw;

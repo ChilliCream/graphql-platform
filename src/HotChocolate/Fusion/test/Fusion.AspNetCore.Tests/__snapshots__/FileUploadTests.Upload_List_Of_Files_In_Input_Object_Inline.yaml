@@ -56,6 +56,7 @@ sourceSchemas:
 
       type Query {
         singleUpload(file: Upload!): FileUploadResult!
+        nullableUpload(file: Upload): FileUploadResult
         singleUploadWithInput(input: FileInput!): FileUploadResult!
         multiUpload(files: [Upload!]!): [FileUploadResult!]!
         multiUploadWithInput(input: FilesInput!): [FileUploadResult!]!
@@ -85,19 +86,25 @@ sourceSchemas:
         LIST
       }
 
-      directive @serializeAs("The primitive type a scalar is serialized to." type: [ScalarSerializationType!]! "The ECMA-262 regex pattern that the serialized scalar value conforms to." pattern: String) on SCALAR
+      directive @serializeAs(
+        "The primitive type a scalar is serialized to."
+        type: [ScalarSerializationType!]!
+        "The ECMA-262 regex pattern that the serialized scalar value conforms to."
+        pattern: String
+      ) on SCALAR
 
       "The `Upload` scalar type represents a file upload."
       scalar Upload @serializeAs(type: STRING)
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           contentType: multipart/form-data; boundary="f56524ab-5626-4955-b296-234a097b44f6"
           body: |
             --f56524ab-5626-4955-b296-234a097b44f6
             Content-Type: application/json; charset=utf-8
             Content-Disposition: form-data; name=operations
 
-            {"query":"query Op_8c427040_1(\n  $files: [Upload!]!\n) {\n  multiUploadWithInput(input: { files: $files }) {\n    fileName\n    contentType\n    content\n  }\n}","variables":{"files":[null,null]}}
+            {"query":"query Op_8c427040_1($files: [Upload!]!) {\n  multiUploadWithInput(input: { files: $files }) {\n    fileName\n    contentType\n    content\n  }\n}","variables":{"files":[null,null]}}
             --f56524ab-5626-4955-b296-234a097b44f6
             Content-Type: application/json; charset=utf-8
             Content-Disposition: form-data; name=map
@@ -136,9 +143,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query(
-          $files: [Upload!]!
-        ) {
+        query($files: [Upload!]!) {
           multiUploadWithInput(input: { files: $files }) {
             fileName
             contentType
@@ -153,9 +158,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_8c427040_1(
-          $files: [Upload!]!
-        ) {
+        query Op_8c427040_1($files: [Upload!]!) {
           multiUploadWithInput(input: { files: $files }) {
             fileName
             contentType

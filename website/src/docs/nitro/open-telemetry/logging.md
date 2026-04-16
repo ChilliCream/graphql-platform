@@ -52,7 +52,7 @@ Below is a sample implementation in C#:
 public void ConfigureServices(IServiceCollection services)
 {
     services
-        .AddGraphQLServer()
+        .AddGraphQL()
         .AddQueryType<Query>()
         .AddNitro(x =>
         {
@@ -85,7 +85,7 @@ public void ConfigureServices(IServiceCollection services)
 > public void ConfigureServices(IServiceCollection services)
 > {
 >     services
->         .AddGraphQLServer()
+>         .AddGraphQL()
 >         .AddQueryType<Query>()
 >         .AddNitro()
 >         .AddInstrumentation(); // Enable the graphql telemetry

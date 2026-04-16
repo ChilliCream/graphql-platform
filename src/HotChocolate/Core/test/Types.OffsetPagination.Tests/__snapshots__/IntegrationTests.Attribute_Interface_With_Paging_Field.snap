@@ -1,9 +1,9 @@
-﻿schema {
+schema {
   query: QueryAttr
 }
 
 interface ISome2 {
-  explicitType(skip: Int take: Int): ExplicitTypeCollectionSegment
+  explicitType(skip: Int, take: Int): ExplicitTypeCollectionSegment
 }
 
 "Information about the offset pagination."
@@ -44,7 +44,7 @@ type NestedObjectListCollectionSegment {
 }
 
 type QueryAttr {
-  nestedObjectList(skip: Int take: Int): NestedObjectListCollectionSegment
-  letters(skip: Int take: Int): LettersCollectionSegment
-  explicitType(skip: Int take: Int): ExplicitTypeCollectionSegment
+  nestedObjectList(skip: Int, take: Int): NestedObjectListCollectionSegment
+  letters(skip: Int, take: Int): LettersCollectionSegment
+  explicitType(skip: Int, take: Int): ExplicitTypeCollectionSegment
 }

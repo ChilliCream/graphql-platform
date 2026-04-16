@@ -96,7 +96,7 @@ internal static class OpenApiEndpointFactory
 
         var responseNameToExtract = rootField.Alias?.Value ?? rootField.Name.Value;
 
-        var route = CreateRoutePattern(endpointDefinition.Route);
+        var route = RoutePatternFactory.Parse(endpointDefinition.Route);
 
         var parameterTrie = new VariableValueInsertionTrie();
 
@@ -123,7 +123,7 @@ internal static class OpenApiEndpointFactory
         {
             foreach (var parameter in parameters)
             {
-                var (inputType, hasDefaultValue) = GetParameterDetails(
+                var (inputType, hasDefaultValue, isNonNullType) = GetParameterDetails(
                     parameter,
                     endpointDefinition.OperationDefinition,
                     schema);
@@ -132,7 +132,8 @@ internal static class OpenApiEndpointFactory
                     parameter.Key,
                     inputType,
                     parameterType,
-                    hasDefaultValue);
+                    hasDefaultValue,
+                    isNonNullType);
 
                 var inputObjectPath = parameter.InputObjectPath;
 
@@ -185,7 +186,7 @@ internal static class OpenApiEndpointFactory
         }
     }
 
-    private static (ITypeDefinition Type, bool HasDefaultValue) GetParameterDetails(
+    private static (ITypeDefinition Type, bool HasDefaultValue, bool IsNonNullType) GetParameterDetails(
         OpenApiEndpointDefinitionParameter parameter,
         OperationDefinitionNode operation,
         ISchemaDefinition schema)
@@ -195,6 +196,7 @@ internal static class OpenApiEndpointFactory
 
         var currentType = schema.Types[variable.Type.NamedType().Name.Value];
         var hasDefaultValue = variable.DefaultValue is not null;
+        var isNonNullType = variable.Type.IsNonNullType();
 
         if (parameter.InputObjectPath is { Length: > 0 })
         {
@@ -209,35 +211,10 @@ internal static class OpenApiEndpointFactory
 
                 currentType = field.Type.NamedType();
                 hasDefaultValue = field.DefaultValue is not null;
+                isNonNullType = field.Type.IsNonNullType();
             }
         }
 
-        return (currentType, hasDefaultValue);
-    }
-
-    private static RoutePattern CreateRoutePattern(string route)
-    {
-        return RoutePatternFactory.Parse(route);
-        // var segments = new List<RoutePatternPathSegment>();
-        //
-        // foreach (var segment in route.Segments)
-        // {
-        //     if (segment is OpenApiRouteSegmentLiteral stringSegment)
-        //     {
-        //         segments.Add(
-        //             RoutePatternFactory.Segment(
-        //                 RoutePatternFactory.LiteralPart(stringSegment.Value)));
-        //     }
-        //     else if (segment is OpenApiRouteSegmentParameter mapSegment)
-        //     {
-        //         // We do not apply route constraints here, as they are not meant for validation but to disambiguate routes:
-        //         // https://learn.microsoft.com/en-us/aspnet/core/fundamentals/routing#route-constraints
-        //         segments.Add(
-        //             RoutePatternFactory.Segment(
-        //                 RoutePatternFactory.ParameterPart(mapSegment.Key)));
-        //     }
-        // }
-        //
-        // return RoutePatternFactory.Pattern(segments);
+        return (currentType, hasDefaultValue, isNonNullType);
     }
 }

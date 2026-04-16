@@ -46,6 +46,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
 
     public async ValueTask<GraphQLRequest[]> ParseRequestAsync(
         PipeReader requestBody,
+        bool skipDocumentBody,
         CancellationToken cancellationToken)
     {
         try
@@ -78,7 +79,8 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             var requestParser = new Utf8GraphQLRequestParser(
                 _parserOptions,
                 _documentCache,
-                _documentHashProvider);
+                _documentHashProvider,
+                skipDocumentBody);
 
             var requests = requestParser.Parse(result.Buffer);
 
@@ -105,6 +107,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         string documentId,
         string? operationName,
         PipeReader requestBody,
+        bool skipDocumentBody,
         CancellationToken cancellationToken)
     {
         if (!OperationDocumentId.TryParse(documentId, out var parsedDocumentId))
@@ -143,7 +146,8 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             var requestParser = new Utf8GraphQLRequestParser(
                 _parserOptions,
                 _documentCache,
-                _documentHashProvider);
+                _documentHashProvider,
+                skipDocumentBody);
 
             var request = requestParser.ParsePersistedOperation(parsedDocumentId, operationName, result.Buffer);
 
@@ -166,10 +170,24 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         }
     }
 
-    public GraphQLRequest ParseRequestFromParams(IQueryCollection parameters)
+    public GraphQLRequest ParseRequestFromParams(IQueryCollection parameters, bool skipDocumentBody = false)
     {
         // next, we deserialize the GET request with the query request builder ...
-        string? query = parameters[QueryKey];
+        var hasDocumentBody = false;
+        string? query = null;
+
+        if (skipDocumentBody)
+        {
+            if (!string.IsNullOrWhiteSpace((string?)parameters[QueryKey]))
+            {
+                hasDocumentBody = true;
+            }
+        }
+        else
+        {
+            query = parameters[QueryKey];
+        }
+
         string? queryId = parameters[QueryIdKey];
         string? operationName = parameters[OperationNameKey];
         string? onError = parameters[OnErrorKey];
@@ -189,9 +207,19 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             // we will use the request parser utils to extract the hash from the extensions.
             if (!TryExtractHash(extensions, _documentHashProvider, out var hash))
             {
-                // if we cannot find any query hash in the extensions, or if the extensions are
-                // null, we are unable to execute and will throw a request error.
-                throw DefaultHttpRequestParser_QueryAndIdMissing();
+                if (hasDocumentBody)
+                {
+                    // The request had a query parameter, but we skipped it because we are
+                    // in strict trusted documents mode. Let it through so the execution
+                    // pipeline can reject it with HC0067.
+                    hash = null;
+                }
+                else
+                {
+                    // if we cannot find any query hash in the extensions, or if the extensions are
+                    // null, we are unable to execute and will throw a request error.
+                    throw DefaultHttpRequestParser_QueryAndIdMissing();
+                }
             }
 
             // if we however found a query hash, we will use it as a query id and move on
@@ -228,11 +256,7 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
                 extensions = JsonDocument.Parse(se);
             }
 
-            ErrorHandlingMode? errorHandlingMode = null;
-            if (!string.IsNullOrEmpty(onError))
-            {
-                errorHandlingMode = ParseErrorHandlingMode(onError);
-            }
+            var errorHandlingMode = ParseErrorHandlingMode(onError);
 
             return new GraphQLRequest(
                 document,
@@ -241,7 +265,8 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
                 operationName,
                 errorHandlingMode,
                 variableSet,
-                extensions);
+                extensions,
+                hasDocumentBody);
         }
         catch (SyntaxException ex)
         {
@@ -327,8 +352,13 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         return (documentHash, document);
     }
 
-    private static ErrorHandlingMode? ParseErrorHandlingMode(string onError)
+    private static ErrorHandlingMode? ParseErrorHandlingMode(string? onError)
     {
+        if (string.IsNullOrEmpty(onError))
+        {
+            return null;
+        }
+
         if (onError.Equals("PROPAGATE", StringComparison.OrdinalIgnoreCase))
         {
             return ErrorHandlingMode.Propagate;
@@ -339,15 +369,11 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
             return ErrorHandlingMode.Null;
         }
 
-        if (onError.Equals("HALT", StringComparison.OrdinalIgnoreCase))
-        {
-            return ErrorHandlingMode.Halt;
-        }
-
-        return null;
+        throw new InvalidGraphQLRequestException(
+            $"Unknown 'onError' value '{onError}'. Allowed values are 'PROPAGATE' or 'NULL'.");
     }
 
-    public GraphQLRequest[] ParseRequest(string sourceText)
+    public GraphQLRequest[] ParseRequest(string sourceText, bool skipDocumentBody = false)
     {
         byte[]? rented = null;
         var maxLength = s_utf8.GetMaxByteCount(sourceText.Length);
@@ -356,7 +382,12 @@ internal sealed class DefaultHttpRequestParser : IHttpRequestParser
         try
         {
             s_utf8.GetBytes(sourceText, span);
-            return Parse(span, _parserOptions, _documentCache, _documentHashProvider);
+            var requestParser = new Utf8GraphQLRequestParser(
+                _parserOptions,
+                _documentCache,
+                _documentHashProvider,
+                skipDocumentBody);
+            return requestParser.Parse(span);
         }
         catch (InvalidGraphQLRequestException ex)
         {

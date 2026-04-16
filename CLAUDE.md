@@ -55,12 +55,24 @@ dotnet test src/HotChocolate/Fusion
 
 ### Testing
 
-- Filter tests during iteration — never run the full suite unnecessarily
+- Prefer snapshot tests over manual `Assert` calls — use **CookieCrumble** for snapshots
+- CookieCrumble has native snapshot support for `IExecutionResult`, `GraphQLHttpResponse`, and other core types
+- For smaller snapshots, prefer **inline snapshots** (`MatchInlineSnapshot`) over snapshot files
+- For tests with multiple assertions, use **Markdown snapshots** (`MatchMarkdownSnapshot`)
 - Snapshot tests: update from `__mismatch__/` directory, understand ordering issues before updating
+- Filter tests during iteration — never run the full suite unnecessarily
 - Real databases in integration tests, not mocks (unless explicitly instructed otherwise)
 
 ## Performance
 
+### C# / .NET
+
 This is framework code — performance matters. Aim for zero allocations on hot paths.
 
 - Use `ChunkedArrayWriter` or `PooledArrayWriter` when you need an `IBufferWriter<byte>` for in-memory byte writing.
+
+## Tools
+
+### C# / .NET
+
+If you need to search for packages on nuget.org use the `dotnet` cli, eg `dotnet package search HotChocolate`.

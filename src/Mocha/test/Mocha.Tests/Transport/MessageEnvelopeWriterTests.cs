@@ -599,4 +599,118 @@ public class MessageEnvelopeWriterTests
 
         Assert.Equal("urn:message:OrderCreated", doc.RootElement.GetProperty("messageType").GetString());
     }
+
+    [Fact]
+    public void WriteMessage_Should_SerializeDateTimeInIso8601_When_ScheduledTimeIsPresent()
+    {
+        // arrange
+        var envelope = new MessageEnvelope
+        {
+            MessageId = "msg-021",
+            ScheduledTime = new DateTimeOffset(2026, 6, 1, 12, 0, 0, TimeSpan.Zero)
+        };
+
+        using var stream = new MemoryStream();
+        using var writer = new Utf8JsonWriter(stream);
+
+        // act
+        var envelopeWriter = new MessageEnvelopeWriter(writer);
+        envelopeWriter.WriteMessage(envelope);
+        writer.Flush();
+
+        // assert
+        var json = Encoding.UTF8.GetString(stream.ToArray());
+        using var doc = JsonDocument.Parse(json);
+        var scheduledTime = doc.RootElement.GetProperty("scheduledTime").GetString();
+
+        Assert.NotNull(scheduledTime);
+        Assert.Contains("2026-06-01", scheduledTime);
+        Assert.Contains("12:00:00", scheduledTime);
+    }
+
+    [Fact]
+    public void WriteMessage_Should_OmitScheduledTime_When_ScheduledTimeIsNull()
+    {
+        // arrange
+        var envelope = new MessageEnvelope { MessageId = "msg-022", MessageType = "urn:message:TestEvent" };
+
+        using var stream = new MemoryStream();
+        using var writer = new Utf8JsonWriter(stream);
+
+        // act
+        var envelopeWriter = new MessageEnvelopeWriter(writer);
+        envelopeWriter.WriteMessage(envelope);
+        writer.Flush();
+
+        // assert
+        var json = Encoding.UTF8.GetString(stream.ToArray());
+        using var doc = JsonDocument.Parse(json);
+
+        Assert.False(doc.RootElement.TryGetProperty("scheduledTime", out _));
+    }
+
+    [Fact]
+    public void Roundtrip_Should_PreserveScheduledTime_When_ScheduledTimeIsSet()
+    {
+        // arrange
+        var original = new MessageEnvelope
+        {
+            MessageId = "msg-023",
+            ScheduledTime = new DateTimeOffset(2026, 6, 1, 12, 0, 0, TimeSpan.Zero)
+        };
+
+        // act - write
+        using var stream = new MemoryStream();
+        using var writer = new Utf8JsonWriter(stream);
+        new MessageEnvelopeWriter(writer).WriteMessage(original);
+        writer.Flush();
+
+        // act - read
+        var bytes = stream.ToArray();
+        var result = MessageEnvelopeReader.Parse(bytes);
+
+        // assert
+        Assert.Equal(original.ScheduledTime, result.ScheduledTime);
+    }
+
+    [Fact]
+    public void Roundtrip_Should_PreserveNullScheduledTime_When_ScheduledTimeIsNull()
+    {
+        // arrange
+        var original = new MessageEnvelope
+        {
+            MessageId = "msg-024",
+            MessageType = "urn:message:TestEvent"
+        };
+
+        // act - write
+        using var stream = new MemoryStream();
+        using var writer = new Utf8JsonWriter(stream);
+        new MessageEnvelopeWriter(writer).WriteMessage(original);
+        writer.Flush();
+
+        // act - read
+        var bytes = stream.ToArray();
+        var result = MessageEnvelopeReader.Parse(bytes);
+
+        // assert
+        Assert.Null(result.ScheduledTime);
+    }
+
+    [Fact]
+    public void CopyConstructor_Should_CopyScheduledTime_When_SourceHasScheduledTime()
+    {
+        // arrange
+        var original = new MessageEnvelope
+        {
+            MessageId = "msg-025",
+            ScheduledTime = new DateTimeOffset(2026, 6, 1, 12, 0, 0, TimeSpan.Zero)
+        };
+
+        // act
+        var copy = new MessageEnvelope(original);
+
+        // assert
+        Assert.Equal(original.ScheduledTime, copy.ScheduledTime);
+    }
 }

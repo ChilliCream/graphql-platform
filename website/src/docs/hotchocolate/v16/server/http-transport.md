@@ -259,8 +259,8 @@ When the client does not specify `incrementalSpec`, the server default is used.
 The default incremental delivery format is v0.2. To change it server-wide:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddHttpResponseFormatter(
         incrementalDeliveryFormat: IncrementalDeliveryFormat.Version_0_1);
 ```
@@ -268,8 +268,8 @@ builder.Services
 Or with the options overload:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddHttpResponseFormatter(
         new HttpResponseFormatterOptions { /* ... */ },
         incrementalDeliveryFormat: IncrementalDeliveryFormat.Version_0_1);
@@ -362,8 +362,8 @@ You must register the ASP.NET Core WebSocket middleware before calling `MapGraph
 // Program.cs
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<Query>()
     .AddSubscriptionType<Subscription>();
 
@@ -387,8 +387,8 @@ The `GraphQLSocketOptions` class controls WebSocket behavior:
 Configure these options through `ModifyServerOptions`:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyServerOptions(o =>
     {
         o.Sockets.ConnectionInitializationTimeout = TimeSpan.FromSeconds(30);
@@ -467,8 +467,8 @@ Hot Chocolate provides two settings for enforcing preflight headers as a defense
 Configure these settings through `ModifyServerOptions` or per-endpoint via `WithOptions`:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyServerOptions(o =>
     {
         o.EnforceGetRequestsPreflightHeader = true;

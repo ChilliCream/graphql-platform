@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Types;
 
 namespace HotChocolate.Fusion.Text.Json;
 
@@ -53,6 +54,24 @@ internal readonly partial struct SourceResultElementBuilder
         return element;
     }
 
+    public SourceResultElementBuilder CreateObjectValue(
+        Selection parent,
+        IObjectTypeDefinition typeContext,
+        ulong includeFlags)
+    {
+        AssertValidInstance();
+
+        Debug.Assert(_builder._metaDb.GetElementTokenType(_index)
+            is ElementTokenType.None or ElementTokenType.Null
+            or ElementTokenType.Reference);
+
+        var selectionSet = parent.DeclaringSelectionSet.DeclaringOperation.GetSelectionSet(parent, typeContext);
+        var objectIndex = _builder.CreateObjectValue(selectionSet.Selections, includeFlags);
+        var element = new SourceResultElementBuilder(_builder, objectIndex);
+        _builder.AssignReference(this, element);
+        return element;
+    }
+
     public SourceResultElementBuilder CreateListValue(int length)
     {
         AssertValidInstance();
@@ -95,6 +114,26 @@ internal readonly partial struct SourceResultElementBuilder
 
     public void SetStringValue(string value)
         => SetStringValue(s_utf8Encoding.GetBytes(value));
+
+    public void SetNumberValue(ReadOnlySpan<byte> value)
+    {
+        AssertValidInstance();
+
+        Debug.Assert(_builder._metaDb.GetElementTokenType(_index)
+            is ElementTokenType.None or ElementTokenType.Null
+            or ElementTokenType.Number);
+
+        var writer = _builder._data;
+        var writeIndex = _builder._data.Length;
+
+        var target = writer.GetSpan(value.Length);
+        value.CopyTo(target);
+        writer.Advance(value.Length);
+
+        _builder._metaDb.SetLocation(_index, writeIndex);
+        _builder._metaDb.SetSizeOrLength(_index, value.Length);
+        _builder._metaDb.SetElementTokenType(_index, ElementTokenType.Number);
+    }
 
     public void SetBooleanValue(bool value)
     {

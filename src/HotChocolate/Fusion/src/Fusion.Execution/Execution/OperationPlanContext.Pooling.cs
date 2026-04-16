@@ -90,7 +90,11 @@ public sealed partial class OperationPlanContext
     /// Permanently destroys the context and its owned resources.
     /// Called when the pool drops a context (pool full) or during pool disposal.
     /// </summary>
-    internal void Destroy() => _resultStore.Dispose();
+    internal void Destroy()
+    {
+        _resultStore.Dispose();
+        _executionState.Destroy();
+    }
 
     public async ValueTask DisposeAsync()
     {

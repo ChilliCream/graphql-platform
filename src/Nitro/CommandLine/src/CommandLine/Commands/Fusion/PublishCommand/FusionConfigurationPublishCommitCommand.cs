@@ -1,8 +1,6 @@
-using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
-using ChilliCream.Nitro.CommandLine.Configuration;
+using ChilliCream.Nitro.Client.FusionConfiguration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
@@ -13,49 +11,71 @@ internal sealed class FusionConfigurationPublishCommitCommand : Command
     public FusionConfigurationPublishCommitCommand() : base("commit")
     {
         Description = "Commit a Fusion configuration publish.";
-        AddOption(Opt<OptionalRequestIdOption>.Instance);
-        AddOption(Opt<FusionArchiveFileOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Bind.FromServiceProvider<ISessionService>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        Options.Add(Opt<OptionalRequestIdOption>.Instance);
+        Options.Add(Opt<FusionArchiveFileOption>.Instance);
+
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples("fusion publish commit --archive ./gateway.far");
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
-        ISessionService sessionService,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken ct)
     {
+        var console = services.GetRequiredService<INitroConsole>();
+        var fusionConfigurationClient = services.GetRequiredService<IFusionConfigurationClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var fileSystem = services.GetRequiredService<IFileSystem>();
+
+        parseResult.AssertHasAuthentication(sessionService);
+
         var requestId =
-            context.ParseResult.GetValueForOption(Opt<OptionalRequestIdOption>.Instance) ??
-            await FusionConfigurationPublishingState.GetRequestId(ct) ??
+            parseResult.GetValue(Opt<OptionalRequestIdOption>.Instance) ??
+            await FusionConfigurationPublishingState.GetRequestId(fileSystem, ct) ??
             throw new ExitException(
-                "No request ID was provided and no request ID was found in the cache. Please provide a request ID.");
+                Messages.NoFusionRequestId);
 
         var archiveFile =
-            context.ParseResult.GetValueForOption(Opt<FusionArchiveFileOption>.Instance)!;
+            parseResult.GetRequiredValue(Opt<FusionArchiveFileOption>.Instance);
 
-        console.Title("Commit the composition of a Fusion configuration");
+        if (!Path.IsPathRooted(archiveFile))
+        {
+            archiveFile = Path.Combine(fileSystem.GetCurrentDirectory(), archiveFile);
+        }
+
+        if (!fileSystem.FileExists(archiveFile))
+        {
+            throw new ExitException(Messages.ArchiveFileDoesNotExist(archiveFile));
+        }
 
         var committed = false;
 
-        if (console.IsHumanReadable())
+        await using (var activity = console.StartActivity(
+            "Publishing Fusion configuration",
+            "Failed to publish a new Fusion configuration version."))
         {
-            await console
-                .Status()
-                .Spinner(Spinner.Known.BouncingBar)
-                .SpinnerStyle(Style.Parse("green bold"))
-                .StartAsync("Committing...", Commit);
-        }
-        else
-        {
-            await Commit(null);
+            await using var stream = fileSystem.OpenReadStream(archiveFile);
+            committed = await FusionPublishHelpers.UploadFusionConfigurationAsync(
+                requestId,
+                stream,
+                activity,
+                console,
+                fusionConfigurationClient,
+                ct);
+
+            if (committed)
+            {
+                activity.Success("Published Fusion configuration.");
+            }
+            else
+            {
+                activity.Fail();
+            }
         }
 
         if (!committed)
@@ -63,20 +83,6 @@ internal sealed class FusionConfigurationPublishCommitCommand : Command
             throw Exit("The commit has failed.");
         }
 
-        console.Success("Fusion composition was successful.");
-
         return ExitCodes.Success;
-
-        async Task Commit(StatusContext? ctx)
-        {
-            var stream = FileHelpers.CreateFileStream(new FileInfo(archiveFile));
-            committed = await FusionPublishHelpers.UploadFusionArchiveAsync(
-                requestId,
-                stream,
-                ctx,
-                console,
-                client,
-                ct);
-        }
     }
 }

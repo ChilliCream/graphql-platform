@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using HotChocolate.Authorization;
 using HotChocolate.Features;
@@ -83,10 +84,23 @@ public sealed class TestSchema
                 input.Short,
                 input.String,
                 input.Unknown,
+                input.UnsignedByte,
+                input.UnsignedInt,
+                input.UnsignedLong,
+                input.UnsignedShort,
                 input.Uri,
                 input.Url,
                 input.Uuid);
         }
+
+        public string SearchProducts(string? text, float? minPrice)
+        {
+            var formattedMinPrice = minPrice?.ToString(CultureInfo.InvariantCulture);
+            return $"Searched for: {text ?? "all"}, minPrice: {formattedMinPrice}";
+        }
+
+        public string SearchProductsPaginated(string? text, int first)
+            => $"Searched for: {text ?? "all"}, first: {first}";
     }
 
     public class Mutation
@@ -200,6 +214,10 @@ public sealed class TestSchema
         short? Short,
         string? String,
         [property: GraphQLType<UnknownType>] string? Unknown,
+        byte? UnsignedByte,
+        uint? UnsignedInt,
+        ulong? UnsignedLong,
+        ushort? UnsignedShort,
         Uri? Uri,
         [property: GraphQLType<UrlType>] Uri? Url,
         Guid? Uuid);
@@ -227,6 +245,10 @@ public sealed class TestSchema
         short Short,
         string String,
         [property: GraphQLType<NonNullType<UnknownType>>] string Unknown,
+        byte UnsignedByte,
+        uint UnsignedInt,
+        ulong UnsignedLong,
+        ushort UnsignedShort,
         Uri Uri,
         [property: GraphQLType<NonNullType<UrlType>>] Uri Url,
         Guid Uuid);

@@ -44,6 +44,11 @@ internal static class RabbitMQMessageHeaders
     public static readonly ContextDataKey<string> ContentType = new("x-content-type");
 
     /// <summary>
+    /// Header key for the AMQP routing key, used to route messages to the correct exchange binding.
+    /// </summary>
+    public static readonly ContextDataKey<string> RoutingKey = new("x-routing-key");
+
+    /// <summary>
     /// Header key for the list of message type names enclosed in the envelope, used for polymorphic deserialization.
     /// </summary>
     public static readonly ContextDataKey<ImmutableArray<string>> EnclosedMessageTypes = new(

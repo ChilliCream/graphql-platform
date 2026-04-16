@@ -17,8 +17,7 @@ internal sealed class ValueCompletion
     private readonly ISchemaDefinition _schema;
     private readonly IErrorHandler _errorHandler;
     private readonly ErrorHandlingMode _errorHandlingMode;
-    private readonly bool _haltOnError;
-    private readonly bool _haltOnNullViolation;
+    private readonly bool _propagateNullValues;
     private readonly int _maxDepth;
 
     public ValueCompletion(
@@ -34,8 +33,7 @@ internal sealed class ValueCompletion
         _schema = schema;
         _errorHandler = errorHandler;
         _errorHandlingMode = errorHandlingMode;
-        _haltOnError = errorHandlingMode is ErrorHandlingMode.Halt;
-        _haltOnNullViolation = errorHandlingMode is ErrorHandlingMode.Propagate or ErrorHandlingMode.Halt;
+        _propagateNullValues = errorHandlingMode is not ErrorHandlingMode.Null;
         _maxDepth = maxDepth;
     }
 
@@ -118,8 +116,6 @@ internal sealed class ValueCompletion
 
                         return ApplyPocketedErrors(target);
 
-                    case ErrorHandlingMode.Halt:
-                        return false;
                 }
             }
         }
@@ -332,9 +328,6 @@ internal sealed class ValueCompletion
 
         switch (_errorHandlingMode)
         {
-            case ErrorHandlingMode.Halt:
-                return false;
-
             case ErrorHandlingMode.Propagate when selection.Type.Kind is TypeKind.NonNull:
                 var didPropagateToRoot = PropagateNullValues(fieldResult);
                 return !didPropagateToRoot;
@@ -412,7 +405,7 @@ internal sealed class ValueCompletion
 
                 _store.AddError(error);
 
-                return !_haltOnNullViolation;
+                return !_propagateNullValues;
             }
 
             type = type.InnerType();
@@ -446,11 +439,6 @@ internal sealed class ValueCompletion
                 errorWithPath = _errorHandler.Handle(errorWithPath);
 
                 _store.AddError(errorWithPath);
-
-                if (_haltOnError)
-                {
-                    return false;
-                }
             }
             else
             {
@@ -542,17 +530,12 @@ internal sealed class ValueCompletion
                 errorWithPath = _errorHandler.Handle(errorWithPath);
 
                 _store.AddError(errorWithPath);
-
-                if (_haltOnError)
-                {
-                    return false;
-                }
             }
 
             var elementValueKind = element.ValueKind;
             if (elementValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
             {
-                if (isNonNull && _haltOnNullViolation)
+                if (isNonNull && _propagateNullValues)
                 {
                     return false;
                 }
@@ -755,7 +738,7 @@ file static class ValueCompletionExtensions
         => type switch
         {
             ListType listType => listType.ElementType,
-            NonNullType nonNullType => nonNullType.NullableType,
-            _ => type
+            NonNullType { NullableType: ListType listType } => listType.ElementType,
+            _ => throw new ArgumentException($"The type '{type}' is not a list type.", nameof(type))
         };
 }

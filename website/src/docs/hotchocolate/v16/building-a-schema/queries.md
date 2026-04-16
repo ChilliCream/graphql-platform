@@ -72,8 +72,8 @@ public class BookQueriesType : ObjectType<BookQueries>
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<BookQueriesType>();
 ```
 

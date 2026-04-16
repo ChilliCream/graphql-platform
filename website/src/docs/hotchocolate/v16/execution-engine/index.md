@@ -68,8 +68,8 @@ Use the `UseRequest()` method on `IRequestExecutorBuilder` to add middleware. Th
 When you call `UseRequest()` without positioning parameters, the middleware is appended to the end of the pipeline:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .UseRequest(next => async context =>
     {
         // Custom logic before the next middleware
@@ -83,8 +83,8 @@ builder.Services
 Use the `before` parameter with a `WellKnownRequestMiddleware` constant to insert your middleware before a built-in one:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .UseRequest(
         middleware: next => async context =>
         {
@@ -100,8 +100,8 @@ builder.Services
 Use the `after` parameter to insert your middleware after a built-in one:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .UseRequest(
         middleware: next => async context =>
         {
@@ -117,8 +117,8 @@ builder.Services
 Set `allowMultiple` to `false` (the default) so that if a middleware with the same key already exists, the registration is skipped:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .UseRequest(
         middleware: next => async context =>
         {
@@ -159,8 +159,8 @@ public class MyRequestMiddleware
 Register it with precise positioning using the generic `UseRequest<T>()` overload:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .UseRequest<MyRequestMiddleware>(
         key: "MyRequestMiddleware",
         after: WellKnownRequestMiddleware.DocumentValidationMiddleware);
