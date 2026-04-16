@@ -50,7 +50,7 @@ public sealed class ListApiKeyCommandTests(NitroCommandFixture fixture) : ApiKey
         // assert
         result.AssertError(
             """
-            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually specify the '--workspace-id' option (if available).
+            Could not determine workspace. Either login via `nitro login` or specify the '--workspace-id' option.
             """);
     }
 

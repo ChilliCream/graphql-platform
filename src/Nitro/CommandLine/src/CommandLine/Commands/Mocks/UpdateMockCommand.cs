@@ -65,17 +65,10 @@ internal sealed class UpdateMockCommand : Command
 
             var workspaceId = parseResult.GetWorkspaceId(sessionService);
 
-            var selectedApi = await SelectApiPrompt
-                .New(apisClient, workspaceId)
-                .RenderAsync(console, cancellationToken);
-
-            if (selectedApi?.Id is null)
-            {
-                throw new ExitException("No API selected.");
-            }
+            var apiId = await console.PromptForApiIdAsync(apisClient, workspaceId, null, cancellationToken);
 
             var selectedMock = await SelectMockSchemaPrompt
-                .New(client, selectedApi.Id)
+                .New(client, apiId)
                 .RenderAsync(console, cancellationToken);
 
             mockSchemaId = selectedMock?.Id ?? throw new ExitException("No mock schema selected.");
@@ -128,7 +121,7 @@ internal sealed class UpdateMockCommand : Command
 
             if (updatedMock.Errors?.Count > 0)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
 
                 foreach (var error in updatedMock.Errors)
                 {

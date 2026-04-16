@@ -16,7 +16,7 @@ internal interface INitroConsoleActivity : IAsyncDisposable
 
     void Fail(IRenderable details);
 
-    ValueTask FailAllAsync();
+    ValueTask FailAllAsync(IRenderable? details = null);
 
     INitroConsoleActivity StartChildActivity(string title, string failureMessage);
 }

@@ -67,5 +67,5 @@ public class QueryableFilterInterceptor : IProjectionFieldInterceptor<QueryableP
     {
     }
 
-    public static QueryableFilterInterceptor Create(ProjectionProviderContext context) => new();
+    public static QueryableFilterInterceptor Create(ProjectionProviderContext _) => new();
 }

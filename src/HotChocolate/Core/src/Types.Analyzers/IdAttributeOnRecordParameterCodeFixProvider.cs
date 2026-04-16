@@ -31,13 +31,9 @@ public sealed class IdAttributeOnRecordParameterCodeFixProvider : CodeFixProvide
         // Find the attribute
         var node = root.FindNode(diagnosticSpan);
         var attribute = node.AncestorsAndSelf().OfType<AttributeSyntax>().FirstOrDefault();
-        if (attribute is null)
-        {
-            return;
-        }
 
         // Find the attribute list
-        var attributeList = attribute.Parent as AttributeListSyntax;
+        var attributeList = attribute?.Parent as AttributeListSyntax;
         if (attributeList is null)
         {
             return;

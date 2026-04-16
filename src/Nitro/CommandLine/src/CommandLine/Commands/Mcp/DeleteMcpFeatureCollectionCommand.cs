@@ -40,31 +40,21 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        var mcpFeatureCollectionId = parseResult.GetValue(Opt<OptionalIdArgument>.Instance);
+        var mcpFeatureCollectionId = parseResult.GetRequiredValueIfNotInteractive(Opt<OptionalIdArgument>.Instance, console);
 
         if (mcpFeatureCollectionId is null)
         {
-            if (!console.IsInteractive)
-            {
-                throw MissingRequiredOption("id");
-            }
-
-            const string apiMessage = "For which API do you want to delete an MCP Feature Collection?";
-            const string mcpFeatureCollectionMessage = "Which MCP Feature Collection do you want to delete?";
-
             var workspaceId = parseResult.GetWorkspaceId(sessionService);
-
-            var selectedApi = await SelectApiPrompt
-                .New(apisClient, workspaceId)
-                .Title(apiMessage)
-                .RenderAsync(console, cancellationToken) ?? throw NoApiSelected();
-
-            var apiId = selectedApi.Id;
+            var apiId = await console.PromptForApiIdAsync(
+                apisClient,
+                workspaceId,
+                "For which API do you want to delete an MCP Feature Collection?",
+                cancellationToken);
 
             var selectedMcpFeatureCollection = await SelectMcpFeatureCollectionPrompt
                 .New(client, apiId)
-                .Title(mcpFeatureCollectionMessage)
-                .RenderAsync(console, cancellationToken) ?? throw NoMcpFeatureCollectionSelected();
+                .Title("Which MCP Feature Collection do you want to delete?")
+                .RenderAsync(console, cancellationToken) ?? throw new ExitException("You did not select an MCP Feature Collection!");
 
             mcpFeatureCollectionId = selectedMcpFeatureCollection.Id;
         }
@@ -93,7 +83,7 @@ internal sealed class DeleteMcpFeatureCollectionCommand : Command
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
 
                 foreach (var error in data.Errors)
                 {

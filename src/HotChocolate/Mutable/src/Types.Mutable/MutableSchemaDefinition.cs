@@ -324,7 +324,9 @@ public class MutableSchemaDefinition
     /// <summary>
     /// Gets the type and directive definitions that are defined in this schema in insert order.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>
+    /// The type and directive definitions in insert order.
+    /// </returns>
     public IEnumerable<INameProvider> GetAllDefinitions()
     {
         foreach (var definition in _allDefinitionCoordinates)

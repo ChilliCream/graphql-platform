@@ -2,6 +2,7 @@ using System.CommandLine;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
+using ChilliCream.Nitro.CommandLine.Tests.Console;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
@@ -41,7 +42,11 @@ public class EnvironmentVariableDefaultTests
         var testConsole = new TestConsole();
         var errorConsole = new TestConsole();
         services.AddSingleton<INitroConsole>(
-            new NitroConsole(testConsole, errorConsole, envProviderMock.Object));
+            new NitroConsole(
+                testConsole,
+                errorConsole,
+                envProviderMock.Object,
+                new SnapshotActivitySinkFactory()));
 
         await using var provider = services.BuildServiceProvider();
 

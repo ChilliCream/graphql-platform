@@ -179,6 +179,7 @@ public sealed class EndpointRouter : IEndpointRouter
             // Build new set of addresses
             var newAddresses = ImmutableHashSet<Uri>.Empty;
 
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             if (endpointAddress is not null)
             {
                 newAddresses = newAddresses.Add(endpointAddress);
@@ -222,6 +223,7 @@ public sealed class EndpointRouter : IEndpointRouter
             // New endpoint
             var addresses = ImmutableHashSet<Uri>.Empty;
 
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             if (endpointAddress is not null)
             {
                 addresses = addresses.Add(endpointAddress);

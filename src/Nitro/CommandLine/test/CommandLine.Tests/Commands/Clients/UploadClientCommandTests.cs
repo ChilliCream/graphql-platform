@@ -62,7 +62,7 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : Clie
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -118,7 +118,7 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : Clie
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new client version 'v1' for client 'client-1'
+            Uploading new version 'v1' for client 'client-1'
             └── ✕ Failed to upload a new client version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -149,7 +149,7 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : Clie
         result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new client version 'v1' for client 'client-1'
+            Uploading new version 'v1' for client 'client-1'
             └── ✕ Failed to upload a new client version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -180,7 +180,7 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : Clie
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new client version 'v1' for client 'client-1'
+            Uploading new version 'v1' for client 'client-1'
             └── ✕ Failed to upload a new client version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -209,7 +209,7 @@ public sealed class UploadClientCommandTests(NitroCommandFixture fixture) : Clie
             System.Text.Encoding.UTF8.GetString(capturedStream.ToArray()));
         result.AssertSuccess(
             """
-            Uploading new client version 'v1' for client 'client-1'
+            Uploading new version 'v1' for client 'client-1'
             └── ✓ Uploaded new client version 'v1'.
             """);
     }

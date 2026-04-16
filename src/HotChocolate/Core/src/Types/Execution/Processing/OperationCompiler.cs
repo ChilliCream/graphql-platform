@@ -73,7 +73,9 @@ public sealed partial class OperationCompiler
         string hash,
         string? operationName,
         DocumentNode document,
+#pragma warning disable RCS1163 // Unused parameter
         IFeatureProvider context)
+#pragma warning restore RCS1163 // Unused parameter
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentNullException.ThrowIfNull(document);

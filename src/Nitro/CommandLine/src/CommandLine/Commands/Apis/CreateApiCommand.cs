@@ -48,7 +48,7 @@ internal sealed class CreateApiCommand : Command
         var name = await console.PromptAsync("Name", defaultValue: null, parseResult, Opt<ApiNameOption>.Instance, ct);
         var pathResult = await console
             .PromptAsync(
-                "Path [dim](e.g. /foo/bar)[/]",
+                $"Path {"(e.g. /foo/bar)".Dim()}",
                 defaultValue: "/",
                 parseResult,
                 Opt<ApiPathOption>.Instance,
@@ -66,7 +66,7 @@ internal sealed class CreateApiCommand : Command
 
             if (payload.Errors?.Count > 0)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
 
                 foreach (var mutationError in payload.Errors)
                 {
@@ -89,7 +89,7 @@ internal sealed class CreateApiCommand : Command
 
             if (changeResult.Error is IError error)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
                 console.Error.WriteErrorLine(error.Message);
                 return ExitCodes.Error;
             }

@@ -17,7 +17,7 @@ public interface IVariableValueCollection : IEnumerable<VariableValue>
     /// Gets a coerced variable value from the collection.
     /// </summary>
     /// <param name="name">The variable name.</param>
-    /// <returns></returns>
+    /// <returns>The coerced variable value.</returns>
     /// <exception cref="GraphQLException">
     /// A GraphQL execution error is thrown when the
     /// requested variable cannot be found or cannot

@@ -37,6 +37,11 @@ internal static class ConsoleRenderingExtensions
         return $"[bold blue]{str.EscapeMarkup()}[/]";
     }
 
+    public static string Dim(this string str)
+    {
+        return $"[dim]{str.EscapeMarkup()}[/]";
+    }
+
     public static string AsCommand(this string str) => $"`{str.AsHighlight()}`";
 
     public static string AsIcon(this bool value)

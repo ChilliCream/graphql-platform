@@ -228,7 +228,12 @@ internal sealed class FusionValidateCommand : Command
                     source: null,
                     ct);
 
-                return isValid ? ExitCodes.Success : ExitCodes.Error;
+                if (!isValid)
+                {
+                    throw new ExitException("Schema validation failed.");
+                }
+
+                return ExitCodes.Success;
             }
             finally
             {
@@ -239,7 +244,7 @@ internal sealed class FusionValidateCommand : Command
         INitroConsoleActivity StartActivity()
         {
             return console.StartActivity(
-                $"Validating Fusion configuration against stage '{stageName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'",
+                $"Validating Fusion configuration of API '{apiId.EscapeMarkup()}' against stage '{stageName.EscapeMarkup()}'",
                 "Failed to validate the Fusion configuration.");
         }
     }

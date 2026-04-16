@@ -50,5 +50,5 @@ public class MongoDbDefaultSortFieldHandler
         return true;
     }
 
-    public static MongoDbDefaultSortFieldHandler Create(SortProviderContext context) => new();
+    public static MongoDbDefaultSortFieldHandler Create(SortProviderContext _) => new();
 }
