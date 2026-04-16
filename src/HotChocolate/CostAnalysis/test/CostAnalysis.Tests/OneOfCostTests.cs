@@ -186,7 +186,7 @@ public sealed class OneOfCostTests
         var result = await executor.ExecuteAsync(request);
 
         // assert
-        // 0 (field) + 1 (arg) + fieldOne(900) + fieldTwo(400) = 1301
+        // 0 (field) + 1 (arg) + NestedOneOfSample.fieldOne(900) + OneOfSample.fieldTwo(400) = 1301
         Assert.Equal(1301, (int)GetFieldCost(result));
     }
 
