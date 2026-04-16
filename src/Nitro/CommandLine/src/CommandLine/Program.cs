@@ -56,7 +56,7 @@ public static class Program
                     outConsole,
                     errorConsole,
                     sp.GetRequiredService<IEnvironmentVariableProvider>(),
-                    new LiveActivityRenderDriverFactory()));
+                    new ActivitySinkFactory()));
 
         await using var provider = services.BuildServiceProvider();
 

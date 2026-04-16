@@ -121,7 +121,7 @@ public abstract class CommandTestBase
             outConsole,
             errConsole,
             _environmentVariableProviderMock.Object,
-            new SnapshotActivityRenderDriverFactory());
+            new SnapshotActivitySinkFactory());
         var services = BuildServices(console);
         var rootCommand = _fixture.RootCommand;
 
@@ -170,7 +170,7 @@ public abstract class CommandTestBase
             outConsole,
             errConsole,
             _environmentVariableProviderMock.Object,
-            new SnapshotActivityRenderDriverFactory());
+            new SnapshotActivitySinkFactory());
         var services = BuildServices(console);
         var rootCommand = _fixture.RootCommand;
 

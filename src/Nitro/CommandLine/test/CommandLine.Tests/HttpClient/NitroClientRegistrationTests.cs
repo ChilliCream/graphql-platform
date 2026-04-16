@@ -168,7 +168,7 @@ public class NitroClientRegistrationTests
                 testConsole,
                 errorConsole,
                 new EnvironmentVariableProvider(),
-                new SnapshotActivityRenderDriverFactory()));
+                new SnapshotActivitySinkFactory()));
 
         var provider = services.BuildServiceProvider();
         var rootCommand = new NitroRootCommand();

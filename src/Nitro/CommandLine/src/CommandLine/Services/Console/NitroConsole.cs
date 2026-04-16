@@ -8,7 +8,7 @@ internal sealed class NitroConsole(
     IAnsiConsole outConsole,
     IAnsiConsole errorConsole,
     IEnvironmentVariableProvider environmentVariables,
-    IActivityRenderDriverFactory activityRenderDriverFactory)
+    IActivitySinkFactory activitySinkFactory)
     : INitroConsole
 {
     private OutputFormat? _outputFormat;
@@ -33,13 +33,8 @@ internal sealed class NitroConsole(
 
     public INitroConsoleActivity StartActivity(string title, string failureMessage)
     {
-        if (!IsInteractive)
-        {
-            return NitroConsoleActivity.Start(this, title, failureMessage);
-        }
-
-        return InteractiveNitroConsoleActivity.Start(
-            this, title, failureMessage, activityRenderDriverFactory);
+        var sink = activitySinkFactory.Create(this, IsInteractive);
+        return NitroConsoleActivity.Start(sink, title, failureMessage);
     }
 
     public void Clear(bool home)

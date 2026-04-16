@@ -29,7 +29,7 @@ public sealed class NitroConsoleActivityTests
             outConsole,
             errConsole,
             envProvider.Object,
-            new SnapshotActivityRenderDriverFactory());
+            new SnapshotActivitySinkFactory());
         return (console, writer);
     }
 
@@ -45,7 +45,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Doing work", "Work failed"))
+        await using (var activity = console.StartActivity( "Doing work", "Work failed"))
         {
             activity.Success("Done");
         }
@@ -65,7 +65,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Doing work", "Work failed"))
+        await using (var activity = console.StartActivity( "Doing work", "Work failed"))
         {
             activity.Fail("Something went wrong");
         }
@@ -85,7 +85,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Doing work", "Work failed"))
+        await using (var activity = console.StartActivity( "Doing work", "Work failed"))
         {
             activity.Fail(new Text("Error detail line 1\nError detail line 2"));
         }
@@ -107,7 +107,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Root failed"))
+        await using (var activity = console.StartActivity( "Root", "Root failed"))
         {
             await using (var child = activity.StartChildActivity("Child step", "Child failed"))
             {
@@ -134,7 +134,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Root failed"))
+        await using (var activity = console.StartActivity( "Root", "Root failed"))
         {
             await using (var child = activity.StartChildActivity("Child step", "Child failed"))
             {
@@ -161,7 +161,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Root failed"))
+        await using (var activity = console.StartActivity( "Root", "Root failed"))
         {
             await using (var child = activity.StartChildActivity("Child", "Child failed"))
             {
@@ -195,7 +195,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Root failed"))
+        await using (var activity = console.StartActivity( "Root", "Root failed"))
         {
             await using (var child = activity.StartChildActivity("Child", "Child failed"))
             {
@@ -222,7 +222,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Doing work", "Work failed"))
+        await using (var activity = console.StartActivity( "Doing work", "Work failed"))
         {
             activity.Success("Done");
             activity.Update("This should be ignored");
@@ -243,7 +243,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Doing work", "Work failed"))
+        await using (var activity = console.StartActivity( "Doing work", "Work failed"))
         {
             activity.Update("Regular update");
             activity.Update("Warning update", ActivityUpdateKind.Warning);
@@ -271,7 +271,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Doing work", "Work failed"))
+        await using (var activity = console.StartActivity( "Doing work", "Work failed"))
         {
             activity.Warning("Something is off");
         }
@@ -291,8 +291,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole(width: 30);
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(
-            console,
+        await using (var activity = console.StartActivity(
             "This is a very long root title that should wrap",
             "Failed"))
         {
@@ -315,7 +314,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole(width: 30);
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Failed"))
+        await using (var activity = console.StartActivity( "Root", "Failed"))
         {
             activity.Update("This update message is long enough to wrap at narrow width");
             activity.Success("Done");
@@ -339,7 +338,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole(width: 30);
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Failed"))
+        await using (var activity = console.StartActivity( "Root", "Failed"))
         {
             activity.Success("This success message is long enough to wrap at narrow width");
         }
@@ -361,7 +360,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole(width: 30);
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Failed"))
+        await using (var activity = console.StartActivity( "Root", "Failed"))
         {
             activity.Fail("This failure message is long enough to wrap at narrow width");
         }
@@ -383,7 +382,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole(width: 30);
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Failed"))
+        await using (var activity = console.StartActivity( "Root", "Failed"))
         {
             await using (var child = activity.StartChildActivity(
                 "This child title is long enough to wrap",
@@ -413,7 +412,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole(width: 30);
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Failed"))
+        await using (var activity = console.StartActivity( "Root", "Failed"))
         {
             await using (var child = activity.StartChildActivity("Child", "Child failed"))
             {
@@ -443,7 +442,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole(width: 30);
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Failed"))
+        await using (var activity = console.StartActivity( "Root", "Failed"))
         {
             await using (var child = activity.StartChildActivity("Child", "Child failed"))
             {
@@ -471,7 +470,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole(width: 30);
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Failed"))
+        await using (var activity = console.StartActivity( "Root", "Failed"))
         {
             await using (var child = activity.StartChildActivity("Child", "Child failed"))
             {
@@ -499,7 +498,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Doing work", "Work failed"))
+        await using (var activity = console.StartActivity( "Doing work", "Work failed"))
         {
             activity.Update("Status", details: new Text("Detail line 1\nDetail line 2"));
             activity.Success("Done");
@@ -523,7 +522,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Root failed"))
+        await using (var activity = console.StartActivity( "Root", "Root failed"))
         {
             await using (var child = activity.StartChildActivity("Child", "Child failed"))
             {
@@ -554,7 +553,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Root failed"))
+        await using (var activity = console.StartActivity( "Root", "Root failed"))
         {
             await using (var child = activity.StartChildActivity("Child", "Child failed"))
             {
@@ -583,7 +582,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Root failed"))
+        await using (var activity = console.StartActivity( "Root", "Root failed"))
         {
             await using (var child = activity.StartChildActivity("Child", "Child failed"))
             {
@@ -610,7 +609,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Root failed"))
+        await using (var activity = console.StartActivity( "Root", "Root failed"))
         {
             await using (var first = activity.StartChildActivity("First child", "First failed"))
             {
@@ -644,7 +643,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Root", "Root failed"))
+        await using (var activity = console.StartActivity( "Root", "Root failed"))
         {
             await using (var child = activity.StartChildActivity("Child", "Child failed"))
             {
@@ -678,7 +677,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Doing work", "Work failed"))
+        await using (var activity = console.StartActivity( "Doing work", "Work failed"))
         {
             activity.Update("Please wait", ActivityUpdateKind.Waiting);
             activity.Success("Done");
@@ -700,7 +699,7 @@ public sealed class NitroConsoleActivityTests
         var (console, writer) = CreateConsole();
 
         // act
-        await using (var activity = NitroConsoleActivity.Start(console, "Doing work", "Work failed"))
+        await using (var activity = console.StartActivity( "Doing work", "Work failed"))
         {
             // no explicit completion — DisposeAsync should trigger failure
         }

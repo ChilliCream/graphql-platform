@@ -46,7 +46,7 @@ public class EnvironmentVariableDefaultTests
                 testConsole,
                 errorConsole,
                 envProviderMock.Object,
-                new SnapshotActivityRenderDriverFactory()));
+                new SnapshotActivitySinkFactory()));
 
         await using var provider = services.BuildServiceProvider();
 
