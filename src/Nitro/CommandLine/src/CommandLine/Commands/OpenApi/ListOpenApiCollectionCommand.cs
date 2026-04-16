@@ -39,7 +39,14 @@ internal sealed class ListOpenApiCollectionCommand : Command
 
         if (console.IsInteractive)
         {
-            return await RenderInteractiveAsync(parseResult, console, client, apisClient, sessionService, resultHolder, cursor, ct);
+            return await RenderInteractiveAsync(
+                parseResult,
+                console,
+                client,
+                apisClient,
+                sessionService,
+                resultHolder,
+                ct);
         }
 
         return await RenderNonInteractiveAsync(parseResult, client, resultHolder, cursor, ct);
@@ -52,7 +59,6 @@ internal sealed class ListOpenApiCollectionCommand : Command
         IApisClient apisClient,
         ISessionService sessionService,
         IResultHolder resultHolder,
-        string? cursor,
         CancellationToken ct)
     {
         const string apiMessage = "For which API do you want to list the OpenAPI collections?";

@@ -419,7 +419,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
     /// <param name="subgraphName">
     /// The name of the subgraph configuration to remove.
     /// </param>
-    /// <param name="cancellationToken">
+    /// <param name="_">
     /// The cancellation token.
     /// </param>
     /// <returns>
@@ -433,7 +433,7 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
     /// </exception>
     public Task RemoveSubgraphConfigurationAsync(
         string subgraphName,
-        CancellationToken cancellationToken = default)
+        CancellationToken _ = default)
     {
         ArgumentNullException.ThrowIfNull(subgraphName);
 

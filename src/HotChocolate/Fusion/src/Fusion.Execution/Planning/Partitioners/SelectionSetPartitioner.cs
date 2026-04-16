@@ -244,8 +244,8 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         }
 
         static SelectionSetNode? GetProvidedSelectionSet(
-            ITypeDefinition type,
-            FusionSchemaDefinition schema,
+            ITypeDefinition _1,
+            FusionSchemaDefinition _2,
             SelectionSetNode? providedSelectionSetNode)
         {
             // todo match correct inline fragment

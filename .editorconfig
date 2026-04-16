@@ -299,6 +299,9 @@ roslynator_null_conditional_operator.avoid_negative_boolean_comparison = true
 dotnet_diagnostic.IDE0031.severity = none
 # Abstract type should not have public constructors.
 dotnet_diagnostic.RCS1160.severity = warning
+# Unused parameter.
+dotnet_diagnostic.RCS1163.severity = warning
+dotnet_diagnostic.IDE0060.severity = none
 # Use constant instead of field.
 dotnet_diagnostic.RCS1187.severity = warning
 # Unnecessary usage of verbatim string literal.
@@ -332,3 +335,8 @@ dotnet_diagnostic.CA1511.severity = none
 dotnet_diagnostic.CA1512.severity = none
 dotnet_diagnostic.CA1513.severity = none
 dotnet_diagnostic.IDE0057.severity = none
+
+# Tests
+[src/**/test/**/*.cs]
+# Unused parameter.
+dotnet_diagnostic.RCS1163.severity = none

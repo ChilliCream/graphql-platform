@@ -91,8 +91,8 @@ public sealed class InboundRoute
     /// <summary>
     /// Completes the route initialization, verifying that an endpoint has been connected.
     /// </summary>
-    /// <param name="context">The messaging configuration context.</param>
-    public void Complete(IMessagingConfigurationContext context)
+    /// <param name="_">The messaging configuration context.</param>
+    public void Complete(IMessagingConfigurationContext _)
     {
         AssertInitialized();
         AssertNotCompleted();

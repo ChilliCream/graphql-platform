@@ -172,7 +172,7 @@ public readonly struct Promise<TValue> : IPromise
     /// Returns a new instance of <see cref="Promise{TValue}"/>.
     /// </returns>
     public static Promise<TValue> Create(TValue value, bool cloned = true)
-        => new(System.Threading.Tasks.Task.FromResult(value), null, isClone: true);
+        => new(System.Threading.Tasks.Task.FromResult(value), null, isClone: cloned);
 
     /// <summary>
     /// Implicitly converts a <see cref="TaskCompletionSource{TResult}"/> to a promise.

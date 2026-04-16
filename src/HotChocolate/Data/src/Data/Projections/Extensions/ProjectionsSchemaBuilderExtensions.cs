@@ -43,7 +43,7 @@ public static class ProjectionsSchemaBuilderExtensions
         builder
             .TryAddTypeInterceptor<ProjectionTypeInterceptor>()
             .TryAddConvention<IProjectionConvention>(
-                sp => new ProjectionConvention(configure),
+                _ => new ProjectionConvention(configure),
                 name);
 
     /// <summary>

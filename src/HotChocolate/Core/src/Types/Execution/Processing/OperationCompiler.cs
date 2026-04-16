@@ -73,7 +73,7 @@ public sealed partial class OperationCompiler
         string hash,
         string? operationName,
         DocumentNode document,
-        IFeatureProvider context)
+        IFeatureProvider _)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentNullException.ThrowIfNull(document);

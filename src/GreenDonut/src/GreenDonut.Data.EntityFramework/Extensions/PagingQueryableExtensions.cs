@@ -831,7 +831,7 @@ public static class PagingQueryableExtensions
         s_interceptor.Value.Interceptor = pagingQueryInterceptor;
     }
 
-    internal static void ClearQueryInterceptor(PagingQueryInterceptor pagingQueryInterceptor)
+    internal static void ClearQueryInterceptor()
     {
         if (s_interceptor.Value is not null)
         {
