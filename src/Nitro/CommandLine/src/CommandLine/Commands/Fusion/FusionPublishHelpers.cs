@@ -310,7 +310,7 @@ internal static class FusionPublishHelpers
 
         if (result.Errors?.Count > 0)
         {
-            activity.Fail();
+            await activity.FailAllAsync();
 
             foreach (var error in result.Errors)
             {

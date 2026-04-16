@@ -61,7 +61,7 @@ public sealed class UpdateMockCommandTests(NitroCommandFixture fixture) : MocksC
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -117,7 +117,7 @@ public sealed class UpdateMockCommandTests(NitroCommandFixture fixture) : MocksC
         // assert
         result.AssertError(
             """
-            The 'id' option is required in non-interactive mode.
+            Missing required option 'id'.
             """);
     }
 

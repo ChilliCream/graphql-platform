@@ -64,7 +64,7 @@ public sealed class UploadSchemaCommandTests(NitroCommandFixture fixture) : Sche
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -114,7 +114,7 @@ public sealed class UploadSchemaCommandTests(NitroCommandFixture fixture) : Sche
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new schema version 'v1' to API 'api-1'
+            Uploading new schema version 'v1' of API 'api-1'
             └── ✕ Failed to upload a new schema version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -145,7 +145,7 @@ public sealed class UploadSchemaCommandTests(NitroCommandFixture fixture) : Sche
         result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new schema version 'v1' to API 'api-1'
+            Uploading new schema version 'v1' of API 'api-1'
             └── ✕ Failed to upload a new schema version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -186,7 +186,7 @@ public sealed class UploadSchemaCommandTests(NitroCommandFixture fixture) : Sche
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new schema version 'v1' to API 'api-1'
+            Uploading new schema version 'v1' of API 'api-1'
             └── ✕ Failed to upload a new schema version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -215,7 +215,7 @@ public sealed class UploadSchemaCommandTests(NitroCommandFixture fixture) : Sche
             System.Text.Encoding.UTF8.GetString(capturedStream.ToArray()));
         result.AssertSuccess(
             """
-            Uploading new schema version 'v1' to API 'api-1'
+            Uploading new schema version 'v1' of API 'api-1'
             └── ✓ Uploaded new schema version 'v1'.
             """);
     }

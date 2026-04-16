@@ -4,8 +4,6 @@ using ChilliCream.Nitro.CommandLine.Commands.OpenApi.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
-using static ChilliCream.Nitro.CommandLine.ThrowHelper;
-
 namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi;
 
 internal sealed class ListOpenApiCollectionCommand : Command
@@ -46,6 +44,7 @@ internal sealed class ListOpenApiCollectionCommand : Command
                 apisClient,
                 sessionService,
                 resultHolder,
+                cursor,
                 ct);
         }
 
@@ -59,15 +58,15 @@ internal sealed class ListOpenApiCollectionCommand : Command
         IApisClient apisClient,
         ISessionService sessionService,
         IResultHolder resultHolder,
+        string? cursor,
         CancellationToken ct)
     {
-        const string apiMessage = "For which API do you want to list the OpenAPI collections?";
-        var apiId = await parseResult.GetOrPromptForApiIdAsync(apiMessage, console, apisClient, sessionService, ct);
+        var apiId = await console.GetOrPromptForApiIdAsync("For which API do you want to list the OpenAPI collections?", parseResult, apisClient, sessionService, ct);
 
         var container = PaginationContainer
             .CreateConnectionData(async (after, first, token) =>
-                await client.ListOpenApiCollectionsAsync(apiId, after, first, token)
-                    ?? throw ThereWasAnIssueWithTheRequest("The API was not found."))
+                await client.ListOpenApiCollectionsAsync(apiId, after ?? cursor, first, token)
+                    ?? throw new ExitException("The API was not found."))
             .PageSize(10);
 
         var api = await PagedTable
@@ -92,14 +91,10 @@ internal sealed class ListOpenApiCollectionCommand : Command
         string? cursor,
         CancellationToken ct)
     {
-        var apiId = parseResult.GetValue(Opt<OptionalApiIdOption>.Instance);
-        if (apiId is null)
-        {
-            throw MissingRequiredOption(ApiIdOption.OptionName);
-        }
+        var apiId = parseResult.GetRequiredOptionalValue(Opt<OptionalApiIdOption>.Instance);
 
         var data = await client.ListOpenApiCollectionsAsync(apiId, cursor, 10, ct)
-            ?? throw ThereWasAnIssueWithTheRequest("The API was not found.");
+            ?? throw new ExitException("The API was not found.");
         var items = data.Items
             .Select(OpenApiCollectionDetailPrompt.From)
             .Select(x => x.ToObject())

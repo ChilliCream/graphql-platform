@@ -56,7 +56,7 @@ internal sealed class CreateWorkspaceCommand : Command
 
             if (createdWorkspace.Errors?.Count > 0)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
 
                 foreach (var error in createdWorkspace.Errors)
                 {

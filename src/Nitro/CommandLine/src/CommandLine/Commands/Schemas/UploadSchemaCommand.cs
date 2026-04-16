@@ -61,7 +61,7 @@ internal sealed class UploadSchemaCommand : Command
         }
 
         await using (var activity = console.StartActivity(
-            $"Uploading new schema version '{tag.EscapeMarkup()}' to API '{apiId.EscapeMarkup()}'",
+            $"Uploading new schema version '{tag.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'",
             "Failed to upload a new schema version."))
         {
             await using var stream = fileSystem.OpenReadStream(schemaFilePath);
@@ -75,7 +75,7 @@ internal sealed class UploadSchemaCommand : Command
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
 
                 foreach (var error in data.Errors)
                 {

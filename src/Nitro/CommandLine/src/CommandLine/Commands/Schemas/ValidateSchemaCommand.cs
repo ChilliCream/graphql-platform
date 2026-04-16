@@ -59,7 +59,7 @@ internal sealed class ValidateSchemaCommand : Command
         }
 
         await using var activity = console.StartActivity(
-            $"Validating schema against stage '{stage.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'",
+            $"Validating schema of API '{apiId.EscapeMarkup()}' against stage '{stage.EscapeMarkup()}'",
             "Failed to validate the schema.");
 
         await using var stream = fileSystem.OpenReadStream(schemaFilePath);

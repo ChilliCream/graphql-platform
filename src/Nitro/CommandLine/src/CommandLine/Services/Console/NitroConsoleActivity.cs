@@ -1,149 +1,181 @@
-using ChilliCream.Nitro.CommandLine.Helpers;
 using Spectre.Console.Rendering;
 
 namespace ChilliCream.Nitro.CommandLine;
 
-internal sealed class NitroConsoleActivity(
-    INitroConsole console,
-    string failureMessage,
-    string prefix,
-    INitroConsoleActivity? parent)
-    : INitroConsoleActivity
+internal sealed class NitroConsoleActivity : INitroConsoleActivity
 {
+    private readonly IActivitySink _sink;
+    private readonly ActivityEntry _entry;
+    private readonly string _failureMessage;
+    private readonly NitroConsoleActivity? _parent;
     private bool _completed;
+
+    private NitroConsoleActivity(
+        IActivitySink sink,
+        ActivityEntry entry,
+        string failureMessage,
+        NitroConsoleActivity? parent)
+    {
+        _sink = sink;
+        _entry = entry;
+        _failureMessage = failureMessage;
+        _parent = parent;
+    }
+
+    private bool IsRoot => _parent is null;
 
     public void Update(
         string message,
         ActivityUpdateKind kind = ActivityUpdateKind.Regular,
         IRenderable? details = null)
     {
-        var glyph = kind switch
-        {
-            ActivityUpdateKind.Warning => Glyphs.ExclamationMark.Space(),
-            ActivityUpdateKind.Waiting => Glyphs.Clock.Space(),
-            ActivityUpdateKind.Success => Glyphs.Check.Space(),
-            _ => ""
-        };
-        if (kind == ActivityUpdateKind.Warning)
-        {
-            message = message.AsWarning();
-        }
-        console.MarkupLine(prefix + "├── " + glyph + message);
-        if (details is not null)
-        {
-            WriteIndented(details, prefix + "│   ");
-        }
-    }
-
-    public void Warning(string message)
-    {
-        Complete(Glyphs.ExclamationMark.Space() + message.AsWarning());
-    }
-
-    public void Success(string message)
-    {
-        Complete(Glyphs.Check.Space() + message);
-    }
-
-    public void Fail(string message)
-    {
-        Complete(Glyphs.Cross.Space() + message.AsError());
-    }
-
-    public void Fail(IRenderable details)
-    {
         if (_completed)
         {
             return;
         }
 
-        console.MarkupLine(prefix + "└── " + Glyphs.Cross.Space() + failureMessage.AsError());
-        WriteIndented(details, prefix + "    ");
-        _completed = true;
+        var state = MapState(kind);
+        var child = _sink.AddChild(_entry, message, state);
+
+        if (details is not null)
+        {
+            _sink.SetDetails(child, details);
+        }
+    }
+
+    public void Warning(string message)
+    {
+        Complete(message, ActivityState.Warning, details: null);
+    }
+
+    public void Success(string message)
+    {
+        Complete(message, ActivityState.Completed, details: null);
+    }
+
+    public void Fail(string message)
+    {
+        Complete(message, ActivityState.Failed, details: null);
+    }
+
+    public void Fail(IRenderable details)
+    {
+        Complete(_failureMessage, ActivityState.Failed, details);
     }
 
     public void Fail()
     {
-        Fail(failureMessage);
+        Fail(_failureMessage);
     }
 
     public async ValueTask FailAllAsync()
     {
-        Fail();
+        FailSilent();
 
-        if (parent is not null)
+        if (_parent is not null)
         {
-            await parent.FailAllAsync();
+            await _parent.FailAllAsync();
+        }
+        else
+        {
+            await _sink.Completion;
         }
     }
 
     public INitroConsoleActivity StartChildActivity(string title, string failureMessage)
     {
-        console.MarkupLine(prefix + "├── " + title);
-        return new NitroConsoleActivity(console, failureMessage, prefix + "│   ", this);
+        var child = _sink.AddChild(_entry, title, ActivityState.Active);
+        return new NitroConsoleActivity(_sink, child, failureMessage, parent: this);
     }
 
     public async ValueTask DisposeAsync()
     {
         if (!_completed)
         {
-            await FailAllAsync();
+            if (IsRoot)
+            {
+                Fail();
+            }
+            else
+            {
+                await FailAllAsync();
+                return;
+            }
+        }
+
+        if (IsRoot)
+        {
+            await _sink.Completion;
         }
     }
 
-    private void Complete(string message)
+    public static INitroConsoleActivity Start(
+        IActivitySink sink,
+        string title,
+        string failureMessage)
+    {
+        var root = sink.AddRoot(title);
+        return new NitroConsoleActivity(sink, root, failureMessage, parent: null);
+    }
+
+    private void Complete(string message, ActivityState state, IRenderable? details)
     {
         if (_completed)
         {
             return;
         }
 
-        console.MarkupLine(prefix + "└── " + message);
+        if (!IsRoot || state is ActivityState.Failed)
+        {
+            _sink.FailActiveDescendants(_entry);
+        }
+
+        ActivityEntry target;
+        if (IsRoot || _entry.Children.Count > 0)
+        {
+            _sink.SetState(_entry, state);
+            target = _sink.CompleteChild(_entry, message, state);
+        }
+        else
+        {
+            _sink.SetTextAndState(_entry, message, state);
+            target = _entry;
+        }
+
+        if (details is not null)
+        {
+            _sink.SetDetails(target, details);
+        }
+
         _completed = true;
+
+        if (IsRoot)
+        {
+            _sink.Stop();
+        }
     }
 
-    public static INitroConsoleActivity Start(
-        INitroConsole console,
-        string title,
-        string failureMessage)
+    private void FailSilent()
     {
-        console.MarkupLine(title);
-        return new NitroConsoleActivity(console, failureMessage, "", null);
-    }
-
-    private void WriteIndented(IRenderable renderable, string linePrefix)
-    {
-        var availableWidth = console.Profile.Width - linePrefix.Length;
-
-        if (availableWidth <= 0)
+        if (_completed)
         {
             return;
         }
 
-        var options = RenderOptions.Create(console, console.Profile.Capabilities);
-        var segments = renderable.Render(options, availableWidth);
+        _sink.FailSilent(_entry, _failureMessage);
+        _completed = true;
 
-        var lineBuffer = new System.Text.StringBuilder();
-
-        foreach (var segment in segments)
+        if (IsRoot)
         {
-            if (segment.IsLineBreak)
-            {
-                if (lineBuffer.Length > 0)
-                {
-                    console.MarkupLine(linePrefix + lineBuffer.ToString().EscapeMarkup());
-                    lineBuffer.Clear();
-                }
-            }
-            else
-            {
-                lineBuffer.Append(segment.Text);
-            }
-        }
-
-        if (lineBuffer.Length > 0)
-        {
-            console.MarkupLine(linePrefix + lineBuffer.ToString().EscapeMarkup());
+            _sink.Stop();
         }
     }
+
+    private static ActivityState MapState(ActivityUpdateKind kind) => kind switch
+    {
+        ActivityUpdateKind.Warning => ActivityState.Warning,
+        ActivityUpdateKind.Waiting => ActivityState.Waiting,
+        ActivityUpdateKind.Success => ActivityState.Completed,
+        _ => ActivityState.Info
+    };
 }

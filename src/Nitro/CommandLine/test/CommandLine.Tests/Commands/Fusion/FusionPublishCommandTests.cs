@@ -78,7 +78,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -662,7 +662,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       │   ├── ✓ Type system member NewType was added.
             │       │   └── ✕ Type system member OldType was removed.
             │       ├── Invalid GraphQL schema
-            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │       ├── Client 'TestClient' (ID: client-1)
             │       │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │       │       └── foo (10:10)
@@ -731,7 +731,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       │   ├── ✓ Type system member NewType was added.
             │       │   └── ✕ Type system member OldType was removed.
             │       ├── Invalid GraphQL schema
-            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │       ├── Client 'TestClient' (ID: client-1)
             │       │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │       │       └── foo (10:10)
@@ -789,7 +789,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Uploading configuration to 'dev'
             │   ├── ! Validation failed.
             │   │   ├── Invalid GraphQL schema
-            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── Client 'TestClient' (ID: client-1)
             │   │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │   │   │       └── foo (10:10)
@@ -851,7 +851,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Uploading configuration to 'dev'
             │   ├── ! Validation failed.
             │   │   ├── Invalid GraphQL schema
-            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── Client 'TestClient' (ID: client-1)
             │   │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │   │   │       └── foo (10:10)
@@ -1009,7 +1009,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Uploading configuration to 'dev'
             │   └── ✕ Failed to upload the new configuration.
             │       ├── Invalid GraphQL schema
-            │       │   └── Field 'Query.foo' has no type. SCHEMA_ERROR
+            │       │   └── Field 'Query.foo' has no type. (SCHEMA_ERROR)
             │       └── An error occurred.
             └── ✕ Failed to publish Fusion configuration.
             """);
@@ -1645,7 +1645,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       │   ├── ✓ Type system member NewType was added.
             │       │   └── ✕ Type system member OldType was removed.
             │       ├── Invalid GraphQL schema
-            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │       ├── Client 'TestClient' (ID: client-1)
             │       │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │       │       └── foo (10:10)
@@ -1719,7 +1719,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       │   ├── ✓ Type system member NewType was added.
             │       │   └── ✕ Type system member OldType was removed.
             │       ├── Invalid GraphQL schema
-            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │       ├── Client 'TestClient' (ID: client-1)
             │       │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │       │       └── foo (10:10)
@@ -1829,7 +1829,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Uploading configuration to 'dev'
             │   ├── ! Validation failed.
             │   │   ├── Invalid GraphQL schema
-            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── Client 'TestClient' (ID: client-1)
             │   │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │   │   │       └── foo (10:10)
@@ -1896,7 +1896,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Uploading configuration to 'dev'
             │   ├── ! Validation failed.
             │   │   ├── Invalid GraphQL schema
-            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── Client 'TestClient' (ID: client-1)
             │   │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │   │   │       └── foo (10:10)
@@ -2069,7 +2069,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Uploading configuration to 'dev'
             │   └── ✕ Failed to upload the new configuration.
             │       ├── Invalid GraphQL schema
-            │       │   └── Field 'Query.foo' has no type. SCHEMA_ERROR
+            │       │   └── Field 'Query.foo' has no type. (SCHEMA_ERROR)
             │       └── An error occurred.
             └── ✕ Failed to publish Fusion configuration.
             """);
@@ -2817,7 +2817,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       │   ├── ✓ Type system member NewType was added.
             │       │   └── ✕ Type system member OldType was removed.
             │       ├── Invalid GraphQL schema
-            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │       ├── Client 'TestClient' (ID: client-1)
             │       │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │       │       └── foo (10:10)
@@ -2893,7 +2893,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       │   ├── ✓ Type system member NewType was added.
             │       │   └── ✕ Type system member OldType was removed.
             │       ├── Invalid GraphQL schema
-            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │       ├── Client 'TestClient' (ID: client-1)
             │       │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │       │       └── foo (10:10)
@@ -3007,7 +3007,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Uploading configuration to 'dev'
             │   ├── ! Validation failed.
             │   │   ├── Invalid GraphQL schema
-            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── Client 'TestClient' (ID: client-1)
             │   │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │   │   │       └── foo (10:10)
@@ -3076,7 +3076,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Uploading configuration to 'dev'
             │   ├── ! Validation failed.
             │   │   ├── Invalid GraphQL schema
-            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── Client 'TestClient' (ID: client-1)
             │   │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │   │   │       └── foo (10:10)
@@ -3255,7 +3255,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Uploading configuration to 'dev'
             │   └── ✕ Failed to upload the new configuration.
             │       ├── Invalid GraphQL schema
-            │       │   └── Field 'Query.foo' has no type. SCHEMA_ERROR
+            │       │   └── Field 'Query.foo' has no type. (SCHEMA_ERROR)
             │       └── An error occurred.
             └── ✕ Failed to publish Fusion configuration.
             """);
