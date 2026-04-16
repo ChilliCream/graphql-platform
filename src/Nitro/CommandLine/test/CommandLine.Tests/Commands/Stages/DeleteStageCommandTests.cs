@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Stages;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Stages;
 

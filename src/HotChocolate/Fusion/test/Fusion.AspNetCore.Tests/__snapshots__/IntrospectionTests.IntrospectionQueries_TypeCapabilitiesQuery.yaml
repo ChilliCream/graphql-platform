@@ -45,6 +45,9 @@ response:
             },
             {
               "name": "ofType"
+            },
+            {
+              "name": "isOneOf"
             }
           ]
         }

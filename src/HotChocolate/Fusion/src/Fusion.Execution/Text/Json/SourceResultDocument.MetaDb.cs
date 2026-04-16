@@ -12,9 +12,6 @@ public sealed partial class SourceResultDocument
 {
     internal struct MetaDb : IDisposable
     {
-        private const int SizeOrLengthOffset = 4;
-        private const int NumberOfRowsOffset = 8;
-
         private static readonly ArrayPool<byte[]> s_arrayPool = ArrayPool<byte[]>.Shared;
 
         private byte[][] _chunks;
@@ -52,12 +49,77 @@ public sealed partial class SourceResultDocument
             };
         }
 
+        /// <summary>
+        /// The cursor that the next <see cref="Append"/> or <see cref="Reserve"/>
+        /// call will write to (after handling chunk-boundary advance).
+        /// </summary>
+        public readonly Cursor NextCursor
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+                var cursor = _cursor;
+                if (cursor.Row >= Cursor.RowsPerChunk)
+                {
+                    return Cursor.FromByteOffset(cursor.Chunk + 1, 0);
+                }
+                return cursor;
+            }
+        }
+
+        /// <summary>
+        /// Allocates the next row slot without writing any data to it. Use
+        /// <see cref="Replace"/> later to populate it once all field values
+        /// are known. The reserved cursor must not be read from before it is
+        /// written.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal Cursor Reserve()
+        {
+            var (cursor, _, _) = AcquireSlot();
+            return cursor;
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal Cursor Append(
             JsonTokenType tokenType,
             int startLocation = DbRow.NoLocation,
             int length = DbRow.UnknownSize,
+            int numberOfRows = 1,
             bool hasComplexChildren = false)
+        {
+            var (cursor, chunk, byteOffset) = AcquireSlot();
+
+            var row = new DbRow(tokenType, startLocation, length, numberOfRows, hasComplexChildren);
+            ref var dest = ref MemoryMarshal.GetArrayDataReference(chunk);
+            Unsafe.WriteUnaligned(ref Unsafe.Add(ref dest, byteOffset), row);
+
+            return cursor;
+        }
+
+        /// <summary>
+        /// Overwrites the row at <paramref name="cursor"/> with a freshly
+        /// constructed <see cref="DbRow"/>, in a single write.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal readonly void Replace(
+            Cursor cursor,
+            JsonTokenType tokenType,
+            int location,
+            int sizeOrLength,
+            int numberOfRows,
+            bool hasComplexChildren = false)
+        {
+            AssertValidCursor(cursor);
+
+            var row = new DbRow(tokenType, location, sizeOrLength, numberOfRows, hasComplexChildren);
+            var chunk = _chunks[cursor.Chunk];
+            ref var dest = ref MemoryMarshal.GetArrayDataReference(chunk);
+            Unsafe.WriteUnaligned(ref Unsafe.Add(ref dest, cursor.ByteOffset), row);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private (Cursor cursor, byte[] chunk, int byteOffset) AcquireSlot()
         {
             var log = Log;
             var cursor = _cursor;
@@ -106,51 +168,8 @@ public sealed partial class SourceResultDocument
                 log.ChunkAllocated(1, chunkIndex);
             }
 
-            var byteOffset = cursor.ByteOffset;
-            var row = new DbRow(tokenType, startLocation, length, hasComplexChildren);
-            ref var dest = ref MemoryMarshal.GetArrayDataReference(chunk);
-            Unsafe.WriteUnaligned(ref Unsafe.Add(ref dest, byteOffset), row);
-
             _cursor++;
-            return cursor;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void SetLength(Cursor cursor, int length)
-        {
-            AssertValidCursor(cursor);
-            Debug.Assert(length >= 0);
-
-            var offset = cursor.ByteOffset + SizeOrLengthOffset;
-            var destination = _chunks[cursor.Chunk].AsSpan(offset);
-
-            MemoryMarshal.Write(destination, length);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void SetNumberOfRows(Cursor cursor, int numberOfRows)
-        {
-            AssertValidCursor(cursor);
-            Debug.Assert(numberOfRows is >= 1 and <= 0x0FFFFFFF);
-
-            var offset = cursor.ByteOffset + NumberOfRowsOffset;
-            var dataPos = _chunks[cursor.Chunk].AsSpan(offset);
-            var current = MemoryMarshal.Read<int>(dataPos);
-
-            var value = (current & unchecked((int)0xF0000000)) | numberOfRows;
-            MemoryMarshal.Write(dataPos, value);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void SetHasComplexChildren(Cursor cursor)
-        {
-            AssertValidCursor(cursor);
-
-            var offset = cursor.ByteOffset + SizeOrLengthOffset;
-            var dataPos = _chunks[cursor.Chunk].AsSpan(offset);
-
-            var current = MemoryMarshal.Read<int>(dataPos);
-            MemoryMarshal.Write(dataPos, current | unchecked((int)0x80000000));
+            return (cursor, chunk, cursor.ByteOffset);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -168,7 +187,8 @@ public sealed partial class SourceResultDocument
         {
             AssertValidCursor(cursor);
 
-            var offset = cursor.ByteOffset + NumberOfRowsOffset;
+            // _numberOfRowsAndTypeUnion is the third int in the row.
+            var offset = cursor.ByteOffset + 8;
             var dataPos = _chunks[cursor.Chunk].AsSpan(offset);
 
             var union = MemoryMarshal.Read<uint>(dataPos);

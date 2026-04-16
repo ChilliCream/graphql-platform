@@ -35,8 +35,8 @@ public static partial class BookExtensions
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddTypeExtension<BookExtensions>();
 ```
 
@@ -65,8 +65,8 @@ public class BookTypeExtensions : ObjectTypeExtension<Book>
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddTypeExtension<BookTypeExtensions>();
 ```
 
@@ -98,8 +98,8 @@ public class BookQueries
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddTypeExtension<BookQueries>();
 ```
 
@@ -125,8 +125,8 @@ public class QueryBookResolvers : ObjectTypeExtension<Query>
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddTypeExtension<QueryBookResolvers>();
 ```
 
@@ -151,8 +151,8 @@ public class BookExtensions
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddTypeExtension<BookExtensions>();
 ```
 
@@ -172,8 +172,8 @@ public class BookTypeExtensions : ObjectTypeExtension<Book>
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddTypeExtension<BookTypeExtensions>();
 ```
 

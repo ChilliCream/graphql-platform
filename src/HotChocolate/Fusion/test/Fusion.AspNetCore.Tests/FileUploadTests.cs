@@ -346,7 +346,7 @@ public class FileUploadTests : FusionTestBase
             variables: new Dictionary<string, object?>
             {
                 ["file"] = null
-            } );
+            });
 
         var request = new GraphQLHttpRequest(operation, new Uri("http://localhost:5000/graphql"))
         {

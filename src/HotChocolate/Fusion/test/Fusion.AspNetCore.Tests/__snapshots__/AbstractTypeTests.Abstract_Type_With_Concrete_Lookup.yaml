@@ -90,7 +90,7 @@ sourceSchemas:
           "Returns the elements in the list that come before the specified cursor."
           before: String
         ): InterfaceConnectionConnection
-        authorById(id: Int!): Author! @lookup
+        authorById(id: Int!): Author @lookup
       }
     interactions:
       - request:
@@ -139,7 +139,7 @@ sourceSchemas:
       }
 
       type Query {
-        otherInterface(id: Int!): OtherInterface! @lookup
+        otherInterface(id: Int!): OtherInterface @lookup
         discussionById(id: ID!): Discussion @lookup @internal
       }
     interactions:

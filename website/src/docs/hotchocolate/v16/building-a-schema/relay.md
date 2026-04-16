@@ -168,8 +168,8 @@ Global object identification extends global identifiers by enabling clients to r
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddGlobalObjectIdentification();
 ```
 
@@ -189,8 +189,8 @@ type Query {
 You can configure options when enabling global object identification:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddGlobalObjectIdentification(opts =>
     {
         opts.MaxAllowedNodeBatchSize = 50;
@@ -344,8 +344,8 @@ Register type converters so Hot Chocolate can serialize and deserialize the comp
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddTypeConverter<string, ProductId>(ProductId.Parse)
     .AddTypeConverter<ProductId, string>(x => x.ToString())
     .AddGlobalObjectIdentification();
@@ -359,16 +359,16 @@ Mutation payloads can include a `query` field that gives clients access to the f
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryFieldToMutationPayloads();
 ```
 
 By default, a `query: Query` field is added to every mutation payload type whose name ends in `Payload`. You can customize this:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryFieldToMutationPayloads(options =>
     {
         options.QueryFieldName = "rootQuery";

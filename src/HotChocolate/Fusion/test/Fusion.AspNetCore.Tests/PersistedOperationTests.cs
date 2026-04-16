@@ -455,7 +455,11 @@ public class PersistedOperationTests : FusionTestBase
         var storage = new OperationStorage();
 
         using var gateway = await CreateGatewayAsync(b => b
-            .ModifyRequestOptions(o => o.PersistedOperations.OnlyAllowPersistedDocuments = true)
+            .ModifyRequestOptions(o =>
+            {
+                o.PersistedOperations.OnlyAllowPersistedDocuments = true;
+                o.PersistedOperations.AllowDocumentBody = true;
+            })
             .ConfigureSchemaServices((_, sc) => sc.AddSingleton<IOperationDocumentStorage>(storage))
             .UsePersistedOperationPipeline()
             .AddHttpRequestInterceptor<AllowNonPersistedOperationInterceptor>());

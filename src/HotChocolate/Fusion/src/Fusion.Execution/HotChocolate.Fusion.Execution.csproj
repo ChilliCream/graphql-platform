@@ -42,6 +42,21 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\..\Core\src\Types\Types\Introspection\Search\BM25Document.cs">
+      <Link>Execution\Introspection\Search\BM25Document.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Core\src\Types\Types\Introspection\Search\BM25Index.cs">
+      <Link>Execution\Introspection\Search\BM25Index.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Core\src\Types\Types\Introspection\Search\BM25SearchProvider.cs">
+      <Link>Execution\Introspection\Search\BM25SearchProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Core\src\Types\Types\Introspection\Search\BM25Tokenizer.cs">
+      <Link>Execution\Introspection\Search\BM25Tokenizer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Core\src\Types\Types\Introspection\Search\SchemaIndexer.cs">
+      <Link>Execution\Introspection\Search\SchemaIndexer.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\AspNetCore\src\Transport.Abstractions\ContentType.cs">
       <Link>Transport\ContentType.cs</Link>
     </Compile>

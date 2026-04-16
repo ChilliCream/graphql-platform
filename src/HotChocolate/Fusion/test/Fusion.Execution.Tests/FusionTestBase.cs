@@ -167,7 +167,7 @@ public abstract class FusionTestBase : IDisposable
               node(id: ID!): Node @lookup @shareable
               nodes(ids: [ID!]!): [Node]! @shareable
               orderById(id: ID!): Order @lookup @shareable
-              userById(id: ID!): User! @lookup @internal
+              userById(id: ID!): User @lookup @internal
             }
 
             type User {
@@ -220,7 +220,7 @@ public abstract class FusionTestBase : IDisposable
               node(id: ID!): Node @lookup @shareable
               nodes(ids: [ID!]!): [Node]! @shareable
               paymentById(id: ID!): Payment @lookup
-              orderById(id: ID!): Order! @lookup @shareable
+              orderById(id: ID!): Order @lookup @shareable
             }
 
             input CreatePaymentInput {
@@ -344,7 +344,7 @@ public abstract class FusionTestBase : IDisposable
             type Query {
               node(id: ID!): Node @lookup @shareable
               nodes(ids: [ID!]!): [Node]! @shareable
-              productById(id: ID!): Product! @lookup @internal
+              productById(id: ID!): Product @lookup @internal
               reviewById(id: ID!): Review @lookup
               userById(id: ID!): User @lookup @internal
             }
@@ -404,7 +404,7 @@ public abstract class FusionTestBase : IDisposable
             }
 
             type Query {
-              productById(id: ID!): Product! @lookup @internal
+              productById(id: ID!): Product @lookup @internal
             }
 
             input ProductDimensionInput {

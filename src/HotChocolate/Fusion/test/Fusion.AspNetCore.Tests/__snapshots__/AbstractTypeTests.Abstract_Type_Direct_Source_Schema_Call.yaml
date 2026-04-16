@@ -96,7 +96,7 @@ sourceSchemas:
           "Returns the elements in the list that come before the specified cursor."
           before: String
         ): InterfaceConnectionConnection
-        authorById(id: Int!): Author! @lookup
+        authorById(id: Int!): Author @lookup
       }
     interactions:
       - request:

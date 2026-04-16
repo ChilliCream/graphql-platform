@@ -96,6 +96,7 @@ internal sealed class CostAnalyzerMiddleware(
                     document,
                     maxAllowedErrors: 1,
                     maxLocationsPerError: 5,
+                    maxAllowedFragmentVisits: 1_000,
                     context.Features);
 
                 var analyzer = new CostAnalyzer(requestOptions);

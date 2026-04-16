@@ -136,6 +136,19 @@ public static partial class CoreFusionGatewayBuilderExtensions
         return builder;
     }
 
+    public static IFusionGatewayBuilder SetMaxAllowedFieldMergeComparisons(
+        this IFusionGatewayBuilder builder,
+        int maxAllowedFieldMergeComparisons)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        ConfigureValidation(
+            builder,
+            (_, b) => b.ModifyOptions(o => o.MaxAllowedFieldMergeComparisons = maxAllowedFieldMergeComparisons));
+
+        return builder;
+    }
+
     public static IFusionGatewayBuilder AddMaxAllowedFieldCycleDepthRule(
         this IFusionGatewayBuilder builder,
         ushort? defaultCycleLimit = 3,

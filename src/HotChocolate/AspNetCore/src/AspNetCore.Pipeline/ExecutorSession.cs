@@ -1,6 +1,7 @@
 #if !NET9_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 #endif
+using System.IO.Pipelines;
 using System.Net;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Instrumentation;
@@ -8,6 +9,7 @@ using HotChocolate.AspNetCore.Parsers;
 using HotChocolate.AspNetCore.Utilities;
 using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.PersistedOperations;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -25,6 +27,8 @@ public sealed class ExecutorSession
     private readonly IHttpRequestParser _requestParser;
     private readonly IHttpResponseFormatter _responseFormatter;
     private readonly IServerDiagnosticEvents _diagnosticEvents;
+    private readonly bool _skipDocumentBody;
+    private readonly IError? _operationNotAllowedError;
 
     public ExecutorSession(IRequestExecutor executor)
     {
@@ -37,13 +41,12 @@ public sealed class ExecutorSession
         _responseFormatter = executor.Schema.Services.GetRequiredService<IHttpResponseFormatter>();
         _requestParser = executor.Schema.Services.GetRequiredService<IHttpRequestParser>();
         _diagnosticEvents = executor.Schema.Services.GetRequiredService<IServerDiagnosticEvents>();
+        var persistedOps = executor.Schema.Services.GetService<PersistedOperationOptions>();
+        _skipDocumentBody = persistedOps is { OnlyAllowPersistedDocuments: true, AllowDocumentBody: false };
+        _operationNotAllowedError = persistedOps?.OperationNotAllowedError;
     }
 
     public ISocketSessionInterceptor SocketSessionInterceptor => _socketSessionInterceptor;
-
-    public IHttpResponseFormatter ResponseFormatter => _responseFormatter;
-
-    public IHttpRequestParser RequestParser => _requestParser;
 
     public IServerDiagnosticEvents DiagnosticEvents => _diagnosticEvents;
 
@@ -185,6 +188,63 @@ public sealed class ExecutorSession
         return await _executor.ExecuteBatchAsync(
             new OperationRequestBatch(requestBatch, services: context.RequestServices),
             cancellationToken: context.RequestAborted);
+    }
+
+    public async ValueTask<GraphQLRequest[]> ParseRequestAsync(
+        PipeReader requestBody,
+        CancellationToken cancellationToken)
+    {
+        var requests = await _requestParser.ParseRequestAsync(requestBody, _skipDocumentBody, cancellationToken);
+        ThrowIfDocumentBodyNotAllowed(requests);
+        return requests;
+    }
+
+    public async ValueTask<GraphQLRequest> ParsePersistedOperationRequestAsync(
+        string documentId,
+        string? operationName,
+        PipeReader requestBody,
+        CancellationToken cancellationToken)
+    {
+        var request = await _requestParser.ParsePersistedOperationRequestAsync(
+            documentId, operationName, requestBody, _skipDocumentBody, cancellationToken);
+        ThrowIfDocumentBodyNotAllowed(request);
+        return request;
+    }
+
+    public GraphQLRequest ParseRequestFromParams(IQueryCollection parameters)
+    {
+        var request = _requestParser.ParseRequestFromParams(parameters, _skipDocumentBody);
+        ThrowIfDocumentBodyNotAllowed(request);
+        return request;
+    }
+
+    public GraphQLRequest ParsePersistedOperationRequestFromParams(
+        string operationId,
+        string? operationName,
+        IQueryCollection parameters)
+        => _requestParser.ParsePersistedOperationRequestFromParams(operationId, operationName, parameters);
+
+    public GraphQLRequest[] ParseRequest(string sourceText)
+    {
+        var requests = _requestParser.ParseRequest(sourceText, _skipDocumentBody);
+        ThrowIfDocumentBodyNotAllowed(requests);
+        return requests;
+    }
+
+    private void ThrowIfDocumentBodyNotAllowed(GraphQLRequest request)
+    {
+        if (_skipDocumentBody && request.HasDocumentBody && request.DocumentId is null)
+        {
+            throw new GraphQLRequestException(_operationNotAllowedError!);
+        }
+    }
+
+    private void ThrowIfDocumentBodyNotAllowed(GraphQLRequest[] requests)
+    {
+        foreach (var request in requests)
+        {
+            ThrowIfDocumentBodyNotAllowed(request);
+        }
     }
 
     public ValueTask WriteResultAsync(

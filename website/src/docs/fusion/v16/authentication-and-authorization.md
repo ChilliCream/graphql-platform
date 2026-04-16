@@ -2,8 +2,6 @@
 title: "Authentication and Authorization"
 ---
 
-# Authentication and Authorization
-
 The mental model for auth in Fusion is straightforward: **authentication terminates at the gateway, authorization is a subgraph concern.**
 
 The gateway validates tokens, extracts identity, and forwards the relevant information to subgraphs via HTTP headers. Each subgraph then enforces access control on its own fields using its own authorization framework.

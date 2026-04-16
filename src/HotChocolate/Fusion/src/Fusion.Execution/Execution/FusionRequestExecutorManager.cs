@@ -292,7 +292,9 @@ internal sealed class FusionRequestExecutorManager
             allowFragmentVariables: false,
             maxAllowedNodes: options.MaxAllowedNodes,
             maxAllowedTokens: options.MaxAllowedTokens,
-            maxAllowedFields: options.MaxAllowedFields);
+            maxAllowedFields: options.MaxAllowedFields,
+            maxAllowedDirectives: options.MaxAllowedDirectives,
+            maxAllowedRecursionDepth: options.MaxAllowedRecursionDepth);
     }
 
     private SourceSchemaClientConfigurations CreateClientConfigurations(
@@ -434,7 +436,7 @@ internal sealed class FusionRequestExecutorManager
         features.Set(requestOptions.PersistedOperations);
         features.Set(parserOptions);
         features.Set(clientConfigurations);
-        features.Set(CreateTypeResolverInterceptors());
+        features.Set(CreateTypeResolverInterceptors(options));
         features.Set(new SchemaCancellationFeature());
 
         foreach (var configure in setup.SchemaFeaturesModifiers)
@@ -445,10 +447,12 @@ internal sealed class FusionRequestExecutorManager
         return features;
     }
 
-    private static Dictionary<string, ITypeResolverInterceptor> CreateTypeResolverInterceptors()
-        => new()
+    private static Dictionary<string, ITypeResolverInterceptor> CreateTypeResolverInterceptors(
+        FusionOptions options)
+    {
+        var interceptors = new Dictionary<string, ITypeResolverInterceptor>
         {
-            { nameof(Query), new Query() },
+            { nameof(Query), new Query(options.EnableSemanticIntrospection) },
             { nameof(__Directive), new __Directive() },
             { nameof(__EnumValue), new __EnumValue() },
             { nameof(__Field), new __Field() },
@@ -456,6 +460,14 @@ internal sealed class FusionRequestExecutorManager
             { nameof(__Schema), new __Schema() },
             { nameof(__Type), new __Type() }
         };
+
+        if (options.EnableSemanticIntrospection)
+        {
+            interceptors.Add(nameof(__SearchResult), new __SearchResult());
+        }
+
+        return interceptors;
+    }
 
     private ServiceProvider CreateSchemaServices(
         FusionGatewaySetup setup,
@@ -508,6 +520,13 @@ internal sealed class FusionRequestExecutorManager
         services.AddSingleton(options);
         services.AddSingleton(requestOptions);
         services.AddSingleton(requestOptions.PersistedOperations);
+
+        if (options.EnableSemanticIntrospection)
+        {
+            services.TryAddSingleton<ISchemaSearchProvider>(
+                static sp => new HotChocolate.Types.Introspection.BM25SearchProvider(
+                    sp.GetRequiredService<ISchemaDefinition>()));
+        }
 
         services.AddSingleton<ObjectPool<PooledRequestContext>>(
             static _ => new DefaultObjectPool<PooledRequestContext>(

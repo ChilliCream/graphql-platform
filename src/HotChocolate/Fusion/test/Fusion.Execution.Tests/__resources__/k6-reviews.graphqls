@@ -8,7 +8,7 @@ type Product {
 }
 
 type Query {
-  product(upc: ID!): Product! @lookup @internal
+  product(upc: ID!): Product @lookup @internal
   review(id: ID!): Review @lookup
   user(id: ID!): User @lookup @internal
 }
@@ -43,7 +43,7 @@ type User @internal {
   id: ID!
   name: String!
 }
-            
+
 directive @internal on OBJECT | FIELD_DEFINITION
 """
 directive @internal on OBJECT | FIELD_DEFINITION

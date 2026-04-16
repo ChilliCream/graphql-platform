@@ -268,9 +268,11 @@ public class RequestDeduplicationHandlerTests
         using var handler = new RequestDeduplicationHandler { InnerHandler = innerHandler };
         using var client = new HttpClient(handler);
 
-        var multipart = new MultipartFormDataContent();
-        multipart.Add(new StringContent("{\"query\":\"{ hello }\"}"), "operations");
-        multipart.Add(new ByteArrayContent(new byte[] { 1, 2, 3 }), "file", "test.txt");
+        var multipart = new MultipartFormDataContent
+        {
+            { new StringContent("{\"query\":\"{ hello }\"}"), "operations" },
+            { new ByteArrayContent([1, 2, 3]), "file", "test.txt" }
+        };
 
         var request = new HttpRequestMessage(HttpMethod.Post, "http://localhost/graphql")
         {

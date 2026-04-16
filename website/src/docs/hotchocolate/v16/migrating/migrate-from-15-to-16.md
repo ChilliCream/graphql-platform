@@ -24,7 +24,7 @@ As a bonus, this tightens your development loop, since schema errors surface imm
 If you're currently using `InitializeOnStartup`, you can safely remove it. If you also provided the `warmup` argument to run a task during the initialization, you can migrate that task to the new `AddWarmupTask` API:
 
 ```diff
-builder.Services.AddGraphQLServer()
+builder.AddGraphQL()
 -   .InitializeOnStartup(warmup: (executor, ct) => { /* ... */ });
 +   .AddWarmupTask((executor, ct) => { /* ... */ });
 ```
@@ -34,7 +34,7 @@ Warmup tasks registered with `AddWarmupTask` run at startup **and** when the sch
 If you need to preserve lazy initialization for specific scenarios (though this is rarely recommended), you can opt out by setting the `LazyInitialization` option to `true`:
 
 ```csharp
-builder.Services.AddGraphQLServer()
+builder.AddGraphQL()
     .ModifyOptions(options => options.LazyInitialization = true);
 ```
 
@@ -48,7 +48,7 @@ Starting with v16, we're introducing a more explicit model where Hot Chocolate c
 
 ```diff
 builder.Services.AddSingleton<MyService>();
-builder.Services.AddGraphQLServer()
+builder.AddGraphQL()
 +   .AddApplicationService<MyService>()
     .AddDiagnosticEventListener<MyDiagnosticEventListener>()
     // or
@@ -87,7 +87,7 @@ Previously, document and operation cache sizes were globally configured through 
 -builder.Services.AddDocumentCache(200);
 -builder.Services.AddOperationCache(100);
 
-builder.Services.AddGraphQLServer()
+builder.AddGraphQL()
 +    .ModifyOptions(options =>
 +    {
 +        options.OperationDocumentCacheSize = 200;
@@ -101,8 +101,8 @@ If you were previously accessing `IDocumentCache` or `IPreparedOperationCache` t
 For instance, to populate the document cache during startup, create a custom `IRequestExecutorWarmupTask` that injects `IDocumentCache`:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddWarmupTask<MyWarmupTask>();
 
 public class MyWarmupTask(IDocumentCache cache) : IRequestExecutorWarmupTask
@@ -125,7 +125,7 @@ Previously, document hash providers were globally configured through the `IServi
 ```diff
 -builder.Services.AddSha256DocumentHashProvider();
 
-builder.Services.AddGraphQLServer()
+builder.AddGraphQL()
 +    .AddSha256DocumentHashProvider()
 ```
 
@@ -149,8 +149,8 @@ builder.Services
 +               Url = "nats://localhost:4222"
 +           })));
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddSubscriptionType<Subscription>()
     .AddNatsSubscriptions();
 ```
@@ -160,7 +160,7 @@ If your code directly references NATS client types, add the `NATS.Client.Core` p
 ## MaxAllowedNodeBatchSize & EnsureAllNodesCanBeResolved options moved
 
 ```diff
-builder.Services.AddGraphQLServer()
+builder.AddGraphQL()
 -    .ModifyOptions(options =>
 -    {
 -        options.MaxAllowedNodeBatchSize = 100;
@@ -569,16 +569,16 @@ public JsonElement GetData() => ...;
 If you previously returned `Dictionary<string, object>` or other .NET types from a field typed as `Json` or `Any`, you now need to register the JSON type converter explicitly. Without it, the type system has no way to convert arbitrary .NET types to `JsonElement`:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddJsonTypeConverter();
 ```
 
 For custom reference types that need specific serialization, register a dedicated converter instead:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddTypeConverter<TimeZoneInfo, JsonElement>(
         value => JsonSerializer.SerializeToElement(value.Id));
 ```
@@ -729,7 +729,7 @@ The `DefaultHttpMethod` enum has been removed. Use the `UseGet` boolean property
 `GraphQLServerOptions` (GET requests, multipart, batching, schema requests, etc.) are now configured at the schema level using `ModifyServerOptions` instead of per-endpoint:
 
 ```diff
-builder.Services.AddGraphQLServer()
+builder.AddGraphQL()
 +   .ModifyServerOptions(o =>
 +   {
 +       o.EnableGetRequests = false;
@@ -755,7 +755,7 @@ In v15, request batching was enabled by default (`EnableBatching = true`). In v1
 If you were relying on the previous default, you need to explicitly enable batching:
 
 ```csharp
-builder.Services.AddGraphQLServer()
+builder.AddGraphQL()
     .ModifyServerOptions(o => o.Batching = AllowedBatching.All);
 ```
 
@@ -800,8 +800,8 @@ Accept: application/jsonl; incrementalSpec=v0.1
 To restore v0.1 as the server-wide default (used when the client doesn't specify `incrementalSpec`):
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddHttpResponseFormatter(
         incrementalDeliveryFormat: IncrementalDeliveryFormat.Version_0_1);
 ```
@@ -809,8 +809,8 @@ builder.Services
 Or with the options overload:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddHttpResponseFormatter(
         new HttpResponseFormatterOptions { /* ... */ },
         incrementalDeliveryFormat: IncrementalDeliveryFormat.Version_0_1);
@@ -871,8 +871,8 @@ If you still need one of the removed scalars, add it back manually in your appli
 v16 adds a dedicated `AddNodaTime()` extension method that registers all five built-in NodaTime scalars and the related CLR bindings and converters:
 
 ```diff
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
 -   .AddType<DateTimeType>()
 -   .AddType<DurationType>()
 -   .AddType<LocalDateType>()
@@ -1033,4 +1033,53 @@ var app = builder.Build();
 
 - await app.RunWithGraphQLCommandsAsync(args);
 + return await app.RunWithGraphQLCommandsAsync(args);
+```
+
+## Parser recursion depth limit
+
+The parser now enforces a maximum recursion depth of **200** by default. Deeply nested selection sets, list values, object values, or type references that exceed this depth are rejected with a `SyntaxException` instead of causing a stack overflow. If your queries legitimately exceed this depth, increase the limit:
+
+```csharp
+builder
+    .AddGraphQL()
+    .ModifyParserOptions(o =>
+    {
+        o.MaxAllowedRecursionDepth = 500;
+    });
+```
+
+## Parser directive limit
+
+The parser now limits the number of directives per location (field, operation, fragment definition) to **4** by default. Documents with more directives on a single location are rejected at parse time. If you use more than 4 directives per location, increase the limit:
+
+```csharp
+builder
+    .AddGraphQL()
+    .ModifyParserOptions(o =>
+    {
+        o.MaxAllowedDirectives = 8;
+    });
+```
+
+## Fragment visit budget
+
+Validation now caps the total number of fragment visits per operation at **1,000** by default. Each time a fragment spread is entered during validation counts as one visit. Queries with deeply nested or heavily reused fragment spreads that exceed this budget will have remaining fragments skipped during validation. If you have complex queries with many fragment spreads, increase the limit:
+
+```csharp
+builder
+    .AddGraphQL()
+    .ModifyValidationOptions(o =>
+    {
+        o.MaxAllowedFragmentVisits = 5_000;
+    });
+```
+
+## Field merge comparison budget
+
+The overlapping-fields-can-be-merged validation rule now caps comparison work at **100,000** by default. Queries that exceed this budget are rejected. If you have very complex queries that trigger this limit, increase it:
+
+```csharp
+builder
+    .AddGraphQL()
+    .SetMaxAllowedFieldMergeComparisons(200_000);
 ```

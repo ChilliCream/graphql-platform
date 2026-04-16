@@ -85,8 +85,8 @@ public class BookMutationsType : ObjectType<BookMutations>
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddMutationType<BookMutationsType>();
 ```
 
@@ -137,8 +137,8 @@ Hot Chocolate generates the input and payload types for you when mutation conven
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddMutationConventions(applyToAllMutations: true);
 ```
 
@@ -231,8 +231,8 @@ Override the global naming patterns through `MutationConventionOptions`:
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddMutationConventions(
         new MutationConventionOptions
         {
@@ -354,8 +354,8 @@ public interface IUserError
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddErrorInterfaceType<IUserError>();
 ```
 
@@ -377,8 +377,8 @@ public class CustomErrorInterfaceType : InterfaceType
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddErrorInterfaceType<CustomErrorInterfaceType>();
 ```
 
@@ -393,16 +393,16 @@ When a request contains multiple mutations, Hot Chocolate can wrap them in a tra
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddDefaultTransactionScopeHandler();
 ```
 
 To customize the transaction behavior, implement `ITransactionScopeHandler` and register it:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddTransactionScopeHandler<CustomTransactionScopeHandler>();
 ```
 

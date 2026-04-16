@@ -47,8 +47,8 @@ dotnet add package ChilliCream.Nitro.Fusion
 After installing the package, you need to configure the services in your startup class. Below is a sample implementation in C#:
 
 ```csharp
-builder.Services
-    .AddFusionGatewayServer()
+builder
+    .AddGraphQLGateway()
     .ConfigureFromCloud(x =>
     {
         x.ApiKey = "<<your-fusion-api-key>>";
@@ -66,8 +66,8 @@ builder.Services
 > - `NITRO_STAGE` maps to `Stage`
 >
 > ```csharp
-> builder.Services
->     .AddFusionGatewayServer()
+> builder
+>     .AddGraphQLGateway()
 >     .ConfigureFromCloud();
 > ```
 >
@@ -93,7 +93,7 @@ After installing the package, configure the Nitro Services on your schema. Here 
 
 ```csharp
 services
-    .AddGraphQLServer()
+    .AddGraphQL()
     .AddQueryType<Query>()
     .AddNitro(x =>
     {
@@ -266,8 +266,8 @@ To enable telemetry for your gateway and subgraphs, all of them need to be confi
 To send telemetry data from the gateway you need to add the instrumentation and the exporter to your gateway.
 
 ```csharp
-builder.Services
-    .AddFusionGatewayServer()
+builder
+    .AddGraphQLGateway()
     .ConfigureFromCloud()
     .CoreBuilder
     .AddInstrumentation();
@@ -312,7 +312,7 @@ For GraphQL services:
 
 ```csharp
 services
-    .AddGraphQLServer()
+    .AddGraphQL()
     .AddAssetCache<TCache>()
 ```
 
@@ -320,7 +320,7 @@ For fusion services:
 
 ```csharp
 services
-    .AddFusionGatewayServer()
+    .AddGraphQLGateway()
     .ConfigureFromCloud()
     .AddAssetCache<TCache>()
 ```
@@ -331,7 +331,7 @@ This default cache stores data in the `assets` folder of your project. You can c
 
 ```csharp
 services
-    .AddGraphQLServer()
+    .AddGraphQL()
     .AddFileSystemAssetCache(x =>
     {
         x.CacheDirectory = "cache"; // Your cache folder
@@ -352,7 +352,7 @@ Set it up with:
 
 ```csharp
 services
-    .AddGraphQLServer()
+    .AddGraphQL()
     .AddBlobStorageAssetCache(x =>
     {
         x.ContainerName = "your-container-name";

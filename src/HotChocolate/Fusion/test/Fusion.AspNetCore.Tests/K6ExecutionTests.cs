@@ -178,11 +178,11 @@ public sealed class K6ExecutionTests : FusionTestBase
             => ReviewRepository.GetById(id);
 
         [Lookup, Internal]
-        public ReviewProduct GetProduct([ID] string upc)
+        public ReviewProduct? GetProduct([ID] string upc)
             => new() { Upc = upc };
 
         [Lookup, Internal]
-        public ReviewUser GetUser([ID] string id)
+        public ReviewUser? GetUser([ID] string id)
             => new() { Id = id };
     }
 

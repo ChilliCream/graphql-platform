@@ -267,16 +267,16 @@ public class CustomFilteringConvention : FilterConvention
     }
 }
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddFiltering<CustomFilteringConvention>();
 ```
 
 You can also use convention and provider extensions instead of creating a custom `FilterConvention`:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddFiltering()
     .AddConvention<IFilterConvention>(
         new FilterConventionExtension(

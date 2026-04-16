@@ -36,6 +36,7 @@ cadastre
 callsite
 CCPA
 chillicream
+CODESIGN
 Codespaces
 colocated
 combinators
@@ -92,6 +93,8 @@ inmemory
 inspectable
 keepalive
 Kellner
+keyrings
+keyserver
 Kydne
 LASTEXITCODE
 Leia
@@ -126,11 +129,13 @@ nlte
 Noda
 nologo
 Normen
+notarytool
 noverlaps
 Npgsql
 nstartsWith
 NSwag
 ntouches
+NUGETAPIKEY
 nwithin
 oncall
 opencover
@@ -152,6 +157,7 @@ preparables
 PRIMEM
 PROJCS
 protobuf
+publishaot
 queryables
 quox
 quux
@@ -182,6 +188,7 @@ Skywalker
 snapshooter
 snupkg
 sortings
+spctl
 Specwise
 sqft
 srid
@@ -211,6 +218,7 @@ traceparent
 tracestate
 Trimmable
 Tzdb
+unittests
 unlisten
 unpublish
 unserialized
@@ -220,6 +228,7 @@ Upsert
 upvote
 URQL
 uuuu
+vnext
 vsix
 VXNlcjox
 websockets
@@ -227,4 +236,5 @@ Wilhuff
 worklist
 Wunder
 xact
+xcrun
 xunit

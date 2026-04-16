@@ -14,8 +14,8 @@ Register sorting on the schema:
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddSorting();
 ```
 
@@ -108,8 +108,8 @@ In v16, the `NullOrdering` enum controls how `null` values sort relative to non-
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyPagingOptions(opt => opt.NullOrdering = NullOrdering.NativeNullsLast);
 ```
 
@@ -216,8 +216,8 @@ public class CustomSortConvention : SortConvention
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddConvention<ISortConvention, CustomSortConvention>();
 ```
 

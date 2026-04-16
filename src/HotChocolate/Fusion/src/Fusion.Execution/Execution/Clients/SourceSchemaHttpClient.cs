@@ -7,7 +7,6 @@ using HotChocolate.Fusion.Properties;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Transport;
 using HotChocolate.Fusion.Transport.Http;
-using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Buffers;
@@ -300,7 +299,8 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             case 0:
                 httpRequest = new GraphQLHttpRequest(CreateSingleRequest(context, originalRequest, ref buffer))
                 {
-                    Uri = _configuration.BaseAddress, AcceptHeaderValue = defaultAcceptHeader
+                    Uri = _configuration.BaseAddress,
+                    AcceptHeaderValue = defaultAcceptHeader
                 };
                 break;
 

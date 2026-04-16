@@ -1,4 +1,3 @@
-using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Helpers;
 
 namespace ChilliCream.Nitro.CommandLine;
