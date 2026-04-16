@@ -295,7 +295,9 @@ public static class PagingQueryableExtensions
     /// <typeparam name="TValue">
     /// The type of the items in the queryable.
     /// </typeparam>
-    /// <returns></returns>
+    /// <returns>
+    /// A dictionary mapping each parent key to its page of results.
+    /// </returns>
     /// <exception cref="ArgumentException">
     /// If the queryable does not have any keys specified.
     /// </exception>
@@ -337,7 +339,9 @@ public static class PagingQueryableExtensions
     /// <typeparam name="TValue">
     /// The type of the items in the queryable.
     /// </typeparam>
-    /// <returns></returns>
+    /// <returns>
+    /// A dictionary mapping each parent key to its page of results.
+    /// </returns>
     /// <exception cref="ArgumentException">
     /// If the queryable does not have any keys specified.
     /// </exception>
@@ -383,7 +387,9 @@ public static class PagingQueryableExtensions
     /// <typeparam name="TElement">
     /// The type of the source elements from which keys and values are projected.
     /// </typeparam>
-    /// <returns></returns>
+    /// <returns>
+    /// A dictionary mapping each parent key to its page of results.
+    /// </returns>
     /// <exception cref="ArgumentException">
     /// If the queryable does not have any keys specified.
     /// </exception>
@@ -432,7 +438,9 @@ public static class PagingQueryableExtensions
     /// <typeparam name="TElement">
     /// The type of the source elements from which keys and values are projected.
     /// </typeparam>
-    /// <returns></returns>
+    /// <returns>
+    /// A dictionary mapping each parent key to its page of results.
+    /// </returns>
     /// <exception cref="ArgumentException">
     /// If the queryable does not have any keys specified.
     /// </exception>

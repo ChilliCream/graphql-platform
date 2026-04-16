@@ -52,7 +52,9 @@ public class Product
     /// In this case, it is the responsibility of the client to determine if the amount that is returned is the same as quantityDesired.
     /// It is invalid to pass in a negative number.
     /// </summary>
-    /// <param name="quantityDesired"></param>
+    /// <param name="quantityDesired">
+    /// The desired number of units to remove from stock.
+    /// </param>
     /// <returns>int: Returns the number actually removed from stock. </returns>
     ///
     public int RemoveStock(int quantityDesired)
@@ -76,7 +78,9 @@ public class Product
 
     /// <summary>
     /// Increments the quantity of a particular item in inventory.
-    /// <param name="quantity"></param>
+    /// <param name="quantity">
+    /// The number of units to add to stock.
+    /// </param>
     /// <returns>int: Returns the quantity that has been added to stock</returns>
     /// </summary>
     public int AddStock(int quantity)
