@@ -49,22 +49,17 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
                 throw MissingRequiredOption("id");
             }
 
-            const string apiMessage = "For which API do you want to delete an OpenAPI collection?";
-            const string openApiCollectionMessage = "Which OpenAPI collection do you want to delete?";
-
             var workspaceId = parseResult.GetWorkspaceId(sessionService);
-
-            var selectedApi = await SelectApiPrompt
-                .New(apisClient, workspaceId)
-                .Title(apiMessage)
-                .RenderAsync(console, cancellationToken) ?? throw NoApiSelected();
-
-            var apiId = selectedApi.Id;
+            var apiId = await console.PromptForApiIdAsync(
+                apisClient,
+                workspaceId,
+                "For which API do you want to delete an OpenAPI collection?",
+                cancellationToken);
 
             var selectedOpenApiCollection = await SelectOpenApiCollectionPrompt
                 .New(client, apiId)
-                .Title(openApiCollectionMessage)
-                .RenderAsync(console, cancellationToken) ?? throw NoOpenApiCollectionSelected();
+                .Title( "Which OpenAPI collection do you want to delete?")
+                .RenderAsync(console, cancellationToken) ?? throw new ExitException("You did not select an OpenAPI collection!");
 
             openApiCollectionId = selectedOpenApiCollection.Id;
         }

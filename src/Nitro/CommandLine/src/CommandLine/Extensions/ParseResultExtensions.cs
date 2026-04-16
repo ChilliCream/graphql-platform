@@ -1,5 +1,4 @@
-using ChilliCream.Nitro.Client.Apis;
-using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
+using ChilliCream.Nitro.CommandLine.Helpers;
 
 namespace ChilliCream.Nitro.CommandLine.Services.Sessions;
 
@@ -18,7 +17,7 @@ internal static class ParseResultExtensions
 
         throw new ExitException(
             "This command requires an authenticated user. "
-            + $"Either specify '{OptionalApiKeyOption.OptionName}' or run 'nitro login'.");
+            + $"Either specify '{OptionalApiKeyOption.OptionName}' or run {"nitro login".AsCommand()}.");
     }
 
     public static string GetWorkspaceId(
@@ -27,31 +26,6 @@ internal static class ParseResultExtensions
     {
         return sessionService.Session?.Workspace?.Id
             ?? parseResult.GetValue(Opt<OptionalWorkspaceIdOption>.Instance)
-            ?? throw ThrowHelper.NoDefaultWorkspace();
-    }
-
-    public static async Task<string> GetOrPromptForApiIdAsync(
-        this ParseResult parseResult,
-        string message,
-        INitroConsole console,
-        IApisClient apisClient,
-        ISessionService sessionService,
-        CancellationToken cancellationToken)
-    {
-        var apiId = parseResult.GetValue(Opt<OptionalApiIdOption>.Instance);
-
-        if (apiId is null)
-        {
-            var workspaceId = parseResult.GetWorkspaceId(sessionService);
-            var selectedApi = await SelectApiPrompt
-                .New(apisClient, workspaceId)
-                .Title(message)
-                .RenderAsync(console, cancellationToken) ?? throw ThrowHelper.NoApiSelected();
-            apiId = selectedApi.Id;
-        }
-
-        console.OkQuestion(message, apiId);
-
-        return apiId;
+            ?? throw new ExitException($"Could not determine workspace. Either login via {"nitro login".AsCommand()} or specify the '{OptionalWorkspaceIdOption.OptionName}' option.");
     }
 }

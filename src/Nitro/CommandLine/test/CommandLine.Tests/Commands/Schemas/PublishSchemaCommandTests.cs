@@ -96,7 +96,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 

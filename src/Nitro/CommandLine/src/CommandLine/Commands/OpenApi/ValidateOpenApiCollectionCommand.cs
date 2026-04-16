@@ -50,7 +50,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
         await using (var rootActivity = console.StartActivity(
-            $"Validating OpenAPI collection against stage '{stage.EscapeMarkup()}'",
+            $"Validating OpenAPI collection '{openApiCollectionId.EscapeMarkup()}' against stage '{stage.EscapeMarkup()}'",
             "Failed to validate the OpenAPI collection."))
         {
             var files = fileSystem.GlobMatch(patterns, ["**/bin/**", "**/obj/**"]).ToArray();

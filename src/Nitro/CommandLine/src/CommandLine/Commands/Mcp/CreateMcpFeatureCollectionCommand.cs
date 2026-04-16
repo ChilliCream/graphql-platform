@@ -44,8 +44,7 @@ internal sealed class CreateMcpFeatureCollectionCommand : Command
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        const string apiMessage = "For which API do you want to create an MCP Feature Collection?";
-        var apiId = await console.GetOrPromptForApiIdAsync(apiMessage, parseResult, apisClient, sessionService, cancellationToken);
+        var apiId = await console.GetOrPromptForApiIdAsync("For which API do you want to create an MCP Feature Collection?", parseResult, apisClient, sessionService, cancellationToken);
 
         var name = await console
             .PromptAsync("Name", defaultValue: null, parseResult, Opt<McpFeatureCollectionNameOption>.Instance, cancellationToken);

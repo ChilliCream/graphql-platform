@@ -89,16 +89,24 @@ internal static class NitroConsoleExtensions
         this INitroConsole console,
         IApisClient apisClient,
         string workspaceId,
-        string message,
-        CancellationToken cancellationToken)
+        string? title = null,
+        CancellationToken cancellationToken = default)
     {
-        var selectedApi = await SelectApiPrompt
-                .New(apisClient, workspaceId)
-                .Title(message)
-                .RenderAsync(console, cancellationToken) ??
-            throw ThrowHelper.NoApiSelected();
+        var prompt = SelectApiPrompt.New(apisClient, workspaceId);
 
-        return selectedApi.Id;
+        if (!string.IsNullOrEmpty(title))
+        {
+            prompt = prompt.Title(title);
+        }
+        var selectedApi = await prompt.RenderAsync(console, cancellationToken);
+        var apiId = selectedApi?.Id;
+
+        if (string.IsNullOrEmpty(apiId))
+        {
+            throw new ExitException("You did not select an API!");
+        }
+
+        return apiId;
     }
 
     public static async Task<string> PromptAsync(

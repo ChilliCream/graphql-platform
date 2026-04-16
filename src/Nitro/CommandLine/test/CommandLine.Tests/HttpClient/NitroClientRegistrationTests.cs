@@ -110,13 +110,15 @@ public class NitroClientRegistrationTests
     }
 
     [Fact]
-    public async Task ExecuteAsync_Should_Throw_When_NoAuthAvailable()
+    public async Task ExecuteAsync_Should_NotSetAuth_When_NoAuthAvailable()
     {
-        // Arrange
+        // Act
         await using var provider = await BuildAndExecuteAsync([]);
+        using var client = CreateApiClient(provider);
 
-        // Act & Assert
-        Assert.Throws<InvalidOperationException>(() => CreateApiClient(provider));
+        // Assert
+        Assert.False(client.DefaultRequestHeaders.Contains("CCC-api-key"));
+        Assert.False(client.DefaultRequestHeaders.Contains("Authorization"));
     }
 
     private static async Task<ServiceProvider> BuildAndExecuteAsync(

@@ -56,7 +56,7 @@ public sealed class SetDefaultWorkspaceCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -75,7 +75,7 @@ public sealed class SetDefaultWorkspaceCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertError(
             """
-            You do not have any workspaces. Run `[bold blue]nitro launch[/]` and create one.
+            You do not have any workspaces. Run `nitro launch` and create one.
             """);
     }
 

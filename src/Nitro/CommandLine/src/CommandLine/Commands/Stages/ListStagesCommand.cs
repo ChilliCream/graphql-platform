@@ -53,8 +53,7 @@ internal sealed class ListStagesCommand : Command
         IResultHolder resultHolder,
         CancellationToken ct)
     {
-        const string apiMessage = "For which API do you want to display the clients?";
-        var apiId = await parseResult.GetOrPromptForApiIdAsync(apiMessage, console, apisClient, sessionService, ct);
+        var apiId = await console.GetOrPromptForApiIdAsync("For which API do you want to display the clients?", parseResult, apisClient, sessionService, ct);
 
         var stages = await client.ListStagesAsync(apiId, ct) ?? [];
 

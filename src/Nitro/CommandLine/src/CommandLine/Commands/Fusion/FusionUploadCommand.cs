@@ -69,58 +69,57 @@ internal sealed class FusionUploadCommand : Command
             throw new ExitException(Messages.SchemaFileDoesNotExist(sourceSchemaFile));
         }
 
-        var (_, sourceText, settings) = await FusionComposeCommand.ReadSourceSchemaAsync(
+        var (sourceSchemaName, sourceText, settings) = await FusionComposeCommand.ReadSourceSchemaAsync(
             fileSystem,
             sourceSchemaFile,
             cancellationToken);
 
-        await using (var activity = console.StartActivity(
-            $"Uploading new source schema version '{tag.EscapeMarkup()}' to API '{apiId.EscapeMarkup()}'",
-            "Failed to upload a new source schema version."))
+        await using var activity = console.StartActivity(
+            $"Uploading new version '{tag.EscapeMarkup()}' for source schema '{sourceSchemaName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'",
+            "Failed to upload a new source schema version.");
+
+        await using var archiveStream = await FusionSourceSchemaArchiveHelper.CreateArchiveStreamAsync(
+            Encoding.UTF8.GetBytes(sourceText.SourceText),
+            settings,
+            cancellationToken);
+
+        var result = await fusionConfigurationClient.UploadFusionSubgraphAsync(
+            apiId,
+            tag,
+            archiveStream,
+            source,
+            cancellationToken);
+
+        if (result.Errors?.Count > 0)
         {
-            await using var archiveStream = await FusionSourceSchemaArchiveHelper.CreateArchiveStreamAsync(
-                Encoding.UTF8.GetBytes(sourceText.SourceText),
-                settings,
-                cancellationToken);
+            activity.Fail();
 
-            var result = await fusionConfigurationClient.UploadFusionSubgraphAsync(
-                apiId,
-                tag,
-                archiveStream,
-                source,
-                cancellationToken);
-
-            if (result.Errors?.Count > 0)
+            foreach (var error in result.Errors)
             {
-                activity.Fail();
-
-                foreach (var error in result.Errors)
+                var errorMessage = error switch
                 {
-                    var errorMessage = error switch
-                    {
-                        IUnauthorizedOperation err => err.Message,
-                        IInvalidSourceMetadataInputError err => err.Message,
-                        IDuplicatedTagError err => err.Message,
-                        IConcurrentOperationError err => err.Message,
-                        IInvalidFusionSourceSchemaArchiveError err => Messages.InvalidArchive(err.Message),
-                        IError err => Messages.UnexpectedMutationError(err),
-                        _ => Messages.UnexpectedMutationError()
-                    };
+                    IUnauthorizedOperation err => err.Message,
+                    IInvalidSourceMetadataInputError err => err.Message,
+                    IDuplicatedTagError err => err.Message,
+                    IConcurrentOperationError err => err.Message,
+                    IInvalidFusionSourceSchemaArchiveError err => Messages.InvalidArchive(err.Message),
+                    IError err => Messages.UnexpectedMutationError(err),
+                    _ => Messages.UnexpectedMutationError()
+                };
 
-                    console.Error.WriteErrorLine(errorMessage);
-                }
-
-                return ExitCodes.Error;
+                console.Error.WriteErrorLine(errorMessage);
             }
 
-            if (string.IsNullOrWhiteSpace(result.FusionSubgraphVersion?.Id))
-            {
-                throw Exit("Upload of source schema failed.");
-            }
-
-            activity.Success($"Uploaded new source schema version '{tag.EscapeMarkup()}'.");
-
-            return ExitCodes.Success;
+            return ExitCodes.Error;
         }
+
+        if (string.IsNullOrWhiteSpace(result.FusionSubgraphVersion?.Id))
+        {
+            throw Exit("Upload of source schema failed.");
+        }
+
+        activity.Success($"Uploaded new source schema version '{tag.EscapeMarkup()}'.");
+
+        return ExitCodes.Success;
     }
 }

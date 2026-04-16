@@ -98,7 +98,7 @@ public sealed class LoginCommandTests(NitroCommandFixture fixture) : SessionComm
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            You do not have any workspaces. Run `[bold blue]nitro launch[/]` and create one.
+            You do not have any workspaces. Run `nitro launch` and create one.
             """);
         Assert.Equal(1, result.ExitCode);
     }

@@ -53,12 +53,11 @@ internal sealed class DeleteClientCommand : Command
 
             var workspaceId = parseResult.GetWorkspaceId(sessionService);
 
-            var selectedApi = await SelectApiPrompt
-                .New(apisClient, workspaceId)
-                .Title("For which API do you want to delete a client?")
-                .RenderAsync(console, cancellationToken) ?? throw NoApiSelected();
-
-            var apiId = selectedApi.Id;
+            var apiId = await console.PromptForApiIdAsync(
+                apisClient,
+                workspaceId,
+                "For which API do you want to delete a client?",
+                cancellationToken);
 
             var selectedClient = await SelectClientPrompt
                 .New(client, apiId)

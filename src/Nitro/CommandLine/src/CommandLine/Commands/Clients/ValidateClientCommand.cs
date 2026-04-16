@@ -60,7 +60,7 @@ internal sealed class ValidateClientCommand : Command
         }
 
         await using (var rootActivity = console.StartActivity(
-            $"Validating client against stage '{stage.EscapeMarkup()}' of client '{clientId.EscapeMarkup()}'",
+            $"Validating client '{clientId.EscapeMarkup()}' against stage '{stage.EscapeMarkup()}'",
             "Failed to validate the client."))
         {
             string requestId;

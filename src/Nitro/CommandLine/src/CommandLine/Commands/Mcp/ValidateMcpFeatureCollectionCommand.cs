@@ -54,7 +54,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
         await using (var rootActivity = console.StartActivity(
-            $"Validating MCP feature collection against stage '{stage.EscapeMarkup()}'",
+            $"Validating MCP feature collection '{mcpFeatureCollectionId.EscapeMarkup()}' against stage '{stage.EscapeMarkup()}'",
             "Failed to validate the MCP feature collection."))
         {
             var promptFiles = fileSystem.GlobMatch(promptPatterns, ["**/bin/**", "**/obj/**"]).ToArray();

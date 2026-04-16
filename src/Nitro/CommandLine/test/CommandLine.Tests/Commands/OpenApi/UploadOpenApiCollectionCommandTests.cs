@@ -63,7 +63,7 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -138,7 +138,7 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new OpenAPI collection version 'v1' for collection 'oa-1'
+            Uploading new version 'v1' for OpenAPI collection 'oa-1'
             └── ✕ Failed to upload a new OpenAPI collection version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -168,7 +168,7 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new OpenAPI collection version 'v1' for collection 'oa-1'
+            Uploading new version 'v1' for OpenAPI collection 'oa-1'
             └── ✕ Failed to upload a new OpenAPI collection version.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
@@ -196,7 +196,7 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new OpenAPI collection version 'v1' for collection 'oa-1'
+            Uploading new version 'v1' for OpenAPI collection 'oa-1'
             └── ✕ Failed to upload a new OpenAPI collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -228,7 +228,7 @@ public sealed class UploadOpenApiCollectionCommandTests(NitroCommandFixture fixt
         await AssertOpenApiCollectionArchive(capturedStream);
         result.AssertSuccess(
             """
-            Uploading new OpenAPI collection version 'v1' for collection 'oa-1'
+            Uploading new version 'v1' for OpenAPI collection 'oa-1'
             └── ✓ Uploaded new OpenAPI collection version 'v1'.
             """);
     }

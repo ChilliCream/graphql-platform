@@ -60,8 +60,7 @@ internal sealed class ListClientCommand : Command
         string? cursor,
         CancellationToken ct)
     {
-        const string apiMessage = "For which API do you want to list the clients?";
-        var apiId = await console.GetOrPromptForApiIdAsync(apiMessage, parseResult, apisClient, sessionService, ct);
+        var apiId = await console.GetOrPromptForApiIdAsync("For which API do you want to list the clients?", parseResult, apisClient, sessionService, ct);
 
         var container = PaginationContainer
             .CreateConnectionData(async (after, first, cancellationToken) =>

@@ -62,7 +62,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -118,7 +118,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating client against stage 'dev' of client 'client-1'
+            Validating client 'client-1' against stage 'dev'
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the client.
@@ -151,7 +151,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
         result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating client against stage 'dev' of client 'client-1'
+            Validating client 'client-1' against stage 'dev'
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the client.
@@ -184,7 +184,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating client against stage 'dev' of client 'client-1'
+            Validating client 'client-1' against stage 'dev'
             ├── Starting validation request
             │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the client.
@@ -216,7 +216,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
             System.Text.Encoding.UTF8.GetString(capturedStream.ToArray()));
         result.AssertSuccess(
             """
-            Validating client against stage 'dev' of client 'client-1'
+            Validating client 'client-1' against stage 'dev'
             ├── Starting validation request
             │   └── ✓ Validation request created (ID: request-1).
             ├── Validating
@@ -245,7 +245,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
         // assert
         result.AssertSuccess(
             """
-            Validating client against stage 'dev' of client 'client-1'
+            Validating client 'client-1' against stage 'dev'
             ├── Starting validation request
             │   └── ✓ Validation request created (ID: request-1).
             ├── Validating
@@ -277,7 +277,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating client against stage 'dev' of client 'client-1'
+            Validating client 'client-1' against stage 'dev'
             ├── Starting validation request
             │   └── ✓ Validation request created (ID: request-1).
             ├── Validating

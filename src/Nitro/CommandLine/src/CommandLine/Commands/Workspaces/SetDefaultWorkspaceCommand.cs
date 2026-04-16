@@ -66,8 +66,6 @@ internal sealed class SetDefaultWorkspaceCommand : Command
         ISessionService sessionService,
         CancellationToken cancellationToken)
     {
-        const string message = "Which workspace do you want to use as your default?";
-
         var paginationContainer = PaginationContainer.CreateConnectionData(client.SelectWorkspacesAsync);
 
         var current = await paginationContainer.GetCurrentAsync(cancellationToken);
@@ -89,7 +87,7 @@ internal sealed class SetDefaultWorkspaceCommand : Command
         {
             var selectedWorkspace = await PagedSelectionPrompt
                 .New(paginationContainer)
-                .Title(message.AsQuestion())
+                .Title("Which workspace do you want to use as your default?".AsQuestion())
                 .UseConverter(x => x.Name)
                 .RenderAsync(console, cancellationToken);
 
@@ -107,7 +105,7 @@ internal sealed class SetDefaultWorkspaceCommand : Command
 
         if (wasPrompted)
         {
-            console.OkQuestion(message, workspace.Name);
+            console.OkQuestion("Which workspace do you want to use as your default?", workspace.Name);
         }
 
         return ExitCodes.Success;
