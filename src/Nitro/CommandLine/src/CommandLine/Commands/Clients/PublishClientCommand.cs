@@ -64,155 +64,139 @@ internal sealed class PublishClientCommand : Command
 
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        await using (var rootActivity = console.StartActivity(
-            $"Publishing new client version '{tag.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}' of client '{clientId.EscapeMarkup()}'",
+        await using (var activity = console.StartActivity(
+            $"Publishing new version '{tag.EscapeMarkup()}' of client '{clientId.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}'",
             "Failed to publish a new client version."))
         {
             if (force)
             {
-                rootActivity.Update(Messages.ForcePushEnabled, ActivityUpdateKind.Warning);
+                activity.Update(Messages.ForcePushEnabled, ActivityUpdateKind.Warning);
             }
 
-            string requestId;
+            var publishRequest = await client.StartClientPublishAsync(
+                clientId,
+                stage,
+                tag,
+                force,
+                waitForApproval,
+                source,
+                ct);
 
-            await using (var child = rootActivity.StartChildActivity(
-                Messages.StartingPublishRequest,
-                Messages.FailedToStartPublishRequest))
+            if (publishRequest.Errors?.Count > 0)
             {
-                var publishRequest = await client.StartClientPublishAsync(
-                    clientId,
-                    stage,
-                    tag,
-                    force,
-                    waitForApproval,
-                    source,
-                    ct);
+                activity.Fail();
 
-                if (publishRequest.Errors?.Count > 0)
+                foreach (var error in publishRequest.Errors)
                 {
-                    await child.FailAllAsync();
-
-                    foreach (var error in publishRequest.Errors)
+                    var errorMessage = error switch
                     {
-                        var errorMessage = error switch
+                        IPublishClientVersion_PublishClient_Errors_UnauthorizedOperation err => err.Message,
+                        IPublishClientVersion_PublishClient_Errors_ClientNotFoundError err => err.Message,
+                        IPublishClientVersion_PublishClient_Errors_StageNotFoundError err => err.Message,
+                        IPublishClientVersion_PublishClient_Errors_ClientVersionNotFoundError err => err.Message,
+                        IPublishClientVersion_PublishClient_Errors_InvalidSourceMetadataInputError err => err.Message,
+                        IError err => Messages.UnexpectedMutationError(err),
+                        _ => Messages.UnexpectedMutationError()
+                    };
+
+                    console.Error.WriteErrorLine(errorMessage);
+                }
+
+                return ExitCodes.Error;
+            }
+
+            if (publishRequest.Id is not { } id)
+            {
+                throw MutationReturnedNoData();
+            }
+
+            activity.Update($"Publication request created. {$"(ID: {id})".Dim()}");
+
+            await foreach (var update in client.SubscribeToClientPublishAsync(id, ct))
+            {
+                switch (update)
+                {
+                    case IProcessingTaskIsQueued v:
+                        activity.Update(Messages.QueuedAtPosition(v.QueuePosition), ActivityUpdateKind.Waiting);
+                        break;
+
+                    case IClientVersionPublishFailed { Errors: var errors }:
+                        var errorTree = new Tree("");
+
+                        foreach (var error in errors)
                         {
-                            IPublishClientVersion_PublishClient_Errors_UnauthorizedOperation err => err.Message,
-                            IPublishClientVersion_PublishClient_Errors_ClientNotFoundError err => err.Message,
-                            IPublishClientVersion_PublishClient_Errors_StageNotFoundError err => err.Message,
-                            IPublishClientVersion_PublishClient_Errors_ClientVersionNotFoundError err => err.Message,
-                            IPublishClientVersion_PublishClient_Errors_InvalidSourceMetadataInputError err => err.Message,
-                            IError err => Messages.UnexpectedMutationError(err),
-                            _ => Messages.UnexpectedMutationError()
-                        };
+                            switch (error)
+                            {
+                                case IPersistedQueryValidationError e:
+                                    errorTree.AddPersistedQueryValidationErrors(e);
+                                    break;
+                                case IConcurrentOperationError e:
+                                    errorTree.AddErrorMessage(e.Message);
+                                    break;
+                                case IProcessingTimeoutError e:
+                                    errorTree.AddErrorMessage(e.Message);
+                                    break;
+                                case IUnexpectedProcessingError e:
+                                    errorTree.AddErrorMessage(e.Message);
+                                    break;
+                            }
+                        }
 
-                        console.Error.WriteErrorLine(errorMessage);
-                    }
+                        activity.Fail(errorTree);
 
-                    return ExitCodes.Error;
-                }
+                        throw new ExitException("Client publish failed.");
 
-                if (publishRequest.Id is not { } id)
-                {
-                    throw MutationReturnedNoData();
-                }
+                    case IClientVersionPublishSuccess:
+                        activity.Success($"Published new client version '{tag.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}'.");
 
-                requestId = id;
-                child.Success($"Publish request created {$"(ID: {requestId})".Dim()}.");
-            }
+                        return ExitCodes.Success;
 
-            await using (var child = rootActivity.StartChildActivity(
-                Messages.ProcessingActivity,
-                Messages.ProcessingFailed))
-            {
-                await foreach (var update in client.SubscribeToClientPublishAsync(requestId, ct))
-                {
-                    switch (update)
-                    {
-                        case IProcessingTaskIsQueued v:
-                            child.Update(Messages.QueuedAtPosition(v.QueuePosition), ActivityUpdateKind.Waiting);
-                            break;
+                    case IProcessingTaskIsReady:
+                        activity.Update(Messages.RequestReadyForProcessing);
+                        break;
 
-                        case IClientVersionPublishFailed { Errors: var errors }:
-                            var errorTree = new Tree("");
+                    case IOperationInProgress:
+                        activity.Update(Messages.RequestBeingProcessed);
+                        break;
 
-                            foreach (var error in errors)
+                    case IWaitForApproval waitForApprovalEvent:
+                        if (waitForApprovalEvent.Deployment is IClientDeployment deployment)
+                        {
+                            var approvalErrorTree = new Tree("");
+
+                            foreach (var error in deployment.Errors)
                             {
                                 switch (error)
                                 {
                                     case IPersistedQueryValidationError e:
-                                        errorTree.AddPersistedQueryValidationErrors(e);
-                                        break;
-                                    case IConcurrentOperationError e:
-                                        errorTree.AddErrorMessage(e.Message);
-                                        break;
-                                    case IProcessingTimeoutError e:
-                                        errorTree.AddErrorMessage(e.Message);
-                                        break;
-                                    case IUnexpectedProcessingError e:
-                                        errorTree.AddErrorMessage(e.Message);
+                                        approvalErrorTree.AddPersistedQueryValidationErrors(e);
                                         break;
                                 }
                             }
 
-                            child.Fail(errorTree);
+                            activity.Update(
+                                Messages.ValidationFailed,
+                                ActivityUpdateKind.Warning,
+                                approvalErrorTree);
+                        }
 
-                            await child.FailAllAsync();
+                        activity.Update(
+                            Messages.WaitingForApproval,
+                            ActivityUpdateKind.Waiting);
+                        break;
 
-                            throw new ExitException("Client publish failed.");
+                    case IProcessingTaskApproved:
+                        activity.Update(Messages.RequestApproved);
+                        break;
 
-                        case IClientVersionPublishSuccess:
-                            child.Success(Messages.PublishedSuccessfully);
-                            rootActivity.Success($"Published new client version '{tag.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}'.");
-
-                            return ExitCodes.Success;
-
-                        case IProcessingTaskIsReady:
-                            child.Update(Messages.RequestReadyForProcessing);
-                            break;
-
-                        case IOperationInProgress:
-                            child.Update(Messages.RequestBeingProcessed);
-                            break;
-
-                        case IWaitForApproval waitForApprovalEvent:
-                            if (waitForApprovalEvent.Deployment is IClientDeployment deployment)
-                            {
-                                var approvalErrorTree = new Tree("");
-
-                                foreach (var error in deployment.Errors)
-                                {
-                                    switch (error)
-                                    {
-                                        case IPersistedQueryValidationError e:
-                                            approvalErrorTree.AddPersistedQueryValidationErrors(e);
-                                            break;
-                                    }
-                                }
-
-                                child.Update(
-                                    Messages.ValidationFailed,
-                                    ActivityUpdateKind.Warning,
-                                    approvalErrorTree);
-                            }
-
-                            child.Update(
-                                Messages.WaitingForApproval,
-                                ActivityUpdateKind.Waiting);
-                            break;
-
-                        case IProcessingTaskApproved:
-                            child.Update(Messages.RequestApproved);
-                            break;
-
-                        default:
-                            child.Update(
-                                Messages.UnknownServerResponse, ActivityUpdateKind.Warning);
-                            break;
-                    }
+                    default:
+                        activity.Update(
+                            Messages.UnknownServerResponse, ActivityUpdateKind.Warning);
+                        break;
                 }
-
-                child.Fail();
             }
+
+            activity.Fail();
         }
 
         return ExitCodes.Error;

@@ -53,7 +53,7 @@ internal static class SchemaHelpers
             throw new ExitException("Could not create validation request!");
         }
 
-        activity.Update($"Validation request created {$"(ID: {requestId})".Dim()}.");
+        activity.Update($"Validation request created. {$"(ID: {requestId})".Dim()}");
 
         await foreach (var @event in client.SubscribeToSchemaValidationAsync(requestId, ct))
         {
@@ -100,12 +100,12 @@ internal static class SchemaHelpers
 
                     await activity.FailAllAsync();
 
-                    console.Error.WriteErrorLine(Messages.ValidationFailed);
+                    console.Error.WriteErrorLine("Schema validation failed.");
 
                     return false;
 
                 case ISchemaVersionValidationSuccess:
-                    activity.Success(Messages.ValidationPassed);
+                    activity.Success("Schema validation successful.");
 
                     return true;
 

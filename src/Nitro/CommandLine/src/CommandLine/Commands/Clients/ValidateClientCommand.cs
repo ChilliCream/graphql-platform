@@ -59,108 +59,92 @@ internal sealed class ValidateClientCommand : Command
             throw new ExitException(Messages.OperationsFileDoesNotExist(operationsFilePath));
         }
 
-        await using (var rootActivity = console.StartActivity(
+        await using (var activity = console.StartActivity(
             $"Validating client '{clientId.EscapeMarkup()}' against stage '{stage.EscapeMarkup()}'",
             "Failed to validate the client."))
         {
-            string requestId;
+            await using var stream = fileSystem.OpenReadStream(operationsFilePath);
 
-            await using (var child = rootActivity.StartChildActivity(
-                Messages.StartingValidationRequest,
-                Messages.FailedToStartValidationRequest))
+            var validationRequest = await client.StartClientValidationAsync(
+                clientId,
+                stage,
+                stream,
+                source,
+                ct);
+
+            if (validationRequest.Errors?.Count > 0)
             {
-                await using var stream = fileSystem.OpenReadStream(operationsFilePath);
+                activity.Fail();
 
-                var validationRequest = await client.StartClientValidationAsync(
-                    clientId,
-                    stage,
-                    stream,
-                    source,
-                    ct);
-
-                if (validationRequest.Errors?.Count > 0)
+                foreach (var error in validationRequest.Errors)
                 {
-                    await child.FailAllAsync();
-
-                    foreach (var error in validationRequest.Errors)
+                    var errorMessage = error switch
                     {
-                        var errorMessage = error switch
+                        IValidateClientVersion_ValidateClient_Errors_UnauthorizedOperation err => err.Message,
+                        IValidateClientVersion_ValidateClient_Errors_ClientNotFoundError err => err.Message,
+                        IValidateClientVersion_ValidateClient_Errors_StageNotFoundError err => err.Message,
+                        IValidateClientVersion_ValidateClient_Errors_InvalidSourceMetadataInputError err => err.Message,
+                        IError err => Messages.UnexpectedMutationError(err),
+                        _ => Messages.UnexpectedMutationError()
+                    };
+
+                    console.Error.WriteErrorLine(errorMessage);
+                }
+
+                return ExitCodes.Error;
+            }
+
+            if (validationRequest.Id is not { } id)
+            {
+                throw new ExitException("Could not create client validation request.");
+            }
+
+            activity.Update($"Validation request created. {$"(ID: {id})".Dim()}");
+
+            await foreach (var update in client.SubscribeToClientValidationAsync(id, ct))
+            {
+                switch (update)
+                {
+                    case IClientVersionValidationFailed { Errors: var errors }:
+                        var errorTree = new Tree("");
+
+                        foreach (var error in errors)
                         {
-                            IValidateClientVersion_ValidateClient_Errors_UnauthorizedOperation err => err.Message,
-                            IValidateClientVersion_ValidateClient_Errors_ClientNotFoundError err => err.Message,
-                            IValidateClientVersion_ValidateClient_Errors_StageNotFoundError err => err.Message,
-                            IValidateClientVersion_ValidateClient_Errors_InvalidSourceMetadataInputError err => err.Message,
-                            IError err => Messages.UnexpectedMutationError(err),
-                            _ => Messages.UnexpectedMutationError()
-                        };
-
-                        console.Error.WriteErrorLine(errorMessage);
-                    }
-
-                    return ExitCodes.Error;
-                }
-
-                if (validationRequest.Id is not { } id)
-                {
-                    throw new ExitException("Could not create client validation request.");
-                }
-
-                requestId = id;
-                child.Success($"Validation request created {$"(ID: {requestId})".Dim()}.");
-            }
-
-            await using (var child = rootActivity.StartChildActivity(
-                Messages.ValidatingActivity,
-                Messages.ValidationFailed))
-            {
-                await foreach (var update in client.SubscribeToClientValidationAsync(requestId, ct))
-                {
-                    switch (update)
-                    {
-                        case IClientVersionValidationFailed { Errors: var errors }:
-                            var errorTree = new Tree("");
-
-                            foreach (var error in errors)
+                            switch (error)
                             {
-                                switch (error)
-                                {
-                                    case IPersistedQueryValidationError e:
-                                        errorTree.AddPersistedQueryValidationErrors(e);
-                                        break;
-                                    case IProcessingTimeoutError e:
-                                        errorTree.AddErrorMessage(e.Message);
-                                        break;
-                                    case IUnexpectedProcessingError e:
-                                        errorTree.AddErrorMessage(e.Message);
-                                        break;
-                                }
+                                case IPersistedQueryValidationError e:
+                                    errorTree.AddPersistedQueryValidationErrors(e);
+                                    break;
+                                case IProcessingTimeoutError e:
+                                    errorTree.AddErrorMessage(e.Message);
+                                    break;
+                                case IUnexpectedProcessingError e:
+                                    errorTree.AddErrorMessage(e.Message);
+                                    break;
                             }
+                        }
 
-                            child.Fail(errorTree);
+                        activity.Fail(errorTree);
 
-                            await child.FailAllAsync();
+                        throw new ExitException("Client validation failed.");
 
-                            throw new ExitException("Client validation failed.");
+                    case IClientVersionValidationSuccess:
+                        activity.Success($"Validated client against stage '{stage.EscapeMarkup()}'.");
 
-                        case IClientVersionValidationSuccess:
-                            child.Success(Messages.ValidationPassed);
-                            rootActivity.Success($"Validated client against stage '{stage.EscapeMarkup()}'.");
+                        return ExitCodes.Success;
 
-                            return ExitCodes.Success;
+                    case IOperationInProgress:
+                    case IValidationInProgress:
+                        activity.Update(Messages.Validating);
+                        break;
 
-                        case IOperationInProgress:
-                        case IValidationInProgress:
-                            child.Update(Messages.Validating);
-                            break;
-
-                        default:
-                            child.Update(Messages.UnknownServerResponse, ActivityUpdateKind.Warning);
-                            break;
-                    }
+                    default:
+                        activity.Update(Messages.UnknownServerResponse, ActivityUpdateKind.Warning);
+                        break;
                 }
-
-                child.Fail();
             }
+
+            activity.Fail();
         }
 
         return ExitCodes.Error;

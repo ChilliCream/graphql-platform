@@ -114,7 +114,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating API 'api-1' schema against stage 'dev'
+            Validating schema of API 'api-1' against stage 'dev'
             └── ✕ Failed to validate the schema.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -145,7 +145,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
         result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating API 'api-1' schema against stage 'dev'
+            Validating schema of API 'api-1' against stage 'dev'
             └── ✕ Failed to validate the schema.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -188,7 +188,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating API 'api-1' schema against stage 'dev'
+            Validating schema of API 'api-1' against stage 'dev'
             └── ✕ Failed to validate the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -222,9 +222,9 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
             System.Text.Encoding.UTF8.GetString(capturedStream.ToArray()));
         result.AssertSuccess(
             """
-            Validating API 'api-1' schema against stage 'dev'
-            ├── Validation request created (ID: request-id).
-            └── ✓ Validation passed.
+            Validating schema of API 'api-1' against stage 'dev'
+            ├── Validation request created. (ID: request-id)
+            └── ✓ Schema validation successful.
             """);
     }
 
@@ -248,9 +248,9 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
         // assert
         result.AssertSuccess(
             """
-            Validating API 'api-1' schema against stage 'dev'
-            ├── Validation request created (ID: request-id).
-            └── ✓ Validation passed.
+            Validating schema of API 'api-1' against stage 'dev'
+            ├── Validation request created. (ID: request-id)
+            └── ✓ Schema validation successful.
             """);
     }
 
@@ -279,12 +279,12 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Validation failed.
+            Schema validation failed.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating API 'api-1' schema against stage 'dev'
-            ├── Validation request created (ID: request-id).
+            Validating schema of API 'api-1' against stage 'dev'
+            ├── Validation request created. (ID: request-id)
             ├── Validating...
             ├── Validating...
             └── ✕ Failed to validate the schema.

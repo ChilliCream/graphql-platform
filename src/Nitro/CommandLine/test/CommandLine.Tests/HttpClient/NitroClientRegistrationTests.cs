@@ -66,18 +66,24 @@ public class NitroClientRegistrationTests
         Assert.False(client.DefaultRequestHeaders.Contains("Authorization"));
     }
 
-    [Fact]
-    public async Task ExecuteAsync_Should_UseExplicitCloudUrl()
+    [Theory]
+    [InlineData("custom.host.com", "https://custom.host.com/graphql")]
+    [InlineData("https://custom.host.com", "https://custom.host.com/graphql")]
+    [InlineData("http://custom.host.com", "http://custom.host.com/graphql")]
+    [InlineData("http://custom.host.com/graphql", "http://custom.host.com/graphql")]
+    [InlineData("https://custom.host.com/graphql", "https://custom.host.com/graphql")]
+    [InlineData("custom.host.com/graphql", "https://custom.host.com/graphql")]
+    [InlineData("https://custom.host.com/some/path", "https://custom.host.com/graphql")]
+    [InlineData("https://custom.host.com/graphql?foo=bar", "https://custom.host.com/graphql")]
+    public async Task ExecuteAsync_Should_NormalizeCloudUrl(string input, string expected)
     {
         // Act
         await using var provider = await BuildAndExecuteAsync(
-            ["--api-key", "x", "--cloud-url", "custom.host.com"]);
+            ["--api-key", "x", "--cloud-url", input]);
         using var client = CreateApiClient(provider);
 
         // Assert
-        Assert.Equal(
-            new Uri("https://custom.host.com/graphql"),
-            client.BaseAddress);
+        Assert.Equal(new Uri(expected), client.BaseAddress);
     }
 
     [Fact]

@@ -53,18 +53,18 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
 
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        await using (var rootActivity = console.StartActivity(
+        await using (var activity = console.StartActivity(
             $"Validating MCP feature collection '{mcpFeatureCollectionId.EscapeMarkup()}' against stage '{stage.EscapeMarkup()}'",
             "Failed to validate the MCP feature collection."))
         {
             var promptFiles = fileSystem.GlobMatch(promptPatterns, ["**/bin/**", "**/obj/**"]).ToArray();
             var toolFiles = fileSystem.GlobMatch(toolPatterns, ["**/bin/**", "**/obj/**"]).ToArray();
 
-            rootActivity.Update($"Found {promptFiles.Length} prompt(s) and {toolFiles.Length} tool(s).");
+            activity.Update($"Found {promptFiles.Length} prompt(s) and {toolFiles.Length} tool(s).");
 
             if (promptFiles.Length < 1 && toolFiles.Length < 1)
             {
-                rootActivity.Fail();
+                activity.Fail();
                 console.Error.WriteErrorLine(
                     "Could not find any MCP prompt or tool definition files with the provided patterns.");
                 return ExitCodes.Error;
@@ -77,104 +77,88 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
                     toolFiles,
                     ct);
 
-            string requestId;
+            var validationRequest = await client.StartMcpFeatureCollectionValidationAsync(
+                mcpFeatureCollectionId,
+                stage,
+                archiveStream,
+                source,
+                ct);
 
-            await using (var child = rootActivity.StartChildActivity(
-                Messages.StartingValidationRequest,
-                Messages.FailedToStartValidationRequest))
+            if (validationRequest.Errors?.Count > 0)
             {
-                var validationRequest = await client.StartMcpFeatureCollectionValidationAsync(
-                    mcpFeatureCollectionId,
-                    stage,
-                    archiveStream,
-                    source,
-                    ct);
+                activity.Fail();
 
-                if (validationRequest.Errors?.Count > 0)
+                foreach (var error in validationRequest.Errors)
                 {
-                    await child.FailAllAsync();
-
-                    foreach (var error in validationRequest.Errors)
+                    var errorMessage = error switch
                     {
-                        var errorMessage = error switch
+                        IUnauthorizedOperation err => err.Message,
+                        IInvalidSourceMetadataInputError err => err.Message,
+                        IStageNotFoundError err => err.Message,
+                        IMcpFeatureCollectionNotFoundError err => err.Message,
+                        IError err => Messages.UnexpectedMutationError(err),
+                        _ => Messages.UnexpectedMutationError()
+                    };
+
+                    console.Error.WriteErrorLine(errorMessage);
+                }
+
+                return ExitCodes.Error;
+            }
+
+            if (validationRequest.Id is not { } id)
+            {
+                throw new ExitException("Could not create validation request!");
+            }
+
+            activity.Update($"Validation request created. {$"(ID: {id})".Dim()}");
+
+            await foreach (var update in client.SubscribeToMcpFeatureCollectionValidationAsync(id, ct))
+            {
+                switch (update)
+                {
+                    case IMcpFeatureCollectionVersionValidationFailed { Errors: var errors }:
+                        var errorTree = new Tree("");
+
+                        foreach (var error in errors)
                         {
-                            IUnauthorizedOperation err => err.Message,
-                            IInvalidSourceMetadataInputError err => err.Message,
-                            IStageNotFoundError err => err.Message,
-                            IMcpFeatureCollectionNotFoundError err => err.Message,
-                            IError err => Messages.UnexpectedMutationError(err),
-                            _ => Messages.UnexpectedMutationError()
-                        };
-
-                        console.Error.WriteErrorLine(errorMessage);
-                    }
-
-                    return ExitCodes.Error;
-                }
-
-                if (validationRequest.Id is not { } id)
-                {
-                    throw new ExitException("Could not create validation request!");
-                }
-
-                requestId = id;
-                child.Success($"Validation request created {$"(ID: {requestId})".Dim()}.");
-            }
-
-            await using (var child = rootActivity.StartChildActivity(
-                Messages.ValidatingActivity,
-                Messages.ValidationFailed))
-            {
-                await foreach (var update in client.SubscribeToMcpFeatureCollectionValidationAsync(requestId, ct))
-                {
-                    switch (update)
-                    {
-                        case IMcpFeatureCollectionVersionValidationFailed { Errors: var errors }:
-                            var errorTree = new Tree("");
-
-                            foreach (var error in errors)
+                            switch (error)
                             {
-                                switch (error)
-                                {
-                                    case IMcpFeatureCollectionValidationError e:
-                                        errorTree.AddMcpFeatureCollectionValidationErrors(e);
-                                        break;
-                                    case IMcpFeatureCollectionValidationArchiveError e:
-                                        errorTree.AddErrorMessage(Messages.InvalidArchive(e.Message));
-                                        break;
-                                    case IUnexpectedProcessingError e:
-                                        errorTree.AddErrorMessage(e.Message);
-                                        break;
-                                    case IProcessingTimeoutError e:
-                                        errorTree.AddErrorMessage(e.Message);
-                                        break;
-                                }
+                                case IMcpFeatureCollectionValidationError e:
+                                    errorTree.AddMcpFeatureCollectionValidationErrors(e);
+                                    break;
+                                case IMcpFeatureCollectionValidationArchiveError e:
+                                    errorTree.AddErrorMessage(Messages.InvalidArchive(e.Message));
+                                    break;
+                                case IUnexpectedProcessingError e:
+                                    errorTree.AddErrorMessage(e.Message);
+                                    break;
+                                case IProcessingTimeoutError e:
+                                    errorTree.AddErrorMessage(e.Message);
+                                    break;
                             }
+                        }
 
-                            child.Fail(errorTree);
+                        activity.Fail(errorTree);
 
-                            await child.FailAllAsync();
+                        throw new ExitException("MCP feature collection validation failed.");
 
-                            throw new ExitException("MCP feature collection validation failed.");
+                    case IMcpFeatureCollectionVersionValidationSuccess:
+                        activity.Success($"Validated MCP feature collection against stage '{stage.EscapeMarkup()}'.");
+                        return ExitCodes.Success;
 
-                        case IMcpFeatureCollectionVersionValidationSuccess:
-                            child.Success(Messages.ValidationPassed);
-                            rootActivity.Success($"Validated MCP feature collection against stage '{stage.EscapeMarkup()}'.");
-                            return ExitCodes.Success;
+                    case IOperationInProgress:
+                    case IValidationInProgress:
+                        activity.Update(Messages.Validating);
+                        break;
 
-                        case IOperationInProgress:
-                        case IValidationInProgress:
-                            child.Update(Messages.Validating);
-                            break;
-
-                        default:
-                            child.Update(Messages.UnknownServerResponse, ActivityUpdateKind.Warning);
-                            break;
-                    }
+                    default:
+                        activity.Update(Messages.UnknownServerResponse, ActivityUpdateKind.Warning);
+                        break;
                 }
-
-                child.Fail();
             }
+
+            activity.Fail();
         }
 
         return ExitCodes.Error;

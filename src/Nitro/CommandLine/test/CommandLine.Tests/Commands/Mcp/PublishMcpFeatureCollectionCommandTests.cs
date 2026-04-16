@@ -122,9 +122,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'dev'
-            ├── Starting publish request
-            │   └── ✕ Failed to start publish request.
+            Publishing new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'
             └── ✕ Failed to publish a new MCP feature collection version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -154,9 +152,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'dev'
-            ├── Starting publish request
-            │   └── ✕ Failed to start publish request.
+            Publishing new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'
             └── ✕ Failed to publish a new MCP feature collection version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -186,9 +182,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'dev'
-            ├── Starting publish request
-            │   └── ✕ Failed to start publish request.
+            Publishing new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'
             └── ✕ Failed to publish a new MCP feature collection version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -216,12 +210,9 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         // assert
         result.AssertSuccess(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'dev'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   └── ✓ Published successfully.
-            └── ✓ Published new MCP feature collection version 'v1' to stage 'dev'.
+            Publishing new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'
+            ├── Publication request created. (ID: request-1)
+            └── ✓ Published new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'.
             """);
     }
 
@@ -248,12 +239,9 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         // assert
         result.AssertSuccess(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'dev'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   └── ✓ Published successfully.
-            └── ✓ Published new MCP feature collection version 'v1' to stage 'dev'.
+            Publishing new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'
+            ├── Publication request created. (ID: request-1)
+            └── ✓ Published new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'.
             """);
     }
 
@@ -279,13 +267,10 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'dev'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   └── ✕ Processing failed.
-            │       └── Something went wrong during publish.
+            Publishing new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'
+            ├── Publication request created. (ID: request-1)
             └── ✕ Failed to publish a new MCP feature collection version.
+                └── Something went wrong during publish.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -317,13 +302,10 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         // assert
         result.AssertSuccess(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'dev'
+            Publishing new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'
             ├── ! Force push is enabled.
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   └── ✓ Published successfully.
-            └── ✓ Published new MCP feature collection version 'v1' to stage 'dev'.
+            ├── Publication request created. (ID: request-1)
+            └── ✓ Published new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'.
             """);
     }
 
@@ -352,18 +334,15 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         // assert
         result.AssertSuccess(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'dev'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   ├── ! Validation failed.
-            │   │   └── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
-            │   │       └── Tool 'Fail'
-            │   │           └── The field `person` does not exist on the type `Query`. (1:14)
-            │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            │   ├── Your request has been approved.
-            │   └── ✓ Published successfully.
-            └── ✓ Published new MCP feature collection version 'v1' to stage 'dev'.
+            Publishing new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'
+            ├── Publication request created. (ID: request-1)
+            ├── ! Validation failed.
+            │   └── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
+            │       └── Tool 'Fail'
+            │           └── The field `person` does not exist on the type `Query`. (1:14)
+            ├── ⏳ Waiting for approval. Approve in Nitro to continue.
+            ├── Your request has been approved.
+            └── ✓ Published new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'.
             """);
     }
 
@@ -395,16 +374,13 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'dev'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   ├── ! Validation failed.
-            │   │   └── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
-            │   │       └── Tool 'Fail'
-            │   │           └── The field `person` does not exist on the type `Query`. (1:14)
-            │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            │   └── ✕ Processing failed.
+            Publishing new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'
+            ├── Publication request created. (ID: request-1)
+            ├── ! Validation failed.
+            │   └── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
+            │       └── Tool 'Fail'
+            │           └── The field `person` does not exist on the type `Query`. (1:14)
+            ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             └── ✕ Failed to publish a new MCP feature collection version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -430,12 +406,9 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         // assert
         result.AssertSuccess(
             """
-            Publishing new MCP feature collection version 'v1' to stage 'dev'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   └── ✓ Published successfully.
-            └── ✓ Published new MCP feature collection version 'v1' to stage 'dev'.
+            Publishing new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'
+            ├── Publication request created. (ID: request-1)
+            └── ✓ Published new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'.
             """);
     }
 

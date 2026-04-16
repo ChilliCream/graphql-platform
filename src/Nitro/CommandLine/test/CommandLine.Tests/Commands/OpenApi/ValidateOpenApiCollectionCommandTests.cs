@@ -94,8 +94,6 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             """
             Validating OpenAPI collection 'oa-1' against stage 'dev'
             ├── Found 1 document(s).
-            ├── Starting validation request
-            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the OpenAPI collection.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -127,8 +125,6 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             """
             Validating OpenAPI collection 'oa-1' against stage 'dev'
             ├── Found 1 document(s).
-            ├── Starting validation request
-            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
@@ -158,8 +154,6 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             """
             Validating OpenAPI collection 'oa-1' against stage 'dev'
             ├── Found 1 document(s).
-            ├── Starting validation request
-            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -194,10 +188,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             """
             Validating OpenAPI collection 'oa-1' against stage 'dev'
             ├── Found 1 document(s).
-            ├── Starting validation request
-            │   └── ✓ Validation request created (ID: request-1).
-            ├── Validating
-            │   └── ✓ Validation passed.
+            ├── Validation request created. (ID: request-1)
             └── ✓ Validated OpenAPI collection against stage 'dev'.
             """);
     }
@@ -226,10 +217,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             """
             Validating OpenAPI collection 'oa-1' against stage 'dev'
             ├── Found 1 document(s).
-            ├── Starting validation request
-            │   └── ✓ Validation request created (ID: request-1).
-            ├── Validating
-            │   └── ✓ Validation passed.
+            ├── Validation request created. (ID: request-1)
             └── ✓ Validated OpenAPI collection against stage 'dev'.
             """);
     }
@@ -259,14 +247,11 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             """
             Validating OpenAPI collection 'oa-1' against stage 'dev'
             ├── Found 1 document(s).
-            ├── Starting validation request
-            │   └── ✓ Validation request created (ID: request-1).
-            ├── Validating
-            │   └── ✕ Validation failed.
-            │       └── OpenAPI collection 'petstore' (ID: collection-1)
-            │           └── Endpoint 'GET /fail'
-            │               └── The field `person` does not exist on the type `Query`. (1:14)
+            ├── Validation request created. (ID: request-1)
             └── ✕ Failed to validate the OpenAPI collection.
+                └── OpenAPI collection 'petstore' (ID: collection-1)
+                    └── Endpoint 'GET /fail'
+                        └── The field `person` does not exist on the type `Query`. (1:14)
             """);
         result.StdErr.MatchInlineSnapshot(
             """

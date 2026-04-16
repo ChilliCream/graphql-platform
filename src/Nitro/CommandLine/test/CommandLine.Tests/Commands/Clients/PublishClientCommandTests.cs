@@ -122,9 +122,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new client version 'v1' to stage 'dev' of client 'client-1'
-            ├── Starting publish request
-            │   └── ✕ Failed to start publish request.
+            Publishing new version 'v1' of client 'client-1' to stage 'dev'
             └── ✕ Failed to publish a new client version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -154,9 +152,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new client version 'v1' to stage 'dev' of client 'client-1'
-            ├── Starting publish request
-            │   └── ✕ Failed to start publish request.
+            Publishing new version 'v1' of client 'client-1' to stage 'dev'
             └── ✕ Failed to publish a new client version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -186,9 +182,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new client version 'v1' to stage 'dev' of client 'client-1'
-            ├── Starting publish request
-            │   └── ✕ Failed to start publish request.
+            Publishing new version 'v1' of client 'client-1' to stage 'dev'
             └── ✕ Failed to publish a new client version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -216,11 +210,8 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
         // assert
         result.AssertSuccess(
             """
-            Publishing new client version 'v1' to stage 'dev' of client 'client-1'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   └── ✓ Published successfully.
+            Publishing new version 'v1' of client 'client-1' to stage 'dev'
+            ├── Publication request created. (ID: request-1)
             └── ✓ Published new client version 'v1' to stage 'dev'.
             """);
     }
@@ -248,11 +239,8 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
         // assert
         result.AssertSuccess(
             """
-            Publishing new client version 'v1' to stage 'dev' of client 'client-1'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   └── ✓ Published successfully.
+            Publishing new version 'v1' of client 'client-1' to stage 'dev'
+            ├── Publication request created. (ID: request-1)
             └── ✓ Published new client version 'v1' to stage 'dev'.
             """);
     }
@@ -279,14 +267,11 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new client version 'v1' to stage 'dev' of client 'client-1'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   └── ✕ Processing failed.
-            │       └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
-            │           └── foo (10:10)
+            Publishing new version 'v1' of client 'client-1' to stage 'dev'
+            ├── Publication request created. (ID: request-1)
             └── ✕ Failed to publish a new client version.
+                └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
+                    └── foo (10:10)
             """);
         result.StdErr.MatchInlineSnapshot(
             """
@@ -318,12 +303,9 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
         // assert
         result.AssertSuccess(
             """
-            Publishing new client version 'v1' to stage 'dev' of client 'client-1'
+            Publishing new version 'v1' of client 'client-1' to stage 'dev'
             ├── ! Force push is enabled.
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   └── ✓ Published successfully.
+            ├── Publication request created. (ID: request-1)
             └── ✓ Published new client version 'v1' to stage 'dev'.
             """);
     }
@@ -353,16 +335,13 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
         // assert
         result.AssertSuccess(
             """
-            Publishing new client version 'v1' to stage 'dev' of client 'client-1'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   ├── ! Validation failed.
-            │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
-            │   │       └── foo (10:10)
-            │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            │   ├── Your request has been approved.
-            │   └── ✓ Published successfully.
+            Publishing new version 'v1' of client 'client-1' to stage 'dev'
+            ├── Publication request created. (ID: request-1)
+            ├── ! Validation failed.
+            │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
+            │       └── foo (10:10)
+            ├── ⏳ Waiting for approval. Approve in Nitro to continue.
+            ├── Your request has been approved.
             └── ✓ Published new client version 'v1' to stage 'dev'.
             """);
     }
@@ -395,15 +374,12 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new client version 'v1' to stage 'dev' of client 'client-1'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   ├── ! Validation failed.
-            │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
-            │   │       └── foo (10:10)
-            │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            │   └── ✕ Processing failed.
+            Publishing new version 'v1' of client 'client-1' to stage 'dev'
+            ├── Publication request created. (ID: request-1)
+            ├── ! Validation failed.
+            │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
+            │       └── foo (10:10)
+            ├── ⏳ Waiting for approval. Approve in Nitro to continue.
             └── ✕ Failed to publish a new client version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -429,11 +405,8 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
         // assert
         result.AssertSuccess(
             """
-            Publishing new client version 'v1' to stage 'dev' of client 'client-1'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   └── ✓ Published successfully.
+            Publishing new version 'v1' of client 'client-1' to stage 'dev'
+            ├── Publication request created. (ID: request-1)
             └── ✓ Published new client version 'v1' to stage 'dev'.
             """);
     }

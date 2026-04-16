@@ -119,8 +119,6 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
         result.StdOut.MatchInlineSnapshot(
             """
             Validating client 'client-1' against stage 'dev'
-            ├── Starting validation request
-            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the client.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -152,8 +150,6 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
         result.StdOut.MatchInlineSnapshot(
             """
             Validating client 'client-1' against stage 'dev'
-            ├── Starting validation request
-            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the client.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -185,8 +181,6 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
         result.StdOut.MatchInlineSnapshot(
             """
             Validating client 'client-1' against stage 'dev'
-            ├── Starting validation request
-            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the client.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -217,10 +211,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
         result.AssertSuccess(
             """
             Validating client 'client-1' against stage 'dev'
-            ├── Starting validation request
-            │   └── ✓ Validation request created (ID: request-1).
-            ├── Validating
-            │   └── ✓ Validation passed.
+            ├── Validation request created. (ID: request-1)
             └── ✓ Validated client against stage 'dev'.
             """);
     }
@@ -246,10 +237,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
         result.AssertSuccess(
             """
             Validating client 'client-1' against stage 'dev'
-            ├── Starting validation request
-            │   └── ✓ Validation request created (ID: request-1).
-            ├── Validating
-            │   └── ✓ Validation passed.
+            ├── Validation request created. (ID: request-1)
             └── ✓ Validated client against stage 'dev'.
             """);
     }
@@ -278,13 +266,10 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
         result.StdOut.MatchInlineSnapshot(
             """
             Validating client 'client-1' against stage 'dev'
-            ├── Starting validation request
-            │   └── ✓ Validation request created (ID: request-1).
-            ├── Validating
-            │   └── ✕ Validation failed.
-            │       └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
-            │           └── foo (10:10)
+            ├── Validation request created. (ID: request-1)
             └── ✕ Failed to validate the client.
+                └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
+                    └── foo (10:10)
             """);
         result.StdErr.MatchInlineSnapshot(
             """
