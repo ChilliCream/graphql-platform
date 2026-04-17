@@ -236,10 +236,16 @@ jobs:
           Compress-Archive -Path (Get-Item publish/nitro.exe) -DestinationPath nitro-${{ matrix.rid }}.zip
         shell: pwsh
 
-      - name: 📦 Zip binary (Unix)
-        if: runner.os != 'Windows'
+      - name: 📦 Zip binary (macOS)
+        if: runner.os == 'macOS'
         run: |
           zip -j nitro-${{ matrix.rid }}.zip publish/nitro
+        shell: bash
+
+      - name: 📦 Tar binary (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          tar -czf nitro-${{ matrix.rid }}.tar.gz -C publish nitro
         shell: bash
 
       - name: 🖋️ Notarize binary (macOS)
@@ -277,16 +283,16 @@ jobs:
         run: |
           security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
 
-      - name: 📤 Upload zipped binary as artifact
+      - name: 📤 Upload packaged binary as artifact
         uses: actions/upload-artifact@v7
         with:
           name: nitro-${{ matrix.rid }}
-          path: nitro-${{ matrix.rid }}.zip
+          path: nitro-${{ matrix.rid }}.${{ runner.os == 'Linux' && 'tar.gz' || 'zip' }}
 
-      - name: 📤 Attach zipped binary to GitHub release
+      - name: 📤 Attach packaged binary to GitHub release
         shell: bash
         run: |
-          gh release upload ${{ github.ref_name }} nitro-${{ matrix.rid }}.zip --repo ${{ github.repository }}
+          gh release upload ${{ github.ref_name }} nitro-${{ matrix.rid }}.${{ runner.os == 'Linux' && 'tar.gz' || 'zip' }} --repo ${{ github.repository }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -313,12 +319,12 @@ jobs:
       - name: 🧰 Enable corepack
         run: corepack enable
 
-      - name: 📥 Download all zipped nitro binaries
+      - name: 📥 Download all packaged nitro binaries
         uses: actions/download-artifact@v8
         with:
           pattern: nitro-*
           merge-multiple: true
-          path: dist-zips
+          path: dist-archives
 
       - name: 🏷 Get the version from tag
         run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
@@ -327,13 +333,28 @@ jobs:
         run: |
           PACKAGE_DIR="src/Nitro/CommandLine/src/chillicream-nitro"
 
-          for z in dist-zips/nitro-*.zip; do
-            name=$(basename "$z" .zip)  # e.g. nitro-linux-x64
-            rid=${name#nitro-}          # e.g. linux-x64
+          for archive in dist-archives/nitro-*; do
+            base=$(basename "$archive")
 
-            echo "Unpacking $z -> $PACKAGE_DIR/$rid"
-            mkdir -p "$PACKAGE_DIR/$rid"
-            unzip -q "$z" -d "$PACKAGE_DIR/$rid"
+            case "$base" in
+              nitro-*.zip)
+                rid=${base#nitro-}
+                rid=${rid%.zip}
+                echo "Unpacking $archive -> $PACKAGE_DIR/$rid"
+                mkdir -p "$PACKAGE_DIR/$rid"
+                unzip -q "$archive" -d "$PACKAGE_DIR/$rid"
+                ;;
+              nitro-*.tar.gz)
+                rid=${base#nitro-}
+                rid=${rid%.tar.gz}
+                echo "Unpacking $archive -> $PACKAGE_DIR/$rid"
+                mkdir -p "$PACKAGE_DIR/$rid"
+                tar -xzf "$archive" -C "$PACKAGE_DIR/$rid"
+                ;;
+              *)
+                echo "Skipping unknown artifact: $archive"
+                ;;
+            esac
           done
 
           # Ensure unix binaries are executable
