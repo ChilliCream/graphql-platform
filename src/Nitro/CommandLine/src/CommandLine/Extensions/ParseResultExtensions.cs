@@ -1,5 +1,3 @@
-using ChilliCream.Nitro.CommandLine.Helpers;
-
 namespace ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 internal static class ParseResultExtensions

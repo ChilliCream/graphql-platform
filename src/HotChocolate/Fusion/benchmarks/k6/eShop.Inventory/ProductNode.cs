@@ -1,5 +1,3 @@
-
-using HotChocolate;
 using HotChocolate.Types;
 using HotChocolate.Types.Composite;
 

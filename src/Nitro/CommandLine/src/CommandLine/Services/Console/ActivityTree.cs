@@ -291,7 +291,7 @@ internal sealed class ActivityTree : Renderable
 
     private readonly record struct ActivityIcon(string Glyph, Style Style, int Width = 2)
     {
-        public static ActivityIcon None { get; } = new("", Spectre.Console.Style.Plain, Width: 0);
+        public static ActivityIcon None { get; } = new("", Style.Plain, Width: 0);
 
         public void Write(List<Segment> segments)
         {

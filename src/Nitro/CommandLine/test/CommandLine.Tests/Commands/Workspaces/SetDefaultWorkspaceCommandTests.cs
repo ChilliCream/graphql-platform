@@ -1,6 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Workspaces;
-using ChilliCream.Nitro.CommandLine.Commands.Workspaces;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Workspaces;
