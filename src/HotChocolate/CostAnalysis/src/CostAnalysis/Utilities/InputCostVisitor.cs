@@ -73,10 +73,15 @@ internal sealed class InputCostVisitor : SyntaxWalker<InputCostVisitorContext>
             return cached;
         }
 
-        if (!context.Processed.Add(type))
+        if (!context.Visiting.Add(type))
         {
-            return 0; // loop
+            // Cycle detected
+            context.SubtreeContainsCycle = true;
+            return 0;
         }
+
+        var outerSubtreeContainsCycle = context.SubtreeContainsCycle;
+        context.SubtreeContainsCycle = false;
 
         double result;
 
@@ -103,7 +108,7 @@ internal sealed class InputCostVisitor : SyntaxWalker<InputCostVisitorContext>
         }
         else
         {
-            // Regular input object: Cost is the sum of all fields
+            // Regular input object: cost is the sum of all fields.
             var totalCost = 0.0;
             foreach (var field in type.Fields)
             {
@@ -118,7 +123,17 @@ internal sealed class InputCostVisitor : SyntaxWalker<InputCostVisitorContext>
             result = totalCost;
         }
 
-        context.CostCache[type] = result;
+        context.Visiting.Remove(type);
+
+        var currentSubtreeContainsCycle = context.SubtreeContainsCycle;
+        if (!currentSubtreeContainsCycle)
+        {
+            context.CostCache[type] = result;
+        }
+
+        // Propagate any cycle that was detected within the current subtree.
+        context.SubtreeContainsCycle = outerSubtreeContainsCycle || currentSubtreeContainsCycle;
+
         return result;
     }
 }

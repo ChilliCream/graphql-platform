@@ -1,12 +1,11 @@
 using HotChocolate.Execution;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.CostAnalysis;
 
 public sealed class OneOfCostTests
 {
     [Fact]
-    public async Task OneOfVariable_WithFieldValue()
+    public async Task OneOf_Variable_TakesMaxFieldCost()
     {
         // arrange
         const string schema =
@@ -48,7 +47,7 @@ public sealed class OneOfCostTests
     }
 
     [Fact]
-    public async Task OneOfInput_WithFieldValue()
+    public async Task OneOf_NoVariable_TakesMaxFieldCost()
     {
         // arrange
         const string schema =
@@ -342,26 +341,9 @@ public sealed class OneOfCostTests
         Assert.Equal(401, (int)GetFieldCost(result));
     }
 
-    internal static ValueTask<IRequestExecutor> CreateRequestExecutor(string schema)
-    {
-        return new ServiceCollection()
-            .AddGraphQLServer()
-            .ModifyCostOptions(o => o.DefaultResolverCost = null)
-            .AddDirectiveType<Types.CostDirectiveType>()
-            .AddDirectiveType<Types.ListSizeDirectiveType>()
-            .AddResolver("Mutation", "setField", _ => "ok")
-            .AddResolver("Mutation", "process", _ => "ok")
-            .AddResolver("Mutation", "setFieldNested", _ => "ok")
-            .AddResolver("Query", "dummy", _ => "ok")
-            .AddDocumentFromString(schema)
-            .BuildRequestExecutorAsync();
-    }
+    private static ValueTask<IRequestExecutor> CreateRequestExecutor(string schema)
+        => CostAnalysisTestHelper.CreateRequestExecutor(schema);
 
-    internal static double GetFieldCost(IExecutionResult result)
-    {
-        var operationResult = result.ExpectOperationResult();
-        var metrics = operationResult.Extensions["operationCost"] as IReadOnlyDictionary<string, object>;
-        Assert.NotNull(metrics);
-        return Convert.ToDouble(metrics["fieldCost"]);
-    }
+    private static double GetFieldCost(IExecutionResult result)
+        => CostAnalysisTestHelper.GetFieldCost(result);
 }

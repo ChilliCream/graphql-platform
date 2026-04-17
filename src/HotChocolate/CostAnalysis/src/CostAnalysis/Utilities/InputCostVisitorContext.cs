@@ -8,11 +8,13 @@ internal sealed class InputCostVisitorContext
 
     public List<IInputValueDefinition> Fields { get; } = [];
 
-    public HashSet<InputObjectType> Processed { get; } = [];
+    public HashSet<InputObjectType> Visiting { get; } = [];
 
     public Dictionary<InputObjectType, double> CostCache { get; } = [];
 
     public double Cost { get; set; }
+
+    public bool SubtreeContainsCycle { get; set; }
 
     public void Reset()
     {
@@ -25,8 +27,9 @@ internal sealed class InputCostVisitorContext
     {
         Types.Clear();
         Fields.Clear();
-        Processed.Clear();
+        Visiting.Clear();
         CostCache.Clear();
+        SubtreeContainsCycle = false;
         Cost = 0;
     }
 }
