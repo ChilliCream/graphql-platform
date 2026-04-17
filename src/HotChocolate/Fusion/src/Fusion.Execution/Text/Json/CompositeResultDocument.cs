@@ -502,25 +502,14 @@ public sealed partial class CompositeResultDocument : IDisposable
             flags |= ElementFlags.IsNullable;
         }
 
-        var prop = _metaDb.Append(
-            ElementTokenType.PropertyName,
+        _metaDb.AppendEmptyPropertyWithNullValue(
             parentRow: parent.Index,
-            operationReferenceId: selection.Id,
-            operationReferenceType: OperationReferenceType.Selection,
+            selectionId: selection.Id,
             flags: flags);
-
-        _metaDb.Append(
-            ElementTokenType.None,
-            parentRow: prop.Index);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteEmptyValue(Cursor parent)
-    {
-        _metaDb.Append(
-            ElementTokenType.None,
-            parentRow: parent.Index);
-    }
+    private void WriteEmptyValue(Cursor parent) => _metaDb.AppendNull(parent.Index);
 
     private static void CheckExpectedType(ElementTokenType expected, ElementTokenType actual)
     {
