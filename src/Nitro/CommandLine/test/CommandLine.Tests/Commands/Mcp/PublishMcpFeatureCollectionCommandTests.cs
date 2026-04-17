@@ -269,12 +269,12 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             """
             Publishing new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'
             ├── Publication request created. (ID: request-1)
-            └── ✕ Failed to publish a new MCP feature collection version.
+            └── ✕ The new MCP feature collection version was rejected.
                 └── Something went wrong during publish.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            MCP feature collection publish failed.
+            The new MCP feature collection version was rejected.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -336,7 +336,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             """
             Publishing new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'
             ├── Publication request created. (ID: request-1)
-            ├── ! Validation failed.
+            ├── ! Validation did not pass.
             │   └── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
             │       └── Tool 'Fail'
             │           └── The field `person` does not exist on the type `Query`. (1:14)
@@ -370,18 +370,18 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            MCP feature collection publish failed.
+            The new MCP feature collection version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'
             ├── Publication request created. (ID: request-1)
-            ├── ! Validation failed.
+            ├── ! Validation did not pass.
             │   └── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
             │       └── Tool 'Fail'
             │           └── The field `person` does not exist on the type `Query`. (1:14)
             ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            └── ✕ Failed to publish a new MCP feature collection version.
+            └── ✕ The new MCP feature collection version was rejected.
             """);
         Assert.Equal(1, result.ExitCode);
     }

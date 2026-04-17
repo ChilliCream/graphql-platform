@@ -267,13 +267,13 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
             """
             Validating client 'client-1' against stage 'dev'
             ├── Validation request created. (ID: request-1)
-            └── ✕ Failed to validate the client.
+            └── ✕ Client failed validation.
                 └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
                     └── foo (10:10)
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Client validation failed.
+            Client failed validation.
             """);
         Assert.Equal(1, result.ExitCode);
     }

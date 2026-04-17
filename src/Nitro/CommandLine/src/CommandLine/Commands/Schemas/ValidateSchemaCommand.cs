@@ -76,7 +76,7 @@ internal sealed class ValidateSchemaCommand : Command
 
         if (!isValid)
         {
-            throw new ExitException("Schema validation failed.");
+            throw new ExitException("Schema failed validation.");
         }
 
         return ExitCodes.Success;

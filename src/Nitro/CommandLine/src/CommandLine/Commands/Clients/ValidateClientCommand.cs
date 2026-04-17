@@ -124,9 +124,9 @@ internal sealed class ValidateClientCommand : Command
                             }
                         }
 
-                        await activity.FailAllAsync(errorTree);
+                        await activity.FailAllAsync(errorTree, "Client failed validation.");
 
-                        throw new ExitException("Client validation failed.");
+                        throw new ExitException("Client failed validation.");
 
                     case IClientVersionValidationSuccess:
                         activity.Success($"Validated client against stage '{stage.EscapeMarkup()}'.");

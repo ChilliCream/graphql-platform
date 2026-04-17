@@ -131,9 +131,9 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
                             }
                         }
 
-                        await activity.FailAllAsync(errorTree);
+                        await activity.FailAllAsync(errorTree, "OpenAPI collection failed validation.");
 
-                        throw new ExitException("OpenAPI collection validation failed.");
+                        throw new ExitException("OpenAPI collection failed validation.");
 
                     case IOpenApiCollectionVersionValidationSuccess:
                         activity.Success($"Validated OpenAPI collection against stage '{stage.EscapeMarkup()}'.");

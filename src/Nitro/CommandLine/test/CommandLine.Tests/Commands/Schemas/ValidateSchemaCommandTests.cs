@@ -279,7 +279,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Schema validation failed.
+            Schema failed validation.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
@@ -287,7 +287,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
             ├── Validation request created. (ID: request-id)
             ├── Validating...
             ├── Validating...
-            └── ✕ Failed to validate the schema.
+            └── ✕ Schema failed validation.
                 ├── GraphQL schema changes
                 │   ├── ✕ Directive foo was modified
                 │   │   ├── ✓ Directive location FieldDefinition added

@@ -265,14 +265,14 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             Validating MCP feature collection 'mcp-1' against stage 'dev'
             ├── Found 1 prompt(s) and 1 tool(s).
             ├── Validation request created. (ID: request-1)
-            └── ✕ Failed to validate the MCP feature collection.
+            └── ✕ MCP feature collection failed validation.
                 └── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
                     └── Tool 'Fail'
                         └── Invalid tool definition. (1:14)
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            MCP feature collection validation failed.
+            MCP feature collection failed validation.
             """);
         Assert.Equal(1, result.ExitCode);
     }

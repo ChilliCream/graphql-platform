@@ -269,12 +269,12 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             """
             Publishing new version 'v1' of OpenAPI collection 'oa-1' to stage 'dev'
             ├── Publication request created. (ID: request-1)
-            └── ✕ Failed to publish a new OpenAPI collection version.
+            └── ✕ The new OpenAPI collection version was rejected.
                 └── Something went wrong during publish.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            OpenAPI collection publish failed.
+            The new OpenAPI collection version was rejected.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -336,7 +336,7 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             """
             Publishing new version 'v1' of OpenAPI collection 'oa-1' to stage 'dev'
             ├── Publication request created. (ID: request-1)
-            ├── ! Validation failed.
+            ├── ! Validation did not pass.
             │   └── OpenAPI collection 'petstore' (ID: collection-1)
             │       └── Endpoint 'GET /fail'
             │           └── The field `person` does not exist on the type `Query`. (1:14)
@@ -370,18 +370,18 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            OpenAPI collection publish failed.
+            The new OpenAPI collection version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new version 'v1' of OpenAPI collection 'oa-1' to stage 'dev'
             ├── Publication request created. (ID: request-1)
-            ├── ! Validation failed.
+            ├── ! Validation did not pass.
             │   └── OpenAPI collection 'petstore' (ID: collection-1)
             │       └── Endpoint 'GET /fail'
             │           └── The field `person` does not exist on the type `Query`. (1:14)
             ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            └── ✕ Failed to publish a new OpenAPI collection version.
+            └── ✕ The new OpenAPI collection version was rejected.
             """);
         Assert.Equal(1, result.ExitCode);
     }

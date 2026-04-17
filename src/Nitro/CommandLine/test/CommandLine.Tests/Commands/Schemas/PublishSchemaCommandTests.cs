@@ -282,12 +282,12 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
             """
             Publishing new schema version 'v1' of API 'api-1' to stage 'dev'
             ├── Publication request created. (ID: request-id)
-            └── ✕ Failed to publish a new schema version.
+            └── ✕ The new schema version was rejected.
                 └── Something went wrong during publish.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Schema publish failed.
+            The new schema version was rejected.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -349,7 +349,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
             """
             Publishing new schema version 'v1' of API 'api-1' to stage 'dev'
             ├── Publication request created. (ID: request-id)
-            ├── ! Validation failed.
+            ├── ! Validation did not pass.
             │   ├── Invalid GraphQL schema
             │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   ├── GraphQL schema changes
@@ -405,13 +405,13 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Schema publish failed.
+            The new schema version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new schema version 'v1' of API 'api-1' to stage 'dev'
             ├── Publication request created. (ID: request-id)
-            ├── ! Validation failed.
+            ├── ! Validation did not pass.
             │   ├── Invalid GraphQL schema
             │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   ├── GraphQL schema changes
@@ -438,7 +438,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
             │   ├── There was a syntax error in your schema document.
             │   └── Operations are not allowed in a schema document.
             ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            └── ✕ Failed to publish a new schema version.
+            └── ✕ The new schema version was rejected.
             """);
         Assert.Equal(1, result.ExitCode);
     }

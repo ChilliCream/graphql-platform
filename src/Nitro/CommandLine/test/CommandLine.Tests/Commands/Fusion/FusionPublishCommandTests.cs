@@ -647,7 +647,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Fusion configuration validation failed.
+            Fusion configuration failed validation.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
@@ -659,7 +659,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Claimed deployment slot.
             ├── Validating configuration against 'dev'
             │   ├── Validating...
-            │   └── ✕ Failed to validate the new configuration.
+            │   └── ✕ Fusion configuration failed validation.
             │       ├── GraphQL schema changes
             │       │   ├── ✕ Directive foo was modified
             │       │   │   ├── ✓ Directive location FieldDefinition added
@@ -730,7 +730,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Claimed deployment slot.
             ├── Validating configuration against 'dev'
             │   ├── Validating...
-            │   └── ✕ Failed to validate the new configuration.
+            │   └── ✕ Fusion configuration failed validation.
             │       ├── GraphQL schema changes
             │       │   ├── ✕ Directive foo was modified
             │       │   │   ├── ✓ Directive location FieldDefinition added
@@ -801,7 +801,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Uploading configuration to 'dev'
-            │   ├── ! Validation failed.
+            │   ├── ! Validation did not pass.
             │   │   ├── Invalid GraphQL schema
             │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── Client 'TestClient' (ID: client-1)
@@ -853,7 +853,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Failed to publish the new configuration.
+            The new Fusion configuration version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
@@ -864,7 +864,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Uploading configuration to 'dev'
-            │   ├── ! Validation failed.
+            │   ├── ! Validation did not pass.
             │   │   ├── Invalid GraphQL schema
             │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── Client 'TestClient' (ID: client-1)
@@ -877,7 +877,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   │       └── Tool 'Fail'
             │   │           └── The field `person` does not exist on the type `Query`. (1:14)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            │   └── ✕ Failed to upload the new configuration.
+            │   └── ✕ The new Fusion configuration version was rejected.
             └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -1014,7 +1014,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Failed to publish the new configuration.
+            The new Fusion configuration version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
@@ -1028,7 +1028,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   ├── Validating...
             │   └── ✓ Validated configuration.
             ├── Uploading configuration to 'dev'
-            │   └── ✕ Failed to upload the new configuration.
+            │   └── ✕ The new Fusion configuration version was rejected.
             │       ├── Invalid GraphQL schema
             │       │   └── Field 'Query.foo' has no type. (SCHEMA_ERROR)
             │       └── An error occurred.
@@ -1507,7 +1507,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Downloading existing configuration from 'dev'
             │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new configuration
-            │   └── ✕ Failed to compose new configuration.
+            │   └── ✕ The Fusion configuration could not be composed.
             └── ✕ Failed to publish a new Fusion configuration version.
 
             ## Composition log
@@ -1650,7 +1650,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Fusion configuration validation failed.
+            Fusion configuration failed validation.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
@@ -1666,7 +1666,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
             │   ├── Validating...
-            │   └── ✕ Failed to validate the new configuration.
+            │   └── ✕ Fusion configuration failed validation.
             │       ├── GraphQL schema changes
             │       │   ├── ✕ Directive foo was modified
             │       │   │   ├── ✓ Directive location FieldDefinition added
@@ -1742,7 +1742,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
             │   ├── Validating...
-            │   └── ✕ Failed to validate the new configuration.
+            │   └── ✕ Fusion configuration failed validation.
             │       ├── GraphQL schema changes
             │       │   ├── ✕ Directive foo was modified
             │       │   │   ├── ✓ Directive location FieldDefinition added
@@ -1866,7 +1866,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Uploading configuration to 'dev'
-            │   ├── ! Validation failed.
+            │   ├── ! Validation did not pass.
             │   │   ├── Invalid GraphQL schema
             │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── Client 'TestClient' (ID: client-1)
@@ -1919,7 +1919,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Failed to publish the new configuration.
+            The new Fusion configuration version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
@@ -1934,7 +1934,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Uploading configuration to 'dev'
-            │   ├── ! Validation failed.
+            │   ├── ! Validation did not pass.
             │   │   ├── Invalid GraphQL schema
             │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── Client 'TestClient' (ID: client-1)
@@ -1947,7 +1947,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   │       └── Tool 'Fail'
             │   │           └── The field `person` does not exist on the type `Query`. (1:14)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            │   └── ✕ Failed to upload the new configuration.
+            │   └── ✕ The new Fusion configuration version was rejected.
             └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -2095,7 +2095,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Failed to publish the new configuration.
+            The new Fusion configuration version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
@@ -2113,7 +2113,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   ├── Validating...
             │   └── ✓ Validated configuration.
             ├── Uploading configuration to 'dev'
-            │   └── ✕ Failed to upload the new configuration.
+            │   └── ✕ The new Fusion configuration version was rejected.
             │       ├── Invalid GraphQL schema
             │       │   └── Field 'Query.foo' has no type. (SCHEMA_ERROR)
             │       └── An error occurred.
@@ -2654,7 +2654,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Downloading existing configuration from 'dev'
             │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new configuration
-            │   └── ✕ Failed to compose new configuration.
+            │   └── ✕ The Fusion configuration could not be composed.
             └── ✕ Failed to publish a new Fusion configuration version.
 
             ## Composition log
@@ -2847,7 +2847,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Fusion configuration validation failed.
+            Fusion configuration failed validation.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
@@ -2865,7 +2865,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
             │   ├── Validating...
-            │   └── ✕ Failed to validate the new configuration.
+            │   └── ✕ Fusion configuration failed validation.
             │       ├── GraphQL schema changes
             │       │   ├── ✕ Directive foo was modified
             │       │   │   ├── ✓ Directive location FieldDefinition added
@@ -2943,7 +2943,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
             │   ├── Validating...
-            │   └── ✕ Failed to validate the new configuration.
+            │   └── ✕ Fusion configuration failed validation.
             │       ├── GraphQL schema changes
             │       │   ├── ✕ Directive foo was modified
             │       │   │   ├── ✓ Directive location FieldDefinition added
@@ -3071,7 +3071,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Uploading configuration to 'dev'
-            │   ├── ! Validation failed.
+            │   ├── ! Validation did not pass.
             │   │   ├── Invalid GraphQL schema
             │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── Client 'TestClient' (ID: client-1)
@@ -3124,7 +3124,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Failed to publish the new configuration.
+            The new Fusion configuration version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
@@ -3141,7 +3141,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Uploading configuration to 'dev'
-            │   ├── ! Validation failed.
+            │   ├── ! Validation did not pass.
             │   │   ├── Invalid GraphQL schema
             │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── Client 'TestClient' (ID: client-1)
@@ -3154,7 +3154,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   │       └── Tool 'Fail'
             │   │           └── The field `person` does not exist on the type `Query`. (1:14)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            │   └── ✕ Failed to upload the new configuration.
+            │   └── ✕ The new Fusion configuration version was rejected.
             └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -3306,7 +3306,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Failed to publish the new configuration.
+            The new Fusion configuration version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
@@ -3326,7 +3326,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   ├── Validating...
             │   └── ✓ Validated configuration.
             ├── Uploading configuration to 'dev'
-            │   └── ✕ Failed to upload the new configuration.
+            │   └── ✕ The new Fusion configuration version was rejected.
             │       ├── Invalid GraphQL schema
             │       │   └── Field 'Query.foo' has no type. (SCHEMA_ERROR)
             │       └── An error occurred.

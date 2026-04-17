@@ -63,7 +63,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
 
             if (!isValidArchive)
             {
-                throw new ExitException("Fusion configuration validation failed.");
+                throw new ExitException("Fusion configuration failed validation.");
             }
 
             activity.Success("Validated configuration.");

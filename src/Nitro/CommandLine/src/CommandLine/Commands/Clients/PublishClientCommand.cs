@@ -142,9 +142,9 @@ internal sealed class PublishClientCommand : Command
                             }
                         }
 
-                        await activity.FailAllAsync(errorTree);
+                        await activity.FailAllAsync(errorTree, "The new client version was rejected.");
 
-                        throw new ExitException("Client publish failed.");
+                        throw new ExitException("The new client version was rejected.");
 
                     case IClientVersionPublishSuccess:
                         activity.Success($"Published new client version '{tag.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}'.");

@@ -139,9 +139,9 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
                             }
                         }
 
-                        await activity.FailAllAsync(errorTree);
+                        await activity.FailAllAsync(errorTree, "MCP feature collection failed validation.");
 
-                        throw new ExitException("MCP feature collection validation failed.");
+                        throw new ExitException("MCP feature collection failed validation.");
 
                     case IMcpFeatureCollectionVersionValidationSuccess:
                         activity.Success($"Validated MCP feature collection against stage '{stage.EscapeMarkup()}'.");

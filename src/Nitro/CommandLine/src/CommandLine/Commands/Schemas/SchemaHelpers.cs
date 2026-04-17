@@ -96,7 +96,7 @@ internal static class SchemaHelpers
                         }
                     }
 
-                    await activity.FailAllAsync(errorTree);
+                    await activity.FailAllAsync(errorTree, "Schema failed validation.");
 
                     return false;
 

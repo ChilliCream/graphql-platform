@@ -170,7 +170,7 @@ internal sealed class FusionValidateCommand : Command
                     }
                     else
                     {
-                        await composeActivity.FailAllAsync();
+                        await composeActivity.FailAllAsync(message: "The Fusion configuration could not be composed.");
 
                         console.WriteLine();
                         console.WriteLine("## Composition log");
@@ -230,7 +230,7 @@ internal sealed class FusionValidateCommand : Command
 
                 if (!isValid)
                 {
-                    throw new ExitException("Schema validation failed.");
+                    throw new ExitException("Fusion configuration failed validation.");
                 }
 
                 return ExitCodes.Success;
