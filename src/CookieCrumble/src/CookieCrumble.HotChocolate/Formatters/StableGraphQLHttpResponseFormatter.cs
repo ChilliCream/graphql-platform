@@ -34,15 +34,29 @@ internal sealed class StableGraphQLHttpResponseFormatter
         {
             var boundary = contentType.Parameters.First(
                 t => string.Equals(t.Name, "boundary", StringComparison.Ordinal));
-            FormatStreamAsync(snapshot, boundary.Value!.Trim('"'), value.HttpResponseMessage.Content.ReadAsStream())
+            FormatMultipartStreamAsync(
+                    snapshot,
+                    boundary.Value!.Trim('"'),
+                    value.HttpResponseMessage.Content.ReadAsStream())
                 .GetAwaiter().GetResult();
             return;
         }
 
-        // Single response (not multipart), format as canonical JSON.
+        if (IsJsonLinesMediaType(contentType.MediaType))
+        {
+            FormatJsonLinesStreamAsync(snapshot, value.HttpResponseMessage.Content.ReadAsStream())
+                .GetAwaiter().GetResult();
+            return;
+        }
+
+        // Single response, format as canonical JSON.
         FormatSingleResponseAsync(snapshot, value.HttpResponseMessage.Content.ReadAsStream())
             .GetAwaiter().GetResult();
     }
+
+    private static bool IsJsonLinesMediaType(string? mediaType)
+        => string.Equals(mediaType, "application/graphql-response+jsonl", StringComparison.Ordinal)
+            || string.Equals(mediaType, "application/jsonl", StringComparison.Ordinal);
 
     private static async Task FormatSingleResponseAsync(
         IBufferWriter<byte> snapshot,
@@ -55,7 +69,70 @@ internal sealed class StableGraphQLHttpResponseFormatter
         snapshot.AppendLine();
     }
 
-    private static async Task FormatStreamAsync(
+    private static async Task FormatJsonLinesStreamAsync(
+        IBufferWriter<byte> snapshot,
+        Stream body)
+    {
+        var docs = new List<JsonDocument>();
+        JsonResultPatcher? patcher = null;
+        var acc = new StreamAccumulator();
+
+        try
+        {
+            using var reader = new StreamReader(body);
+
+            while (await reader.ReadLineAsync().ConfigureAwait(false) is { } line)
+            {
+                if (string.IsNullOrWhiteSpace(line))
+                {
+                    continue;
+                }
+
+                var doc = JsonDocument.Parse(line);
+                docs.Add(doc);
+
+                acc.AddPayload(doc.RootElement);
+
+                if (patcher is null)
+                {
+                    patcher = new JsonResultPatcher();
+                    patcher.SetResponse(doc);
+                }
+                else
+                {
+                    patcher.ApplyPatch(doc);
+                }
+            }
+
+            await using var writer = new Utf8JsonWriter(snapshot, IndentedWriterOptions);
+
+            if (patcher is null)
+            {
+                writer.WriteStartObject();
+                writer.WriteEndObject();
+                writer.Flush();
+                snapshot.AppendLine();
+                return;
+            }
+
+            var mergedBuffer = new ArrayBufferWriter<byte>();
+            patcher.WriteResponse(mergedBuffer);
+            using var mergedDoc = JsonDocument.Parse(mergedBuffer.WrittenMemory);
+
+            WriteStableStreamSnapshot(writer, acc, mergedDoc.RootElement);
+            writer.Flush();
+            snapshot.AppendLine();
+        }
+        finally
+        {
+            foreach (var doc in docs)
+            {
+                doc.Dispose();
+            }
+        }
+    }
+
+    private static async Task FormatMultipartStreamAsync(
         IBufferWriter<byte> snapshot,
         string boundary,
         Stream body)

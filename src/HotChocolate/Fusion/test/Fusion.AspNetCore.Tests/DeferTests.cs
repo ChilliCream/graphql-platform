@@ -71,7 +71,7 @@ public class DeferTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        await MatchSnapshotAsync(gateway, request, result);
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
     }
 
     [Fact]
@@ -140,7 +140,7 @@ public class DeferTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        await MatchSnapshotAsync(gateway, request, result);
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
     }
 
     [Fact]
@@ -209,7 +209,7 @@ public class DeferTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        await MatchSnapshotAsync(gateway, request, result);
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
     }
 
     [Fact]
@@ -272,7 +272,7 @@ public class DeferTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        await MatchSnapshotAsync(gateway, request, result);
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
     }
 
     [Fact]
@@ -337,7 +337,7 @@ public class DeferTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        await MatchSnapshotAsync(gateway, request, result);
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
     }
 
     [Fact]
@@ -403,7 +403,7 @@ public class DeferTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        await MatchSnapshotAsync(gateway, request, result);
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
     }
 
     [Fact]
@@ -464,7 +464,7 @@ public class DeferTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
-        await MatchSnapshotAsync(gateway, request, result);
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
     }
 
     [Fact(Skip = "Requires validation of @skip/@include interaction with @defer at the planning level")]
