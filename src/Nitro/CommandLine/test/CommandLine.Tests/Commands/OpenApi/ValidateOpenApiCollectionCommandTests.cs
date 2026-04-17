@@ -189,7 +189,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             Validating OpenAPI collection 'oa-1' against stage 'dev'
             ├── Found 1 document(s).
             ├── Validation request created. (ID: request-1)
-            └── ✓ Validated OpenAPI collection against stage 'dev'.
+            └── ✓ OpenAPI collection passed validation.
             """);
     }
 
@@ -218,7 +218,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             Validating OpenAPI collection 'oa-1' against stage 'dev'
             ├── Found 1 document(s).
             ├── Validation request created. (ID: request-1)
-            └── ✓ Validated OpenAPI collection against stage 'dev'.
+            └── ✓ OpenAPI collection passed validation.
             """);
     }
 

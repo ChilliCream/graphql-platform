@@ -218,7 +218,7 @@ internal sealed class FusionValidateCommand : Command
 
             try
             {
-                var isValid = await SchemaHelpers.ValidateSchemaAsync(
+                var validationResult = await SchemaHelpers.ValidateSchemaAsync(
                     activity,
                     console,
                     schemasClient,
@@ -228,10 +228,14 @@ internal sealed class FusionValidateCommand : Command
                     source: null,
                     ct);
 
-                if (!isValid)
+                if (validationResult is SchemaValidationResult.Failed failed)
                 {
+                    activity.Fail(failed.Details, "Fusion configuration failed validation.");
+
                     throw new ExitException("Fusion configuration failed validation.");
                 }
+
+                activity.Success("Fusion configuration passed validation.");
 
                 return ExitCodes.Success;
             }

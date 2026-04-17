@@ -336,7 +336,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             """
             Publishing new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'
             ├── Publication request created. (ID: request-1)
-            ├── ! Validation did not pass.
+            ├── ! Failed validation.
             │   └── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
             │       └── Tool 'Fail'
             │           └── The field `person` does not exist on the type `Query`. (1:14)
@@ -376,7 +376,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             """
             Publishing new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'
             ├── Publication request created. (ID: request-1)
-            ├── ! Validation did not pass.
+            ├── ! Failed validation.
             │   └── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
             │       └── Tool 'Fail'
             │           └── The field `person` does not exist on the type `Query`. (1:14)

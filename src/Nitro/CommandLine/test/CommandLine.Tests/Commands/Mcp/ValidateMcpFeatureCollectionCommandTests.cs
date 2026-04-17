@@ -202,7 +202,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             Validating MCP feature collection 'mcp-1' against stage 'dev'
             ├── Found 1 prompt(s) and 1 tool(s).
             ├── Validation request created. (ID: request-1)
-            └── ✓ Validated MCP feature collection against stage 'dev'.
+            └── ✓ MCP feature collection passed validation.
             """);
     }
 
@@ -233,7 +233,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             Validating MCP feature collection 'mcp-1' against stage 'dev'
             ├── Found 1 prompt(s) and 1 tool(s).
             ├── Validation request created. (ID: request-1)
-            └── ✓ Validated MCP feature collection against stage 'dev'.
+            └── ✓ MCP feature collection passed validation.
             """);
     }
 

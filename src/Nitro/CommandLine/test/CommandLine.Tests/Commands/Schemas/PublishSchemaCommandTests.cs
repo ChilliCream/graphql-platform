@@ -349,7 +349,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
             """
             Publishing new schema version 'v1' of API 'api-1' to stage 'dev'
             ├── Publication request created. (ID: request-id)
-            ├── ! Validation did not pass.
+            ├── ! Failed validation.
             │   ├── Invalid GraphQL schema
             │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   ├── GraphQL schema changes
@@ -411,7 +411,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
             """
             Publishing new schema version 'v1' of API 'api-1' to stage 'dev'
             ├── Publication request created. (ID: request-id)
-            ├── ! Validation did not pass.
+            ├── ! Failed validation.
             │   ├── Invalid GraphQL schema
             │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   ├── GraphQL schema changes

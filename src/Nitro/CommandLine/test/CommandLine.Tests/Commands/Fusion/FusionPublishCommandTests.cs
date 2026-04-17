@@ -275,7 +275,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Claimed deployment slot.
             ├── Validating configuration against 'dev'
             │   ├── Validating...
-            │   └── ✓ Validated configuration.
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
@@ -316,7 +316,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Claimed deployment slot.
             ├── Validating configuration against 'dev'
             │   ├── Validating...
-            │   └── ✓ Validated configuration.
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
@@ -801,7 +801,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Uploading configuration to 'dev'
-            │   ├── ! Validation did not pass.
+            │   ├── ! Failed validation.
             │   │   ├── Invalid GraphQL schema
             │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── Client 'TestClient' (ID: client-1)
@@ -864,7 +864,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Uploading configuration to 'dev'
-            │   ├── ! Validation did not pass.
+            │   ├── ! Failed validation.
             │   │   ├── Invalid GraphQL schema
             │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── Client 'TestClient' (ID: client-1)
@@ -927,7 +927,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Claimed deployment slot.
             ├── Validating configuration against 'dev'
             │   ├── Validating...
-            │   └── ✓ Validated configuration.
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✕ Failed to upload the new configuration.
             └── ✕ Failed to publish a new Fusion configuration version.
@@ -976,7 +976,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Claimed deployment slot.
             ├── Validating configuration against 'dev'
             │   ├── Validating...
-            │   └── ✓ Validated configuration.
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✕ Failed to upload the new configuration.
             └── ✕ Failed to publish a new Fusion configuration version.
@@ -1026,7 +1026,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Claimed deployment slot.
             ├── Validating configuration against 'dev'
             │   ├── Validating...
-            │   └── ✓ Validated configuration.
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✕ The new Fusion configuration version was rejected.
             │       ├── Invalid GraphQL schema
@@ -1207,7 +1207,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
             │   ├── Validating...
-            │   └── ✓ Validated configuration.
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
@@ -1256,7 +1256,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
             │   ├── Validating...
-            │   └── ✓ Validated configuration.
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
@@ -1866,7 +1866,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Uploading configuration to 'dev'
-            │   ├── ! Validation did not pass.
+            │   ├── ! Failed validation.
             │   │   ├── Invalid GraphQL schema
             │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── Client 'TestClient' (ID: client-1)
@@ -1934,7 +1934,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Uploading configuration to 'dev'
-            │   ├── ! Validation did not pass.
+            │   ├── ! Failed validation.
             │   │   ├── Invalid GraphQL schema
             │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── Client 'TestClient' (ID: client-1)
@@ -2002,7 +2002,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
             │   ├── Validating...
-            │   └── ✓ Validated configuration.
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✕ Failed to upload the new configuration.
             └── ✕ Failed to publish a new Fusion configuration version.
@@ -2056,7 +2056,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
             │   ├── Validating...
-            │   └── ✓ Validated configuration.
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✕ Failed to upload the new configuration.
             └── ✕ Failed to publish a new Fusion configuration version.
@@ -2111,7 +2111,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
             │   ├── Validating...
-            │   └── ✓ Validated configuration.
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✕ The new Fusion configuration version was rejected.
             │       ├── Invalid GraphQL schema
@@ -2331,7 +2331,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
             │   ├── Validating...
-            │   └── ✓ Validated configuration.
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
@@ -2382,7 +2382,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
             │   ├── Validating...
-            │   └── ✓ Validated configuration.
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
@@ -2437,7 +2437,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
             │   ├── Validating...
-            │   └── ✓ Validated configuration.
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
@@ -3071,7 +3071,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Uploading configuration to 'dev'
-            │   ├── ! Validation did not pass.
+            │   ├── ! Failed validation.
             │   │   ├── Invalid GraphQL schema
             │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── Client 'TestClient' (ID: client-1)
@@ -3141,7 +3141,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Uploading configuration to 'dev'
-            │   ├── ! Validation did not pass.
+            │   ├── ! Failed validation.
             │   │   ├── Invalid GraphQL schema
             │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── Client 'TestClient' (ID: client-1)
@@ -3211,7 +3211,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
             │   ├── Validating...
-            │   └── ✓ Validated configuration.
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✕ Failed to upload the new configuration.
             └── ✕ Failed to publish a new Fusion configuration version.
@@ -3267,7 +3267,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
             │   ├── Validating...
-            │   └── ✓ Validated configuration.
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✕ Failed to upload the new configuration.
             └── ✕ Failed to publish a new Fusion configuration version.
@@ -3324,7 +3324,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
             │   ├── Validating...
-            │   └── ✓ Validated configuration.
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✕ The new Fusion configuration version was rejected.
             │       ├── Invalid GraphQL schema

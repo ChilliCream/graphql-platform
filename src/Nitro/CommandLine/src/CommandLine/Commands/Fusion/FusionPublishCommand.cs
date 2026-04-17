@@ -367,7 +367,7 @@ internal sealed class FusionPublishCommand : Command
 
                     if (isValidArchive)
                     {
-                        validationActivity.Success("Validated configuration.");
+                        validationActivity.Success("Fusion configuration passed validation.");
                     }
                     else if (!force)
                     {

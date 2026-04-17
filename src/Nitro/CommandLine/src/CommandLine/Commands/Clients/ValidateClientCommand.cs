@@ -129,7 +129,7 @@ internal sealed class ValidateClientCommand : Command
                         throw new ExitException("Client failed validation.");
 
                     case IClientVersionValidationSuccess:
-                        activity.Success($"Validated client against stage '{stage.EscapeMarkup()}'.");
+                        activity.Success("Client passed validation.");
 
                         return ExitCodes.Success;
 

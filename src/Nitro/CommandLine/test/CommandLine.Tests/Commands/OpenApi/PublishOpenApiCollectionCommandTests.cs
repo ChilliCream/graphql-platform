@@ -336,7 +336,7 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             """
             Publishing new version 'v1' of OpenAPI collection 'oa-1' to stage 'dev'
             ├── Publication request created. (ID: request-1)
-            ├── ! Validation did not pass.
+            ├── ! Failed validation.
             │   └── OpenAPI collection 'petstore' (ID: collection-1)
             │       └── Endpoint 'GET /fail'
             │           └── The field `person` does not exist on the type `Query`. (1:14)
@@ -376,7 +376,7 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             """
             Publishing new version 'v1' of OpenAPI collection 'oa-1' to stage 'dev'
             ├── Publication request created. (ID: request-1)
-            ├── ! Validation did not pass.
+            ├── ! Failed validation.
             │   └── OpenAPI collection 'petstore' (ID: collection-1)
             │       └── Endpoint 'GET /fail'
             │           └── The field `person` does not exist on the type `Query`. (1:14)

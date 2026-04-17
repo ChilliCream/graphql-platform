@@ -224,7 +224,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
             """
             Validating schema of API 'api-1' against stage 'dev'
             ├── Validation request created. (ID: request-id)
-            └── ✓ Schema validation successful.
+            └── ✓ Schema passed validation.
             """);
     }
 
@@ -250,7 +250,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
             """
             Validating schema of API 'api-1' against stage 'dev'
             ├── Validation request created. (ID: request-id)
-            └── ✓ Schema validation successful.
+            └── ✓ Schema passed validation.
             """);
     }
 

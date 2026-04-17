@@ -136,7 +136,7 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
                         throw new ExitException("OpenAPI collection failed validation.");
 
                     case IOpenApiCollectionVersionValidationSuccess:
-                        activity.Success($"Validated OpenAPI collection against stage '{stage.EscapeMarkup()}'.");
+                        activity.Success("OpenAPI collection passed validation.");
                         return ExitCodes.Success;
 
                     case IOperationInProgress:

@@ -144,7 +144,7 @@ internal sealed class ValidateMcpFeatureCollectionCommand : Command
                         throw new ExitException("MCP feature collection failed validation.");
 
                     case IMcpFeatureCollectionVersionValidationSuccess:
-                        activity.Success($"Validated MCP feature collection against stage '{stage.EscapeMarkup()}'.");
+                        activity.Success("MCP feature collection passed validation.");
                         return ExitCodes.Success;
 
                     case IOperationInProgress:

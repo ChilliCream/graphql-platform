@@ -212,7 +212,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
             """
             Validating client 'client-1' against stage 'dev'
             ├── Validation request created. (ID: request-1)
-            └── ✓ Validated client against stage 'dev'.
+            └── ✓ Client passed validation.
             """);
     }
 
@@ -238,7 +238,7 @@ public sealed class ValidateClientCommandTests(NitroCommandFixture fixture) : Cl
             """
             Validating client 'client-1' against stage 'dev'
             ├── Validation request created. (ID: request-1)
-            └── ✓ Validated client against stage 'dev'.
+            └── ✓ Client passed validation.
             """);
     }
 

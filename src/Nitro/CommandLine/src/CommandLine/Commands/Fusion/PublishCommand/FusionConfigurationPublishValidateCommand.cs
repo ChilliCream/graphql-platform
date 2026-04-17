@@ -66,7 +66,7 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
                 throw new ExitException("Fusion configuration failed validation.");
             }
 
-            activity.Success("Validated configuration.");
+            activity.Success("Fusion configuration passed validation.");
 
             return ExitCodes.Success;
         }

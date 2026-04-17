@@ -131,7 +131,7 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
         result.AssertSuccess(
             """
             Validating Fusion configuration
-            └── ✓ Validated configuration.
+            └── ✓ Fusion configuration passed validation.
             """);
     }
 
@@ -330,7 +330,7 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
             Validating Fusion configuration
             ├── Validating...
             ├── Validating...
-            └── ✓ Validated configuration.
+            └── ✓ Fusion configuration passed validation.
             """);
     }
 

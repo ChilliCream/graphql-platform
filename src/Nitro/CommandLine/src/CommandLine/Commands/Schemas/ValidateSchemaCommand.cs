@@ -64,7 +64,7 @@ internal sealed class ValidateSchemaCommand : Command
 
         await using var stream = fileSystem.OpenReadStream(schemaFilePath);
 
-        var isValid = await SchemaHelpers.ValidateSchemaAsync(
+        var validationResult = await SchemaHelpers.ValidateSchemaAsync(
             activity,
             console,
             client,
@@ -74,10 +74,14 @@ internal sealed class ValidateSchemaCommand : Command
             source,
             ct);
 
-        if (!isValid)
+        if (validationResult is SchemaValidationResult.Failed failed)
         {
+            activity.Fail(failed.Details, "Schema failed validation.");
+
             throw new ExitException("Schema failed validation.");
         }
+
+        activity.Success("Schema passed validation.");
 
         return ExitCodes.Success;
     }
