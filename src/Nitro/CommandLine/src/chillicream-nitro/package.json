@@ -38,8 +38,7 @@
     "osx-x64/",
     "osx-arm64/",
     "win-x64/",
-    "win-x86/",
-    "win-arm64/"
+    "win-x86/"
   ],
   "packageManager": "yarn@4.9.4",
   "dependencies": {

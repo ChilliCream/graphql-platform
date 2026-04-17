@@ -19,7 +19,6 @@ async function resolveBinary() {
     win32: {
       x64: "win-x64/nitro.exe",
       ia32: "win-x86/nitro.exe",
-      arm64: "win-arm64/nitro.exe",
     },
     linux: {
       x64: async () => {
