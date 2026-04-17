@@ -1,0 +1,29 @@
+{
+  "name": "@chillicream/nitro-darwin-arm64",
+  "version": "0.0.0",
+  "description": "Nitro CLI binary for darwin-arm64",
+  "homepage": "https://chillicream.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ChilliCream/graphql-platform",
+    "directory": "src/Nitro/CommandLine/src/npm/chillicream-nitro-darwin-arm64"
+  },
+  "bugs": {
+    "url": "https://github.com/ChilliCream/graphql-platform/issues"
+  },
+  "author": {
+    "name": "ChilliCream",
+    "url": "https://chillicream.com",
+    "email": "info@chillicream.com"
+  },
+  "license": "MIT",
+  "os": [
+    "darwin"
+  ],
+  "cpu": [
+    "arm64"
+  ],
+  "files": [
+    "nitro"
+  ]
+}
