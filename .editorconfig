@@ -319,6 +319,8 @@ dotnet_diagnostic.RCS1214.severity = warning
 dotnet_diagnostic.RCS1217.severity = warning
 # Unused element in a documentation comment.
 dotnet_diagnostic.RCS1228.severity = warning
+# Fix documentation comment tag.
+dotnet_diagnostic.RCS1247.severity = warning
 # Unnecessary null-forgiving operator.
 dotnet_diagnostic.RCS1249.severity = warning
 # Remove unnecessary braces.
