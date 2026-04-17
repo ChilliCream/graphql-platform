@@ -99,12 +99,11 @@ jobs:
     strategy:
       matrix:
         include:
-          # Linux (x64)
+          # Linux
           - os: ubuntu-22.04
             rid: linux-x64
           - os: ubuntu-22.04
             rid: linux-musl-x64
-          # Linux (arm64 on ARM runner!)
           - os: ubuntu-24.04-arm
             rid: linux-arm64
           # macOS
@@ -117,7 +116,7 @@ jobs:
             rid: win-x64
           - os: windows-2025
             rid: win-x86
-          # Windows (arm64 on ARM runner!)
+          # Commented, since azure/artifact-signing-action does not currently support ARM.
           # - os: windows-11-arm
           #   rid: win-arm64
 
@@ -137,8 +136,8 @@ jobs:
 
       - name: 🏷 Get the version from tag (Unix)
         if: runner.os != 'Windows'
-        run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
         shell: bash
+        run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       - name: 📦 Publish binary (Windows)
         if: runner.os == 'Windows'
@@ -152,9 +151,9 @@ jobs:
 
       - name: 📦 Publish binary (Unix)
         if: runner.os != 'Windows'
+        shell: bash
         run: |
           ./build.sh publishaot --SemVersion $GIT_TAG --RuntimeIdentifier ${{ matrix.rid }} --Configuration Release
-        shell: bash
         env:
           NitroApiClientId: ${{ secrets.NITRO_API_CLIENT_ID }}
           NitroIdentityClientId: ${{ secrets.NITRO_IDENTITY_CLIENT_ID }}
@@ -238,15 +237,15 @@ jobs:
 
       - name: 📦 Zip binary (macOS)
         if: runner.os == 'macOS'
+        shell: bash
         run: |
           zip -j nitro-${{ matrix.rid }}.zip publish/nitro
-        shell: bash
 
       - name: 📦 Tar binary (Linux)
         if: runner.os == 'Linux'
+        shell: bash
         run: |
           tar -czf nitro-${{ matrix.rid }}.tar.gz -C publish nitro
-        shell: bash
 
       - name: 🖋️ Notarize binary (macOS)
         if: runner.os == 'macOS'
@@ -296,10 +295,102 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  publish-nitro-cli-platforms:
+    name: 🧱 Publish Nitro CLI (${{ matrix.rid }}) to npm
+    runs-on: ubuntu-latest
+    needs: [build-nitro-cli]
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+      id-token: write
+    strategy:
+      matrix:
+        include:
+          - rid: linux-x64
+            binary: nitro
+          - rid: linux-musl-x64
+            binary: nitro
+          - rid: linux-arm64
+            binary: nitro
+          - rid: osx-x64
+            binary: nitro
+          - rid: osx-arm64
+            binary: nitro
+          - rid: win-x64
+            binary: nitro.exe
+          - rid: win-x86
+            binary: nitro.exe
+
+    steps:
+      - name: 📦 Checkout
+        uses: actions/checkout@v6
+
+      - name: 🧰 Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: ${{ vars.NPM_REGISTRY_URL }}
+          scope: "@chillicream"
+
+      - name: 📥 Download nitro binary
+        uses: actions/download-artifact@v8
+        with:
+          name: nitro-${{ matrix.rid }}
+          path: dist
+
+      - name: 🏷 Get the version from tag
+        run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: 🗂️ Stage binary in package directory
+        shell: bash
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro-${{ matrix.rid }}
+        run: |
+          set -euo pipefail
+          archive="$GITHUB_WORKSPACE/dist/nitro-${{ matrix.rid }}.tar.gz"
+          if [ ! -f "$archive" ]; then
+            archive="$GITHUB_WORKSPACE/dist/nitro-${{ matrix.rid }}.zip"
+          fi
+          case "$archive" in
+            *.tar.gz) tar -xzf "$archive" ;;
+            *.zip)    unzip -q "$archive" ;;
+          esac
+          if [ "${{ matrix.binary }}" = "nitro" ]; then
+            chmod +x "${{ matrix.binary }}"
+          fi
+
+      - name: 🏷️ Set version
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro-${{ matrix.rid }}
+        run: npm version "$GIT_TAG" --no-git-tag-version --allow-same-version
+
+      - name: 📦 Create tarball
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro-${{ matrix.rid }}
+        run: npm pack
+
+      - name: 🚀 Publish tarball to npm
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro-${{ matrix.rid }}
+        shell: bash
+        run: |
+          npm publish "./chillicream-nitro-${{ matrix.rid }}-${GIT_TAG}.tgz" \
+            --access public \
+            --registry="${{ vars.NPM_REGISTRY_URL }}"
+
+      - name: 📤 Upload tarball as artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: chillicream-nitro-${{ matrix.rid }}-${{ env.GIT_TAG }}.tgz
+          path: src/Nitro/CommandLine/src/npm/chillicream-nitro-${{ matrix.rid }}/chillicream-nitro-${{ matrix.rid }}-${{ env.GIT_TAG }}.tgz
+
+      - name: 📤 Attach tarball to GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro-${{ matrix.rid }}
+        run: |
+          gh release upload "${{ github.ref_name }}" "chillicream-nitro-${{ matrix.rid }}-${{ github.ref_name }}.tgz" --repo "${{ github.repository }}"
+
   publish-nitro-cli-npm:
     name: 🧱 Publish Nitro CLI to npm
     runs-on: ubuntu-latest
-    needs: [build-nitro-cli]
+    needs: [publish-nitro-cli-platforms]
     if: startsWith(github.ref, 'refs/tags/')
     permissions:
       contents: write
@@ -316,96 +407,73 @@ jobs:
           registry-url: ${{ vars.NPM_REGISTRY_URL }}
           scope: "@chillicream"
 
-      - name: 🧰 Enable corepack
-        run: corepack enable
-
-      - name: 📥 Download all packaged nitro binaries
-        uses: actions/download-artifact@v8
-        with:
-          pattern: nitro-*
-          merge-multiple: true
-          path: dist-archives
-
       - name: 🏷 Get the version from tag
         run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-      - name: 🗂️ Move binaries to npm package
+      - name: 🏷 Compute dist-tag
+        shell: bash
         run: |
-          PACKAGE_DIR="src/Nitro/CommandLine/src/chillicream-nitro"
+          if [[ "$GIT_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "DIST_TAG=latest" >> $GITHUB_ENV
+          elif [[ "$GIT_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\. ]]; then
+            echo "DIST_TAG=rc" >> $GITHUB_ENV
+          else
+            echo "DIST_TAG=preview" >> $GITHUB_ENV
+          fi
 
-          for archive in dist-archives/nitro-*; do
-            base=$(basename "$archive")
+      - name: 🧰 Enable corepack
+        run: corepack enable
 
-            case "$base" in
-              nitro-*.zip)
-                rid=${base#nitro-}
-                rid=${rid%.zip}
-                echo "Unpacking $archive -> $PACKAGE_DIR/$rid"
-                mkdir -p "$PACKAGE_DIR/$rid"
-                unzip -q "$archive" -d "$PACKAGE_DIR/$rid"
-                ;;
-              nitro-*.tar.gz)
-                rid=${base#nitro-}
-                rid=${rid%.tar.gz}
-                echo "Unpacking $archive -> $PACKAGE_DIR/$rid"
-                mkdir -p "$PACKAGE_DIR/$rid"
-                tar -xzf "$archive" -C "$PACKAGE_DIR/$rid"
-                ;;
-              *)
-                echo "Skipping unknown artifact: $archive"
-                ;;
-            esac
-          done
-
-          # Ensure unix binaries are executable
-          chmod +x $PACKAGE_DIR/linux-x64/nitro || true
-          chmod +x $PACKAGE_DIR/linux-musl-x64/nitro || true
-          chmod +x $PACKAGE_DIR/linux-arm64/nitro || true
-          chmod +x $PACKAGE_DIR/osx-x64/nitro || true
-          chmod +x $PACKAGE_DIR/osx-arm64/nitro || true
-
-          # Ensure cli.js is executable
-          chmod +x $PACKAGE_DIR/cli.js
-
-      - name: 🔍 Install dependencies
-        working-directory: src/Nitro/CommandLine/src/chillicream-nitro
+      - name: 📥 Install dependencies
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
         run: yarn install --immutable
 
-      - name: 📥 Install npm@11.9.0
-        run: npm install -g npm@11.9.0
+      - name: 🏗️ Build
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
+        run: yarn build
 
-      - name: 🏷️ Set version
-        working-directory: src/Nitro/CommandLine/src/chillicream-nitro
-        run: npm version $GIT_TAG
+      - name: 🏷️ Bump version and inject optionalDependencies
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm version "$GIT_TAG" --no-git-tag-version --allow-same-version
+          jq --arg v "$GIT_TAG" '
+            .optionalDependencies = {
+              "@chillicream/nitro-linux-arm64": $v,
+              "@chillicream/nitro-linux-musl-x64": $v,
+              "@chillicream/nitro-linux-x64": $v,
+              "@chillicream/nitro-osx-arm64": $v,
+              "@chillicream/nitro-osx-x64": $v,
+              "@chillicream/nitro-win-x64": $v,
+              "@chillicream/nitro-win-x86": $v
+            }
+          ' package.json > package.json.tmp
+          mv package.json.tmp package.json
 
       - name: 📦 Create tarball
-        working-directory: src/Nitro/CommandLine/src/chillicream-nitro
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
         run: npm pack
 
       - name: 🚀 Publish tarball to npm
-        working-directory: src/Nitro/CommandLine/src/chillicream-nitro
-        run: |
-          TARBALL="chillicream-nitro-${GIT_TAG}.tgz"
-
-          if [[ "$GIT_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            DIST_TAG="latest"
-          else
-            DIST_TAG="preview"
-          fi
-
-          npm publish "./${TARBALL}" --access public --registry=${{ vars.NPM_REGISTRY_URL }} --tag "${DIST_TAG}"
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
         shell: bash
+        run: |
+          npm publish "./chillicream-nitro-${GIT_TAG}.tgz" \
+            --access public \
+            --registry="${{ vars.NPM_REGISTRY_URL }}" \
+            --tag "${DIST_TAG}"
 
       - name: 📤 Upload tarball as artifact
         uses: actions/upload-artifact@v7
         with:
           name: chillicream-nitro-${{ env.GIT_TAG }}.tgz
-          path: src/Nitro/CommandLine/src/chillicream-nitro/chillicream-nitro-${{ env.GIT_TAG }}.tgz
+          path: src/Nitro/CommandLine/src/npm/chillicream-nitro/chillicream-nitro-${{ env.GIT_TAG }}.tgz
 
       - name: 📤 Attach tarball to GitHub release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        working-directory: src/Nitro/CommandLine/src/chillicream-nitro
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
         run: |
           gh release upload "${{ github.ref_name }}" "chillicream-nitro-${{ github.ref_name }}.tgz" --repo "${{ github.repository }}"
 
