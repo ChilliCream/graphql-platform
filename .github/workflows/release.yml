@@ -421,6 +421,17 @@ jobs:
             echo "DIST_TAG=preview" >> $GITHUB_ENV
           fi
 
+      - name: 🧰 Enable corepack
+        run: corepack enable
+
+      - name: 📥 Install dependencies
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
+        run: yarn install --immutable
+
+      - name: 🏗️ Build
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
+        run: yarn build
+
       - name: 🏷️ Bump version and inject optionalDependencies
         working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
         shell: bash
@@ -439,17 +450,6 @@ jobs:
             }
           ' package.json > package.json.tmp
           mv package.json.tmp package.json
-
-      - name: 🧰 Enable corepack
-        run: corepack enable
-
-      - name: 📥 Install dependencies
-        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
-        run: yarn install --immutable
-
-      - name: 🏗️ Build
-        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
-        run: yarn build
 
       - name: 📦 Create tarball
         working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
