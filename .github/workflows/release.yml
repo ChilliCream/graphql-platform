@@ -136,8 +136,8 @@ jobs:
 
       - name: 🏷 Get the version from tag (Unix)
         if: runner.os != 'Windows'
-        run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
         shell: bash
+        run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       - name: 📦 Publish binary (Windows)
         if: runner.os == 'Windows'
@@ -151,9 +151,9 @@ jobs:
 
       - name: 📦 Publish binary (Unix)
         if: runner.os != 'Windows'
+        shell: bash
         run: |
           ./build.sh publishaot --SemVersion $GIT_TAG --RuntimeIdentifier ${{ matrix.rid }} --Configuration Release
-        shell: bash
         env:
           NitroApiClientId: ${{ secrets.NITRO_API_CLIENT_ID }}
           NitroIdentityClientId: ${{ secrets.NITRO_IDENTITY_CLIENT_ID }}
@@ -237,15 +237,15 @@ jobs:
 
       - name: 📦 Zip binary (macOS)
         if: runner.os == 'macOS'
+        shell: bash
         run: |
           zip -j nitro-${{ matrix.rid }}.zip publish/nitro
-        shell: bash
 
       - name: 📦 Tar binary (Linux)
         if: runner.os == 'Linux'
+        shell: bash
         run: |
           tar -czf nitro-${{ matrix.rid }}.tar.gz -C publish nitro
-        shell: bash
 
       - name: 🖋️ Notarize binary (macOS)
         if: runner.os == 'macOS'
@@ -343,6 +343,7 @@ jobs:
         run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       - name: 🏷 Compute dist-tag
+        shell: bash
         run: |
           if [[ "$GIT_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "DIST_TAG=latest" >> $GITHUB_ENV
@@ -351,7 +352,6 @@ jobs:
           else
             echo "DIST_TAG=preview" >> $GITHUB_ENV
           fi
-        shell: bash
 
       - name: 🗂️ Stage binary in package directory
         shell: bash
@@ -402,6 +402,7 @@ jobs:
         run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       - name: 🏷 Compute dist-tag
+        shell: bash
         run: |
           if [[ "$GIT_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "DIST_TAG=latest" >> $GITHUB_ENV
@@ -410,7 +411,6 @@ jobs:
           else
             echo "DIST_TAG=preview" >> $GITHUB_ENV
           fi
-        shell: bash
 
       - name: 🏷️ Bump version and optionalDependencies
         working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
