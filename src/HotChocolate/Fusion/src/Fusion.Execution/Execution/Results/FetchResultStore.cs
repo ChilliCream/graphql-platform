@@ -1,7 +1,6 @@
 using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
@@ -9,11 +8,9 @@ using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Nodes;
-using HotChocolate.Fusion.Language;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Text.Json;
 
 namespace HotChocolate.Fusion.Execution.Results;
 
@@ -114,38 +111,46 @@ internal sealed partial class FetchResultStore : IDisposable
                 errorTriesSpan[i] = GetErrorTrie(sourcePath, errors?.Trie);
             }
 
+            // Admin-only: bookkeeping mutations under narrow lock, not SaveSafeResult.
             lock (_lock)
             {
-                try
+                if (rootErrors is not null)
                 {
-                    if (rootErrors is not null)
-                    {
-                        _errors ??= [];
-                        _errors.AddRange(rootErrors);
-                    }
-
-                    var resultData = _result.Data;
-
-                    for (var i = 0; i < results.Length; i++)
-                    {
-                        var result = results[i];
-                        _memory.Add(result);
-
-                        if (!SaveSafeResult(
-                                resultData,
-                                result.Path,
-                                result.AdditionalPaths.AsSpan(),
-                                dataElementsSpan[i],
-                                errorTriesSpan[i],
-                                resultSelectionSet))
-                        {
-                            return false;
-                        }
-                    }
-
-                    return true;
+                    _errors ??= [];
+                    _errors.AddRange(rootErrors);
                 }
-                finally
+
+                for (var i = 0; i < results.Length; i++)
+                {
+                    _memory.Add(results[i]);
+                }
+            }
+
+            try
+            {
+                var resultData = _result.Data;
+
+                for (var i = 0; i < results.Length; i++)
+                {
+                    var result = results[i];
+
+                    if (!SaveSafeResult(
+                            resultData,
+                            result.Path,
+                            result.AdditionalPaths.AsSpan(),
+                            dataElementsSpan[i],
+                            errorTriesSpan[i],
+                            resultSelectionSet))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+            finally
+            {
+                lock (_lock)
                 {
                     ReturnPathSegments(results);
                 }
@@ -177,30 +182,37 @@ internal sealed partial class FetchResultStore : IDisposable
 
             lock (_lock)
             {
-                try
+                for (var i = 0; i < results.Length; i++)
                 {
-                    var resultData = _result.Data;
-
-                    for (var i = 0; i < results.Length; i++)
-                    {
-                        var result = results[i];
-                        _memory.Add(result);
-
-                        if (!SaveSafeResult(
-                                resultData,
-                                result.Path,
-                                result.AdditionalPaths.AsSpan(),
-                                dataElementsSpan[i],
-                                errorTrie: null,
-                                resultSelectionSet))
-                        {
-                            return false;
-                        }
-                    }
-
-                    return true;
+                    _memory.Add(results[i]);
                 }
-                finally
+            }
+
+            try
+            {
+                var resultData = _result.Data;
+
+                for (var i = 0; i < results.Length; i++)
+                {
+                    var result = results[i];
+
+                    if (!SaveSafeResult(
+                            resultData,
+                            result.Path,
+                            result.AdditionalPaths.AsSpan(),
+                            dataElementsSpan[i],
+                            errorTrie: null,
+                            resultSelectionSet))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+            finally
+            {
+                lock (_lock)
                 {
                     ReturnPathSegments(results);
                 }
@@ -226,23 +238,26 @@ internal sealed partial class FetchResultStore : IDisposable
         {
             _memory.Add(result);
 
-            try
+            if (errors?.RootErrors is { Length: > 0 } rootErrors)
             {
-                if (errors?.RootErrors is { Length: > 0 } rootErrors)
-                {
-                    _errors ??= [];
-                    _errors.AddRange(rootErrors);
-                }
-
-                return SaveSafeResult(
-                    _result.Data,
-                    result.Path,
-                    result.AdditionalPaths.AsSpan(),
-                    dataElement,
-                    errorTrie,
-                    resultSelectionSet);
+                _errors ??= [];
+                _errors.AddRange(rootErrors);
             }
-            finally
+        }
+
+        try
+        {
+            return SaveSafeResult(
+                _result.Data,
+                result.Path,
+                result.AdditionalPaths.AsSpan(),
+                dataElement,
+                errorTrie,
+                resultSelectionSet);
+        }
+        finally
+        {
+            lock (_lock)
             {
                 ReturnPathSegments(result);
             }
@@ -259,18 +274,21 @@ internal sealed partial class FetchResultStore : IDisposable
         lock (_lock)
         {
             _memory.Add(result);
+        }
 
-            try
-            {
-                return SaveSafeResult(
-                    _result.Data,
-                    result.Path,
-                    result.AdditionalPaths.AsSpan(),
-                    dataElement,
-                    errorTrie: null,
-                    resultSelectionSet);
-            }
-            finally
+        try
+        {
+            return SaveSafeResult(
+                _result.Data,
+                result.Path,
+                result.AdditionalPaths.AsSpan(),
+                dataElement,
+                errorTrie: null,
+                resultSelectionSet);
+        }
+        finally
+        {
+            lock (_lock)
             {
                 ReturnPathSegments(result);
             }

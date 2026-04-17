@@ -14,6 +14,13 @@ public sealed partial class CompositeResultDocument : IDisposable
     private readonly Operation _operation;
     private readonly ulong _includeFlags;
     private readonly PathSegmentLocalPool? _pathPool;
+#if NET9_0_OR_GREATER
+    private readonly Lock _metaDbLock = new();
+    private readonly Lock _sourcesLock = new();
+#else
+    private readonly object _metaDbLock = new();
+    private readonly object _sourcesLock = new();
+#endif
     internal MetaDb _metaDb;
     private bool _disposed;
 
@@ -341,32 +348,38 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     internal CompositeResultElement CreateObject(Cursor parent, SelectionSet selectionSet)
     {
-        var startObjectCursor = WriteStartObject(parent, selectionSet.Id);
-
-        var selectionCount = 0;
-        foreach (var selection in selectionSet.Selections)
+        lock (_metaDbLock)
         {
-            WriteEmptyProperty(startObjectCursor, selection);
-            selectionCount++;
+            var startObjectCursor = WriteStartObject(parent, selectionSet.Id);
+
+            var selectionCount = 0;
+            foreach (var selection in selectionSet.Selections)
+            {
+                WriteEmptyProperty(startObjectCursor, selection);
+                selectionCount++;
+            }
+
+            WriteEndObject(startObjectCursor, selectionCount);
+
+            return new CompositeResultElement(this, startObjectCursor);
         }
-
-        WriteEndObject(startObjectCursor, selectionCount);
-
-        return new CompositeResultElement(this, startObjectCursor);
     }
 
     internal CompositeResultElement CreateArray(Cursor parent, int length)
     {
-        var cursor = WriteStartArray(parent, length);
-
-        for (var i = 0; i < length; i++)
+        lock (_metaDbLock)
         {
-            WriteEmptyValue(cursor);
+            var cursor = WriteStartArray(parent, length);
+
+            for (var i = 0; i < length; i++)
+            {
+                WriteEmptyValue(cursor);
+            }
+
+            WriteEndArray();
+
+            return new CompositeResultElement(this, cursor);
         }
-
-        WriteEndArray();
-
-        return new CompositeResultElement(this, cursor);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -387,9 +400,15 @@ public sealed partial class CompositeResultDocument : IDisposable
 
         if (parent.Id == -1)
         {
-            Debug.Assert(!_sources.Contains(parent), "The source document is marked as unbound but is already registered.");
-            parent.Id = _sources.Count;
-            _sources.Add(parent);
+            lock (_sourcesLock)
+            {
+                if (parent.Id == -1)
+                {
+                    Debug.Assert(!_sources.Contains(parent), "The source document is marked as unbound but is already registered.");
+                    parent.Id = _sources.Count;
+                    _sources.Add(parent);
+                }
+            }
         }
 
         Debug.Assert(_sources.Contains(parent), "Expected the source document of the source element to be registered.");
