@@ -315,9 +315,6 @@ jobs:
           registry-url: ${{ vars.NPM_REGISTRY_URL }}
           scope: "@chillicream"
 
-      - name: 🧰 Enable corepack
-        run: corepack enable
-
       - name: 📥 Download all packaged nitro binaries
         uses: actions/download-artifact@v8
         with:
@@ -328,72 +325,106 @@ jobs:
       - name: 🏷 Get the version from tag
         run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-      - name: 🗂️ Move binaries to npm package
+      - name: 🏷 Compute dist-tag
         run: |
-          PACKAGE_DIR="src/Nitro/CommandLine/src/chillicream-nitro"
+          if [[ "$GIT_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "DIST_TAG=latest" >> $GITHUB_ENV
+          else
+            echo "DIST_TAG=preview" >> $GITHUB_ENV
+          fi
+        shell: bash
 
-          for archive in dist-archives/nitro-*; do
-            base=$(basename "$archive")
+      - name: 📦 Publish platform packages to npm
+        shell: bash
+        run: |
+          set -euo pipefail
 
-            case "$base" in
-              nitro-*.zip)
-                rid=${base#nitro-}
-                rid=${rid%.zip}
-                echo "Unpacking $archive -> $PACKAGE_DIR/$rid"
-                mkdir -p "$PACKAGE_DIR/$rid"
-                unzip -q "$archive" -d "$PACKAGE_DIR/$rid"
-                ;;
-              nitro-*.tar.gz)
-                rid=${base#nitro-}
-                rid=${rid%.tar.gz}
-                echo "Unpacking $archive -> $PACKAGE_DIR/$rid"
-                mkdir -p "$PACKAGE_DIR/$rid"
-                tar -xzf "$archive" -C "$PACKAGE_DIR/$rid"
-                ;;
-              *)
-                echo "Skipping unknown artifact: $archive"
-                ;;
+          # rid pkg-suffix os cpu libc binary
+          targets=(
+            "linux-x64       linux-x64       linux  x64    glibc nitro"
+            "linux-musl-x64  linux-x64-musl  linux  x64    musl  nitro"
+            "linux-arm64     linux-arm64     linux  arm64  -     nitro"
+            "osx-x64         darwin-x64      darwin x64    -     nitro"
+            "osx-arm64       darwin-arm64    darwin arm64  -     nitro"
+            "win-x64         win32-x64       win32  x64    -     nitro.exe"
+            "win-x86         win32-ia32      win32  ia32   -     nitro.exe"
+          )
+
+          STAGING="$(mktemp -d)"
+
+          for t in "${targets[@]}"; do
+            read -r rid suffix os cpu libc binary <<< "$t"
+            pkg_dir="$STAGING/nitro-$suffix"
+            mkdir -p "$pkg_dir"
+
+            archive="dist-archives/nitro-$rid.tar.gz"
+            if [ ! -f "$archive" ]; then
+              archive="dist-archives/nitro-$rid.zip"
+            fi
+
+            case "$archive" in
+              *.tar.gz) tar -xzf "$archive" -C "$pkg_dir" ;;
+              *.zip)    unzip -q "$archive" -d "$pkg_dir" ;;
             esac
+
+            if [ "$os" != "win32" ]; then
+              chmod +x "$pkg_dir/$binary"
+            fi
+
+            jq_args=(
+              --arg name "@chillicream/nitro-$suffix"
+              --arg version "$GIT_TAG"
+              --arg os "$os"
+              --arg cpu "$cpu"
+              --arg binary "$binary"
+            )
+            jq_filter='{
+              name: $name,
+              version: $version,
+              description: ("Nitro CLI binary (" + $os + "-" + $cpu + ")"),
+              repository: {
+                type: "git",
+                url: "https://github.com/ChilliCream/graphql-platform"
+              },
+              license: "MIT",
+              os: [$os],
+              cpu: [$cpu],
+              files: [$binary]
+            }'
+            if [ "$libc" != "-" ]; then
+              jq_args+=(--arg libc "$libc")
+              jq_filter="$jq_filter + {libc: [\$libc]}"
+            fi
+
+            jq -n "${jq_args[@]}" "$jq_filter" > "$pkg_dir/package.json"
+
+            echo "Publishing @chillicream/nitro-$suffix@$GIT_TAG"
+            (cd "$pkg_dir" && npm publish --access public --tag "$DIST_TAG" --registry="${{ vars.NPM_REGISTRY_URL }}")
           done
 
-          # Ensure unix binaries are executable
-          chmod +x $PACKAGE_DIR/linux-x64/nitro || true
-          chmod +x $PACKAGE_DIR/linux-musl-x64/nitro || true
-          chmod +x $PACKAGE_DIR/linux-arm64/nitro || true
-          chmod +x $PACKAGE_DIR/osx-x64/nitro || true
-          chmod +x $PACKAGE_DIR/osx-arm64/nitro || true
-
-          # Ensure cli.js is executable
-          chmod +x $PACKAGE_DIR/cli.js
-
-      - name: 🔍 Install dependencies
+      - name: 🏷️ Bump main package versions
         working-directory: src/Nitro/CommandLine/src/chillicream-nitro
-        run: yarn install --immutable
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x cli.js
+          jq --arg v "$GIT_TAG" \
+            '.version = $v | .optionalDependencies = (.optionalDependencies | map_values($v))' \
+            package.json > package.json.tmp
+          mv package.json.tmp package.json
 
-      - name: 📥 Install npm@11.9.0
-        run: npm install -g npm@11.9.0
-
-      - name: 🏷️ Set version
-        working-directory: src/Nitro/CommandLine/src/chillicream-nitro
-        run: npm version $GIT_TAG
-
-      - name: 📦 Create tarball
+      - name: 📦 Create main tarball
         working-directory: src/Nitro/CommandLine/src/chillicream-nitro
         run: npm pack
 
-      - name: 🚀 Publish tarball to npm
+      - name: 🚀 Publish main to npm
         working-directory: src/Nitro/CommandLine/src/chillicream-nitro
-        run: |
-          TARBALL="chillicream-nitro-${GIT_TAG}.tgz"
-
-          if [[ "$GIT_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            DIST_TAG="latest"
-          else
-            DIST_TAG="preview"
-          fi
-
-          npm publish "./${TARBALL}" --access public --registry=${{ vars.NPM_REGISTRY_URL }} --tag "${DIST_TAG}"
         shell: bash
+        run: |
+          npm publish "./chillicream-nitro-${GIT_TAG}.tgz" \
+            --access public \
+            --registry="${{ vars.NPM_REGISTRY_URL }}" \
+            --tag "${DIST_TAG}"
 
       - name: 📤 Upload tarball as artifact
         uses: actions/upload-artifact@v7

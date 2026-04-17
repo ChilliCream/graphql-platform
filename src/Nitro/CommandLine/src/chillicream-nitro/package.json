@@ -32,16 +32,15 @@
   },
   "files": [
     "cli.js",
-    "linux-x64/",
-    "linux-musl-x64/",
-    "linux-arm64/",
-    "osx-x64/",
-    "osx-arm64/",
-    "win-x64/",
-    "win-x86/"
+    "README.md"
   ],
-  "packageManager": "yarn@4.9.4",
-  "dependencies": {
-    "detect-libc": "^2.0.4"
+  "optionalDependencies": {
+    "@chillicream/nitro-darwin-arm64": "0.0.0",
+    "@chillicream/nitro-darwin-x64": "0.0.0",
+    "@chillicream/nitro-linux-arm64": "0.0.0",
+    "@chillicream/nitro-linux-x64": "0.0.0",
+    "@chillicream/nitro-linux-x64-musl": "0.0.0",
+    "@chillicream/nitro-win32-ia32": "0.0.0",
+    "@chillicream/nitro-win32-x64": "0.0.0"
   }
 }

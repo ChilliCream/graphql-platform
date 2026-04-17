@@ -1,57 +1,44 @@
 #!/usr/bin/env node
 "use strict";
 
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
+import { createRequire } from "module";
 import { spawn } from "child_process";
-import { family, GLIBC, MUSL } from "detect-libc";
+import { dirname, join } from "path";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const require = createRequire(import.meta.url);
 
-async function resolveBinary() {
-  const { platform, arch } = process;
+const candidates = {
+  "darwin-arm64": ["@chillicream/nitro-darwin-arm64"],
+  "darwin-x64": ["@chillicream/nitro-darwin-x64"],
+  "linux-arm64": ["@chillicream/nitro-linux-arm64"],
+  "linux-x64": [
+    "@chillicream/nitro-linux-x64",
+    "@chillicream/nitro-linux-x64-musl",
+  ],
+  "win32-ia32": ["@chillicream/nitro-win32-ia32"],
+  "win32-x64": ["@chillicream/nitro-win32-x64"],
+};
 
-  const binaries = {
-    darwin: {
-      x64: "osx-x64/nitro",
-      arm64: "osx-arm64/nitro",
-    },
-    win32: {
-      x64: "win-x64/nitro.exe",
-      ia32: "win-x86/nitro.exe",
-    },
-    linux: {
-      x64: async () => {
-        const libc = await family();
+function resolveBinary() {
+  const key = `${process.platform}-${process.arch}`;
+  const binaryName = process.platform === "win32" ? "nitro.exe" : "nitro";
 
-        if (libc === GLIBC) {
-          return "linux-x64/nitro";
-        } else if (libc === MUSL) {
-          return "linux-musl-x64/nitro";
-        }
-
-        return null;
-      },
-      arm64: "linux-arm64/nitro",
-    },
-  };
-
-  const binary = binaries[platform]?.[arch];
-  if (!binary) {
-    return null;
+  for (const pkg of candidates[key] ?? []) {
+    try {
+      const pkgJson = require.resolve(`${pkg}/package.json`);
+      return join(dirname(pkgJson), binaryName);
+    } catch {}
   }
-
-  const binaryPath = typeof binary === "function" ? await binary() : binary;
-  return binaryPath ? join(__dirname, binaryPath) : null;
+  return null;
 }
 
-const bin = await resolveBinary();
-const input = process.argv.slice(2);
+const bin = resolveBinary();
 
-if (bin !== null) {
-  spawn(bin, input, { stdio: "inherit" }).on("exit", process.exit);
-} else {
+if (bin === null) {
   throw new Error(
-    `Platform "${process.platform} (${process.arch})" not supported.`
+    `Platform "${process.platform} (${process.arch})" is not supported by @chillicream/nitro.`
   );
 }
+
+const child = spawn(bin, process.argv.slice(2), { stdio: "inherit" });
+child.on("exit", (code) => process.exit(code ?? 0));
