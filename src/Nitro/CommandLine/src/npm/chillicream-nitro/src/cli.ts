@@ -1,10 +1,8 @@
 #!/usr/bin/env node
-import { createRequire } from "node:module";
 import { spawn } from "node:child_process";
 import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { familySync, MUSL } from "detect-libc";
-
-const require = createRequire(import.meta.url);
 
 function resolveCandidates(): readonly string[] {
   const { platform, arch } = process;
@@ -31,10 +29,10 @@ function resolveBinary(): string | null {
 
   for (const pkg of resolveCandidates()) {
     try {
-      const pkgJson = require.resolve(`${pkg}/package.json`);
+      const pkgJson = fileURLToPath(import.meta.resolve(`${pkg}/package.json`));
       return join(dirname(pkgJson), binaryName);
     } catch {
-      continue;
+      // try next candidate
     }
   }
 

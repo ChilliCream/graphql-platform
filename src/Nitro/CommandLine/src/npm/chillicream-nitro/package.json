@@ -27,6 +27,9 @@
     "url": "https://opencollective.com/chillicream"
   },
   "type": "module",
+  "engines": {
+    "node": ">=20.6.0"
+  },
   "bin": "./dist/cli.js",
   "files": [
     "dist",

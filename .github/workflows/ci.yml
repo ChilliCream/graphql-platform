@@ -297,9 +297,42 @@ jobs:
           api-key: ${{ secrets.NITRO_API_KEY }}
           comment-mode: "review"
 
+  verify-nitro-npm-package:
+    name: Verify Nitro npm package
+    runs-on: ubuntu-latest
+    needs: check-changes
+    if: needs.check-changes.outputs.src_changes == 'true'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+        with:
+          show-progress: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
+        run: yarn install --immutable
+
+      - name: Build
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
+        run: yarn build
+
   ci-status-check:
     name: "CI Status Check"
-    needs: [library-tests, website-tests, validate-nitro-client]
+    needs:
+      [
+        library-tests,
+        website-tests,
+        validate-nitro-client,
+        verify-nitro-npm-package,
+      ]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -308,4 +341,5 @@ jobs:
         if: |
           always() &&
           (needs.library-tests.result == 'failure' ||
-           needs.website-tests.result == 'failure')
+           needs.website-tests.result == 'failure' ||
+           needs.verify-nitro-npm-package.result == 'failure')
