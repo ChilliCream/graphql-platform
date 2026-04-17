@@ -1,4 +1,3 @@
-using System.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Fusion.Text.Json;
@@ -8,6 +7,8 @@ namespace HotChocolate.Fusion.Execution.Results;
 
 internal sealed partial class FetchResultStore
 {
+    private const int MaxDictionaryRetainCapacity = 256;
+
     /// <summary>
     /// Initializes the <see cref="FetchResultStore"/> for a new request.
     /// </summary>
@@ -64,54 +65,28 @@ internal sealed partial class FetchResultStore
     /// Cleans the store for return to the pool.
     /// Releases per-request state while retaining reusable buffers.
     /// </summary>
-    internal void Clean(int maxCollectTargetRetainLength, int maxDictionaryRetainCapacity)
+    internal void Clean()
     {
-        // drain and dispose per-request memory
         while (_memory.TryPop(out var memory))
         {
             memory.Dispose();
         }
 
-        // return path segments to global pool and reset local pool
         _pathPool.Dispose();
         _pathPool = null!;
 
-        // clear errors
         _errors?.Clear();
         _pocketedErrors?.Clear();
 
-        // reset variable writer (returns excess chunks, keeps the first)
-        _variableWriter.Clean();
+        _builderPool.Clean();
 
-        // clear collect target arrays to unroot CompositeResultDocument references;
-        // if they grew too large during a burst, swap them for smaller ones.
-        TrimOrClearBuffer(ref _collectTargetA, maxCollectTargetRetainLength);
-        TrimOrClearBuffer(ref _collectTargetB, maxCollectTargetRetainLength);
-        TrimOrClearBuffer(ref _collectTargetCombined, maxCollectTargetRetainLength);
+        TrimOrClear(ref _seenPaths, MaxDictionaryRetainCapacity, ReferenceEqualityComparer.Instance);
 
-        // clear dictionaries/hashsets; drop oversized ones.
-        TrimOrClear(ref _seenPaths, maxDictionaryRetainCapacity, ReferenceEqualityComparer.Instance);
-        _variableDedupTable.Clear();
-
-        // null out per-request references
         _result = default!;
         _valueCompletion = default!;
         _schema = default!;
         _errorHandler = default!;
         _operation = default!;
-    }
-
-    private static void TrimOrClearBuffer(ref CompositeResultElement[] buffer, int maxRetainLength)
-    {
-        if (buffer.Length > maxRetainLength)
-        {
-            ArrayPool<CompositeResultElement>.Shared.Return(buffer, clearArray: true);
-            buffer = ArrayPool<CompositeResultElement>.Shared.Rent(64);
-        }
-        else
-        {
-            buffer.AsSpan().Clear();
-        }
     }
 
     private static void TrimOrClear<TKey>(

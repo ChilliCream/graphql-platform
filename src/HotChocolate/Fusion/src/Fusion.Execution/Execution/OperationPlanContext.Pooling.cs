@@ -69,7 +69,7 @@ public sealed partial class OperationPlanContext
             Array.Clear(_transportContentTypes, 0, _nodeSlotCapacity);
         }
 
-        _resultStore.Clean(256, 256);
+        _resultStore.Clean();
         _executionState.Clean();
 
         RequestContext = default!;

@@ -23,6 +23,11 @@ namespace HotChocolate.Fusion.Execution;
 public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDisposable
 {
     private static readonly JsonOperationPlanFormatter s_planFormatter = new();
+    private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
+    private readonly FetchResultStore _resultStore;
+    private readonly ExecutionState _executionState;
+    private readonly INodeIdParser _nodeIdParser;
+    private readonly IErrorHandler _errorHandler;
     private NodeCompletionSet?[] _nodesToComplete = [];
     private int _dependentBitsetWordCount;
     private string?[] _schemaNames = [];
@@ -30,11 +35,6 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     private Uri?[] _transportUris = [];
     private string?[] _transportContentTypes = [];
     private List<IOperationPlanNode>?[] _skippedDefinitions = [];
-    private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
-    private readonly FetchResultStore _resultStore;
-    private readonly ExecutionState _executionState;
-    private readonly INodeIdParser _nodeIdParser;
-    private readonly IErrorHandler _errorHandler;
     private bool _collectTelemetry;
     private ISourceSchemaClientScope _clientScope = default!;
     private string? _traceId;
