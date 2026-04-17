@@ -4,39 +4,38 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { familySync, MUSL } from "detect-libc";
 
-function resolveCandidates(): readonly string[] {
+function resolveBinary(): string | null {
   const { platform, arch } = process;
 
+  let pkg: string | null;
   if (platform === "linux" && arch === "x64") {
-    return familySync() === MUSL
-      ? ["@chillicream/nitro-linux-musl-x64"]
-      : ["@chillicream/nitro-linux-x64"];
+    pkg =
+      familySync() === MUSL
+        ? "@chillicream/nitro-linux-musl-x64"
+        : "@chillicream/nitro-linux-x64";
+  } else {
+    const map: Record<string, string> = {
+      "darwin-arm64": "@chillicream/nitro-osx-arm64",
+      "darwin-x64": "@chillicream/nitro-osx-x64",
+      "linux-arm64": "@chillicream/nitro-linux-arm64",
+      "win32-ia32": "@chillicream/nitro-win-x86",
+      "win32-x64": "@chillicream/nitro-win-x64",
+    };
+    pkg = map[`${platform}-${arch}`] ?? null;
   }
 
-  const map: Record<string, readonly string[]> = {
-    "darwin-arm64": ["@chillicream/nitro-osx-arm64"],
-    "darwin-x64": ["@chillicream/nitro-osx-x64"],
-    "linux-arm64": ["@chillicream/nitro-linux-arm64"],
-    "win32-ia32": ["@chillicream/nitro-win-x86"],
-    "win32-x64": ["@chillicream/nitro-win-x64"],
-  };
-
-  return map[`${platform}-${arch}`] ?? [];
-}
-
-function resolveBinary(): string | null {
-  const binaryName = process.platform === "win32" ? "nitro.exe" : "nitro";
-
-  for (const pkg of resolveCandidates()) {
-    try {
-      const pkgJson = fileURLToPath(import.meta.resolve(`${pkg}/package.json`));
-      return join(dirname(pkgJson), binaryName);
-    } catch {
-      // try next candidate
-    }
+  if (pkg === null) {
+    return null;
   }
 
-  return null;
+  const binaryName = platform === "win32" ? "nitro.exe" : "nitro";
+
+  try {
+    const pkgJson = fileURLToPath(import.meta.resolve(`${pkg}/package.json`));
+    return join(dirname(pkgJson), binaryName);
+  } catch {
+    return null;
+  }
 }
 
 const bin = resolveBinary();
