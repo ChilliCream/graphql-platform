@@ -60,51 +60,50 @@ internal sealed class UploadClientCommand : Command
             throw new ExitException(Messages.OperationsFileDoesNotExist(operationsFilePath));
         }
 
-        await using (var activity = console.StartActivity(
-            $"Uploading new client version '{tag.EscapeMarkup()}' for client '{clientId.EscapeMarkup()}'",
-            "Failed to upload a new client version."))
+        await using var activity = console.StartActivity(
+            $"Uploading new version '{tag.EscapeMarkup()}' for client '{clientId.EscapeMarkup()}'",
+            "Failed to upload a new client version.");
+
+        await using var stream = fileSystem.OpenReadStream(operationsFilePath);
+
+        var data = await client.UploadClientVersionAsync(
+            clientId,
+            tag,
+            stream,
+            source,
+            cancellationToken);
+
+        if (data.Errors?.Count > 0)
         {
-            await using var stream = fileSystem.OpenReadStream(operationsFilePath);
+            await activity.FailAllAsync();
 
-            var data = await client.UploadClientVersionAsync(
-                clientId,
-                tag,
-                stream,
-                source,
-                cancellationToken);
-
-            if (data.Errors?.Count > 0)
+            foreach (var error in data.Errors)
             {
-                activity.Fail();
-
-                foreach (var error in data.Errors)
+                var errorMessage = error switch
                 {
-                    var errorMessage = error switch
-                    {
-                        IUploadClient_UploadClient_Errors_UnauthorizedOperation err => err.Message,
-                        IUploadClient_UploadClient_Errors_ClientNotFoundError err => err.Message,
-                        IUploadClient_UploadClient_Errors_DuplicatedTagError err => err.Message,
-                        IUploadClient_UploadClient_Errors_ConcurrentOperationError err => err.Message,
-                        IUploadClient_UploadClient_Errors_InvalidPersistedQueryError err => err.Message,
-                        IUploadClient_UploadClient_Errors_InvalidSourceMetadataInputError err => err.Message,
-                        IError err => Messages.UnexpectedMutationError(err),
-                        _ => Messages.UnexpectedMutationError()
-                    };
+                    IUploadClient_UploadClient_Errors_UnauthorizedOperation err => err.Message,
+                    IUploadClient_UploadClient_Errors_ClientNotFoundError err => err.Message,
+                    IUploadClient_UploadClient_Errors_DuplicatedTagError err => err.Message,
+                    IUploadClient_UploadClient_Errors_ConcurrentOperationError err => err.Message,
+                    IUploadClient_UploadClient_Errors_InvalidPersistedQueryError err => err.Message,
+                    IUploadClient_UploadClient_Errors_InvalidSourceMetadataInputError err => err.Message,
+                    IError err => Messages.UnexpectedMutationError(err),
+                    _ => Messages.UnexpectedMutationError()
+                };
 
-                    console.Error.WriteErrorLine(errorMessage);
-                }
-
-                return ExitCodes.Error;
+                console.Error.WriteErrorLine(errorMessage);
             }
 
-            if (data.ClientVersion is null)
-            {
-                throw Exit("Could not upload client.");
-            }
-
-            activity.Success($"Uploaded new client version '{tag.EscapeMarkup()}'.");
-
-            return ExitCodes.Success;
+            return ExitCodes.Error;
         }
+
+        if (data.ClientVersion is null)
+        {
+            throw Exit("Could not upload client.");
+        }
+
+        activity.Success($"Uploaded new client version '{tag.EscapeMarkup()}'.");
+
+        return ExitCodes.Success;
     }
 }

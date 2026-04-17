@@ -3,5 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net11.0</TargetFramework>
     <TargetFrameworks>net11.0</TargetFrameworks>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 </Project>

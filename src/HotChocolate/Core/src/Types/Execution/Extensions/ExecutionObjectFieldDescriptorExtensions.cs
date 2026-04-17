@@ -21,7 +21,9 @@ public static class ExecutionObjectFieldDescriptorExtensions
     /// <param name="optimizer">
     /// The selection set optimizer.
     /// </param>
-    /// <returns></returns>
+    /// <returns>
+    /// The <see cref="IObjectFieldDescriptor"/> for configuration chaining.
+    /// </returns>
     /// <exception cref="ArgumentNullException"></exception>
     public static IObjectFieldDescriptor UseOptimizer(
         this IObjectFieldDescriptor descriptor,

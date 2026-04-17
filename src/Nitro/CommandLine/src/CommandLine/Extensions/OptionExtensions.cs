@@ -68,7 +68,7 @@ internal static class OptionExtensions
         string name,
         T? defaultValue = default)
     {
-        option.DefaultValueFactory = r =>
+        option.DefaultValueFactory = _ =>
         {
             var provider = CommandExecutionContext.s_services.Value!
                 .GetRequiredService<IEnvironmentVariableProvider>();

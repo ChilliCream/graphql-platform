@@ -114,7 +114,7 @@ public sealed class ObjectTypeFileBuilder(StringBuilder sb) : TypeFileBuilderBas
         {
             if (objectType.NodeResolver.RequiresParameterBindings)
             {
-                WriteResolverBindingInitialization(objectType.NodeResolver, typeLookup);
+                WriteResolverBindingInitialization(objectType.NodeResolver);
             }
 
             WriteIsSelectedInitialization(objectType.NodeResolver);

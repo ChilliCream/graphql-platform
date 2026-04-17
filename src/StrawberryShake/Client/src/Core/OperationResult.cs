@@ -78,7 +78,7 @@ public sealed class OperationResult<T> : IOperationResult<T> where T : class
     /// <param name="dataInfo">
     /// The data info.
     /// </param>
-    /// <returns></returns>
+    /// <returns>A new result with the updated data.</returns>
     public IOperationResult<T> WithData(T data, IOperationResultDataInfo dataInfo)
         => new OperationResult<T>(data, dataInfo, DataFactory, Errors, Extensions, ContextData);
 }

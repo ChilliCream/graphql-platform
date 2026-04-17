@@ -36,7 +36,8 @@ public abstract partial class FusionTestBase : IDisposable
         Action<IServiceCollection>? configureServices = null,
         Action<IApplicationBuilder>? configureApplication = null,
         Action<IFusionGatewayBuilder>? configureGatewayBuilder = null,
-        [StringSyntax("json")] string? gatewaySettings = null)
+        [StringSyntax("json")] string? gatewaySettings = null,
+        string? environmentName = "Development")
     {
         var sourceSchemas = new List<SourceSchemaText>();
         var gatewayServices = new ServiceCollection();
@@ -181,7 +182,8 @@ public abstract partial class FusionTestBase : IDisposable
 
                 configureServices?.Invoke(services);
             },
-            configureApplication);
+            configureApplication,
+            environmentName);
 
         return new Gateway(gatewayTestServer, sourceSchemas, interactions);
 

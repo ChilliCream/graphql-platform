@@ -30,7 +30,6 @@ public sealed class EntityIdDescriptor
     /// <summary>
     /// Gets the name of the field or entity.
     /// </summary>
-    /// <value></value>
     public string Name { get; }
 
     /// <summary>

@@ -50,11 +50,9 @@ internal sealed class EditStagesCommand : Command
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        const string apiMessage = "For which API do you want to edit the stages?";
-
-        var apiId = await parseResult.GetOrPromptForApiIdAsync(
-            apiMessage,
-            console,
+        var apiId = await console.GetOrPromptForApiIdAsync(
+            "For which API do you want to edit the stages?",
+            parseResult,
             apisClient,
             sessionService,
             cancellationToken);
@@ -221,7 +219,7 @@ file static class ClientExtensions
                     }
                 }
 
-                activity.Fail(errorTree);
+                await activity.FailAllAsync(errorTree);
 
                 throw new ExitException("Stage update failed.");
             }

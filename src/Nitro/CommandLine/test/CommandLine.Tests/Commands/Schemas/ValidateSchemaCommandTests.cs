@@ -64,7 +64,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -114,7 +114,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating schema against stage 'dev' of API 'api-1'
+            Validating schema of API 'api-1' against stage 'dev'
             └── ✕ Failed to validate the schema.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -145,7 +145,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
         result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating schema against stage 'dev' of API 'api-1'
+            Validating schema of API 'api-1' against stage 'dev'
             └── ✕ Failed to validate the schema.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -188,7 +188,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating schema against stage 'dev' of API 'api-1'
+            Validating schema of API 'api-1' against stage 'dev'
             └── ✕ Failed to validate the schema.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -222,9 +222,9 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
             System.Text.Encoding.UTF8.GetString(capturedStream.ToArray()));
         result.AssertSuccess(
             """
-            Validating schema against stage 'dev' of API 'api-1'
-            ├── Validation request created (ID: request-id).
-            └── ✓ Validation passed.
+            Validating schema of API 'api-1' against stage 'dev'
+            ├── Validation request created. (ID: request-id)
+            └── ✓ Schema validation successful.
             """);
     }
 
@@ -248,9 +248,9 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
         // assert
         result.AssertSuccess(
             """
-            Validating schema against stage 'dev' of API 'api-1'
-            ├── Validation request created (ID: request-id).
-            └── ✓ Validation passed.
+            Validating schema of API 'api-1' against stage 'dev'
+            ├── Validation request created. (ID: request-id)
+            └── ✓ Schema validation successful.
             """);
     }
 
@@ -279,12 +279,12 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Validation failed.
+            Schema validation failed.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating schema against stage 'dev' of API 'api-1'
-            ├── Validation request created (ID: request-id).
+            Validating schema of API 'api-1' against stage 'dev'
+            ├── Validation request created. (ID: request-id)
             ├── Validating...
             ├── Validating...
             └── ✕ Failed to validate the schema.
@@ -301,7 +301,7 @@ public sealed class ValidateSchemaCommandTests(NitroCommandFixture fixture) : Sc
                 │   ├── ✓ Type system member NewType was added.
                 │   └── ✕ Type system member OldType was removed.
                 ├── Invalid GraphQL schema
-                │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+                │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
                 ├── Client 'TestClient' (ID: client-1)
                 │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
                 │       └── foo (10:10)

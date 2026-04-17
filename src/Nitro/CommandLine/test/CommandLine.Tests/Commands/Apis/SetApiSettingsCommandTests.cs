@@ -63,7 +63,7 @@ public sealed class SetApiSettingsCommandTests(NitroCommandFixture fixture) : Ap
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 

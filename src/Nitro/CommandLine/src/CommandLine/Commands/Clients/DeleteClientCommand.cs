@@ -2,7 +2,6 @@ using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.CommandLine.Arguments;
-using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
@@ -42,23 +41,17 @@ internal sealed class DeleteClientCommand : Command
 
         const string clientMessage = "Which client do you want to delete?";
 
-        var clientId = parseResult.GetValue(Opt<OptionalIdArgument>.Instance);
+        var clientId = parseResult.GetRequiredValueIfNotInteractive(Opt<OptionalIdArgument>.Instance, console);
 
         if (clientId is null)
         {
-            if (!console.IsInteractive)
-            {
-                throw MissingRequiredOption("id");
-            }
-
             var workspaceId = parseResult.GetWorkspaceId(sessionService);
 
-            var selectedApi = await SelectApiPrompt
-                .New(apisClient, workspaceId)
-                .Title("For which API do you want to delete a client?")
-                .RenderAsync(console, cancellationToken) ?? throw NoApiSelected();
-
-            var apiId = selectedApi.Id;
+            var apiId = await console.PromptForApiIdAsync(
+                apisClient,
+                workspaceId,
+                "For which API do you want to delete a client?",
+                cancellationToken);
 
             var selectedClient = await SelectClientPrompt
                 .New(client, apiId)
@@ -96,7 +89,7 @@ internal sealed class DeleteClientCommand : Command
 
             if (deletedClient.Errors?.Count > 0)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
 
                 foreach (var error in deletedClient.Errors)
                 {

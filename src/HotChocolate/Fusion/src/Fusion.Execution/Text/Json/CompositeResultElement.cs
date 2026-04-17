@@ -811,7 +811,7 @@ public readonly partial struct CompositeResultElement
     {
         CheckValidInstance();
 
-        return _parent.GetRawValue(_cursor, includeQuotes: true);
+        return _parent.GetRawValue(_cursor, includeQuotes);
     }
 
     /// <summary>
