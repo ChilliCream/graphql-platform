@@ -15,6 +15,7 @@ using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
+using ChilliCream.Nitro.CommandLine.Tests.Console;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
@@ -116,7 +117,11 @@ public abstract class CommandTestBase
             outConsole.Profile.Capabilities.Interactive = true;
         }
 
-        var console = new NitroConsole(outConsole, errConsole, _environmentVariableProviderMock.Object);
+        var console = new NitroConsole(
+            outConsole,
+            errConsole,
+            _environmentVariableProviderMock.Object,
+            new SnapshotActivitySinkFactory());
         var services = BuildServices(console);
         var rootCommand = _fixture.RootCommand;
 
@@ -161,7 +166,11 @@ public abstract class CommandTestBase
         errConsole.Profile.Out = new AnsiConsoleOutput(stdErrWriter);
         errConsole.Profile.Width = Constants.DefaultPrintWidth;
 
-        var console = new NitroConsole(outConsole, errConsole, _environmentVariableProviderMock.Object);
+        var console = new NitroConsole(
+            outConsole,
+            errConsole,
+            _environmentVariableProviderMock.Object,
+            new SnapshotActivitySinkFactory());
         var services = BuildServices(console);
         var rootCommand = _fixture.RootCommand;
 
@@ -367,6 +376,24 @@ public abstract class CommandTestBase
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ConnectionPage<ISelectApiPromptQuery_WorkspaceById_Apis_Edges_Node>(
                 nodes, null, false));
+    }
+
+    protected void VerifyWorkspaceSelected(string workspaceId, string workspaceName)
+    {
+        _sessionServiceMock.Verify(
+            x => x.SelectWorkspaceAsync(
+                It.Is<Services.Sessions.Workspace>(w => w.Id == workspaceId && w.Name == workspaceName),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    protected void VerifyNoWorkspaceSelected()
+    {
+        _sessionServiceMock.Verify(
+            x => x.SelectWorkspaceAsync(
+                It.IsAny<Services.Sessions.Workspace>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     public async ValueTask DisposeAsync()

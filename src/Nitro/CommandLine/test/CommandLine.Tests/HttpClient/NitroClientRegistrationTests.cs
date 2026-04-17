@@ -14,6 +14,7 @@ using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
+using ChilliCream.Nitro.CommandLine.Tests.Console;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
@@ -66,18 +67,24 @@ public class NitroClientRegistrationTests
         Assert.False(client.DefaultRequestHeaders.Contains("Authorization"));
     }
 
-    [Fact]
-    public async Task ExecuteAsync_Should_UseExplicitCloudUrl()
+    [Theory]
+    [InlineData("custom.host.com", "https://custom.host.com/graphql")]
+    [InlineData("https://custom.host.com", "https://custom.host.com/graphql")]
+    [InlineData("http://custom.host.com", "http://custom.host.com/graphql")]
+    [InlineData("http://custom.host.com/graphql", "http://custom.host.com/graphql")]
+    [InlineData("https://custom.host.com/graphql", "https://custom.host.com/graphql")]
+    [InlineData("custom.host.com/graphql", "https://custom.host.com/graphql")]
+    [InlineData("https://custom.host.com/some/path", "https://custom.host.com/graphql")]
+    [InlineData("https://custom.host.com/graphql?foo=bar", "https://custom.host.com/graphql")]
+    public async Task ExecuteAsync_Should_NormalizeCloudUrl(string input, string expected)
     {
         // Act
         await using var provider = await BuildAndExecuteAsync(
-            ["--api-key", "x", "--cloud-url", "custom.host.com"]);
+            ["--api-key", "x", "--cloud-url", input]);
         using var client = CreateApiClient(provider);
 
         // Assert
-        Assert.Equal(
-            new Uri("https://custom.host.com/graphql"),
-            client.BaseAddress);
+        Assert.Equal(new Uri(expected), client.BaseAddress);
     }
 
     [Fact]
@@ -110,13 +117,15 @@ public class NitroClientRegistrationTests
     }
 
     [Fact]
-    public async Task ExecuteAsync_Should_Throw_When_NoAuthAvailable()
+    public async Task ExecuteAsync_Should_NotSetAuth_When_NoAuthAvailable()
     {
-        // Arrange
+        // Act
         await using var provider = await BuildAndExecuteAsync([]);
+        using var client = CreateApiClient(provider);
 
-        // Act & Assert
-        Assert.Throws<InvalidOperationException>(() => CreateApiClient(provider));
+        // Assert
+        Assert.False(client.DefaultRequestHeaders.Contains("CCC-api-key"));
+        Assert.False(client.DefaultRequestHeaders.Contains("Authorization"));
     }
 
     private static async Task<ServiceProvider> BuildAndExecuteAsync(
@@ -155,7 +164,11 @@ public class NitroClientRegistrationTests
         var testConsole = new TestConsole();
         var errorConsole = new TestConsole();
         services.AddSingleton<INitroConsole>(
-            new NitroConsole(testConsole, errorConsole, new EnvironmentVariableProvider()));
+            new NitroConsole(
+                testConsole,
+                errorConsole,
+                new EnvironmentVariableProvider(),
+                new SnapshotActivitySinkFactory()));
 
         var provider = services.BuildServiceProvider();
         var rootCommand = new NitroRootCommand();

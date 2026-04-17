@@ -179,7 +179,9 @@ internal static class ThrowHelper
 
     public static InvalidOperationException RequestExecutorResolver_SchemaNameDoesNotMatch(
         string configurationSchemaName, string schemaName) =>
-        new("The schema name must align with the schema name expected by the configuration.");
+        new(
+            $"The schema name ({schemaName}) must align with the schema name expected by the "
+            + $"configuration ({configurationSchemaName}).");
 
     public static GraphQLException OperationResolverHelper_NoOperationFound(
         DocumentNode documentNode) =>

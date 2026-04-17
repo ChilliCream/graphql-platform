@@ -141,7 +141,9 @@ public interface IObjectFieldDescriptor
     /// ]]>
     /// </code>
     /// </example>
-    /// <returns></returns>
+    /// <returns>
+    /// The <see cref="IObjectFieldDescriptor"/> for configuration chaining.
+    /// </returns>
     IObjectFieldDescriptor Resolve(FieldResolverDelegate fieldResolver);
 
     /// <summary>
@@ -161,7 +163,9 @@ public interface IObjectFieldDescriptor
     /// ]]>
     /// </code>
     /// </example>
-    /// <returns></returns>
+    /// <returns>
+    /// The <see cref="IObjectFieldDescriptor"/> for configuration chaining.
+    /// </returns>
     IObjectFieldDescriptor Resolve(
         FieldResolverDelegate fieldResolver,
         Type? resultType);
@@ -195,7 +199,9 @@ public interface IObjectFieldDescriptor
     /// ]]>
     /// </code>
     /// </example>
-    /// <returns></returns>
+    /// <returns>
+    /// The <see cref="IObjectFieldDescriptor"/> for configuration chaining.
+    /// </returns>
     IObjectFieldDescriptor ResolveWith<TResolver>(
         Expression<Func<TResolver, object?>> propertyOrMethod);
 
@@ -228,7 +234,9 @@ public interface IObjectFieldDescriptor
     /// ]]>
     /// </code>
     /// </example>
-    /// <returns></returns>
+    /// <returns>
+    /// The <see cref="IObjectFieldDescriptor"/> for configuration chaining.
+    /// </returns>
     IObjectFieldDescriptor ResolveWith(MemberInfo propertyOrMethod);
 
     /// <summary>
@@ -266,7 +274,9 @@ public interface IObjectFieldDescriptor
     /// Adds a subscription resolver to to the field
     /// </summary>
     /// <param name="subscribeResolver">The subscription resolver</param>
-    /// <returns></returns>
+    /// <returns>
+    /// The <see cref="IObjectFieldDescriptor"/> for configuration chaining.
+    /// </returns>
     IObjectFieldDescriptor Subscribe(SubscribeResolverDelegate subscribeResolver);
 
     /// <summary>

@@ -124,6 +124,7 @@ resharper_enforce_using_statement_braces_highlighting = error
 resharper_enforce_while_statement_braces_highlighting = error
 resharper_redundant_string_format_call_highlighting = error
 resharper_unused_variable_highlighting = warning
+resharper_use_null_propagation_highlighting = warning
 resharper_use_utf8_string_literal_highlighting = error
 resharper_use_verbatim_string_highlighting = error
 
@@ -299,6 +300,9 @@ roslynator_null_conditional_operator.avoid_negative_boolean_comparison = true
 dotnet_diagnostic.IDE0031.severity = none
 # Abstract type should not have public constructors.
 dotnet_diagnostic.RCS1160.severity = warning
+# Unused parameter.
+dotnet_diagnostic.RCS1163.severity = warning
+dotnet_diagnostic.IDE0060.severity = none
 # Use constant instead of field.
 dotnet_diagnostic.RCS1187.severity = warning
 # Unnecessary usage of verbatim string literal.
@@ -309,6 +313,8 @@ dotnet_diagnostic.RCS1205.severity = warning
 dotnet_diagnostic.RCS1214.severity = warning
 # Convert interpolated string to concatenation.
 dotnet_diagnostic.RCS1217.severity = warning
+# Unused element in a documentation comment.
+dotnet_diagnostic.RCS1228.severity = warning
 # Unnecessary null-forgiving operator.
 dotnet_diagnostic.RCS1249.severity = warning
 # Remove unnecessary braces.
@@ -332,3 +338,8 @@ dotnet_diagnostic.CA1511.severity = none
 dotnet_diagnostic.CA1512.severity = none
 dotnet_diagnostic.CA1513.severity = none
 dotnet_diagnostic.IDE0057.severity = none
+
+# Tests
+[src/**/test/**/*.cs]
+# Unused parameter.
+dotnet_diagnostic.RCS1163.severity = none

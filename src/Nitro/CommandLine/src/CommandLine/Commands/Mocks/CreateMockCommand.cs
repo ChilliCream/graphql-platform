@@ -104,7 +104,7 @@ internal sealed class CreateMockCommand : Command
 
             if (createdMock.Errors?.Count > 0)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
 
                 foreach (var error in createdMock.Errors)
                 {

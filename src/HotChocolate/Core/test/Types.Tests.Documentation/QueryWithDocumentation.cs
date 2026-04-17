@@ -16,6 +16,7 @@ public class QueryWithDocumentation
     /// </returns>
     public string? Foo(string? bar) => bar;
 
+#pragma warning disable RCS1228
     /// <summary>
     /// This is a
     /// multiline summary
@@ -24,6 +25,7 @@ public class QueryWithDocumentation
     /// </summary>
     /// Note: The returns is left intentionally empty
     /// <returns></returns>
+#pragma warning restore RCS1228
     public string? Baz() => string.Empty;
 
     /// <summary>

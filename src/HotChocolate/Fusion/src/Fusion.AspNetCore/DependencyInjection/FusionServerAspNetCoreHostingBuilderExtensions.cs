@@ -24,7 +24,9 @@ public static class FusionServerAspNetCoreHostingBuilderExtensions
     /// <param name="disableDefaultSecurity">
     /// Defines if the default security policy should be disabled.
     /// </param>
-    /// <returns></returns>
+    /// <returns>
+    /// The <see cref="IFusionGatewayBuilder"/> for configuration chaining.
+    /// </returns>
     public static IFusionGatewayBuilder AddGraphQLGateway(
         this IHostApplicationBuilder builder,
         string? name = null,

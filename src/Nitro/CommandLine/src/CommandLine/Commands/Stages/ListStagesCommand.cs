@@ -53,8 +53,7 @@ internal sealed class ListStagesCommand : Command
         IResultHolder resultHolder,
         CancellationToken ct)
     {
-        const string apiMessage = "For which API do you want to display the clients?";
-        var apiId = await parseResult.GetOrPromptForApiIdAsync(apiMessage, console, apisClient, sessionService, ct);
+        var apiId = await console.GetOrPromptForApiIdAsync("For which API do you want to display the clients?", parseResult, apisClient, sessionService, ct);
 
         var stages = await client.ListStagesAsync(apiId, ct) ?? [];
 
@@ -85,11 +84,7 @@ internal sealed class ListStagesCommand : Command
         IResultHolder resultHolder,
         CancellationToken ct)
     {
-        var apiId = parseResult.GetValue(Opt<OptionalApiIdOption>.Instance);
-        if (apiId is null)
-        {
-            throw ThrowHelper.MissingRequiredOption(ApiIdOption.OptionName);
-        }
+        var apiId = parseResult.GetRequiredOptionalValue(Opt<OptionalApiIdOption>.Instance);
 
         var data = await client.ListStagesAsync(apiId, ct) ?? [];
         var items = data

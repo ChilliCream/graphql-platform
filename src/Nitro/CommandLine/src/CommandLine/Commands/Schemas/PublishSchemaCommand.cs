@@ -65,194 +65,178 @@ internal sealed class PublishSchemaCommand : Command
 
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        await using (var rootActivity = console.StartActivity(
-            $"Publishing new schema version '{tag.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'",
+        await using (var activity = console.StartActivity(
+            $"Publishing new schema version '{tag.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}'",
             "Failed to publish a new schema version."))
         {
             if (force)
             {
-                rootActivity.Update(Messages.ForcePushEnabled, ActivityUpdateKind.Warning);
+                activity.Update(Messages.ForcePushEnabled, ActivityUpdateKind.Warning);
             }
 
-            string requestId;
+            var publishRequest = await client.StartSchemaPublishAsync(
+                apiId,
+                stage,
+                tag,
+                force,
+                waitForApproval,
+                source,
+                ct);
 
-            await using (var child = rootActivity.StartChildActivity(
-                Messages.StartingPublishRequest,
-                Messages.FailedToStartPublishRequest))
+            if (publishRequest.Errors?.Count > 0)
             {
-                var publishRequest = await client.StartSchemaPublishAsync(
-                    apiId,
-                    stage,
-                    tag,
-                    force,
-                    waitForApproval,
-                    source,
-                    ct);
+                await activity.FailAllAsync();
 
-                if (publishRequest.Errors?.Count > 0)
+                foreach (var error in publishRequest.Errors)
                 {
-                    await child.FailAllAsync();
-
-                    foreach (var error in publishRequest.Errors)
+                    var errorMessage = error switch
                     {
-                        var errorMessage = error switch
+                        IUnauthorizedOperation err => err.Message,
+                        IInvalidSourceMetadataInputError err => err.Message,
+                        IApiNotFoundError err => err.Message,
+                        IStageNotFoundError err => err.Message,
+                        ISchemaNotFoundError err => err.Message,
+                        IError err => Messages.UnexpectedMutationError(err),
+                        _ => Messages.UnexpectedMutationError()
+                    };
+
+                    console.Error.WriteErrorLine(errorMessage);
+                }
+
+                return ExitCodes.Error;
+            }
+
+            if (publishRequest.Id is not { } id)
+            {
+                throw MutationReturnedNoData();
+            }
+
+            activity.Update($"Publication request created. {$"(ID: {id})".Dim()}");
+
+            await foreach (var update in client.SubscribeToSchemaPublishAsync(id, ct))
+            {
+                switch (update)
+                {
+                    case IProcessingTaskIsQueued v:
+                        activity.Update(Messages.QueuedAtPosition(v.QueuePosition), ActivityUpdateKind.Waiting);
+                        break;
+
+                    case ISchemaVersionPublishFailed { Errors: var schemaErrors }:
+                        var errorTree = new Tree("");
+
+                        foreach (var error in schemaErrors)
                         {
-                            IUnauthorizedOperation err => err.Message,
-                            IInvalidSourceMetadataInputError err => err.Message,
-                            IApiNotFoundError err => err.Message,
-                            IStageNotFoundError err => err.Message,
-                            ISchemaNotFoundError err => err.Message,
-                            IError err => Messages.UnexpectedMutationError(err),
-                            _ => Messages.UnexpectedMutationError()
-                        };
+                            switch (error)
+                            {
+                                case ISchemaVersionChangeViolationError e:
+                                    errorTree.AddSchemaVersionChangeViolations(e);
+                                    break;
+                                case IInvalidGraphQLSchemaError e:
+                                    errorTree.AddGraphQLSchemaErrors(e);
+                                    break;
+                                case IPersistedQueryValidationError e:
+                                    errorTree.AddPersistedQueryValidationErrorsWithClients(e);
+                                    break;
+                                case IOpenApiCollectionValidationError e:
+                                    errorTree.AddOpenApiCollectionValidationErrors(e);
+                                    break;
+                                case IMcpFeatureCollectionValidationError e:
+                                    errorTree.AddMcpFeatureCollectionValidationErrors(e);
+                                    break;
+                                case IConcurrentOperationError e:
+                                    errorTree.AddErrorMessage(e.Message);
+                                    break;
+                                case IOperationsAreNotAllowedError e:
+                                    errorTree.AddErrorMessage(e.Message);
+                                    break;
+                                case ISchemaVersionSyntaxError e:
+                                    errorTree.AddErrorMessage(e.Message);
+                                    break;
+                                case IProcessingTimeoutError e:
+                                    errorTree.AddErrorMessage(e.Message);
+                                    break;
+                                case IUnexpectedProcessingError e:
+                                    errorTree.AddErrorMessage(e.Message);
+                                    break;
+                                case IError e:
+                                    errorTree.AddErrorMessage("Unexpected error: " + e.Message);
+                                    break;
+                            }
+                        }
 
-                        console.Error.WriteErrorLine(errorMessage);
-                    }
+                        await activity.FailAllAsync(errorTree);
 
-                    return ExitCodes.Error;
-                }
+                        throw new ExitException("Schema publish failed.");
 
-                if (publishRequest.Id is not { } id)
-                {
-                    throw MutationReturnedNoData();
-                }
+                    case ISchemaVersionPublishSuccess:
+                        activity.Success($"Published new schema version '{tag.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}'.");
 
-                requestId = id;
-                child.Success($"Publish request created (ID: {requestId.EscapeMarkup()}).");
-            }
+                        return ExitCodes.Success;
 
-            await using (var child = rootActivity.StartChildActivity(
-                Messages.ProcessingActivity,
-                Messages.ProcessingFailed))
-            {
-                await foreach (var update in client.SubscribeToSchemaPublishAsync(requestId, ct))
-                {
-                    switch (update)
-                    {
-                        case IProcessingTaskIsQueued v:
-                            child.Update(Messages.QueuedAtPosition(v.QueuePosition), ActivityUpdateKind.Waiting);
-                            break;
+                    case IProcessingTaskIsReady:
+                        activity.Update(Messages.RequestReadyForProcessing);
+                        break;
 
-                        case ISchemaVersionPublishFailed { Errors: var schemaErrors }:
-                            var errorTree = new Tree("");
+                    case IOperationInProgress:
+                        activity.Update(Messages.RequestBeingProcessed);
+                        break;
 
-                            foreach (var error in schemaErrors)
+                    case IWaitForApproval waitForApprovalEvent:
+                        if (waitForApprovalEvent.Deployment is ISchemaDeployment deployment)
+                        {
+                            var deploymentErrorTree = new Tree("");
+
+                            foreach (var error in deployment.Errors)
                             {
                                 switch (error)
                                 {
-                                    case ISchemaVersionChangeViolationError e:
-                                        errorTree.AddSchemaVersionChangeViolations(e);
-                                        break;
-                                    case IInvalidGraphQLSchemaError e:
-                                        errorTree.AddGraphQLSchemaErrors(e);
-                                        break;
-                                    case IPersistedQueryValidationError e:
-                                        errorTree.AddPersistedQueryValidationErrorsWithClients(e);
-                                        break;
-                                    case IOpenApiCollectionValidationError e:
-                                        errorTree.AddOpenApiCollectionValidationErrors(e);
-                                        break;
-                                    case IMcpFeatureCollectionValidationError e:
-                                        errorTree.AddMcpFeatureCollectionValidationErrors(e);
-                                        break;
-                                    case IConcurrentOperationError e:
-                                        errorTree.AddErrorMessage(e.Message);
-                                        break;
                                     case IOperationsAreNotAllowedError e:
-                                        errorTree.AddErrorMessage(e.Message);
+                                        deploymentErrorTree.AddNode(e.Message);
                                         break;
                                     case ISchemaVersionSyntaxError e:
-                                        errorTree.AddErrorMessage(e.Message);
+                                        deploymentErrorTree.AddNode(e.Message);
                                         break;
-                                    case IProcessingTimeoutError e:
-                                        errorTree.AddErrorMessage(e.Message);
+                                    case ISchemaChangeViolationError e:
+                                        deploymentErrorTree.AddSchemaVersionChangeViolations(e);
                                         break;
-                                    case IUnexpectedProcessingError e:
-                                        errorTree.AddErrorMessage(e.Message);
+                                    case IInvalidGraphQLSchemaError e:
+                                        deploymentErrorTree.AddGraphQLSchemaErrors(e);
                                         break;
-                                    case IError e:
-                                        errorTree.AddErrorMessage("Unexpected error: " + e.Message);
+                                    case IPersistedQueryValidationError e:
+                                        deploymentErrorTree.AddPersistedQueryValidationErrorsWithClients(e);
+                                        break;
+                                    case IOpenApiCollectionValidationError e:
+                                        deploymentErrorTree.AddOpenApiCollectionValidationErrors(e);
+                                        break;
+                                    case IMcpFeatureCollectionValidationError e:
+                                        deploymentErrorTree.AddMcpFeatureCollectionValidationErrors(e);
                                         break;
                                 }
                             }
 
-                            child.Fail(errorTree);
+                            activity.Update(
+                                Messages.ValidationFailed,
+                                ActivityUpdateKind.Warning,
+                                deploymentErrorTree);
+                        }
 
-                            await child.FailAllAsync();
+                        activity.Update(
+                            Messages.WaitingForApproval,
+                            ActivityUpdateKind.Waiting);
+                        break;
 
-                            throw new ExitException("Schema publish failed.");
+                    case IProcessingTaskApproved:
+                        activity.Update(Messages.RequestApproved);
+                        break;
 
-                        case ISchemaVersionPublishSuccess:
-                            child.Success(Messages.PublishedSuccessfully);
-                            rootActivity.Success($"Published new schema version '{tag.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}'.");
-
-                            return ExitCodes.Success;
-
-                        case IProcessingTaskIsReady:
-                            child.Update(Messages.RequestReadyForProcessing);
-                            break;
-
-                        case IOperationInProgress:
-                            child.Update(Messages.RequestBeingProcessed);
-                            break;
-
-                        case IWaitForApproval waitForApprovalEvent:
-                            if (waitForApprovalEvent.Deployment is ISchemaDeployment deployment)
-                            {
-                                var deploymentErrorTree = new Tree("");
-
-                                foreach (var error in deployment.Errors)
-                                {
-                                    switch (error)
-                                    {
-                                        case IOperationsAreNotAllowedError e:
-                                            deploymentErrorTree.AddNode(e.Message);
-                                            break;
-                                        case ISchemaVersionSyntaxError e:
-                                            deploymentErrorTree.AddNode(e.Message);
-                                            break;
-                                        case ISchemaChangeViolationError e:
-                                            deploymentErrorTree.AddSchemaVersionChangeViolations(e);
-                                            break;
-                                        case IInvalidGraphQLSchemaError e:
-                                            deploymentErrorTree.AddGraphQLSchemaErrors(e);
-                                            break;
-                                        case IPersistedQueryValidationError e:
-                                            deploymentErrorTree.AddPersistedQueryValidationErrorsWithClients(e);
-                                            break;
-                                        case IOpenApiCollectionValidationError e:
-                                            deploymentErrorTree.AddOpenApiCollectionValidationErrors(e);
-                                            break;
-                                        case IMcpFeatureCollectionValidationError e:
-                                            deploymentErrorTree.AddMcpFeatureCollectionValidationErrors(e);
-                                            break;
-                                    }
-                                }
-
-                                child.Update(
-                                    Messages.ValidationFailed,
-                                    ActivityUpdateKind.Warning,
-                                    deploymentErrorTree);
-                            }
-
-                            child.Update(
-                                Messages.WaitingForApproval,
-                                ActivityUpdateKind.Waiting);
-                            break;
-
-                        case IProcessingTaskApproved:
-                            child.Update(Messages.RequestApproved);
-                            break;
-
-                        default:
-                            child.Update(
-                                Messages.UnknownServerResponse, ActivityUpdateKind.Warning);
-                            break;
-                    }
+                    default:
+                        activity.Update(
+                            Messages.UnknownServerResponse, ActivityUpdateKind.Warning);
+                        break;
                 }
-
-                child.Fail();
             }
+
+            await activity.FailAllAsync();
         }
 
         return ExitCodes.Error;

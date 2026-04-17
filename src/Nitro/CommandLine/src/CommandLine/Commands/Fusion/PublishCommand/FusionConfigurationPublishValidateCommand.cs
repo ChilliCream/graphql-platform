@@ -61,7 +61,14 @@ internal sealed class FusionConfigurationPublishValidateCommand : Command
                 fusionConfigurationClient,
                 cancellationToken);
 
-            return isValidArchive ? ExitCodes.Success : ExitCodes.Error;
+            if (!isValidArchive)
+            {
+                throw new ExitException("Fusion configuration validation failed.");
+            }
+
+            activity.Success("Validated configuration.");
+
+            return ExitCodes.Success;
         }
     }
 }

@@ -404,7 +404,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         List<OperationRequirement>? requirements, string[]? forwardedVariables,
         SelectionSetNode? resultSelectionSet, int[]? dependencies, int? batchingGroupId,
         ExecutionNodeCondition[] conditions, bool requiresFileUpload)
-        ParseCommonOperationFields(JsonElement nodeElement, ISchemaDefinition schema)
+        ParseCommonOperationFields(JsonElement nodeElement, ISchemaDefinition _)
     {
         string? schemaName = null;
 

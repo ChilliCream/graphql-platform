@@ -63,7 +63,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -204,9 +204,9 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         // assert
         result.AssertSuccess(
             """
-            Validating Fusion configuration against stage 'dev' of API 'api-1'
-            ├── Validation request created (ID: request-id).
-            └── ✓ Validation passed.
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
+            ├── Validation request created. (ID: request-id)
+            └── ✓ Schema validation successful.
             """);
         AssertSchemaUpload(capturedStream);
     }
@@ -231,9 +231,9 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         // assert
         result.AssertSuccess(
             """
-            Validating Fusion configuration against stage 'dev' of API 'api-1'
-            ├── Validation request created (ID: request-id).
-            └── ✓ Validation passed.
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
+            ├── Validation request created. (ID: request-id)
+            └── ✓ Schema validation successful.
             """);
         AssertSchemaUpload(capturedStream);
     }
@@ -263,7 +263,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating Fusion configuration against stage 'dev' of API 'api-1'
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
             └── ✕ Failed to validate the Fusion configuration.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -294,7 +294,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating Fusion configuration against stage 'dev' of API 'api-1'
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
             └── ✕ Failed to validate the Fusion configuration.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -326,12 +326,12 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Validation failed.
+            Schema validation failed.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating Fusion configuration against stage 'dev' of API 'api-1'
-            ├── Validation request created (ID: request-id).
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
+            ├── Validation request created. (ID: request-id)
             ├── Validating...
             ├── Validating...
             └── ✕ Failed to validate the Fusion configuration.
@@ -348,7 +348,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
                 │   ├── ✓ Type system member NewType was added.
                 │   └── ✕ Type system member OldType was removed.
                 ├── Invalid GraphQL schema
-                │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+                │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
                 ├── Client 'TestClient' (ID: client-1)
                 │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
                 │       └── foo (10:10)
@@ -418,13 +418,13 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         // assert
         result.AssertSuccess(
             """
-            Validating Fusion configuration against stage 'dev' of API 'api-1'
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Downloading existing Fusion configuration
             │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new Fusion configuration
             │   └── ✓ Composed new configuration.
-            ├── Validation request created (ID: request-id).
-            └── ✓ Validation passed.
+            ├── Validation request created. (ID: request-id)
+            └── ✓ Schema validation successful.
             """);
         AssertSchemaUploadAfterCompose(capturedStream);
     }
@@ -451,13 +451,13 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         // assert
         result.AssertSuccess(
             """
-            Validating Fusion configuration against stage 'dev' of API 'api-1'
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Downloading existing Fusion configuration
             │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new Fusion configuration
             │   └── ✓ Composed new configuration.
-            ├── Validation request created (ID: request-id).
-            └── ✓ Validation passed.
+            ├── Validation request created. (ID: request-id)
+            └── ✓ Schema validation successful.
             """);
         AssertSchemaUploadAfterCompose(capturedStream);
     }
@@ -488,7 +488,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating Fusion configuration against stage 'dev' of API 'api-1'
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Downloading existing Fusion configuration
             │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new Fusion configuration
@@ -524,7 +524,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating Fusion configuration against stage 'dev' of API 'api-1'
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Downloading existing Fusion configuration
             │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new Fusion configuration
@@ -560,16 +560,16 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Validation failed.
+            Schema validation failed.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating Fusion configuration against stage 'dev' of API 'api-1'
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Downloading existing Fusion configuration
             │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new Fusion configuration
             │   └── ✓ Composed new configuration.
-            ├── Validation request created (ID: request-id).
+            ├── Validation request created. (ID: request-id)
             ├── Validating...
             ├── Validating...
             └── ✕ Failed to validate the Fusion configuration.
@@ -586,7 +586,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
                 │   ├── ✓ Type system member NewType was added.
                 │   └── ✕ Type system member OldType was removed.
                 ├── Invalid GraphQL schema
-                │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+                │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
                 ├── Client 'TestClient' (ID: client-1)
                 │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
                 │       └── foo (10:10)
@@ -626,7 +626,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating Fusion configuration against stage 'dev' of API 'api-1'
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Downloading existing Fusion configuration
             │   └── ✕ Failed to download existing Fusion configuration.
             └── ✕ Failed to validate the Fusion configuration.
@@ -659,7 +659,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating Fusion configuration against stage 'dev' of API 'api-1'
+            Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Downloading existing Fusion configuration
             │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new Fusion configuration

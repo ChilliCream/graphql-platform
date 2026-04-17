@@ -453,7 +453,7 @@ internal static class ErrorHelper
             .SetTypeSystemObject(type)
             .Build();
 
-    public static IError Relay_NoNodeResolver(string typeName, Path path, Selection selection)
+    public static IError Relay_NoNodeResolver(string typeName, Path path)
         => ErrorBuilder.New()
             .SetMessage(ErrorHelper_Relay_NoNodeResolver, typeName)
             .SetPath(path)
@@ -494,7 +494,6 @@ internal static class ErrorHelper
             .Build();
 
     public static IError FetchedToManyNodesAtOnce(
-        Selection selection,
         Path path,
         int maxAllowedNodes,
         int requestNodes)

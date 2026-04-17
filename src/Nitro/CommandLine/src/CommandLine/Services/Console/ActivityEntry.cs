@@ -22,11 +22,13 @@ internal sealed class ActivityEntry
 
     public IRenderable? Details { get; set; }
 
+    public bool IsTerminator { get; init; }
+
     public TimeSpan Elapsed => _stopwatch.Elapsed;
 
-    public ActivityEntry AddChild(string text, ActivityState state)
+    public ActivityEntry AddChild(string text, ActivityState state, bool isTerminator = false)
     {
-        var child = new ActivityEntry(text, state);
+        var child = new ActivityEntry(text, state) { IsTerminator = isTerminator };
         _children.Add(child);
         return child;
     }

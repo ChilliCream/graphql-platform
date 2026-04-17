@@ -7,7 +7,8 @@ namespace ChilliCream.Nitro.CommandLine;
 internal sealed class NitroConsole(
     IAnsiConsole outConsole,
     IAnsiConsole errorConsole,
-    IEnvironmentVariableProvider environmentVariables)
+    IEnvironmentVariableProvider environmentVariables,
+    IActivitySinkFactory activitySinkFactory)
     : INitroConsole
 {
     private OutputFormat? _outputFormat;
@@ -28,6 +29,12 @@ internal sealed class NitroConsole(
     public void SetOutputFormat(OutputFormat format)
     {
         _outputFormat = format;
+    }
+
+    public INitroConsoleActivity StartActivity(string title, string failureMessage)
+    {
+        var sink = activitySinkFactory.Create(this, IsInteractive);
+        return NitroConsoleActivity.Start(sink, title, failureMessage);
     }
 
     public void Clear(bool home)

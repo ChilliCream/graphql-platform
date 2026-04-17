@@ -78,7 +78,7 @@ internal sealed class ListClientPublishedVersionsCommand : Command
             {
                 var page = await client.ListClientVersionsAsync(
                     clientId, after ?? cursor, first, cancellationToken)
-                    ?? throw ThereWasAnIssueWithTheRequest("The client was not found.");
+                    ?? throw new ExitException("The client was not found.");
 
                 var mappedItems = page.Items
                     .Select(ToResult)
@@ -115,14 +115,10 @@ internal sealed class ListClientPublishedVersionsCommand : Command
         string? cursor,
         CancellationToken ct)
     {
-        var clientId = parseResult.GetValue(Opt<OptionalClientIdOption>.Instance);
-        if (clientId is null)
-        {
-            throw MissingRequiredOption("--client-id");
-        }
+        var clientId = parseResult.GetRequiredOptionalValue(Opt<OptionalClientIdOption>.Instance);
 
         var page = await client.ListClientVersionsAsync(clientId, cursor, 10, ct)
-            ?? throw ThereWasAnIssueWithTheRequest("The client was not found.");
+            ?? throw new ExitException("The client was not found.");
 
         var items = page.Items
             .Select(ToResult)

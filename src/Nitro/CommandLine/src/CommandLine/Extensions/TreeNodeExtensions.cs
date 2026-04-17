@@ -36,7 +36,14 @@ internal static class TreeNodeExtensions
 
         foreach (var schemaError in error.Errors)
         {
-            schemaErrorsNode.AddNode($"{schemaError.Message.AsError()} [dim]{schemaError.Code}[/]");
+            var message = schemaError.Message.AsError();
+
+            if (!string.IsNullOrEmpty(schemaError.Code))
+            {
+                message += $" {$"({schemaError.Code})".Dim()}";
+            }
+
+            schemaErrorsNode.AddNode(message);
         }
 
         return node;
@@ -47,7 +54,7 @@ internal static class TreeNodeExtensions
         IPersistedQueryValidationError error)
     {
         var client = error.Client;
-        var clientNode = node.AddNode($"Client '{client?.Name.EscapeMarkup()}' [dim](ID: {client?.Id})[/]");
+        var clientNode = node.AddNode($"Client '{client?.Name.EscapeMarkup()}' {$"(ID: {client?.Id})".Dim()}");
 
         AddPersistedQueryValidationErrors(clientNode, error);
 
@@ -61,7 +68,7 @@ internal static class TreeNodeExtensions
         foreach (var operation in error.Queries)
         {
             var publishingInfo = operation.DeployedTags.Count > 0
-                ? $" [dim](Deployed tags: {string.Join(",", operation.DeployedTags)})[/]"
+                ? $" {$"(Deployed tags: {string.Join(",", operation.DeployedTags)})".Dim()}"
                 : "";
 
             var operationNode = node.AddNode($"Operation '{operation.Hash}'{publishingInfo}");
@@ -71,7 +78,7 @@ internal static class TreeNodeExtensions
                 var errorLocation = string.Empty;
                 if (err.Locations is { Count: > 0 } locations)
                 {
-                    errorLocation = $" [dim]({locations[0].Line}:{locations[0].Column})[/]";
+                    errorLocation = $" {$"({locations[0].Line}:{locations[0].Column})".Dim()}";
                 }
 
                 operationNode.AddNode(err.Message.AsError() + errorLocation);
@@ -89,7 +96,7 @@ internal static class TreeNodeExtensions
         {
             var openApiCollection = collectionError.OpenApiCollection;
             var collectionNode = node.AddNode(
-                $"OpenAPI collection '{openApiCollection?.Name.EscapeMarkup()}' [dim](ID: {openApiCollection?.Id})[/]");
+                $"OpenAPI collection '{openApiCollection?.Name.EscapeMarkup()}' {$"(ID: {openApiCollection?.Id})".Dim()}");
 
             foreach (var entity in collectionError.Entities)
             {
@@ -102,7 +109,7 @@ internal static class TreeNodeExtensions
                         var errorLocation = string.Empty;
                         if (documentError.Locations is { Count: > 0 } locations)
                         {
-                            errorLocation = $" [dim]({locations[0].Line}:{locations[0].Column})[/]";
+                            errorLocation = $" {$"({locations[0].Line}:{locations[0].Column})".Dim()}";
                         }
 
                         entityNode.AddNode(documentError.Message.AsError() + errorLocation);
@@ -140,7 +147,7 @@ internal static class TreeNodeExtensions
         {
             var mcpFeatureCollection = collectionError.McpFeatureCollection;
             var collectionNode = node.AddNode(
-                $"MCP Feature Collection '{mcpFeatureCollection?.Name.EscapeMarkup()}' [dim](ID: {mcpFeatureCollection?.Id})[/]");
+                $"MCP Feature Collection '{mcpFeatureCollection?.Name.EscapeMarkup()}' {$"(ID: {mcpFeatureCollection?.Id})".Dim()}");
 
             foreach (var entity in collectionError.Entities)
             {
@@ -153,7 +160,7 @@ internal static class TreeNodeExtensions
                         var errorLocation = string.Empty;
                         if (documentError.Locations is { Count: > 0 } locations)
                         {
-                            errorLocation = $" [dim]({locations[0].Line}:{locations[0].Column})[/]";
+                            errorLocation = $" {$"({locations[0].Line}:{locations[0].Column})".Dim()}";
                         }
 
                         entityNode.AddNode(documentError.Message.AsError() + errorLocation);
