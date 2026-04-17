@@ -27,19 +27,28 @@
     "url": "https://opencollective.com/chillicream"
   },
   "type": "module",
-  "bin": {
-    "nitro": "cli.js"
-  },
+  "bin": "./dist/cli.js",
   "files": [
-    "cli.js",
+    "dist",
     "README.md"
   ],
+  "scripts": {
+    "build": "tsc"
+  },
+  "packageManager": "yarn@4.9.4",
+  "dependencies": {
+    "detect-libc": "^2.0.4"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
+  },
   "optionalDependencies": {
+    "@chillicream/nitro-linux-arm64": "0.0.0",
+    "@chillicream/nitro-linux-musl-x64": "0.0.0",
+    "@chillicream/nitro-linux-x64": "0.0.0",
     "@chillicream/nitro-osx-arm64": "0.0.0",
     "@chillicream/nitro-osx-x64": "0.0.0",
-    "@chillicream/nitro-linux-arm64": "0.0.0",
-    "@chillicream/nitro-linux-x64": "0.0.0",
-    "@chillicream/nitro-linux-musl-x64": "0.0.0",
     "@chillicream/nitro-win-x64": "0.0.0",
     "@chillicream/nitro-win-x86": "0.0.0"
   }
