@@ -32,7 +32,6 @@
     <ProjectReference Include="..\..\..\..\HotChocolate\Adapters\src\Adapters.Mcp.Packaging\HotChocolate.Adapters.Mcp.Packaging.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Adapters\src\Adapters.OpenApi.Core\HotChocolate.Adapters.OpenApi.Core.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Adapters\src\Adapters.OpenApi.Packaging\HotChocolate.Adapters.OpenApi.Packaging.csproj" />
-    <ProjectReference Include="..\..\..\..\HotChocolate\Fusion\src\Fusion.AspNetCore\HotChocolate.Fusion.AspNetCore.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Fusion\src\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Fusion\src\Fusion.Packaging\HotChocolate.Fusion.Packaging.csproj" />
     <ProjectReference Include="..\..\..\..\HotChocolate\Fusion\src\Fusion.SourceSchema.Packaging\HotChocolate.Fusion.SourceSchema.Packaging.csproj" />
