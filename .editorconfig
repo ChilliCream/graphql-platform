@@ -216,6 +216,9 @@ csharp_style_var_elsewhere = true
 dotnet_diagnostic.RCS1264.severity = none
 # Add braces.
 dotnet_diagnostic.IDE0011.severity = warning
+# Use pattern matching to avoid `as` followed by a `null` check.
+dotnet_diagnostic.IDE0019.severity = warning
+dotnet_diagnostic.RCS1221.severity = none
 # Use collection initializers or expressions.
 dotnet_diagnostic.IDE0028.severity = warning
 # Use null propagation.

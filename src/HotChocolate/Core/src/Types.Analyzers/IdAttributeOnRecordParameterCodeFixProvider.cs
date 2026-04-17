@@ -33,8 +33,7 @@ public sealed class IdAttributeOnRecordParameterCodeFixProvider : CodeFixProvide
         var attribute = node.AncestorsAndSelf().OfType<AttributeSyntax>().FirstOrDefault();
 
         // Find the attribute list
-        var attributeList = attribute?.Parent as AttributeListSyntax;
-        if (attributeList is null)
+        if (attribute?.Parent is not AttributeListSyntax attributeList)
         {
             return;
         }
