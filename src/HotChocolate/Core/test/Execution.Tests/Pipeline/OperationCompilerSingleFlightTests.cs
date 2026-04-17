@@ -152,10 +152,11 @@ public sealed class OperationCompilerSingleFlightTests
     public async Task Follower_Cancellation_Should_Not_Cancel_Leader_Compilation()
     {
         // arrange
-        using var leaderCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-        using var followerCts = new CancellationTokenSource(TimeSpan.FromMilliseconds(200));
+        using var testCts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        using var followerCts = new CancellationTokenSource();
         var compileCount = 0;
         var compileGate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var leaderEntered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
         var executor = await new ServiceCollection()
             .AddGraphQL()
@@ -163,13 +164,23 @@ public sealed class OperationCompilerSingleFlightTests
             .UseDefaultPipeline()
             .AddDiagnosticEventListener(_ => new CompileCountListener(() => Interlocked.Increment(ref compileCount)))
             .UseRequest(
-                (_, next) => CreateBlockingMiddleware(next, compileGate),
+                (_, next) => async context =>
+                {
+                    // Only block the leader.
+                    if (context.Features.Get<TaskCompletionSource<Operation>>() is not null)
+                    {
+                        leaderEntered.TrySetResult();
+                        await compileGate.Task;
+                    }
+
+                    await next(context);
+                },
                 key: "Blocking",
                 before: WellKnownRequestMiddleware.OperationResolverMiddleware,
                 allowMultiple: true)
             .Services
             .BuildServiceProvider()
-            .GetRequestExecutorAsync(cancellationToken: leaderCts.Token);
+            .GetRequestExecutorAsync(cancellationToken: testCts.Token);
 
         const string operationText =
             """
@@ -180,27 +191,27 @@ public sealed class OperationCompilerSingleFlightTests
 
         // act
         var leaderTask = Task.Run(
-            () => executor.ExecuteAsync(operationText, leaderCts.Token),
+            () => executor.ExecuteAsync(operationText, testCts.Token),
             CancellationToken.None);
 
-        // Give the leader time to enter the pipeline and register in-flight.
-        await Task.Delay(50, leaderCts.Token);
+        // Wait for the leader to enter the pipeline and register in-flight.
+        await leaderEntered.Task.WaitAsync(testCts.Token);
 
         var followerTask = Task.Run(
             () => executor.ExecuteAsync(operationText, followerCts.Token),
             CancellationToken.None);
 
-        // Wait for the follower to cancel.
-        var followerCompletion = await Task.WhenAny(
-            followerTask,
-            Task.Delay(TimeSpan.FromSeconds(3), leaderCts.Token));
+        // Give the follower a brief moment to register as a waiter behind the leader,
+        // then explicitly cancel it.
+        await Task.Delay(50, testCts.Token);
+        followerCts.Cancel();
+
+        // Wait for the follower to observe cancellation (hang-guard only; normal completion is fast).
+        var followerResult = await followerTask.WaitAsync(testCts.Token);
 
         // Release the leader.
         compileGate.TrySetResult();
-        Assert.Same(followerTask, followerCompletion);
-
-        var followerResult = await followerTask;
-        var leaderResult = await leaderTask;
+        var leaderResult = await leaderTask.WaitAsync(testCts.Token);
 
         // assert
         var followerErrors = Assert.IsType<OperationResult>(followerResult).Errors;
@@ -240,20 +251,6 @@ public sealed class OperationCompilerSingleFlightTests
             if (context.Features.Get<TaskCompletionSource<Operation>>() is not null)
             {
                 throw new InvalidOperationException("Simulated compilation failure.");
-            }
-
-            await next(context);
-        };
-
-    private static RequestDelegate CreateBlockingMiddleware(
-        RequestDelegate next,
-        TaskCompletionSource gate)
-        => async context =>
-        {
-            // Only block the leader.
-            if (context.Features.Get<TaskCompletionSource<Operation>>() is not null)
-            {
-                await gate.Task;
             }
 
             await next(context);
