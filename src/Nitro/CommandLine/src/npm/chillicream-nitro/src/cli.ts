@@ -38,11 +38,20 @@ function resolveBinary(): string | null {
   }
 }
 
+function describePlatform(): string {
+  const { platform, arch } = process;
+  if (platform === "linux") {
+    const libc = familySync();
+    return libc ? `linux-${arch} (${libc})` : `linux-${arch}`;
+  }
+  return `${platform}-${arch}`;
+}
+
 const bin = resolveBinary();
 
 if (bin === null) {
   console.error(
-    `Platform "${process.platform} (${process.arch})" is not supported by @chillicream/nitro.`,
+    `Platform "${describePlatform()}" is not supported by @chillicream/nitro.`,
   );
   process.exit(1);
 }

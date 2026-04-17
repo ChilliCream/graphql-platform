@@ -304,7 +304,6 @@ jobs:
       contents: write
       id-token: write
     strategy:
-      fail-fast: false
       matrix:
         include:
           - rid: linux-x64
@@ -428,10 +427,17 @@ jobs:
         run: |
           set -euo pipefail
           npm version "$GIT_TAG" --no-git-tag-version --allow-same-version
-          names=$(jq -s '[.[].name]' ../chillicream-nitro-*/package.json)
-          jq --argjson names "$names" --arg v "$GIT_TAG" \
-            '.optionalDependencies = ([$names[] | {key: ., value: $v}] | from_entries)' \
-            package.json > package.json.tmp
+          jq --arg v "$GIT_TAG" '
+            .optionalDependencies = {
+              "@chillicream/nitro-linux-arm64": $v,
+              "@chillicream/nitro-linux-musl-x64": $v,
+              "@chillicream/nitro-linux-x64": $v,
+              "@chillicream/nitro-osx-arm64": $v,
+              "@chillicream/nitro-osx-x64": $v,
+              "@chillicream/nitro-win-x64": $v,
+              "@chillicream/nitro-win-x86": $v
+            }
+          ' package.json > package.json.tmp
           mv package.json.tmp package.json
 
       - name: 🧰 Enable corepack

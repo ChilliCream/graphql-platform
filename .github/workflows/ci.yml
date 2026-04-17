@@ -324,6 +324,28 @@ jobs:
         working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
         run: yarn build
 
+      - name: Inject optionalDependencies
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
+        shell: bash
+        run: |
+          set -euo pipefail
+          jq --arg v "0.0.0-ci" '
+            .optionalDependencies = {
+              "@chillicream/nitro-linux-arm64": $v,
+              "@chillicream/nitro-linux-musl-x64": $v,
+              "@chillicream/nitro-linux-x64": $v,
+              "@chillicream/nitro-osx-arm64": $v,
+              "@chillicream/nitro-osx-x64": $v,
+              "@chillicream/nitro-win-x64": $v,
+              "@chillicream/nitro-win-x86": $v
+            }
+          ' package.json > package.json.tmp
+          mv package.json.tmp package.json
+
+      - name: Pack
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
+        run: npm pack --dry-run
+
   ci-status-check:
     name: "CI Status Check"
     needs:
