@@ -305,12 +305,12 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing Fusion configuration
-            └── ✕ The new Fusion configuration version was rejected.
+            └── ✕ Fusion configuration version was rejected.
                 └── Deployment failed.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The new Fusion configuration version was rejected.
+            Fusion configuration version was rejected.
             """);
         Assert.Equal(1, result.ExitCode);
     }

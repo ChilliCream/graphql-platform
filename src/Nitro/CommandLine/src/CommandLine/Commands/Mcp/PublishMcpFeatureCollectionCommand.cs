@@ -143,9 +143,9 @@ internal sealed class PublishMcpFeatureCollectionCommand : Command
                             }
                         }
 
-                        await activity.FailAllAsync(errorTree, "The new MCP feature collection version was rejected.");
+                        await activity.FailAllAsync(errorTree, "MCP feature collection version was rejected.");
 
-                        throw new ExitException("The new MCP feature collection version was rejected.");
+                        throw new ExitException("MCP feature collection version was rejected.");
 
                     case IMcpFeatureCollectionVersionPublishSuccess:
                         activity.Success($"Published new version '{tag.EscapeMarkup()}' of MCP feature collection '{mcpFeatureCollectionId.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}'.");

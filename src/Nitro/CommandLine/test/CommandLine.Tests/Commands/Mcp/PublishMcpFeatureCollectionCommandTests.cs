@@ -269,12 +269,12 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             """
             Publishing new version 'v1' of MCP feature collection 'mcp-1' to stage 'dev'
             ├── Publication request created. (ID: request-1)
-            └── ✕ The new MCP feature collection version was rejected.
+            └── ✕ MCP feature collection version was rejected.
                 └── Something went wrong during publish.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The new MCP feature collection version was rejected.
+            MCP feature collection version was rejected.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -370,7 +370,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The new MCP feature collection version was rejected.
+            MCP feature collection version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
@@ -381,7 +381,7 @@ public sealed class PublishMcpFeatureCollectionCommandTests(NitroCommandFixture 
             │       └── Tool 'Fail'
             │           └── The field `person` does not exist on the type `Query`. (1:14)
             ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            └── ✕ The new MCP feature collection version was rejected.
+            └── ✕ MCP feature collection version was rejected.
             """);
         Assert.Equal(1, result.ExitCode);
     }

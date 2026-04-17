@@ -853,7 +853,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The new Fusion configuration version was rejected.
+            Fusion configuration version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
@@ -877,7 +877,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   │       └── Tool 'Fail'
             │   │           └── The field `person` does not exist on the type `Query`. (1:14)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            │   └── ✕ The new Fusion configuration version was rejected.
+            │   └── ✕ Fusion configuration version was rejected.
             └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -1014,7 +1014,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The new Fusion configuration version was rejected.
+            Fusion configuration version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
@@ -1028,7 +1028,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   ├── Validating...
             │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
-            │   └── ✕ The new Fusion configuration version was rejected.
+            │   └── ✕ Fusion configuration version was rejected.
             │       ├── Invalid GraphQL schema
             │       │   └── Field 'Query.foo' has no type. (SCHEMA_ERROR)
             │       └── An error occurred.
@@ -1507,7 +1507,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Downloading existing configuration from 'dev'
             │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new configuration
-            │   └── ✕ The Fusion configuration could not be composed.
+            │   └── ✕ Fusion configuration could not be composed.
             └── ✕ Failed to publish a new Fusion configuration version.
 
             ## Composition log
@@ -1919,7 +1919,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The new Fusion configuration version was rejected.
+            Fusion configuration version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
@@ -1947,7 +1947,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   │       └── Tool 'Fail'
             │   │           └── The field `person` does not exist on the type `Query`. (1:14)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            │   └── ✕ The new Fusion configuration version was rejected.
+            │   └── ✕ Fusion configuration version was rejected.
             └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -2095,7 +2095,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The new Fusion configuration version was rejected.
+            Fusion configuration version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
@@ -2113,7 +2113,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   ├── Validating...
             │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
-            │   └── ✕ The new Fusion configuration version was rejected.
+            │   └── ✕ Fusion configuration version was rejected.
             │       ├── Invalid GraphQL schema
             │       │   └── Field 'Query.foo' has no type. (SCHEMA_ERROR)
             │       └── An error occurred.
@@ -2654,7 +2654,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Downloading existing configuration from 'dev'
             │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new configuration
-            │   └── ✕ The Fusion configuration could not be composed.
+            │   └── ✕ Fusion configuration could not be composed.
             └── ✕ Failed to publish a new Fusion configuration version.
 
             ## Composition log
@@ -3124,7 +3124,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The new Fusion configuration version was rejected.
+            Fusion configuration version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
@@ -3154,7 +3154,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   │       └── Tool 'Fail'
             │   │           └── The field `person` does not exist on the type `Query`. (1:14)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            │   └── ✕ The new Fusion configuration version was rejected.
+            │   └── ✕ Fusion configuration version was rejected.
             └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -3306,7 +3306,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The new Fusion configuration version was rejected.
+            Fusion configuration version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
@@ -3326,7 +3326,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   ├── Validating...
             │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
-            │   └── ✕ The new Fusion configuration version was rejected.
+            │   └── ✕ Fusion configuration version was rejected.
             │       ├── Invalid GraphQL schema
             │       │   └── Field 'Query.foo' has no type. (SCHEMA_ERROR)
             │       └── An error occurred.

@@ -275,7 +275,7 @@ internal sealed class FusionPublishCommand : Command
             }
             else
             {
-                await composeActivity.FailAllAsync(message: "The Fusion configuration could not be composed.");
+                await composeActivity.FailAllAsync(message: "Fusion configuration could not be composed.");
 
                 console.WriteLine();
                 console.WriteLine("## Composition log");

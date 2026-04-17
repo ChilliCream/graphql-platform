@@ -282,12 +282,12 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
             """
             Publishing new schema version 'v1' of API 'api-1' to stage 'dev'
             ├── Publication request created. (ID: request-id)
-            └── ✕ The new schema version was rejected.
+            └── ✕ Schema version was rejected.
                 └── Something went wrong during publish.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            The new schema version was rejected.
+            Schema version was rejected.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -405,7 +405,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            The new schema version was rejected.
+            Schema version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
@@ -438,7 +438,7 @@ public sealed class PublishSchemaCommandTests(NitroCommandFixture fixture) : Sch
             │   ├── There was a syntax error in your schema document.
             │   └── Operations are not allowed in a schema document.
             ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            └── ✕ The new schema version was rejected.
+            └── ✕ Schema version was rejected.
             """);
         Assert.Equal(1, result.ExitCode);
     }

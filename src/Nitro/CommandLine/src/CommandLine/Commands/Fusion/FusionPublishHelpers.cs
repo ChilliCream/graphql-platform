@@ -104,9 +104,9 @@ internal static class FusionPublishHelpers
                         }
                     }
 
-                    await activity.FailAllAsync(errorTree, "The new Fusion configuration version was rejected.");
+                    await activity.FailAllAsync(errorTree, "Fusion configuration version was rejected.");
 
-                    throw new ExitException("The new Fusion configuration version was rejected.");
+                    throw new ExitException("Fusion configuration version was rejected.");
 
                 case IFusionConfigurationPublishingSuccess:
                     await subscriptionCancellation.CancelAsync();
@@ -227,8 +227,8 @@ internal static class FusionPublishHelpers
                         }
                     }
 
-                    await activity.FailAllAsync(publishErrorTree, "The new Fusion configuration version was rejected.");
-                    throw new ExitException("The new Fusion configuration version was rejected.");
+                    await activity.FailAllAsync(publishErrorTree, "Fusion configuration version was rejected.");
+                    throw new ExitException("Fusion configuration version was rejected.");
 
                 case IFusionConfigurationPublishingSuccess:
                     committed = true;

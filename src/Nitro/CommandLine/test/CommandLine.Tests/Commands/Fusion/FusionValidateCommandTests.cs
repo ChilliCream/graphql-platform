@@ -663,7 +663,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             ├── Downloading existing Fusion configuration
             │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new Fusion configuration
-            │   └── ✕ The Fusion configuration could not be composed.
+            │   └── ✕ Fusion configuration could not be composed.
             └── ✕ Failed to validate the Fusion configuration.
 
             ## Composition log
