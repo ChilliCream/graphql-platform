@@ -18,6 +18,17 @@
     <GraphQLPersistedOperationFormat>relay</GraphQLPersistedOperationFormat>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(PublishAot)' == 'true'">
+    <OptimizationPreference>Size</OptimizationPreference>
+    <IlcFoldIdenticalMethodBodies>true</IlcFoldIdenticalMethodBodies>
+    <StackTraceSupport>false</StackTraceSupport>
+    <DebuggerSupport>false</DebuggerSupport>
+    <EventSourceSupport>false</EventSourceSupport>
+    <HttpActivityPropagationSupport>false</HttpActivityPropagationSupport>
+    <MetadataUpdaterSupport>false</MetadataUpdaterSupport>
+    <UseSystemResourceKeys>true</UseSystemResourceKeys>
+  </PropertyGroup>
+
   <ItemGroup>
     <Using Include="ChilliCream.Nitro.CommandLine" />
     <Using Include="Microsoft.Extensions.DependencyInjection" />
