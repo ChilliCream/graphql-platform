@@ -45,14 +45,5 @@
   "devDependencies": {
     "@types/node": "^24.0.0",
     "typescript": "^5.9.0"
-  },
-  "optionalDependencies": {
-    "@chillicream/nitro-linux-arm64": "0.0.0",
-    "@chillicream/nitro-linux-musl-x64": "0.0.0",
-    "@chillicream/nitro-linux-x64": "0.0.0",
-    "@chillicream/nitro-osx-arm64": "0.0.0",
-    "@chillicream/nitro-osx-x64": "0.0.0",
-    "@chillicream/nitro-win-x64": "0.0.0",
-    "@chillicream/nitro-win-x86": "0.0.0"
   }
 }

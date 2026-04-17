@@ -422,14 +422,15 @@ jobs:
             echo "DIST_TAG=preview" >> $GITHUB_ENV
           fi
 
-      - name: 🏷️ Bump version and optionalDependencies
+      - name: 🏷️ Bump version and inject optionalDependencies
         working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
         shell: bash
         run: |
           set -euo pipefail
           npm version "$GIT_TAG" --no-git-tag-version --allow-same-version
-          jq --arg v "$GIT_TAG" \
-            '.optionalDependencies = (.optionalDependencies | map_values($v))' \
+          names=$(jq -s '[.[].name]' ../chillicream-nitro-*/package.json)
+          jq --argjson names "$names" --arg v "$GIT_TAG" \
+            '.optionalDependencies = ([$names[] | {key: ., value: $v}] | from_entries)' \
             package.json > package.json.tmp
           mv package.json.tmp package.json
 

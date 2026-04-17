@@ -5,84 +5,13 @@ __metadata:
   version: 8
   cacheKey: 10c0
 
-"@chillicream/nitro-linux-arm64@npm:0.0.0":
-  version: 0.0.0
-  resolution: "@chillicream/nitro-linux-arm64@npm:0.0.0"
-  conditions: os=linux & cpu=arm64 & libc=glibc
-  languageName: node
-  linkType: hard
-
-"@chillicream/nitro-linux-musl-x64@npm:0.0.0":
-  version: 0.0.0
-  resolution: "@chillicream/nitro-linux-musl-x64@npm:0.0.0"
-  conditions: os=linux & cpu=x64 & libc=musl
-  languageName: node
-  linkType: hard
-
-"@chillicream/nitro-linux-x64@npm:0.0.0":
-  version: 0.0.0
-  resolution: "@chillicream/nitro-linux-x64@npm:0.0.0"
-  conditions: os=linux & cpu=x64 & libc=glibc
-  languageName: node
-  linkType: hard
-
-"@chillicream/nitro-osx-arm64@npm:0.0.0":
-  version: 0.0.0
-  resolution: "@chillicream/nitro-osx-arm64@npm:0.0.0"
-  conditions: os=darwin & cpu=arm64
-  languageName: node
-  linkType: hard
-
-"@chillicream/nitro-osx-x64@npm:0.0.0":
-  version: 0.0.0
-  resolution: "@chillicream/nitro-osx-x64@npm:0.0.0"
-  conditions: os=darwin & cpu=x64
-  languageName: node
-  linkType: hard
-
-"@chillicream/nitro-win-x64@npm:0.0.0":
-  version: 0.0.0
-  resolution: "@chillicream/nitro-win-x64@npm:0.0.0"
-  conditions: os=win32 & cpu=x64
-  languageName: node
-  linkType: hard
-
-"@chillicream/nitro-win-x86@npm:0.0.0":
-  version: 0.0.0
-  resolution: "@chillicream/nitro-win-x86@npm:0.0.0"
-  conditions: os=win32 & cpu=ia32
-  languageName: node
-  linkType: hard
-
 "@chillicream/nitro@workspace:.":
   version: 0.0.0-use.local
   resolution: "@chillicream/nitro@workspace:."
   dependencies:
-    "@chillicream/nitro-linux-arm64": "npm:0.0.0"
-    "@chillicream/nitro-linux-musl-x64": "npm:0.0.0"
-    "@chillicream/nitro-linux-x64": "npm:0.0.0"
-    "@chillicream/nitro-osx-arm64": "npm:0.0.0"
-    "@chillicream/nitro-osx-x64": "npm:0.0.0"
-    "@chillicream/nitro-win-x64": "npm:0.0.0"
-    "@chillicream/nitro-win-x86": "npm:0.0.0"
     "@types/node": "npm:^24.0.0"
     detect-libc: "npm:^2.0.4"
     typescript: "npm:^5.9.0"
-  dependenciesMeta:
-    "@chillicream/nitro-linux-arm64":
-      optional: true
-    "@chillicream/nitro-linux-musl-x64":
-      optional: true
-    "@chillicream/nitro-linux-x64":
-      optional: true
-    "@chillicream/nitro-osx-arm64":
-      optional: true
-    "@chillicream/nitro-osx-x64":
-      optional: true
-    "@chillicream/nitro-win-x64":
-      optional: true
-    "@chillicream/nitro-win-x86":
-      optional: true
   bin:
     nitro: ./dist/cli.js
   languageName: unknown
