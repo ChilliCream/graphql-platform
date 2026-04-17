@@ -1,8 +1,10 @@
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Threading.Channels;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -259,14 +261,22 @@ internal sealed class OperationPlanExecutor
                 // Wrap the deferred result's data in IncrementalObjectResult
                 // and clear top-level data/errors (per spec, subsequent payloads
                 // use `incremental` array, not root `data`).
-                if (result.Data.HasValue && !result.Data.Value.IsValueNull)
+                //
+                // The deferred plan executes against a standalone operation whose
+                // result is rooted at Query (e.g. `{ user: { reviews: [...] } }`),
+                // but the incremental delivery contract requires `incremental.data`
+                // to be the delta at `pending.path`. We therefore navigate down
+                // `group.Path` and emit only the subtree at that location.
+                if (result.Data.HasValue
+                    && !result.Data.Value.IsValueNull
+                    && TryCreateIncrementalData(result.Data.Value, group.Path, out var incrementalData))
                 {
                     payload.Incremental =
                     [
                         new IncrementalObjectResult(
                             group.DeferId,
                             result.Errors.Count > 0 ? result.Errors : null,
-                            data: result.Data)
+                            data: incrementalData)
                     ];
                     payload.Completed = [new CompletedResult(group.DeferId)];
                 }
@@ -386,6 +396,60 @@ internal sealed class OperationPlanExecutor
         }
 
         return path;
+    }
+
+    /// <summary>
+    /// Produces an <see cref="OperationResultData"/> whose logical root is the subtree
+    /// at <paramref name="selectionPath"/> within the deferred plan's composite result.
+    /// The incremental delivery contract requires <c>incremental.data</c> to be the
+    /// delta to merge at the pending path, not the fully rooted result.
+    /// </summary>
+    private static bool TryCreateIncrementalData(
+        OperationResultData rootData,
+        SelectionPath selectionPath,
+        out OperationResultData incrementalData)
+    {
+        if (rootData.Value is not CompositeResultDocument document)
+        {
+            // Unknown backing value: fall through to the default behaviour and
+            // emit the result as-is.
+            incrementalData = rootData;
+            return true;
+        }
+
+        var element = document.Data;
+
+        for (var i = 0; i < selectionPath.Length; i++)
+        {
+            var segment = selectionPath[i];
+
+            // Inline fragments/type-conditions do not introduce an extra level
+            // in the result tree, so we only walk field segments.
+            if (segment.Kind is not SelectionPathSegmentKind.Field)
+            {
+                continue;
+            }
+
+            if (!element.TryGetProperty(segment.Name, out var next)
+                || next.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+            {
+                // The path could not be resolved or is null; nothing to merge.
+                incrementalData = default;
+                return false;
+            }
+
+            element = next;
+        }
+
+        // MemoryHolder is intentionally not carried over: the surrounding
+        // OperationResult already owns the composite document's lifetime,
+        // and the IncrementalObjectResult is a non-owning view over it.
+        incrementalData = new OperationResultData(
+            document,
+            isValueNull: false,
+            new DeferredPayloadDataFormatter(element),
+            memoryHolder: null);
+        return true;
     }
 
     public async Task<IExecutionResult> SubscribeAsync(
