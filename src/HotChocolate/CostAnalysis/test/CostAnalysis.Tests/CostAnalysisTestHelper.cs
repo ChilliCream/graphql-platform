@@ -1,4 +1,4 @@
-﻿using HotChocolate.Execution;
+using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.CostAnalysis;
@@ -9,9 +9,7 @@ internal static class CostAnalysisTestHelper
     {
         return new ServiceCollection()
             .AddGraphQLServer()
-            .ModifyCostOptions(o => o.DefaultResolverCost = null)
-            .AddDirectiveType<Types.CostDirectiveType>()
-            .AddDirectiveType<Types.ListSizeDirectiveType>()
+            .ModifyCostOptions(o => o.DefaultResolverCost = 0)
             .AddResolver("Mutation", "setBoth", _ => "ok")
             .AddResolver("Mutation", "setField", _ => "ok")
             .AddResolver("Mutation", "process", _ => "ok")
