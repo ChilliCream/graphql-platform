@@ -8,15 +8,15 @@ import { dirname, join } from "path";
 const require = createRequire(import.meta.url);
 
 const candidates = {
-  "darwin-arm64": ["@chillicream/nitro-darwin-arm64"],
-  "darwin-x64": ["@chillicream/nitro-darwin-x64"],
+  "darwin-arm64": ["@chillicream/nitro-osx-arm64"],
+  "darwin-x64": ["@chillicream/nitro-osx-x64"],
   "linux-arm64": ["@chillicream/nitro-linux-arm64"],
   "linux-x64": [
     "@chillicream/nitro-linux-x64",
-    "@chillicream/nitro-linux-x64-musl",
+    "@chillicream/nitro-linux-musl-x64",
   ],
-  "win32-ia32": ["@chillicream/nitro-win32-ia32"],
-  "win32-x64": ["@chillicream/nitro-win32-x64"],
+  "win32-ia32": ["@chillicream/nitro-win-x86"],
+  "win32-x64": ["@chillicream/nitro-win-x64"],
 };
 
 function resolveBinary() {
