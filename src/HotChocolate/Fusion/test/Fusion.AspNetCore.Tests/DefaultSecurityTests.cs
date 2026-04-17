@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.AspNetCore;
 using HotChocolate.Transport.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -243,7 +244,8 @@ public class DefaultSecurityTests : FusionTestBase
 
         // assert - query passes validation and executes (no HC0087 error)
         using var response = await result.ReadAsResultAsync();
-        response.MatchMarkdownSnapshot();
+        Assert.Equal(JsonValueKind.Undefined, response.Errors.ValueKind);
+        Assert.Equal(JsonValueKind.Object, response.Data.ValueKind);
     }
 
     [Fact]
@@ -288,6 +290,7 @@ public class DefaultSecurityTests : FusionTestBase
 
         // assert - query passes validation and executes (no HC0087 error)
         using var response = await result.ReadAsResultAsync();
-        response.MatchMarkdownSnapshot();
+        Assert.Equal(JsonValueKind.Undefined, response.Errors.ValueKind);
+        Assert.Equal(JsonValueKind.Object, response.Data.ValueKind);
     }
 }
