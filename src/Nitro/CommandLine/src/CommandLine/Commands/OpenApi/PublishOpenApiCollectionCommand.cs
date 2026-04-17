@@ -142,9 +142,9 @@ internal sealed class PublishOpenApiCollectionCommand : Command
                             }
                         }
 
-                        await activity.FailAllAsync(errorTree);
+                        await activity.FailAllAsync(errorTree, "OpenAPI collection version was rejected.");
 
-                        throw new ExitException("OpenAPI collection publish failed.");
+                        throw new ExitException("OpenAPI collection version was rejected.");
 
                     case IOpenApiCollectionVersionPublishSuccess:
                         activity.Success($"Published new version '{tag.EscapeMarkup()}' of OpenAPI collection '{openApiCollectionId.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}'.");

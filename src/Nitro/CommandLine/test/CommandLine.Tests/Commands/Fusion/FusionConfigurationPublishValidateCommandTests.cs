@@ -131,7 +131,7 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
         result.AssertSuccess(
             """
             Validating Fusion configuration
-            └── ✓ Validated configuration.
+            └── ✓ Fusion configuration passed validation.
             """);
     }
 
@@ -169,12 +169,12 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
         result.StdOut.MatchInlineSnapshot(
             """
             Validating Fusion configuration
-            └── ✕ Failed to validate the Fusion configuration.
+            └── ✕ Fusion configuration failed validation.
                 └── Something went wrong.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Fusion configuration validation failed.
+            Fusion configuration failed validation.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -330,7 +330,7 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
             Validating Fusion configuration
             ├── Validating...
             ├── Validating...
-            └── ✓ Validated configuration.
+            └── ✓ Fusion configuration passed validation.
             """);
     }
 
@@ -365,7 +365,7 @@ public sealed class FusionConfigurationPublishValidateCommandTests(NitroCommandF
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Fusion configuration validation failed.
+            Fusion configuration failed validation.
             """);
         Assert.Equal(1, result.ExitCode);
     }
