@@ -301,7 +301,7 @@ jobs:
     needs: [build-nitro-cli]
     if: startsWith(github.ref, 'refs/tags/')
     permissions:
-      contents: read
+      contents: write
       id-token: write
     strategy:
       fail-fast: false
@@ -342,17 +342,6 @@ jobs:
       - name: 🏷 Get the version from tag
         run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-      - name: 🏷 Compute dist-tag
-        shell: bash
-        run: |
-          if [[ "$GIT_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "DIST_TAG=latest" >> $GITHUB_ENV
-          elif [[ "$GIT_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\. ]]; then
-            echo "DIST_TAG=rc" >> $GITHUB_ENV
-          else
-            echo "DIST_TAG=preview" >> $GITHUB_ENV
-          fi
-
       - name: 🗂️ Stage binary in package directory
         shell: bash
         working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro-${{ matrix.rid }}
@@ -374,9 +363,30 @@ jobs:
         working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro-${{ matrix.rid }}
         run: npm version "$GIT_TAG" --no-git-tag-version --allow-same-version
 
-      - name: 🚀 Publish to npm
+      - name: 📦 Create tarball
         working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro-${{ matrix.rid }}
-        run: npm publish --access public --tag "$DIST_TAG" --registry="${{ vars.NPM_REGISTRY_URL }}"
+        run: npm pack
+
+      - name: 🚀 Publish tarball to npm
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro-${{ matrix.rid }}
+        shell: bash
+        run: |
+          npm publish "./chillicream-nitro-${{ matrix.rid }}-${GIT_TAG}.tgz" \
+            --access public \
+            --registry="${{ vars.NPM_REGISTRY_URL }}"
+
+      - name: 📤 Upload tarball as artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: chillicream-nitro-${{ matrix.rid }}-${{ env.GIT_TAG }}.tgz
+          path: src/Nitro/CommandLine/src/npm/chillicream-nitro-${{ matrix.rid }}/chillicream-nitro-${{ matrix.rid }}-${{ env.GIT_TAG }}.tgz
+
+      - name: 📤 Attach tarball to GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro-${{ matrix.rid }}
+        run: |
+          gh release upload "${{ github.ref_name }}" "chillicream-nitro-${{ matrix.rid }}-${{ github.ref_name }}.tgz" --repo "${{ github.repository }}"
 
   publish-nitro-cli-npm:
     name: 🧱 Publish Nitro CLI to npm
