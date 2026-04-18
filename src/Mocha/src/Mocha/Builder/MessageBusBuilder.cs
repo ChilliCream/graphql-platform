@@ -218,16 +218,6 @@ public partial class MessageBusBuilder : IMessageBusBuilder
         var serializer = configuration.Serializer;
         var enclosedTypes = configuration.EnclosedTypes;
 
-        var configure = (IMessageTypeDescriptor descriptor) =>
-        {
-            descriptor.AddSerializer(serializer);
-
-            if (enclosedTypes is not null)
-            {
-                descriptor.Extend().Configuration.EnclosedTypes = enclosedTypes;
-            }
-        };
-
         var existingDelegate = _messageDescriptors.GetValueOrDefault(messageType);
 
         if (existingDelegate is not null)
@@ -236,15 +226,25 @@ public partial class MessageBusBuilder : IMessageBusBuilder
             _messageDescriptors[messageType] = descriptor =>
             {
                 innerDelegate(descriptor);
-                configure(descriptor);
+                Configure(descriptor);
             };
         }
         else
         {
-            _messageDescriptors[messageType] = configure;
+            _messageDescriptors[messageType] = Configure;
         }
 
         return this;
+
+        void Configure(IMessageTypeDescriptor descriptor)
+        {
+            descriptor.AddSerializer(serializer);
+
+            if (!enclosedTypes.IsDefaultOrEmpty)
+            {
+                descriptor.Extend().Configuration.EnclosedTypes = enclosedTypes;
+            }
+        }
     }
 
     /// <inheritdoc />
@@ -620,23 +620,5 @@ public partial class MessageBusBuilder : IMessageBusBuilder
         lazyRuntime.Runtime = runtime;
 
         return runtime;
-    }
-
-    private void PrepareHandlers()
-    {
-        foreach (var modifier in _handlerModifiers)
-        {
-            modifier(_handlerMiddlewares);
-        }
-
-        foreach (var modifier in _receiveModifiers)
-        {
-            modifier(_receiveMiddlewares);
-        }
-
-        foreach (var modifier in _dispatchModifiers)
-        {
-            modifier(_dispatchMiddlewares);
-        }
     }
 }

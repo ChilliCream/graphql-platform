@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.ComponentModel;
 
 namespace Mocha;
@@ -19,10 +20,13 @@ public sealed class MessagingMessageConfiguration
     public required IMessageSerializer Serializer { get; init; }
 
     /// <summary>
-    /// Pre-computed type hierarchy sorted by specificity (most specific first).
-    /// Contains only registered user types — framework base types (<see cref="IEventRequest"/>,
-    /// <see cref="IEventRequest{T}"/>) are excluded. When non-null, <see cref="MessageType.Complete"/>
-    /// skips reflection-based hierarchy discovery.
+    /// Pre-computed type hierarchy sorted by specificity (most specific first). Includes both
+    /// registered user types and framework base types (<see cref="IEventRequest"/>,
+    /// <see cref="IEventRequest{T}"/>); <see cref="MessageType.Complete"/> branches on whether
+    /// each entry is a framework base type to decide registration versus identity-only recording.
+    /// When <see cref="ImmutableArray{T}.IsDefaultOrEmpty"/> is <see langword="true"/>,
+    /// <see cref="MessageType.Complete"/> falls back to reflection-based hierarchy discovery
+    /// (non-AOT only).
     /// </summary>
-    public Type[]? EnclosedTypes { get; init; }
+    public ImmutableArray<Type> EnclosedTypes { get; init; }
 }

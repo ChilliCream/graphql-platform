@@ -16,6 +16,7 @@ Mocha uses a Roslyn source generator to validate your message handlers, consumer
 | [MO0003](#mo0003) | Handler is abstract                                      | Warning  |
 | [MO0004](#mo0004) | Open generic message type cannot be dispatched           | Info     |
 | [MO0005](#mo0005) | Handler implements multiple mediator handler interfaces  | Error    |
+| [MO0006](#mo0006) | Open generic handler cannot be auto-registered           | Info     |
 | [MO0011](#mo0011) | Duplicate handler for request type                       | Error    |
 | [MO0012](#mo0012) | Open generic messaging handler cannot be auto-registered | Info     |
 | [MO0013](#mo0013) | Messaging handler is abstract                            | Warning  |
@@ -259,6 +260,79 @@ public class GetOrderHandler : IQueryHandler<GetOrder, Order>
     public ValueTask<Order> HandleAsync(GetOrder query, CancellationToken ct)
         => ValueTask.FromResult(new Order());
 }
+```
+
+## MO0006
+
+**Open generic handler cannot be auto-registered**
+
+|              |                                                                                                                                                                                       |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Severity** | Info                                                                                                                                                                                  |
+| **Message**  | `Handler '{0}' has unbound type parameters; source-generated registration is skipped. Register the closed form manually (e.g. AddHandler<ConcreteHandler<MyType>>()) if intentional.` |
+
+### Cause
+
+A mediator handler (`ICommandHandler<T>`, `ICommandHandler<T, TResponse>`, `IQueryHandler<T, TResponse>`, or `INotificationHandler<T>`) is declared with unbound type parameters. This diagnostic fires on the handler _declaration_ — the source generator cannot produce a registration for an open generic because there is no closed type to register.
+
+Under AOT, this matters because every dispatched message must correspond to a statically-known handler type; the runtime cannot close the generic for you.
+
+### Example
+
+```csharp
+using Mocha.Mediator;
+
+public record MyNotification : INotification;
+
+// Open generic handler - triggers MO0006
+public class GenericNotificationHandler<T> : INotificationHandler<MyNotification>
+{
+    public ValueTask HandleAsync(
+        MyNotification notification,
+        CancellationToken ct)
+        => ValueTask.CompletedTask;
+}
+```
+
+### Fix
+
+Either close the generic by declaring a concrete handler, or register the closed form manually and suppress the diagnostic on the declaration.
+
+Close the generic at the handler declaration:
+
+```csharp
+using Mocha.Mediator;
+
+public record MyNotification : INotification;
+
+public class MyNotificationHandler : INotificationHandler<MyNotification>
+{
+    public ValueTask HandleAsync(
+        MyNotification notification,
+        CancellationToken ct)
+        => ValueTask.CompletedTask;
+}
+```
+
+Or, if the open generic is intentional (for example, a reusable handler body parameterised on a secondary type), register the closed form manually and suppress MO0006 on the declaration:
+
+```csharp
+using Mocha.Mediator;
+
+public record MyNotification : INotification;
+
+#pragma warning disable MO0006
+public class GenericNotificationHandler<T> : INotificationHandler<MyNotification>
+{
+    public ValueTask HandleAsync(
+        MyNotification notification,
+        CancellationToken ct)
+        => ValueTask.CompletedTask;
+}
+#pragma warning restore MO0006
+
+// Register the closed form explicitly:
+// services.AddMediator(m => m.AddHandler<GenericNotificationHandler<MyConcreteType>>());
 ```
 
 # Messaging diagnostics
@@ -580,7 +654,9 @@ public partial class OrderServiceJsonContext : JsonSerializerContext;
 
 ### Cause
 
-AOT publishing is enabled and a message type used at a call site (for example `bus.PublishAsync<T>()`) is not declared in the `JsonSerializerContext`. This is similar to [MO0016](#mo0016), but applies to types discovered at call sites rather than handler registrations. Without the declaration, the message cannot be serialized at runtime in an AOT environment.
+Emitted only when `PublishAot` is enabled and a call site publishes a type not covered by the declared `JsonContext`. For example, `bus.PublishAsync<T>()` is called with a type that has no matching `[JsonSerializable(typeof(T))]` on the `JsonSerializerContext` referenced by `[assembly: MessagingModule(..., JsonContext = typeof(...))]`. This is similar to [MO0016](#mo0016), but applies to types discovered at call sites rather than handler registrations. Without the declaration, the message cannot be serialized at runtime in an AOT environment.
+
+This diagnostic does not fire when `PublishAot` is unset, even if `JsonContext` is declared on the module — opting into a source-generated context for non-AOT reasons does not require every call-site type to appear in it.
 
 ### Example
 

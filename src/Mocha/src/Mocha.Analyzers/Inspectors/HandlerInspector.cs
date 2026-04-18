@@ -109,7 +109,10 @@ public sealed class HandlerInspector : ISyntaxInspector
                 && namedTypeSymbol.FindImplementedInterface(knownSymbols.ICommandHandlerResponse) is not null)
             || (
                 knownSymbols.IQueryHandler is not null
-                && namedTypeSymbol.FindImplementedInterface(knownSymbols.IQueryHandler) is not null);
+                && namedTypeSymbol.FindImplementedInterface(knownSymbols.IQueryHandler) is not null)
+            || (
+                knownSymbols.INotificationHandler is not null
+                && namedTypeSymbol.FindImplementedInterface(knownSymbols.INotificationHandler) is not null);
     }
 
     private sealed record HandlerKindDescriptor(

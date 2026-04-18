@@ -145,7 +145,9 @@ public sealed class MessagingDependencyInjectionFileBuilder : FileBuilderBase
     /// <param name="messageTypeName">The fully qualified message type name.</param>
     /// <param name="jsonContextTypeName">The fully qualified type name of the JsonSerializerContext.</param>
     /// <param name="enclosedTypes">
-    /// The pre-computed enclosed types sorted by specificity, or <see langword="null"/> to omit.
+    /// The pre-computed enclosed types sorted by specificity (including framework base types
+    /// such as <c>IEventRequest</c> and closed <c>IEventRequest&lt;T&gt;</c>), or
+    /// <see langword="null"/> to omit.
     /// </param>
     public void WriteMessageConfiguration(
         string messageTypeName,
@@ -166,15 +168,17 @@ public sealed class MessagingDependencyInjectionFileBuilder : FileBuilderBase
 
         if (enclosedTypes is { Count: > 0 })
         {
-            Writer.WriteIndentedLine("EnclosedTypes = new global::System.Type[]");
-            Writer.WriteIndentedLine("{");
+            Writer.WriteIndentedLine(
+                "EnclosedTypes = global::System.Collections.Immutable.ImmutableArray.Create<global::System.Type>(");
             Writer.IncreaseIndent();
-            foreach (var typeName in enclosedTypes)
+            for (var i = 0; i < enclosedTypes.Count; i++)
             {
-                Writer.WriteIndentedLine("typeof({0}),", typeName);
+                var typeName = enclosedTypes[i];
+                var isLast = i == enclosedTypes.Count - 1;
+                Writer.WriteIndentedLine(isLast ? "typeof({0})" : "typeof({0}),", typeName);
             }
             Writer.DecreaseIndent();
-            Writer.WriteIndentedLine("},");
+            Writer.WriteIndentedLine("),");
         }
 
         Writer.DecreaseIndent();

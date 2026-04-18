@@ -24,6 +24,18 @@ public sealed class MediatorBuilder : IMediatorBuilder
     private readonly List<Action<IFeatureCollection>> _configureFeatures = [];
     private readonly MediatorOptions _options = new();
 
+    private static readonly MethodInfo s_buildCommandPipeline =
+        typeof(PipelineBuilder).GetMethod(nameof(PipelineBuilder.BuildCommandPipeline))!;
+
+    private static readonly MethodInfo s_buildCommandResponsePipeline =
+        typeof(PipelineBuilder).GetMethod(nameof(PipelineBuilder.BuildCommandResponsePipeline))!;
+
+    private static readonly MethodInfo s_buildQueryPipeline =
+        typeof(PipelineBuilder).GetMethod(nameof(PipelineBuilder.BuildQueryPipeline))!;
+
+    private static readonly MethodInfo s_buildNotificationPipeline =
+        typeof(PipelineBuilder).GetMethod(nameof(PipelineBuilder.BuildNotificationPipeline))!;
+
     /// <inheritdoc />
     public IMediatorBuilder ConfigureOptions(Action<MediatorOptions> configure)
     {
@@ -270,33 +282,23 @@ public sealed class MediatorBuilder : IMediatorBuilder
     [RequiresUnreferencedCode("Use source-generated AddHandlerConfiguration for AOT compatibility.")]
     private static MediatorDelegate BuildPipelineViaReflection(MediatorHandlerConfiguration config)
     {
-        var buildCommandPipeline = typeof(PipelineBuilder).GetMethod(nameof(PipelineBuilder.BuildCommandPipeline))!;
-
-        var buildCommandResponsePipeline = typeof(PipelineBuilder).GetMethod(
-            nameof(PipelineBuilder.BuildCommandResponsePipeline))!;
-
-        var buildQueryPipeline = typeof(PipelineBuilder).GetMethod(nameof(PipelineBuilder.BuildQueryPipeline))!;
-
-        var buildNotificationPipeline = typeof(PipelineBuilder).GetMethod(
-            nameof(PipelineBuilder.BuildNotificationPipeline))!;
-
         return config.Kind switch
         {
             MediatorHandlerKind.Command => (MediatorDelegate)
-                buildCommandPipeline.MakeGenericMethod(config.HandlerType!, config.MessageType!).Invoke(null, null)!,
+                s_buildCommandPipeline.MakeGenericMethod(config.HandlerType!, config.MessageType!).Invoke(null, null)!,
 
             MediatorHandlerKind.CommandResponse => (MediatorDelegate)
-                buildCommandResponsePipeline
+                s_buildCommandResponsePipeline
                     .MakeGenericMethod(config.HandlerType!, config.MessageType!, config.ResponseType!)
                     .Invoke(null, null)!,
 
             MediatorHandlerKind.Query => (MediatorDelegate)
-                buildQueryPipeline
+                s_buildQueryPipeline
                     .MakeGenericMethod(config.HandlerType!, config.MessageType!, config.ResponseType!)
                     .Invoke(null, null)!,
 
             MediatorHandlerKind.Notification => (MediatorDelegate)
-                buildNotificationPipeline
+                s_buildNotificationPipeline
                     .MakeGenericMethod(config.HandlerType!, config.MessageType!)
                     .Invoke(null, null)!,
 

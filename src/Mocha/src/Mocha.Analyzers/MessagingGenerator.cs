@@ -544,7 +544,7 @@ public sealed class MessagingGenerator : IIncrementalGenerator
         bool isAotPublish,
         JsonContextInfo jsonContextInfo)
     {
-        if ((!isAotPublish && jsonContextInfo.JsonContextTypeName is null) || callSiteInfos.Length == 0)
+        if (!isAotPublish || callSiteInfos.Length == 0)
         {
             return;
         }

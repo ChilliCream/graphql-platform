@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -236,10 +237,65 @@ public class HeadersJsonConverter : JsonConverter<IHeaders>
                 writer.WriteEndObject();
                 break;
 
+            case Guid g:
+                writer.WriteStringValue(g);
+                break;
+
+            case TimeSpan t:
+                writer.WriteStringValue(t.ToString("c", CultureInfo.InvariantCulture));
+                break;
+
+            case Uri u:
+                writer.WriteStringValue(u.ToString());
+                break;
+
+            case DateOnly d:
+                writer.WriteStringValue(d.ToString("O", CultureInfo.InvariantCulture));
+                break;
+
+            case TimeOnly to:
+                writer.WriteStringValue(to.ToString("O", CultureInfo.InvariantCulture));
+                break;
+
+            case Enum e:
+                writer.WriteStringValue(e.ToString());
+                break;
+
+            case short s:
+                writer.WriteNumberValue(s);
+                break;
+
+            case ushort us:
+                writer.WriteNumberValue(us);
+                break;
+
+            case byte b:
+                writer.WriteNumberValue(b);
+                break;
+
+            case sbyte sb:
+                writer.WriteNumberValue(sb);
+                break;
+
+            case uint ui:
+                writer.WriteNumberValue(ui);
+                break;
+
+            case ulong ul:
+                writer.WriteNumberValue(ul);
+                break;
+
+            case char c:
+                writer.WriteStringValue(c.ToString());
+                break;
+
             default:
                 throw new InvalidOperationException(
                     $"Header value type '{value.GetType().Name}' is not supported for serialization. "
-                    + "Headers must contain primitive types (string, int, long, double, bool, DateTime, etc.).");
+                    + "Supported: string, bool, numeric primitives, char, DateTime, DateTimeOffset, "
+                    + "DateOnly, TimeOnly, TimeSpan, Guid, Uri, Enum, JsonElement, JsonDocument, "
+                    + "IDictionary<string, object?>, IEnumerable<object?>, IReadOnlyHeaders. "
+                    + "Custom types must be stringified by the caller before assignment.");
         }
     }
 }

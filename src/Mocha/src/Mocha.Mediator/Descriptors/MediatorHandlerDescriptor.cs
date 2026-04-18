@@ -32,15 +32,18 @@ public class MediatorHandlerDescriptor
     /// <see cref="MediatorDescriptorBase{T}.Extend"/>, auto-detects handler metadata
     /// from the handler type's interfaces.
     /// </summary>
-    [UnconditionalSuppressMessage(
-        "Trimming",
-        "IL2026:RequiresUnreferencedCode",
-        Justification = "Reflection fallback only used for manual (non-generated) handler registration.")]
     public MediatorHandlerConfiguration CreateConfiguration()
     {
         if (Configuration.MessageType is null)
         {
+            // Source-generator path populates Configuration.MessageType up-front;
+            // reaching this branch means the caller used manual registration, which is
+            // documented as non-AOT (see AddHandler<T>() docs). The reflection helper is
+            // annotated [RequiresUnreferencedCode] and will already have surfaced the
+            // warning at the manual registration site.
+#pragma warning disable IL2026
             DetectHandler(Configuration.HandlerType!);
+#pragma warning restore IL2026
         }
 
         return Configuration;

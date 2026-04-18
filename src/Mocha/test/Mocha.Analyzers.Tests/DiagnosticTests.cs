@@ -264,4 +264,64 @@ public class DiagnosticTests
             """
         ]).MatchMarkdownAsync();
     }
+
+    [Fact]
+    public async Task MO0006_OpenGenericNotificationHandler_ReportsInfo()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+        [
+            """
+            using Mocha.Mediator;
+
+            namespace TestApp;
+
+            public record MyNotif : INotification;
+
+            public class GenericNotif<T> : INotificationHandler<MyNotif>
+            {
+                public ValueTask HandleAsync(MyNotif notification, CancellationToken cancellationToken)
+                    => default;
+            }
+            """
+        ]).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task NoWarning_ClosedConcreteHandler_NoDiagnostic()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+        [
+            """
+            using Mocha.Mediator;
+
+            namespace TestApp;
+
+            public record MyCommand : ICommand;
+
+            public class ConcreteHandler : ICommandHandler<MyCommand>
+            {
+                public ValueTask HandleAsync(MyCommand command, CancellationToken cancellationToken)
+                    => default;
+            }
+            """
+        ]).MatchMarkdownAsync();
+    }
+
+    [Fact]
+    public async Task NoWarning_UnrelatedGenericClass_NoDiagnostic()
+    {
+        await TestHelper.GetGeneratedSourceSnapshot(
+        [
+            """
+            using Mocha.Mediator;
+
+            namespace TestApp;
+
+            public class UnrelatedGeneric<T>
+            {
+                public T? Value { get; set; }
+            }
+            """
+        ]).MatchMarkdownAsync();
+    }
 }

@@ -156,7 +156,11 @@ public sealed class MessagingDependencyInjectionGenerator : ISyntaxGenerator
             builder.WriteStrictModeConfiguration();
             builder.WriteJsonTypeInfoResolverRegistration(jsonContextTypeName);
 
-            // Compute enclosed types per message type (pre-sorted by specificity).
+            // Compute enclosed types per message type (pre-sorted by specificity). Includes
+            // concrete registered types AND framework base types (Mocha.IEventRequest and
+            // closed Mocha.IEventRequest<TResponse>). MessageType.Complete branches on
+            // IsFrameworkBaseType at runtime, so framework entries are emitted as plain
+            // typeof(...) references and the runtime naming convention computes the URN.
             var enclosedTypesMap = new Dictionary<string, List<string>>(StringComparer.Ordinal);
 
             // Build a lookup from message type name to its full hierarchy.
@@ -182,12 +186,17 @@ public sealed class MessagingDependencyInjectionGenerator : ISyntaxGenerator
                 // Start with the type itself.
                 var enclosed = new List<string> { messageTypeName };
 
-                // Filter hierarchy to registered types only (exclude framework types).
+                // Walk the hierarchy; include registered user types and framework base types.
                 if (hierarchyLookup.TryGetValue(messageTypeName, out var hierarchy))
                 {
                     foreach (var typeName in hierarchy)
                     {
-                        if (messageTypes.Contains(typeName) && !enclosed.Contains(typeName))
+                        if (enclosed.Contains(typeName))
+                        {
+                            continue;
+                        }
+
+                        if (messageTypes.Contains(typeName) || IsFrameworkBaseType(typeName))
                         {
                             enclosed.Add(typeName);
                         }
@@ -196,20 +205,31 @@ public sealed class MessagingDependencyInjectionGenerator : ISyntaxGenerator
 
                 // Sort by specificity: most specific first.
                 // Type A is "more specific" than type B if B appears in A's hierarchy.
-                enclosed.Sort((a, b) =>
-                {
-                    int ScoreOf(string typeName)
-                    {
-                        if (!hierarchyLookup.TryGetValue(typeName, out var h))
-                        {
-                            return 0;
-                        }
+                // Precompute scores before sorting - List.Sort reorders the list during
+                // the comparison, so reading enclosed.Count(...) mid-sort yields
+                // non-deterministic scores.
+                var scores = new Dictionary<string, int>(enclosed.Count, StringComparer.Ordinal);
 
-                        return enclosed.Count(other => other != typeName && h.Contains(other));
+                foreach (var typeName in enclosed)
+                {
+                    if (!hierarchyLookup.TryGetValue(typeName, out var h))
+                    {
+                        scores[typeName] = 0;
+                        continue;
                     }
 
-                    return ScoreOf(b).CompareTo(ScoreOf(a));
-                });
+                    var score = 0;
+                    foreach (var other in enclosed)
+                    {
+                        if (other != typeName && h.Contains(other))
+                        {
+                            score++;
+                        }
+                    }
+                    scores[typeName] = score;
+                }
+
+                enclosed.Sort((a, b) => scores[b].CompareTo(scores[a]));
 
                 enclosedTypesMap[messageTypeName] = enclosed;
             }
@@ -219,7 +239,10 @@ public sealed class MessagingDependencyInjectionGenerator : ISyntaxGenerator
             foreach (var messageType in messageTypes.OrderBy(t => t, StringComparer.Ordinal))
             {
                 enclosedTypesMap.TryGetValue(messageType, out var enclosedTypes);
-                builder.WriteMessageConfiguration(messageType, jsonContextTypeName, enclosedTypes);
+                builder.WriteMessageConfiguration(
+                    messageType,
+                    jsonContextTypeName,
+                    enclosedTypes);
             }
         }
 
@@ -298,5 +321,28 @@ public sealed class MessagingDependencyInjectionGenerator : ISyntaxGenerator
         builder.WriteEndNamespace();
 
         addSource(builder.HintName + ".g.cs", builder.ToSourceText());
+    }
+
+    // Framework base types whose identity is computed at runtime by the configured
+    // INamingConventions. The generator emits these into EnclosedTypes as plain
+    // typeof(...) references so MessageType.Complete can dispatch through
+    // context.Naming.GetMessageIdentity, honouring user-supplied naming conventions.
+    private const string EventRequestFullName = "global::Mocha.IEventRequest";
+    private const string EventRequestOfTPrefix = "global::Mocha.IEventRequest<";
+
+    /// <summary>
+    /// Determines whether the fully qualified display string refers to a framework base type
+    /// (<c>Mocha.IEventRequest</c> or closed <c>Mocha.IEventRequest&lt;T&gt;</c>) that must
+    /// flow into <c>EnclosedTypes</c> without being registered as a standalone message type.
+    /// </summary>
+    private static bool IsFrameworkBaseType(string fullyQualifiedName)
+    {
+        if (fullyQualifiedName == EventRequestFullName)
+        {
+            return true;
+        }
+
+        return fullyQualifiedName.StartsWith(EventRequestOfTPrefix, StringComparison.Ordinal)
+            && fullyQualifiedName.EndsWith(">", StringComparison.Ordinal);
     }
 }

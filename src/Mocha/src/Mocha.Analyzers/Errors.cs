@@ -85,16 +85,19 @@ public static class Errors
         isEnabledByDefault: true);
 
     /// <summary>
-    /// Gets the descriptor for MO0006: a mediator handler is an open generic and cannot be auto-registered.
+    /// Gets the descriptor for MO0006: a mediator handler is declared with unbound type parameters.
     /// </summary>
     /// <remarks>
-    /// Reported as an info when a mediator handler has unbound type parameters,
-    /// making it impossible to register at compile time.
+    /// Reported as an info on the handler <em>declaration</em> when it has unbound type parameters.
+    /// Source-generated registration is skipped for open generic handlers because there is no
+    /// closed type to register. Manual registration of a closed form (for example
+    /// <c>AddHandler&lt;ConcreteHandler&lt;MyType&gt;&gt;()</c>) remains supported; suppress the
+    /// diagnostic on the declaration if the handler is registered that way intentionally.
     /// </remarks>
     public static readonly DiagnosticDescriptor OpenGenericHandler = new(
         id: "MO0006",
         title: "Open generic handler cannot be auto-registered",
-        messageFormat: "Handler '{0}' is an open generic and cannot be auto-registered",
+        messageFormat: "Handler '{0}' has unbound type parameters; source-generated registration is skipped. Register the closed form manually (e.g. AddHandler<ConcreteHandler<MyType>>()) if intentional.",
         category: "Mediator",
         defaultSeverity: DiagnosticSeverity.Info,
         isEnabledByDefault: true);

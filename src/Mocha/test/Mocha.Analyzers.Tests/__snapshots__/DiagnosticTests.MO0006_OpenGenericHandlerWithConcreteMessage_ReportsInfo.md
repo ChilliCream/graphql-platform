@@ -19,8 +19,8 @@
     "Severity": "Info",
     "WarningLevel": 1,
     "Location": ": (6,13)-(6,27)",
-    "MessageFormat": "Handler '{0}' is an open generic and cannot be auto-registered",
-    "Message": "Handler 'global::TestApp.GenericHandler<T>' is an open generic and cannot be auto-registered",
+    "MessageFormat": "Handler '{0}' has unbound type parameters; source-generated registration is skipped. Register the closed form manually (e.g. AddHandler<ConcreteHandler<MyType>>()) if intentional.",
+    "Message": "Handler 'global::TestApp.GenericHandler<T>' has unbound type parameters; source-generated registration is skipped. Register the closed form manually (e.g. AddHandler<ConcreteHandler<MyType>>()) if intentional.",
     "Category": "Mediator",
     "CustomTags": []
   }
