@@ -133,22 +133,9 @@ public sealed class MessageType
 
         if (!_enclosedTypes.IsDefaultOrEmpty)
         {
-            // AOT path: pre-sorted hierarchy including framework base types. Branch on
-            // IsFrameworkBaseType so framework types (IEventRequest, IEventRequest<T>)
-            // contribute only their runtime-computed identity to wire-level routing,
-            // mirroring the reflection branch below.
             foreach (var type in _enclosedTypes)
             {
-                if (IsFrameworkBaseType(type))
-                {
-                    enclosedMessageIdentities.Add(context.Naming.GetMessageIdentity(type));
-                }
-                else
-                {
-                    var mt = context.Messages.GetOrAdd(context, type);
-                    enclosedMessageTypes.Add(mt);
-                    enclosedMessageIdentities.Add(mt.Identity);
-                }
+                DispatchEnclosedType(context, type, enclosedMessageTypes, enclosedMessageIdentities);
             }
         }
         else
@@ -163,8 +150,6 @@ public sealed class MessageType
                     + "Set IsAotCompatible = false to allow reflection-based type discovery.");
             }
 
-            // The IsAotCompatible guard above rejects AOT callers; this call is the
-            // documented non-AOT fallback that walks reflection metadata.
 #pragma warning disable IL2026
             CompleteViaReflection(context, enclosedMessageTypes, enclosedMessageIdentities);
 #pragma warning restore IL2026
@@ -192,18 +177,7 @@ public sealed class MessageType
 
         foreach (var type in sortedTypes)
         {
-            if (IsFrameworkBaseType(type))
-            {
-                // Don't register framework base types as standalone message types.
-                // Only include their identity string for wire-level message matching.
-                enclosedMessageIdentities.Add(context.Naming.GetMessageIdentity(type));
-            }
-            else
-            {
-                var mt = context.Messages.GetOrAdd(context, type);
-                enclosedMessageTypes.Add(mt);
-                enclosedMessageIdentities.Add(mt.Identity);
-            }
+            DispatchEnclosedType(context, type, enclosedMessageTypes, enclosedMessageIdentities);
         }
 
         foreach (var interfaceType in RuntimeType.GetInterfaces())
@@ -272,5 +246,23 @@ public sealed class MessageType
     {
         return type == typeof(IEventRequest)
             || (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IEventRequest<>));
+    }
+
+    private static void DispatchEnclosedType(
+        IMessagingConfigurationContext context,
+        Type type,
+        ImmutableArray<MessageType>.Builder enclosedMessageTypes,
+        ImmutableArray<string>.Builder enclosedMessageIdentities)
+    {
+        if (IsFrameworkBaseType(type))
+        {
+            enclosedMessageIdentities.Add(context.Naming.GetMessageIdentity(type));
+        }
+        else
+        {
+            var mt = context.Messages.GetOrAdd(context, type);
+            enclosedMessageTypes.Add(mt);
+            enclosedMessageIdentities.Add(mt.Identity);
+        }
     }
 }

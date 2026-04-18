@@ -21,7 +21,7 @@ public class HeadersJsonConverterTests
     }
 
     [Fact]
-    public void Write_Should_EmitISOString_When_HeaderIsTimeSpan()
+    public void Write_Should_EmitIsoString_When_HeaderIsTimeSpan()
     {
         // arrange
         var headers = new Headers();
@@ -37,7 +37,7 @@ public class HeadersJsonConverterTests
     }
 
     [Fact]
-    public void Write_Should_EmitString_When_HeaderIsUri()
+    public void Write_Should_EmitStringValue_When_HeaderIsUri()
     {
         // arrange
         var headers = new Headers();
@@ -52,7 +52,7 @@ public class HeadersJsonConverterTests
     }
 
     [Fact]
-    public void Write_Should_EmitISODate_When_HeaderIsDateOnly()
+    public void Write_Should_EmitIsoDate_When_HeaderIsDateOnly()
     {
         // arrange
         var headers = new Headers();
@@ -68,7 +68,7 @@ public class HeadersJsonConverterTests
     }
 
     [Fact]
-    public void Write_Should_EmitISOTime_When_HeaderIsTimeOnly()
+    public void Write_Should_EmitIsoTime_When_HeaderIsTimeOnly()
     {
         // arrange
         var headers = new Headers();

@@ -92,6 +92,18 @@ public static class SyntaxConstants
     public const string IEventRequestOfT = "Mocha.IEventRequest`1";
 
     /// <summary>
+    /// Gets the fully qualified display string for the <c>IEventRequest</c> marker interface,
+    /// used when comparing emitted <c>typeof(...)</c> expressions.
+    /// </summary>
+    public const string IEventRequestDisplay = "global::Mocha.IEventRequest";
+
+    /// <summary>
+    /// Gets the fully qualified display prefix for a closed <c>IEventRequest&lt;TResponse&gt;</c>,
+    /// used to detect framework base types in emitted <c>typeof(...)</c> expressions.
+    /// </summary>
+    public const string IEventRequestOfTDisplayPrefix = "global::Mocha.IEventRequest<";
+
+    /// <summary>
     /// Gets the metadata name for the <c>MessagingModuleAttribute</c> class.
     /// </summary>
     public const string MessagingModuleAttribute = "Mocha.MessagingModuleAttribute";

@@ -36,11 +36,6 @@ public class MediatorHandlerDescriptor
     {
         if (Configuration.MessageType is null)
         {
-            // Source-generator path populates Configuration.MessageType up-front;
-            // reaching this branch means the caller used manual registration, which is
-            // documented as non-AOT (see AddHandler<T>() docs). The reflection helper is
-            // annotated [RequiresUnreferencedCode] and will already have surfaced the
-            // warning at the manual registration site.
 #pragma warning disable IL2026
             DetectHandler(Configuration.HandlerType!);
 #pragma warning restore IL2026

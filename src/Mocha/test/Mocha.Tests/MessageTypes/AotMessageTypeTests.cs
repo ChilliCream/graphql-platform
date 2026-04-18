@@ -7,15 +7,10 @@ namespace Mocha.Tests;
 
 public class AotMessageTypeTests
 {
-    private const string ExpectedFrameworkIdentity = "urn:message:mocha:i-event-request[order-status-response]";
-
     [Fact]
     public void Complete_Should_ResolveFrameworkIdentityViaRuntimeNaming_When_AotConfigurationIncludesFrameworkBaseType()
     {
-        // arrange: simulate source-generator output for an IEventRequest<TResponse> message.
-        // The generator emits the framework base type as a plain typeof(...) entry in
-        // EnclosedTypes; MessageType.Complete resolves its identity through the runtime
-        // INamingConventions instead of a compile-time-baked URN.
+        // arrange
         var runtime = CreateAotRuntime(builder => builder.ConfigureMessageBus(bus =>
         {
             bus.AddMessageConfiguration(new MessagingMessageConfiguration
@@ -34,26 +29,23 @@ public class AotMessageTypeTests
         }));
 
         // act
-        var messageType = runtime.Messages.GetMessageType(typeof(GetOrderStatus));
+        var messageType = runtime.Messages.GetMessageType(typeof(GetOrderStatus))!;
+        var expected = runtime.Naming.GetMessageIdentity(typeof(IEventRequest<OrderStatusResponse>));
 
-        // assert — the default naming convention produces the expected URN at runtime
-        // (proving that the identity flows through context.Naming, not a compile-time literal).
-        Assert.NotNull(messageType);
+        // assert
         Assert.True(messageType.IsCompleted);
-        Assert.Contains(ExpectedFrameworkIdentity, messageType.EnclosedMessageIdentities);
+        Assert.Contains(expected, messageType.EnclosedMessageIdentities);
     }
 
     [Fact]
     public void Complete_Should_UseCustomNamingConvention_When_FrameworkBaseTypeResolvedViaRuntimeNaming()
     {
-        // arrange: register a custom IBusNamingConventions that prefixes every identity
-        // with "custom:". If the framework base type's identity were baked in at compile
-        // time (as in the previous broken design), the override would have no effect.
+        // arrange
         var runtime = CreateAotRuntime(
             builder =>
             {
-                // The naming convention is resolved from the outer (application) service
-                // provider in MessageBusBuilder.AddCoreServices, so register it directly.
+                // Registered on the outer service provider because MessageBusBuilder.AddCoreServices
+                // resolves IBusNamingConventions from application services.
                 builder.Services.AddSingleton<IBusNamingConventions, PrefixingNamingConventions>();
 
                 builder.ConfigureMessageBus(bus =>
@@ -75,25 +67,22 @@ public class AotMessageTypeTests
             });
 
         // act
-        var messageType = runtime.Messages.GetMessageType(typeof(GetOrderStatus));
+        var messageType = runtime.Messages.GetMessageType(typeof(GetOrderStatus))!;
+        var defaultIdentity = new DefaultNamingConventions(runtime.Host)
+            .GetMessageIdentity(typeof(IEventRequest<OrderStatusResponse>));
 
-        // assert — the framework base type's identity must reflect the custom convention,
-        // and must NOT be the DefaultNamingConventions output.
-        Assert.NotNull(messageType);
+        // assert
         Assert.True(messageType.IsCompleted);
         Assert.Contains(
             $"custom:{typeof(IEventRequest<OrderStatusResponse>).FullName}",
             messageType.EnclosedMessageIdentities);
-        Assert.DoesNotContain(ExpectedFrameworkIdentity, messageType.EnclosedMessageIdentities);
+        Assert.DoesNotContain(defaultIdentity, messageType.EnclosedMessageIdentities);
     }
 
     [Fact]
     public void Complete_Should_Throw_When_AotModeWithoutEnclosedTypes()
     {
-        // arrange: building with IsAotCompatible=true but no enclosed-types configuration
-        // must trip the runtime guard that now sits in front of CompleteViaReflection.
-
-        // assert
+        // act & assert
         var exception = Assert.Throws<InvalidOperationException>(Act);
         Assert.Contains("No enclosed types provided", exception.Message);
 

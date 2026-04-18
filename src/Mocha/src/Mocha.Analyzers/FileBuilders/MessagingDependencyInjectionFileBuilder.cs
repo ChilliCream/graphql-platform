@@ -152,7 +152,7 @@ public sealed class MessagingDependencyInjectionFileBuilder : FileBuilderBase
     public void WriteMessageConfiguration(
         string messageTypeName,
         string jsonContextTypeName,
-        List<string>? enclosedTypes = null)
+        IReadOnlyList<string>? enclosedTypes = null)
     {
         Writer.WriteIndentedLine("global::Mocha.MessageBusHostBuilderExtensions.AddMessageConfiguration(");
         Writer.IncreaseIndent();

@@ -38,9 +38,9 @@ public class MessageTypeConfiguration : MessagingConfiguration
     public bool IsInternal { get; set; }
 
     /// <summary>
-    /// Pre-computed enclosed types from source generator. Contains both concrete registered
-    /// types and framework base types (for example, <see cref="IEventRequest"/> and
-    /// <see cref="IEventRequest{T}"/>). <see cref="ImmutableArray{T}.IsDefaultOrEmpty"/>
+    /// Gets or sets the pre-computed enclosed types from the source generator. Contains both
+    /// concrete registered types and framework base types (for example, <see cref="IEventRequest"/>
+    /// and <see cref="IEventRequest{T}"/>). <see cref="ImmutableArray{T}.IsDefaultOrEmpty"/>
     /// indicates the source generator did not supply this information.
     /// </summary>
     public ImmutableArray<Type> EnclosedTypes { get; set; }
