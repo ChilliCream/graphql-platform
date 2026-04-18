@@ -4,6 +4,7 @@ ABCEGHJKLMNPRSTVXY
 accessibilities
 agrc
 Alderaan
+ALPN
 Andi
 apphost
 appsettings
@@ -35,15 +36,16 @@ cadastre
 callsite
 CCPA
 chillicream
+CODESIGN
 Codespaces
 colocated
-csclient
 combinators
 contentfiles
 Contoso
 conv
 CQRS
 creds
+csclient
 CUST
 dataloaders
 debuggable
@@ -91,6 +93,8 @@ inmemory
 inspectable
 keepalive
 Kellner
+keyrings
+keyserver
 Kydne
 LASTEXITCODE
 Leia
@@ -99,6 +103,7 @@ Linq
 Liquibase
 Marek
 matchesBrics
+maxage
 MCPEXP
 MediatR
 Memberwise
@@ -124,11 +129,13 @@ nlte
 Noda
 nologo
 Normen
+notarytool
 noverlaps
 Npgsql
 nstartsWith
 NSwag
 ntouches
+NUGETAPIKEY
 nwithin
 oncall
 opencover
@@ -138,6 +145,7 @@ OPTOUT
 overfetching
 OWIN
 pageable
+parameterless
 Partitioner
 pipefail
 PKCE
@@ -149,6 +157,7 @@ preparables
 PRIMEM
 PROJCS
 protobuf
+publishaot
 queryables
 quox
 quux
@@ -179,6 +188,7 @@ Skywalker
 snapshooter
 snupkg
 sortings
+spctl
 Specwise
 sqft
 srid
@@ -208,6 +218,7 @@ traceparent
 tracestate
 Trimmable
 Tzdb
+unittests
 unlisten
 unpublish
 unserialized
@@ -217,10 +228,13 @@ Upsert
 upvote
 URQL
 uuuu
+vnext
 vsix
 VXNlcjox
 websockets
 Wilhuff
+worklist
 Wunder
 xact
+xcrun
 xunit

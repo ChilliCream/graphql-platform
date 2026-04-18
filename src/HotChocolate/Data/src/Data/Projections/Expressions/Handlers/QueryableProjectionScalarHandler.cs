@@ -128,6 +128,7 @@ public class QueryableProjectionScalarHandler
         {
             var current = expression;
 
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             while (current is not null)
             {
                 current = UnwrapConvert(current);
@@ -174,5 +175,5 @@ public class QueryableProjectionScalarHandler
         }
     }
 
-    public static QueryableProjectionScalarHandler Create(ProjectionProviderContext context) => new();
+    public static QueryableProjectionScalarHandler Create(ProjectionProviderContext _) => new();
 }

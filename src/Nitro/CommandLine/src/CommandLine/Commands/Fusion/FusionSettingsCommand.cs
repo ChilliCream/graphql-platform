@@ -12,8 +12,8 @@ internal sealed class FusionSettingsCommand : Command
 {
     public FusionSettingsCommand() : base("settings")
     {
-        Description = "Manage Fusion settings";
+        Description = "Manage Fusion settings.";
 
-        AddCommand(new FusionSettingsSetCommand());
+        Subcommands.Add(new FusionSettingsSetCommand());
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Text.Json.Serialization.Metadata;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -19,9 +20,9 @@ public partial class MessageBusBuilder : IMessageBusBuilder
 
     private readonly Dictionary<Type, Action<MessageTypeDescriptor>> _messageDescriptors = [];
 
-    private readonly List<Consumer> _consumers = [];
+    private readonly List<ConsumerRegistration> _consumerRegistrations = [];
 
-    private readonly List<Saga> _sagas = [];
+    private readonly List<SagaRegistration> _sagaRegistrations = [];
 
     private readonly List<MessagingTransport> _transports = [];
 
@@ -65,72 +66,112 @@ public partial class MessageBusBuilder : IMessageBusBuilder
     }
 
     /// <inheritdoc />
-    public IMessageBusBuilder AddHandler<THandler>() where THandler : class, IHandler
-    {
-        AddHandler<THandler>(static _ => { });
-
-        return this;
-    }
-
-    /// <summary>
-    /// Registers a message handler with additional consumer configuration.
-    /// </summary>
-    /// <typeparam name="THandler">
-    /// The handler type implementing <see cref="IHandler"/>.
-    /// </typeparam>
-    /// <param name="configure">
-    /// An action to configure the consumer descriptor for this handler.
-    /// </param>
-    /// <returns>The builder instance for method chaining.</returns>
-    public IMessageBusBuilder AddHandler<THandler>(Action<IConsumerDescriptor> configure)
+    public IMessageBusBuilder AddHandler<THandler>(Action<IConsumerDescriptor>? configure = null)
         where THandler : class, IHandler
     {
-        Type consumerType;
+        var handlerType = typeof(THandler);
+        var existing = _consumerRegistrations.Find(r => r.HandlerType == handlerType);
 
-        // Batch handlers are detected automatically and routed to BatchConsumer with default options.
-        if (typeof(IBatchEventHandler).IsAssignableFrom(typeof(THandler)) && THandler.EventType is not null)
+        if (existing is not null)
         {
-            var batchConsumerType = typeof(BatchConsumer<,>).MakeGenericType(typeof(THandler), THandler.EventType);
-            var batchConsumer = (Consumer)Activator.CreateInstance(batchConsumerType, new BatchOptions(), configure)!;
-            _consumers.Add(batchConsumer);
+            if (configure is not null)
+            {
+                var inner = existing.Configure;
+                existing.Configure = inner is not null
+                    ? d =>
+                    {
+                        inner(d);
+                        configure(d);
+                    }
+#pragma warning disable format
+                    : configure;
+#pragma warning restore format
+            }
+
             return this;
         }
 
-        // Handlers are mapped to consumer adapters so routing + middleware can treat them uniformly:
-        // IConsumer<T> -> ConsumerAdapter, request+response -> RequestConsumer,
-        // request-only -> SendConsumer, event-only -> SubscribeConsumer.
-        if (typeof(IConsumer).IsAssignableFrom(typeof(THandler)) && THandler.EventType is not null)
+        // New registration - detect kind and create factory
+        Func<Action<IConsumerDescriptor>?, Consumer> factory;
+
+        if (typeof(IBatchEventHandler).IsAssignableFrom(typeof(THandler)) && THandler.EventType is not null)
         {
-            consumerType = typeof(ConsumerAdapter<,>).MakeGenericType(typeof(THandler), THandler.EventType);
+            factory = static c =>
+            {
+                var consumerType = typeof(BatchConsumer<,>).MakeGenericType(typeof(THandler), THandler.EventType);
+                return (Consumer)Activator.CreateInstance(consumerType, c)!;
+            };
+        }
+        else if (typeof(IConsumer).IsAssignableFrom(typeof(THandler)) && THandler.EventType is not null)
+        {
+            factory = static c =>
+            {
+                var consumerType = typeof(ConsumerAdapter<,>).MakeGenericType(typeof(THandler), THandler.EventType);
+                return (Consumer)Activator.CreateInstance(consumerType, c)!;
+            };
         }
         else if (THandler.RequestType is not null && THandler.ResponseType is not null)
         {
-            consumerType = typeof(RequestConsumer<,,>).MakeGenericType(
-                typeof(THandler),
-                THandler.RequestType,
-                THandler.ResponseType);
+            factory = static c =>
+            {
+                var consumerType = typeof(RequestConsumer<,,>).MakeGenericType(
+                    typeof(THandler),
+                    THandler.RequestType,
+                    THandler.ResponseType);
+
+                return (Consumer)Activator.CreateInstance(consumerType, c)!;
+            };
         }
         else if (THandler.RequestType is not null)
         {
-            consumerType = typeof(SendConsumer<,>).MakeGenericType(typeof(THandler), THandler.RequestType);
+            factory = static c =>
+            {
+                var consumerType = typeof(SendConsumer<,>).MakeGenericType(typeof(THandler), THandler.RequestType);
+                return (Consumer)Activator.CreateInstance(consumerType, c)!;
+            };
         }
         else if (THandler.EventType is not null)
         {
-            consumerType = typeof(SubscribeConsumer<,>).MakeGenericType(typeof(THandler), THandler.EventType);
+            factory = static c =>
+            {
+                var consumerType = typeof(SubscribeConsumer<,>).MakeGenericType(typeof(THandler), THandler.EventType);
+                return (Consumer)Activator.CreateInstance(consumerType, c)!;
+            };
         }
         else
         {
             throw ThrowHelper.InvalidHandlerType();
         }
 
-        var consumer = Activator.CreateInstance(consumerType, configure) as Consumer;
-
-        if (consumer is null)
+        _consumerRegistrations.Add(new ConsumerRegistration
         {
-            throw ThrowHelper.FailedToCreateConsumer(consumerType);
+            HandlerType = handlerType,
+            Configure = configure,
+            Factory = factory
+        });
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public IMessageBusBuilder AddHandlerConfiguration(MessagingHandlerConfiguration configuration)
+    {
+        var handlerType = configuration.HandlerType;
+        var existing = _consumerRegistrations.Find(r => r.HandlerType == handlerType);
+
+        if (existing is not null)
+        {
+            // Factory first-wins, nothing else to stack from SG path
+            return this;
         }
 
-        _consumers.Add(consumer);
+        _consumerRegistrations.Add(new ConsumerRegistration
+        {
+            HandlerType = handlerType,
+            Configure = null,
+            Factory = configuration.Factory
+        });
 
         return this;
     }
@@ -146,11 +187,8 @@ public partial class MessageBusBuilder : IMessageBusBuilder
     {
         var options = new BatchOptions();
         configure?.Invoke(options);
-        options.Validate();
 
-        var consumerType = typeof(BatchConsumer<,>).MakeGenericType(typeof(THandler), THandler.EventType!);
-        var consumer = (Consumer)Activator.CreateInstance(consumerType, options, null)!;
-        _consumers.Add(consumer);
+        AddHandler<THandler>(d => d.Extend().Configuration.Features.Set(options));
 
         return this;
     }
@@ -158,8 +196,15 @@ public partial class MessageBusBuilder : IMessageBusBuilder
     /// <inheritdoc />
     public IMessageBusBuilder AddSaga<TSaga>() where TSaga : Saga, new()
     {
-        var saga = new TSaga();
-        _sagas.Add(saga);
+        var sagaType = typeof(TSaga);
+
+        if (_sagaRegistrations.Exists(r => r.SagaType == sagaType))
+        {
+            return this;
+        }
+
+        _sagaRegistrations.Add(new SagaRegistration { SagaType = sagaType, Factory = static () => new TSaga() });
+
         return this;
     }
 
@@ -243,10 +288,16 @@ public partial class MessageBusBuilder : IMessageBusBuilder
         services.AddSingleton(loggerFactory);
         services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
 
-        var diagnosticObserver =
-            applicationServices.GetService<IBusDiagnosticObserver>() ?? NoOpBusDiagnosticObserver.Instance;
+        var listeners = applicationServices.GetServices<IMessagingDiagnosticEventListener>().ToArray();
 
-        services.AddSingleton(diagnosticObserver);
+        IMessagingDiagnosticEvents diagnosticEvents = listeners.Length switch
+        {
+            0 => NoopMessagingDiagnosticEvents.Instance,
+            1 => listeners[0],
+            _ => new AggregateMessagingDiagnosticEvents(listeners)
+        };
+
+        services.AddSingleton(diagnosticEvents);
 
         var naming = applicationServices.GetService<IBusNamingConventions>();
 
@@ -320,15 +371,30 @@ public partial class MessageBusBuilder : IMessageBusBuilder
         AddCoreServices(servicesCollection, applicationServices);
 
         var responseManager = applicationServices.GetRequiredService<DeferredResponseManager>();
-        // Always register the internal reply consumer so request promises can be completed.
-        _consumers.Add(new ReplyConsumer(responseManager));
 
-        foreach (var saga in _sagas)
+        // Materialize consumers from registrations
+        var consumerList = new List<Consumer>
         {
-            _consumers.Add(saga.Consumer);
+            // Infrastructure consumer
+            new ReplyConsumer(responseManager)
+        };
+
+        // Handler consumers from registrations
+        foreach (var reg in _consumerRegistrations)
+        {
+            consumerList.Add(reg.Factory(reg.Configure));
         }
 
-        var consumers = _consumers.ToImmutableArray();
+        // Saga consumers
+        var sagas = new List<Saga>();
+        foreach (var reg in _sagaRegistrations)
+        {
+            var saga = reg.Factory();
+            sagas.Add(saga);
+            consumerList.Add(saga.Consumer);
+        }
+
+        var consumers = consumerList.ToImmutableArray();
         var transports = _transports.ToImmutableArray();
 
         servicesCollection.AddSingleton(new RegisteredConsumers(consumers));
@@ -394,7 +460,7 @@ public partial class MessageBusBuilder : IMessageBusBuilder
         }
 
         // sagas have to be initialized before consumers, because of the saga consumer
-        foreach (var saga in _sagas)
+        foreach (var saga in sagas)
         {
             saga.Initialize(setupContext);
         }
@@ -416,6 +482,7 @@ public partial class MessageBusBuilder : IMessageBusBuilder
         // but no endpoint.
         foreach (var route in router.OutboundRoutes)
         {
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             if (route.Endpoint is null && route.Destination is not null)
             {
                 var endpoint = setupContext.Endpoints.GetOrCreate(setupContext, route.Destination);

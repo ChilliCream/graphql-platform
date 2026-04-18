@@ -1,12 +1,9 @@
-using System.Reactive;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.OpenApi;
 using ChilliCream.Nitro.CommandLine.Commands.OpenApi.Options;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
-using StrawberryShake;
+using ChilliCream.Nitro.CommandLine.Services;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.OpenApi;
 
@@ -14,141 +11,148 @@ internal sealed class ValidateOpenApiCollectionCommand : Command
 {
     public ValidateOpenApiCollectionCommand() : base("validate")
     {
-        Description = "Validate an OpenAPI collection version";
+        Description = "Validate an OpenAPI collection version.";
 
-        AddOption(Opt<StageNameOption>.Instance);
-        AddOption(Opt<OpenApiCollectionIdOption>.Instance);
-        AddOption(Opt<OpenApiCollectionFilePatternOption>.Instance);
-        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
+        Options.Add(Opt<OpenApiCollectionIdOption>.Instance);
+        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<OpenApiCollectionFilePatternOption>.Instance);
+        Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Opt<StageNameOption>.Instance,
-            Opt<OpenApiCollectionIdOption>.Instance,
-            Opt<OpenApiCollectionFilePatternOption>.Instance,
-            Opt<OptionalSourceMetadataOption>.Instance,
-            Bind.FromServiceProvider<CancellationToken>());
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples(
+            """
+            openapi validate \
+              --openapi-collection-id "<collection-id>" \
+              --stage "dev" \
+              --pattern "./**/*.graphql"
+            """);
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        IAnsiConsole console,
-        IApiClient client,
-        string stage,
-        string openApiCollectionId,
-        List<string> patterns,
-        string? sourceMetadataJson,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken ct)
     {
-        console.Title($"Validate against {stage.EscapeMarkup()}");
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IOpenApiClient>();
+        var fileSystem = services.GetRequiredService<IFileSystem>();
+        var sessionService = services.GetRequiredService<ISessionService>();
 
-        var isValid = false;
+        parseResult.AssertHasAuthentication(sessionService);
 
-        if (console.IsHumanReadable())
+        var stage = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
+        var openApiCollectionId = parseResult.GetRequiredValue(Opt<OpenApiCollectionIdOption>.Instance);
+        var patterns = parseResult.GetRequiredValue(Opt<OpenApiCollectionFilePatternOption>.Instance);
+        var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
+        var source = SourceMetadataParser.Parse(sourceMetadataJson);
+
+        await using (var activity = console.StartActivity(
+            $"Validating OpenAPI collection '{openApiCollectionId.EscapeMarkup()}' against stage '{stage.EscapeMarkup()}'",
+            "Failed to validate the OpenAPI collection."))
         {
-            await console
-                .Status()
-                .Spinner(Spinner.Known.BouncingBar)
-                .SpinnerStyle(Style.Parse("green bold"))
-                .StartAsync("Validating...", ValidateOpenApiCollection);
-        }
-        else
-        {
-            await ValidateOpenApiCollection(null);
-        }
+            var files = fileSystem.GlobMatch(patterns, ["**/bin/**", "**/obj/**"]).ToArray();
 
-        return isValid ? ExitCodes.Success : ExitCodes.Error;
-
-        async Task ValidateOpenApiCollection(StatusContext? ctx)
-        {
-            console.Log("Searching for OpenAPI documents with the following patterns:");
-            foreach (var pattern in patterns)
-            {
-                console.Log($"- {pattern}");
-            }
-
-            var files = GlobMatcher.Match(patterns).ToArray();
+            activity.Update($"Found {files.Length} document(s).");
 
             if (files.Length < 1)
             {
-                console.WriteLine("Could not find any OpenAPI documents with the provided pattern.");
-                return;
+                await activity.FailAllAsync();
+                throw new ExitException("Could not find any OpenAPI documents with the provided pattern.");
             }
 
-            console.Log($"Found {files.Length} OpenAPI document(s).");
-
             var archiveStream =
-                await OpenApiCollectionHelpers.BuildOpenApiCollectionArchive(files, ct);
+                await OpenApiCollectionHelpers.BuildOpenApiCollectionArchive(
+                    fileSystem,
+                    files,
+                    ct);
 
-            var input = new ValidateOpenApiCollectionInput
+            var validationRequest = await client.StartOpenApiCollectionValidationAsync(
+                openApiCollectionId,
+                stage,
+                archiveStream,
+                source,
+                ct);
+
+            if (validationRequest.Errors?.Count > 0)
             {
-                OpenApiCollectionId = openApiCollectionId,
-                Stage = stage,
-                Collection = new Upload(archiveStream, "collection.zip"),
-                Source = SourceMetadataHelper.Parse(sourceMetadataJson)
-            };
+                await activity.FailAllAsync();
 
-            var requestId = await ValidateAsync(console, client, input, ct);
-
-            console.Log($"Validation request created [grey](ID: {requestId.EscapeMarkup()})[/]");
-
-            using var stopSignal = new Subject<Unit>();
-
-            var subscription = client.ValidateOpenApiCollectionCommandSubscription
-                .Watch(requestId, ExecutionStrategy.NetworkOnly)
-                .TakeUntil(stopSignal);
-
-            await foreach (var x in subscription.ToAsyncEnumerable().WithCancellation(ct))
-            {
-                console.EnsureNoErrors(x);
-
-                switch (x.Data?.OnOpenApiCollectionVersionValidationUpdate)
+                foreach (var error in validationRequest.Errors)
                 {
-                    case IOpenApiCollectionVersionValidationFailed { Errors: var validationErrors }:
-                        console.WriteLine("The OpenAPI collection is invalid:");
-                        console.PrintErrorsAndExit(validationErrors);
-                        stopSignal.OnNext(Unit.Default);
-                        break;
+                    var errorMessage = error switch
+                    {
+                        IUnauthorizedOperation err => err.Message,
+                        IInvalidSourceMetadataInputError err => err.Message,
+                        IStageNotFoundError err => err.Message,
+                        IOpenApiCollectionNotFoundError err => err.Message,
+                        IError err => Messages.UnexpectedMutationError(err),
+                        _ => Messages.UnexpectedMutationError()
+                    };
+
+                    console.Error.WriteErrorLine(errorMessage);
+                }
+
+                return ExitCodes.Error;
+            }
+
+            if (validationRequest.Id is not { } id)
+            {
+                throw new ExitException("Could not create validation request!");
+            }
+
+            activity.Update($"Validation request created. {$"(ID: {id})".Dim()}");
+
+            await foreach (var update in client.SubscribeToOpenApiCollectionValidationAsync(id, ct))
+            {
+                switch (update)
+                {
+                    case IOpenApiCollectionVersionValidationFailed { Errors: var errors }:
+                        var errorTree = new Tree("");
+
+                        foreach (var error in errors)
+                        {
+                            switch (error)
+                            {
+                                case IOpenApiCollectionValidationError e:
+                                    errorTree.AddOpenApiCollectionValidationErrors(e);
+                                    break;
+                                case IOpenApiCollectionValidationArchiveError e:
+                                    errorTree.AddErrorMessage(Messages.InvalidArchive(e.Message));
+                                    break;
+                                case IUnexpectedProcessingError e:
+                                    errorTree.AddErrorMessage(e.Message);
+                                    break;
+                                case IProcessingTimeoutError e:
+                                    errorTree.AddErrorMessage(e.Message);
+                                    break;
+                            }
+                        }
+
+                        await activity.FailAllAsync(errorTree, "OpenAPI collection failed validation.");
+
+                        throw new ExitException("OpenAPI collection failed validation.");
 
                     case IOpenApiCollectionVersionValidationSuccess:
-                        isValid = true;
-                        stopSignal.OnNext(Unit.Default);
-                        console.Success("OpenAPI collection validation succeeded");
-                        break;
+                        activity.Success("OpenAPI collection passed validation.");
+                        return ExitCodes.Success;
 
                     case IOperationInProgress:
                     case IValidationInProgress:
-                        ctx?.Status("The validation is in progress.");
+                        activity.Update(Messages.Validating);
                         break;
 
                     default:
-                        ctx?.Status(
-                            "This is an unknown response, upgrade Nitro CLI to the latest version.");
+                        activity.Update(Messages.UnknownServerResponse, ActivityUpdateKind.Warning);
                         break;
                 }
             }
-        }
-    }
 
-    private static async Task<string> ValidateAsync(
-        IAnsiConsole console,
-        IApiClient client,
-        ValidateOpenApiCollectionInput input,
-        CancellationToken ct)
-    {
-        var result =
-            await client.ValidateOpenApiCollectionCommandMutation.ExecuteAsync(input, ct);
-
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        console.PrintErrorsAndExit(data.ValidateOpenApiCollection.Errors);
-
-        if (data.ValidateOpenApiCollection.Id is null)
-        {
-            throw new ExitException("Could not create validation request!");
+            await activity.FailAllAsync();
         }
 
-        return data.ValidateOpenApiCollection.Id;
+        return ExitCodes.Error;
     }
 }

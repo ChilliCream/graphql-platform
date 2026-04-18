@@ -28,7 +28,7 @@ public static partial class SchemaBuilderExtensions
     {
         return builder.Use(
             FieldClassMiddlewareFactory.Create(
-                (s, n) => new MapMiddleware(
+                (_, n) => new MapMiddleware(
                     n, fieldReference, middleware(n))));
     }
 
@@ -39,7 +39,7 @@ public static partial class SchemaBuilderExtensions
     {
         return builder.Use(
             FieldClassMiddlewareFactory.Create(
-                (s, n) =>
+                (_, n) =>
                 {
                     var classMiddleware =
                         FieldClassMiddlewareFactory.Create<TMiddleware>();
@@ -56,7 +56,7 @@ public static partial class SchemaBuilderExtensions
     {
         return builder.Use(
             FieldClassMiddlewareFactory.Create(
-                (s, n) =>
+                (_, n) =>
                 {
                     var classMiddleware =
                         FieldClassMiddlewareFactory

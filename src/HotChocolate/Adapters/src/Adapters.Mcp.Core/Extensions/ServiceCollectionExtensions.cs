@@ -34,10 +34,6 @@ internal static class ServiceCollectionExtensions
             .AddKeyedSingleton(
                 schemaName,
                 static (sp, name) => new StreamableHttpHandlerProxy(
-                    sp.GetRequiredKeyedService<McpRequestExecutorProxy>(name)))
-            .AddKeyedSingleton(
-                schemaName,
-                static (sp, name) => new SseHandlerProxy(
                     sp.GetRequiredKeyedService<McpRequestExecutorProxy>(name)));
     }
 

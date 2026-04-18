@@ -20,7 +20,9 @@ public static class ResolveWithObjectFieldDescriptorExtensions
     /// <typeparam name="TResult">
     /// The result type.
     /// </typeparam>
-    /// <returns></returns>
+    /// <returns>
+    /// The <see cref="IObjectFieldDescriptor"/> for configuration chaining.
+    /// </returns>
     public static IObjectFieldDescriptor ResolveWith<TResolver, TResult>(
         this IObjectFieldDescriptor descriptor,
         Expression<Func<TResolver, TResult?>> propertyOrMethod)
@@ -51,7 +53,9 @@ public static class ResolveWithObjectFieldDescriptorExtensions
     /// <typeparam name="TResult">
     /// The result type.
     /// </typeparam>
-    /// <returns></returns>
+    /// <returns>
+    /// The <see cref="IObjectFieldDescriptor"/> for configuration chaining.
+    /// </returns>
     public static IObjectFieldDescriptor ResolveWith<TResolver, TResult>(
         this IObjectFieldDescriptor descriptor,
         Expression<Func<TResolver, Task<TResult?>>> propertyOrMethod)

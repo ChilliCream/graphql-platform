@@ -21,7 +21,9 @@ public static class FusionServerAspNetCoreHostingBuilderExtensions
     /// <param name="maxAllowedRequestSize">
     /// The max allowed GraphQL request size.
     /// </param>
-    /// <returns></returns>
+    /// <returns>
+    /// The <see cref="IFusionGatewayBuilder"/> for configuration chaining.
+    /// </returns>
     public static IFusionGatewayBuilder AddGraphQLGateway(
         this IHostApplicationBuilder builder,
         string? name = null,

@@ -99,9 +99,9 @@ public static class VariableRewriter
                 }
                 rewrittenItems[i] = rewritten;
             }
-            else if (rewrittenItems is not null)
+            else
             {
-                rewrittenItems[i] = node.Fields[i];
+                rewrittenItems?[i] = node.Fields[i];
             }
         }
 
@@ -193,9 +193,9 @@ public static class VariableRewriter
                 }
                 rewrittenItems[i] = rewritten;
             }
-            else if (rewrittenItems is not null)
+            else
             {
-                rewrittenItems[i] = node.Items[i];
+                rewrittenItems?[i] = node.Items[i];
             }
         }
 

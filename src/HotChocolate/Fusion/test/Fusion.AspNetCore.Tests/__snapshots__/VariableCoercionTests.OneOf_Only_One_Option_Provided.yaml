@@ -1,9 +1,7 @@
 title: OneOf_Only_One_Option_Provided
 request:
   document: |
-    query testQuery(
-      $pet: Pet!
-    ) {
+    query testQuery($pet: Pet!) {
       petName(input: $pet)
     }
   variables: |
@@ -49,10 +47,9 @@ sourceSchemas:
       directive @oneOf on INPUT_OBJECT
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_6ad33e0e_1(
-              $pet: Pet!
-            ) {
+            query testQuery_6ad33e0e_1($pet: Pet!) {
               petName(input: $pet)
             }
           variables: |
@@ -74,9 +71,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $pet: Pet!
-        ) {
+        query testQuery($pet: Pet!) {
           petName(input: $pet)
         }
       name: testQuery
@@ -88,9 +83,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_6ad33e0e_1(
-          $pet: Pet!
-        ) {
+        query testQuery_6ad33e0e_1($pet: Pet!) {
           petName(input: $pet)
         }
       forwardedVariables:

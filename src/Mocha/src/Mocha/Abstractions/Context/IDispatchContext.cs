@@ -89,6 +89,11 @@ public interface IDispatchContext : IExecutionContext, IFeatureProvider
     DateTimeOffset? DeliverBy { get; set; }
 
     /// <summary>
+    /// Gets or sets the optional time at which the message should be made available for consumption.
+    /// </summary>
+    DateTimeOffset? ScheduledTime { get; set; }
+
+    /// <summary>
     /// Gets the writable memory buffer used to hold the serialized message body.
     /// </summary>
     IWritableMemory Body { get; }

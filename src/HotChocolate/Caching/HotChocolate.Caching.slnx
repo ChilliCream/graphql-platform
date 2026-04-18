@@ -2,6 +2,9 @@
   <Folder Name="/src/">
     <Project Path="src/Caching/HotChocolate.Caching.csproj" />
   </Folder>
+  <Folder Name="/src/Caching.Core/">
+    <Project Path="src/Caching.Core/HotChocolate.Caching.Core.csproj" />
+  </Folder>
   <Folder Name="/src/Caching.Memory/">
     <Project Path="src/Caching.Memory/HotChocolate.Caching.Memory.csproj" />
   </Folder>

@@ -146,7 +146,7 @@ public sealed class ConsumeContextTests
 
         public void SetMessage(object message)
         {
-            _features.GetOrSet<MessageParsingFeature>().Message = message;
+            _features.Configure<MessageParsingFeature>(f => f.Message = message);
         }
 
         public IFeatureCollection Features { get; }

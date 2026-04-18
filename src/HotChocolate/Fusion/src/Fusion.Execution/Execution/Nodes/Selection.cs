@@ -85,6 +85,8 @@ public sealed class Selection : ISelection
 
     internal ResolveFieldValue? Resolver => Field.Features.Get<ResolveFieldValue>();
 
+    internal AsyncResolveFieldValue? AsyncResolver => Field.Features.Get<AsyncResolveFieldValue>();
+
     IEnumerable<FieldNode> ISelection.GetSyntaxNodes()
     {
         for (var i = 0; i < SyntaxNodes.Length; i++)

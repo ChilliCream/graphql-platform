@@ -8,11 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.InMemory.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Execution.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.AspNetCore.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Tests.Shared" />
     <InternalsVisibleTo Include="ChilliCream.Nitro.Fusion" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.AspNetCore" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.InMemory" />
   </ItemGroup>
 
   <ItemGroup>
@@ -39,6 +41,21 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\..\Core\src\Types\Types\Introspection\Search\BM25Document.cs">
+      <Link>Execution\Introspection\Search\BM25Document.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Core\src\Types\Types\Introspection\Search\BM25Index.cs">
+      <Link>Execution\Introspection\Search\BM25Index.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Core\src\Types\Types\Introspection\Search\BM25SearchProvider.cs">
+      <Link>Execution\Introspection\Search\BM25SearchProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Core\src\Types\Types\Introspection\Search\BM25Tokenizer.cs">
+      <Link>Execution\Introspection\Search\BM25Tokenizer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Core\src\Types\Types\Introspection\Search\SchemaIndexer.cs">
+      <Link>Execution\Introspection\Search\SchemaIndexer.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\AspNetCore\src\Transport.Abstractions\ContentType.cs">
       <Link>Transport\ContentType.cs</Link>
     </Compile>
@@ -135,6 +152,18 @@
     </Compile>
     <Compile Include="..\..\..\AspNetCore\src\Transport.Http\Sse\SseReader.cs">
       <Link>Transport\Http\Sse\SseReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\BufferedHttpResponse.cs">
+      <Link>Transport\Http\BufferedHttpResponse.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\RequestDeduplicationHandler.cs">
+      <Link>Transport\Http\RequestDeduplicationHandler.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\RequestDeduplicationOptions.cs">
+      <Link>Transport\Http\RequestDeduplicationOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\AspNetCore\src\Transport.Http\RequestDeduplicationHttpClientBuilderExtensions.cs">
+      <Link>Transport\Http\RequestDeduplicationHttpClientBuilderExtensions.cs</Link>
     </Compile>
     <Compile Update="Text\Json\SourceResultElement.ObjectEnumerator.cs">
       <DependentUpon>SourceResultElement.cs</DependentUpon>

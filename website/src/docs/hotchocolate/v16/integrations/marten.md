@@ -18,8 +18,8 @@ Install the `HotChocolate.Data.Marten` package:
 Register the Marten filtering convention on the schema builder:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<Query>()
     .AddMartenFiltering();
 ```
@@ -31,8 +31,8 @@ builder.Services
 Register the Marten sorting convention on the schema builder:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<Query>()
     .AddMartenSorting();
 ```

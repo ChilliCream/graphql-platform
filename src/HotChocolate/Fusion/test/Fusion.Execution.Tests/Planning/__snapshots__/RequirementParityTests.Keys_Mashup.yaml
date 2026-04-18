@@ -42,7 +42,11 @@ nodes:
           $__fusion_2_compositeIdTwo: ID!
           $__fusion_2_id: ID!
       ) {
-        aByIdAndCompositeId(id: $__fusion_2_id, compositeIdTwo: $__fusion_2_compositeIdTwo, compositeIdThree: $__fusion_2_compositeIdThree) {
+        aByIdAndCompositeId(
+          id: $__fusion_2_id
+          compositeIdTwo: $__fusion_2_compositeIdTwo
+          compositeIdThree: $__fusion_2_compositeIdThree
+        ) {
           nameInB(name: $__fusion_1_name)
         }
       }
@@ -67,9 +71,7 @@ nodes:
     type: OperationBatch
     schema: a
     operation: |
-      query Op_123456789101112_3(
-        $__fusion_3_id: ID!
-      ) {
+      query Op_123456789101112_3($__fusion_3_id: ID!) {
         aById(id: $__fusion_3_id) {
           name
         }
@@ -89,9 +91,7 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_4(
-        $__fusion_4_id: ID!
-      ) {
+      query Op_123456789101112_4($__fusion_4_id: ID!) {
         aById(id: $__fusion_4_id) {
           id
           compositeId {

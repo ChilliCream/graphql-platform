@@ -28,7 +28,7 @@ public sealed class InMemoryMessagingTransportDescriptor
         Configuration = new InMemoryTransportConfiguration();
     }
 
-    protected override InMemoryTransportConfiguration Configuration { get; set; }
+    protected internal override InMemoryTransportConfiguration Configuration { get; protected set; }
 
     /// <inheritdoc />
     public new IInMemoryMessagingTransportDescriptor ModifyOptions(Action<TransportOptions> configure)
@@ -106,6 +106,26 @@ public sealed class InMemoryMessagingTransportDescriptor
         base.BindHandlersExplicitly();
 
         return this;
+    }
+
+    /// <inheritdoc />
+    public IMessagingTransportHandlerDescriptor<IInMemoryReceiveEndpointDescriptor> Handler<THandler>()
+        where THandler : class, IHandler
+    {
+        var name = Context.Naming.GetReceiveEndpointName(typeof(THandler), ReceiveEndpointKind.Default);
+        var endpoint = Endpoint(name);
+        endpoint.Handler(typeof(THandler));
+        return new MessagingTransportHandlerDescriptor<IInMemoryReceiveEndpointDescriptor>(endpoint);
+    }
+
+    /// <inheritdoc />
+    public IMessagingTransportConsumerDescriptor<IInMemoryReceiveEndpointDescriptor> Consumer<TConsumer>()
+        where TConsumer : class, IConsumer
+    {
+        var name = Context.Naming.GetReceiveEndpointName(typeof(TConsumer), ReceiveEndpointKind.Default);
+        var endpoint = Endpoint(name);
+        endpoint.Consumer(typeof(TConsumer));
+        return new MessagingTransportConsumerDescriptor<IInMemoryReceiveEndpointDescriptor>(endpoint);
     }
 
     /// <inheritdoc />

@@ -1,6 +1,4 @@
-query foo(
-  $v: Boolean!
-) {
+query foo($v: Boolean!) {
   hero(episode: EMPIRE) @include(if: $v) {
     name
   }
@@ -18,9 +16,7 @@ query foo(
 
 ---------------------------------------------------------
 
-query foo(
-  $v: Boolean!
-) {
+query foo($v: Boolean!) {
   ... on Query {
     hero(episode: EMPIRE) @__execute(id: 2, kind: PURE, type: COMPOSITE) {
       ... on Human {

@@ -126,7 +126,7 @@ public class MutationTests : FusionTestBase
         public class Query
         {
             [Internal, Lookup]
-            public Book GetBookById(int id) => new(id, "Abc");
+            public Book? GetBookById(int id) => new(id, "Abc");
         }
 
         public record Book(int Id, string Author);

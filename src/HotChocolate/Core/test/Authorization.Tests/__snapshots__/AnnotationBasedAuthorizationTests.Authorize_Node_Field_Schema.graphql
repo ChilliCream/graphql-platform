@@ -19,22 +19,32 @@ type Order implements Node @authorize {
   id: ID!
 }
 
-type Person implements Node @authorize(policy: "READ_PERSON", apply: AFTER_RESOLVER) {
+type Person implements Node
+  @authorize(policy: "READ_PERSON", apply: AFTER_RESOLVER) {
   id: ID!
   name: String
 }
 
-type Query @foo @authorize(policy: "QUERY", apply: VALIDATION) @authorize(policy: "QUERY2") {
+type Query
+  @foo
+  @authorize(policy: "QUERY", apply: VALIDATION)
+  @authorize(policy: "QUERY2") {
   "Fetches an object given its ID."
-  node("ID of the object." id: ID!): Node @cost(weight: "10") @authorize(policy: "READ_NODE", apply: VALIDATION)
+  node("ID of the object." id: ID!): Node
+    @cost(weight: "10")
+    @authorize(policy: "READ_NODE", apply: VALIDATION)
   "Lookup nodes by a list of IDs."
-  nodes("The list of node IDs." ids: [ID!]!): [Node]! @cost(weight: "10") @authorize(policy: "READ_NODE", apply: VALIDATION)
+  nodes("The list of node IDs." ids: [ID!]!): [Node]!
+    @cost(weight: "10")
+    @authorize(policy: "READ_NODE", apply: VALIDATION)
   null: String @authorize(policy: "NULL", apply: AFTER_RESOLVER)
   person(id: ID!): Person
   person2(id: String!): Person @allowAnonymous
   cityOrStreet(street: Boolean!): ICityOrStreet
-  thisIsAuthorized: Boolean @authorize(policy: "READ_AUTH", apply: AFTER_RESOLVER)
-  thisIsAuthorizedOnValidation: Boolean @authorize(policy: "READ_AUTH", apply: VALIDATION)
+  thisIsAuthorized: Boolean
+    @authorize(policy: "READ_AUTH", apply: AFTER_RESOLVER)
+  thisIsAuthorizedOnValidation: Boolean
+    @authorize(policy: "READ_AUTH", apply: VALIDATION)
   test: ID!
 }
 
@@ -58,9 +68,19 @@ enum ApplyPolicy {
 directive @allowAnonymous repeatable on FIELD_DEFINITION
 
 "The authorize directive."
-directive @authorize("The name of the authorization policy that determines access to the annotated resource." policy: String "Roles that are allowed to access the annotated resource." roles: [String!] "Defines when the authorize directive shall be applied. By default the authorize directive is applied before the resolver is executed." apply: ApplyPolicy! = BEFORE_RESOLVER) repeatable on OBJECT | FIELD_DEFINITION
+directive @authorize(
+  "The name of the authorization policy that determines access to the annotated resource."
+  policy: String
+  "Roles that are allowed to access the annotated resource."
+  roles: [String!]
+  "Defines when the authorize directive shall be applied. By default the authorize directive is applied before the resolver is executed."
+  apply: ApplyPolicy! = BEFORE_RESOLVER
+) repeatable on OBJECT | FIELD_DEFINITION
 
 "The purpose of the `cost` directive is to define a `weight` for GraphQL types, fields, and arguments. Static analysis can use these weights when calculating the overall cost of a query or response."
-directive @cost("The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc." weight: String!) on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
+directive @cost(
+  "The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc."
+  weight: String!
+) on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
 
 directive @foo on OBJECT

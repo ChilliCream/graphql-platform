@@ -17,7 +17,7 @@ type Foo implements Bar & Baz {
   two("""
   This is a description of the `argument` argument.
   """ argument: InputType!): Type
-  three(argument: InputType other: String): Int
+  three(argument: InputType, other: String): Int
   four(argument: String = "string"): String
   five(argument: [String] = [
     "string",

@@ -1011,7 +1011,6 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
     /// not lead to partial results.
     /// The result should consist of a single error stating the allowed depth.
     /// </summary>
-    /// <returns></returns>
     [Fact]
     public async Task ExecutionDepthShouldNotLeadToEmptyObjects()
     {

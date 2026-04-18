@@ -3,24 +3,21 @@
 using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Language;
+using static System.Net.Http.HttpCompletionOption;
+
 #if FUSION
-using HotChocolate.Fusion.Transport;
-using HotChocolate.Fusion.Transport.Http;
 using HotChocolate.Fusion.Transport.Serialization;
 using HotChocolate.Text.Json;
 using HotChocolate.Transport.Http;
 using HotChocolate.Types;
-#else
-using HotChocolate.Transport.Serialization;
-#endif
-using static System.Net.Http.HttpCompletionOption;
 
-#if FUSION
 namespace HotChocolate.Fusion.Transport.Http;
 #else
+using System.Text.Json;
+using HotChocolate.Transport.Serialization;
+
 namespace HotChocolate.Transport.Http;
 #endif
 
@@ -79,7 +76,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
     /// <param name="cancellationToken">
     /// A cancellation token that can be used to cancel the HTTP request.
     /// </param>
-    /// <returns></returns>
+    /// <returns>The GraphQL HTTP response.</returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="request"/> is <see langword="null"/>.
     /// </exception>
@@ -179,10 +176,10 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         else
         {
             message.Headers.Accept.Clear();
-        foreach (var contentType in request.Accept)
-        {
-            message.Headers.Accept.Add(contentType);
-        }
+            foreach (var contentType in request.Accept)
+            {
+                message.Headers.Accept.Add(contentType);
+            }
         }
 #else
         message.Headers.Accept.Clear();
@@ -214,6 +211,13 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         else
         {
             throw new NotSupportedException($"The HTTP method `{method}` is not supported.");
+        }
+
+        if (request.OperationKind.HasValue)
+        {
+            message.Options.Set(
+                GraphQLHttpRequest.OperationKindOptionsKey,
+                request.OperationKind.Value);
         }
 
         return message;
@@ -353,8 +357,8 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
     {
         return body switch
         {
-            OperationRequest { FileMap: { IsDefaultOrEmpty: false } fileMap } => [..fileMap],
-            OperationBatchRequest { FileMap: { IsDefaultOrEmpty: false } fileMap } => [..fileMap],
+            OperationRequest { FileMap: { IsDefaultOrEmpty: false } fileMap } => [.. fileMap],
+            OperationBatchRequest { FileMap: { IsDefaultOrEmpty: false } fileMap } => [.. fileMap],
             _ => []
         };
     }
@@ -599,7 +603,6 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
         {
             ErrorHandlingMode.Propagate => "PROPAGATE",
             ErrorHandlingMode.Null => "NULL",
-            ErrorHandlingMode.Halt => "HALT",
             _ => throw new ArgumentOutOfRangeException(nameof(mode))
         };
     }

@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Middlewares;
 using Mocha.Sagas;
@@ -14,8 +15,18 @@ public interface IMessageBusBuilder
     /// Registers a message handler that will consume messages matching its declared message type.
     /// </summary>
     /// <typeparam name="THandler">The handler type implementing <see cref="IHandler"/>.</typeparam>
+    /// <param name="configure">Optional action to configure the consumer descriptor.</param>
     /// <returns>The builder instance for method chaining.</returns>
-    IMessageBusBuilder AddHandler<THandler>() where THandler : class, IHandler;
+    IMessageBusBuilder AddHandler<THandler>(Action<IConsumerDescriptor>? configure = null)
+        where THandler : class, IHandler;
+
+    /// <summary>
+    /// Registers a handler using pre-built configuration from the source generator.
+    /// </summary>
+    /// <param name="configuration">The pre-built handler configuration.</param>
+    /// <returns>The builder instance for method chaining.</returns>
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    IMessageBusBuilder AddHandlerConfiguration(MessagingHandlerConfiguration configuration);
 
     /// <summary>
     /// Registers a batch event handler that collects messages and delivers them in batches.

@@ -14,8 +14,8 @@ public sealed class ConsumerInstrumentationMiddlewareTests
     public async Task InvokeAsync_Should_CallObserverConsume_When_MiddlewareInvoked()
     {
         // arrange
-        var observer = new MockBusDiagnosticObserver();
-        var middleware = new ConsumerInstrumentationMiddleware(observer);
+        var events = new MockMessagingDiagnosticEvents();
+        var middleware = new ConsumerInstrumentationMiddleware(events);
         var context = new StubConsumeContext();
         var nextCalled = false;
 
@@ -29,7 +29,7 @@ public sealed class ConsumerInstrumentationMiddlewareTests
         await middleware.InvokeAsync(context, next);
 
         // assert
-        Assert.True(observer.ConsumeCalled, "Observer.Consume should be called");
+        Assert.True(events.ConsumeCalled, "Events.Consume should be called");
         Assert.True(nextCalled, "Next delegate should be called");
     }
 
@@ -38,8 +38,8 @@ public sealed class ConsumerInstrumentationMiddlewareTests
     {
         // arrange
         var scope = new MockDisposable();
-        var observer = new MockBusDiagnosticObserver { ScopeToReturn = scope };
-        var middleware = new ConsumerInstrumentationMiddleware(observer);
+        var events = new MockMessagingDiagnosticEvents { ScopeToReturn = scope };
+        var middleware = new ConsumerInstrumentationMiddleware(events);
         var context = new StubConsumeContext();
 
         ConsumerDelegate next = _ => ValueTask.CompletedTask;
@@ -56,8 +56,8 @@ public sealed class ConsumerInstrumentationMiddlewareTests
     {
         // arrange
         var scope = new MockDisposable();
-        var observer = new MockBusDiagnosticObserver { ScopeToReturn = scope };
-        var middleware = new ConsumerInstrumentationMiddleware(observer);
+        var events = new MockMessagingDiagnosticEvents { ScopeToReturn = scope };
+        var middleware = new ConsumerInstrumentationMiddleware(events);
         var context = new StubConsumeContext();
 
         ConsumerDelegate next = _ => throw new InvalidOperationException("Test");
@@ -80,8 +80,8 @@ public sealed class ConsumerInstrumentationMiddlewareTests
     public async Task InvokeAsync_Should_RethrowException_When_NextThrows()
     {
         // arrange
-        var observer = new MockBusDiagnosticObserver();
-        var middleware = new ConsumerInstrumentationMiddleware(observer);
+        var events = new MockMessagingDiagnosticEvents();
+        var middleware = new ConsumerInstrumentationMiddleware(events);
         var context = new StubConsumeContext();
         var expected = new InvalidOperationException("Should be rethrown");
 
@@ -96,11 +96,33 @@ public sealed class ConsumerInstrumentationMiddlewareTests
     }
 
     [Fact]
+    public async Task InvokeAsync_Should_CallConsumeError_When_ExceptionOccurs()
+    {
+        // arrange
+        var events = new MockMessagingDiagnosticEvents();
+        var middleware = new ConsumerInstrumentationMiddleware(events);
+        var context = new StubConsumeContext();
+        var expectedException = new InvalidOperationException("Test exception");
+
+        ConsumerDelegate next = _ => throw expectedException;
+
+        // act & assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            middleware.InvokeAsync(context, next).AsTask()
+        );
+
+        Assert.Same(expectedException, ex);
+        Assert.True(events.ConsumeErrorCalled, "ConsumeError should be called on exception");
+        Assert.Same(expectedException, events.RecordedException);
+        Assert.Same(context, events.RecordedErrorContext);
+    }
+
+    [Fact]
     public async Task InvokeAsync_Should_PassContextToObserver_When_Invoked()
     {
         // arrange
-        var observer = new MockBusDiagnosticObserver();
-        var middleware = new ConsumerInstrumentationMiddleware(observer);
+        var events = new MockMessagingDiagnosticEvents();
+        var middleware = new ConsumerInstrumentationMiddleware(events);
         var context = new StubConsumeContext();
 
         ConsumerDelegate next = _ => ValueTask.CompletedTask;
@@ -109,7 +131,7 @@ public sealed class ConsumerInstrumentationMiddlewareTests
         await middleware.InvokeAsync(context, next);
 
         // assert
-        Assert.Same(context, observer.RecordedConsumeContext);
+        Assert.Same(context, events.RecordedConsumeContext);
     }
 
     [Fact]
@@ -128,9 +150,9 @@ public sealed class ConsumerInstrumentationMiddlewareTests
     public async Task Create_Should_ProduceWorkingMiddleware_When_UsedWithServiceProvider()
     {
         // arrange
-        var observer = new MockBusDiagnosticObserver();
+        var events = new MockMessagingDiagnosticEvents();
         var services = new ServiceCollection();
-        services.AddSingleton<IBusDiagnosticObserver>(observer);
+        services.AddSingleton<IMessagingDiagnosticEvents>(events);
         var provider = services.BuildServiceProvider();
 
         var configuration = ConsumerInstrumentationMiddleware.Create();
@@ -149,7 +171,7 @@ public sealed class ConsumerInstrumentationMiddlewareTests
         await middlewareDelegate(consumeContext);
 
         // assert
-        Assert.True(observer.ConsumeCalled);
+        Assert.True(events.ConsumeCalled);
         Assert.True(nextCalled);
     }
 
@@ -180,15 +202,22 @@ public sealed class ConsumerInstrumentationMiddlewareTests
         public IRemoteHostInfo Host { get; set; } = null!;
     }
 
-    private sealed class MockBusDiagnosticObserver : IBusDiagnosticObserver
+    private sealed class MockMessagingDiagnosticEvents : IMessagingDiagnosticEvents
     {
         public bool ConsumeCalled { get; private set; }
+        public bool ConsumeErrorCalled { get; private set; }
         public IConsumeContext? RecordedConsumeContext { get; private set; }
+        public IConsumeContext? RecordedErrorContext { get; private set; }
+        public Exception? RecordedException { get; private set; }
         public IDisposable? ScopeToReturn { get; set; }
 
         public IDisposable Dispatch(IDispatchContext context) => new MockDisposable();
 
+        public void DispatchError(IDispatchContext context, Exception exception) { }
+
         public IDisposable Receive(IReceiveContext context) => new MockDisposable();
+
+        public void ReceiveError(IReceiveContext context, Exception exception) { }
 
         public IDisposable Consume(IConsumeContext context)
         {
@@ -197,11 +226,12 @@ public sealed class ConsumerInstrumentationMiddlewareTests
             return ScopeToReturn ?? new MockDisposable();
         }
 
-        public void OnReceiveError(IReceiveContext context, Exception exception) { }
-
-        public void OnDispatchError(IDispatchContext context, Exception exception) { }
-
-        public void OnConsumeError(IConsumeContext context, Exception exception) { }
+        public void ConsumeError(IConsumeContext context, Exception exception)
+        {
+            ConsumeErrorCalled = true;
+            RecordedErrorContext = context;
+            RecordedException = exception;
+        }
     }
 
     private sealed class MockDisposable : IDisposable

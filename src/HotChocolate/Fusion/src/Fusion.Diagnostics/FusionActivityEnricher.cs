@@ -3,7 +3,6 @@ using HotChocolate.Diagnostics;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
-using HotChocolate.Language;
 
 namespace HotChocolate.Fusion.Diagnostics;
 

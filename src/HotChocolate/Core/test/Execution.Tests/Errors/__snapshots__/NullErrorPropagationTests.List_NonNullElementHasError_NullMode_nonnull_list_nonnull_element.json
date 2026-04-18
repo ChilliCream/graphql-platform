@@ -1,0 +1,22 @@
+{
+  "errors": [
+    {
+      "message": "ERROR",
+      "path": [
+        "foo",
+        "nonnull_list_nonnull_element",
+        0,
+        "c"
+      ]
+    }
+  ],
+  "data": {
+    "foo": {
+      "nonnull_list_nonnull_element": [
+        {
+          "c": null
+        }
+      ]
+    }
+  }
+}

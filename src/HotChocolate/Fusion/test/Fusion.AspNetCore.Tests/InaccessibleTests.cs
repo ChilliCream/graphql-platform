@@ -916,7 +916,7 @@ public class InaccessibleTests : FusionTestBase
                     };
 
                 [Lookup]
-                public Book GetBookById(int id)
+                public Book? GetBookById(int id)
                     => _books[id];
 
                 public string GetInaccessibleText(
@@ -943,7 +943,7 @@ public class InaccessibleTests : FusionTestBase
 
                 [Internal]
                 [Lookup]
-                public Author GetAuthorById(int id)
+                public Author? GetAuthorById(int id)
                     => _authors[id];
 
                 public SomeEnum GetEnumField(SomeEnum value)

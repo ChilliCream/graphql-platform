@@ -1,24 +1,31 @@
+using ChilliCream.Nitro.CommandLine.Services;
+
 namespace ChilliCream.Nitro.CommandLine.Commands.Fusion.PublishCommand;
 
-public static class FusionConfigurationPublishingState
+internal static class FusionConfigurationPublishingState
 {
-    public static async ValueTask<string?> GetRequestId(CancellationToken cancellationToken)
+    internal static async ValueTask<string?> GetRequestId(
+        IFileSystem fileSystem,
+        CancellationToken cancellationToken)
     {
         var file = GetCacheFile();
-        if (file.Exists)
+        if (fileSystem.FileExists(file))
         {
-            return await File.ReadAllTextAsync(file.FullName, cancellationToken);
+            return await fileSystem.ReadAllTextAsync(file, cancellationToken);
         }
 
         return null;
     }
 
-    public static async Task SetRequestId(string requestId, CancellationToken cancellationToken)
+    internal static async Task SetRequestId(
+        IFileSystem fileSystem,
+        string requestId,
+        CancellationToken cancellationToken)
     {
         var file = GetCacheFile();
-        await File.WriteAllTextAsync(file.FullName, requestId, cancellationToken);
+        await fileSystem.WriteAllTextAsync(file, requestId, cancellationToken);
     }
 
-    private static FileInfo GetCacheFile()
-        => new(Path.Combine(Path.GetTempPath(), "fusion.configuration.publishing.state"));
+    private static string GetCacheFile()
+        => Path.Combine(Path.GetTempPath(), "fusion.configuration.publishing.state");
 }

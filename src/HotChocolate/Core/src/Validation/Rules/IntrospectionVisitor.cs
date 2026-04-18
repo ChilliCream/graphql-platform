@@ -36,8 +36,9 @@ internal sealed class IntrospectionVisitor : TypeDocumentValidatorVisitor
         {
             var namedType = type.NamedType();
             if (context.Schema.QueryType == namedType
-                && (IntrospectionFieldNames.Schema.Equals(node.Name.Value, StringComparison.Ordinal)
-                || IntrospectionFieldNames.Type.Equals(node.Name.Value, StringComparison.Ordinal)))
+                && namedType is IComplexTypeDefinition complexType
+                && complexType.Fields.TryGetField(node.Name.Value, out var field)
+                && field.IsIntrospectionField)
             {
                 context.ReportError(
                     context.IntrospectionNotAllowed(

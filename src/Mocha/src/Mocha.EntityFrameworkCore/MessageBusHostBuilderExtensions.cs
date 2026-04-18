@@ -93,12 +93,31 @@ internal sealed class EntityFrameworkResilienceConsumeMiddleware(Type contextTyp
 {
     public async ValueTask InvokeAsync(IConsumeContext context, ConsumerDelegate next)
     {
-        // TODO is this too opinionated?
         var dbContext = (DbContext)context.Services.GetRequiredService(contextType);
+        var strategy = dbContext.Database.CreateExecutionStrategy();
 
-        var executionStrategy = dbContext.Database.CreateExecutionStrategy();
+        if (!strategy.RetriesOnFailure)
+        {
+            await next(context);
+            return;
+        }
 
-        await executionStrategy.ExecuteAsync(async () => await next(context));
+        var originalServices = context.Services;
+
+        await strategy.ExecuteAsync(async () =>
+        {
+            await using var scope = originalServices.CreateAsyncScope();
+            context.Services = scope.ServiceProvider;
+
+            try
+            {
+                await next(context);
+            }
+            finally
+            {
+                context.Services = originalServices;
+            }
+        });
     }
 
     public static ConsumerMiddlewareConfiguration Create()

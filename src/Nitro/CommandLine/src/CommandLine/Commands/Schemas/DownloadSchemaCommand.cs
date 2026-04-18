@@ -1,78 +1,85 @@
-using ChilliCream.Nitro.CommandLine.Client;
-using ChilliCream.Nitro.CommandLine.Configuration;
+using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
+using ChilliCream.Nitro.CommandLine.Services;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
+using static ChilliCream.Nitro.CommandLine.ThrowHelper;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Schemas;
 
 internal sealed class DownloadSchemaCommand : Command
 {
-    public DownloadSchemaCommand()
-        : base("download")
+    public DownloadSchemaCommand() : base("download")
     {
-        Description = "Download a schema from a stage";
+        Description = "Download a schema from a stage.";
 
-        AddOption(Opt<ApiIdOption>.Instance);
-        AddOption(Opt<StageNameOption>.Instance);
-        AddOption(Opt<FileNameOption>.Instance);
+        Options.Add(Opt<ApiIdOption>.Instance);
+        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<OptionalOutputFileOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Bind.FromServiceProvider<IHttpClientFactory>(),
-            Opt<ApiIdOption>.Instance,
-            Opt<StageNameOption>.Instance,
-            Opt<FileNameOption>.Instance,
-            Bind.FromServiceProvider<CancellationToken>());
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples(
+            """
+            schema download \
+              --api-id "<api-id>" \
+              --stage "dev" \
+              --output-file ./schema.graphqls
+            """);
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        IAnsiConsole console,
-        IApiClient client,
-        IHttpClientFactory clientFactory,
-        string apiId,
-        string stageName,
-        FileInfo schemaFile,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken cancellationToken)
     {
-        console.Title("Download schema");
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<ISchemasClient>();
+        var fileSystem = services.GetRequiredService<IFileSystem>();
+        var sessionService = services.GetRequiredService<ISessionService>();
 
-        if (console.IsHumanReadable())
+        parseResult.AssertHasAuthentication(sessionService);
+
+        var apiId = parseResult.GetRequiredValue(Opt<ApiIdOption>.Instance);
+        var stageName = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
+        var schemaFilePath = parseResult.GetValue(Opt<OptionalOutputFileOption>.Instance);
+
+        if (string.IsNullOrEmpty(schemaFilePath))
         {
-            await console
-                .Status()
-                .Spinner(Spinner.Known.BouncingBar)
-                .SpinnerStyle(Style.Parse("green bold"))
-                .StartAsync("Fetching Schema...", UploadSchema);
+            schemaFilePath = "schema.graphqls";
         }
-        else
+
+        if (!Path.IsPathRooted(schemaFilePath))
         {
-            await UploadSchema(null);
+            schemaFilePath = Path.Combine(fileSystem.GetCurrentDirectory(), schemaFilePath);
         }
 
-        return ExitCodes.Success;
-
-        async Task UploadSchema(StatusContext? ctx)
+        await using (var activity = console.StartActivity(
+            $"Downloading schema from stage '{stageName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'",
+            "Failed to download the schema."))
         {
-            using var httpClient = clientFactory.CreateClient(ApiClient.ClientName);
-
-            var encodedApiId = Uri.EscapeDataString(apiId);
-            var encodedStageName = Uri.EscapeDataString(stageName);
-
-            using var response = await httpClient.GetAsync(
-                $"/api/v1/apis/{encodedApiId}/schemas/latest/download?stage={encodedStageName}",
+            await using var schemaStream = await client.DownloadLatestSchemaAsync(
+                apiId,
+                stageName,
                 cancellationToken);
 
-            if (!response.IsSuccessStatusCode)
+            if (schemaStream is null)
             {
-                throw new ExitException($"Could not find a published schema on stage {stageName}");
+                throw Exit($"Could not find a published schema on stage '{stageName}'.");
             }
 
-            await using var fileStream = schemaFile.OpenWrite();
-            await response.Content.CopyToAsync(fileStream, cancellationToken);
+            if (fileSystem.FileExists(schemaFilePath))
+            {
+                fileSystem.DeleteFile(schemaFilePath);
+            }
 
-            console.Success($"Downloaded schema to {schemaFile.FullName}");
+            await using var fileStream = fileSystem.CreateFile(schemaFilePath);
+            await schemaStream.CopyToAsync(fileStream, cancellationToken);
+
+            activity.Success($"Downloaded the schema from stage '{stageName.EscapeMarkup()}'.");
+
+            return ExitCodes.Success;
         }
     }
 }

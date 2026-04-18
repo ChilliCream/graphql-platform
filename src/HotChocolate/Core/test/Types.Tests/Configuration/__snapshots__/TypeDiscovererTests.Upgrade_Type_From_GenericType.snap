@@ -73,6 +73,39 @@
       ]
     },
     {
+      "type": "HotChocolate.Types.Introspection.__SearchResult",
+      "runtimeType": "HotChocolate.SchemaSearchResult",
+      "references": [
+        "HotChocolate.Types.Introspection.__SearchResult (Output)",
+        "__SearchResult (Output)",
+        "ObjectType<SchemaSearchResult!> (Output)"
+      ]
+    },
+    {
+      "type": "HotChocolate.Types.Introspection.__SchemaDefinition",
+      "runtimeType": "System.Object",
+      "references": [
+        "HotChocolate.Types.Introspection.__SchemaDefinition (Output)",
+        "__SchemaDefinition (Output)"
+      ]
+    },
+    {
+      "type": "HotChocolate.Types.IntType",
+      "runtimeType": "System.Int32",
+      "references": [
+        "HotChocolate.Types.IntType",
+        "IntType"
+      ]
+    },
+    {
+      "type": "HotChocolate.Types.FloatType",
+      "runtimeType": "System.Double",
+      "references": [
+        "HotChocolate.Types.FloatType",
+        "FloatType"
+      ]
+    },
+    {
       "type": "HotChocolate.Types.SkipDirectiveType",
       "runtimeType": "System.Object",
       "references": [
@@ -159,6 +192,9 @@
     "ISchemaDefinition (Output)": "HotChocolate.Types.Introspection.__Schema (Output)",
     "IType (Output)": "HotChocolate.Types.Introspection.__Type (Output)",
     "TypeKind!": "HotChocolate.Types.Introspection.__TypeKind",
+    "SchemaSearchResult! (Output)": "HotChocolate.Types.Introspection.__SearchResult (Output)",
+    "Int32!": "HotChocolate.Types.IntType",
+    "Double!": "HotChocolate.Types.FloatType",
     "DeprecatedDirective": "HotChocolate.Types.DeprecatedDirectiveType",
     "Foo (Output)": "ObjectType<Foo> (Output)",
     "String": "HotChocolate.Types.StringType",

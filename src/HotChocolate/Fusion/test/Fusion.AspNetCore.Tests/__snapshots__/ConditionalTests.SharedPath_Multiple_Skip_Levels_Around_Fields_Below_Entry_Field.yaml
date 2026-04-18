@@ -1,10 +1,7 @@
 title: SharedPath_Multiple_Skip_Levels_Around_Fields_Below_Entry_Field
 request:
   document: |
-    query testQuery(
-      $skip1: Boolean!
-        $skip2: Boolean!
-    ) {
+    query testQuery($skip1: Boolean!, $skip2: Boolean!) {
       viewer {
         ... @skip(if: $skip1) {
           ... @skip(if: $skip2) {
@@ -42,11 +39,9 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_c099bff0_1(
-              $skip1: Boolean!
-                $skip2: Boolean!
-            ) {
+            query testQuery_c099bff0_1($skip1: Boolean!, $skip2: Boolean!) {
               viewer {
                 ... @skip(if: $skip1) {
                   ... @skip(if: $skip2) {
@@ -84,10 +79,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $skip1: Boolean!
-            $skip2: Boolean!
-        ) {
+        query testQuery($skip1: Boolean!, $skip2: Boolean!) {
           viewer {
             ... @skip(if: $skip1) {
               ... @skip(if: $skip2) {
@@ -106,10 +98,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_c099bff0_1(
-          $skip1: Boolean!
-            $skip2: Boolean!
-        ) {
+        query testQuery_c099bff0_1($skip1: Boolean!, $skip2: Boolean!) {
           viewer {
             ... @skip(if: $skip1) {
               ... @skip(if: $skip2) {

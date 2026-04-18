@@ -1,8 +1,6 @@
 operation:
   - document: |
-      query(
-        $skip: Boolean = false
-      ) {
+      query($skip: Boolean = false) {
         product {
           price
           price @fusion__requirement
@@ -56,10 +54,7 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_4(
-        $__fusion_4_id: ID!
-          $__fusion_5_price: Float!
-      ) {
+      query Op_123456789101112_4($__fusion_4_id: ID!, $__fusion_5_price: Float!) {
         productById(id: $__fusion_4_id) {
           isExpensive(price: $__fusion_5_price)
         }

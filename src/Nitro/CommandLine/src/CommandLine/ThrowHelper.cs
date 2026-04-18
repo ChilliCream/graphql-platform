@@ -1,5 +1,3 @@
-using ChilliCream.Nitro.CommandLine.Helpers;
-
 namespace ChilliCream.Nitro.CommandLine;
 
 internal static class ThrowHelper
@@ -9,24 +7,20 @@ internal static class ThrowHelper
         return new ExitException(message);
     }
 
-    public static ExitException NoDefaultWorkspace() => new(
-        $"You are not logged in. Run {"nitro login".AsCommand()} to sign in or specify the workspace ID with the --workspace-id option (if available).");
+    public static ExitException MissingRequiredOption(string optionName)
+        => Exit($"Missing required option '{optionName}'.");
+
+    public static ExitException MissingRequiredArgument(string argumentName)
+        => Exit($"Missing required argument '{argumentName}'.");
 
     public static Exception NoPageInfoFound()
-        => ThereWasAnIssueWithTheRequest("No page info found in the response.");
+        => new ExitException("No page info found in the response.");
 
     public static Exception CouldNotSelectEdges()
-        => ThereWasAnIssueWithTheRequest("Could not select edges.");
-
-    public static Exception NoApiSelected() => Exit("You did not select an API!");
+        => new ExitException("Could not select edges.");
 
     public static Exception NoClientSelected() => Exit("You did not select a client!");
 
-    public static Exception NoOpenApiCollectionSelected() => Exit("You did not select an OpenAPI collection!");
-
-    public static Exception NoMcpFeatureCollectionSelected() => Exit("You did not select an MCP Feature Collection!");
-
-    public static Exception ThereWasAnIssueWithTheRequest(string? additional = null)
-        => new ExitException(
-            $"There was an issue with the request to the server.\n{additional ?? ""}");
+    public static ExitException MutationReturnedNoData()
+        => Exit("The GraphQL mutation completed without errors, but the server did not return the expected data.");
 }

@@ -1,10 +1,8 @@
-using System.CommandLine.Invocation;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.PersonalAccessTokens;
 using ChilliCream.Nitro.CommandLine.Arguments;
-using ChilliCream.Nitro.CommandLine.Client;
 using ChilliCream.Nitro.CommandLine.Commands.PersonalAccessTokens.Components;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
@@ -15,54 +13,81 @@ internal sealed class RevokePersonalAccessTokenCommand : Command
 {
     public RevokePersonalAccessTokenCommand() : base("revoke")
     {
-        Description = "Revokes a personal access token";
+        Description = "Revoke a personal access token.";
 
-        AddArgument(Opt<IdArgument>.Instance);
-        AddOption(Opt<ForceOption>.Instance);
+        Arguments.Add(Opt<IdArgument>.Instance);
+        Options.Add(Opt<OptionalForceOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Opt<IdArgument>.Instance,
-            Bind.FromServiceProvider<CancellationToken>());
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples("pat revoke \"<pat-id>\"");
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
-        string patId,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken cancellationToken)
     {
-        var confirmMessage = $"Do you really want to delete PAT with ID {patId}";
-        var force = await context.ConfirmWhenNotForced(confirmMessage, cancellationToken);
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IPersonalAccessTokensClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
+
+        parseResult.AssertHasAuthentication(sessionService);
+
+        var patId = parseResult.GetRequiredValue(Opt<IdArgument>.Instance);
+        var force = parseResult.GetValue(Opt<OptionalForceOption>.Instance);
         if (!force)
         {
-            throw Exit("PAT was not deleted");
+            var confirmed = await console.ConfirmAsync(
+                $"Do you really want to delete PAT with ID {patId}",
+                cancellationToken);
+
+            if (!confirmed)
+            {
+                throw Exit("PAT was not deleted.");
+            }
         }
 
-        var result = await client.RevokePersonalAccessTokenCommandMutation
-            .ExecuteAsync(new RevokePersonalAccessTokenInput { Id = patId }, cancellationToken);
-
-        console.EnsureNoErrors(result);
-
-        var data = console.EnsureData(result);
-
-        console.PrintErrorsAndExit(data.RevokePersonalAccessToken.Errors);
-
-        var changeResult = data.RevokePersonalAccessToken.PersonalAccessToken;
-        if (changeResult is null)
+        await using (var activity = console.StartActivity(
+            $"Revoking personal access token '{patId.EscapeMarkup()}'",
+            "Failed to revoke the personal access token."))
         {
-            throw Exit("Could not delete PAT");
+            var data = await client.RevokePersonalAccessTokenAsync(patId, cancellationToken);
+
+            if (data.Errors?.Count > 0)
+            {
+                await activity.FailAllAsync();
+
+                foreach (var error in data.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        IPersonalAccessTokenNotFoundError err => err.Message,
+                        IError err => Messages.UnexpectedMutationError(err),
+                        _ => Messages.UnexpectedMutationError()
+                    };
+
+                    console.Error.WriteErrorLine(errorMessage);
+                }
+
+                return ExitCodes.Error;
+            }
+
+            if (data.PersonalAccessToken is not IPersonalAccessTokenDetailPrompt_PersonalAccessToken token)
+            {
+                await activity.FailAllAsync();
+                console.Error.WriteErrorLine("Could not revoke personal access token.");
+                return ExitCodes.Error;
+            }
+
+            activity.Success($"Revoked personal access token '{patId.EscapeMarkup()}'.");
+
+            resultHolder.SetResult(new ObjectResult(PersonalAccessTokenDetailPrompt.From(token).ToObject()));
+
+            return ExitCodes.Success;
         }
-
-        console.OkLine(
-            $"PersonalAccessToken {changeResult.Description.AsHighlight()} [dim](ID: {changeResult.Id})[/] was deleted");
-
-        context.SetResult(PersonalAccessTokenDetailPrompt.From(changeResult).ToObject());
-
-        return ExitCodes.Success;
     }
 }

@@ -1,10 +1,8 @@
-using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
-using ChilliCream.Nitro.CommandLine.Commands.Apis.Inputs;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Apis;
+using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.CommandLine.Commands.Stages.Components;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
@@ -15,62 +13,103 @@ internal sealed class DeleteStageCommand : Command
 {
     public DeleteStageCommand() : base("delete")
     {
-        Description = "Deletes a stage by name";
+        Description = "Delete a stage by name.";
 
-        AddOption(Opt<OptionalApiIdOption>.Instance);
-        AddOption(Opt<StageNameOption>.Instance);
-        AddOption(Opt<ForceOption>.Instance);
+        Options.Add(Opt<OptionalApiIdOption>.Instance);
+        Options.Add(Opt<StageNameOption>.Instance);
+        Options.Add(Opt<OptionalForceOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples(
+            """
+            stage delete \
+              --stage "dev" \
+              --api-id "<api-id>"
+            """);
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken cancellationToken)
     {
-        const string apiMessage = "For which API do you want to force delete a stage?";
-        var apiId = await context.GetOrSelectApiId(apiMessage);
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IStagesClient>();
+        var apisClient = services.GetRequiredService<IApisClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        var stageName = context.ParseResult.GetValueForOption(Opt<StageNameOption>.Instance)!;
+        parseResult.AssertHasAuthentication(sessionService);
 
-        var shouldDelete = await context.ConfirmWhenNotForced(
-            $"Do you really want to force delete stage {stageName.AsHighlight()}",
+        var apiId = await console.GetOrPromptForApiIdAsync(
+            "For which API do you want to force delete a stage?",
+            parseResult,
+            apisClient,
+            sessionService,
             cancellationToken);
 
-        if (!shouldDelete)
+        var stageName = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
+
+        var force = parseResult.GetValue(Opt<OptionalForceOption>.Instance);
+        if (!force)
         {
-            throw Exit("Stage was not deleted");
+            var confirmed = await console.ConfirmAsync(
+                $"Do you really want to force delete stage {stageName.AsHighlight()}",
+                cancellationToken);
+
+            if (!confirmed)
+            {
+                throw Exit("Stage was not deleted.");
+            }
         }
 
-        var input = new ForceDeleteStageByApiIdInput { ApiId = apiId, StageName = stageName };
-        var result = await client.ForceDeleteStageByApiIdCommandMutation
-            .ExecuteAsync(input, cancellationToken);
-
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        console.PrintErrorsAndExit(data.ForceDeleteStageByApiId.Errors);
-
-        var api = data.ForceDeleteStageByApiId.Api;
-        if (api is null)
+        await using (var activity = console.StartActivity(
+            $"Deleting stage '{stageName.EscapeMarkup()}' from API '{apiId.EscapeMarkup()}'",
+            "Failed to delete the stage."))
         {
-            throw Exit("Could not delete the stage");
+            var data = await client.ForceDeleteStageAsync(apiId, stageName, cancellationToken);
+
+            if (data.Errors?.Count > 0)
+            {
+                await activity.FailAllAsync();
+
+                foreach (var error in data.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        IApiNotFoundError err => err.Message,
+                        IStageNotFoundError err => err.Message,
+                        IUnauthorizedOperation err => err.Message,
+                        IError err => Messages.UnexpectedMutationError(err),
+                        _ => Messages.UnexpectedMutationError()
+                    };
+
+                    console.Error.WriteErrorLine(errorMessage);
+                }
+
+                return ExitCodes.Error;
+            }
+
+            if (data.Api is null)
+            {
+                throw MutationReturnedNoData();
+            }
+
+            activity.Success($"Deleted stage '{stageName.EscapeMarkup()}'.");
+
+            console.WriteLine();
+
+            var items = data.Api.Stages
+                .Select(x => StageDetailPrompt.From(x).ToObject())
+                .ToArray();
+
+            resultHolder.SetResult(
+                new PaginatedListResult<StageDetailPrompt.StageDetailPromptResult>(items, null));
+
+            return ExitCodes.Success;
         }
-
-        var items = api.Stages
-            .Select(x => StageDetailPrompt.From(x).ToObject())
-            .ToArray();
-
-        context.SetResult(new PaginatedListResult<StageDetailPrompt.StageDetailPromptResult>(items, null));
-
-        console.OkLine($"Stage {stageName.AsHighlight()} was force deleted");
-
-        return ExitCodes.Success;
     }
 }

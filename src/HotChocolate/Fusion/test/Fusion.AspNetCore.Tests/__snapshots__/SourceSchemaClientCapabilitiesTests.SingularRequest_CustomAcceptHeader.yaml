@@ -1,0 +1,90 @@
+title: SingularRequest_CustomAcceptHeader
+request:
+  document: |
+    {
+      books {
+        title
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "books": [
+          {
+            "title": "C# in Depth"
+          },
+          {
+            "title": "The Lord of the Rings"
+          }
+        ]
+      }
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Author {
+        id: ID!
+      }
+
+      type Book {
+        author: Author
+        id: ID!
+        title: String!
+      }
+
+      type Query {
+        books: [Book!]!
+        bookById(id: ID!): Book @lookup @internal
+        authorById(id: ID!): Author @lookup @internal
+      }
+    interactions:
+      - request:
+          accept: application/json
+          document: |
+            query Op_7d0b6399_1 {
+              books {
+                title
+              }
+            }
+        response:
+          contentType: application/json; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "books": [
+                    {
+                      "title": "C# in Depth"
+                    },
+                    {
+                      "title": "The Lord of the Rings"
+                    }
+                  ]
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        {
+          books {
+            title
+          }
+        }
+      hash: 7d0b63998765c936a0199cfb040fae0d
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: a
+      operation: |
+        query Op_7d0b6399_1 {
+          books {
+            title
+          }
+        }

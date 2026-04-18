@@ -35,16 +35,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
     .AddMessageBus()
-    // AddInstrumentation() registers the built-in OpenTelemetryDiagnosticObserver.
-    // Without this call, Mocha uses a no-op observer with zero overhead.
+    // AddInstrumentation() registers the built-in ActivityMessagingDiagnosticListener.
+    // Without this call, Mocha uses a no-op listener with zero overhead.
     // Spans are emitted to the "Mocha" activity source - subscribe via AddSource("Mocha").
     .AddInstrumentation()
+    // Register a custom listener alongside the built-in one for application-level telemetry.
+    // Multiple listeners compose automatically — no manual aggregation needed.
+    .AddDiagnosticEventListener<ConsoleDiagnosticObserver>()
     .AddEventHandler<OrderPlacedHandler>()
     .AddInMemory();
-
-// Register a custom observer alongside the built-in one for application-level telemetry.
-// The built-in observer emits OpenTelemetry spans. This observer logs to console.
-builder.Services.AddSingleton<IBusDiagnosticObserver, ConsoleDiagnosticObserver>();
 
 var app = builder.Build();
 
@@ -95,14 +94,15 @@ public class OrderPlacedHandler(ILogger<OrderPlacedHandler> logger)
     }
 }
 
-// --- Custom diagnostic observer ---
+// --- Custom diagnostic listener ---
 
-// Implement IBusDiagnosticObserver to collect telemetry or integrate with a
-// non-OpenTelemetry backend. Each method returns an IDisposable whose disposal
-// marks the end of the observed scope, enabling duration measurement.
-public sealed class ConsoleDiagnosticObserver : IBusDiagnosticObserver
+// Extend MessagingDiagnosticEventListener to collect telemetry or integrate with a
+// non-OpenTelemetry backend. Override only the methods you care about — the base
+// class provides no-op defaults for the rest. Each scope method returns an
+// IDisposable whose disposal marks the end of the observed scope.
+public sealed class ConsoleDiagnosticObserver : MessagingDiagnosticEventListener
 {
-    public IDisposable Dispatch(IDispatchContext context)
+    public override IDisposable Dispatch(IDispatchContext context)
     {
         var startTime = DateTimeOffset.UtcNow;
         Console.WriteLine($"[Dispatch] -> {context.DestinationAddress}");
@@ -114,25 +114,25 @@ public sealed class ConsoleDiagnosticObserver : IBusDiagnosticObserver
         });
     }
 
-    public IDisposable Receive(IReceiveContext context)
+    public override IDisposable Receive(IReceiveContext context)
     {
         Console.WriteLine($"[Receive]  <- {context.Endpoint.Address}");
         return new Scope(() => Console.WriteLine("[Receive]  completed"));
     }
 
-    public IDisposable Consume(IConsumeContext context)
+    public override IDisposable Consume(IConsumeContext context)
     {
         Console.WriteLine($"[Consume]  message {context.MessageId}");
         return new Scope(() => Console.WriteLine("[Consume]  completed"));
     }
 
-    public void OnDispatchError(IDispatchContext context, Exception exception)
+    public override void DispatchError(IDispatchContext context, Exception exception)
         => Console.WriteLine($"[Dispatch] error: {exception.Message}");
 
-    public void OnReceiveError(IReceiveContext context, Exception exception)
+    public override void ReceiveError(IReceiveContext context, Exception exception)
         => Console.WriteLine($"[Receive]  error: {exception.Message}");
 
-    public void OnConsumeError(IConsumeContext context, Exception exception)
+    public override void ConsumeError(IConsumeContext context, Exception exception)
         => Console.WriteLine($"[Consume]  error: {exception.Message}");
 
     private sealed class Scope(Action onDispose) : IDisposable

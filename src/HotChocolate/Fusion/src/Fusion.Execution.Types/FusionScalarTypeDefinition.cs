@@ -182,7 +182,9 @@ public sealed class FusionScalarTypeDefinition : IScalarTypeDefinition, IFusionT
             SyntaxKind.NullValue => true,
             SyntaxKind.EnumValue => false,
             SyntaxKind.StringValue => ValueKind.HasFlag(ScalarValueKind.String),
-            SyntaxKind.IntValue => ValueKind.HasFlag(ScalarValueKind.Integer),
+            SyntaxKind.IntValue =>
+                ValueKind.HasFlag(ScalarValueKind.Integer)
+                || ValueKind.HasFlag(ScalarValueKind.Float),
             SyntaxKind.FloatValue => ValueKind.HasFlag(ScalarValueKind.Float),
             SyntaxKind.BooleanValue => ValueKind.HasFlag(ScalarValueKind.Boolean),
             SyntaxKind.ListValue => ValueKind.HasFlag(ScalarValueKind.List),

@@ -170,8 +170,8 @@ Opt-in support is disabled by default. Enable it in your schema options:
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyOptions(o => o.EnableOptInFeatures = true);
 ```
 
@@ -234,8 +234,8 @@ You can declare the stability level of each opt-in feature so consumers understa
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyOptions(o => o.EnableOptInFeatures = true)
     .OptInFeatureStability("experimentalRecommendations", "experimental");
 ```
@@ -245,8 +245,8 @@ builder.Services
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyOptions(o => o.EnableOptInFeatures = true)
     .SetSchema(s => s
         .OptInFeatureStability("experimentalRecommendations", "experimental"));

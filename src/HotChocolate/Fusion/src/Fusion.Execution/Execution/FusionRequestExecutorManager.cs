@@ -228,7 +228,10 @@ internal sealed class FusionRequestExecutorManager
 
         var documentProvider = documentProviderFactory.Invoke(_applicationServices);
         var documentPromise = new TaskCompletionSource<FusionConfiguration>();
-        using var subscription = documentProvider.Subscribe(s => documentPromise.TrySetResult(s));
+        using var subscription = documentProvider.Subscribe(
+            onNext: s => documentPromise.TrySetResult(s),
+            onError: ex => documentPromise.TrySetException(ex),
+            onCompleted: () => documentPromise.TrySetCanceled());
         await using var cancellation = cancellationToken.Register(() => documentPromise.TrySetCanceled());
         return (await documentPromise.Task.ConfigureAwait(false), documentProvider);
     }
@@ -289,7 +292,9 @@ internal sealed class FusionRequestExecutorManager
             allowFragmentVariables: false,
             maxAllowedNodes: options.MaxAllowedNodes,
             maxAllowedTokens: options.MaxAllowedTokens,
-            maxAllowedFields: options.MaxAllowedFields);
+            maxAllowedFields: options.MaxAllowedFields,
+            maxAllowedDirectives: options.MaxAllowedDirectives,
+            maxAllowedRecursionDepth: options.MaxAllowedRecursionDepth);
     }
 
     private SourceSchemaClientConfigurations CreateClientConfigurations(
@@ -306,107 +311,7 @@ internal sealed class FusionRequestExecutorManager
                 {
                     if (transports.TryGetProperty("http", out var http))
                     {
-                        var clientName = SourceSchemaHttpClientConfiguration.DefaultClientName;
-                        var batchingMode = SourceSchemaHttpClientBatchingMode.None;
-                        var supportedOperations = SupportedOperationType.Query | SupportedOperationType.Mutation;
-                        ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null;
-                        ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null;
-                        ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null;
-
-                        if (http.TryGetProperty("clientName", out var clientNameProperty)
-                            && clientNameProperty.ValueKind is JsonValueKind.String
-                            && clientNameProperty.GetString() is { } customClientName
-                            && !string.IsNullOrEmpty(customClientName))
-                        {
-                            clientName = customClientName;
-                        }
-
-                        if (http.TryGetProperty("capabilities", out var capabilities))
-                        {
-                            if (capabilities.TryGetProperty("standard", out var standard))
-                            {
-                                if (standard.TryGetProperty("formats", out var formats))
-                                {
-                                    var builder = ImmutableArray.CreateBuilder<MediaTypeWithQualityHeaderValue>();
-
-                                    foreach (var format in formats.EnumerateArray())
-                                    {
-                                        builder.Add(MediaTypeWithQualityHeaderValue.Parse(format.GetString()!));
-                                    }
-
-                                    defaultAcceptHeaderValues = builder.ToImmutable();
-                                }
-                            }
-
-                            if (capabilities.TryGetProperty("batching", out var variableBatching))
-                            {
-                                if (!variableBatching.TryGetProperty("variableBatching", out var supported)
-                                    || supported.GetBoolean())
-                                {
-                                    batchingMode |= SourceSchemaHttpClientBatchingMode.VariableBatching;
-                                }
-
-                                if (!variableBatching.TryGetProperty("requestBatching", out supported)
-                                    || supported.GetBoolean())
-                                {
-                                    batchingMode |= SourceSchemaHttpClientBatchingMode.RequestBatching;
-                                }
-
-                                if (!variableBatching.TryGetProperty("apolloRequestBatching", out supported)
-                                    || supported.GetBoolean())
-                                {
-                                    batchingMode |= SourceSchemaHttpClientBatchingMode.ApolloRequestBatching;
-                                }
-
-                                if (variableBatching.TryGetProperty("formats", out var formats))
-                                {
-                                    var builder = ImmutableArray.CreateBuilder<MediaTypeWithQualityHeaderValue>();
-
-                                    foreach (var format in formats.EnumerateArray())
-                                    {
-                                        builder.Add(MediaTypeWithQualityHeaderValue.Parse(format.GetString()!));
-                                    }
-
-                                    batchingAcceptHeaderValues = builder.ToImmutable();
-                                }
-                            }
-
-                            if (capabilities.TryGetProperty("subscriptions", out var requestBatching))
-                            {
-                                if (!requestBatching.TryGetProperty("supported", out var supported)
-                                    || supported.GetBoolean())
-                                {
-                                    supportedOperations |= SupportedOperationType.Subscription;
-                                }
-
-                                if (requestBatching.TryGetProperty("formats", out var formats))
-                                {
-                                    var builder = ImmutableArray.CreateBuilder<MediaTypeWithQualityHeaderValue>();
-
-                                    foreach (var format in formats.EnumerateArray())
-                                    {
-                                        builder.Add(MediaTypeWithQualityHeaderValue.Parse(format.GetString()!));
-                                    }
-
-                                    subscriptionAcceptHeaderValues = builder.ToImmutable();
-                                }
-                            }
-                        }
-                        else
-                        {
-                            batchingMode = SourceSchemaHttpClientBatchingMode.VariableBatching
-                                | SourceSchemaHttpClientBatchingMode.RequestBatching;
-                            supportedOperations |= SupportedOperationType.Subscription;
-                        }
-
-                        var httpClient = new SourceSchemaHttpClientConfiguration(
-                            name: sourceSchema.Name,
-                            httpClientName: clientName,
-                            baseAddress: new Uri(http.GetProperty("url").GetString()!),
-                            supportedOperations: supportedOperations,
-                            batchingMode: GetBatchingMode(http));
-
-                        configurations.Add(httpClient);
+                        configurations.Add(CreateHttpClientConfiguration(sourceSchema.Name, http));
                     }
                 }
             }
@@ -420,17 +325,100 @@ internal sealed class FusionRequestExecutorManager
         return new SourceSchemaClientConfigurations(configurations);
     }
 
-    private static SourceSchemaHttpClientBatchingMode GetBatchingMode(JsonElement httpSettings)
+    private static SourceSchemaHttpClientConfiguration CreateHttpClientConfiguration(
+        string schemaName,
+        JsonElement http)
     {
-        if (httpSettings.TryGetProperty("batchingMode", out var batchingMode)
-            && batchingMode.ValueKind == JsonValueKind.String
-            && batchingMode.GetString() == "REQUEST_BATCHING")
+        var clientName = SourceSchemaHttpClientConfiguration.DefaultClientName;
+        var capabilities = SourceSchemaClientCapabilities.All;
+        var supportedOperations = SupportedOperationType.All;
+        ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null;
+        ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null;
+        ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null;
+
+        if (http.TryGetProperty("clientName", out var clientNameProperty)
+            && clientNameProperty.ValueKind is JsonValueKind.String
+            && clientNameProperty.GetString() is { } customClientName
+            && !string.IsNullOrEmpty(customClientName))
         {
-            return SourceSchemaHttpClientBatchingMode.ApolloRequestBatching;
+            clientName = customClientName;
         }
 
-        return SourceSchemaHttpClientBatchingMode.VariableBatching
-            | SourceSchemaHttpClientBatchingMode.RequestBatching;
+        if (http.TryGetProperty("capabilities", out var capabilitiesElement))
+        {
+            if (capabilitiesElement.TryGetProperty("standard", out var standard))
+            {
+                if (standard.TryGetProperty("formats", out var formats))
+                {
+                    var builder = ImmutableArray.CreateBuilder<MediaTypeWithQualityHeaderValue>();
+
+                    foreach (var format in formats.EnumerateArray())
+                    {
+                        builder.Add(MediaTypeWithQualityHeaderValue.Parse(format.GetString()!));
+                    }
+
+                    defaultAcceptHeaderValues = builder.ToImmutable();
+                }
+            }
+
+            if (capabilitiesElement.TryGetProperty("batching", out var batchingElement))
+            {
+                if (batchingElement.TryGetProperty("variableBatching", out var supported)
+                    && !supported.GetBoolean())
+                {
+                    capabilities &= ~SourceSchemaClientCapabilities.VariableBatching;
+                }
+
+                if (batchingElement.TryGetProperty("requestBatching", out supported)
+                    && !supported.GetBoolean())
+                {
+                    capabilities &= ~SourceSchemaClientCapabilities.RequestBatching;
+                }
+
+                if (batchingElement.TryGetProperty("formats", out var formats))
+                {
+                    var builder = ImmutableArray.CreateBuilder<MediaTypeWithQualityHeaderValue>();
+
+                    foreach (var format in formats.EnumerateArray())
+                    {
+                        builder.Add(MediaTypeWithQualityHeaderValue.Parse(format.GetString()!));
+                    }
+
+                    batchingAcceptHeaderValues = builder.ToImmutable();
+                }
+            }
+
+            if (capabilitiesElement.TryGetProperty("subscriptions", out var subscriptionsElement))
+            {
+                if (subscriptionsElement.TryGetProperty("supported", out var supported)
+                    && !supported.GetBoolean())
+                {
+                    supportedOperations &= ~SupportedOperationType.Subscription;
+                }
+
+                if (subscriptionsElement.TryGetProperty("formats", out var formats))
+                {
+                    var builder = ImmutableArray.CreateBuilder<MediaTypeWithQualityHeaderValue>();
+
+                    foreach (var format in formats.EnumerateArray())
+                    {
+                        builder.Add(MediaTypeWithQualityHeaderValue.Parse(format.GetString()!));
+                    }
+
+                    subscriptionAcceptHeaderValues = builder.ToImmutable();
+                }
+            }
+        }
+
+        return new SourceSchemaHttpClientConfiguration(
+            name: schemaName,
+            httpClientName: clientName,
+            baseAddress: new Uri(http.GetProperty("url").GetString()!),
+            supportedOperations: supportedOperations,
+            capabilities: capabilities,
+            defaultAcceptHeaderValues: defaultAcceptHeaderValues,
+            batchingAcceptHeaderValues: batchingAcceptHeaderValues,
+            subscriptionAcceptHeaderValues: subscriptionAcceptHeaderValues);
     }
 
     private FeatureCollection CreateSchemaFeatures(
@@ -448,7 +436,7 @@ internal sealed class FusionRequestExecutorManager
         features.Set(requestOptions.PersistedOperations);
         features.Set(parserOptions);
         features.Set(clientConfigurations);
-        features.Set(CreateTypeResolverInterceptors());
+        features.Set(CreateTypeResolverInterceptors(options));
         features.Set(new SchemaCancellationFeature());
 
         foreach (var configure in setup.SchemaFeaturesModifiers)
@@ -459,10 +447,12 @@ internal sealed class FusionRequestExecutorManager
         return features;
     }
 
-    private static Dictionary<string, ITypeResolverInterceptor> CreateTypeResolverInterceptors()
-        => new()
+    private static Dictionary<string, ITypeResolverInterceptor> CreateTypeResolverInterceptors(
+        FusionOptions options)
+    {
+        var interceptors = new Dictionary<string, ITypeResolverInterceptor>
         {
-            { nameof(Query), new Query() },
+            { nameof(Query), new Query(options.EnableSemanticIntrospection) },
             { nameof(__Directive), new __Directive() },
             { nameof(__EnumValue), new __EnumValue() },
             { nameof(__Field), new __Field() },
@@ -470,6 +460,14 @@ internal sealed class FusionRequestExecutorManager
             { nameof(__Schema), new __Schema() },
             { nameof(__Type), new __Type() }
         };
+
+        if (options.EnableSemanticIntrospection)
+        {
+            interceptors.Add(nameof(__SearchResult), new __SearchResult());
+        }
+
+        return interceptors;
+    }
 
     private ServiceProvider CreateSchemaServices(
         FusionGatewaySetup setup,
@@ -522,6 +520,13 @@ internal sealed class FusionRequestExecutorManager
         services.AddSingleton(options);
         services.AddSingleton(requestOptions);
         services.AddSingleton(requestOptions.PersistedOperations);
+
+        if (options.EnableSemanticIntrospection)
+        {
+            services.TryAddSingleton<ISchemaSearchProvider>(
+                static sp => new HotChocolate.Types.Introspection.BM25SearchProvider(
+                    sp.GetRequiredService<ISchemaDefinition>()));
+        }
 
         services.AddSingleton<ObjectPool<PooledRequestContext>>(
             static _ => new DefaultObjectPool<PooledRequestContext>(
@@ -721,8 +726,9 @@ internal sealed class FusionRequestExecutorManager
             _settingsHash = XxHash64.HashToUInt64(GetRawUtf8Value(configuration.Settings.Document.RootElement));
 
             _documentProviderSubscription = documentProvider.Subscribe(
-                OnDocumentChanged,
-                () => _channel.Writer.TryComplete());
+                onNext: OnDocumentChanged,
+                onError: ex => _channel.Writer.TryComplete(ex),
+                onCompleted: () => _channel.Writer.TryComplete());
 
             DocumentProvider = documentProvider;
             Executor = executor;
