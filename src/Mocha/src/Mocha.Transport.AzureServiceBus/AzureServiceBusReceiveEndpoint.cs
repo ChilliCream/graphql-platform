@@ -38,9 +38,7 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
 
         // Compute a sensible PrefetchCount default when not explicitly set.
         // Without this, ServiceBusProcessor falls back to synchronous one-at-a-time pull (PrefetchCount=0).
-        _prefetchCount = configuration.PrefetchCount > 0
-            ? configuration.PrefetchCount
-            : _maxConcurrentCalls * 2;
+        _prefetchCount = configuration.PrefetchCount ?? _maxConcurrentCalls * 2;
     }
 
     protected override void OnComplete(
@@ -97,9 +95,20 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
 
         _processor.ProcessErrorAsync += args =>
         {
-            logger.LogError(args.Exception,
-                "Azure Service Bus processor error on entity {EntityPath} (Source: {ErrorSource})",
-                args.EntityPath, args.ErrorSource);
+            // Transient/recoverable conditions are surfaced as warnings; only unknown faults escalate to error.
+            if (IsTransientProcessorError(args.Exception))
+            {
+                logger.LogWarning(args.Exception,
+                    "Azure Service Bus processor transient error on entity {EntityPath} (Source: {ErrorSource})",
+                    args.EntityPath, args.ErrorSource);
+            }
+            else
+            {
+                logger.LogError(args.Exception,
+                    "Azure Service Bus processor error on entity {EntityPath} (Source: {ErrorSource})",
+                    args.EntityPath, args.ErrorSource);
+            }
+
             return Task.CompletedTask;
         };
 
@@ -116,5 +125,25 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
             await _processor.DisposeAsync();
             _processor = null;
         }
+    }
+
+    private static bool IsTransientProcessorError(Exception exception)
+    {
+        if (exception is OperationCanceledException)
+        {
+            return true;
+        }
+
+        if (exception is ServiceBusException sbEx)
+        {
+            return sbEx.Reason
+                is ServiceBusFailureReason.ServiceCommunicationProblem
+                or ServiceBusFailureReason.ServiceBusy
+                or ServiceBusFailureReason.ServiceTimeout
+                or ServiceBusFailureReason.MessageLockLost
+                or ServiceBusFailureReason.SessionLockLost;
+        }
+
+        return false;
     }
 }

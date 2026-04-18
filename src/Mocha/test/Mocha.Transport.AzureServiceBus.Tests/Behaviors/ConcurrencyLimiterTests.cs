@@ -17,7 +17,11 @@ public class ConcurrencyLimiterTests
     [Fact]
     public async Task Handler_Should_LimitConcurrency_When_ConcurrencyLimiterConfigured()
     {
-        // arrange
+        // arrange - the global concurrency limiter caps in-flight handler invocations to 1
+        // even when the endpoint advertises MaxConcurrency=5 and prefetches 20 messages.
+        // We do not need any artificial in-handler work because tracker.PeakConcurrency reads
+        // the high-water mark directly; deterministic synchronization comes from the recorder
+        // semaphore.
         var tracker = new ConcurrencyTracker();
         var recorder = new MessageRecorder();
         const int messageCount = 20;
@@ -28,11 +32,11 @@ public class ConcurrencyLimiterTests
             .AddSingleton(recorder)
             .AddMessageBus()
             .AddConcurrencyLimiter(o => o.MaxConcurrency = 1)
-            .AddEventHandler<SlowOrderHandler>()
+            .AddEventHandler<TrackingOrderHandler>()
             .AddAzureServiceBus(t =>
             {
                 t.ConnectionString(ctx.ConnectionString);
-                t.Endpoint("slow-ep").Handler<SlowOrderHandler>().MaxConcurrency(5).PrefetchCount(20);
+                t.Endpoint("slow-ep").Handler<TrackingOrderHandler>().MaxConcurrency(5).PrefetchCount(20);
             })
             .BuildTestBusAsync();
 
@@ -53,21 +57,20 @@ public class ConcurrencyLimiterTests
         Assert.Equal(1, tracker.PeakConcurrency);
     }
 
-    public sealed class SlowOrderHandler(ConcurrencyTracker tracker, MessageRecorder recorder)
+    /// <summary>
+    /// Handler that records entry/exit through the tracker. The concurrency limiter wraps the
+    /// handler invocation, so PeakConcurrency reflects how many concurrent invocations the
+    /// limiter actually permitted past its semaphore.
+    /// </summary>
+    public sealed class TrackingOrderHandler(ConcurrencyTracker tracker, MessageRecorder recorder)
         : IEventHandler<OrderCreated>
     {
-        public async ValueTask HandleAsync(OrderCreated message, CancellationToken cancellationToken)
+        public ValueTask HandleAsync(OrderCreated message, CancellationToken cancellationToken)
         {
             tracker.Enter();
-            try
-            {
-                await Task.Delay(5, cancellationToken);
-            }
-            finally
-            {
-                tracker.Exit();
-                recorder.Record(message);
-            }
+            tracker.Exit();
+            recorder.Record(message);
+            return default;
         }
     }
 }

@@ -22,7 +22,7 @@ public sealed class AzureServiceBusDefaultEndpointOptions
     /// </summary>
     internal void ApplyTo(AzureServiceBusReceiveEndpointConfiguration configuration)
     {
-        if (PrefetchCount is not null && configuration.PrefetchCount <= 0)
+        if (PrefetchCount is not null && configuration.PrefetchCount is null)
         {
             configuration.PrefetchCount = PrefetchCount.Value;
         }

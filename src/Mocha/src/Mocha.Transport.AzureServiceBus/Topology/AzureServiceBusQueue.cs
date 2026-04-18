@@ -30,6 +30,56 @@ public sealed class AzureServiceBusQueue
     public bool? AutoProvision { get; private set; }
 
     /// <summary>
+    /// Gets the idle window after which the broker may delete the queue.
+    /// </summary>
+    public TimeSpan? AutoDeleteOnIdle { get; private set; }
+
+    /// <summary>
+    /// Gets the lock duration applied by the broker when a message is delivered to a receiver.
+    /// </summary>
+    public TimeSpan? LockDuration { get; private set; }
+
+    /// <summary>
+    /// Gets the maximum delivery attempts before a message is dead-lettered.
+    /// </summary>
+    public int? MaxDeliveryCount { get; private set; }
+
+    /// <summary>
+    /// Gets the default time-to-live applied to messages that do not specify their own.
+    /// </summary>
+    public TimeSpan? DefaultMessageTimeToLive { get; private set; }
+
+    /// <summary>
+    /// Gets the maximum queue size in megabytes.
+    /// </summary>
+    public long? MaxSizeInMegabytes { get; private set; }
+
+    /// <summary>
+    /// Gets whether the queue requires sessions.
+    /// </summary>
+    public bool? RequiresSession { get; private set; }
+
+    /// <summary>
+    /// Gets whether the queue is partitioned.
+    /// </summary>
+    public bool? EnablePartitioning { get; private set; }
+
+    /// <summary>
+    /// Gets the entity to which messages received on this queue are auto-forwarded.
+    /// </summary>
+    public string? ForwardTo { get; private set; }
+
+    /// <summary>
+    /// Gets the entity to which dead-lettered messages from this queue are auto-forwarded.
+    /// </summary>
+    public string? ForwardDeadLetteredMessagesTo { get; private set; }
+
+    /// <summary>
+    /// Gets whether expired messages are moved to the dead-letter queue instead of being dropped.
+    /// </summary>
+    public bool? DeadLetteringOnMessageExpiration { get; private set; }
+
+    /// <summary>
     /// Gets the subscriptions targeting this queue.
     /// </summary>
     public IReadOnlyList<AzureServiceBusSubscription> Subscriptions => _subscriptions;
@@ -39,12 +89,24 @@ public sealed class AzureServiceBusQueue
         Name = configuration.Name!;
         AutoDelete = configuration.AutoDelete;
         AutoProvision = configuration.AutoProvision;
+        AutoDeleteOnIdle = configuration.AutoDeleteOnIdle;
+        LockDuration = configuration.LockDuration;
+        MaxDeliveryCount = configuration.MaxDeliveryCount;
+        DefaultMessageTimeToLive = configuration.DefaultMessageTimeToLive;
+        MaxSizeInMegabytes = configuration.MaxSizeInMegabytes;
+        RequiresSession = configuration.RequiresSession;
+        EnablePartitioning = configuration.EnablePartitioning;
+        ForwardTo = configuration.ForwardTo;
+        ForwardDeadLetteredMessagesTo = configuration.ForwardDeadLetteredMessagesTo;
+        DeadLetteringOnMessageExpiration = configuration.DeadLetteringOnMessageExpiration;
     }
 
     protected override void OnComplete(AzureServiceBusQueueConfiguration configuration)
     {
-        var builder = new UriBuilder(Topology.Address);
-        builder.Path = Topology.Address.AbsolutePath.TrimEnd('/') + "/q/" + Name;
+        var builder = new UriBuilder(Topology.Address)
+        {
+            Path = Topology.Address.AbsolutePath.TrimEnd('/') + "/q/" + Name
+        };
         Address = builder.Uri;
     }
 
@@ -71,9 +133,55 @@ public sealed class AzureServiceBusQueue
 
         var options = new CreateQueueOptions(Name);
 
-        if (AutoDelete == true)
+        // Only assign properties the user explicitly set so SDK defaults remain in effect otherwise.
+        if (AutoDeleteOnIdle is not null)
         {
-            options.AutoDeleteOnIdle = TimeSpan.FromMinutes(5);
+            options.AutoDeleteOnIdle = AutoDeleteOnIdle.Value;
+        }
+
+        if (LockDuration is not null)
+        {
+            options.LockDuration = LockDuration.Value;
+        }
+
+        if (MaxDeliveryCount is not null)
+        {
+            options.MaxDeliveryCount = MaxDeliveryCount.Value;
+        }
+
+        if (DefaultMessageTimeToLive is not null)
+        {
+            options.DefaultMessageTimeToLive = DefaultMessageTimeToLive.Value;
+        }
+
+        if (MaxSizeInMegabytes is not null)
+        {
+            options.MaxSizeInMegabytes = MaxSizeInMegabytes.Value;
+        }
+
+        if (RequiresSession is not null)
+        {
+            options.RequiresSession = RequiresSession.Value;
+        }
+
+        if (EnablePartitioning is not null)
+        {
+            options.EnablePartitioning = EnablePartitioning.Value;
+        }
+
+        if (ForwardTo is not null)
+        {
+            options.ForwardTo = ForwardTo;
+        }
+
+        if (ForwardDeadLetteredMessagesTo is not null)
+        {
+            options.ForwardDeadLetteredMessagesTo = ForwardDeadLetteredMessagesTo;
+        }
+
+        if (DeadLetteringOnMessageExpiration is not null)
+        {
+            options.DeadLetteringOnMessageExpiration = DeadLetteringOnMessageExpiration.Value;
         }
 
         try

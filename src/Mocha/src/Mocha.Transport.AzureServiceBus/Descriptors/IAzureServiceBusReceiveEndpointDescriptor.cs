@@ -34,10 +34,11 @@ public interface IAzureServiceBusReceiveEndpointDescriptor
 
     /// <summary>
     /// Sets the prefetch count for this endpoint, controlling how many messages are prefetched from the broker.
+    /// A value of zero disables prefetching; pass <see langword="null"/> to fall back to the computed default.
     /// </summary>
-    /// <param name="count">The prefetch count.</param>
+    /// <param name="count">The prefetch count, or <see langword="null"/> to use the computed default.</param>
     /// <returns>The descriptor for method chaining.</returns>
-    IAzureServiceBusReceiveEndpointDescriptor PrefetchCount(int count);
+    IAzureServiceBusReceiveEndpointDescriptor PrefetchCount(int? count);
 
     /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.UseReceive(ReceiveMiddlewareConfiguration, string?, string?)"/>
     new IAzureServiceBusReceiveEndpointDescriptor UseReceive(

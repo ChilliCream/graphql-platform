@@ -26,17 +26,68 @@ public sealed class AzureServiceBusSubscription
     /// </summary>
     public bool? AutoProvision { get; private set; }
 
+    /// <summary>
+    /// Gets the lock duration applied by the broker when a message is delivered to a receiver.
+    /// </summary>
+    public TimeSpan? LockDuration { get; private set; }
+
+    /// <summary>
+    /// Gets the maximum delivery attempts before a message is dead-lettered.
+    /// </summary>
+    public int? MaxDeliveryCount { get; private set; }
+
+    /// <summary>
+    /// Gets the default time-to-live applied to messages that do not specify their own.
+    /// </summary>
+    public TimeSpan? DefaultMessageTimeToLive { get; private set; }
+
+    /// <summary>
+    /// Gets whether the subscription requires sessions.
+    /// </summary>
+    public bool? RequiresSession { get; private set; }
+
+    /// <summary>
+    /// Gets the entity to which messages received on this subscription are auto-forwarded.
+    /// When null, the subscription forwards to its destination queue by convention.
+    /// </summary>
+    public string? ForwardTo { get; private set; }
+
+    /// <summary>
+    /// Gets the entity to which dead-lettered messages from this subscription are auto-forwarded.
+    /// </summary>
+    public string? ForwardDeadLetteredMessagesTo { get; private set; }
+
+    /// <summary>
+    /// Gets whether expired messages are moved to the dead-letter queue instead of being dropped.
+    /// </summary>
+    public bool? DeadLetteringOnMessageExpiration { get; private set; }
+
+    /// <summary>
+    /// Gets the idle window after which the broker may delete the subscription.
+    /// </summary>
+    public TimeSpan? AutoDeleteOnIdle { get; private set; }
+
     protected override void OnInitialize(AzureServiceBusSubscriptionConfiguration configuration)
     {
         AutoProvision = configuration.AutoProvision;
+        LockDuration = configuration.LockDuration;
+        MaxDeliveryCount = configuration.MaxDeliveryCount;
+        DefaultMessageTimeToLive = configuration.DefaultMessageTimeToLive;
+        RequiresSession = configuration.RequiresSession;
+        ForwardTo = configuration.ForwardTo;
+        ForwardDeadLetteredMessagesTo = configuration.ForwardDeadLetteredMessagesTo;
+        DeadLetteringOnMessageExpiration = configuration.DeadLetteringOnMessageExpiration;
+        AutoDeleteOnIdle = configuration.AutoDeleteOnIdle;
     }
 
     protected override void OnComplete(AzureServiceBusSubscriptionConfiguration configuration)
     {
-        var builder = new UriBuilder(Topology.Address);
-        builder.Path = Topology.Address.AbsolutePath.TrimEnd('/')
-            + "/s/t/" + Source.Name
-            + "/q/" + Destination.Name;
+        var builder = new UriBuilder(Topology.Address)
+        {
+            Path = Topology.Address.AbsolutePath.TrimEnd('/')
+                + "/s/t/" + Source.Name
+                + "/q/" + Destination.Name
+        };
         Address = builder.Uri;
     }
 
@@ -79,8 +130,44 @@ public sealed class AzureServiceBusSubscription
 
             var options = new CreateSubscriptionOptions(Source.Name, subscriptionName)
             {
-                ForwardTo = Destination.Name
+                ForwardTo = ForwardTo ?? Destination.Name
             };
+
+            // Only assign properties the user explicitly set so SDK defaults remain in effect otherwise.
+            if (LockDuration is not null)
+            {
+                options.LockDuration = LockDuration.Value;
+            }
+
+            if (MaxDeliveryCount is not null)
+            {
+                options.MaxDeliveryCount = MaxDeliveryCount.Value;
+            }
+
+            if (DefaultMessageTimeToLive is not null)
+            {
+                options.DefaultMessageTimeToLive = DefaultMessageTimeToLive.Value;
+            }
+
+            if (RequiresSession is not null)
+            {
+                options.RequiresSession = RequiresSession.Value;
+            }
+
+            if (ForwardDeadLetteredMessagesTo is not null)
+            {
+                options.ForwardDeadLetteredMessagesTo = ForwardDeadLetteredMessagesTo;
+            }
+
+            if (DeadLetteringOnMessageExpiration is not null)
+            {
+                options.DeadLetteringOnMessageExpiration = DeadLetteringOnMessageExpiration.Value;
+            }
+
+            if (AutoDeleteOnIdle is not null)
+            {
+                options.AutoDeleteOnIdle = AutoDeleteOnIdle.Value;
+            }
 
             await adminClient.CreateSubscriptionAsync(options, cancellationToken);
         }

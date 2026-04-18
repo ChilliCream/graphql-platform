@@ -25,6 +25,62 @@ internal sealed class AzureServiceBusSubscriptionDescriptor
         return this;
     }
 
+    /// <inheritdoc />
+    public IAzureServiceBusSubscriptionDescriptor WithLockDuration(TimeSpan lockDuration)
+    {
+        Configuration.LockDuration = lockDuration;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IAzureServiceBusSubscriptionDescriptor WithMaxDeliveryCount(int maxDeliveryCount)
+    {
+        Configuration.MaxDeliveryCount = maxDeliveryCount;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IAzureServiceBusSubscriptionDescriptor WithDefaultMessageTimeToLive(TimeSpan defaultMessageTimeToLive)
+    {
+        Configuration.DefaultMessageTimeToLive = defaultMessageTimeToLive;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IAzureServiceBusSubscriptionDescriptor WithRequiresSession(bool requiresSession = true)
+    {
+        Configuration.RequiresSession = requiresSession;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IAzureServiceBusSubscriptionDescriptor WithForwardTo(string entityName)
+    {
+        Configuration.ForwardTo = entityName;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IAzureServiceBusSubscriptionDescriptor WithForwardDeadLetteredMessagesTo(string entityName)
+    {
+        Configuration.ForwardDeadLetteredMessagesTo = entityName;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IAzureServiceBusSubscriptionDescriptor WithDeadLetteringOnMessageExpiration(bool deadLetteringOnMessageExpiration = true)
+    {
+        Configuration.DeadLetteringOnMessageExpiration = deadLetteringOnMessageExpiration;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IAzureServiceBusSubscriptionDescriptor WithAutoDeleteOnIdle(TimeSpan autoDeleteOnIdle)
+    {
+        Configuration.AutoDeleteOnIdle = autoDeleteOnIdle;
+        return this;
+    }
+
     /// <summary>
     /// Creates the final subscription configuration.
     /// </summary>

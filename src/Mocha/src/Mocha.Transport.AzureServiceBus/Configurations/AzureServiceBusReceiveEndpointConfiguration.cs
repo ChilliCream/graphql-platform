@@ -13,7 +13,8 @@ public sealed class AzureServiceBusReceiveEndpointConfiguration : ReceiveEndpoin
 
     /// <summary>
     /// Gets or sets the number of messages to prefetch from the broker.
-    /// When zero or negative, a default based on <c>MaxConcurrency * 2</c> is used.
+    /// When <see langword="null"/>, a default based on <c>MaxConcurrency * 2</c> is used.
+    /// A value of zero disables prefetching.
     /// </summary>
-    public int PrefetchCount { get; set; }
+    public int? PrefetchCount { get; set; }
 }

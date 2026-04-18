@@ -36,6 +36,76 @@ internal sealed class AzureServiceBusQueueDescriptor
         return this;
     }
 
+    /// <inheritdoc />
+    public IAzureServiceBusQueueDescriptor WithAutoDeleteOnIdle(TimeSpan autoDeleteOnIdle)
+    {
+        Configuration.AutoDeleteOnIdle = autoDeleteOnIdle;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IAzureServiceBusQueueDescriptor WithLockDuration(TimeSpan lockDuration)
+    {
+        Configuration.LockDuration = lockDuration;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IAzureServiceBusQueueDescriptor WithMaxDeliveryCount(int maxDeliveryCount)
+    {
+        Configuration.MaxDeliveryCount = maxDeliveryCount;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IAzureServiceBusQueueDescriptor WithDefaultMessageTimeToLive(TimeSpan defaultMessageTimeToLive)
+    {
+        Configuration.DefaultMessageTimeToLive = defaultMessageTimeToLive;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IAzureServiceBusQueueDescriptor WithMaxSizeInMegabytes(long maxSizeInMegabytes)
+    {
+        Configuration.MaxSizeInMegabytes = maxSizeInMegabytes;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IAzureServiceBusQueueDescriptor WithRequiresSession(bool requiresSession = true)
+    {
+        Configuration.RequiresSession = requiresSession;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IAzureServiceBusQueueDescriptor WithEnablePartitioning(bool enablePartitioning = true)
+    {
+        Configuration.EnablePartitioning = enablePartitioning;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IAzureServiceBusQueueDescriptor WithForwardTo(string entityName)
+    {
+        Configuration.ForwardTo = entityName;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IAzureServiceBusQueueDescriptor WithForwardDeadLetteredMessagesTo(string entityName)
+    {
+        Configuration.ForwardDeadLetteredMessagesTo = entityName;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IAzureServiceBusQueueDescriptor WithDeadLetteringOnMessageExpiration(bool deadLetteringOnMessageExpiration = true)
+    {
+        Configuration.DeadLetteringOnMessageExpiration = deadLetteringOnMessageExpiration;
+        return this;
+    }
+
     /// <summary>
     /// Creates the final queue configuration.
     /// </summary>

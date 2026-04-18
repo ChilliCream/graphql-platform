@@ -29,6 +29,55 @@ internal sealed class AzureServiceBusTopicDescriptor
         return this;
     }
 
+    /// <inheritdoc />
+    public IAzureServiceBusTopicDescriptor WithDefaultMessageTimeToLive(TimeSpan defaultMessageTimeToLive)
+    {
+        Configuration.DefaultMessageTimeToLive = defaultMessageTimeToLive;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IAzureServiceBusTopicDescriptor WithMaxSizeInMegabytes(long maxSizeInMegabytes)
+    {
+        Configuration.MaxSizeInMegabytes = maxSizeInMegabytes;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IAzureServiceBusTopicDescriptor WithEnablePartitioning(bool enablePartitioning = true)
+    {
+        Configuration.EnablePartitioning = enablePartitioning;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IAzureServiceBusTopicDescriptor WithRequiresDuplicateDetection(bool requiresDuplicateDetection = true)
+    {
+        Configuration.RequiresDuplicateDetection = requiresDuplicateDetection;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IAzureServiceBusTopicDescriptor WithDuplicateDetectionHistoryTimeWindow(TimeSpan duplicateDetectionHistoryTimeWindow)
+    {
+        Configuration.DuplicateDetectionHistoryTimeWindow = duplicateDetectionHistoryTimeWindow;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IAzureServiceBusTopicDescriptor WithAutoDeleteOnIdle(TimeSpan autoDeleteOnIdle)
+    {
+        Configuration.AutoDeleteOnIdle = autoDeleteOnIdle;
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IAzureServiceBusTopicDescriptor WithSupportOrdering(bool supportOrdering = true)
+    {
+        Configuration.SupportOrdering = supportOrdering;
+        return this;
+    }
+
     /// <summary>
     /// Creates the final topic configuration.
     /// </summary>

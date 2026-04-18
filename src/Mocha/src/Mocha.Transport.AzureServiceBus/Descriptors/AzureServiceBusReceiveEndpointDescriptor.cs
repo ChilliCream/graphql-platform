@@ -51,7 +51,7 @@ internal sealed class AzureServiceBusReceiveEndpointDescriptor
     }
 
     /// <inheritdoc />
-    public IAzureServiceBusReceiveEndpointDescriptor PrefetchCount(int count)
+    public IAzureServiceBusReceiveEndpointDescriptor PrefetchCount(int? count)
     {
         Configuration.PrefetchCount = count;
 
