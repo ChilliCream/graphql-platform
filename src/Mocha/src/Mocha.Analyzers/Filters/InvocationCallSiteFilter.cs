@@ -6,7 +6,7 @@ namespace Mocha.Analyzers.Filters;
 /// <summary>
 /// Provides a singleton <see cref="ISyntaxFilter"/> that matches invocation expressions
 /// where the method name is one of the known message dispatch methods. This is a cheap
-/// syntactic check — no semantic analysis is performed.
+/// syntactic check - no semantic analysis is performed.
 /// </summary>
 public sealed class InvocationCallSiteFilter : ISyntaxFilter
 {

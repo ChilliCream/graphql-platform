@@ -366,7 +366,7 @@ public sealed class MediatorGenerator : IIncrementalGenerator
             }
         }
 
-        // Check each call-site for MediatorSend or MediatorQuery — not MediatorPublish.
+        // Check each call-site for MediatorSend or MediatorQuery - not MediatorPublish.
         foreach (var info in callSiteInfos)
         {
             if (info is CallSiteMessageTypeInfo

@@ -45,6 +45,6 @@ internal static partial class Logs
     [LoggerMessage(Level = LogLevel.Warning, Message = "Cannot fulfill order {OrderId}: only {QuantityOnHand} of {ProductName} on hand")]
     public static partial void LogCannotFulfillOrder(this ILogger logger, string orderId, int quantityOnHand, string productName);
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Order {OrderId} fulfilled — tracking {TrackingNumber}")]
+    [LoggerMessage(Level = LogLevel.Information, Message = "Order {OrderId} fulfilled - tracking {TrackingNumber}")]
     public static partial void LogOrderFulfilled(this ILogger logger, string orderId, string trackingNumber);
 }

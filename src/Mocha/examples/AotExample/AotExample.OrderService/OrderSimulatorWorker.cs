@@ -54,7 +54,7 @@ public sealed class OrderSimulatorWorker(
 
                 var correlationId = Guid.NewGuid();
 
-                // 3. Publish to bus — FulfillmentService will pick this up, saga will track it
+                // 3. Publish to bus - FulfillmentService will pick this up, saga will track it
 
                 await messageBus.PublishAsync(
                     new OrderShippedEvent

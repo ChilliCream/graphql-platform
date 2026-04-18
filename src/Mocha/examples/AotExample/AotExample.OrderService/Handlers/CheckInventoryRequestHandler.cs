@@ -28,7 +28,7 @@ internal static partial class Logs
 {
     [LoggerMessage(
         Level = LogLevel.Information,
-        Message = "Inventory check for {ProductName}: {QuantityOnHand} on hand, requested {Quantity} — {Result}")]
+        Message = "Inventory check for {ProductName}: {QuantityOnHand} on hand, requested {Quantity} - {Result}")]
     public static partial void LogInventoryCheck(
         this ILogger logger,
         string productName,

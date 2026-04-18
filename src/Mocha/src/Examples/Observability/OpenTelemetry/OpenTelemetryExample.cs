@@ -40,7 +40,7 @@ builder.Services
     // Spans are emitted to the "Mocha" activity source - subscribe via AddSource("Mocha").
     .AddInstrumentation()
     // Register a custom listener alongside the built-in one for application-level telemetry.
-    // Multiple listeners compose automatically — no manual aggregation needed.
+    // Multiple listeners compose automatically - no manual aggregation needed.
     .AddDiagnosticEventListener<ConsoleDiagnosticObserver>()
     .AddEventHandler<OrderPlacedHandler>()
     .AddInMemory();
@@ -97,7 +97,7 @@ public class OrderPlacedHandler(ILogger<OrderPlacedHandler> logger)
 // --- Custom diagnostic listener ---
 
 // Extend MessagingDiagnosticEventListener to collect telemetry or integrate with a
-// non-OpenTelemetry backend. Override only the methods you care about — the base
+// non-OpenTelemetry backend. Override only the methods you care about - the base
 // class provides no-op defaults for the rest. Each scope method returns an
 // IDisposable whose disposal marks the end of the observed scope.
 public sealed class ConsoleDiagnosticObserver : MessagingDiagnosticEventListener

@@ -580,7 +580,7 @@ public sealed class MessagingGenerator : IIncrementalGenerator
         var contextDisplayName = jsonContextInfo.JsonContextTypeName ?? "any registered module";
 
         // Emit MO0018 for each call-site type not covered by the JsonSerializerContext
-        // or imported module registrations. Only check messaging call sites — mediator
+        // or imported module registrations. Only check messaging call sites - mediator
         // dispatch is in-process and does not require JSON serialization.
         foreach (var info in callSiteInfos)
         {

@@ -54,7 +54,7 @@ public sealed class MessagingDependencyInjectionGenerator : ISyntaxGenerator
             }
         }
 
-        // Collect type names imported from referenced modules — these already have
+        // Collect type names imported from referenced modules - these already have
         // serializer registrations from the referenced module's Add*() method.
         var importedTypeNames = new HashSet<string>(StringComparer.Ordinal);
         var importedSagaTypeNames = new HashSet<string>(StringComparer.Ordinal);

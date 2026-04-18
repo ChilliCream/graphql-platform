@@ -619,11 +619,11 @@ The correlation lookup order is:
 
 # Timeouts
 
-A saga that waits for a message that never arrives will stay in its current state forever. Timeouts ensure every saga eventually completes — either through normal processing or by timing out.
+A saga that waits for a message that never arrives will stay in its current state forever. Timeouts ensure every saga eventually completes - either through normal processing or by timing out.
 
 Mocha provides a saga-level `Timeout()` API that sets a single deadline for the entire saga instance. The timeout is scheduled when the saga is created and automatically cancelled when the saga reaches any final state.
 
-> **Prerequisites:** Durable, cancellable timeouts require a scheduling store. Configure `UsePostgresScheduling()` before using `Timeout()` — see [Scheduling: Set up store-based scheduling](/docs/mocha/v1/scheduling#set-up-store-based-scheduling-for-rabbitmq) for setup instructions. Native transport scheduling (InMemory, PostgreSQL) also works but does not support automatic cancellation.
+> **Prerequisites:** Durable, cancellable timeouts require a scheduling store. Configure `UsePostgresScheduling()` before using `Timeout()` - see [Scheduling: Set up store-based scheduling](/docs/mocha/v1/scheduling#set-up-store-based-scheduling-for-rabbitmq) for setup instructions. Native transport scheduling (InMemory, PostgreSQL) also works but does not support automatic cancellation.
 
 ## Configure a saga-level timeout
 
@@ -632,7 +632,7 @@ Call `Timeout()` on the saga descriptor to set a deadline that applies to the en
 ```csharp
 protected override void Configure(ISagaDescriptor<OrderState> descriptor)
 {
-    // 30-minute timeout — saga will time out if it doesn't reach a final state
+    // 30-minute timeout - saga will time out if it doesn't reach a final state
     descriptor.Timeout(TimeSpan.FromMinutes(30))
         .Respond(state => new OrderTimedOutResponse(state.Id));
 
@@ -660,9 +660,9 @@ protected override void Configure(ISagaDescriptor<OrderState> descriptor)
 2. Returns an `ISagaFinalStateDescriptor<TState>` so you can chain `.Respond()` to send a response when the saga times out.
 3. Tells the saga framework to schedule a timeout event when a new saga instance is created.
 
-The timeout clock starts when the saga is created — that is, when the first event arrives and a new instance is provisioned. If the saga reaches any final state before the deadline, the pending timeout is automatically cancelled. If the timeout fires, a `SagaTimedOutEvent` is delivered to the saga instance.
+The timeout clock starts when the saga is created - that is, when the first event arrives and a new instance is provisioned. If the saga reaches any final state before the deadline, the pending timeout is automatically cancelled. If the timeout fires, a `SagaTimedOutEvent` is delivered to the saga instance.
 
-Use `OnTimeout()` on a state descriptor to define what happens when the timeout arrives. Handle it the same way you handle any other event — run `.Then()` actions, dispatch commands, or transition to a different state.
+Use `OnTimeout()` on a state descriptor to define what happens when the timeout arrives. Handle it the same way you handle any other event - run `.Then()` actions, dispatch commands, or transition to a different state.
 
 ## Key behaviors
 
@@ -675,7 +675,7 @@ Use `OnTimeout()` on a state descriptor to define what happens when the timeout 
 | Missing handler     | If no `OnTimeout()` handler is configured for the current state, the saga throws an execution error. See [troubleshooting](#timeout-troubleshooting) below.                                                                                                                                |
 | Recommended pattern | `DuringAny().OnTimeout()` handles the timeout regardless of which state the saga is in.                                                                                                                                                                                                    |
 | Response on timeout | Chain `.Respond()` on the timed-out final state to send a response back to the original requester.                                                                                                                                                                                         |
-| Scheduling store    | Requires a scheduling store for durable timeouts. Configure `UsePostgresScheduling()` — see [Scheduling](/docs/mocha/v1/scheduling#set-up-store-based-scheduling-for-rabbitmq) for setup. Native transport scheduling (InMemory, PostgreSQL) also works but does not support cancellation. |
+| Scheduling store    | Requires a scheduling store for durable timeouts. Configure `UsePostgresScheduling()` - see [Scheduling](/docs/mocha/v1/scheduling#set-up-store-based-scheduling-for-rabbitmq) for setup. Native transport scheduling (InMemory, PostgreSQL) also works but does not support cancellation. |
 
 ## Timeout troubleshooting
 
@@ -697,9 +697,9 @@ descriptor.DuringAny()
 
 | Method      | Available on              | Parameters         | Description                                                                                                                                              |
 | ----------- | ------------------------- | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Initially` | `ISagaDescriptor<TState>` | —                  | Returns the initial state descriptor for defining transitions that create new saga instances.                                                            |
+| `Initially` | `ISagaDescriptor<TState>` | -                  | Returns the initial state descriptor for defining transitions that create new saga instances.                                                            |
 | `During`    | `ISagaDescriptor<TState>` | `string stateName` | Returns a state descriptor for defining transitions in the named state.                                                                                  |
-| `DuringAny` | `ISagaDescriptor<TState>` | —                  | Returns a catch-all state descriptor whose transitions apply to all non-initial, non-final states.                                                       |
+| `DuringAny` | `ISagaDescriptor<TState>` | -                  | Returns a catch-all state descriptor whose transitions apply to all non-initial, non-final states.                                                       |
 | `Finally`   | `ISagaDescriptor<TState>` | `string stateName` | Declares a final state. When the saga enters this state, persisted state is deleted and an optional response is sent.                                    |
 | `Timeout`   | `ISagaDescriptor<TState>` | `TimeSpan timeout` | Creates a timed-out final state and schedules automatic timeout on saga creation. Returns `ISagaFinalStateDescriptor<TState>` for chaining `.Respond()`. |
 
@@ -707,11 +707,11 @@ descriptor.DuringAny()
 
 | Method         | Available on                   | Parameters | Description                                                                                 |
 | -------------- | ------------------------------ | ---------- | ------------------------------------------------------------------------------------------- |
-| `OnEvent<T>`   | `ISagaStateDescriptor<TState>` | —          | Registers a transition triggered by a published event.                                      |
-| `OnRequest<T>` | `ISagaStateDescriptor<TState>` | —          | Registers a transition triggered by a request message (captures reply address).             |
-| `OnReply<T>`   | `ISagaStateDescriptor<TState>` | —          | Registers a transition triggered by a reply to a previously sent command.                   |
-| `OnFault`      | `ISagaStateDescriptor<TState>` | —          | Registers a transition triggered by a `NotAcknowledgedEvent`.                               |
-| `OnTimeout`    | `ISagaStateDescriptor<TState>` | —          | Registers a transition for `SagaTimedOutEvent`. Sugar for `OnRequest<SagaTimedOutEvent>()`. |
+| `OnEvent<T>`   | `ISagaStateDescriptor<TState>` | -          | Registers a transition triggered by a published event.                                      |
+| `OnRequest<T>` | `ISagaStateDescriptor<TState>` | -          | Registers a transition triggered by a request message (captures reply address).             |
+| `OnReply<T>`   | `ISagaStateDescriptor<TState>` | -          | Registers a transition triggered by a reply to a previously sent command.                   |
+| `OnFault`      | `ISagaStateDescriptor<TState>` | -          | Registers a transition triggered by a `NotAcknowledgedEvent`.                               |
+| `OnTimeout`    | `ISagaStateDescriptor<TState>` | -          | Registers a transition for `SagaTimedOutEvent`. Sugar for `OnRequest<SagaTimedOutEvent>()`. |
 
 ## Transition actions
 
@@ -733,8 +733,8 @@ descriptor.DuringAny()
 
 | Method          | Available on                   | Parameters | Description                                                                                |
 | --------------- | ------------------------------ | ---------- | ------------------------------------------------------------------------------------------ |
-| `OnEntry`       | `ISagaStateDescriptor<TState>` | —          | Returns a lifecycle descriptor for actions that run every time the saga enters the state.  |
-| `WhenCompleted` | `ISagaDescriptor<TState>`      | —          | Returns a lifecycle descriptor for actions that run when the saga reaches any final state. |
+| `OnEntry`       | `ISagaStateDescriptor<TState>` | -          | Returns a lifecycle descriptor for actions that run every time the saga enters the state.  |
+| `WhenCompleted` | `ISagaDescriptor<TState>`      | -          | Returns a lifecycle descriptor for actions that run when the saga reaches any final state. |
 
 # Troubleshooting
 

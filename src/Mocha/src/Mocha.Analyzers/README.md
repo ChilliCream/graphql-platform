@@ -45,17 +45,17 @@ The generator runs two parallel incremental pipelines:
 
 Syntax predicate filters classes/records with Mocha base types in their base list, then inspectors run in priority order:
 
-1. **MessagingHandlerInspector** — concrete handlers implementing messaging interfaces
-2. **AbstractMessagingHandlerInspector** — abstract handlers (diagnostic-only, MO0013)
-3. **MessagingModuleInspector** — `[assembly: MessagingModule(...)]` attributes
-4. **SagaInspector** — `Saga<TState>` subclasses
+1. **MessagingHandlerInspector** - concrete handlers implementing messaging interfaces
+2. **AbstractMessagingHandlerInspector** - abstract handlers (diagnostic-only, MO0013)
+3. **MessagingModuleInspector** - `[assembly: MessagingModule(...)]` attributes
+4. **SagaInspector** - `Saga<TState>` subclasses
 
 ### Pipeline 2: Call-Site & Import Discovery
 
 Syntax predicate filters invocation expressions, then:
 
-1. **CallSiteMessageTypeInspector** — dispatch calls on `IMessageBus`, `ISender`, `IPublisher`
-2. **ImportedModuleTypeInspector** — calls to methods annotated with `[MessagingModuleInfo]`
+1. **CallSiteMessageTypeInspector** - dispatch calls on `IMessageBus`, `ISender`, `IPublisher`
+2. **ImportedModuleTypeInspector** - calls to methods annotated with `[MessagingModuleInfo]`
 
 Both pipelines feed into the `Execute` method which validates, augments, and generates code.
 
@@ -63,7 +63,7 @@ Both pipelines feed into the `Execute` method which validates, augments, and gen
 
 ## Handler Discovery
 
-Concrete (non-abstract, non-generic) classes or records implementing messaging interfaces are discovered. The inspector checks interfaces in a **priority cascade** — first match wins:
+Concrete (non-abstract, non-generic) classes or records implementing messaging interfaces are discovered. The inspector checks interfaces in a **priority cascade** - first match wins:
 
 | Priority | Interface | Kind | Response |
 |----------|-----------|------|----------|
@@ -154,13 +154,13 @@ Registrations are emitted in this order:
 1. **AOT Configuration** (if JsonContext specified)
    - `ModifyOptions(builder, o => o.IsAotCompatible = true)`
    - `AddJsonTypeInfoResolver(builder, {JsonContext}.Default)`
-2. **Message Type Serializers** — `AddMessageConfiguration` per type
-3. **Saga Configuration** — `AddSagaConfiguration<TSaga>` with state serializer
-4. **Batch Handlers** — sorted by handler type name
-5. **Consumers** — sorted by handler type name
-6. **Request Handlers** (RequestResponse + Send) — sorted by handler type name
-7. **Event Handlers** — sorted by handler type name
-8. **Saga Registrations** — `AddSaga<TSaga>`
+2. **Message Type Serializers** - `AddMessageConfiguration` per type
+3. **Saga Configuration** - `AddSagaConfiguration<TSaga>` with state serializer
+4. **Batch Handlers** - sorted by handler type name
+5. **Consumers** - sorted by handler type name
+6. **Request Handlers** (RequestResponse + Send) - sorted by handler type name
+7. **Event Handlers** - sorted by handler type name
+8. **Saga Registrations** - `AddSaga<TSaga>`
 
 ### Handler Registration
 
@@ -191,20 +191,20 @@ This ensures importing modules know exactly which types have serializer registra
 
 AOT mode has two independent aspects controlled by different settings:
 
-- **`JsonContext` on `[MessagingModule]`** — controls **code generation**: serializer registrations, strict mode, and resolver registration are only emitted when a `JsonContext` is specified.
-- **`PublishAot` MSBuild property** — controls **validation strictness**: when `true`, diagnostics MO0015/MO0016/MO0018 fire even without a local `JsonContext`.
+- **`JsonContext` on `[MessagingModule]`** - controls **code generation**: serializer registrations, strict mode, and resolver registration are only emitted when a `JsonContext` is specified.
+- **`PublishAot` MSBuild property** - controls **validation strictness**: when `true`, diagnostics MO0015/MO0016/MO0018 fire even without a local `JsonContext`.
 
 Validation diagnostics fire when **either** condition is true. Serializer code generation requires `JsonContext`.
 
 ### What changes when JsonContext is specified
 
-1. **Serializer registrations are emitted** — `AddMessageConfiguration` with pre-built `JsonMessageSerializer` for each message type in the local JsonContext.
+1. **Serializer registrations are emitted** - `AddMessageConfiguration` with pre-built `JsonMessageSerializer` for each message type in the local JsonContext.
 
-2. **Strict mode is enabled** — `IsAotCompatible = true` on builder options.
+2. **Strict mode is enabled** - `IsAotCompatible = true` on builder options.
 
-3. **JsonTypeInfoResolver is registered** — the specified `JsonSerializerContext` is added as a resolver.
+3. **JsonTypeInfoResolver is registered** - the specified `JsonSerializerContext` is added as a resolver.
 
-4. **Validation diagnostics fire** — MO0015, MO0016, MO0018 are checked.
+4. **Validation diagnostics fire** - MO0015, MO0016, MO0018 are checked.
 
 ### Which types get serializer registrations
 
@@ -219,53 +219,53 @@ Types declared in the `JsonSerializerContext` that have no corresponding handler
 
 ### Enclosed Types
 
-For each message type registration, the generator computes an "enclosed types" array from the type hierarchy. If multiple registered types share a hierarchy (e.g., `OrderUpdated : Order`), enclosed types are sorted by specificity — most specific types first. This supports polymorphic serialization.
+For each message type registration, the generator computes an "enclosed types" array from the type hierarchy. If multiple registered types share a hierarchy (e.g., `OrderUpdated : Order`), enclosed types are sorted by specificity - most specific types first. This supports polymorphic serialization.
 
 ---
 
 ## Validation & Diagnostics
 
-### MO0011 — Duplicate Request Handler (Error)
+### MO0011 - Duplicate Request Handler (Error)
 
 **Fires when:** Multiple handlers exist for the same message type with `Send` or `RequestResponse` kind.
 
 **Example:** Two handlers both implement `IEventRequestHandler<CheckInventoryRequest, CheckInventoryResponse>`.
 
-### MO0012 — Open Generic Handler (Info)
+### MO0012 - Open Generic Handler (Info)
 
 **Fires when:** A handler class has unbound type parameters (e.g., `class MyHandler<T> : IEventHandler<T>`).
 
-**Reason:** The generator cannot register open generic handlers — concrete types are required.
+**Reason:** The generator cannot register open generic handlers - concrete types are required.
 
-### MO0013 — Abstract Handler (Warning)
+### MO0013 - Abstract Handler (Warning)
 
 **Fires when:** An abstract class implements a messaging interface.
 
 **Reason:** Abstract classes cannot be instantiated and thus cannot be registered as handlers.
 
-### MO0014 — Saga Missing Parameterless Constructor (Error)
+### MO0014 - Saga Missing Parameterless Constructor (Error)
 
 **Fires when:** A `Saga<TState>` subclass does not have a `public` parameterless constructor.
 
 **Reason:** The saga runtime requires `new()` to instantiate saga instances.
 
-### MO0015 — Missing JsonSerializerContext (Error)
+### MO0015 - Missing JsonSerializerContext (Error)
 
 **Fires when (AOT mode):** The module has handlers or sagas with message types not fully covered by imported modules, but no `JsonContext` is specified on `[MessagingModule]`.
 
 **Fix:** Add `JsonContext = typeof(MyJsonContext)` to the attribute.
 
-### MO0016 — Missing JsonSerializable (Error)
+### MO0016 - Missing JsonSerializable (Error)
 
 **Fires when (AOT mode):** A handler message type, response type, or saga state type is not declared as `[JsonSerializable]` on the local `JsonSerializerContext` and not covered by imported modules.
 
 **Fix:** Add `[JsonSerializable(typeof(MissingType))]` to the JsonContext class.
 
-### MO0018 — Call-Site Type Not in JsonContext (Warning)
+### MO0018 - Call-Site Type Not in JsonContext (Warning)
 
 **Fires when (AOT mode):** A message type used in a dispatch call (`PublishAsync`, `SendAsync`, etc.) is not found in the local `JsonSerializerContext` or imported module types.
 
-**Scope:** Only messaging dispatch calls — mediator dispatch (`ISender.SendAsync`, `ISender.QueryAsync`, `IPublisher.PublishAsync`) is excluded because it's in-process.
+**Scope:** Only messaging dispatch calls - mediator dispatch (`ISender.SendAsync`, `ISender.QueryAsync`, `IPublisher.PublishAsync`) is excluded because it's in-process.
 
 > **Note:** MO0017 is reserved and not currently used.
 
@@ -281,7 +281,7 @@ For each message type registration, the generator computes an "enclosed types" a
 | MO0016 | `PublishAot == true` OR `JsonContext` is specified |
 | MO0018 | `PublishAot == true` OR `JsonContext` is specified |
 
-Handlers or sagas that carry a diagnostic (e.g., MO0012, MO0013, MO0014) are **excluded from code generation** — no `AddHandlerConfiguration` or `AddSagaConfiguration` is emitted for them. Only entries with zero diagnostics flow to the generator.
+Handlers or sagas that carry a diagnostic (e.g., MO0012, MO0013, MO0014) are **excluded from code generation** - no `AddHandlerConfiguration` or `AddSagaConfiguration` is emitted for them. Only entries with zero diagnostics flow to the generator.
 
 ---
 
@@ -300,7 +300,7 @@ The module system enables multiple assemblies to register their handlers indepen
 ### Validation with imports
 
 - **MO0015:** If all handler types are covered by imports, no local JsonContext is needed
-- **MO0016:** Imported types are considered "covered" — no local `[JsonSerializable]` needed
+- **MO0016:** Imported types are considered "covered" - no local `[JsonSerializable]` needed
 - **MO0018:** Imported types are considered "covered" at call sites
 
 ### Key constraint
