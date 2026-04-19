@@ -11,17 +11,20 @@ internal sealed partial class SubscriptionExecutor
     private readonly QueryExecutor _queryExecutor;
     private readonly IErrorHandler _errorHandler;
     private readonly IExecutionDiagnosticEvents _diagnosticEvents;
+    private readonly ExecutionConcurrencyGate? _concurrencyGate;
 
     public SubscriptionExecutor(
         ObjectPool<OperationContext> operationContextPool,
         QueryExecutor queryExecutor,
         IErrorHandler errorHandler,
-        IExecutionDiagnosticEvents diagnosticEvents)
+        IExecutionDiagnosticEvents diagnosticEvents,
+        ExecutionConcurrencyGate? concurrencyGate = null)
     {
         _operationContextPool = operationContextPool;
         _queryExecutor = queryExecutor;
         _errorHandler = errorHandler;
         _diagnosticEvents = diagnosticEvents;
+        _concurrencyGate = concurrencyGate;
     }
 
     public async Task<IExecutionResult> ExecuteAsync(
@@ -58,7 +61,8 @@ internal sealed partial class SubscriptionExecutor
                 operation.RootType,
                 selectionSet,
                 resolveQueryValue,
-                _diagnosticEvents)
+                _diagnosticEvents,
+                _concurrencyGate)
                 .ConfigureAwait(false);
 
             var response = new ResponseStream(() => subscription.ExecuteAsync());

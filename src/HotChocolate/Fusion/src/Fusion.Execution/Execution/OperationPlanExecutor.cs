@@ -85,10 +85,11 @@ internal sealed class OperationPlanExecutor
                 throw new InvalidOperationException("We could not subscribe to the underlying source schema.");
             }
 
-            var subscriptionEnumerable = CreateSubscriptionEnumerable(
+            var subscriptionEnumerable = CreateResponseStream(
                 context,
                 subscriptionNode,
                 subscriptionResult,
+                requestContext.Schema.Services.GetService<ExecutionConcurrencyGate>(),
                 executionCts.Token,
                 cancellationToken);
 
@@ -220,10 +221,11 @@ internal sealed class OperationPlanExecutor
         }
     }
 
-    private static async IAsyncEnumerable<OperationResult> CreateSubscriptionEnumerable(
+    private static async IAsyncEnumerable<OperationResult> CreateResponseStream(
         OperationPlanContext context,
         OperationExecutionNode subscriptionNode,
         SubscriptionResult subscriptionResult,
+        ExecutionConcurrencyGate? concurrencyGate,
         [EnumeratorCancellation] CancellationToken executionCancellationToken,
         CancellationToken requestCancellationToken)
     {
@@ -247,8 +249,16 @@ internal sealed class OperationPlanExecutor
 
             OperationResult result;
 
+            var gateAcquired = false;
+
             try
             {
+                if (concurrencyGate is { IsEnabled: true })
+                {
+                    await concurrencyGate.WaitAsync(requestCancellationToken).ConfigureAwait(false);
+                    gateAcquired = true;
+                }
+
                 context.Begin(eventArgs.StartTimestamp, eventArgs.Activity?.TraceId.ToHexString());
 
                 executionState.Reset();
@@ -306,6 +316,11 @@ internal sealed class OperationPlanExecutor
             {
                 // disposing the eventArgs disposes the telemetry scope.
                 eventArgs.Dispose();
+
+                if (gateAcquired)
+                {
+                    concurrencyGate!.Release();
+                }
             }
 
             yield return result;

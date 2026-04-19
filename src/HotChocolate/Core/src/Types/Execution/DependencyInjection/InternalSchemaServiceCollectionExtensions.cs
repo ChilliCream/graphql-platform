@@ -21,7 +21,8 @@ public static class InternalSchemaServiceCollectionExtensions
                 sp.GetRootServiceProvider().GetRequiredService<ObjectPool<OperationContext>>(),
                 sp.GetRequiredService<QueryExecutor>(),
                 sp.GetRequiredService<IErrorHandler>(),
-                sp.GetRequiredService<IExecutionDiagnosticEvents>()));
+                sp.GetRequiredService<IExecutionDiagnosticEvents>(),
+                sp.GetService<ExecutionConcurrencyGate>()));
         return services;
     }
 

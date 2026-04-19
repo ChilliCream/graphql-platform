@@ -16,6 +16,7 @@ internal sealed partial class SubscriptionExecutor
         private readonly QueryExecutor _queryExecutor;
         private readonly IExecutionDiagnosticEvents _diagnosticEvents;
         private readonly IErrorHandler _errorHandler;
+        private readonly ExecutionConcurrencyGate? _concurrencyGate;
         private IDisposable? _subscriptionScope;
         private readonly RequestContext _requestContext;
         private readonly ObjectType _subscriptionType;
@@ -34,7 +35,8 @@ internal sealed partial class SubscriptionExecutor
             ObjectType subscriptionType,
             SelectionSet rootSelections,
             Func<object?> resolveQueryRootValue,
-            IExecutionDiagnosticEvents diagnosticEvents)
+            IExecutionDiagnosticEvents diagnosticEvents,
+            ExecutionConcurrencyGate? concurrencyGate)
         {
             unchecked
             {
@@ -48,6 +50,7 @@ internal sealed partial class SubscriptionExecutor
             _rootSelections = rootSelections;
             _resolveQueryRootValue = resolveQueryRootValue;
             _diagnosticEvents = diagnosticEvents;
+            _concurrencyGate = concurrencyGate;
             _errorHandler = _requestContext.Schema.Services.GetRequiredService<IErrorHandler>();
         }
 
@@ -76,6 +79,11 @@ internal sealed partial class SubscriptionExecutor
         /// <param name="diagnosticsEvents">
         /// The internal diagnostic events to report telemetry.
         /// </param>
+        /// <param name="concurrencyGate">
+        /// The per-schema concurrency gate that bounds the number of in-flight
+        /// executions. Each event acquires a slot before invoking the query
+        /// executor, mirroring the pipeline gate for queries and mutations.
+        /// </param>
         /// <returns>
         /// Returns a new subscription instance.
         /// </returns>
@@ -86,7 +94,8 @@ internal sealed partial class SubscriptionExecutor
             ObjectType subscriptionType,
             SelectionSet rootSelections,
             Func<object?> resolveQueryRootValue,
-            IExecutionDiagnosticEvents diagnosticsEvents)
+            IExecutionDiagnosticEvents diagnosticsEvents,
+            ExecutionConcurrencyGate? concurrencyGate)
         {
             var subscription = new Subscription(
                 operationContextPool,
@@ -95,7 +104,8 @@ internal sealed partial class SubscriptionExecutor
                 subscriptionType,
                 rootSelections,
                 resolveQueryRootValue,
-                diagnosticsEvents);
+                diagnosticsEvents,
+                concurrencyGate);
 
             subscription._subscriptionScope = diagnosticsEvents.ExecuteSubscription(requestContext, subscription.Id);
             subscription._sourceStream = await subscription.SubscribeAsync().ConfigureAwait(false);
@@ -154,10 +164,22 @@ internal sealed partial class SubscriptionExecutor
 
             serviceScope.ServiceProvider.InitializeDataLoaderScope();
 
-            var operationContext = _operationContextPool.Get();
+            // Per-event concurrency gate acquire. The slot is released in the finally
+            // block below so it is returned even if the query executor throws or the
+            // subscription is cancelled mid-execution.
+            var gateAcquired = false;
+            OperationContext? operationContext = null;
 
             try
             {
+                if (_concurrencyGate is { IsEnabled: true })
+                {
+                    await _concurrencyGate.WaitAsync(_requestContext.RequestAborted).ConfigureAwait(false);
+                    gateAcquired = true;
+                }
+
+                operationContext = _operationContextPool.Get();
+
                 var eventServices = serviceScope.ServiceProvider;
                 var dispatcher = eventServices.GetRequiredService<IBatchDispatcher>();
 
@@ -211,6 +233,11 @@ internal sealed partial class SubscriptionExecutor
                 if (operationContext is not null)
                 {
                     _operationContextPool.Return(operationContext);
+                }
+
+                if (gateAcquired)
+                {
+                    _concurrencyGate!.Release();
                 }
             }
         }
