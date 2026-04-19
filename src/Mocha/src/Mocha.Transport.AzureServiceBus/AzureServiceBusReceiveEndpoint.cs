@@ -88,6 +88,11 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
                 {
                     var feature = ctx.Features.GetOrSet<AzureServiceBusReceiveFeature>();
                     feature.ProcessMessageEventArgs = state;
+
+                    // Expose the pooled feature under its public power-user contract so handlers
+                    // can resolve it via ctx.AzureServiceBus(). The same instance backs both keys —
+                    // no extra allocation.
+                    ctx.Features.Set<IAzureServiceBusMessageContext>(feature);
                 },
                 args,
                 args.CancellationToken);

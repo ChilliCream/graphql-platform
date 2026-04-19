@@ -85,6 +85,14 @@ internal sealed class AzureServiceBusReceiveEndpointDescriptor
         return this;
     }
 
+    /// <inheritdoc />
+    public IAzureServiceBusReceiveEndpointDescriptor UseNativeDeadLetterForwarding()
+    {
+        Configuration.UseNativeDeadLetterForwarding = true;
+
+        return this;
+    }
+
     public AzureServiceBusReceiveEndpointConfiguration CreateConfiguration()
     {
         return Configuration;

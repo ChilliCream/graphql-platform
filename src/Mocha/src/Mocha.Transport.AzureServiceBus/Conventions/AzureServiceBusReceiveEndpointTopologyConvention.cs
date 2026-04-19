@@ -31,15 +31,37 @@ public sealed class AzureServiceBusReceiveEndpointTopologyConvention
 
         var topology = (AzureServiceBusMessagingTopology)endpoint.Transport.Topology;
 
-        if (topology.Queues.FirstOrDefault(q => q.Name == configuration.QueueName) is null)
+        string? forwardDeadLetteredMessagesTo = null;
+        if (configuration.UseNativeDeadLetterForwarding)
+        {
+            forwardDeadLetteredMessagesTo =
+                context.Naming.GetReceiveEndpointName(configuration.QueueName, ReceiveEndpointKind.Error);
+        }
+
+        var existingQueue = topology.Queues.FirstOrDefault(q => q.Name == configuration.QueueName);
+        if (existingQueue is null)
         {
             topology.AddQueue(
                 new AzureServiceBusQueueConfiguration
                 {
                     Name = configuration.QueueName,
                     AutoDelete = endpoint.Kind == ReceiveEndpointKind.Reply,
-                    AutoProvision = configuration.AutoProvision
+                    AutoProvision = configuration.AutoProvision,
+                    ForwardDeadLetteredMessagesTo = forwardDeadLetteredMessagesTo
                 });
+        }
+        else if (forwardDeadLetteredMessagesTo is not null)
+        {
+            if (existingQueue.ForwardDeadLetteredMessagesTo is not null
+                && existingQueue.ForwardDeadLetteredMessagesTo != forwardDeadLetteredMessagesTo)
+            {
+                throw new InvalidOperationException(
+                    $"Endpoint '{configuration.Name}' configured UseNativeDeadLetterForwarding() but "
+                    + $"queue '{configuration.QueueName}' already forwards dead-lettered messages to "
+                    + $"'{existingQueue.ForwardDeadLetteredMessagesTo}'. Choose one.");
+            }
+
+            existingQueue.SetForwardDeadLetteredMessagesTo(forwardDeadLetteredMessagesTo);
         }
 
         if (endpoint.Kind is ReceiveEndpointKind.Reply or ReceiveEndpointKind.Error or ReceiveEndpointKind.Skipped)

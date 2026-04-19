@@ -1,4 +1,6 @@
+using System.Globalization;
 using Azure.Messaging.ServiceBus;
+using Mocha.Features;
 using Mocha.Middlewares;
 using static System.StringSplitOptions;
 
@@ -93,7 +95,17 @@ public sealed class AzureServiceBusDispatchEndpoint(AzureServiceBusMessagingTran
 
         var sender = clientManager.GetSender(entityPath);
         var message = CreateMessage(envelope);
-        await sender.SendMessageAsync(message, cancellationToken);
+
+        if (envelope.ScheduledTime is { } scheduledTime)
+        {
+            var sequenceNumber = await sender.ScheduleMessageAsync(message, scheduledTime, cancellationToken);
+            context.Features.Configure<ScheduledMessageFeature>(f =>
+                f.Token = $"asb:{entityPath}:{sequenceNumber.ToString(CultureInfo.InvariantCulture)}");
+        }
+        else
+        {
+            await sender.SendMessageAsync(message, cancellationToken);
+        }
     }
 
     private static ServiceBusMessage CreateMessage(MessageEnvelope envelope)

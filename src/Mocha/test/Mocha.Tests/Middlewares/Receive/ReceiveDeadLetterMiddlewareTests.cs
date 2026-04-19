@@ -118,65 +118,94 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
     }
 
     [Fact]
-    public async Task InvokeAsync_Should_BeNoOp_When_SkippedEndpointIsNull()
+    public async Task ReceiveDeadLetterMiddleware_Should_BeNoOp_When_SkippedEndpointIsNull()
     {
-        // arrange - Create() short-circuits and returns next directly when SkippedEndpoint is null.
-        // The compiled middleware is therefore the next delegate itself; reaching this assertion
-        // means no DeadLetter middleware sits in the pipeline.
-        var endpoint = new StubReceiveEndpointWithoutSkipped();
-        var pipelineFactoryContext = new ReceiveMiddlewareFactoryContext
-        {
-            Services = CreateServices(),
-            Endpoint = endpoint,
-            Transport = endpoint.Transport
-        };
+        // arrange - no skipped-endpoint convention is registered, so SkippedEndpoint is null
+        // on every receive endpoint and Create() must short-circuit to next. Send a message of
+        // an unmatched type directly to the receive endpoint's queue: it arrives at the pipeline
+        // but no consumer matches. With the dead-letter MW absent, the message must simply pass
+        // through without being re-routed and the call must not throw.
+        var recorder = new MessageRecorder();
+        await using var provider = await CreateBusWithUnmatchedRouteAsync(
+            b => b.Services.AddSingleton(recorder),
+            registerSkippedConvention: false);
 
-        var nextInvoked = false;
-        ReceiveDelegate next = _ =>
-        {
-            nextInvoked = true;
-            return ValueTask.CompletedTask;
-        };
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act
-        var configuration = ReceiveDeadLetterMiddleware.Create();
-        var compiled = configuration.Factory(pipelineFactoryContext, next);
+        // act - this must not throw despite no consumer matching.
+        await bus.SendAsync(
+            new UnmatchedDeadLetterEvent { Id = "noop-1" },
+            new SendOptions { Endpoint = new Uri($"{InMemorySchema}:q/{NoopEndpointQueue}") },
+            CancellationToken.None);
 
-        var context = new StubReceiveContext { Services = CreateServices(), Runtime = new StubMessagingRuntime() };
-        await compiled(context);
-
-        // assert - the middleware short-circuited; the returned delegate IS next, no DeadLetter wrapper.
-        Assert.Same(next, compiled);
-        Assert.True(nextInvoked);
+        // assert - no _skipped queue exists; the short-circuit kept the DeadLetter MW out of the pipeline.
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+        var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
+        var topology = (InMemoryMessagingTopology)transport.Topology;
+        Assert.DoesNotContain(topology.Queues, q => q.Name.EndsWith("_skipped"));
+        Assert.Empty(recorder.Messages);
     }
 
     [Fact]
     public async Task ReceiveDeadLetterMiddleware_Should_ForwardToSkippedEndpoint_When_NoConsumerMatched()
     {
-        // arrange - configure an endpoint that handles only DeadLetterTestEvent; publish a message
-        // of an unrelated type so RoutingMiddleware finds no consumers and the dead-letter MW must
-        // forward the envelope to the skipped endpoint.
-        await using var provider = await CreateBusWithSkippedEndpointAsync(b =>
-            b.AddEventHandler<DeadLetterTestEventHandler>());
+        // arrange - configure an endpoint that handles only DeadLetterTestEvent and a skipped
+        // convention. Send a message of an unrelated type directly to the queue. The receive
+        // endpoint's pipeline runs, RoutingMiddleware finds no consumers, and the dead-letter MW
+        // must forward the envelope to the skipped endpoint.
+        var recorder = new MessageRecorder();
+        await using var provider = await CreateBusWithUnmatchedRouteAsync(
+            b => b.Services.AddSingleton(recorder),
+            registerSkippedConvention: true);
 
         using var scope = provider.CreateScope();
         var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        // act - publish an unrelated message type. No registered handler matches, so the
-        // routing middleware leaves MessageConsumed=false and dead-letter forwards to skipped.
-        await bus.PublishAsync(
+        // act
+        await bus.SendAsync(
             new UnmatchedDeadLetterEvent { Id = "skipped-1" },
+            new SendOptions { Endpoint = new Uri($"{InMemorySchema}:q/{NoopEndpointQueue}") },
             CancellationToken.None);
 
-        // assert - one message lands on the skipped queue
+        // assert - one message lands on the skipped queue with the original message type intact.
         var skippedQueue = GetSkippedQueue(provider);
         var items = await ConsumeFromQueueAsync(skippedQueue, expectedCount: 1);
 
         var envelope = Assert.Single(items);
-        Assert.NotNull(envelope.Headers);
-        Assert.Contains(
-            nameof(UnmatchedDeadLetterEvent),
-            envelope.Headers!.Get(MessageHeaders.MessageType) ?? string.Empty);
+        Assert.NotNull(envelope.MessageType);
+        // The default naming convention emits identities like
+        // "urn:message:<kebab-namespace>:<kebab-typename>" so search for the kebab-cased name.
+        Assert.Contains("unmatched-dead-letter-event", envelope.MessageType);
+        Assert.Empty(recorder.Messages);
+    }
+
+    private const string InMemorySchema = InMemoryTransportConfiguration.DefaultSchema;
+    private const string NoopEndpointQueue = "noop-endpoint";
+
+    private static async Task<ServiceProvider> CreateBusWithUnmatchedRouteAsync(
+        Action<IMessageBusHostBuilder> configure,
+        bool registerSkippedConvention)
+    {
+        var services = new ServiceCollection();
+        var builder = services.AddMessageBus();
+        builder.AddEventHandler<DeadLetterTestEventHandler>();
+        configure(builder);
+
+        builder.AddInMemory(d =>
+        {
+            d.Endpoint(NoopEndpointQueue).Handler<DeadLetterTestEventHandler>().Queue(NoopEndpointQueue);
+
+            if (registerSkippedConvention)
+            {
+                d.AddConvention(new TestSkippedEndpointConvention());
+            }
+        });
+
+        var provider = services.BuildServiceProvider();
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+        await runtime.StartAsync(CancellationToken.None);
+        return provider;
     }
 
     [Fact]
@@ -518,6 +547,14 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
         return topology.Queues.First(q => q.Name.EndsWith("_error"));
     }
 
+    private static InMemoryQueue GetSkippedQueue(ServiceProvider provider)
+    {
+        var runtime = (MessagingRuntime)provider.GetRequiredService<IMessagingRuntime>();
+        var transport = runtime.Transports.OfType<InMemoryMessagingTransport>().Single();
+        var topology = (InMemoryMessagingTopology)transport.Topology;
+        return topology.Queues.First(q => q.Name.EndsWith("_skipped"));
+    }
+
     private static async Task<List<MessageEnvelope>> ConsumeFromQueueAsync(InMemoryQueue queue, int expectedCount)
     {
         using var cts = new CancellationTokenSource(Timeout);
@@ -553,6 +590,20 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
             if (configuration is { Kind: ReceiveEndpointKind.Default, QueueName: { } queueName })
             {
                 configuration.ErrorEndpoint ??= new Uri($"{transport.Schema}:q/{queueName}_error");
+            }
+        }
+    }
+
+    private sealed class TestSkippedEndpointConvention : IInMemoryReceiveEndpointConfigurationConvention
+    {
+        public void Configure(
+            IMessagingConfigurationContext context,
+            InMemoryMessagingTransport transport,
+            InMemoryReceiveEndpointConfiguration configuration)
+        {
+            if (configuration is { Kind: ReceiveEndpointKind.Default, QueueName: { } queueName })
+            {
+                configuration.SkippedEndpoint ??= new Uri($"{transport.Schema}:q/{queueName}_skipped");
             }
         }
     }
@@ -723,6 +774,14 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
     }
 
     public sealed class DeadLetterTestEvent
+    {
+        public required string Id { get; init; }
+    }
+
+    /// <summary>
+    /// Distinct event with no registered handler; used to exercise the no-consumer-matched path.
+    /// </summary>
+    public sealed class UnmatchedDeadLetterEvent
     {
         public required string Id { get; init; }
     }

@@ -1,3 +1,4 @@
+using Azure.Messaging.ServiceBus;
 using Mocha.Features;
 using Mocha.Middlewares;
 using Mocha.Transport.AzureServiceBus.Features;
@@ -25,13 +26,13 @@ internal sealed class AzureServiceBusAcknowledgementMiddleware
         {
             await next(context);
 
-            await args.CompleteMessageAsync(args.Message, cancellationToken);
+            await CompleteAsync(args, cancellationToken);
         }
         catch
         {
             try
             {
-                await args.AbandonMessageAsync(args.Message, cancellationToken: cancellationToken);
+                await AbandonAsync(args, cancellationToken);
             }
             catch
             {
@@ -39,6 +40,31 @@ internal sealed class AzureServiceBusAcknowledgementMiddleware
             }
 
             throw;
+        }
+    }
+
+    private static async Task CompleteAsync(ProcessMessageEventArgs args, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await args.CompleteMessageAsync(args.Message, cancellationToken);
+        }
+        catch (ServiceBusException ex) when (ex.Reason == ServiceBusFailureReason.MessageLockLost)
+        {
+            // Message was already settled (e.g. handler called DeadLetterMessageAsync directly via
+            // IAzureServiceBusMessageContext, or the lock expired). Treat as already-settled.
+        }
+    }
+
+    private static async Task AbandonAsync(ProcessMessageEventArgs args, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await args.AbandonMessageAsync(args.Message, cancellationToken: cancellationToken);
+        }
+        catch (ServiceBusException ex) when (ex.Reason == ServiceBusFailureReason.MessageLockLost)
+        {
+            // Message was already settled or the lock expired. Nothing else to do.
         }
     }
 
@@ -50,6 +76,6 @@ internal sealed class AzureServiceBusAcknowledgementMiddleware
     /// <returns>A middleware configuration keyed as "AzureServiceBusAcknowledgement".</returns>
     public static ReceiveMiddlewareConfiguration Create()
         => new(
-            static (context, next) => ctx => s_instance.InvokeAsync(ctx, next),
+            static (_, next) => ctx => s_instance.InvokeAsync(ctx, next),
             "AzureServiceBusAcknowledgement");
 }

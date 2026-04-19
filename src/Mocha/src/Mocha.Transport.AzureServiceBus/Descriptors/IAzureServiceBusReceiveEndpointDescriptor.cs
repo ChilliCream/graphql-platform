@@ -45,4 +45,15 @@ public interface IAzureServiceBusReceiveEndpointDescriptor
         ReceiveMiddlewareConfiguration configuration,
         string? before = null,
         string? after = null);
+
+    /// <summary>
+    /// Opts the endpoint's underlying queue into forwarding broker-dead-lettered messages
+    /// (<c>MaxDeliveryCountExceeded</c>, <c>TTLExpiredException</c>) into the Mocha-managed
+    /// <c>{queueName}_error</c> queue, consolidating fault visibility.
+    /// </summary>
+    /// <remarks>
+    /// Conflicts with an explicitly configured <c>ForwardDeadLetteredMessagesTo</c> on the same queue.
+    /// </remarks>
+    /// <returns>The descriptor for method chaining.</returns>
+    IAzureServiceBusReceiveEndpointDescriptor UseNativeDeadLetterForwarding();
 }

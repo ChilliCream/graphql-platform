@@ -17,4 +17,11 @@ public sealed class AzureServiceBusReceiveEndpointConfiguration : ReceiveEndpoin
     /// A value of zero disables prefetching.
     /// </summary>
     public int? PrefetchCount { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether the endpoint's underlying queue forwards broker-dead-lettered messages
+    /// (e.g. <c>MaxDeliveryCountExceeded</c>, <c>TTLExpiredException</c>) into the Mocha-managed
+    /// <c>{queueName}_error</c> queue. Defaults to <see langword="false"/>.
+    /// </summary>
+    public bool UseNativeDeadLetterForwarding { get; set; }
 }

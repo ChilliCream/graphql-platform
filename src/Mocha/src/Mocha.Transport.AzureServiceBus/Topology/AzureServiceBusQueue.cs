@@ -115,6 +115,11 @@ public sealed class AzureServiceBusQueue
         ImmutableInterlocked.Update(ref _subscriptions, static (s, sub) => s.Add(sub), subscription);
     }
 
+    internal void SetForwardDeadLetteredMessagesTo(string entityName)
+    {
+        ForwardDeadLetteredMessagesTo = entityName;
+    }
+
     /// <inheritdoc />
     public async Task ProvisionAsync(
         AzureServiceBusClientManager clientManager,
