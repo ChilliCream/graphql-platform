@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddMediator()
     .AddMediatorShowcase()
     .Use(LoggingMiddleware.Create())
+    .Use(CommandAuditMiddleware.Create())
     .Use(PlaceOrderValidationMiddleware.Create())
     .Use(PlaceOrderAuditMiddleware.Create())
     .Use(ExceptionHandlingMiddleware.Create())
