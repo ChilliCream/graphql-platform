@@ -275,7 +275,7 @@ internal sealed class FusionPublishCommand : Command
             }
             else
             {
-                await composeActivity.FailAllAsync();
+                await composeActivity.FailAllAsync(message: "Fusion configuration could not be composed.");
 
                 console.WriteLine();
                 console.WriteLine("## Composition log");
@@ -367,14 +367,14 @@ internal sealed class FusionPublishCommand : Command
 
                     if (isValidArchive)
                     {
-                        validationActivity.Success("Validated configuration.");
+                        validationActivity.Success("Fusion configuration passed validation.");
                     }
                     else if (!force)
                     {
                         // Write directly instead of throwing so the release-slot fallback
                         // in the outer catch is not triggered — the publish hasn't actually
                         // reserved any remote state that needs tearing down here.
-                        console.Error.WriteErrorLine("Fusion configuration validation failed.");
+                        console.Error.WriteErrorLine("Fusion configuration failed validation.");
                         return ExitCodes.Error;
                     }
                 }

@@ -4,47 +4,34 @@ description: "Add cross-cutting concerns to the Mocha Mediator dispatch pipeline
 ---
 
 ```csharp
-public static class LoggingMiddleware
+internal sealed class LoggingMiddleware(ILogger<LoggingMiddleware> logger)
 {
+    public async ValueTask InvokeAsync(IMediatorContext context, MediatorDelegate next)
+    {
+        logger.LogInformation("Handling {MessageType}...", context.MessageType.Name);
+
+        var sw = Stopwatch.StartNew();
+        await next(context);
+        sw.Stop();
+
+        logger.LogInformation(
+            "Handled {MessageType} in {ElapsedMs}ms",
+            context.MessageType.Name, sw.ElapsedMilliseconds);
+    }
+
     public static MediatorMiddlewareConfiguration Create()
         => new(
             static (factoryCtx, next) =>
             {
-                var logger = factoryCtx.Services.GetRequiredService<ILoggerFactory>()
-                    .CreateLogger("Pipeline.Logging");
-
-                return ctx =>
-                {
-                    logger.LogInformation("Handling {MessageType}...", ctx.MessageType.Name);
-
-                    var sw = Stopwatch.StartNew();
-                    var task = next(ctx);
-
-                    if (task.IsCompletedSuccessfully)
-                    {
-                        sw.Stop();
-                        logger.LogInformation("Handled {MessageType} in {ElapsedMs}ms",
-                            ctx.MessageType.Name, sw.ElapsedMilliseconds);
-                        return default;
-                    }
-
-                    return Awaited(task, sw, logger, ctx.MessageType.Name);
-
-                    static async ValueTask Awaited(
-                        ValueTask t, Stopwatch sw, ILogger log, string msgType)
-                    {
-                        await t.ConfigureAwait(false);
-                        sw.Stop();
-                        log.LogInformation("Handled {MessageType} in {ElapsedMs}ms",
-                            msgType, sw.ElapsedMilliseconds);
-                    }
-                };
+                var logger = factoryCtx.Services.GetRequiredService<ILogger<LoggingMiddleware>>();
+                var middleware = new LoggingMiddleware(logger);
+                return ctx => middleware.InvokeAsync(ctx, next);
             },
             "Logging");
 }
 ```
 
-That is a middleware. It wraps every command, query, and notification with timing and logging. Register it with `.Use()` and it runs for every message that passes through the pipeline.
+That is a middleware. It wraps every command, query, and notification with timing and logging. Register it with `.Use(LoggingMiddleware.Create())` and it runs for every message that passes through the pipeline.
 
 # How the pipeline works
 
@@ -89,7 +76,7 @@ graph LR
 
 # Write a middleware
 
-A middleware is a static class with a `Create()` method that returns a `MediatorMiddlewareConfiguration`. The configuration holds two things: the factory delegate and an optional string key used for [positioning](#middleware-positioning).
+A middleware is a class with an `InvokeAsync(IMediatorContext, MediatorDelegate)` method and a static `Create()` method that returns a `MediatorMiddlewareConfiguration`. The configuration holds two things: a factory delegate and an optional string key used for [positioning](#middleware-positioning).
 
 The factory delegate receives two arguments:
 
@@ -98,34 +85,38 @@ The factory delegate receives two arguments:
 | `MediatorMiddlewareFactoryContext` | Startup (compile time) | Resolve singleton services, inspect message/response types, opt out of the pipeline |
 | `MediatorDelegate next`            | Startup (compile time) | The next middleware or handler in the chain                                         |
 
-The factory returns a `MediatorDelegate` - the runtime function that receives `IMediatorContext` for each dispatch.
+The factory returns a `MediatorDelegate` - the runtime function that receives `IMediatorContext` for each dispatch. By convention, that runtime delegate forwards to an `InvokeAsync` method on a small middleware class so the dispatch logic reads top-to-bottom.
 
-Here is a minimal timing middleware, step by step:
+Here is a minimal timing middleware:
 
 ```csharp
-public static class TimingMiddleware
+internal sealed class TimingMiddleware(ILogger<TimingMiddleware> logger)
 {
+    public async ValueTask InvokeAsync(IMediatorContext context, MediatorDelegate next)
+    {
+        var sw = Stopwatch.StartNew();
+
+        await next(context); // call the next middleware or handler
+
+        sw.Stop();
+        logger.LogInformation(
+            "{MessageType} handled in {ElapsedMs}ms",
+            context.MessageType.Name,
+            sw.ElapsedMilliseconds);
+    }
+
     public static MediatorMiddlewareConfiguration Create()
         => new(
             static (factoryCtx, next) =>
             {
                 // 1. Resolve services once at startup (not per request)
-                var logger = factoryCtx.Services.GetRequiredService<ILoggerFactory>()
-                    .CreateLogger("Pipeline.Timing");
+                var logger = factoryCtx.Services.GetRequiredService<ILogger<TimingMiddleware>>();
 
-                // 2. Return the runtime delegate
-                return async ctx =>
-                {
-                    var sw = Stopwatch.StartNew();
+                // 2. Build the middleware instance once
+                var middleware = new TimingMiddleware(logger);
 
-                    await next(ctx); // 3. Call the next middleware or handler
-
-                    sw.Stop();
-                    logger.LogInformation(
-                        "{MessageType} handled in {ElapsedMs}ms",
-                        ctx.MessageType.Name,
-                        sw.ElapsedMilliseconds);
-                };
+                // 3. Return the runtime delegate
+                return ctx => middleware.InvokeAsync(ctx, next);
             },
             "Timing"); // 4. Key for positioning
 }
@@ -155,16 +146,18 @@ The `IMediatorContext` available at runtime provides everything you need during 
 
 ## Short-circuiting
 
-To prevent the handler from executing, return without calling `next`:
+To prevent the handler from executing, return from `InvokeAsync` without calling `next`:
 
 ```csharp
-return ctx =>
+public async ValueTask InvokeAsync(IMediatorContext context, MediatorDelegate next)
 {
-    if (ctx.Message is PlaceOrderCommand { Quantity: <= 0 })
+    if (context.Message is PlaceOrderCommand { Quantity: <= 0 })
+    {
         throw new ArgumentException("Quantity must be greater than zero.");
+    }
 
-    return next(ctx); // only reached if validation passes
-};
+    await next(context); // only reached if validation passes
+}
 ```
 
 ## Exception handling
@@ -172,63 +165,34 @@ return ctx =>
 Wrap `next` in a try/catch to handle exceptions:
 
 ```csharp
-public static class ExceptionHandlingMiddleware
+internal sealed class ExceptionHandlingMiddleware(ILogger<ExceptionHandlingMiddleware> logger)
 {
+    public async ValueTask InvokeAsync(IMediatorContext context, MediatorDelegate next)
+    {
+        try
+        {
+            await next(context);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error handling {MessageType}", context.MessageType.Name);
+            throw; // re-throw or set context.Result to recover
+        }
+    }
+
     public static MediatorMiddlewareConfiguration Create()
         => new(
             static (factoryCtx, next) =>
             {
-                var logger = factoryCtx.Services.GetRequiredService<ILoggerFactory>()
-                    .CreateLogger("Pipeline.ExceptionHandler");
-
-                return async ctx =>
-                {
-                    try
-                    {
-                        await next(ctx);
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.LogError(ex, "Error handling {MessageType}",
-                            ctx.MessageType.Name);
-                        throw; // re-throw or set ctx.Result to recover
-                    }
-                };
+                var logger = factoryCtx.Services.GetRequiredService<ILogger<ExceptionHandlingMiddleware>>();
+                var middleware = new ExceptionHandlingMiddleware(logger);
+                return ctx => middleware.InvokeAsync(ctx, next);
             },
             "ExceptionHandling");
 }
 ```
 
-To recover from an exception instead of re-throwing, set `ctx.Result` to a fallback value and return normally.
-
-## Synchronous fast-path optimization
-
-When `next` completes synchronously (common for in-memory handlers), you can avoid the `async` state machine overhead by checking `IsCompletedSuccessfully`:
-
-```csharp
-return ctx =>
-{
-    logger.LogInformation("Before");
-
-    var task = next(ctx);
-
-    if (task.IsCompletedSuccessfully)
-    {
-        logger.LogInformation("After (sync)");
-        return default;
-    }
-
-    return Awaited(task, logger);
-
-    static async ValueTask Awaited(ValueTask t, ILogger log)
-    {
-        await t.ConfigureAwait(false);
-        log.LogInformation("After (async)");
-    }
-};
-```
-
-This pattern avoids allocating an async state machine when the pipeline completes synchronously. Use it in performance-sensitive middleware; use plain `async`/`await` everywhere else.
+To recover from an exception instead of re-throwing, set `context.Result` to a fallback value and return normally.
 
 # Compile-time filtering
 
@@ -237,40 +201,44 @@ The `MediatorMiddlewareFactoryContext` is available during pipeline compilation 
 To opt out, return `next` directly from the factory. The middleware is not included in that pipeline at all - zero runtime cost, no delegate wrapper, no type check on every dispatch.
 
 ```csharp
-public static class TransactionMiddleware
+internal sealed class TransactionMiddleware
 {
+    public async ValueTask InvokeAsync(IMediatorContext context, MediatorDelegate next)
+    {
+        // Resolve DbContext from the scoped service provider so each dispatch gets its own
+        var db = context.Services.GetRequiredService<AppDbContext>();
+
+        await using var tx = await db.Database.BeginTransactionAsync(context.CancellationToken);
+        try
+        {
+            await next(context);
+            await tx.CommitAsync(context.CancellationToken);
+        }
+        catch
+        {
+            await tx.RollbackAsync(context.CancellationToken);
+            throw;
+        }
+    }
+
     public static MediatorMiddlewareConfiguration Create()
         => new(
             static (factoryCtx, next) =>
             {
-                // Skip notifications and queries at compile time
+                // Skip notifications and queries at compile time - they don't need transactions
                 if (factoryCtx.IsNotification() || factoryCtx.IsQuery())
                 {
                     return next; // not included in this pipeline
                 }
 
-                return async ctx =>
-                {
-                    // Resolve DbContext from the scoped service provider
-                    var db = ctx.Services.GetRequiredService<AppDbContext>();
-
-                    await using var tx = await db.Database
-                        .BeginTransactionAsync(ctx.CancellationToken);
-                    try
-                    {
-                        await next(ctx);
-                        await tx.CommitAsync(ctx.CancellationToken);
-                    }
-                    catch
-                    {
-                        await tx.RollbackAsync(ctx.CancellationToken);
-                        throw;
-                    }
-                };
+                var middleware = new TransactionMiddleware();
+                return ctx => middleware.InvokeAsync(ctx, next);
             },
             "Transaction");
 }
 ```
+
+Notice that `DbContext` is scoped, so it must be resolved per dispatch from `context.Services` inside `InvokeAsync` - **not** from `factoryCtx.Services` in the factory, which would capture a single startup-scope instance and share it across every message.
 
 ## Message kind checks
 
@@ -290,27 +258,37 @@ public static class TransactionMiddleware
 | `IsResponseAssignableTo<T>()`  | Response type is assignable to `T` (false for void commands and notifications) |
 | `IsResponseAssignableTo(Type)` | Response type is assignable to the given type                                  |
 
-Use `IsMessageAssignableTo` to scope a middleware to a specific message or base type:
+Use `IsMessageAssignableTo` to scope a middleware to a specific message or base type. Once the factory has filtered, `InvokeAsync` can cast directly without re-checking:
 
 ```csharp
-public static class PlaceOrderValidationMiddleware
+internal sealed class PlaceOrderValidationMiddleware
 {
+    public async ValueTask InvokeAsync(IMediatorContext context, MediatorDelegate next)
+    {
+        // Safe cast - the factory's compile-time filter guarantees the message type
+        var order = (PlaceOrderCommand)context.Message;
+
+        if (order.Quantity <= 0)
+        {
+            throw new ArgumentException("Quantity must be greater than zero.");
+        }
+
+        await next(context);
+    }
+
     public static MediatorMiddlewareConfiguration Create()
         => new(
             static (factoryCtx, next) =>
             {
-                // Only compile into the PlaceOrderCommand pipeline
+                // Only compile this middleware into the PlaceOrderCommand pipeline.
+                // Every other pipeline gets `next` directly - no wrapper, no per-dispatch type check.
                 if (!factoryCtx.IsMessageAssignableTo<PlaceOrderCommand>())
                 {
                     return next;
                 }
 
-                return ctx =>
-                {
-                    if (ctx.Message is PlaceOrderCommand order && order.Quantity <= 0)
-                        throw new ArgumentException("Quantity must be greater than zero.");
-                    return next(ctx);
-                };
+                var middleware = new PlaceOrderValidationMiddleware();
+                return ctx => middleware.InvokeAsync(ctx, next);
             },
             "Validation");
 }

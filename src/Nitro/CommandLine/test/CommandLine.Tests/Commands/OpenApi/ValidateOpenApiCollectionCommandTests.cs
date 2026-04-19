@@ -189,7 +189,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             Validating OpenAPI collection 'oa-1' against stage 'dev'
             ├── Found 1 document(s).
             ├── Validation request created. (ID: request-1)
-            └── ✓ Validated OpenAPI collection against stage 'dev'.
+            └── ✓ OpenAPI collection passed validation.
             """);
     }
 
@@ -218,7 +218,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             Validating OpenAPI collection 'oa-1' against stage 'dev'
             ├── Found 1 document(s).
             ├── Validation request created. (ID: request-1)
-            └── ✓ Validated OpenAPI collection against stage 'dev'.
+            └── ✓ OpenAPI collection passed validation.
             """);
     }
 
@@ -248,14 +248,14 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             Validating OpenAPI collection 'oa-1' against stage 'dev'
             ├── Found 1 document(s).
             ├── Validation request created. (ID: request-1)
-            └── ✕ Failed to validate the OpenAPI collection.
+            └── ✕ OpenAPI collection failed validation.
                 └── OpenAPI collection 'petstore' (ID: collection-1)
                     └── Endpoint 'GET /fail'
                         └── The field `person` does not exist on the type `Query`. (1:14)
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            OpenAPI collection validation failed.
+            OpenAPI collection failed validation.
             """);
         Assert.Equal(1, result.ExitCode);
     }

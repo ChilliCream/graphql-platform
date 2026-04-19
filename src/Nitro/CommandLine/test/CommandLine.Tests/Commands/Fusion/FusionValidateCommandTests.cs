@@ -206,7 +206,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             """
             Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Validation request created. (ID: request-id)
-            └── ✓ Schema validation successful.
+            └── ✓ Fusion configuration passed validation.
             """);
         AssertSchemaUpload(capturedStream);
     }
@@ -233,7 +233,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             """
             Validating Fusion configuration of API 'api-1' against stage 'dev'
             ├── Validation request created. (ID: request-id)
-            └── ✓ Schema validation successful.
+            └── ✓ Fusion configuration passed validation.
             """);
         AssertSchemaUpload(capturedStream);
     }
@@ -326,7 +326,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Schema validation failed.
+            Fusion configuration failed validation.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
@@ -334,7 +334,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             ├── Validation request created. (ID: request-id)
             ├── Validating...
             ├── Validating...
-            └── ✕ Failed to validate the Fusion configuration.
+            └── ✕ Fusion configuration failed validation.
                 ├── GraphQL schema changes
                 │   ├── ✕ Directive foo was modified
                 │   │   ├── ✓ Directive location FieldDefinition added
@@ -424,7 +424,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             ├── Composing new Fusion configuration
             │   └── ✓ Composed new configuration.
             ├── Validation request created. (ID: request-id)
-            └── ✓ Schema validation successful.
+            └── ✓ Fusion configuration passed validation.
             """);
         AssertSchemaUploadAfterCompose(capturedStream);
     }
@@ -457,7 +457,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             ├── Composing new Fusion configuration
             │   └── ✓ Composed new configuration.
             ├── Validation request created. (ID: request-id)
-            └── ✓ Schema validation successful.
+            └── ✓ Fusion configuration passed validation.
             """);
         AssertSchemaUploadAfterCompose(capturedStream);
     }
@@ -560,7 +560,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Schema validation failed.
+            Fusion configuration failed validation.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
@@ -572,7 +572,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             ├── Validation request created. (ID: request-id)
             ├── Validating...
             ├── Validating...
-            └── ✕ Failed to validate the Fusion configuration.
+            └── ✕ Fusion configuration failed validation.
                 ├── GraphQL schema changes
                 │   ├── ✕ Directive foo was modified
                 │   │   ├── ✓ Directive location FieldDefinition added
@@ -663,7 +663,7 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             ├── Downloading existing Fusion configuration
             │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new Fusion configuration
-            │   └── ✕ Failed to compose new Fusion configuration.
+            │   └── ✕ Fusion configuration could not be composed.
             └── ✕ Failed to validate the Fusion configuration.
 
             ## Composition log

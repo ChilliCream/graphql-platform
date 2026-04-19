@@ -1,12 +1,13 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using Spectre.Console.Rendering;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Schemas;
 
 internal static class SchemaHelpers
 {
-    public static async Task<bool> ValidateSchemaAsync(
+    public static async Task<SchemaValidationResult> ValidateSchemaAsync(
         INitroConsoleActivity activity,
         INitroConsole console,
         ISchemasClient client,
@@ -25,8 +26,6 @@ internal static class SchemaHelpers
 
         if (result.Errors?.Count > 0)
         {
-            await activity.FailAllAsync();
-
             foreach (var error in result.Errors)
             {
                 var errorMessage = error switch
@@ -96,14 +95,10 @@ internal static class SchemaHelpers
                         }
                     }
 
-                    await activity.FailAllAsync(errorTree);
-
-                    return false;
+                    return new SchemaValidationResult.Failed(errorTree);
 
                 case ISchemaVersionValidationSuccess:
-                    activity.Success("Schema validation successful.");
-
-                    return true;
+                    return SchemaValidationResult.Success.Instance;
 
                 case IOperationInProgress:
                 case IValidationInProgress:
@@ -116,6 +111,20 @@ internal static class SchemaHelpers
             }
         }
 
-        return false;
+        throw new ExitException(Messages.UnknownServerResponse);
     }
+}
+
+internal abstract record SchemaValidationResult
+{
+    public sealed record Success : SchemaValidationResult
+    {
+        public static readonly Success Instance = new();
+
+        private Success()
+        {
+        }
+    }
+
+    public sealed record Failed(IRenderable Details) : SchemaValidationResult;
 }

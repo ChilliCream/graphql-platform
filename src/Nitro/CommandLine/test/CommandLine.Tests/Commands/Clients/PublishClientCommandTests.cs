@@ -269,13 +269,13 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
             """
             Publishing new version 'v1' of client 'client-1' to stage 'dev'
             ├── Publication request created. (ID: request-1)
-            └── ✕ Failed to publish a new client version.
+            └── ✕ Client version was rejected.
                 └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
                     └── foo (10:10)
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Client publish failed.
+            Client version was rejected.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -337,7 +337,7 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
             """
             Publishing new version 'v1' of client 'client-1' to stage 'dev'
             ├── Publication request created. (ID: request-1)
-            ├── ! Validation failed.
+            ├── ! Failed validation.
             │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │       └── foo (10:10)
             ├── ⏳ Waiting for approval. Approve in Nitro to continue.
@@ -370,17 +370,17 @@ public sealed class PublishClientCommandTests(NitroCommandFixture fixture) : Cli
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Client publish failed.
+            Client version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing new version 'v1' of client 'client-1' to stage 'dev'
             ├── Publication request created. (ID: request-1)
-            ├── ! Validation failed.
+            ├── ! Failed validation.
             │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │       └── foo (10:10)
             ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            └── ✕ Failed to publish a new client version.
+            └── ✕ Client version was rejected.
             """);
         Assert.Equal(1, result.ExitCode);
     }
