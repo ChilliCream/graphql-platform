@@ -66,7 +66,7 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
     }
 
     [Fact]
-    public async Task InvokeAsync_Should_DispatchToErrorEndpoint_When_MessageNotConsumed()
+    public async Task InvokeAsync_Should_DispatchToSkippedEndpoint_When_MessageNotConsumed()
     {
         // arrange
         var executed = false;
@@ -115,6 +115,68 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
         // assert
         Assert.NotNull(capturedEnvelope);
         Assert.Same(envelope, capturedEnvelope);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_Should_BeNoOp_When_SkippedEndpointIsNull()
+    {
+        // arrange - Create() short-circuits and returns next directly when SkippedEndpoint is null.
+        // The compiled middleware is therefore the next delegate itself; reaching this assertion
+        // means no DeadLetter middleware sits in the pipeline.
+        var endpoint = new StubReceiveEndpointWithoutSkipped();
+        var pipelineFactoryContext = new ReceiveMiddlewareFactoryContext
+        {
+            Services = CreateServices(),
+            Endpoint = endpoint,
+            Transport = endpoint.Transport
+        };
+
+        var nextInvoked = false;
+        ReceiveDelegate next = _ =>
+        {
+            nextInvoked = true;
+            return ValueTask.CompletedTask;
+        };
+
+        // act
+        var configuration = ReceiveDeadLetterMiddleware.Create();
+        var compiled = configuration.Factory(pipelineFactoryContext, next);
+
+        var context = new StubReceiveContext { Services = CreateServices(), Runtime = new StubMessagingRuntime() };
+        await compiled(context);
+
+        // assert - the middleware short-circuited; the returned delegate IS next, no DeadLetter wrapper.
+        Assert.Same(next, compiled);
+        Assert.True(nextInvoked);
+    }
+
+    [Fact]
+    public async Task ReceiveDeadLetterMiddleware_Should_ForwardToSkippedEndpoint_When_NoConsumerMatched()
+    {
+        // arrange - configure an endpoint that handles only DeadLetterTestEvent; publish a message
+        // of an unrelated type so RoutingMiddleware finds no consumers and the dead-letter MW must
+        // forward the envelope to the skipped endpoint.
+        await using var provider = await CreateBusWithSkippedEndpointAsync(b =>
+            b.AddEventHandler<DeadLetterTestEventHandler>());
+
+        using var scope = provider.CreateScope();
+        var bus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+
+        // act - publish an unrelated message type. No registered handler matches, so the
+        // routing middleware leaves MessageConsumed=false and dead-letter forwards to skipped.
+        await bus.PublishAsync(
+            new UnmatchedDeadLetterEvent { Id = "skipped-1" },
+            CancellationToken.None);
+
+        // assert - one message lands on the skipped queue
+        var skippedQueue = GetSkippedQueue(provider);
+        var items = await ConsumeFromQueueAsync(skippedQueue, expectedCount: 1);
+
+        var envelope = Assert.Single(items);
+        Assert.NotNull(envelope.Headers);
+        Assert.Contains(
+            nameof(UnmatchedDeadLetterEvent),
+            envelope.Headers!.Get(MessageHeaders.MessageType) ?? string.Empty);
     }
 
     [Fact]
