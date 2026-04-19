@@ -70,14 +70,14 @@ internal sealed class NitroConsoleActivity : INitroConsoleActivity
         Fail(_failureMessage);
     }
 
-    public void Fail(IRenderable details)
+    public void Fail(IRenderable details, string? message = null)
     {
-        Complete(_failureMessage, ActivityState.Failed, details);
+        Complete(message ?? _failureMessage, ActivityState.Failed, details);
     }
 
-    public async ValueTask FailAllAsync(IRenderable? details = null)
+    public async ValueTask FailAllAsync(IRenderable? details = null, string? message = null)
     {
-        Complete(_failureMessage, ActivityState.Failed, details);
+        Complete(message ?? _failureMessage, ActivityState.Failed, details);
 
         if (_parent is not null)
         {

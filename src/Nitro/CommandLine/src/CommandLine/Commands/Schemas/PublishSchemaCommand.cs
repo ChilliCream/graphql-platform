@@ -164,9 +164,9 @@ internal sealed class PublishSchemaCommand : Command
                             }
                         }
 
-                        await activity.FailAllAsync(errorTree);
+                        await activity.FailAllAsync(errorTree, "Schema version was rejected.");
 
-                        throw new ExitException("Schema publish failed.");
+                        throw new ExitException("Schema version was rejected.");
 
                     case ISchemaVersionPublishSuccess:
                         activity.Success($"Published new schema version '{tag.EscapeMarkup()}' to stage '{stage.EscapeMarkup()}'.");

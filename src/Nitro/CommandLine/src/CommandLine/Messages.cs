@@ -35,9 +35,9 @@ internal static class Messages
 
     public const string Validating = "Validating...";
 
-    public const string ValidationPassed = "Validation successful.";
+    public const string ValidationPassed = "Passed validation.";
 
-    public const string ValidationFailed = "Validation failed.";
+    public const string ValidationFailed = "Failed validation.";
 
     public const string RequestReadyForProcessing =
         "Your request is ready for processing.";
