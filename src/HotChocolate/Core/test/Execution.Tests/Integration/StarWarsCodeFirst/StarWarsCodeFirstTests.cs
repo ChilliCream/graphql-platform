@@ -822,7 +822,9 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
                 }
                 """);
 
-        var results = subscriptionResult.ReadResultsAsync();
+        // Get the enumerator before publishing so the consumer is registered
+        // and won't race with event dispatch.
+        await using var enumerator = subscriptionResult.ReadResultsAsync().GetAsyncEnumerator();
 
         await executor.ExecuteAsync(
             """
@@ -834,17 +836,8 @@ public class StarWarsCodeFirstTests(ITestOutputHelper output)
             }
             """);
 
-        OperationResult? eventResult = null;
-
-        using (var cts = new CancellationTokenSource(2000))
-        {
-            await foreach (var queryResult in results.WithCancellation(cts.Token)
-                .ConfigureAwait(false))
-            {
-                eventResult = queryResult;
-                break;
-            }
-        }
+        Assert.True(await enumerator.MoveNextAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(30)));
+        var eventResult = enumerator.Current;
 
         snapshot.Add(eventResult);
 
