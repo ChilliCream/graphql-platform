@@ -365,7 +365,8 @@ public sealed partial class CompositeResultDocument
             Log.ChunksExpanded(2, currentLength, nextLength);
 
             Array.Copy(_chunks, newChunks, currentLength);
-            for (var i = currentLength; i < nextLength; i++)
+
+            for (var i = currentLength; i < newChunks.Length; i++)
             {
                 newChunks[i] = [];
             }
