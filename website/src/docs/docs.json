@@ -2923,7 +2923,8 @@
               { "path": "index", "title": "Overview" },
               { "path": "in-memory", "title": "InMemory" },
               { "path": "rabbitmq", "title": "RabbitMQ" },
-              { "path": "postgres", "title": "PostgreSQL" }
+              { "path": "postgres", "title": "PostgreSQL" },
+              { "path": "azure-service-bus", "title": "Azure Service Bus" }
             ]
           },
           {
