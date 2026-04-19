@@ -341,16 +341,15 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     internal CompositeResultElement CreateObject(Cursor parent, SelectionSet selectionSet)
     {
-        var startObjectCursor = WriteStartObject(parent, selectionSet.Id);
+        var selections = selectionSet.Selections;
+        var startObjectCursor = WriteStartObject(parent, selectionSet.Id, selections.Length);
 
-        var selectionCount = 0;
-        foreach (var selection in selectionSet.Selections)
+        foreach (var selection in selections)
         {
             WriteEmptyProperty(startObjectCursor, selection);
-            selectionCount++;
         }
 
-        WriteEndObject(startObjectCursor, selectionCount);
+        _metaDb.AppendEndObject();
 
         return new CompositeResultElement(this, startObjectCursor);
     }
@@ -359,10 +358,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     {
         var cursor = WriteStartArray(parent, length);
 
-        for (var i = 0; i < length; i++)
-        {
-            WriteEmptyValue(cursor);
-        }
+        _metaDb.AppendNullRange(cursor.Index, length);
 
         WriteEndArray();
 
@@ -431,7 +427,7 @@ public sealed partial class CompositeResultDocument : IDisposable
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private Cursor WriteStartObject(Cursor parent, int selectionSetId = 0)
+    private Cursor WriteStartObject(Cursor parent, int selectionSetId, int propertyCount)
     {
         var flags = ElementFlags.None;
         var parentRow = parent.Index;
@@ -442,21 +438,7 @@ public sealed partial class CompositeResultDocument : IDisposable
             flags = ElementFlags.IsRoot;
         }
 
-        return _metaDb.Append(
-            ElementTokenType.StartObject,
-            parentRow: parentRow,
-            operationReferenceId: selectionSetId,
-            operationReferenceType: OperationReferenceType.SelectionSet,
-            flags: flags);
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteEndObject(Cursor startObjectCursor, int length)
-    {
-        _metaDb.Append(ElementTokenType.EndObject);
-
-        _metaDb.SetNumberOfRows(startObjectCursor, (length * 2) + 1);
-        _metaDb.SetSizeOrLength(startObjectCursor, length);
+        return _metaDb.AppendStartObject(parentRow, selectionSetId, propertyCount, flags);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -471,16 +453,11 @@ public sealed partial class CompositeResultDocument : IDisposable
             flags = ElementFlags.IsRoot;
         }
 
-        return _metaDb.Append(
-            ElementTokenType.StartArray,
-            sizeOrLength: length,
-            parentRow: parentRow,
-            numberOfRows: length + 1,
-            flags: flags);
+        return _metaDb.AppendStartArray(parentRow, length, flags);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private void WriteEndArray() => _metaDb.Append(ElementTokenType.EndArray);
+    private void WriteEndArray() => _metaDb.AppendEndArray();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void WriteEmptyProperty(Cursor parent, Selection selection)
