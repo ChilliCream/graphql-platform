@@ -11,76 +11,92 @@ namespace Microsoft.Extensions.DependencyInjection
         public static global::Mocha.Mediator.IMediatorHostBuilder AddMediatorShowcase(
             this global::Mocha.Mediator.IMediatorHostBuilder builder)
         {
-            var services = builder.Services;
-            var lifetime = builder.Options.ServiceLifetime;
 
-            // Register handlers
-            services.Add(new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(typeof(global::Mocha.Mediator.ICommandHandler<global::MediatorShowcase.PlaceOrderCommand, global::MediatorShowcase.OrderResult>), typeof(global::MediatorShowcase.PlaceOrderCommandHandler), lifetime));
-            services.Add(new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(typeof(global::Mocha.Mediator.ICommandHandler<global::MediatorShowcase.RiskyCommand, string>), typeof(global::MediatorShowcase.RiskyCommandHandler), lifetime));
-            services.Add(new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(typeof(global::Mocha.Mediator.ICommandHandler<global::MediatorShowcase.CreateProductCommand>), typeof(global::MediatorShowcase.CreateProductCommandHandler), lifetime));
-            services.Add(new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(typeof(global::Mocha.Mediator.ICommandHandler<global::MediatorShowcase.CreateProductCommand2>), typeof(global::MediatorShowcase.CreateProductCommandHandler2), lifetime));
-            services.Add(new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(typeof(global::Mocha.Mediator.ICommandHandler<global::MediatorShowcase.CreateProductCommand3>), typeof(global::MediatorShowcase.CreateProductCommandHandler3), lifetime));
-            services.Add(new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(typeof(global::Mocha.Mediator.ICommandHandler<global::MediatorShowcase.CreateProductCommand4>), typeof(global::MediatorShowcase.CreateProductCommandHandler4), lifetime));
-            services.Add(new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(typeof(global::Mocha.Mediator.IQueryHandler<global::MediatorShowcase.GetProductByIdQuery, global::MediatorShowcase.ProductDto>), typeof(global::MediatorShowcase.GetProductByIdQueryHandler), lifetime));
-            services.Add(new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(typeof(global::Mocha.Mediator.IQueryHandler<global::MediatorShowcase.GetProductsQuery, global::System.Collections.Generic.IReadOnlyList<global::MediatorShowcase.ProductDto>>), typeof(global::MediatorShowcase.GetProductsQueryHandler), lifetime));
-
-            // Register notification handlers
-            services.Add(new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(typeof(global::MediatorShowcase.OrderShippedAnalyticsHandler), typeof(global::MediatorShowcase.OrderShippedAnalyticsHandler), lifetime));
-            services.Add(new global::Microsoft.Extensions.DependencyInjection.ServiceDescriptor(typeof(global::MediatorShowcase.OrderShippedEmailHandler), typeof(global::MediatorShowcase.OrderShippedEmailHandler), lifetime));
-
-            // Register pipelines
-            global::Mocha.Mediator.MediatorHostBuilderExtensions.ConfigureMediator(builder, static b =>
-            {
-                b.RegisterPipeline(new global::Mocha.Mediator.MediatorPipelineConfiguration
+            // Register handler configurations
+            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::MediatorShowcase.CreateProductCommandHandler>(builder,
+                new global::Mocha.Mediator.MediatorHandlerConfiguration
                 {
+                    HandlerType = typeof(global::MediatorShowcase.CreateProductCommandHandler),
+                    MessageType = typeof(global::MediatorShowcase.CreateProductCommand),
+                    Kind = global::Mocha.Mediator.MediatorHandlerKind.Command,
+                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandPipeline<global::MediatorShowcase.CreateProductCommandHandler, global::MediatorShowcase.CreateProductCommand>()
+                });
+            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::MediatorShowcase.CreateProductCommandHandler2>(builder,
+                new global::Mocha.Mediator.MediatorHandlerConfiguration
+                {
+                    HandlerType = typeof(global::MediatorShowcase.CreateProductCommandHandler2),
+                    MessageType = typeof(global::MediatorShowcase.CreateProductCommand2),
+                    Kind = global::Mocha.Mediator.MediatorHandlerKind.Command,
+                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandPipeline<global::MediatorShowcase.CreateProductCommandHandler2, global::MediatorShowcase.CreateProductCommand2>()
+                });
+            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::MediatorShowcase.CreateProductCommandHandler3>(builder,
+                new global::Mocha.Mediator.MediatorHandlerConfiguration
+                {
+                    HandlerType = typeof(global::MediatorShowcase.CreateProductCommandHandler3),
+                    MessageType = typeof(global::MediatorShowcase.CreateProductCommand3),
+                    Kind = global::Mocha.Mediator.MediatorHandlerKind.Command,
+                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandPipeline<global::MediatorShowcase.CreateProductCommandHandler3, global::MediatorShowcase.CreateProductCommand3>()
+                });
+            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::MediatorShowcase.CreateProductCommandHandler4>(builder,
+                new global::Mocha.Mediator.MediatorHandlerConfiguration
+                {
+                    HandlerType = typeof(global::MediatorShowcase.CreateProductCommandHandler4),
+                    MessageType = typeof(global::MediatorShowcase.CreateProductCommand4),
+                    Kind = global::Mocha.Mediator.MediatorHandlerKind.Command,
+                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandPipeline<global::MediatorShowcase.CreateProductCommandHandler4, global::MediatorShowcase.CreateProductCommand4>()
+                });
+            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::MediatorShowcase.PlaceOrderCommandHandler>(builder,
+                new global::Mocha.Mediator.MediatorHandlerConfiguration
+                {
+                    HandlerType = typeof(global::MediatorShowcase.PlaceOrderCommandHandler),
                     MessageType = typeof(global::MediatorShowcase.PlaceOrderCommand),
                     ResponseType = typeof(global::MediatorShowcase.OrderResult),
-                    Terminal = global::Mocha.Mediator.PipelineBuilder.BuildCommandTerminal<global::MediatorShowcase.PlaceOrderCommand, global::MediatorShowcase.OrderResult>()
+                    Kind = global::Mocha.Mediator.MediatorHandlerKind.CommandResponse,
+                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandResponsePipeline<global::MediatorShowcase.PlaceOrderCommandHandler, global::MediatorShowcase.PlaceOrderCommand, global::MediatorShowcase.OrderResult>()
                 });
-                b.RegisterPipeline(new global::Mocha.Mediator.MediatorPipelineConfiguration
+            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::MediatorShowcase.RiskyCommandHandler>(builder,
+                new global::Mocha.Mediator.MediatorHandlerConfiguration
                 {
+                    HandlerType = typeof(global::MediatorShowcase.RiskyCommandHandler),
                     MessageType = typeof(global::MediatorShowcase.RiskyCommand),
                     ResponseType = typeof(string),
-                    Terminal = global::Mocha.Mediator.PipelineBuilder.BuildCommandTerminal<global::MediatorShowcase.RiskyCommand, string>()
+                    Kind = global::Mocha.Mediator.MediatorHandlerKind.CommandResponse,
+                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildCommandResponsePipeline<global::MediatorShowcase.RiskyCommandHandler, global::MediatorShowcase.RiskyCommand, string>()
                 });
-                b.RegisterPipeline(new global::Mocha.Mediator.MediatorPipelineConfiguration
+            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::MediatorShowcase.GetProductByIdQueryHandler>(builder,
+                new global::Mocha.Mediator.MediatorHandlerConfiguration
                 {
-                    MessageType = typeof(global::MediatorShowcase.CreateProductCommand),
-                    Terminal = global::Mocha.Mediator.PipelineBuilder.BuildVoidCommandTerminal<global::MediatorShowcase.CreateProductCommand>()
-                });
-                b.RegisterPipeline(new global::Mocha.Mediator.MediatorPipelineConfiguration
-                {
-                    MessageType = typeof(global::MediatorShowcase.CreateProductCommand2),
-                    Terminal = global::Mocha.Mediator.PipelineBuilder.BuildVoidCommandTerminal<global::MediatorShowcase.CreateProductCommand2>()
-                });
-                b.RegisterPipeline(new global::Mocha.Mediator.MediatorPipelineConfiguration
-                {
-                    MessageType = typeof(global::MediatorShowcase.CreateProductCommand3),
-                    Terminal = global::Mocha.Mediator.PipelineBuilder.BuildVoidCommandTerminal<global::MediatorShowcase.CreateProductCommand3>()
-                });
-                b.RegisterPipeline(new global::Mocha.Mediator.MediatorPipelineConfiguration
-                {
-                    MessageType = typeof(global::MediatorShowcase.CreateProductCommand4),
-                    Terminal = global::Mocha.Mediator.PipelineBuilder.BuildVoidCommandTerminal<global::MediatorShowcase.CreateProductCommand4>()
-                });
-                b.RegisterPipeline(new global::Mocha.Mediator.MediatorPipelineConfiguration
-                {
+                    HandlerType = typeof(global::MediatorShowcase.GetProductByIdQueryHandler),
                     MessageType = typeof(global::MediatorShowcase.GetProductByIdQuery),
                     ResponseType = typeof(global::MediatorShowcase.ProductDto),
-                    Terminal = global::Mocha.Mediator.PipelineBuilder.BuildQueryTerminal<global::MediatorShowcase.GetProductByIdQuery, global::MediatorShowcase.ProductDto>()
+                    Kind = global::Mocha.Mediator.MediatorHandlerKind.Query,
+                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildQueryPipeline<global::MediatorShowcase.GetProductByIdQueryHandler, global::MediatorShowcase.GetProductByIdQuery, global::MediatorShowcase.ProductDto>()
                 });
-                b.RegisterPipeline(new global::Mocha.Mediator.MediatorPipelineConfiguration
+            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::MediatorShowcase.GetProductsQueryHandler>(builder,
+                new global::Mocha.Mediator.MediatorHandlerConfiguration
                 {
+                    HandlerType = typeof(global::MediatorShowcase.GetProductsQueryHandler),
                     MessageType = typeof(global::MediatorShowcase.GetProductsQuery),
                     ResponseType = typeof(global::System.Collections.Generic.IReadOnlyList<global::MediatorShowcase.ProductDto>),
-                    Terminal = global::Mocha.Mediator.PipelineBuilder.BuildQueryTerminal<global::MediatorShowcase.GetProductsQuery, global::System.Collections.Generic.IReadOnlyList<global::MediatorShowcase.ProductDto>>()
+                    Kind = global::Mocha.Mediator.MediatorHandlerKind.Query,
+                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildQueryPipeline<global::MediatorShowcase.GetProductsQueryHandler, global::MediatorShowcase.GetProductsQuery, global::System.Collections.Generic.IReadOnlyList<global::MediatorShowcase.ProductDto>>()
                 });
-                b.RegisterPipeline(new global::Mocha.Mediator.MediatorPipelineConfiguration
+            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::MediatorShowcase.OrderShippedAnalyticsHandler>(builder,
+                new global::Mocha.Mediator.MediatorHandlerConfiguration
                 {
+                    HandlerType = typeof(global::MediatorShowcase.OrderShippedAnalyticsHandler),
                     MessageType = typeof(global::MediatorShowcase.OrderShippedNotification),
-                    Terminal = global::Mocha.Mediator.PipelineBuilder.BuildNotificationTerminal<global::MediatorShowcase.OrderShippedNotification>(new global::System.Type[] { typeof(global::MediatorShowcase.OrderShippedAnalyticsHandler), typeof(global::MediatorShowcase.OrderShippedEmailHandler) })
+                    Kind = global::Mocha.Mediator.MediatorHandlerKind.Notification,
+                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildNotificationPipeline<global::MediatorShowcase.OrderShippedAnalyticsHandler, global::MediatorShowcase.OrderShippedNotification>()
                 });
-            });
+            global::Mocha.Mediator.MediatorHostBuilderHandlerExtensions.AddHandlerConfiguration<global::MediatorShowcase.OrderShippedEmailHandler>(builder,
+                new global::Mocha.Mediator.MediatorHandlerConfiguration
+                {
+                    HandlerType = typeof(global::MediatorShowcase.OrderShippedEmailHandler),
+                    MessageType = typeof(global::MediatorShowcase.OrderShippedNotification),
+                    Kind = global::Mocha.Mediator.MediatorHandlerKind.Notification,
+                    Delegate = global::Mocha.Mediator.PipelineBuilder.BuildNotificationPipeline<global::MediatorShowcase.OrderShippedEmailHandler, global::MediatorShowcase.OrderShippedNotification>()
+                });
 
             return builder;
         }

@@ -13,31 +13,16 @@ public static class LoggingMiddleware
                 var logger = factoryCtx.Services.GetRequiredService<ILoggerFactory>()
                     .CreateLogger("Pipeline.Logging");
 
-                return ctx =>
+                return async ctx =>
                 {
                     logger.LogInformation("Handling {MessageType}...", ctx.MessageType.Name);
 
                     var sw = Stopwatch.StartNew();
-                    var task = next(ctx);
+                    await next(ctx);
+                    sw.Stop();
 
-                    if (task.IsCompletedSuccessfully)
-                    {
-                        sw.Stop();
-                        logger.LogInformation("Handled {MessageType} in {ElapsedMs}ms",
-                            ctx.MessageType.Name, sw.ElapsedMilliseconds);
-                        return default;
-                    }
-
-                    return Awaited(task, sw, logger, ctx.MessageType.Name);
-
-                    static async ValueTask Awaited(
-                        ValueTask t, Stopwatch sw, ILogger log, string msgType)
-                    {
-                        await t.ConfigureAwait(false);
-                        sw.Stop();
-                        log.LogInformation("Handled {MessageType} in {ElapsedMs}ms",
-                            msgType, sw.ElapsedMilliseconds);
-                    }
+                    logger.LogInformation("Handled {MessageType} in {ElapsedMs}ms",
+                        ctx.MessageType.Name, sw.ElapsedMilliseconds);
                 };
             },
             "Logging");
@@ -200,35 +185,6 @@ public static class ExceptionHandlingMiddleware
 ```
 
 To recover from an exception instead of re-throwing, set `ctx.Result` to a fallback value and return normally.
-
-## Synchronous fast-path optimization
-
-When `next` completes synchronously (common for in-memory handlers), you can avoid the `async` state machine overhead by checking `IsCompletedSuccessfully`:
-
-```csharp
-return ctx =>
-{
-    logger.LogInformation("Before");
-
-    var task = next(ctx);
-
-    if (task.IsCompletedSuccessfully)
-    {
-        logger.LogInformation("After (sync)");
-        return default;
-    }
-
-    return Awaited(task, logger);
-
-    static async ValueTask Awaited(ValueTask t, ILogger log)
-    {
-        await t.ConfigureAwait(false);
-        log.LogInformation("After (async)");
-    }
-};
-```
-
-This pattern avoids allocating an async state machine when the pipeline completes synchronously. Use it in performance-sensitive middleware; use plain `async`/`await` everywhere else.
 
 # Compile-time filtering
 
