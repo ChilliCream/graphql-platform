@@ -85,3 +85,5 @@ type PageInfo {
   "When paginating backwards, the cursor to continue."
   startCursor: String
 }
+
+directive @defer(if: Boolean = true, label: String) on FRAGMENT_SPREAD | INLINE_FRAGMENT

@@ -1664,6 +1664,41 @@ response:
           ],
           "directives": [
             {
+              "name": "defer",
+              "description": null,
+              "isRepeatable": false,
+              "args": [
+                {
+                  "name": "if",
+                  "description": null,
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "Boolean",
+                    "ofType": null
+                  },
+                  "defaultValue": "true",
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                },
+                {
+                  "name": "label",
+                  "description": null,
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "defaultValue": null,
+                  "isDeprecated": false,
+                  "deprecationReason": null
+                }
+              ],
+              "locations": [
+                "FRAGMENT_SPREAD",
+                "INLINE_FRAGMENT"
+              ]
+            },
+            {
               "name": "skip",
               "description": "Directs the executor to skip this field or fragment when the \u0060if\u0060 argument is true.",
               "isRepeatable": false,

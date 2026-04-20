@@ -13,19 +13,71 @@ request:
         }
       }
     }
-responseStream:
-  - body: |
-      {
-        "data": {
-          "user": {
-            "name": "User: VXNlcjox"
-          }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 3,
+    "initial": {
+      "data": {
+        "user": {
+          "name": "User: VXNlcjox"
         }
       }
-  - body: |
-      {}
-  - body: |
-      {}
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": [
+          "user"
+        ],
+        "label": "contact"
+      },
+      {
+        "id": "1",
+        "path": [
+          "user"
+        ],
+        "label": "location"
+      }
+    ],
+    "incremental": [
+      {
+        "id": "0",
+        "path": [
+          "user"
+        ],
+        "data": {
+          "email": "User: VXNlcjox"
+        }
+      },
+      {
+        "id": "1",
+        "path": [
+          "user"
+        ],
+        "data": {
+          "address": "User: VXNlcjox"
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      },
+      {
+        "id": "1"
+      }
+    ],
+    "final": {
+      "data": {
+        "user": {
+          "address": "User: VXNlcjox",
+          "email": "User: VXNlcjox",
+          "name": "User: VXNlcjox"
+        }
+      }
+    }
+  }
 sourceSchemas:
   - name: A
     schema: |
@@ -110,7 +162,8 @@ sourceSchemas:
               {
                 "data": {
                   "userById": {
-                    "email": "User: VXNlcjox"
+                    "email": "User: VXNlcjox",
+                    "address": "User: VXNlcjox"
                   }
                 }
               }
@@ -118,8 +171,7 @@ sourceSchemas:
               {
                 "data": {
                   "userById": {
-                    "email": "User: VXNlcjox",
-                    "address": "User: VXNlcjox"
+                    "email": "User: VXNlcjox"
                   }
                 }
               }

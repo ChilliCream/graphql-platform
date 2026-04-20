@@ -9,17 +9,48 @@ request:
         }
       }
     }
-responseStream:
-  - body: |
-      {
-        "data": {
-          "user": {
-            "name": "User: VXNlcjox"
-          }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 2,
+    "initial": {
+      "data": {
+        "user": {
+          "name": "User: VXNlcjox"
         }
       }
-  - body: |
-      {}
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": [
+          "user"
+        ],
+        "label": "email"
+      }
+    ],
+    "completed": [
+      {
+        "id": "0",
+        "errors": [
+          {
+            "message": "Unexpected Execution Error",
+            "path": [
+              "user",
+              "email"
+            ]
+          }
+        ]
+      }
+    ],
+    "final": {
+      "data": {
+        "user": {
+          "name": "User: VXNlcjox"
+        }
+      }
+    }
+  }
 sourceSchemas:
   - name: A
     schema: |

@@ -12,17 +12,77 @@ request:
         }
       }
     }
-responseStream:
-  - body: |
-      {
-        "data": {
-          "user": {
-            "name": "User: VXNlcjox"
-          }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 2,
+    "initial": {
+      "data": {
+        "user": {
+          "name": "User: VXNlcjox"
         }
       }
-  - body: |
-      {}
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": [
+          "user"
+        ],
+        "label": "reviews"
+      }
+    ],
+    "incremental": [
+      {
+        "id": "0",
+        "path": [
+          "user"
+        ],
+        "data": {
+          "reviews": [
+            {
+              "body": "Review: UmV2aWV3OjE=",
+              "title": "Review: UmV2aWV3OjE="
+            },
+            {
+              "body": "Review: UmV2aWV3OjI=",
+              "title": "Review: UmV2aWV3OjI="
+            },
+            {
+              "body": "Review: UmV2aWV3OjM=",
+              "title": "Review: UmV2aWV3OjM="
+            }
+          ]
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      }
+    ],
+    "final": {
+      "data": {
+        "user": {
+          "name": "User: VXNlcjox",
+          "reviews": [
+            {
+              "body": "Review: UmV2aWV3OjE=",
+              "title": "Review: UmV2aWV3OjE="
+            },
+            {
+              "body": "Review: UmV2aWV3OjI=",
+              "title": "Review: UmV2aWV3OjI="
+            },
+            {
+              "body": "Review: UmV2aWV3OjM=",
+              "title": "Review: UmV2aWV3OjM="
+            }
+          ]
+        }
+      }
+    }
+  }
 sourceSchemas:
   - name: A
     schema: |

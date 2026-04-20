@@ -16,29 +16,28 @@ request:
     {
       "shouldDefer": false
     }
-response:
-  body: |
-    {
-      "data": {
-        "user": {
-          "name": "User: VXNlcjox",
-          "reviews": [
-            {
-              "title": "Review: UmV2aWV3OjE=",
-              "body": "Review: UmV2aWV3OjE="
-            },
-            {
-              "title": "Review: UmV2aWV3OjI=",
-              "body": "Review: UmV2aWV3OjI="
-            },
-            {
-              "title": "Review: UmV2aWV3OjM=",
-              "body": "Review: UmV2aWV3OjM="
-            }
-          ]
-        }
+stableResponseStream: |
+  {
+    "data": {
+      "user": {
+        "name": "User: VXNlcjox",
+        "reviews": [
+          {
+            "body": "Review: UmV2aWV3OjE=",
+            "title": "Review: UmV2aWV3OjE="
+          },
+          {
+            "body": "Review: UmV2aWV3OjI=",
+            "title": "Review: UmV2aWV3OjI="
+          },
+          {
+            "body": "Review: UmV2aWV3OjM=",
+            "title": "Review: UmV2aWV3OjM="
+          }
+        ]
       }
     }
+  }
 sourceSchemas:
   - name: A
     schema: |

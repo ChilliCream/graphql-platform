@@ -12,17 +12,53 @@ request:
         }
       }
     }
-responseStream:
-  - body: |
-      {
-        "data": {
-          "user": {
-            "name": "User: VXNlcjox"
-          }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 2,
+    "initial": {
+      "data": {
+        "user": {
+          "name": "User: VXNlcjox"
         }
       }
-  - body: |
-      {}
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": [
+          "user"
+        ],
+        "label": "outer"
+      }
+    ],
+    "incremental": [
+      {
+        "id": "0",
+        "path": [
+          "user"
+        ],
+        "data": {
+          "address": "User: VXNlcjox",
+          "email": "User: VXNlcjox"
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      }
+    ],
+    "final": {
+      "data": {
+        "user": {
+          "address": "User: VXNlcjox",
+          "email": "User: VXNlcjox",
+          "name": "User: VXNlcjox"
+        }
+      }
+    }
+  }
 sourceSchemas:
   - name: A
     schema: |
