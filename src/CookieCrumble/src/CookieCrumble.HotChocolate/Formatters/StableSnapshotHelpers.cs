@@ -70,7 +70,7 @@ internal static class StableSnapshotHelpers
         if (acc.InitialPayload is { } initial)
         {
             writer.WritePropertyName("initial");
-            WriteCanonicalObjectWithoutStreamFields(writer, initial);
+            WriteCanonicalResponseObject(writer, initial);
         }
 
         WritePending(writer, acc.PendingById);
@@ -81,7 +81,7 @@ internal static class StableSnapshotHelpers
         WriteDiagnostics(writer, acc);
 
         writer.WritePropertyName("final");
-        WriteCanonicalJson(writer, mergedResult);
+        WriteCanonicalResponseObject(writer, mergedResult);
 
         writer.WriteEndObject();
     }
@@ -369,7 +369,15 @@ internal static class StableSnapshotHelpers
         }
     }
 
-    public static void WriteCanonicalObjectWithoutStreamFields(
+    /// <summary>
+    /// Writes a response-shape object (initial or final merged result) with a
+    /// canonical property order. Strips incremental-delivery protocol fields
+    /// (captured separately) and the <c>fusion</c> extension (captured
+    /// separately by the test harness as the rendered operation plan). The
+    /// <c>extensions</c> object is omitted entirely when it contains nothing
+    /// beyond <c>fusion</c>; otherwise the non-fusion extensions are kept.
+    /// </summary>
+    public static void WriteCanonicalResponseObject(
         Utf8JsonWriter writer,
         JsonElement element)
     {
@@ -391,8 +399,56 @@ internal static class StableSnapshotHelpers
                 continue;
             }
 
+            if (string.Equals(property.Name, "extensions", StringComparison.Ordinal))
+            {
+                WriteExtensionsWithoutFusion(writer, property.Value);
+                continue;
+            }
+
             writer.WritePropertyName(property.Name);
             WriteCanonicalJson(writer, property.Value);
+        }
+
+        writer.WriteEndObject();
+    }
+
+    private static void WriteExtensionsWithoutFusion(
+        Utf8JsonWriter writer,
+        JsonElement extensions)
+    {
+        if (extensions.ValueKind is not JsonValueKind.Object)
+        {
+            writer.WritePropertyName("extensions");
+            WriteCanonicalJson(writer, extensions);
+            return;
+        }
+
+        var remaining = new List<JsonProperty>();
+
+        foreach (var extension in extensions.EnumerateObject())
+        {
+            if (string.Equals(extension.Name, "fusion", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            remaining.Add(extension);
+        }
+
+        if (remaining.Count == 0)
+        {
+            return;
+        }
+
+        remaining.Sort(static (x, y) => string.CompareOrdinal(x.Name, y.Name));
+
+        writer.WritePropertyName("extensions");
+        writer.WriteStartObject();
+
+        foreach (var extension in remaining)
+        {
+            writer.WritePropertyName(extension.Name);
+            WriteCanonicalJson(writer, extension.Value);
         }
 
         writer.WriteEndObject();

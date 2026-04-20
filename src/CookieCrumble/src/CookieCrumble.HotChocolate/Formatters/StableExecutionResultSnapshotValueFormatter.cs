@@ -26,7 +26,7 @@ internal sealed class StableExecutionResultSnapshotValueFormatter
         {
             using var resultDoc = JsonDocument.Parse(value.ToJson());
             using var writer = new Utf8JsonWriter(snapshot, IndentedWriterOptions);
-            WriteCanonicalJson(writer, resultDoc.RootElement);
+            WriteCanonicalResponseObject(writer, resultDoc.RootElement);
             writer.Flush();
             snapshot.AppendLine();
             return;

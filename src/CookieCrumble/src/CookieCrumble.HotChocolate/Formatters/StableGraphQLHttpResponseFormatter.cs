@@ -64,7 +64,7 @@ internal sealed class StableGraphQLHttpResponseFormatter
     {
         using var doc = await JsonDocument.ParseAsync(body);
         await using var writer = new Utf8JsonWriter(snapshot, IndentedWriterOptions);
-        WriteCanonicalJson(writer, doc.RootElement);
+        WriteCanonicalResponseObject(writer, doc.RootElement);
         writer.Flush();
         snapshot.AppendLine();
     }
