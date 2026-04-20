@@ -53,7 +53,7 @@ public sealed class FusionConfigurationPublishCancelCommandTests(NitroCommandFix
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -127,7 +127,7 @@ public sealed class FusionConfigurationPublishCancelCommandTests(NitroCommandFix
     }
 
     [Fact]
-    public async Task RequestIdFromArg_Success()
+    public async Task RequestIdFromArg_Success_ReturnsSuccess()
     {
         // arrange
         SetupFusionPublishingStateCache(RequestId);
@@ -145,7 +145,7 @@ public sealed class FusionConfigurationPublishCancelCommandTests(NitroCommandFix
     }
 
     [Fact]
-    public async Task RequestIdFromStateFile_Success()
+    public async Task RequestIdFromStateFile_Success_ReturnsSuccess()
     {
         // arrange
         SetupFusionPublishingStateCache(RequestId);

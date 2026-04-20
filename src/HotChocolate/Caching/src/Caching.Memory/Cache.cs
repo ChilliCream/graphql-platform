@@ -263,7 +263,7 @@ public sealed class Cache<TValue>
     /// <summary>
     /// Returns all keys in the cache. This method is for testing only.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>All keys currently in the cache.</returns>
     internal IEnumerable<string> GetKeys()
     {
         foreach (var entry in _ring)

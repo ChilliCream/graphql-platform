@@ -1,6 +1,7 @@
 using System.Text.Json;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
+using ChilliCream.Nitro.CommandLine.Helpers;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Packaging;
@@ -68,7 +69,7 @@ internal static class FusionPublishHelpers
             throw MutationReturnedNoData();
         }
 
-        // activity.Update($"Request ID: {requestId.EscapeMarkup()}");
+        activity.Update($"Publication request created. {$"(ID: {requestId.EscapeMarkup()})".Dim()}");
 
         using var subscriptionCancellation =
             CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -103,8 +104,9 @@ internal static class FusionPublishHelpers
                         }
                     }
 
-                    activity.Fail(errorTree);
-                    throw Exit("Your request has failed.");
+                    await activity.FailAllAsync(errorTree, "Fusion configuration version was rejected.");
+
+                    throw new ExitException("Fusion configuration version was rejected.");
 
                 case IFusionConfigurationPublishingSuccess:
                     await subscriptionCancellation.CancelAsync();
@@ -225,8 +227,8 @@ internal static class FusionPublishHelpers
                         }
                     }
 
-                    activity.Fail(publishErrorTree);
-                    throw new ExitException("Failed to publish the new configuration.");
+                    await activity.FailAllAsync(publishErrorTree, "Fusion configuration version was rejected.");
+                    throw new ExitException("Fusion configuration version was rejected.");
 
                 case IFusionConfigurationPublishingSuccess:
                     committed = true;
@@ -310,7 +312,7 @@ internal static class FusionPublishHelpers
 
         if (result.Errors?.Count > 0)
         {
-            activity.Fail();
+            await activity.FailAllAsync();
 
             foreach (var error in result.Errors)
             {
@@ -336,17 +338,17 @@ internal static class FusionPublishHelpers
             {
                 case IProcessingTaskIsQueued:
                     throw Exit(
-                        "Your request is in the queued state. Try to run `fusion-configuration publish start` once the request is ready ");
+                        "Your request is in the queued state. Try to run `fusion-configuration publish start` once the request is ready.");
 
                 case IFusionConfigurationPublishingFailed:
-                    throw Exit("Your request has already failed");
+                    throw Exit("Your request has already failed.");
 
                 case IFusionConfigurationPublishingSuccess:
-                    throw Exit("You request is already published");
+                    throw Exit("Your request is already published.");
 
                 case IProcessingTaskIsReady:
                     throw Exit(
-                        "Your request is ready for the composition. Run `fusion-configuration publish start`");
+                        "Your request is ready for the composition. Run `fusion-configuration publish start`.");
 
                 case IFusionConfigurationValidationFailed { Errors: var errors }:
                     var errorTree = new Tree("");
@@ -376,7 +378,8 @@ internal static class FusionPublishHelpers
                         }
                     }
 
-                    activity.Fail(errorTree);
+                    activity.Fail(errorTree, "Fusion configuration failed validation.");
+
                     return false;
 
                 case IFusionConfigurationValidationSuccess:
@@ -386,7 +389,7 @@ internal static class FusionPublishHelpers
                 case IValidationInProgress:
                 case IWaitForApproval:
                 case IProcessingTaskApproved:
-                    // activity.Update(Messages.Validating);
+                    activity.Update(Messages.Validating);
                     break;
 
                 default:

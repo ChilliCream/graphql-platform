@@ -2,7 +2,6 @@ using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.OpenApi;
 using ChilliCream.Nitro.CommandLine.Arguments;
-using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
 using ChilliCream.Nitro.CommandLine.Commands.OpenApi.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
@@ -40,31 +39,21 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        var openApiCollectionId = parseResult.GetValue(Opt<OptionalIdArgument>.Instance);
+        var openApiCollectionId = parseResult.GetRequiredValueIfNotInteractive(Opt<OptionalIdArgument>.Instance, console);
 
         if (openApiCollectionId is null)
         {
-            if (!console.IsInteractive)
-            {
-                throw MissingRequiredOption("id");
-            }
-
-            const string apiMessage = "For which API do you want to delete an OpenAPI collection?";
-            const string openApiCollectionMessage = "Which OpenAPI collection do you want to delete?";
-
             var workspaceId = parseResult.GetWorkspaceId(sessionService);
-
-            var selectedApi = await SelectApiPrompt
-                .New(apisClient, workspaceId)
-                .Title(apiMessage)
-                .RenderAsync(console, cancellationToken) ?? throw NoApiSelected();
-
-            var apiId = selectedApi.Id;
+            var apiId = await console.PromptForApiIdAsync(
+                apisClient,
+                workspaceId,
+                "For which API do you want to delete an OpenAPI collection?",
+                cancellationToken);
 
             var selectedOpenApiCollection = await SelectOpenApiCollectionPrompt
                 .New(client, apiId)
-                .Title(openApiCollectionMessage)
-                .RenderAsync(console, cancellationToken) ?? throw NoOpenApiCollectionSelected();
+                .Title("Which OpenAPI collection do you want to delete?")
+                .RenderAsync(console, cancellationToken) ?? throw new ExitException("You did not select an OpenAPI collection!");
 
             openApiCollectionId = selectedOpenApiCollection.Id;
         }
@@ -93,7 +82,7 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
 
                 foreach (var error in data.Errors)
                 {

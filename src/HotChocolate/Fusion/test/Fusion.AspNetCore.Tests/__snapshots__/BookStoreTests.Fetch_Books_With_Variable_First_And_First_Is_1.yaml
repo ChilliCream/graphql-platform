@@ -81,7 +81,7 @@ sourceSchemas:
       }
 
       type Query {
-        bookById(id: Int!): Book! @lookup
+        bookById(id: Int!): Book @lookup
         books(
           "Returns the first _n_ elements from the list."
           first: Int
@@ -180,8 +180,8 @@ sourceSchemas:
       }
 
       type Query {
-        bookById(id: Int!): Book! @internal @lookup
-        authorById(id: Int!): Author! @internal @lookup
+        bookById(id: Int!): Book @internal @lookup
+        authorById(id: Int!): Author @internal @lookup
         authors(
           "Returns the first _n_ elements from the list."
           first: Int

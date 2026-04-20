@@ -60,7 +60,9 @@ public sealed class SchemaValidator
     /// </summary>
     /// <param name="schema">The schema to validate.</param>
     /// <param name="log">The log to which validation issues will be reported.</param>
-    /// <returns></returns>
+    /// <returns>
+    /// <c>true</c> if the schema is valid; otherwise, <c>false</c>.
+    /// </returns>
     public bool Validate(ISchemaDefinition schema, IValidationLog log)
     {
         ArgumentNullException.ThrowIfNull(schema);

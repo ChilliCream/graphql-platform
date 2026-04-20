@@ -737,12 +737,12 @@ public abstract class TypeFileBuilderBase(StringBuilder sb)
     {
         foreach (var resolver in type.Resolvers)
         {
-            WriteResolverBindingInitialization(resolver, typeLookup);
+            WriteResolverBindingInitialization(resolver);
             WriteIsSelectedInitialization(resolver);
         }
     }
 
-    protected void WriteResolverBindingInitialization(Resolver resolver, ILocalTypeLookup typeLookup)
+    protected void WriteResolverBindingInitialization(Resolver resolver)
     {
         if (resolver.Member is not IMethodSymbol resolverMethod)
         {

@@ -170,7 +170,7 @@ internal sealed class FusionValidateCommand : Command
                     }
                     else
                     {
-                        await composeActivity.FailAllAsync();
+                        await composeActivity.FailAllAsync(message: "Fusion configuration could not be composed.");
 
                         console.WriteLine();
                         console.WriteLine("## Composition log");
@@ -218,7 +218,7 @@ internal sealed class FusionValidateCommand : Command
 
             try
             {
-                var isValid = await SchemaHelpers.ValidateSchemaAsync(
+                var validationResult = await SchemaHelpers.ValidateSchemaAsync(
                     activity,
                     console,
                     schemasClient,
@@ -228,7 +228,16 @@ internal sealed class FusionValidateCommand : Command
                     source: null,
                     ct);
 
-                return isValid ? ExitCodes.Success : ExitCodes.Error;
+                if (validationResult is SchemaValidationResult.Failed failed)
+                {
+                    activity.Fail(failed.Details, "Fusion configuration failed validation.");
+
+                    throw new ExitException("Fusion configuration failed validation.");
+                }
+
+                activity.Success("Fusion configuration passed validation.");
+
+                return ExitCodes.Success;
             }
             finally
             {
@@ -239,7 +248,7 @@ internal sealed class FusionValidateCommand : Command
         INitroConsoleActivity StartActivity()
         {
             return console.StartActivity(
-                $"Validating Fusion configuration against stage '{stageName.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'",
+                $"Validating Fusion configuration of API '{apiId.EscapeMarkup()}' against stage '{stageName.EscapeMarkup()}'",
                 "Failed to validate the Fusion configuration.");
         }
     }

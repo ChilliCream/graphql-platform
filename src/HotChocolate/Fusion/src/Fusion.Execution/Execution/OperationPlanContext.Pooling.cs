@@ -106,11 +106,9 @@ public sealed partial class OperationPlanContext
             _disposed = true;
             await _clientScope.DisposeAsync();
 
-            if (_pool is not null)
-            {
-                _pool.Return(this);
-                _pool = null;
-            }
+            var pool = _pool;
+            _pool = null;
+            pool?.Return(this);
         }
     }
 

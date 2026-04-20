@@ -524,31 +524,31 @@ internal sealed class DynamicOpenApiDocumentTransformer : IOpenApiDocumentTransf
 
     private static string? GetJsonSchemaFormat(IScalarTypeDefinition scalarType)
     {
-        var format = scalarType.SpecifiedBy?.OriginalString switch
+        var format = scalarType.Name switch
         {
-            "https://scalars.graphql.org/chillicream/date.html" => "date",
-            "https://scalars.graphql.org/chillicream/date-time.html" => "date-time",
-            "https://scalars.graphql.org/chillicream/duration.html" => "duration",
-            "https://scalars.graphql.org/chillicream/local-date.html" => "date",
-            "https://scalars.graphql.org/chillicream/uuid.html" => "uuid",
-            "https://scalars.graphql.org/chillicream/uri.html" => "uri",
-            "https://scalars.graphql.org/chillicream/url.html" => "uri",
+            SpecScalarNames.Float.Name => "double",
+            SpecScalarNames.Int.Name => "int32",
             _ => null
         };
 
-        if (format is null)
+        return format ?? scalarType.SpecifiedBy?.OriginalString switch
         {
-            var serializationType = scalarType.GetScalarSerializationType();
-
-            return serializationType switch
-            {
-                ScalarSerializationType.Int => "int32",
-                ScalarSerializationType.Float => "float",
-                _ => null
-            };
-        }
-
-        return format;
+            "https://scalars.graphql.org/chillicream/byte.html" => "int8",
+            "https://scalars.graphql.org/chillicream/date-time.html" => "date-time",
+            "https://scalars.graphql.org/chillicream/date.html" => "date",
+            "https://scalars.graphql.org/chillicream/duration.html" => "duration",
+            "https://scalars.graphql.org/chillicream/local-date.html" => "date",
+            "https://scalars.graphql.org/chillicream/long.html" => "int64",
+            "https://scalars.graphql.org/chillicream/short.html" => "int16",
+            "https://scalars.graphql.org/chillicream/unsigned-byte.html" => "uint8",
+            "https://scalars.graphql.org/chillicream/unsigned-int.html" => "uint32",
+            "https://scalars.graphql.org/chillicream/unsigned-long.html" => "uint64",
+            "https://scalars.graphql.org/chillicream/unsigned-short.html" => "uint16",
+            "https://scalars.graphql.org/chillicream/uri.html" => "uri",
+            "https://scalars.graphql.org/chillicream/url.html" => "uri",
+            "https://scalars.graphql.org/chillicream/uuid.html" => "uuid",
+            _ => null
+        };
     }
 
     private static string? GetJsonSchemaPattern(IScalarTypeDefinition scalarType)

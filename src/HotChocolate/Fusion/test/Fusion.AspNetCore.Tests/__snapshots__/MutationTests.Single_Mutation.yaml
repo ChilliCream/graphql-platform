@@ -84,7 +84,7 @@ sourceSchemas:
       }
 
       type Query {
-        bookById(id: Int!): Book! @internal @lookup
+        bookById(id: Int!): Book @internal @lookup
       }
     interactions:
       - request:

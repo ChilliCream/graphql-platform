@@ -61,13 +61,13 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
                 (sp, _) =>
                 {
                     var environment = sp.GetService<IHostEnvironment>();
-                    return environment?.IsDevelopment() == false;
+                    return environment?.IsDevelopment() != true;
                 });
             builder.AddMaxAllowedFieldCycleDepthRule(
                 isEnabled: (sp, _) =>
                 {
                     var environment = sp.GetService<IHostEnvironment>();
-                    return environment?.IsDevelopment() == false;
+                    return environment?.IsDevelopment() != true;
                 });
         }
 

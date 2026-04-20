@@ -85,7 +85,7 @@ public class SubscriptionsOverHttpStoreTests : FusionTestBase
         public class Query
         {
             [Internal, Lookup]
-            public Book GetBookById(int id)
+            public Book? GetBookById(int id)
             {
                 switch (id)
                 {

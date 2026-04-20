@@ -771,7 +771,7 @@ public readonly partial struct ResultElement
     {
         CheckValidInstance();
 
-        return _parent.GetRawValue(_cursor, includeQuotes: true);
+        return _parent.GetRawValue(_cursor, includeQuotes);
     }
 
     /// <summary>
