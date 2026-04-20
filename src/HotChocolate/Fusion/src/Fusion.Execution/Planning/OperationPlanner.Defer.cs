@@ -19,6 +19,8 @@ public sealed partial class OperationPlanner
         bool emitPlannerEvents,
         CancellationToken cancellationToken)
     {
+        _ = shortHash;
+
         if (splitResult.DeferredFragments.IsEmpty)
         {
             return [];
@@ -28,6 +30,13 @@ public sealed partial class OperationPlanner
 
         // Map from DeferredFragmentDescriptor to DeferredExecutionGroup for parent lookups
         var descriptorToGroup = new Dictionary<int, DeferredExecutionGroup>();
+
+        // Precompute sibling-defer overlap per descriptor. Two descriptors are
+        // siblings when they share the same Parent and attach at the same Path.
+        // If a response name appears in multiple siblings, all competing DeferIds
+        // are recorded (in declaration order) so the executor can resolve the
+        // primary at runtime and drop duplicates from the losing payloads.
+        var siblingOverlap = ComputeSiblingOverlap(splitResult.DeferredFragments);
 
         foreach (var descriptor in splitResult.DeferredFragments)
         {
@@ -65,6 +74,8 @@ public sealed partial class OperationPlanner
                 descriptorToGroup.TryGetValue(descriptor.Parent.DeferId, out parentGroup);
             }
 
+            siblingOverlap.TryGetValue(descriptor.DeferId, out var overlapForGroup);
+
             var group = new DeferredExecutionGroup(
                 descriptor.DeferId,
                 descriptor.Label,
@@ -73,7 +84,8 @@ public sealed partial class OperationPlanner
                 parentGroup,
                 deferredOperation,
                 rootNodes,
-                allNodes);
+                allNodes,
+                overlapForGroup);
 
             descriptorToGroup[descriptor.DeferId] = group;
             groups.Add(group);
@@ -166,6 +178,161 @@ public sealed partial class OperationPlanner
         }
 
         return (rootNodes, allNodes);
+    }
+
+    /// <summary>
+    /// Computes, per defer descriptor, the response names that are also selected
+    /// by at least one sibling defer (same Parent, same Path). For each such name
+    /// the returned entry lists the <see cref="DeferredFragmentDescriptor.DeferId"/>
+    /// of every sibling that selects it (including this descriptor itself) in
+    /// declaration order.
+    ///
+    /// Returns an empty dictionary when no sibling overlap exists anywhere (the
+    /// fast path for well-behaved queries).
+    /// </summary>
+    private static Dictionary<int, ImmutableDictionary<string, ImmutableArray<int>>?> ComputeSiblingOverlap(
+        ImmutableArray<DeferredFragmentDescriptor> descriptors)
+    {
+        var result = new Dictionary<int, ImmutableDictionary<string, ImmutableArray<int>>?>();
+
+        // Group descriptors by sibling key (Parent.DeferId, Path). Descriptors in
+        // the same group compete for overlapping response names.
+        var siblingGroups = new Dictionary<(int ParentDeferId, ImmutableArray<FieldPathSegment> Path), List<DeferredFragmentDescriptor>>(
+            SiblingKeyComparer.Instance);
+
+        for (var i = 0; i < descriptors.Length; i++)
+        {
+            var descriptor = descriptors[i];
+            var key = (descriptor.Parent?.DeferId ?? -1, descriptor.Path);
+
+            if (!siblingGroups.TryGetValue(key, out var list))
+            {
+                list = [];
+                siblingGroups[key] = list;
+            }
+
+            list.Add(descriptor);
+        }
+
+        foreach (var (_, siblings) in siblingGroups)
+        {
+            if (siblings.Count < 2)
+            {
+                // No siblings — the descriptor is alone at this (Parent, Path).
+                continue;
+            }
+
+            // Build responseName -> ordered list of DeferIds that select it.
+            var overlapByName = new Dictionary<string, ImmutableArray<int>.Builder>(StringComparer.Ordinal);
+
+            // Preserve declaration order: sort siblings by DeferId ascending,
+            // matching the order in which _nextDeferId was incremented.
+            siblings.Sort(static (a, b) => a.DeferId.CompareTo(b.DeferId));
+
+            foreach (var descriptor in siblings)
+            {
+                foreach (var responseName in descriptor.TopLevelResponseNames)
+                {
+                    if (!overlapByName.TryGetValue(responseName, out var builder))
+                    {
+                        builder = ImmutableArray.CreateBuilder<int>();
+                        overlapByName[responseName] = builder;
+                    }
+
+                    builder.Add(descriptor.DeferId);
+                }
+            }
+
+            // Keep only names that are actually shared across multiple siblings.
+            List<KeyValuePair<string, ImmutableArray<int>>>? shared = null;
+
+            foreach (var (name, builder) in overlapByName)
+            {
+                if (builder.Count > 1)
+                {
+                    shared ??= [];
+                    shared.Add(new KeyValuePair<string, ImmutableArray<int>>(name, builder.ToImmutable()));
+                }
+            }
+
+            if (shared is null)
+            {
+                continue;
+            }
+
+            // Publish the same overlap map to every sibling in this group that
+            // selects at least one shared name. The map is immutable and shared.
+            var sharedMap = ImmutableDictionary.CreateRange(StringComparer.Ordinal, shared);
+
+            foreach (var descriptor in siblings)
+            {
+                if (!DescriptorHasAny(descriptor, sharedMap))
+                {
+                    continue;
+                }
+
+                result[descriptor.DeferId] = sharedMap;
+            }
+        }
+
+        return result;
+    }
+
+    private static bool DescriptorHasAny(
+        DeferredFragmentDescriptor descriptor,
+        ImmutableDictionary<string, ImmutableArray<int>> overlap)
+    {
+        foreach (var responseName in descriptor.TopLevelResponseNames)
+        {
+            if (overlap.ContainsKey(responseName))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private sealed class SiblingKeyComparer : IEqualityComparer<(int ParentDeferId, ImmutableArray<FieldPathSegment> Path)>
+    {
+        public static readonly SiblingKeyComparer Instance = new();
+
+        public bool Equals(
+            (int ParentDeferId, ImmutableArray<FieldPathSegment> Path) x,
+            (int ParentDeferId, ImmutableArray<FieldPathSegment> Path) y)
+        {
+            if (x.ParentDeferId != y.ParentDeferId)
+            {
+                return false;
+            }
+
+            if (x.Path.Length != y.Path.Length)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < x.Path.Length; i++)
+            {
+                if (!x.Path[i].Equals(y.Path[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public int GetHashCode((int ParentDeferId, ImmutableArray<FieldPathSegment> Path) obj)
+        {
+            var hash = obj.ParentDeferId;
+
+            for (var i = 0; i < obj.Path.Length; i++)
+            {
+                hash = HashCode.Combine(hash, obj.Path[i]);
+            }
+
+            return hash;
+        }
     }
 
     private static SelectionPath BuildSelectionPath(ImmutableArray<FieldPathSegment> path)

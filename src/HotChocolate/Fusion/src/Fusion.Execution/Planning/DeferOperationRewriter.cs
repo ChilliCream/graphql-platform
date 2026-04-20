@@ -175,6 +175,10 @@ internal sealed class DeferOperationRewriter
 
                 var deferId = _nextDeferId++;
 
+                // Capture the response names this defer contributes as direct children
+                // at its Path. Used later by the planner to compute sibling-defer overlap.
+                var topLevelResponseNames = CollectTopLevelResponseNames(inlineFragment.SelectionSet);
+
                 // Create the descriptor first so nested defers can reference it as parent.
                 // We'll set the operation after stripping nested defers.
                 var descriptor = new DeferredFragmentDescriptor(
@@ -183,7 +187,8 @@ internal sealed class DeferOperationRewriter
                     ifVariable,
                     parentPath,
                     null!, // placeholder — set below
-                    parentDeferFragment);
+                    parentDeferFragment,
+                    topLevelResponseNames);
 
                 deferredFragments.Add(descriptor);
 
@@ -441,6 +446,43 @@ internal sealed class DeferOperationRewriter
         return false;
     }
 
+    /// <summary>
+    /// Collects the response names of fields that, when the given selection set is
+    /// merged into its enclosing object, land as direct children of that object.
+    /// Inline fragments and fragment spreads merge into the parent scope, so we
+    /// recurse into their selection sets; nested @defer fragments are NOT followed
+    /// because they produce their own descriptors.
+    /// </summary>
+    private static ImmutableArray<string> CollectTopLevelResponseNames(SelectionSetNode selectionSet)
+    {
+        var builder = ImmutableArray.CreateBuilder<string>();
+        CollectTopLevelResponseNames(selectionSet, builder);
+        return builder.ToImmutable();
+    }
+
+    private static void CollectTopLevelResponseNames(
+        SelectionSetNode selectionSet,
+        ImmutableArray<string>.Builder builder)
+    {
+        for (var i = 0; i < selectionSet.Selections.Count; i++)
+        {
+            switch (selectionSet.Selections[i])
+            {
+                case FieldNode field:
+                    var responseName = field.Alias?.Value ?? field.Name.Value;
+                    builder.Add(responseName);
+                    break;
+
+                case InlineFragmentNode inline when !HasDeferDirective(inline):
+                    CollectTopLevelResponseNames(inline.SelectionSet, builder);
+                    break;
+
+                // Fragment spreads and defer-annotated inline fragments are not
+                // part of this descriptor's own top-level contribution.
+            }
+        }
+    }
+
     private static bool ShouldSkipDefer(InlineFragmentNode node)
     {
         for (var i = 0; i < node.Directives.Count; i++)
@@ -526,7 +568,8 @@ internal sealed class DeferredFragmentDescriptor
         string? ifVariable,
         ImmutableArray<FieldPathSegment> path,
         OperationDefinitionNode operation,
-        DeferredFragmentDescriptor? parent)
+        DeferredFragmentDescriptor? parent,
+        ImmutableArray<string> topLevelResponseNames = default)
     {
         DeferId = deferId;
         Label = label;
@@ -534,6 +577,9 @@ internal sealed class DeferredFragmentDescriptor
         Path = path;
         Operation = operation;
         Parent = parent;
+        TopLevelResponseNames = topLevelResponseNames.IsDefault
+            ? ImmutableArray<string>.Empty
+            : topLevelResponseNames;
     }
 
     public int DeferId { get; }
@@ -542,6 +588,14 @@ internal sealed class DeferredFragmentDescriptor
     public ImmutableArray<FieldPathSegment> Path { get; }
     public OperationDefinitionNode Operation { get; internal set; }
     public DeferredFragmentDescriptor? Parent { get; }
+
+    /// <summary>
+    /// Response names of fields that this defer fragment contributes as direct
+    /// children of the object at <see cref="Path"/>. Collected at rewrite time
+    /// so sibling-defer overlap can be resolved by the planner without having to
+    /// re-walk the defer fragment's AST.
+    /// </summary>
+    public ImmutableArray<string> TopLevelResponseNames { get; }
 }
 
 /// <summary>

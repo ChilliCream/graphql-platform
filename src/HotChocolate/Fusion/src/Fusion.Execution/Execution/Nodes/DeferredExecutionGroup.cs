@@ -37,6 +37,12 @@ public sealed class DeferredExecutionGroup
     /// <param name="allNodes">
     /// All execution nodes belonging to this deferred group.
     /// </param>
+    /// <param name="siblingOverlapByResponseName">
+    /// Optional map of response names that this group selects which are also
+    /// selected by at least one sibling defer, to the declaration-order list of
+    /// competing <see cref="DeferId"/>s (this group's own id included). <c>null</c>
+    /// when there is no sibling overlap (the fast path).
+    /// </param>
     public DeferredExecutionGroup(
         int deferId,
         string? label,
@@ -45,7 +51,8 @@ public sealed class DeferredExecutionGroup
         DeferredExecutionGroup? parent,
         Operation operation,
         ImmutableArray<ExecutionNode> rootNodes,
-        ImmutableArray<ExecutionNode> allNodes)
+        ImmutableArray<ExecutionNode> allNodes,
+        ImmutableDictionary<string, ImmutableArray<int>>? siblingOverlapByResponseName = null)
     {
         DeferId = deferId;
         Label = label;
@@ -55,6 +62,7 @@ public sealed class DeferredExecutionGroup
         Operation = operation;
         RootNodes = rootNodes;
         AllNodes = allNodes;
+        SiblingOverlapByResponseName = siblingOverlapByResponseName;
     }
 
     /// <summary>
@@ -101,4 +109,15 @@ public sealed class DeferredExecutionGroup
     /// Gets all execution nodes belonging to this deferred group.
     /// </summary>
     public ImmutableArray<ExecutionNode> AllNodes { get; }
+
+    /// <summary>
+    /// Gets the sibling-defer overlap map for this group. The key is the response
+    /// name of a field that this group selects; the value is the list of
+    /// <see cref="DeferId"/>s (including this group's own) of sibling defers that
+    /// select the same response name, in declaration order (ascending DeferId).
+    /// At runtime the "earliest completing" sibling wins the field and others
+    /// must drop it from their incremental payload. <c>null</c> when there is
+    /// no overlap with any sibling (the fast path).
+    /// </summary>
+    public ImmutableDictionary<string, ImmutableArray<int>>? SiblingOverlapByResponseName { get; }
 }

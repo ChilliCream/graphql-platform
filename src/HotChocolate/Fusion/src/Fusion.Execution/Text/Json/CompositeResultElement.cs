@@ -5,6 +5,7 @@ using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Text.Json;
 using HotChocolate.Types;
 using static HotChocolate.Fusion.Properties.FusionExecutionResources;
+using static HotChocolate.Fusion.Text.Json.CompositeResultDocument;
 
 #pragma warning disable CS1574, CS1584, CS1581, CS1580
 
@@ -45,6 +46,70 @@ public readonly partial struct CompositeResultElement
         var formatter = new CompositeResultDocument.RawJsonFormatter(_parent, jsonWriter);
         var row = _parent._metaDb.Get(_cursor);
         formatter.WriteValue(_cursor, row);
+    }
+
+    /// <summary>
+    /// Marks the direct property with the given UTF-8 name as
+    /// <see cref="ElementFlags.IsExcluded"/> so subsequent JSON writes skip it.
+    /// This is a targeted runtime-dedup hook for sibling <c>@defer</c> fragments
+    /// where a field appears in multiple deferred payloads and only the
+    /// earliest-declaring active fragment should deliver it.
+    /// </summary>
+    /// <param name="utf8PropertyName">
+    /// The property name as UTF-8 bytes without surrounding JSON quotes
+    /// (matching <see cref="Selection.Utf8ResponseName"/>).
+    /// </param>
+    /// <returns>
+    /// <c>true</c> if a matching, not-yet-excluded property was found and marked;
+    /// <c>false</c> otherwise (including when the current element is not an object).
+    /// </returns>
+    internal bool TryExcludeProperty(ReadOnlySpan<byte> utf8PropertyName)
+    {
+        CheckValidInstance();
+
+        var cursor = _cursor;
+        var startRow = _parent._metaDb.Get(cursor);
+
+        // Objects may be stored out-of-line behind a Reference row; resolve
+        // to the actual StartObject before iterating properties.
+        if (startRow.TokenType is ElementTokenType.Reference)
+        {
+            cursor = Cursor.FromIndex(startRow.Location);
+            startRow = _parent._metaDb.Get(cursor);
+        }
+
+        if (startRow.TokenType is not ElementTokenType.StartObject)
+        {
+            return false;
+        }
+
+        var current = cursor + 1;
+        var end = cursor + startRow.NumberOfRows;
+
+        while (current < end)
+        {
+            var row = _parent._metaDb.Get(current);
+
+            if (row.TokenType is not ElementTokenType.PropertyName)
+            {
+                break;
+            }
+
+            // PropertyName rows alternate with their values. The composite
+            // document stores the response name (unquoted UTF-8 bytes) via
+            // Selection.Utf8ResponseName and the JSON writer quotes on output.
+            var nameBytes = _parent.GetPropertyNameRaw(current + 1);
+
+            if (nameBytes.SequenceEqual(utf8PropertyName))
+            {
+                _parent._metaDb.SetFlags(current, row.Flags | ElementFlags.IsExcluded);
+                return true;
+            }
+
+            current += 2;
+        }
+
+        return false;
     }
 
     /// <summary>

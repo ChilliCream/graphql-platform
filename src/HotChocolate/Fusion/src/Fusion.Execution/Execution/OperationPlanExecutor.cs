@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Channels;
 using HotChocolate.Execution;
@@ -269,7 +270,12 @@ internal sealed class OperationPlanExecutor
                 // `group.Path` and emit only the subtree at that location.
                 if (result.Data.HasValue
                     && !result.Data.Value.IsValueNull
-                    && TryCreateIncrementalData(result.Data.Value, group.Path, out var incrementalData))
+                    && TryCreateIncrementalData(
+                        result.Data.Value,
+                        group,
+                        operationPlan,
+                        variables,
+                        out var incrementalData))
                 {
                     payload.Incremental =
                     [
@@ -400,13 +406,18 @@ internal sealed class OperationPlanExecutor
 
     /// <summary>
     /// Produces an <see cref="OperationResultData"/> whose logical root is the subtree
-    /// at <paramref name="selectionPath"/> within the deferred plan's composite result.
+    /// at <paramref name="group"/>.Path within the deferred plan's composite result.
     /// The incremental delivery contract requires <c>incremental.data</c> to be the
-    /// delta to merge at the pending path, not the fully rooted result.
+    /// delta to merge at the pending path, not the fully rooted result. When the
+    /// group has sibling-defer overlap, any response name owned by an earlier-declared
+    /// sibling (that is active given the current runtime variables) is additionally
+    /// excluded from the subtree so it is not duplicated across payloads.
     /// </summary>
     private static bool TryCreateIncrementalData(
         OperationResultData rootData,
-        SelectionPath selectionPath,
+        DeferredExecutionGroup group,
+        OperationPlan operationPlan,
+        IVariableValueCollection variables,
         out OperationResultData incrementalData)
     {
         if (rootData.Value is not CompositeResultDocument document)
@@ -418,6 +429,7 @@ internal sealed class OperationPlanExecutor
         }
 
         var element = document.Data;
+        var selectionPath = group.Path;
 
         for (var i = 0; i < selectionPath.Length; i++)
         {
@@ -441,6 +453,16 @@ internal sealed class OperationPlanExecutor
             element = next;
         }
 
+        // Apply sibling-defer dedup only when the planner detected overlap for
+        // this group. This is the fast path: groups without sibling overlap
+        // (the common case) skip the dictionary lookup and byte-comparisons.
+        var overlap = group.SiblingOverlapByResponseName;
+
+        if (overlap is { Count: > 0 })
+        {
+            ApplySiblingDedup(element, group, overlap, operationPlan, variables);
+        }
+
         // MemoryHolder is intentionally not carried over: the surrounding
         // OperationResult already owns the composite document's lifetime,
         // and the IncrementalObjectResult is a non-owning view over it.
@@ -450,6 +472,96 @@ internal sealed class OperationPlanExecutor
             new DeferredPayloadDataFormatter(element),
             memoryHolder: null);
         return true;
+    }
+
+    /// <summary>
+    /// For each response name owned by an earlier-declared active sibling, marks
+    /// the property on <paramref name="element"/> as excluded so the rendered
+    /// incremental payload drops it. The "primary" sibling is the earliest
+    /// declared one (lowest <see cref="DeferredExecutionGroup.DeferId"/>) whose
+    /// <c>if</c> condition evaluates to true at runtime.
+    /// </summary>
+    private static void ApplySiblingDedup(
+        CompositeResultElement element,
+        DeferredExecutionGroup group,
+        ImmutableDictionary<string, ImmutableArray<int>> overlap,
+        OperationPlan operationPlan,
+        IVariableValueCollection variables)
+    {
+        foreach (var pair in overlap)
+        {
+            var competitors = pair.Value;
+            var primaryDeferId = FindPrimaryDeferId(competitors, operationPlan, variables);
+
+            if (primaryDeferId == group.DeferId || primaryDeferId < 0)
+            {
+                // Either this group owns the field, or no competitor is active
+                // (in which case no one should emit it anyway).
+                continue;
+            }
+
+            // This group is not primary for the field; mark it excluded so the
+            // canonical WriteTo walker skips it. The composite document stores
+            // property names as the Selection.Utf8ResponseName (raw bytes
+            // without surrounding JSON quotes) and the writer adds quotes only
+            // when rendering, so we compare without quotes here.
+            var utf8 = Encoding.UTF8.GetBytes(pair.Key);
+            element.TryExcludeProperty(utf8);
+        }
+    }
+
+    /// <summary>
+    /// Resolves the primary <see cref="DeferredExecutionGroup.DeferId"/> among the
+    /// supplied competitors. Competitors are ordered in declaration order and the
+    /// first one whose <c>@defer(if:)</c> variable evaluates to true (or that has
+    /// no <c>if</c> condition) wins. Returns -1 if none are active, in which case
+    /// the field should not have been deferred at all.
+    /// </summary>
+    private static int FindPrimaryDeferId(
+        ImmutableArray<int> competitors,
+        OperationPlan operationPlan,
+        IVariableValueCollection variables)
+    {
+        for (var i = 0; i < competitors.Length; i++)
+        {
+            var candidateId = competitors[i];
+            var candidate = FindGroup(operationPlan, candidateId);
+
+            if (candidate is null)
+            {
+                continue;
+            }
+
+            if (candidate.IfVariable is null)
+            {
+                return candidateId;
+            }
+
+            if (variables.TryGetValue<BooleanValueNode>(candidate.IfVariable, out var boolValue)
+                && boolValue.Value)
+            {
+                return candidateId;
+            }
+        }
+
+        return -1;
+    }
+
+    private static DeferredExecutionGroup? FindGroup(OperationPlan plan, int deferId)
+    {
+        var groups = plan.DeferredGroups;
+
+        for (var i = 0; i < groups.Length; i++)
+        {
+            var candidate = groups[i];
+
+            if (candidate.DeferId == deferId)
+            {
+                return candidate;
+            }
+        }
+
+        return null;
     }
 
     public async Task<IExecutionResult> SubscribeAsync(
