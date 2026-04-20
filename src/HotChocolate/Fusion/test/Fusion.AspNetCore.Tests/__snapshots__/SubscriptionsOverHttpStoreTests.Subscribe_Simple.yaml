@@ -127,6 +127,20 @@ sourceSchemas:
                   }
                 }
               }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_a6fc02fc_2($__fusion_1_id: Int!) {
+              bookById(id: $__fusion_1_id) {
+                title
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 2
+            }
+        response:
+          results:
             - |
               {
                 "data": {
@@ -135,6 +149,20 @@ sourceSchemas:
                   }
                 }
               }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_a6fc02fc_2($__fusion_1_id: Int!) {
+              bookById(id: $__fusion_1_id) {
+                title
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": 3
+            }
+        response:
+          results:
             - |
               {
                 "data": {

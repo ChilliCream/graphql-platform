@@ -288,7 +288,12 @@ public abstract partial class FusionTestBase
             writer.WriteLine("interactions:");
             writer.Indent();
 
-            foreach (var (_, interaction) in interactions.OrderBy(x => x.Key))
+            // Order by (OperationPlanId, NodeId) so parallel mini-plans (e.g.
+            // deferred groups) render in a stable order independent of the
+            // runtime arrival order of their subgraph responses.
+            foreach (var interaction in interactions.Values
+                .OrderBy(x => x.OperationPlanId, StringComparer.Ordinal)
+                .ThenBy(x => x.NodeId))
             {
                 var request = interaction.Request!;
 

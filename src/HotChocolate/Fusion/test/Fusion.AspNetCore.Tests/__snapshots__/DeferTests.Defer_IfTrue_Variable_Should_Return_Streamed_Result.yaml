@@ -129,6 +129,16 @@ sourceSchemas:
                   }
                 }
               }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query GetUser_defer_1 {
+              user(id: "1") {
+                id
+              }
+            }
+        response:
+          results:
             - |
               {
                 "data": {

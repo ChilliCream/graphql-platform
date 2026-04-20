@@ -112,6 +112,16 @@ sourceSchemas:
                   }
                 }
               }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_defer_1 {
+              user(id: "1") {
+                id
+              }
+            }
+        response:
+          results:
             - |
               {
                 "data": {
@@ -120,6 +130,16 @@ sourceSchemas:
                   }
                 }
               }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_defer_1 {
+              user(id: "1") {
+                id
+              }
+            }
+        response:
+          results:
             - |
               {
                 "data": {
@@ -162,16 +182,31 @@ sourceSchemas:
               {
                 "data": {
                   "userById": {
-                    "email": "User: VXNlcjox",
-                    "address": "User: VXNlcjox"
+                    "email": "User: VXNlcjox"
                   }
                 }
               }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_defer_2($__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                email
+                address
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "VXNlcjox"
+            }
+        response:
+          results:
             - |
               {
                 "data": {
                   "userById": {
-                    "email": "User: VXNlcjox"
+                    "email": "User: VXNlcjox",
+                    "address": "User: VXNlcjox"
                   }
                 }
               }
