@@ -133,7 +133,6 @@ public static class EndpointRouteBuilderExtensions
 
         applicationBuilder
             .Use(MiddlewareFactory.CreateCancellationMiddleware())
-            .Use(MiddlewareFactory.CreateConcurrencyGateMiddleware(serverOptions.MaxConcurrentRequests))
             .Use(MiddlewareFactory.CreateWebSocketSubscriptionMiddleware(executor, serverOptions))
             .Use(MiddlewareFactory.CreateHttpPostMiddleware(executor, serverOptions))
             .Use(MiddlewareFactory.CreateHttpMultipartMiddleware(executor, serverOptions, formOptions))
@@ -216,7 +215,6 @@ public static class EndpointRouteBuilderExtensions
 
         requestPipeline
             .Use(MiddlewareFactory.CreateCancellationMiddleware())
-            .Use(MiddlewareFactory.CreateConcurrencyGateMiddleware(serverOptions.MaxConcurrentRequests))
             .Use(MiddlewareFactory.CreateHttpPostMiddleware(executor, serverOptions))
             .Use(MiddlewareFactory.CreateHttpMultipartMiddleware(executor, serverOptions, formOptions))
             .Use(MiddlewareFactory.CreateHttpGetMiddleware(executor, serverOptions))
@@ -377,7 +375,6 @@ public static class EndpointRouteBuilderExtensions
 
         requestPipeline
             .Use(MiddlewareFactory.CreateCancellationMiddleware())
-            .Use(MiddlewareFactory.CreateConcurrencyGateMiddleware(serverOptions.MaxConcurrentRequests))
             .Use(MiddlewareFactory.CreateHttpGetSchemaMiddleware(
                 executor, serverOptions, PathString.Empty, MiddlewareRoutingType.Explicit))
             .Use(_ => context =>
