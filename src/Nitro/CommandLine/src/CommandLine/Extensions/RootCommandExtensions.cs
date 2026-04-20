@@ -21,6 +21,13 @@ internal static class RootCommandExtensions
         // Parse command
         var parseResult = rootCommand.Parse(args);
 
+        // Short-circuit on parse errors: let InvokeAsync report them and return the
+        // corresponding exit code.
+        if (parseResult.Errors.Count > 0)
+        {
+            return await parseResult.InvokeAsync(invocationConfiguration, cancellationToken);
+        }
+
         var format = parseResult.GetValue(Opt<OptionalOutputFormatOption>.Instance);
 
         if (format.HasValue)

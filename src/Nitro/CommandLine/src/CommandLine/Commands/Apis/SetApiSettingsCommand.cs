@@ -72,7 +72,7 @@ internal sealed class SetApiSettingsApiCommand : Command
 
         if (data.Errors?.Count > 0)
         {
-            activity.Fail();
+            await activity.FailAllAsync();
 
             foreach (var mutationError in data.Errors)
             {

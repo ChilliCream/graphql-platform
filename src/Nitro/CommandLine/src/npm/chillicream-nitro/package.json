@@ -6,7 +6,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/ChilliCream/graphql-platform",
-    "directory": "src/Nitro/CommandLine/src/chillicream-nitro"
+    "directory": "src/Nitro/CommandLine/src/npm/chillicream-nitro"
   },
   "bugs": {
     "url": "https://github.com/ChilliCream/graphql-platform/issues"
@@ -27,22 +27,23 @@
     "url": "https://opencollective.com/chillicream"
   },
   "type": "module",
-  "bin": {
-    "nitro": "cli.js"
+  "engines": {
+    "node": ">=20.6.0"
   },
+  "bin": "./dist/cli.js",
   "files": [
-    "cli.js",
-    "linux-x64/",
-    "linux-musl-x64/",
-    "linux-arm64/",
-    "osx-x64/",
-    "osx-arm64/",
-    "win-x64/",
-    "win-x86/",
-    "win-arm64/"
+    "dist",
+    "README.md"
   ],
+  "scripts": {
+    "build": "tsc"
+  },
   "packageManager": "yarn@4.9.4",
   "dependencies": {
     "detect-libc": "^2.0.4"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
   }
 }

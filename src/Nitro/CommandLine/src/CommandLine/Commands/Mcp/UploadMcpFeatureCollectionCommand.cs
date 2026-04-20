@@ -69,54 +69,53 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
                 toolFiles,
                 cancellationToken);
 
-        await using (var activity = console.StartActivity(
-            $"Uploading new MCP feature collection version '{tag.EscapeMarkup()}' for collection '{mcpFeatureCollectionId.EscapeMarkup()}'",
-            "Failed to upload a new MCP feature collection version."))
+        await using var activity = console.StartActivity(
+            $"Uploading new version '{tag.EscapeMarkup()}' for MCP feature collection '{mcpFeatureCollectionId.EscapeMarkup()}'",
+            "Failed to upload a new MCP feature collection version.");
+
+        activity.Update($"Found {promptFiles.Length} prompt(s) and {toolFiles.Length} tool(s).");
+
+        var data = await client.UploadMcpFeatureCollectionVersionAsync(
+            mcpFeatureCollectionId,
+            tag,
+            archiveStream,
+            source,
+            cancellationToken);
+
+        if (data.Errors?.Count > 0)
         {
-            activity.Update($"Found {promptFiles.Length} prompt(s) and {toolFiles.Length} tool(s).");
+            await activity.FailAllAsync();
 
-            var data = await client.UploadMcpFeatureCollectionVersionAsync(
-                mcpFeatureCollectionId,
-                tag,
-                archiveStream,
-                source,
-                cancellationToken);
-
-            if (data.Errors?.Count > 0)
+            foreach (var error in data.Errors)
             {
-                activity.Fail();
-
-                foreach (var error in data.Errors)
+                var errorMessage = error switch
                 {
-                    var errorMessage = error switch
-                    {
-                        IMcpFeatureCollectionNotFoundError err => err.Message,
-                        IUnauthorizedOperation err => err.Message,
-                        IInvalidSourceMetadataInputError err => err.Message,
-                        IDuplicatedTagError err => err.Message,
-                        IConcurrentOperationError err => err.Message,
-                        IInvalidMcpFeatureCollectionArchiveError err =>
-                            Messages.InvalidArchive(err.Message),
-                        IError err => Messages.UnexpectedMutationError(err),
-                        _ => Messages.UnexpectedMutationError()
-                    };
+                    IMcpFeatureCollectionNotFoundError err => err.Message,
+                    IUnauthorizedOperation err => err.Message,
+                    IInvalidSourceMetadataInputError err => err.Message,
+                    IDuplicatedTagError err => err.Message,
+                    IConcurrentOperationError err => err.Message,
+                    IInvalidMcpFeatureCollectionArchiveError err =>
+                        Messages.InvalidArchive(err.Message),
+                    IError err => Messages.UnexpectedMutationError(err),
+                    _ => Messages.UnexpectedMutationError()
+                };
 
-                    console.Error.WriteErrorLine(errorMessage);
-                }
-
-                return ExitCodes.Error;
+                console.Error.WriteErrorLine(errorMessage);
             }
 
-            if (data.McpFeatureCollectionVersion is null)
-            {
-                activity.Fail();
-                console.Error.WriteErrorLine("Could not upload MCP Feature Collection version.");
-                return ExitCodes.Error;
-            }
-
-            activity.Success($"Uploaded new MCP feature collection version '{tag.EscapeMarkup()}'.");
-
-            return ExitCodes.Success;
+            return ExitCodes.Error;
         }
+
+        if (data.McpFeatureCollectionVersion is null)
+        {
+            await activity.FailAllAsync();
+            console.Error.WriteErrorLine("Could not upload MCP Feature Collection version.");
+            return ExitCodes.Error;
+        }
+
+        activity.Success($"Uploaded new MCP feature collection version '{tag.EscapeMarkup()}'.");
+
+        return ExitCodes.Success;
     }
 }

@@ -393,7 +393,7 @@ public sealed partial class JsonWriter
     /// <summary>
     /// Writes a number as a JSON string. The string value is not escaped.
     /// </summary>
-    /// <param name="utf8Value"></param>
+    /// <param name="utf8Value">The UTF-8 encoded number value to write as a string.</param>
     internal void WriteNumberValueAsStringUnescaped(ReadOnlySpan<byte> utf8Value)
     {
         FlushDeferredPropertyName();

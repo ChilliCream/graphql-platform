@@ -188,7 +188,7 @@ internal sealed class FieldCollector
         }
     }
 
-    private static bool IsConditional(IHasDirectives hasDirectives) => false;
+    private static bool IsConditional(IHasDirectives _) => false;
 
     private void ResolveFragmentSpread(
         FragmentSpreadNode fragmentSpreadSyntax,

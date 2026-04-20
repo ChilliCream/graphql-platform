@@ -14,23 +14,24 @@ using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.Client.Workspaces;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
+using ChilliCream.Nitro.CommandLine.Tests.Console;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
 using Spectre.Console.Testing;
 
-namespace ChilliCream.Nitro.CommandLine.Tests.HttpClient;
+namespace ChilliCream.Nitro.CommandLine.Tests;
 
-public class NitroClientRegistrationTests
+public class GlobalOptionsTests
 {
     [Fact]
     public async Task ExecuteAsync_Should_ConfigureApiKeyAuth_When_ApiKeyOptionProvided()
     {
-        // Act
+        // act
         await using var provider = await BuildAndExecuteAsync(["--api-key", "my-key"]);
         using var client = CreateApiClient(provider);
 
-        // Assert
+        // assert
         var apiKeyHeader = Assert.Single(client.DefaultRequestHeaders.GetValues("CCC-api-key"));
         Assert.Equal("my-key", apiKeyHeader);
     }
@@ -38,14 +39,14 @@ public class NitroClientRegistrationTests
     [Fact]
     public async Task ExecuteAsync_Should_ConfigureBearerAuth_When_SessionPresent()
     {
-        // Arrange
+        // arrange
         var session = CreateSessionWithTokens(accessToken: "my-token");
 
-        // Act
+        // act
         await using var provider = await BuildAndExecuteAsync([], session);
         using var client = CreateApiClient(provider);
 
-        // Assert
+        // assert
         var authHeader = Assert.Single(client.DefaultRequestHeaders.GetValues("Authorization"));
         Assert.Equal("Bearer my-token", authHeader);
     }
@@ -53,44 +54,50 @@ public class NitroClientRegistrationTests
     [Fact]
     public async Task ExecuteAsync_Should_PreferApiKey_Over_SessionToken()
     {
-        // Arrange
+        // arrange
         var session = CreateSessionWithTokens(accessToken: "session-token");
 
-        // Act
+        // act
         await using var provider = await BuildAndExecuteAsync(["--api-key", "cli-key"], session);
         using var client = CreateApiClient(provider);
 
-        // Assert
+        // assert
         var apiKeyHeader = Assert.Single(client.DefaultRequestHeaders.GetValues("CCC-api-key"));
         Assert.Equal("cli-key", apiKeyHeader);
         Assert.False(client.DefaultRequestHeaders.Contains("Authorization"));
     }
 
-    [Fact]
-    public async Task ExecuteAsync_Should_UseExplicitCloudUrl()
+    [Theory]
+    [InlineData("custom.host.com", "https://custom.host.com/graphql")]
+    [InlineData("https://custom.host.com", "https://custom.host.com/graphql")]
+    [InlineData("http://custom.host.com", "http://custom.host.com/graphql")]
+    [InlineData("http://custom.host.com/graphql", "http://custom.host.com/graphql")]
+    [InlineData("https://custom.host.com/graphql", "https://custom.host.com/graphql")]
+    [InlineData("custom.host.com/graphql", "https://custom.host.com/graphql")]
+    [InlineData("https://custom.host.com/some/path", "https://custom.host.com/graphql")]
+    [InlineData("https://custom.host.com/graphql?foo=bar", "https://custom.host.com/graphql")]
+    public async Task ExecuteAsync_Should_NormalizeCloudUrl(string input, string expected)
     {
-        // Act
+        // act
         await using var provider = await BuildAndExecuteAsync(
-            ["--api-key", "x", "--cloud-url", "custom.host.com"]);
+            ["--api-key", "x", "--cloud-url", input]);
         using var client = CreateApiClient(provider);
 
-        // Assert
-        Assert.Equal(
-            new Uri("https://custom.host.com/graphql"),
-            client.BaseAddress);
+        // assert
+        Assert.Equal(new Uri(expected), client.BaseAddress);
     }
 
     [Fact]
     public async Task ExecuteAsync_Should_UseSessionUrl_When_NoExplicitUrl()
     {
-        // Arrange
+        // arrange
         var session = CreateSessionWithTokens(apiUrl: "session-api.chillicream.com");
 
-        // Act
+        // act
         await using var provider = await BuildAndExecuteAsync([], session);
         using var client = CreateApiClient(provider);
 
-        // Assert
+        // assert
         Assert.Equal(
             new Uri("https://session-api.chillicream.com/graphql"),
             client.BaseAddress);
@@ -99,29 +106,68 @@ public class NitroClientRegistrationTests
     [Fact]
     public async Task ExecuteAsync_Should_UseDefaultUrl_When_NoSessionAndNoExplicitUrl()
     {
-        // Act
+        // act
         await using var provider = await BuildAndExecuteAsync(["--api-key", "x"]);
         using var client = CreateApiClient(provider);
 
-        // Assert
+        // assert
         Assert.Equal(
             new Uri("https://api.chillicream.com/graphql"),
             client.BaseAddress);
     }
 
     [Fact]
-    public async Task ExecuteAsync_Should_Throw_When_NoAuthAvailable()
+    public async Task ExecuteAsync_Should_NotSetAuth_When_NoAuthAvailable()
     {
-        // Arrange
+        // act
         await using var provider = await BuildAndExecuteAsync([]);
+        using var client = CreateApiClient(provider);
 
-        // Act & Assert
-        Assert.Throws<InvalidOperationException>(() => CreateApiClient(provider));
+        // assert
+        Assert.False(client.DefaultRequestHeaders.Contains("CCC-api-key"));
+        Assert.False(client.DefaultRequestHeaders.Contains("Authorization"));
+    }
+
+    [Theory]
+    [InlineData("NITRO_TEST_VAR")]
+    [InlineData("BARISTA_TEST_VAR")]
+    public async Task DefaultFromEnvironmentValue_Should_ReadFromProvider_When_EnvironmentVariableIsSet(
+        string environmentVariableName)
+    {
+        // arrange
+        const string expectedValue = "my-test-value";
+        var envProviderMock = new Mock<IEnvironmentVariableProvider>();
+        envProviderMock
+            .Setup(x => x.GetEnvironmentVariable(environmentVariableName))
+            .Returns(expectedValue);
+
+        string? capturedValue = null;
+        var testOption = new Option<string>("--test-var");
+        testOption.DefaultFromEnvironmentValue("TEST_VAR");
+
+        // act
+        await using var provider = await BuildAndExecuteAsync(
+            [],
+            environmentVariables: envProviderMock.Object,
+            configureProbeCommand: command =>
+            {
+                command.Options.Add(testOption);
+                command.SetAction((parseResult, _) =>
+                {
+                    capturedValue = parseResult.GetValue(testOption);
+                    return Task.FromResult(0);
+                });
+            });
+
+        // assert
+        Assert.Equal(expectedValue, capturedValue);
     }
 
     private static async Task<ServiceProvider> BuildAndExecuteAsync(
         string[] args,
-        Session? session = null)
+        Session? session = null,
+        IEnvironmentVariableProvider? environmentVariables = null,
+        Action<Command>? configureProbeCommand = null)
     {
         var services = new ServiceCollection();
         services.AddNitroServices();
@@ -132,6 +178,11 @@ public class NitroClientRegistrationTests
             .ReturnsAsync(session);
         sessionMock.SetupGet(x => x.Session).Returns(session);
         services.Replace(ServiceDescriptor.Singleton(sessionMock.Object));
+
+        if (environmentVariables is not null)
+        {
+            services.Replace(ServiceDescriptor.Singleton(environmentVariables));
+        }
 
         services
             .AddSingleton(Mock.Of<IApisClient>())
@@ -155,7 +206,11 @@ public class NitroClientRegistrationTests
         var testConsole = new TestConsole();
         var errorConsole = new TestConsole();
         services.AddSingleton<INitroConsole>(
-            new NitroConsole(testConsole, errorConsole, new EnvironmentVariableProvider()));
+            new NitroConsole(
+                testConsole,
+                errorConsole,
+                environmentVariables ?? new EnvironmentVariableProvider(),
+                new SnapshotActivitySinkFactory()));
 
         var provider = services.BuildServiceProvider();
         var rootCommand = new NitroRootCommand();
@@ -163,6 +218,7 @@ public class NitroClientRegistrationTests
         var probeCommand = new Command("__probe");
         probeCommand.AddGlobalNitroOptions();
         probeCommand.SetAction((_, _) => Task.FromResult(0));
+        configureProbeCommand?.Invoke(probeCommand);
         rootCommand.Add(probeCommand);
 
         var invocationConfig = new InvocationConfiguration

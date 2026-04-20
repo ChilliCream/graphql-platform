@@ -78,7 +78,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -267,13 +267,15 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
@@ -306,13 +308,15 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
@@ -351,10 +355,10 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
              """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✕ Failed to request a deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -386,10 +390,10 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✕ Failed to request a deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -427,12 +431,13 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
              """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✕ Failed to claim the deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -467,12 +472,13 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✕ Failed to claim the deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -511,14 +517,15 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
              """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Validating configuration against 'dev'
             │   └── ✕ Failed to validate the new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -554,14 +561,15 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Validating configuration against 'dev'
             │   └── ✕ Failed to validate the new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -595,8 +603,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -638,17 +647,19 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Failed to validate configuration.
+            Fusion configuration failed validation.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Validating configuration against 'dev'
-            │   └── ✕ Failed to validate the new configuration.
+            │   ├── Validating...
+            │   └── ✕ Fusion configuration failed validation.
             │       ├── GraphQL schema changes
             │       │   ├── ✕ Directive foo was modified
             │       │   │   ├── ✓ Directive location FieldDefinition added
@@ -662,7 +673,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       │   ├── ✓ Type system member NewType was added.
             │       │   └── ✕ Type system member OldType was removed.
             │       ├── Invalid GraphQL schema
-            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │       ├── Client 'TestClient' (ID: client-1)
             │       │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │       │       └── foo (10:10)
@@ -673,7 +684,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       │   └── Tool 'Fail'
             │       │       └── The field `person` does not exist on the type `Query`. (1:14)
             │       └── An unexpected error occurred.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -710,14 +721,16 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── ! Force push is enabled.
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Validating configuration against 'dev'
-            │   └── ✕ Failed to validate the new configuration.
+            │   ├── Validating...
+            │   └── ✕ Fusion configuration failed validation.
             │       ├── GraphQL schema changes
             │       │   ├── ✕ Directive foo was modified
             │       │   │   ├── ✓ Directive location FieldDefinition added
@@ -731,7 +744,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       │   ├── ✓ Type system member NewType was added.
             │       │   └── ✕ Type system member OldType was removed.
             │       ├── Invalid GraphQL schema
-            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │       ├── Client 'TestClient' (ID: client-1)
             │       │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │       │       └── foo (10:10)
@@ -781,15 +794,16 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Uploading configuration to 'dev'
-            │   ├── ! Validation failed.
+            │   ├── ! Failed validation.
             │   │   ├── Invalid GraphQL schema
-            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── Client 'TestClient' (ID: client-1)
             │   │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │   │   │       └── foo (10:10)
@@ -839,19 +853,20 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Failed to publish the new configuration.
+            Fusion configuration version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Uploading configuration to 'dev'
-            │   ├── ! Validation failed.
+            │   ├── ! Failed validation.
             │   │   ├── Invalid GraphQL schema
-            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── Client 'TestClient' (ID: client-1)
             │   │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │   │   │       └── foo (10:10)
@@ -862,8 +877,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   │       └── Tool 'Fail'
             │   │           └── The field `person` does not exist on the type `Query`. (1:14)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            │   └── ✕ Failed to upload the new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            │   └── ✕ Fusion configuration version was rejected.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -904,16 +919,18 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
              """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✕ Failed to upload the new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -951,16 +968,18 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✕ Failed to upload the new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -995,23 +1014,25 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Failed to publish the new configuration.
+            Fusion configuration version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
-            │   └── ✕ Failed to upload the new configuration.
+            │   └── ✕ Fusion configuration version was rejected.
             │       ├── Invalid GraphQL schema
-            │       │   └── Field 'Query.foo' has no type. SCHEMA_ERROR
+            │       │   └── Field 'Query.foo' has no type. (SCHEMA_ERROR)
             │       └── An error occurred.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -1050,12 +1071,13 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✕ Failed to claim the deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -1097,12 +1119,13 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
              """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✕ Failed to claim the deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -1172,8 +1195,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -1182,7 +1206,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
@@ -1219,8 +1244,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -1229,7 +1255,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
@@ -1268,10 +1295,10 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
              """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✕ Failed to request a deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -1303,10 +1330,10 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
             │   └── ✕ Failed to request a deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -1344,12 +1371,13 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
              """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✕ Failed to claim the deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -1384,12 +1412,13 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✕ Failed to claim the deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -1425,14 +1454,15 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Downloading existing configuration from 'dev'
             │   └── ✕ Failed to download the existing Fusion configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -1468,16 +1498,17 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Downloading existing configuration from 'dev'
             │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new configuration
-            │   └── ✕ Failed to compose new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            │   └── ✕ Fusion configuration could not be composed.
+            └── ✕ Failed to publish a new Fusion configuration version.
 
             ## Composition log
 
@@ -1521,8 +1552,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
              """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -1532,7 +1564,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
             │   └── ✕ Failed to validate the new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -1569,8 +1601,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -1580,7 +1613,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
             │   └── ✕ Failed to validate the new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -1617,12 +1650,13 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Failed to validate configuration.
+            Fusion configuration failed validation.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -1631,7 +1665,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
-            │   └── ✕ Failed to validate the new configuration.
+            │   ├── Validating...
+            │   └── ✕ Fusion configuration failed validation.
             │       ├── GraphQL schema changes
             │       │   ├── ✕ Directive foo was modified
             │       │   │   ├── ✓ Directive location FieldDefinition added
@@ -1645,7 +1680,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       │   ├── ✓ Type system member NewType was added.
             │       │   └── ✕ Type system member OldType was removed.
             │       ├── Invalid GraphQL schema
-            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │       ├── Client 'TestClient' (ID: client-1)
             │       │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │       │       └── foo (10:10)
@@ -1656,7 +1691,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       │   └── Tool 'Fail'
             │       │       └── The field `person` does not exist on the type `Query`. (1:14)
             │       └── An unexpected error occurred.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -1694,9 +1729,10 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── ! Force push is enabled.
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -1705,7 +1741,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
-            │   └── ✕ Failed to validate the new configuration.
+            │   ├── Validating...
+            │   └── ✕ Fusion configuration failed validation.
             │       ├── GraphQL schema changes
             │       │   ├── ✕ Directive foo was modified
             │       │   │   ├── ✓ Directive location FieldDefinition added
@@ -1719,7 +1756,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       │   ├── ✓ Type system member NewType was added.
             │       │   └── ✕ Type system member OldType was removed.
             │       ├── Invalid GraphQL schema
-            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │       ├── Client 'TestClient' (ID: client-1)
             │       │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │       │       └── foo (10:10)
@@ -1768,8 +1805,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -1817,8 +1855,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -1827,9 +1866,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Uploading configuration to 'dev'
-            │   ├── ! Validation failed.
+            │   ├── ! Failed validation.
             │   │   ├── Invalid GraphQL schema
-            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── Client 'TestClient' (ID: client-1)
             │   │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │   │   │       └── foo (10:10)
@@ -1880,12 +1919,13 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Failed to publish the new configuration.
+            Fusion configuration version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -1894,9 +1934,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Uploading configuration to 'dev'
-            │   ├── ! Validation failed.
+            │   ├── ! Failed validation.
             │   │   ├── Invalid GraphQL schema
-            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── Client 'TestClient' (ID: client-1)
             │   │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │   │   │       └── foo (10:10)
@@ -1907,8 +1947,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   │       └── Tool 'Fail'
             │   │           └── The field `person` does not exist on the type `Query`. (1:14)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            │   └── ✕ Failed to upload the new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            │   └── ✕ Fusion configuration version was rejected.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -1950,8 +1990,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
              """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -1960,10 +2001,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✕ Failed to upload the new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -2002,8 +2044,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -2012,10 +2055,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✕ Failed to upload the new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -2051,12 +2095,13 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Failed to publish the new configuration.
+            Fusion configuration version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -2065,13 +2110,14 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
-            │   └── ✕ Failed to upload the new configuration.
+            │   └── ✕ Fusion configuration version was rejected.
             │       ├── Invalid GraphQL schema
-            │       │   └── Field 'Query.foo' has no type. SCHEMA_ERROR
+            │       │   └── Field 'Query.foo' has no type. (SCHEMA_ERROR)
             │       └── An error occurred.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -2110,12 +2156,13 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✕ Failed to claim the deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -2157,12 +2204,13 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
              """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✕ Failed to claim the deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -2197,10 +2245,10 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✕ Could not find source schema 'products' with version 'v1'.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -2231,10 +2279,10 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✕ Failed to download source schemas.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -2269,10 +2317,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -2281,7 +2330,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
@@ -2318,10 +2368,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -2330,7 +2381,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
@@ -2371,10 +2423,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -2383,7 +2436,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✓ Uploaded configuration.
             └── ✓ Published configuration 'v1' to 'dev'.
@@ -2422,12 +2476,12 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
              """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
             │   └── ✕ Failed to request a deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -2459,12 +2513,12 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
             │   └── ✕ Failed to request a deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -2502,14 +2556,15 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
              """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✕ Failed to claim the deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -2544,14 +2599,15 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✕ Failed to claim the deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -2587,18 +2643,19 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Downloading existing configuration from 'dev'
             │   └── ✓ Downloaded existing configuration from 'dev'.
             ├── Composing new configuration
-            │   └── ✕ Failed to compose new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            │   └── ✕ Fusion configuration could not be composed.
+            └── ✕ Failed to publish a new Fusion configuration version.
 
             ## Composition log
 
@@ -2638,16 +2695,17 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
             ├── Downloading existing configuration from 'dev'
             │   └── ✕ Failed to download the existing Fusion configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -2687,10 +2745,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
              """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -2700,7 +2759,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
             │   └── ✕ Failed to validate the new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -2738,10 +2797,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -2751,7 +2811,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
             │   └── ✕ Failed to validate the new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -2787,14 +2847,15 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Failed to validate configuration.
+            Fusion configuration failed validation.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -2803,7 +2864,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
-            │   └── ✕ Failed to validate the new configuration.
+            │   ├── Validating...
+            │   └── ✕ Fusion configuration failed validation.
             │       ├── GraphQL schema changes
             │       │   ├── ✕ Directive foo was modified
             │       │   │   ├── ✓ Directive location FieldDefinition added
@@ -2817,7 +2879,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       │   ├── ✓ Type system member NewType was added.
             │       │   └── ✕ Type system member OldType was removed.
             │       ├── Invalid GraphQL schema
-            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │       ├── Client 'TestClient' (ID: client-1)
             │       │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │       │       └── foo (10:10)
@@ -2828,7 +2890,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       │   └── Tool 'Fail'
             │       │       └── The field `person` does not exist on the type `Query`. (1:14)
             │       └── An unexpected error occurred.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -2866,11 +2928,12 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── ! Force push is enabled.
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -2879,7 +2942,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
-            │   └── ✕ Failed to validate the new configuration.
+            │   ├── Validating...
+            │   └── ✕ Fusion configuration failed validation.
             │       ├── GraphQL schema changes
             │       │   ├── ✕ Directive foo was modified
             │       │   │   ├── ✓ Directive location FieldDefinition added
@@ -2893,7 +2957,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │       │   ├── ✓ Type system member NewType was added.
             │       │   └── ✕ Type system member OldType was removed.
             │       ├── Invalid GraphQL schema
-            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │       │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │       ├── Client 'TestClient' (ID: client-1)
             │       │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │       │       └── foo (10:10)
@@ -2942,10 +3006,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -2993,10 +3058,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.AssertSuccess(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -3005,9 +3071,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Uploading configuration to 'dev'
-            │   ├── ! Validation failed.
+            │   ├── ! Failed validation.
             │   │   ├── Invalid GraphQL schema
-            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── Client 'TestClient' (ID: client-1)
             │   │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │   │   │       └── foo (10:10)
@@ -3058,14 +3124,15 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Failed to publish the new configuration.
+            Fusion configuration version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -3074,9 +3141,9 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Uploading configuration to 'dev'
-            │   ├── ! Validation failed.
+            │   ├── ! Failed validation.
             │   │   ├── Invalid GraphQL schema
-            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. SCHEMA_INTERFACE_NO_IMPL
+            │   │   │   └── There is no object type implementing interface `InterfaceWithoutImplementation`. (SCHEMA_INTERFACE_NO_IMPL)
             │   │   ├── Client 'TestClient' (ID: client-1)
             │   │   │   └── Operation '6D12E4A815C50C504695E548EAF680BC8F337AC87E763E5689C685522A01BC59' (Deployed tags: 1.0.0)
             │   │   │       └── foo (10:10)
@@ -3087,8 +3154,8 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             │   │       └── Tool 'Fail'
             │   │           └── The field `person` does not exist on the type `Query`. (1:14)
             │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            │   └── ✕ Failed to upload the new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            │   └── ✕ Fusion configuration version was rejected.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -3130,10 +3197,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
              """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -3142,10 +3210,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✕ Failed to upload the new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -3184,10 +3253,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -3196,10 +3266,11 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
             │   └── ✕ Failed to upload the new configuration.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -3235,14 +3306,15 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            Failed to publish the new configuration.
+            Fusion configuration version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✓ Claimed deployment slot.
@@ -3251,13 +3323,14 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             ├── Composing new configuration
             │   └── ✓ Composed new configuration.
             ├── Validating configuration against 'dev'
-            │   └── ✓ Validated configuration.
+            │   ├── Validating...
+            │   └── ✓ Fusion configuration passed validation.
             ├── Uploading configuration to 'dev'
-            │   └── ✕ Failed to upload the new configuration.
+            │   └── ✕ Fusion configuration version was rejected.
             │       ├── Invalid GraphQL schema
-            │       │   └── Field 'Query.foo' has no type. SCHEMA_ERROR
+            │       │   └── Field 'Query.foo' has no type. (SCHEMA_ERROR)
             │       └── An error occurred.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -3296,14 +3369,15 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✕ Failed to claim the deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -3345,14 +3419,15 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
              """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing Fusion configuration to stage 'dev' of API 'api-1'
+            Publishing new Fusion configuration version 'v1' of API 'api-1' to stage 'dev'
             ├── Downloading 1 source schema(s)
             │   └── ✓ Downloaded 1 source schema(s).
             ├── Requesting deployment slot
+            │   ├── Publication request created. (ID: request-id)
             │   └── ✓ Deployment slot ready.
             ├── Claiming deployment slot
             │   └── ✕ Failed to claim the deployment slot.
-            └── ✕ Failed to publish Fusion configuration.
+            └── ✕ Failed to publish a new Fusion configuration version.
             """);
         Assert.Equal(1, result.ExitCode);
     }

@@ -57,7 +57,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -165,7 +165,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
     }
 
     [Fact]
-    public async Task Success_CommitsArchive_NonInteractive()
+    public async Task Success_CommitsArchive_ReturnsSuccess()
     {
         // arrange
         SetupArchiveFile();
@@ -193,33 +193,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
     }
 
     [Fact]
-    public async Task Success_CommitsArchive_Interactive()
-    {
-        // arrange
-        SetupArchiveFile();
-        var capturedStream = SetupFusionConfigurationUploadMutation();
-        SetupFusionConfigurationUploadSubscription();
-        SetupInteractionMode(InteractionMode.Interactive);
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "fusion",
-            "publish",
-            "commit",
-            "--request-id",
-            RequestId,
-            "--archive",
-            ArchiveFile);
-
-        // assert
-        Assert.Empty(result.StdErr);
-        Assert.Equal(0, result.ExitCode);
-        var schema = await GetFusionSchemaAsync(capturedStream);
-        AssertFusionSchema(schema);
-    }
-
-    [Fact]
-    public async Task Success_CommitsArchive_JsonOutput()
+    public async Task Success_CommitsArchive_ReturnsSuccess_JsonOutput()
     {
         // arrange
         SetupArchiveFile();
@@ -248,7 +222,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
     [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
-    public async Task RequestIdFromStateFile_Success(InteractionMode mode)
+    public async Task RequestIdFromStateFile_Success_ReturnsSuccess(InteractionMode mode)
     {
         // arrange
         SetupFusionPublishingStateCache(RequestId);
@@ -273,7 +247,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
     }
 
     [Fact]
-    public async Task Commit_Should_ReturnError_When_CommitFails()
+    public async Task Commit_Should_ReturnError_When_CommitFails_ReturnsError()
     {
         // arrange
         SetupArchiveFile();
@@ -309,7 +283,7 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
     }
 
     [Fact]
-    public async Task Commit_Should_HandleSubscriptionEvents_When_PublishFails()
+    public async Task Commit_Should_HandleSubscriptionEvents_When_PublishFails_ReturnsError()
     {
         // arrange
         SetupArchiveFile();
@@ -331,18 +305,18 @@ public sealed class FusionConfigurationPublishCommitCommandTests(NitroCommandFix
         result.StdOut.MatchInlineSnapshot(
             """
             Publishing Fusion configuration
-            └── ✕ Failed to publish a new Fusion configuration version.
+            └── ✕ Fusion configuration version was rejected.
                 └── Deployment failed.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            Failed to publish the new configuration.
+            Fusion configuration version was rejected.
             """);
         Assert.Equal(1, result.ExitCode);
     }
 
     [Fact]
-    public async Task Commit_Should_HandleSubscriptionEvents_When_Queued()
+    public async Task Commit_Should_HandleSubscriptionEvents_When_Queued_ReturnsSuccess()
     {
         // arrange
         SetupArchiveFile();

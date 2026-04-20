@@ -233,19 +233,14 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
 
         static FieldNode? GetProvidedField(FieldNode fieldNode, SelectionSetNode? providedSelectionSetNode)
         {
-            if (providedSelectionSetNode is not null)
-            {
-                return providedSelectionSetNode.Selections
-                    .OfType<FieldNode>()
-                    .FirstOrDefault(t => t.Name.Value.Equals(fieldNode.Name.Value));
-            }
-
-            return null;
+            return providedSelectionSetNode?.Selections
+                .OfType<FieldNode>()
+                .FirstOrDefault(t => t.Name.Value.Equals(fieldNode.Name.Value));
         }
 
         static SelectionSetNode? GetProvidedSelectionSet(
-            ITypeDefinition type,
-            FusionSchemaDefinition schema,
+            ITypeDefinition _1,
+            FusionSchemaDefinition _2,
             SelectionSetNode? providedSelectionSetNode)
         {
             // todo match correct inline fragment

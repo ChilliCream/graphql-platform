@@ -64,7 +64,7 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : Fusi
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -120,7 +120,7 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : Fusi
         result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new source schema version 'v1' to API 'api-1'
+            Uploading new version 'v1' for source schema 'products' of API 'api-1'
             └── ✕ Failed to upload a new source schema version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -148,7 +148,7 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : Fusi
         await AssertFusionSourceSchemaArchive(capturedStream);
         result.AssertSuccess(
             """
-            Uploading new source schema version 'v1' to API 'api-1'
+            Uploading new version 'v1' for source schema 'products' of API 'api-1'
             └── ✓ Uploaded new source schema version 'v1'.
             """);
     }
@@ -174,7 +174,7 @@ public sealed class FusionUploadCommandTests(NitroCommandFixture fixture) : Fusi
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new source schema version 'v1' to API 'api-1'
+            Uploading new version 'v1' for source schema 'products' of API 'api-1'
             └── ✕ Failed to upload a new source schema version.
             """);
         result.StdErr.MatchInlineSnapshot(

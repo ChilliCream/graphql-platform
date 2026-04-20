@@ -67,7 +67,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -141,7 +141,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new MCP feature collection version 'v1' for collection 'mcp-1'
+            Uploading new version 'v1' for MCP feature collection 'mcp-1'
             ├── Found 1 prompt(s) and 1 tool(s).
             └── ✕ Failed to upload a new MCP feature collection version.
             """);
@@ -175,7 +175,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
         result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new MCP feature collection version 'v1' for collection 'mcp-1'
+            Uploading new version 'v1' for MCP feature collection 'mcp-1'
             ├── Found 1 prompt(s) and 1 tool(s).
             └── ✕ Failed to upload a new MCP feature collection version.
             """);
@@ -209,7 +209,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Uploading new MCP feature collection version 'v1' for collection 'mcp-1'
+            Uploading new version 'v1' for MCP feature collection 'mcp-1'
             ├── Found 1 prompt(s) and 1 tool(s).
             └── ✕ Failed to upload a new MCP feature collection version.
             """);
@@ -240,7 +240,7 @@ public sealed class UploadMcpFeatureCollectionCommandTests(NitroCommandFixture f
         await AssertMcpFeatureCollectionArchive(capturedStream);
         result.AssertSuccess(
             """
-            Uploading new MCP feature collection version 'v1' for collection 'mcp-1'
+            Uploading new version 'v1' for MCP feature collection 'mcp-1'
             ├── Found 1 prompt(s) and 1 tool(s).
             └── ✓ Uploaded new MCP feature collection version 'v1'.
             """);

@@ -102,7 +102,7 @@ public class QueryableDefaultSortFieldHandler
         return true;
     }
 
-    public static QueryableDefaultSortFieldHandler Create(SortProviderContext context) => new();
+    public static QueryableDefaultSortFieldHandler Create(SortProviderContext _) => new();
 
     private sealed class ReplaceVariableExpressionVisitor : ExpressionVisitor
     {

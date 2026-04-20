@@ -258,5 +258,5 @@ public sealed class QueryableRequirementsProjectionOptimizer : IProjectionOptimi
         return char.ToLowerInvariant(value[0]) + value[1..];
     }
 
-    public static QueryableRequirementsProjectionOptimizer Create(ProjectionProviderContext context) => new();
+    public static QueryableRequirementsProjectionOptimizer Create(ProjectionProviderContext _) => new();
 }

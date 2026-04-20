@@ -44,8 +44,7 @@ internal sealed class CreateOpenApiCollectionCommand : Command
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        const string apiMessage = "For which API do you want to create an OpenAPI collection?";
-        var apiId = await console.GetOrPromptForApiIdAsync(apiMessage, parseResult, apisClient, sessionService, cancellationToken);
+        var apiId = await console.GetOrPromptForApiIdAsync("For which API do you want to create an OpenAPI collection?", parseResult, apisClient, sessionService, cancellationToken);
 
         var name = await console
             .PromptAsync("Name", defaultValue: null, parseResult, Opt<OpenApiCollectionNameOption>.Instance, cancellationToken);
@@ -61,7 +60,7 @@ internal sealed class CreateOpenApiCollectionCommand : Command
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
 
                 foreach (var error in data.Errors)
                 {

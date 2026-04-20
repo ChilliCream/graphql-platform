@@ -59,7 +59,7 @@ internal sealed class RevokePersonalAccessTokenCommand : Command
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
 
                 foreach (var error in data.Errors)
                 {
@@ -78,7 +78,7 @@ internal sealed class RevokePersonalAccessTokenCommand : Command
 
             if (data.PersonalAccessToken is not IPersonalAccessTokenDetailPrompt_PersonalAccessToken token)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
                 console.Error.WriteErrorLine("Could not revoke personal access token.");
                 return ExitCodes.Error;
             }

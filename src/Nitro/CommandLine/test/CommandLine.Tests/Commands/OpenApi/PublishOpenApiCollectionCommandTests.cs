@@ -94,7 +94,7 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -122,9 +122,7 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new OpenAPI collection version 'v1' to stage 'dev'
-            ├── Starting publish request
-            │   └── ✕ Failed to start publish request.
+            Publishing new version 'v1' of OpenAPI collection 'oa-1' to stage 'dev'
             └── ✕ Failed to publish a new OpenAPI collection version.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -153,9 +151,7 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new OpenAPI collection version 'v1' to stage 'dev'
-            ├── Starting publish request
-            │   └── ✕ Failed to start publish request.
+            Publishing new version 'v1' of OpenAPI collection 'oa-1' to stage 'dev'
             └── ✕ Failed to publish a new OpenAPI collection version.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
@@ -182,9 +178,7 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new OpenAPI collection version 'v1' to stage 'dev'
-            ├── Starting publish request
-            │   └── ✕ Failed to start publish request.
+            Publishing new version 'v1' of OpenAPI collection 'oa-1' to stage 'dev'
             └── ✕ Failed to publish a new OpenAPI collection version.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -216,12 +210,9 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
         // assert
         result.AssertSuccess(
             """
-            Publishing new OpenAPI collection version 'v1' to stage 'dev'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   └── ✓ Published successfully.
-            └── ✓ Published new OpenAPI collection version 'v1' to stage 'dev'.
+            Publishing new version 'v1' of OpenAPI collection 'oa-1' to stage 'dev'
+            ├── Publication request created. (ID: request-1)
+            └── ✓ Published new version 'v1' of OpenAPI collection 'oa-1' to stage 'dev'.
             """);
     }
 
@@ -248,12 +239,9 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
         // assert
         result.AssertSuccess(
             """
-            Publishing new OpenAPI collection version 'v1' to stage 'dev'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   └── ✓ Published successfully.
-            └── ✓ Published new OpenAPI collection version 'v1' to stage 'dev'.
+            Publishing new version 'v1' of OpenAPI collection 'oa-1' to stage 'dev'
+            ├── Publication request created. (ID: request-1)
+            └── ✓ Published new version 'v1' of OpenAPI collection 'oa-1' to stage 'dev'.
             """);
     }
 
@@ -279,17 +267,14 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new OpenAPI collection version 'v1' to stage 'dev'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   └── ✕ Processing failed.
-            │       └── Something went wrong during publish.
-            └── ✕ Failed to publish a new OpenAPI collection version.
+            Publishing new version 'v1' of OpenAPI collection 'oa-1' to stage 'dev'
+            ├── Publication request created. (ID: request-1)
+            └── ✕ OpenAPI collection version was rejected.
+                └── Something went wrong during publish.
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            OpenAPI collection publish failed.
+            OpenAPI collection version was rejected.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -317,13 +302,10 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
         // assert
         result.AssertSuccess(
             """
-            Publishing new OpenAPI collection version 'v1' to stage 'dev'
+            Publishing new version 'v1' of OpenAPI collection 'oa-1' to stage 'dev'
             ├── ! Force push is enabled.
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   └── ✓ Published successfully.
-            └── ✓ Published new OpenAPI collection version 'v1' to stage 'dev'.
+            ├── Publication request created. (ID: request-1)
+            └── ✓ Published new version 'v1' of OpenAPI collection 'oa-1' to stage 'dev'.
             """);
     }
 
@@ -352,18 +334,15 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
         // assert
         result.AssertSuccess(
             """
-            Publishing new OpenAPI collection version 'v1' to stage 'dev'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   ├── ! Validation failed.
-            │   │   └── OpenAPI collection 'petstore' (ID: collection-1)
-            │   │       └── Endpoint 'GET /fail'
-            │   │           └── The field `person` does not exist on the type `Query`. (1:14)
-            │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            │   ├── Your request has been approved.
-            │   └── ✓ Published successfully.
-            └── ✓ Published new OpenAPI collection version 'v1' to stage 'dev'.
+            Publishing new version 'v1' of OpenAPI collection 'oa-1' to stage 'dev'
+            ├── Publication request created. (ID: request-1)
+            ├── ! Failed validation.
+            │   └── OpenAPI collection 'petstore' (ID: collection-1)
+            │       └── Endpoint 'GET /fail'
+            │           └── The field `person` does not exist on the type `Query`. (1:14)
+            ├── ⏳ Waiting for approval. Approve in Nitro to continue.
+            ├── Your request has been approved.
+            └── ✓ Published new version 'v1' of OpenAPI collection 'oa-1' to stage 'dev'.
             """);
     }
 
@@ -391,21 +370,18 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
         // assert
         result.StdErr.MatchInlineSnapshot(
             """
-            OpenAPI collection publish failed.
+            OpenAPI collection version was rejected.
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Publishing new OpenAPI collection version 'v1' to stage 'dev'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   ├── ! Validation failed.
-            │   │   └── OpenAPI collection 'petstore' (ID: collection-1)
-            │   │       └── Endpoint 'GET /fail'
-            │   │           └── The field `person` does not exist on the type `Query`. (1:14)
-            │   ├── ⏳ Waiting for approval. Approve in Nitro to continue.
-            │   └── ✕ Processing failed.
-            └── ✕ Failed to publish a new OpenAPI collection version.
+            Publishing new version 'v1' of OpenAPI collection 'oa-1' to stage 'dev'
+            ├── Publication request created. (ID: request-1)
+            ├── ! Failed validation.
+            │   └── OpenAPI collection 'petstore' (ID: collection-1)
+            │       └── Endpoint 'GET /fail'
+            │           └── The field `person` does not exist on the type `Query`. (1:14)
+            ├── ⏳ Waiting for approval. Approve in Nitro to continue.
+            └── ✕ OpenAPI collection version was rejected.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -430,12 +406,9 @@ public sealed class PublishOpenApiCollectionCommandTests(NitroCommandFixture fix
         // assert
         result.AssertSuccess(
             """
-            Publishing new OpenAPI collection version 'v1' to stage 'dev'
-            ├── Starting publish request
-            │   └── ✓ Publish request created (ID: request-1).
-            ├── Processing
-            │   └── ✓ Published successfully.
-            └── ✓ Published new OpenAPI collection version 'v1' to stage 'dev'.
+            Publishing new version 'v1' of OpenAPI collection 'oa-1' to stage 'dev'
+            ├── Publication request created. (ID: request-1)
+            └── ✓ Published new version 'v1' of OpenAPI collection 'oa-1' to stage 'dev'.
             """);
     }
 

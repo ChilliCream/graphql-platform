@@ -47,7 +47,7 @@ public sealed class ListOpenApiCollectionCommandTests(NitroCommandFixture fixtur
         // assert
         result.AssertError(
             """
-            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually specify the '--workspace-id' option (if available).
+            Could not determine workspace. Either login via `nitro login` or specify the '--workspace-id' option.
             """);
     }
 
@@ -66,7 +66,7 @@ public sealed class ListOpenApiCollectionCommandTests(NitroCommandFixture fixtur
         // assert
         result.AssertError(
             """
-            The '--api-id' option is required in non-interactive mode.
+            Missing required option '--api-id'.
             """);
     }
 
@@ -84,7 +84,7 @@ public sealed class ListOpenApiCollectionCommandTests(NitroCommandFixture fixtur
         // assert
         result.AssertError(
             """
-            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually specify the '--workspace-id' option (if available).
+            Could not determine workspace. Either login via `nitro login` or specify the '--workspace-id' option.
             """);
     }
 
