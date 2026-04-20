@@ -57,7 +57,7 @@ internal sealed class FederationQueryRewriter
             && selections[0] is FieldNode lookupField
             && _lookupFields.TryGetValue(lookupField.Name.Value, out var lookupInfo))
         {
-            return RewriteEntityLookup(operationDefinition, lookupField, lookupInfo);
+            return RewriteEntityLookup(lookupField, lookupInfo);
         }
 
         // Not an entity lookup — pass through unchanged.
@@ -72,7 +72,6 @@ internal sealed class FederationQueryRewriter
     }
 
     private static RewrittenOperation RewriteEntityLookup(
-        OperationDefinitionNode operationDefinition,
         FieldNode lookupField,
         LookupFieldInfo lookupInfo)
     {

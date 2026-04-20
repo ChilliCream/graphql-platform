@@ -1,10 +1,8 @@
 using System.Buffers;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO.Hashing;
 using System.Reactive.Disposables;
 using System.Runtime.InteropServices;
-using System.Text;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
@@ -38,7 +36,7 @@ public sealed class OperationExecutionNode : ExecutionNode
     {
         Id = id;
         _operation = operation;
-        _operationHash = XxHash64.HashToUInt64(Encoding.UTF8.GetBytes(operation.SourceText));
+        _operationHash = operation.SourceText.ComputeHash();
         _schemaName = schemaName;
         _target = target;
         _source = source;

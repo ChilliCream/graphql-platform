@@ -219,12 +219,12 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
                     var entityDocument = SourceResultDocument.Parse(entityBytes, entityBytes.Length);
 
                     CompactPath resultPath;
-                    ImmutableArray<CompactPath> additionalPaths;
+                    CompactPathSegment additionalPaths;
 
                     if (variables.IsDefaultOrEmpty || j >= variables.Length)
                     {
                         resultPath = CompactPath.Root;
-                        additionalPaths = [];
+                        additionalPaths = default;
                     }
                     else
                     {
@@ -720,7 +720,7 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
                     ? CompactPath.Root
                     : variables[0].Path;
                 var additionalPaths = variables.IsDefaultOrEmpty
-                    ? ImmutableArray<CompactPath>.Empty
+                    ? default
                     : variables[0].AdditionalPaths;
 
                 yield return additionalPaths.IsDefaultOrEmpty
@@ -806,12 +806,12 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
                 var entityDocument = SourceResultDocument.Parse(entityBytes, entityBytes.Length);
 
                 CompactPath resultPath;
-                ImmutableArray<CompactPath> additionalPaths;
+                CompactPathSegment additionalPaths;
 
                 if (variables.IsDefaultOrEmpty || i >= variables.Length)
                 {
                     resultPath = CompactPath.Root;
-                    additionalPaths = [];
+                    additionalPaths = default;
                 }
                 else
                 {

@@ -1,5 +1,3 @@
-using System.IO.Hashing;
-using System.Text;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Fusion.Execution.Nodes;
@@ -28,7 +26,7 @@ internal abstract class OperationDefinition : IOperationPlanNode
     {
         Id = id;
         Operation = operation;
-        _operationHash = XxHash64.HashToUInt64(Encoding.UTF8.GetBytes(operation.SourceText));
+        _operationHash = operation.SourceText.ComputeHash();
         SchemaName = schemaName;
         Source = source;
         _requirements = requirements;
