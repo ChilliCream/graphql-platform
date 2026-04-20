@@ -977,6 +977,7 @@ public class AnnotationBasedAuthorizationTests
         Action<AuthorizationOptions>? configure = null)
         => new ServiceCollection()
             .AddGraphQLServer()
+            .DisableIntrospection(disable: false)
             .AddQueryType<Query>()
             .AddUnionType<ICityOrStreet>()
             .AddType<Street>()
