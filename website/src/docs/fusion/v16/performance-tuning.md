@@ -183,7 +183,19 @@ app.MapGraphQLHttp()
 
 Start with the default of 64 and adjust based on your workload. If you expect many long-lived subscriptions firing frequent events, factor those into your sizing. They now contend for the same slots as queries and mutations. Set to `null` to disable the limit entirely.
 
-Queued executions wait on the gate; the `ExecutionTimeout` setting (default 30 seconds) bounds how long they can wait before the request is cancelled with a clean timeout error. If you regularly see executions timing out at the gate, that's a signal to scale out or raise the limit rather than extend the timeout.
+### Execution Cancellation
+
+Every execution is bounded by the `ExecutionTimeout` option (default 30 seconds). This applies uniformly to queries, mutations, subscription handshakes, and each subscription event. The budget covers both the time an execution spends waiting for a concurrency slot and the time it spends running. When the budget is exceeded, the execution is cancelled and the caller receives a clean timeout error.
+
+`ExecutionTimeout` is the single setting that controls cancellation for every execution. Configure it with `ModifyRequestOptions`:
+
+```csharp
+builder
+    .AddGraphQLGateway()
+    .ModifyRequestOptions(o => o.ExecutionTimeout = TimeSpan.FromSeconds(10));
+```
+
+If executions routinely time out at the gate, that is a signal to scale out or raise `MaxConcurrentExecutions`. Increasing `ExecutionTimeout` only defers the problem.
 
 ## Next Steps
 

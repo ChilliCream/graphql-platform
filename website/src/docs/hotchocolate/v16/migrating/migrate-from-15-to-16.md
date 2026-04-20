@@ -1096,6 +1096,8 @@ builder
     .ModifyServerOptions(o => o.MaxConcurrentExecutions = 128);
 ```
 
-The default is **64**. Operations that arrive while the gate is full queue up and run as slots free. The `ExecutionTimeout` setting (default 30 seconds) bounds how long an operation can wait before it is cancelled with a clean timeout error. Set the limit to `null` to disable the gate entirely.
+The default is **64**. Operations that arrive while the gate is full queue up and run as slots free. Set the limit to `null` to disable the gate entirely.
+
+Every execution is bounded by the `ExecutionTimeout` option (default 30 seconds). This applies uniformly to queries, mutations, subscription handshakes, and each subscription event. The budget covers both the time an execution spends waiting for a concurrency slot and the time it spends running. When the budget is exceeded, the execution is cancelled and the caller receives a clean timeout error. `ExecutionTimeout` is the single setting that controls cancellation for every execution.
 
 Subscriptions participate in the limit like any other operation. The initial subscribe consumes a slot while the subscribe resolver runs, and each emitted event consumes a slot while its result is being produced. Idle subscriptions (waiting on the next event) cost nothing. The slot is released between events.
