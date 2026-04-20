@@ -121,7 +121,7 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
         this IRequestExecutorBuilder builder,
         int maxAllowedRequestSize = MaxAllowedRequestSize)
     {
-        builder.ConfigureSchemaServices(s =>
+        builder.ConfigureSchemaServices((applicationServices, s) =>
         {
             s.TryAddSingleton(sp =>
             {
@@ -153,6 +153,15 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
                     1 => listeners[0],
                     _ => new AggregateServerDiagnosticEventListener(listeners)
                 };
+            });
+
+            s.TryAddSingleton(schemaServices =>
+            {
+                var schemaName = schemaServices.GetRequiredService<ISchemaDefinition>().Name;
+                var serverOptions = applicationServices
+                    .GetRequiredService<IOptionsMonitor<GraphQLServerOptions>>()
+                    .Get(schemaName);
+                return new ExecutionConcurrencyGate(serverOptions.MaxConcurrentExecutions);
             });
         });
 
