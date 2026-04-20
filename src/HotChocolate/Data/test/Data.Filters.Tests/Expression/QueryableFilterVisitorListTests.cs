@@ -325,6 +325,65 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
     }
 
     [Fact]
+    public void Create_DictionarySomeKeyAndValue_Expression()
+    {
+        // arrange
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+            "{ skills: { some: { key: { eq: PACE }, value: { gt: 85 }}}}");
+        var tester = CreateProviderTester(new FooDictionaryFilterInput());
+
+        // act
+        var func = tester.Build<FooDictionary>(value);
+
+        // assert
+        var a = new FooDictionary
+        {
+            Skills = new Dictionary<Skill, int?> { [Skill.Pace] = 86 }
+        };
+        Assert.True(func(a));
+
+        var b = new FooDictionary
+        {
+            Skills = new Dictionary<Skill, int?> { [Skill.Pace] = 84 }
+        };
+        Assert.False(func(b));
+
+        var c = new FooDictionary
+        {
+            Skills = new Dictionary<Skill, int?> { [Skill.Shooting] = 90 }
+        };
+        Assert.False(func(c));
+    }
+
+    [Fact]
+    public void Create_DictionaryAny_Expression()
+    {
+        // arrange
+        var value = Utf8GraphQLParser.Syntax.ParseValueLiteral(
+            "{ skills: { any: true }}");
+        var tester = CreateProviderTester(new FooDictionaryFilterInput());
+
+        // act
+        var func = tester.Build<FooDictionary>(value);
+
+        // assert
+        var a = new FooDictionary
+        {
+            Skills = new Dictionary<Skill, int?> { [Skill.Pace] = 86 }
+        };
+        Assert.True(func(a));
+
+        var b = new FooDictionary
+        {
+            Skills = new Dictionary<Skill, int?>()
+        };
+        Assert.False(func(b));
+
+        var c = new FooDictionary { Skills = null };
+        Assert.False(func(c));
+    }
+
+    [Fact]
     public void Create_ArraySomeStringEqual_Expression_Null()
     {
         // arrange
@@ -500,12 +559,26 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
         public string? Bar { get; set; }
     }
 
+    public class FooDictionary
+    {
+        public Dictionary<Skill, int?>? Skills { get; set; }
+    }
+
     public class FooFilterInput : FilterInputType<Foo>
     {
         protected override void Configure(
             IFilterInputTypeDescriptor<Foo> descriptor)
         {
             descriptor.Field(t => t.FooNested);
+        }
+    }
+
+    public class FooDictionaryFilterInput : FilterInputType<FooDictionary>
+    {
+        protected override void Configure(
+            IFilterInputTypeDescriptor<FooDictionary> descriptor)
+        {
+            descriptor.Field(t => t.Skills);
         }
     }
 
@@ -516,5 +589,11 @@ public class QueryableFilterVisitorListTests : FilterVisitorTestBase
         {
             descriptor.Field(t => t.Bar);
         }
+    }
+
+    public enum Skill
+    {
+        Pace,
+        Shooting
     }
 }
