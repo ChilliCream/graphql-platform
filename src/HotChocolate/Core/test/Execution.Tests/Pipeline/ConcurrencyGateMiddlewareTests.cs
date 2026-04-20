@@ -155,7 +155,7 @@ public sealed class ConcurrencyGateMiddlewareTests
             .AddGraphQL()
             .AddQueryType(d =>
             {
-                d.Field("block").Resolve(async _ =>
+                d.Field("block").Type<StringType>().Resolve(async _ =>
                 {
                     var index = Interlocked.Increment(ref counter) - 1;
                     if (index < latches.Length)
@@ -198,8 +198,12 @@ public sealed class ConcurrencyGateMiddlewareTests
         var gate = executor.Schema.Services.GetRequiredService<ExecutionConcurrencyGate>();
         await WaitUntilAsync(async () => await IsSlotHeldAsync(gate), cts.Token);
 
+        var thirdRequest = OperationRequestBuilder.New()
+            .SetDocument("query Third { instant }")
+            .SetOperationName("Third")
+            .Build();
         var thirdTask = Task.Run(
-            () => executor.ExecuteAsync("query Third { instant }", cts.Token),
+            () => executor.ExecuteAsync(thirdRequest, cts.Token),
             CancellationToken.None);
 
         // third has entered the pipeline but is still waiting on the gate
@@ -231,7 +235,7 @@ public sealed class ConcurrencyGateMiddlewareTests
             .AddGraphQL()
             .AddQueryType(d =>
             {
-                d.Field("throw").Resolve(_ => throw new InvalidOperationException("boom"));
+                d.Field("throw").Type<StringType>().Resolve(_ => throw new InvalidOperationException("boom"));
                 d.Field("ok").Resolve("ok");
             })
             .ConfigureSchemaServices(s => s.AddSingleton(new ExecutionConcurrencyGate(maxConcurrentExecutions: 1)))
@@ -301,7 +305,7 @@ public sealed class ConcurrencyGateMiddlewareTests
             .AddGraphQL()
             .AddQueryType(d =>
             {
-                d.Field("block").Resolve(async _ =>
+                d.Field("block").Type<StringType>().Resolve(async _ =>
                 {
                     await hold.WaitAsync(cts.Token);
                     return "ok";
@@ -335,9 +339,14 @@ public sealed class ConcurrencyGateMiddlewareTests
             e => Assert.Equal(ErrorCodes.Execution.Timeout, e.Code));
         Assert.True(await IsSlotHeldAsync(gate));
 
-        // release the blocking query; its slot returns and the gate is empty again
+        // drain the blocking query, under the shared ExecutionTimeout its own execution
+        // also times out (the same 200ms applies to whichever request is holding the slot).
+        // The blocker's fate is not what this test is verifying; the point is that the
+        // *waiting* request times out cleanly on the gate. Drain it so the slot is returned
+        // and verify the gate is empty.
         hold.Signal();
-        Assert.Empty((await blocking).ExpectOperationResult().Errors);
+        await blocking;
+        await WaitUntilAsync(async () => !await IsSlotHeldAsync(gate), cts.Token);
         Assert.False(await IsSlotHeldAsync(gate));
     }
 
@@ -408,7 +417,7 @@ public sealed class ConcurrencyGateMiddlewareTests
             .AddInMemorySubscriptions()
             .AddQueryType(d =>
             {
-                d.Field("block").Resolve(async _ =>
+                d.Field("block").Type<StringType>().Resolve(async _ =>
                 {
                     await queryGate.WaitAsync(cts.Token);
                     lock (orderLock)
@@ -427,7 +436,9 @@ public sealed class ConcurrencyGateMiddlewareTests
             .GetRequestExecutorAsync(cancellationToken: cts.Token);
 
         var gate = executor.Schema.Services.GetRequiredService<ExecutionConcurrencyGate>();
-        var sender = executor.Schema.Services.GetRequiredService<ITopicEventSender>();
+        // ITopicEventSender is registered in application services, not schema services,
+        // so it must be resolved via the root service provider accessor.
+        var sender = executor.Schema.Services.GetRootServiceProvider().GetRequiredService<ITopicEventSender>();
 
         // subscribe
         var subscribe = await executor.ExecuteAsync("subscription { onMessage }", cts.Token);

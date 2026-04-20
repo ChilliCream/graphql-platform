@@ -90,6 +90,7 @@ internal sealed class OperationPlanExecutor
                 subscriptionNode,
                 subscriptionResult,
                 requestContext.Schema.Services.GetService<ExecutionConcurrencyGate>(),
+                requestContext.Schema.GetRequestOptions().ExecutionTimeout,
                 executionCts.Token,
                 cancellationToken);
 
@@ -226,6 +227,7 @@ internal sealed class OperationPlanExecutor
         OperationExecutionNode subscriptionNode,
         SubscriptionResult subscriptionResult,
         ExecutionConcurrencyGate? concurrencyGate,
+        TimeSpan eventTimeout,
         [EnumeratorCancellation] CancellationToken executionCancellationToken,
         CancellationToken requestCancellationToken)
     {
@@ -237,93 +239,123 @@ internal sealed class OperationPlanExecutor
             static state => Unsafe.As<AsyncAutoResetEvent>(state)!.TryResetToIdle(),
             executionState.Signal);
 
+        // We allocate a single CancellationTokenSource per subscription and reuse it
+        // across all events via TryReset(). The execution token is linked in so that
+        // client-abort / server-shutdown still propagates.
+        var eventCts = new CancellationTokenSource();
+        var eventCtsRegistration = executionCancellationToken.UnsafeRegister(
+            static state => Unsafe.As<CancellationTokenSource>(state)!.Cancel(),
+            eventCts);
+
         var schemaName = subscriptionNode.SchemaName ?? context.GetDynamicSchemaName(subscriptionNode);
 
-        await foreach (var eventArgs in stream)
+        try
         {
-            using var scope = context.DiagnosticEvents.OnSubscriptionEvent(
-                context,
-                subscriptionNode,
-                schemaName,
-                subscriptionResult.Id);
-
-            OperationResult result;
-
-            var gateAcquired = false;
-
-            try
+            await foreach (var eventArgs in stream)
             {
-                if (concurrencyGate is { IsEnabled: true })
-                {
-                    await concurrencyGate.WaitAsync(requestCancellationToken).ConfigureAwait(false);
-                    gateAcquired = true;
-                }
-
-                context.Begin(eventArgs.StartTimestamp, eventArgs.Activity?.TraceId.ToHexString());
-
-                executionState.Reset();
-
-                executionState.FillBacklog(plan);
-                executionState.EnqueueForCompletion(
-                    new ExecutionNodeResult(
-                        subscriptionNode.Id,
-                        eventArgs.Activity,
-                        eventArgs.Status,
-                        eventArgs.Duration,
-                        Exception: null,
-                        DependentsToExecute: [],
-                        SkippedDefinitions: [],
-                        VariableValueSets: eventArgs.VariableValueSets));
-
-                while (!executionCancellationToken.IsCancellationRequested && executionState.IsProcessing())
-                {
-                    while (executionState.TryDequeueCompletedResult(out var nodeResult))
-                    {
-                        var node = plan.GetNodeById(nodeResult.Id);
-                        executionState.CompleteNode(plan, node, nodeResult);
-                    }
-
-                    executionState.EnqueueNextNodes(context, executionCancellationToken);
-
-                    if (executionCancellationToken.IsCancellationRequested || !executionState.IsProcessing())
-                    {
-                        break;
-                    }
-
-                    // The signal will be set every time a node completes and will release the executor
-                    // from the async wait to go through the completed results.
-                    await executionState.Signal;
-                }
-
-                // If the original CancellationToken of the request was cancelled,
-                // the Execution nodes and the PlanExecutor should have been gracefully cancelled,
-                // so we throw here to properly cancel the request execution.
-                requestCancellationToken.ThrowIfCancellationRequested();
-
-                result = context.Complete(reusable: true);
-            }
-            catch (Exception ex) when (ex is not OperationCanceledException)
-            {
-                context.DiagnosticEvents.SubscriptionEventError(
+                using var scope = context.DiagnosticEvents.OnSubscriptionEvent(
                     context,
                     subscriptionNode,
                     schemaName,
-                    subscriptionResult.Id,
-                    ex);
-                throw;
-            }
-            finally
-            {
-                // disposing the eventArgs disposes the telemetry scope.
-                eventArgs.Dispose();
+                    subscriptionResult.Id);
 
-                if (gateAcquired)
+                OperationResult result;
+
+                var gateAcquired = false;
+
+                // Arm the shared CTS for this event and derive the per-event token so
+                // that each event is bounded by the configured execution timeout.
+                eventCts.CancelAfter(eventTimeout);
+                var eventToken = eventCts.Token;
+
+                try
                 {
-                    concurrencyGate!.Release();
-                }
-            }
+                    if (concurrencyGate is { IsEnabled: true })
+                    {
+                        await concurrencyGate.WaitAsync(eventToken).ConfigureAwait(false);
+                        gateAcquired = true;
+                    }
 
-            yield return result;
+                    context.Begin(eventArgs.StartTimestamp, eventArgs.Activity?.TraceId.ToHexString());
+
+                    executionState.Reset();
+
+                    executionState.FillBacklog(plan);
+                    executionState.EnqueueForCompletion(
+                        new ExecutionNodeResult(
+                            subscriptionNode.Id,
+                            eventArgs.Activity,
+                            eventArgs.Status,
+                            eventArgs.Duration,
+                            Exception: null,
+                            DependentsToExecute: [],
+                            SkippedDefinitions: [],
+                            VariableValueSets: eventArgs.VariableValueSets));
+
+                    while (!eventToken.IsCancellationRequested && executionState.IsProcessing())
+                    {
+                        while (executionState.TryDequeueCompletedResult(out var nodeResult))
+                        {
+                            var node = plan.GetNodeById(nodeResult.Id);
+                            executionState.CompleteNode(plan, node, nodeResult);
+                        }
+
+                        executionState.EnqueueNextNodes(context, eventToken);
+
+                        if (eventToken.IsCancellationRequested || !executionState.IsProcessing())
+                        {
+                            break;
+                        }
+
+                        // The signal will be set every time a node completes and will release the executor
+                        // from the async wait to go through the completed results.
+                        await executionState.Signal;
+                    }
+
+                    // If the original CancellationToken of the request was cancelled,
+                    // the Execution nodes and the PlanExecutor should have been gracefully cancelled,
+                    // so we throw here to properly cancel the request execution.
+                    requestCancellationToken.ThrowIfCancellationRequested();
+                    // If the event budget was exhausted, surface it as a cancellation so the
+                    // stream tears down and the caller can observe the timeout.
+                    eventToken.ThrowIfCancellationRequested();
+
+                    result = context.Complete(reusable: true);
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    context.DiagnosticEvents.SubscriptionEventError(
+                        context,
+                        subscriptionNode,
+                        schemaName,
+                        subscriptionResult.Id,
+                        ex);
+                    throw;
+                }
+                finally
+                {
+                    // disposing the eventArgs disposes the telemetry scope.
+                    eventArgs.Dispose();
+
+                    if (gateAcquired)
+                    {
+                        concurrencyGate!.Release();
+                    }
+
+                    // Reset the shared CTS so the next event can start with a fresh budget.
+                    // If TryReset() returns false the source was cancelled (timeout or
+                    // client-abort); the thrown OperationCanceledException has already
+                    // propagated and the enumerator surfaces the teardown.
+                    eventCts.TryReset();
+                }
+
+                yield return result;
+            }
+        }
+        finally
+        {
+            await eventCtsRegistration.DisposeAsync();
+            eventCts?.Dispose();
         }
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Execution.Internal;
 using HotChocolate.Fetching;
@@ -17,6 +18,9 @@ internal sealed partial class SubscriptionExecutor
         private readonly IExecutionDiagnosticEvents _diagnosticEvents;
         private readonly IErrorHandler _errorHandler;
         private readonly ExecutionConcurrencyGate? _concurrencyGate;
+        private readonly TimeSpan _eventTimeout;
+        private readonly CancellationTokenSource _eventCts;
+        private readonly CancellationTokenRegistration _eventCtsRegistration;
         private IDisposable? _subscriptionScope;
         private readonly RequestContext _requestContext;
         private readonly ObjectType _subscriptionType;
@@ -36,7 +40,8 @@ internal sealed partial class SubscriptionExecutor
             SelectionSet rootSelections,
             Func<object?> resolveQueryRootValue,
             IExecutionDiagnosticEvents diagnosticEvents,
-            ExecutionConcurrencyGate? concurrencyGate)
+            ExecutionConcurrencyGate? concurrencyGate,
+            TimeSpan eventTimeout)
         {
             unchecked
             {
@@ -51,7 +56,13 @@ internal sealed partial class SubscriptionExecutor
             _resolveQueryRootValue = resolveQueryRootValue;
             _diagnosticEvents = diagnosticEvents;
             _concurrencyGate = concurrencyGate;
+            _eventTimeout = eventTimeout;
             _errorHandler = _requestContext.Schema.Services.GetRequiredService<IErrorHandler>();
+
+            _eventCts = new CancellationTokenSource();
+            _eventCtsRegistration = _requestContext.RequestAborted.UnsafeRegister(
+                static state => Unsafe.As<CancellationTokenSource>(state)!.Cancel(),
+                _eventCts);
         }
 
         /// <summary>
@@ -84,6 +95,9 @@ internal sealed partial class SubscriptionExecutor
         /// executions. Each event acquires a slot before invoking the query
         /// executor, mirroring the pipeline gate for queries and mutations.
         /// </param>
+        /// <param name="executionTimeout">
+        /// The maximum execution time applied to each subscription event.
+        /// </param>
         /// <returns>
         /// Returns a new subscription instance.
         /// </returns>
@@ -95,7 +109,8 @@ internal sealed partial class SubscriptionExecutor
             SelectionSet rootSelections,
             Func<object?> resolveQueryRootValue,
             IExecutionDiagnosticEvents diagnosticsEvents,
-            ExecutionConcurrencyGate? concurrencyGate)
+            ExecutionConcurrencyGate? concurrencyGate,
+            TimeSpan executionTimeout)
         {
             var subscription = new Subscription(
                 operationContextPool,
@@ -105,7 +120,8 @@ internal sealed partial class SubscriptionExecutor
                 rootSelections,
                 resolveQueryRootValue,
                 diagnosticsEvents,
-                concurrencyGate);
+                concurrencyGate,
+                executionTimeout);
 
             subscription._subscriptionScope = diagnosticsEvents.ExecuteSubscription(requestContext, subscription.Id);
             subscription._sourceStream = await subscription.SubscribeAsync().ConfigureAwait(false);
@@ -142,6 +158,11 @@ internal sealed partial class SubscriptionExecutor
                     // gracefully dispose the subscription scope.
                 }
 
+                // Release the registration before disposing the CTS so that a late
+                // client-abort callback cannot race on a disposed source.
+                await _eventCtsRegistration.DisposeAsync().ConfigureAwait(false);
+                _eventCts.Dispose();
+
                 _subscriptionScope?.Dispose();
                 _disposed = true;
             }
@@ -170,11 +191,15 @@ internal sealed partial class SubscriptionExecutor
             var gateAcquired = false;
             OperationContext? operationContext = null;
 
+            // Arm the shared CTS so that execution is bounded by the configured event timeout.
+            _eventCts.CancelAfter(_eventTimeout);
+            var eventToken = _eventCts.Token;
+
             try
             {
                 if (_concurrencyGate is { IsEnabled: true })
                 {
-                    await _concurrencyGate.WaitAsync(_requestContext.RequestAborted).ConfigureAwait(false);
+                    await _concurrencyGate.WaitAsync(eventToken).ConfigureAwait(false);
                     gateAcquired = true;
                 }
 
@@ -203,7 +228,8 @@ internal sealed partial class SubscriptionExecutor
                     _requestContext.GetOperation(),
                     _requestContext.VariableValues[0],
                     rootValue,
-                    _resolveQueryRootValue);
+                    _resolveQueryRootValue,
+                    requestAbortedOverride: eventToken);
 
                 operationContext.Result.SetResultState(WellKnownContextData.EventMessage, payload);
 
@@ -239,6 +265,12 @@ internal sealed partial class SubscriptionExecutor
                 {
                     _concurrencyGate!.Release();
                 }
+
+                // Reset the shared CTS so the next event can start with a fresh budget.
+                // If TryReset() returns false the source was cancelled (timeout or
+                // client-abort); the thrown OperationCanceledException has already
+                // propagated and SubscriptionEnumerator will surface the teardown.
+                _eventCts.TryReset();
             }
         }
 

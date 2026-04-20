@@ -1,5 +1,6 @@
 using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Execution.Options;
 using HotChocolate.Execution.Processing;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.ObjectPool;
@@ -22,7 +23,8 @@ public static class InternalSchemaServiceCollectionExtensions
                 sp.GetRequiredService<QueryExecutor>(),
                 sp.GetRequiredService<IErrorHandler>(),
                 sp.GetRequiredService<IExecutionDiagnosticEvents>(),
-                sp.GetService<ExecutionConcurrencyGate>()));
+                sp.GetService<ExecutionConcurrencyGate>(),
+                sp.GetRequiredService<IRequestExecutorOptionsAccessor>()));
         return services;
     }
 
