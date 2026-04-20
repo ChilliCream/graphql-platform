@@ -218,6 +218,9 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
             jsonWriter.WriteNumberValue(group.Parent.DeferId);
         }
 
+        jsonWriter.WritePropertyName("parentNodeId");
+        jsonWriter.WriteNumberValue(group.ParentNodeId);
+
         jsonWriter.WritePropertyName("operation");
         WriteOperation(jsonWriter, group.Operation);
 

@@ -235,6 +235,7 @@ operationPlan:
     - id: 0
       label: contact
       path: $.user
+      parentNodeId: 1
       nodes:
         - id: 1
           type: Operation
@@ -265,6 +266,7 @@ operationPlan:
     - id: 1
       label: location
       path: $.user
+      parentNodeId: 1
       nodes:
         - id: 1
           type: Operation

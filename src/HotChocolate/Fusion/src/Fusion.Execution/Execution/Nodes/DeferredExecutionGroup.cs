@@ -94,6 +94,16 @@ public sealed class DeferredExecutionGroup
     public DeferredExecutionGroup? Parent { get; }
 
     /// <summary>
+    /// Gets the <see cref="ExecutionNode.Id"/> in the owning plan (the main plan
+    /// for top-level defers, the parent defer group's plan for nested defers)
+    /// whose fetch resolves the selection set where this defer was anchored.
+    /// Always populated for a sealed plan; query plan visualizers can use this
+    /// to attach the deferred group to the node that produces its enclosing
+    /// data. Set during plan construction.
+    /// </summary>
+    public int ParentNodeId { get; internal set; }
+
+    /// <summary>
     /// Gets the compiled operation for this deferred group.
     /// This is a standalone operation compiled from the deferred fragment's AST,
     /// used for result mapping during execution.

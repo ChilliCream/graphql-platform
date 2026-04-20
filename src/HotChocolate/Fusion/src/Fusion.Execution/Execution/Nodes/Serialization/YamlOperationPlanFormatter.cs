@@ -90,6 +90,8 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.WriteLine("parentId: {0}", group.Parent.DeferId);
         }
 
+        writer.WriteLine("parentNodeId: {0}", group.ParentNodeId);
+
         if (!group.AllNodes.IsDefaultOrEmpty)
         {
             writer.WriteLine("nodes:");

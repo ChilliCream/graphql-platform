@@ -195,6 +195,7 @@ operationPlan:
     - id: 0
       label: outer
       path: $.user
+      parentNodeId: 1
       nodes:
         - id: 1
           type: Operation

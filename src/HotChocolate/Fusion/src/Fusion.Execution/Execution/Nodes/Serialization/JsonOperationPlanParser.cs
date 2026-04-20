@@ -103,6 +103,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                     rootGroupNodes,
                     groupNodes);
 
+                group.ParentNodeId = groupElement.GetProperty("parentNodeId").GetInt32();
+
                 groupBuilder.Add(group);
                 groupMap[deferId] = group;
             }

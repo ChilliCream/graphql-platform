@@ -75,7 +75,62 @@ public sealed partial class OperationPlanner
             node.Seal();
         }
 
+        // Resolve each deferred group's parent execution node id now that both
+        // the main plan's nodes and the deferred groups' own nodes are built.
+        // Top-level groups resolve against the main plan's allNodes; nested
+        // groups resolve against their parent group's AllNodes.
+        if (!deferredGroups.IsDefaultOrEmpty)
+        {
+            foreach (var group in deferredGroups)
+            {
+                var owningNodes = group.Parent is null ? allNodes : group.Parent.AllNodes;
+                group.ParentNodeId = ResolveDeferParentNodeId(owningNodes, group.Path)
+                    ?? throw new InvalidOperationException(
+                        $"Could not resolve parent execution node for deferred group {group.DeferId} at path {group.Path}.");
+            }
+        }
+
         return OperationPlan.Create(operation, rootNodes, allNodes, deferredGroups, searchSpace, expandedNodes);
+    }
+
+    /// <summary>
+    /// Finds the execution node in <paramref name="owningNodes"/> whose fetch
+    /// lands on (or inside) the selection set where this defer is anchored.
+    /// The match is the node whose <see cref="OperationExecutionNode.Target"/>
+    /// is the deepest path that is an ancestor of (or equal to)
+    /// <paramref name="deferPath"/>, meaning its output contributes to the
+    /// enclosing object where the deferred fragment's fields get merged.
+    /// </summary>
+    private static int? ResolveDeferParentNodeId(
+        ImmutableArray<ExecutionNode> owningNodes,
+        SelectionPath deferPath)
+    {
+        int? match = null;
+        var bestDepth = -1;
+
+        for (var i = 0; i < owningNodes.Length; i++)
+        {
+            if (owningNodes[i] is not OperationExecutionNode op)
+            {
+                continue;
+            }
+
+            if (!op.Target.IsParentOfOrSame(deferPath))
+            {
+                continue;
+            }
+
+            // Pick the deepest matching node so we attach to the most specific
+            // fetch (e.g. a lookup node at $.user rather than a root fetch) when
+            // multiple nodes could claim the defer's anchor.
+            if (op.Target.Length > bestDepth)
+            {
+                match = op.Id;
+                bestDepth = op.Target.Length;
+            }
+        }
+
+        return match;
     }
 
     private static ImmutableList<PlanStep> TransformPlanSteps(

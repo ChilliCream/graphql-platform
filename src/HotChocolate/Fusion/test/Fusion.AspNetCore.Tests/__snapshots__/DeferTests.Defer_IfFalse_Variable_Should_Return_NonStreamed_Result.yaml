@@ -201,6 +201,7 @@ operationPlan:
       label: reviews
       path: $.user
       ifVariable: $shouldDefer
+      parentNodeId: 2
       nodes:
         - id: 1
           type: Operation
