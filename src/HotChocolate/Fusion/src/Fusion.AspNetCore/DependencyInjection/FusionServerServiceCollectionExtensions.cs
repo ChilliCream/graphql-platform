@@ -1,3 +1,4 @@
+using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.AspNetCore.Instrumentation;
@@ -11,6 +12,7 @@ using HotChocolate.Fusion.Configuration;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -55,7 +57,7 @@ public static class FusionServerServiceCollectionExtensions
         this IFusionGatewayBuilder builder,
         int maxAllowedRequestSize = ServerDefaults.MaxAllowedRequestSize)
     {
-        builder.ConfigureSchemaServices((_, sc) =>
+        builder.ConfigureSchemaServices((applicationServices, sc) =>
         {
             sc.TryAddSingleton<ITimeProvider, DefaultTimeProvider>();
 
@@ -81,6 +83,15 @@ public static class FusionServerServiceCollectionExtensions
                     1 => listeners[0],
                     _ => new AggregateServerDiagnosticEventListener(listeners)
                 };
+            });
+
+            sc.TryAddSingleton(schemaServices =>
+            {
+                var schemaName = schemaServices.GetRequiredService<ISchemaDefinition>().Name;
+                var serverOptions = applicationServices
+                    .GetRequiredService<IOptionsMonitor<GraphQLServerOptions>>()
+                    .Get(schemaName);
+                return new ExecutionConcurrencyGate(serverOptions.MaxConcurrentExecutions);
             });
         });
 
