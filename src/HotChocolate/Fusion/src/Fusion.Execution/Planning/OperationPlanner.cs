@@ -92,22 +92,32 @@ public sealed partial class OperationPlanner
         try
         {
             // Check for @defer directives before planning. If present, we split the
-            // operation into a main (non-deferred) part and deferred fragment groups.
+            // operation into a main (non-deferred) part and per-DeferUsageSet subplans.
             // The main operation is planned without the deferred selections, and each
-            // deferred fragment is planned independently.
+            // subplan is planned independently.
             //
             // PERF: For non-deferred operations (the common case), the only overhead is
             // the HasDeferDirective check which does a fast AST walk looking for @defer.
-            ImmutableArray<DeferredExecutionGroup> deferredGroups = [];
+            ImmutableArray<DeferUsage> deliveryGroups = [];
+            ImmutableArray<ExecutionSubPlan> deferredSubPlans = [];
             DeferSplitResult? deferSplit = null;
+            DeferPartitioningResult? partitioning = null;
             var mainOperationDefinition = operationDefinition;
 
             if (_options.EnableDefer && DeferOperationRewriter.HasDeferDirective(operationDefinition))
             {
-                var rewriter = new DeferOperationRewriter(_options.InlineUnlabeledDeferFragments);
-                var splitResult = rewriter.Split(operationDefinition);
+                // The partitioner walks the original AST once and hands every
+                // @defer fragment a canonical DeferUsage instance (with Id,
+                // Path and IfVariable populated). The rewriter consumes the
+                // same instances so its per-set grouping and the compiler's
+                // later Selection._deferUsages entries share object identity.
+                var deferConditions = new DeferConditionCollection();
+                partitioning = DeferPartitioner.Partition(operationDefinition, deferConditions);
 
-                if (!splitResult.DeferredFragments.IsEmpty)
+                var rewriter = new DeferOperationRewriter(_options.InlineUnlabeledDeferFragments);
+                var splitResult = rewriter.Split(operationDefinition, partitioning);
+
+                if (!splitResult.SubPlanDescriptors.IsEmpty)
                 {
                     deferSplit = splitResult;
                     mainOperationDefinition = splitResult.MainOperation;
@@ -176,15 +186,19 @@ public sealed partial class OperationPlanner
                         _schema.GetOperationType(mainOperationDefinition.Operation));
             }
 
-            // Always compile from the planner's internal definition — for defer,
+            // Always compile from the planner's internal definition. For defer,
             // this is the stripped main operation (without deferred fragments),
             // which ensures the result mapper only includes non-deferred fields.
             var operation = _operationCompiler.Compile(id, hash, internalOperationDefinition);
 
-            // Plan deferred groups if @defer was detected.
-            if (deferSplit.HasValue)
+            // Plan deferred subplans if @defer was detected. Each unique
+            // DeferUsageSet becomes one ExecutionSubPlan; the set of all
+            // DeferUsage instances (one per @defer occurrence) is kept on the
+            // plan for wire-level delivery-group identity.
+            if (deferSplit.HasValue && partitioning is not null)
             {
-                deferredGroups = PlanDeferredGroups(
+                deliveryGroups = partitioning.AllDeferUsages;
+                deferredSubPlans = PlanDeferredSubPlans(
                     id,
                     hash,
                     shortHash,
@@ -197,9 +211,10 @@ public sealed partial class OperationPlanner
                 operation,
                 mainOperationDefinition,
                 planSteps,
+                deliveryGroups,
+                deferredSubPlans,
                 searchSpace,
                 expandedNodes,
-                deferredGroups,
                 cancellationToken);
 
             if (eventSourceEnabled)
