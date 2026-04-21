@@ -7,6 +7,7 @@ using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
+using ThrowHelper = HotChocolate.Fusion.Execution.ThrowHelper;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -23,9 +24,10 @@ public sealed partial class OperationPlanner
         Operation operation,
         OperationDefinitionNode operationDefinition,
         ImmutableList<PlanStep> planSteps,
+        ImmutableArray<DeferUsage> deliveryGroups,
+        ImmutableArray<ExecutionSubPlan> deferredSubPlans,
         int searchSpace,
         int expandedNodes,
-        ImmutableArray<DeferredExecutionGroup> deferredGroups,
         CancellationToken cancellationToken)
     {
         if (operation.IsIntrospectionOnly())
@@ -38,7 +40,7 @@ public sealed partial class OperationPlanner
 
             var nodes = ImmutableArray.Create<ExecutionNode>(introspectionNode);
 
-            return OperationPlan.Create(operation, nodes, nodes, [], searchSpace, expandedNodes);
+            return OperationPlan.Create(operation, nodes, nodes, [], [], searchSpace, expandedNodes);
         }
 
         var ctx = new ExecutionPlanBuildContext();
@@ -75,22 +77,95 @@ public sealed partial class OperationPlanner
             node.Seal();
         }
 
-        // Resolve each deferred group's parent execution node id now that both
-        // the main plan's nodes and the deferred groups' own nodes are built.
-        // Top-level groups resolve against the main plan's allNodes; nested
-        // groups resolve against their parent group's AllNodes.
-        if (!deferredGroups.IsDefaultOrEmpty)
+        // Resolve each deferred subplan's parent execution node id now that both
+        // the main plan's nodes and each subplan's own nodes are built.
+        // Top-level subplans resolve against the main plan's allNodes; a nested
+        // subplan resolves against the enclosing subplan's AllNodes, where the
+        // enclosing subplan is the one whose DeliveryGroups contain the parent
+        // DeferUsage of any usage in the nested subplan's key set.
+        if (!deferredSubPlans.IsDefaultOrEmpty)
         {
-            foreach (var group in deferredGroups)
+            foreach (var subPlan in deferredSubPlans)
             {
-                var owningNodes = group.Parent is null ? allNodes : group.Parent.AllNodes;
-                group.ParentNodeId = ResolveDeferParentNodeId(owningNodes, group.Path)
-                    ?? throw new InvalidOperationException(
-                        $"Could not resolve parent execution node for deferred group {group.DeferId} at path {group.Path}.");
+                var path = ResolveSubPlanPath(subPlan);
+                var parent = ResolveSubPlanParent(subPlan, deferredSubPlans);
+                var owningNodes = parent is null ? allNodes : parent.AllNodes;
+                subPlan.ParentNodeId = ResolveDeferParentNodeId(owningNodes, path)
+                    ?? throw ThrowHelper.DeferredSubPlanParentNotFound(path);
             }
         }
 
-        return OperationPlan.Create(operation, rootNodes, allNodes, deferredGroups, searchSpace, expandedNodes);
+        return OperationPlan.Create(
+            operation,
+            rootNodes,
+            allNodes,
+            deliveryGroups,
+            deferredSubPlans,
+            searchSpace,
+            expandedNodes);
+    }
+
+    /// <summary>
+    /// Returns the path at which the given subplan's data is inserted into the
+    /// result tree. Equivalent to the deepest
+    /// <see cref="DeferUsage.Path"/> across the subplan's delivery groups.
+    /// </summary>
+    private static SelectionPath ResolveSubPlanPath(ExecutionSubPlan subPlan)
+    {
+        SelectionPath? best = null;
+
+        foreach (var usage in subPlan.DeliveryGroups)
+        {
+            if (usage.Path is null)
+            {
+                continue;
+            }
+
+            if (best is null || usage.Path.Length > best.Length)
+            {
+                best = usage.Path;
+            }
+        }
+
+        return best ?? SelectionPath.Root;
+    }
+
+    /// <summary>
+    /// Finds the enclosing subplan for the given nested subplan. A subplan is
+    /// nested inside another subplan when some <see cref="DeferUsage"/> in its
+    /// key set has a <see cref="DeferUsage.Parent"/> that belongs to another
+    /// subplan's key set. Returns <c>null</c> for top-level subplans.
+    /// </summary>
+    private static ExecutionSubPlan? ResolveSubPlanParent(
+        ExecutionSubPlan subPlan,
+        ImmutableArray<ExecutionSubPlan> subPlans)
+    {
+        foreach (var usage in subPlan.DeliveryGroups)
+        {
+            var ancestor = usage.Parent;
+            while (ancestor is not null)
+            {
+                foreach (var candidate in subPlans)
+                {
+                    if (ReferenceEquals(candidate, subPlan))
+                    {
+                        continue;
+                    }
+
+                    foreach (var candidateUsage in candidate.DeliveryGroups)
+                    {
+                        if (ReferenceEquals(candidateUsage, ancestor))
+                        {
+                            return candidate;
+                        }
+                    }
+                }
+
+                ancestor = ancestor.Parent;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -179,7 +254,7 @@ public sealed partial class OperationPlanner
                 operationPlanStep = updated;
             }
 
-            // Strip @defer directives from subgraph operations — the gateway
+            // Strip @defer directives from subgraph operations. The gateway
             // manages deferral itself and subgraphs should not see @defer.
             operationPlanStep = StripDeferDirectivesFromStep(operationPlanStep);
 
@@ -248,7 +323,7 @@ public sealed partial class OperationPlanner
                     if (!ReferenceEquals(strippedDirectives, inlineFragment.Directives)
                         || !ReferenceEquals(strippedInner, inlineFragment.SelectionSet))
                     {
-                        rewritten ??= new List<ISelectionNode>(selectionSet.Selections);
+                        rewritten ??= [.. selectionSet.Selections];
                         rewritten[i] = inlineFragment
                             .WithDirectives(strippedDirectives)
                             .WithSelectionSet(strippedInner);
@@ -260,7 +335,7 @@ public sealed partial class OperationPlanner
 
                     if (!ReferenceEquals(strippedInner, field.SelectionSet))
                     {
-                        rewritten ??= new List<ISelectionNode>(selectionSet.Selections);
+                        rewritten ??= [.. selectionSet.Selections];
                         rewritten[i] = field.WithSelectionSet(strippedInner);
                     }
                 }

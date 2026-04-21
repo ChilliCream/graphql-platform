@@ -57,7 +57,7 @@ public sealed class OperationCompiler
         // instance. Runtime matching checks if two are the same object,
         // not just equal in content, so handing back a fresh copy with
         // equal field values would silently break it.
-        var partitioning = new DeferPartitioner().Partition(operationDefinition, deferConditions);
+        var partitioning = DeferPartitioner.Partition(operationDefinition, deferConditions);
 
         var fields = _fieldsPool.Get();
 

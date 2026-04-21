@@ -1,4 +1,6 @@
 using System.Collections.Immutable;
+using HotChocolate.Execution;
+using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -6,11 +8,16 @@ namespace HotChocolate.Fusion.Planning;
 
 /// <summary>
 /// Splits an operation with <c>@defer</c> directives into a main operation
-/// (without deferred inline fragments) and one or more deferred fragment operations.
+/// (non-deferred fields only) and one subplan operation per unique
+/// <see cref="DeferUsage"/> set. The set keying follows the GraphQL
+/// incremental-delivery spec: each field's active defer usage set is the
+/// union of its per-occurrence enclosing <c>@defer</c> leaves (with
+/// parent-child pruning). Two sibling <c>... @defer</c> fragments that share
+/// a field therefore produce one subplan keyed by both usages for the shared
+/// field, rather than two independent subplans that both fetch it.
 /// </summary>
 internal sealed class DeferOperationRewriter
 {
-    private int _nextDeferId;
     private readonly bool _inlineUnlabeledNestedDefers;
 
     internal DeferOperationRewriter(bool inlineUnlabeledNestedDefers = true)
@@ -80,39 +87,116 @@ internal sealed class DeferOperationRewriter
     }
 
     /// <summary>
-    /// Splits the given operation at <c>@defer</c> boundaries.
+    /// Splits the given operation at <c>@defer</c> boundaries using the
+    /// <see cref="DeferUsage"/> topology produced by
+    /// <see cref="DeferPartitioner"/>. The output contains the stripped main
+    /// operation (fields whose active <c>DeferUsageSet</c> is empty) plus one
+    /// subplan per unique non-empty active set. Sibling <c>@defer</c>
+    /// fragments that share a field collapse into a single subplan keyed by
+    /// the union of both usages.
     /// </summary>
     /// <param name="operation">The operation definition that may contain @defer directives.</param>
-    /// <returns>
-    /// A result containing the stripped main operation and a list of deferred fragment descriptors.
-    /// </returns>
-    public DeferSplitResult Split(OperationDefinitionNode operation)
+    /// <param name="partitioning">The <see cref="DeferPartitioner"/> output for <paramref name="operation"/>.</param>
+    public DeferSplitResult Split(
+        OperationDefinitionNode operation,
+        DeferPartitioningResult partitioning)
     {
-        _nextDeferId = 0;
-        var deferredFragments = ImmutableArray.CreateBuilder<DeferredFragmentDescriptor>();
+        ArgumentNullException.ThrowIfNull(operation);
+        ArgumentNullException.ThrowIfNull(partitioning);
 
-        var mainSelectionSet = StripDeferFragments(
-            operation.SelectionSet,
-            [],
-            deferredFragments,
+        var occurrences = DeferOccurrenceCollector.Collect(
             operation,
-            parentDeferFragment: null);
+            partitioning.ByFragment,
+            _inlineUnlabeledNestedDefers);
 
-        var mainOperation = operation.WithSelectionSet(mainSelectionSet);
+        var effectiveSetByLocation = DeferEffectiveSetResolver.Resolve(occurrences);
 
-        return new DeferSplitResult(mainOperation, deferredFragments.ToImmutable());
+        var mainOperation = BuildMainOperation(operation, partitioning.ByFragment);
+
+        if (partitioning.AllDeferUsages.IsEmpty)
+        {
+            return new DeferSplitResult(mainOperation, []);
+        }
+
+        var subPlanDescriptors = BuildSubPlanOps(operation, occurrences, effectiveSetByLocation);
+
+        return new DeferSplitResult(mainOperation, subPlanDescriptors);
     }
 
-    /// <summary>
-    /// Recursively walks selection sets, removes @defer inline fragments,
-    /// and creates deferred operations for each.
-    /// </summary>
-    private SelectionSetNode StripDeferFragments(
+    private static ImmutableArray<DeferSubPlanDescriptor> BuildSubPlanOps(
+        OperationDefinitionNode operation,
+        List<FieldOccurrence> occurrences,
+        Dictionary<FieldLocation, DeferUsageSetKey> effectiveSetByLocation)
+    {
+        // Bucket occurrences by effective set. We use a canonical
+        // ImmutableArray<DeferUsage> (sorted by Id) as the set key so the
+        // resulting buckets are stable across runs and trivially comparable
+        // by sequence equality.
+        var buckets = new Dictionary<DeferUsageSetKey, SubPlanBucket>();
+
+        foreach (var occurrence in occurrences)
+        {
+            var key = effectiveSetByLocation[new FieldLocation(occurrence.ParentPath, occurrence.ResponseName)];
+
+            if (key.IsEmpty)
+            {
+                continue;
+            }
+
+            if (!buckets.TryGetValue(key, out var bucket))
+            {
+                bucket = new SubPlanBucket(key);
+                buckets[key] = bucket;
+            }
+
+            bucket.Add(occurrence);
+        }
+
+        if (buckets.Count == 0)
+        {
+            return [];
+        }
+
+        // Synthesize one OperationDefinitionNode per bucket. The output is a
+        // query operation rooted at Query, with the wrapping path fields
+        // looked up in the original AST so arguments, aliases and directives
+        // are preserved. Buckets are ordered by the smallest DeferUsage Id in
+        // the key so subsequent sort-by-Id consumers see a deterministic order.
+        var ordered = buckets.Values.ToList();
+        ordered.Sort(static (a, b) => a.Key.CompareTo(b.Key));
+
+        var subPlanDescriptors = ImmutableArray.CreateBuilder<DeferSubPlanDescriptor>(ordered.Count);
+        var descriptorByKey = new Dictionary<DeferUsageSetKey, DeferSubPlanDescriptor>(ordered.Count);
+
+        foreach (var bucket in ordered)
+        {
+            var subPlanOp = BuildSubPlanOperation(operation, bucket);
+            var path = DeterminePath(bucket.Key);
+            var parent = ResolveParentDescriptor(bucket.Key, descriptorByKey);
+            var descriptor = new DeferSubPlanDescriptor(
+                deferUsageSet: bucket.Key.Items,
+                operation: subPlanOp,
+                path: path,
+                parent: parent);
+
+            descriptorByKey[bucket.Key] = descriptor;
+            subPlanDescriptors.Add(descriptor);
+        }
+
+        return subPlanDescriptors.ToImmutable();
+    }
+
+    private OperationDefinitionNode BuildMainOperation(
+        OperationDefinitionNode operation,
+        IReadOnlyDictionary<InlineFragmentNode, DeferUsage> byFragment)
+    {
+        var newRoot = StripDeferFromSelectionSet(operation.SelectionSet, byFragment);
+        return operation.WithSelectionSet(newRoot);
+    }
+
+    private SelectionSetNode StripDeferFromSelectionSet(
         SelectionSetNode selectionSet,
-        ImmutableArray<FieldPathSegment> parentPath,
-        ImmutableArray<DeferredFragmentDescriptor>.Builder deferredFragments,
-        OperationDefinitionNode rootOperation,
-        DeferredFragmentDescriptor? parentDeferFragment)
+        IReadOnlyDictionary<InlineFragmentNode, DeferUsage> byFragment)
     {
         var selections = new List<ISelectionNode>(selectionSet.Selections.Count);
         var modified = false;
@@ -121,106 +205,15 @@ internal sealed class DeferOperationRewriter
         {
             var selection = selectionSet.Selections[i];
 
-            if (selection is InlineFragmentNode inlineFragment && HasDeferDirective(inlineFragment))
+            if (selection is InlineFragmentNode inlineFragment
+                && byFragment.TryGetValue(inlineFragment, out var usage))
             {
-                var (label, ifVariable) = ExtractDeferArgs(inlineFragment);
-
-                // If @defer(if: false) literal, keep the fragment inline (don't defer)
-                if (ShouldSkipDefer(inlineFragment))
-                {
-                    var stripped = StripDeferDirective(inlineFragment);
-                    var newInnerSelectionSet = StripDeferFragments(
-                        stripped.SelectionSet,
-                        parentPath,
-                        deferredFragments,
-                        rootOperation,
-                        parentDeferFragment);
-
-                    if (!ReferenceEquals(newInnerSelectionSet, stripped.SelectionSet))
-                    {
-                        stripped = stripped.WithSelectionSet(newInnerSelectionSet);
-                    }
-
-                    selections.Add(stripped);
-                    modified = true;
-                    continue;
-                }
-
-                // If inlining unlabeled nested defers, treat an unlabeled @defer inside
-                // a parent defer the same as @defer(if: false) — keep it inline.
-                // Only inline when the condition matches the parent (or has no condition),
-                // otherwise the conditional semantics would be lost.
-                if (_inlineUnlabeledNestedDefers
-                    && label is null
-                    && parentDeferFragment is not null
-                    && (ifVariable is null || ifVariable == parentDeferFragment.IfVariable))
-                {
-                    var stripped = StripDeferDirective(inlineFragment);
-                    var newInnerSelectionSet = StripDeferFragments(
-                        stripped.SelectionSet,
-                        parentPath,
-                        deferredFragments,
-                        rootOperation,
-                        parentDeferFragment);
-
-                    if (!ReferenceEquals(newInnerSelectionSet, stripped.SelectionSet))
-                    {
-                        stripped = stripped.WithSelectionSet(newInnerSelectionSet);
-                    }
-
-                    selections.Add(stripped);
-                    modified = true;
-                    continue;
-                }
-
-                var deferId = _nextDeferId++;
-
-                // Capture the response names this defer contributes as direct children
-                // at its Path. Used later by the planner to compute sibling-defer overlap.
-                var topLevelResponseNames = CollectTopLevelResponseNames(inlineFragment.SelectionSet);
-
-                // Create the descriptor first so nested defers can reference it as parent.
-                // We'll set the operation after stripping nested defers.
-                var descriptor = new DeferredFragmentDescriptor(
-                    deferId,
-                    label,
-                    ifVariable,
-                    parentPath,
-                    null!, // placeholder — set below
-                    parentDeferFragment,
-                    topLevelResponseNames);
-
-                deferredFragments.Add(descriptor);
-
-                // Recurse to strip nested @defer from the deferred fragment
-                var strippedInnerSelectionSet = StripDeferFragments(
-                    inlineFragment.SelectionSet,
-                    parentPath,
-                    deferredFragments,
-                    rootOperation,
-                    parentDeferFragment: descriptor);
-
-                // Build the deferred operation using the STRIPPED inner selections
-                var strippedFragment = StripDeferDirective(inlineFragment);
-                if (!ReferenceEquals(strippedInnerSelectionSet, inlineFragment.SelectionSet))
-                {
-                    strippedFragment = strippedFragment.WithSelectionSet(strippedInnerSelectionSet);
-                }
-
-                var deferredOperation = BuildDeferredOperation(
-                    rootOperation,
-                    parentPath,
-                    strippedFragment);
-
-                // Now set the real operation on the descriptor
-                descriptor.Operation = deferredOperation;
-
-                // If conditional (@defer(if: $variable)), also keep the fragment
-                // inline in the main operation but with @skip(if: $variable).
-                // When defer is active (variable=true), @skip removes the fields
-                // from the main response. When defer is inactive (variable=false),
-                // @skip doesn't apply and the fields are fetched inline.
-                if (ifVariable is not null)
+                // The main operation never keeps @defer fragments: all
+                // deferred fields go through their subplan. For a conditional
+                // @defer(if: $variable) we still keep a @skip(if: $variable)
+                // guarded inline copy so the variable-off runtime path
+                // fetches the fields eagerly.
+                if (usage.IfVariable is not null)
                 {
                     var skipDirective = new DirectiveNode(
                         null,
@@ -229,62 +222,53 @@ internal sealed class DeferOperationRewriter
                             new ArgumentNode(
                                 null,
                                 new NameNode("if"),
-                                new VariableNode(new NameNode(ifVariable)))
+                                new VariableNode(new NameNode(usage.IfVariable)))
                         ]);
 
-                    selections.Add(
-                        strippedFragment.WithDirectives(
-                            [..strippedFragment.Directives, skipDirective]));
+                    var stripped = StripDeferDirective(inlineFragment);
+                    var nested = StripDeferFromSelectionSet(stripped.SelectionSet, byFragment);
+
+                    if (!ReferenceEquals(nested, stripped.SelectionSet))
+                    {
+                        stripped = stripped.WithSelectionSet(nested);
+                    }
+
+                    selections.Add(stripped.WithDirectives([.. stripped.Directives, skipDirective]));
                 }
 
                 modified = true;
                 continue;
             }
 
+            if (selection is InlineFragmentNode nonDeferFragment)
+            {
+                var nestedInner = StripDeferFromSelectionSet(nonDeferFragment.SelectionSet, byFragment);
+
+                if (!ReferenceEquals(nestedInner, nonDeferFragment.SelectionSet))
+                {
+                    nonDeferFragment = nonDeferFragment.WithSelectionSet(nestedInner);
+                    modified = true;
+                }
+
+                selections.Add(nonDeferFragment);
+                continue;
+            }
+
             if (selection is FieldNode fieldNode && fieldNode.SelectionSet is not null)
             {
-                // Recurse into child selection sets to find nested @defer
-                var childPath = parentPath.Add(
-                    new FieldPathSegment(fieldNode.Name.Value, fieldNode.Alias?.Value));
+                var childInner = StripDeferFromSelectionSet(fieldNode.SelectionSet, byFragment);
 
-                var newChildSelectionSet = StripDeferFragments(
-                    fieldNode.SelectionSet,
-                    childPath,
-                    deferredFragments,
-                    rootOperation,
-                    parentDeferFragment);
-
-                if (!ReferenceEquals(newChildSelectionSet, fieldNode.SelectionSet))
+                if (!ReferenceEquals(childInner, fieldNode.SelectionSet))
                 {
-                    fieldNode = fieldNode.WithSelectionSet(newChildSelectionSet);
+                    fieldNode = fieldNode.WithSelectionSet(childInner);
                     modified = true;
                 }
 
                 selections.Add(fieldNode);
+                continue;
             }
-            else if (selection is InlineFragmentNode nonDeferInlineFragment
-                && nonDeferInlineFragment.SelectionSet is not null)
-            {
-                // Recurse into non-defer inline fragments
-                var newInnerSelectionSet = StripDeferFragments(
-                    nonDeferInlineFragment.SelectionSet,
-                    parentPath,
-                    deferredFragments,
-                    rootOperation,
-                    parentDeferFragment);
 
-                if (!ReferenceEquals(newInnerSelectionSet, nonDeferInlineFragment.SelectionSet))
-                {
-                    nonDeferInlineFragment = nonDeferInlineFragment.WithSelectionSet(newInnerSelectionSet);
-                    modified = true;
-                }
-
-                selections.Add(nonDeferInlineFragment);
-            }
-            else
-            {
-                selections.Add(selection);
-            }
+            selections.Add(selection);
         }
 
         if (!modified)
@@ -292,7 +276,6 @@ internal sealed class DeferOperationRewriter
             return selectionSet;
         }
 
-        // If removing deferred fragments left the selection set empty, add __typename
         if (selections.Count == 0)
         {
             selections.Add(new FieldNode("__typename"));
@@ -301,94 +284,140 @@ internal sealed class DeferOperationRewriter
         return new SelectionSetNode(selections);
     }
 
-    /// <summary>
-    /// Builds a standalone operation for a deferred fragment by wrapping
-    /// the deferred selections in the parent field path.
-    /// </summary>
-    private static OperationDefinitionNode BuildDeferredOperation(
+    private static OperationDefinitionNode BuildSubPlanOperation(
         OperationDefinitionNode rootOperation,
-        ImmutableArray<FieldPathSegment> parentPath,
-        InlineFragmentNode deferredFragment)
+        SubPlanBucket bucket)
     {
-        // Start with the deferred fragment's selection set
-        SelectionSetNode currentSelectionSet = deferredFragment.SelectionSet;
+        // Build a tree of PathNodes keyed by FieldPathSegment. Each leaf
+        // carries the FieldNodes (per optional type condition) contributed
+        // by the bucket at that path. We resolve each wrapping path field
+        // against the original AST so arguments and aliases survive.
+        var root = new PathNode();
 
-        // If the inline fragment has a type condition, wrap selections in the type condition
-        if (deferredFragment.TypeCondition is not null)
+        foreach (var occurrence in bucket.Occurrences)
         {
-            currentSelectionSet = new SelectionSetNode(
-                new ISelectionNode[]
-                {
-                    new InlineFragmentNode(
-                        null,
-                        deferredFragment.TypeCondition,
-                        deferredFragment.Directives.Count > 0
-                            ? deferredFragment.Directives
-                            : [],
-                        currentSelectionSet)
-                });
+            var node = root;
+            for (var i = 0; i < occurrence.ParentPath.Length; i++)
+            {
+                var segment = occurrence.ParentPath[i];
+                node = node.GetOrAddChild(segment);
+            }
+
+            node.AddContribution(occurrence.ResponseName, occurrence.FieldNode, occurrence.TypeCondition);
         }
 
-        // Walk the path from innermost to outermost, wrapping in parent fields.
-        // We need to reconstruct the field nodes with their arguments to reach the deferred data.
-        // For this, we look up the original fields in the root operation's AST.
-        var pathFields = ResolvePathFields(rootOperation.SelectionSet, parentPath);
-
-        for (var i = pathFields.Length - 1; i >= 0; i--)
-        {
-            var pathField = pathFields[i];
-            var wrappingField = new FieldNode(
-                null,
-                pathField.Name,
-                pathField.Alias,
-                pathField.Directives,
-                pathField.Arguments,
-                currentSelectionSet);
-            currentSelectionSet = new SelectionSetNode(new ISelectionNode[] { wrappingField });
-        }
+        var rootSelectionSet = BuildSelectionSetFromPathNode(
+            root,
+            rootOperation.SelectionSet,
+            parentPath: []);
 
         return rootOperation
             .WithOperation(OperationType.Query)
             .WithDirectives([])
-            .WithSelectionSet(currentSelectionSet);
+            .WithSelectionSet(rootSelectionSet);
     }
 
-    /// <summary>
-    /// Resolves the FieldNode at each segment of the path by walking the operation's AST.
-    /// </summary>
-    private static ImmutableArray<FieldNode> ResolvePathFields(
-        SelectionSetNode selectionSet,
-        ImmutableArray<FieldPathSegment> path)
+    private static SelectionSetNode BuildSelectionSetFromPathNode(
+        PathNode node,
+        SelectionSetNode originalSelectionSet,
+        ImmutableArray<FieldPathSegment> parentPath)
     {
-        var result = ImmutableArray.CreateBuilder<FieldNode>(path.Length);
-        var current = selectionSet;
+        var selections = new List<ISelectionNode>();
 
-        for (var i = 0; i < path.Length; i++)
+        // Leaf contributions at this path. Group by type condition name so
+        // each `on Type` wrapping is emitted once. The same response name
+        // may be contributed by multiple sibling @defer fragments; we only
+        // keep the first to avoid duplicate selections in the subgraph
+        // request.
+        if (node.Contributions.Count > 0)
         {
-            var segment = path[i];
-            var field = FindField(current, segment);
+            var unconditional = new List<FieldNode>();
+            var byTypeCondition = new Dictionary<string, (NamedTypeNode Node, List<FieldNode> Fields)>(
+                StringComparer.Ordinal);
+            var seen = new HashSet<(string? TypeCondition, string ResponseName)>();
 
-            if (field is null)
+            foreach (var contribution in node.Contributions)
             {
-                break;
+                var discriminator = (contribution.TypeCondition?.Name.Value, contribution.ResponseName);
+                if (!seen.Add(discriminator))
+                {
+                    continue;
+                }
+
+                if (contribution.TypeCondition is null)
+                {
+                    unconditional.Add(contribution.FieldNode);
+                }
+                else
+                {
+                    var typeName = contribution.TypeCondition.Name.Value;
+                    if (!byTypeCondition.TryGetValue(typeName, out var bucketEntry))
+                    {
+                        bucketEntry = (contribution.TypeCondition, []);
+                        byTypeCondition[typeName] = bucketEntry;
+                    }
+
+                    bucketEntry.Fields.Add(contribution.FieldNode);
+                }
             }
 
-            result.Add(field);
-
-            if (field.SelectionSet is not null)
+            foreach (var field in unconditional)
             {
-                current = field.SelectionSet;
+                selections.Add(field);
+            }
+
+            foreach (var (_, bucketEntry) in byTypeCondition)
+            {
+                selections.Add(new InlineFragmentNode(
+                    null,
+                    bucketEntry.Node,
+                    [],
+                    new SelectionSetNode(bucketEntry.Fields.ToArray<ISelectionNode>())));
             }
         }
 
-        return result.ToImmutable();
+        // Child path nodes: wrap in the original field node (preserving
+        // name/alias/arguments/directives) so the subplan operation is a
+        // syntactically valid query against the root schema.
+        foreach (var (segment, childNode) in node.Children)
+        {
+            var wrappingField = ResolveWrappingField(originalSelectionSet, segment)
+                ?? throw new InvalidOperationException(
+                    $"Unable to resolve wrapping field for '{segment.ResponseName}' at path '{FormatPath(parentPath)}'.");
+
+            var childSelectionSet = wrappingField.SelectionSet
+                ?? throw new InvalidOperationException(
+                    $"Wrapping field '{segment.ResponseName}' at path '{FormatPath(parentPath)}' has no selection set.");
+
+            var childParentPath = parentPath.Add(segment);
+            var nestedSelectionSet = BuildSelectionSetFromPathNode(childNode, childSelectionSet, childParentPath);
+
+            selections.Add(new FieldNode(
+                null,
+                wrappingField.Name,
+                wrappingField.Alias,
+                wrappingField.Directives,
+                wrappingField.Arguments,
+                nestedSelectionSet));
+        }
+
+        if (selections.Count == 0)
+        {
+            selections.Add(new FieldNode("__typename"));
+        }
+
+        return new SelectionSetNode(selections);
     }
 
-    private static FieldNode? FindField(SelectionSetNode selectionSet, FieldPathSegment segment)
+    private static FieldNode? ResolveWrappingField(
+        SelectionSetNode selectionSet,
+        FieldPathSegment segment)
     {
         for (var i = 0; i < selectionSet.Selections.Count; i++)
         {
-            if (selectionSet.Selections[i] is FieldNode field)
+            var selection = selectionSet.Selections[i];
+
+            if (selection is FieldNode field)
             {
                 var responseName = field.Alias?.Value ?? field.Name.Value;
 
@@ -398,16 +427,86 @@ internal sealed class DeferOperationRewriter
                 }
             }
 
-            // Also look inside non-defer inline fragments
-            if (selectionSet.Selections[i] is InlineFragmentNode inlineFragment
-                && !HasDeferDirective(inlineFragment))
+            if (selection is InlineFragmentNode inline)
             {
-                var found = FindField(inlineFragment.SelectionSet, segment);
+                var nested = ResolveWrappingField(inline.SelectionSet, segment);
 
-                if (found is not null)
+                if (nested is not null)
                 {
-                    return found;
+                    return nested;
                 }
+            }
+        }
+
+        return null;
+    }
+
+    private static string FormatPath(ImmutableArray<FieldPathSegment> path)
+    {
+        if (path.IsEmpty)
+        {
+            return "$";
+        }
+
+        var builder = new System.Text.StringBuilder("$");
+        for (var i = 0; i < path.Length; i++)
+        {
+            builder.Append('.');
+            builder.Append(path[i].ResponseName);
+        }
+
+        return builder.ToString();
+    }
+
+    private static SelectionPath DeterminePath(DeferUsageSetKey key)
+    {
+        // The subplan roots at the longest shared ancestor of all usages in
+        // its set. For siblings (same parent), every usage has the same
+        // anchor path; for the general case we pick the deepest path because
+        // after parent pruning no two usages in the same set sit on the same
+        // parent chain.
+        SelectionPath? best = null;
+
+        foreach (var usage in key.Items)
+        {
+            if (usage.Path is null)
+            {
+                continue;
+            }
+
+            if (best is null || usage.Path.Length > best.Length)
+            {
+                best = usage.Path;
+            }
+        }
+
+        return best ?? SelectionPath.Root;
+    }
+
+    private static DeferSubPlanDescriptor? ResolveParentDescriptor(
+        DeferUsageSetKey key,
+        Dictionary<DeferUsageSetKey, DeferSubPlanDescriptor> descriptorByKey)
+    {
+        // A subplan's "parent" is the subplan whose key contains the parent
+        // DeferUsage of any usage in this set. We pick the first usage's
+        // parent chain; all other usages in the set share an equivalent
+        // ancestry after parent pruning.
+        foreach (var usage in key.Items)
+        {
+            var parent = usage.Parent;
+            while (parent is not null)
+            {
+                foreach (var (candidateKey, candidate) in descriptorByKey)
+                {
+                    foreach (var candidateUsage in candidateKey.Items)
+                    {
+                        if (ReferenceEquals(candidateUsage, parent))
+                        {
+                            return candidate;
+                        }
+                    }
+                }
+                parent = parent.Parent;
             }
         }
 
@@ -446,162 +545,33 @@ internal sealed class DeferOperationRewriter
         return false;
     }
 
-    /// <summary>
-    /// Collects the response names of fields that, when the given selection set is
-    /// merged into its enclosing object, land as direct children of that object.
-    /// Inline fragments and fragment spreads merge into the parent scope, so we
-    /// recurse into their selection sets; nested @defer fragments are NOT followed
-    /// because they produce their own descriptors.
-    /// </summary>
-    private static ImmutableArray<string> CollectTopLevelResponseNames(SelectionSetNode selectionSet)
+    private sealed class SubPlanBucket(DeferUsageSetKey key)
     {
-        var builder = ImmutableArray.CreateBuilder<string>();
-        CollectTopLevelResponseNames(selectionSet, builder);
-        return builder.ToImmutable();
+        public DeferUsageSetKey Key { get; } = key;
+        public List<FieldOccurrence> Occurrences { get; } = [];
+
+        public void Add(FieldOccurrence occurrence) => Occurrences.Add(occurrence);
     }
 
-    private static void CollectTopLevelResponseNames(
-        SelectionSetNode selectionSet,
-        ImmutableArray<string>.Builder builder)
+    private sealed class PathNode
     {
-        for (var i = 0; i < selectionSet.Selections.Count; i++)
+        public List<(string ResponseName, FieldNode FieldNode, NamedTypeNode? TypeCondition)> Contributions { get; } = [];
+        public Dictionary<FieldPathSegment, PathNode> Children { get; } = [];
+
+        public PathNode GetOrAddChild(FieldPathSegment segment)
         {
-            switch (selectionSet.Selections[i])
+            if (!Children.TryGetValue(segment, out var child))
             {
-                case FieldNode field:
-                    var responseName = field.Alias?.Value ?? field.Name.Value;
-                    builder.Add(responseName);
-                    break;
-
-                case InlineFragmentNode inline when !HasDeferDirective(inline):
-                    CollectTopLevelResponseNames(inline.SelectionSet, builder);
-                    break;
-
-                // Fragment spreads and defer-annotated inline fragments are not
-                // part of this descriptor's own top-level contribution.
-            }
-        }
-    }
-
-    private static bool ShouldSkipDefer(InlineFragmentNode node)
-    {
-        for (var i = 0; i < node.Directives.Count; i++)
-        {
-            var directive = node.Directives[i];
-
-            if (!directive.Name.Value.Equals(
-                DirectiveNames.Defer.Name,
-                StringComparison.Ordinal))
-            {
-                continue;
+                child = new PathNode();
+                Children[segment] = child;
             }
 
-            for (var j = 0; j < directive.Arguments.Count; j++)
-            {
-                var arg = directive.Arguments[j];
-
-                if (arg.Name.Value.Equals("if", StringComparison.Ordinal)
-                    && arg.Value is BooleanValueNode { Value: false })
-                {
-                    return true;
-                }
-            }
+            return child;
         }
 
-        return false;
-    }
-
-    private static (string? Label, string? IfVariable) ExtractDeferArgs(InlineFragmentNode node)
-    {
-        string? label = null;
-        string? ifVariable = null;
-
-        for (var i = 0; i < node.Directives.Count; i++)
+        public void AddContribution(string responseName, FieldNode fieldNode, NamedTypeNode? typeCondition)
         {
-            var directive = node.Directives[i];
-
-            if (!directive.Name.Value.Equals(
-                DirectiveNames.Defer.Name,
-                StringComparison.Ordinal))
-            {
-                continue;
-            }
-
-            for (var j = 0; j < directive.Arguments.Count; j++)
-            {
-                var arg = directive.Arguments[j];
-
-                if (arg.Name.Value.Equals("label", StringComparison.Ordinal)
-                    && arg.Value is StringValueNode labelValue)
-                {
-                    label = labelValue.Value;
-                }
-                else if (arg.Name.Value.Equals("if", StringComparison.Ordinal)
-                    && arg.Value is VariableNode variableNode)
-                {
-                    ifVariable = variableNode.Name.Value;
-                }
-            }
-
-            break;
+            Contributions.Add((responseName, fieldNode, typeCondition));
         }
-
-        return (label, ifVariable);
     }
-}
-
-/// <summary>
-/// The result of splitting an operation at @defer boundaries.
-/// </summary>
-internal readonly record struct DeferSplitResult(
-    OperationDefinitionNode MainOperation,
-    ImmutableArray<DeferredFragmentDescriptor> DeferredFragments);
-
-/// <summary>
-/// Describes a single @defer fragment extracted from an operation.
-/// </summary>
-internal sealed class DeferredFragmentDescriptor
-{
-    public DeferredFragmentDescriptor(
-        int deferId,
-        string? label,
-        string? ifVariable,
-        ImmutableArray<FieldPathSegment> path,
-        OperationDefinitionNode operation,
-        DeferredFragmentDescriptor? parent,
-        ImmutableArray<string> topLevelResponseNames = default)
-    {
-        DeferId = deferId;
-        Label = label;
-        IfVariable = ifVariable;
-        Path = path;
-        Operation = operation;
-        Parent = parent;
-        TopLevelResponseNames = topLevelResponseNames.IsDefault
-            ? ImmutableArray<string>.Empty
-            : topLevelResponseNames;
-    }
-
-    public int DeferId { get; }
-    public string? Label { get; }
-    public string? IfVariable { get; }
-    public ImmutableArray<FieldPathSegment> Path { get; }
-    public OperationDefinitionNode Operation { get; internal set; }
-    public DeferredFragmentDescriptor? Parent { get; }
-
-    /// <summary>
-    /// Response names of fields that this defer fragment contributes as direct
-    /// children of the object at <see cref="Path"/>. Collected at rewrite time
-    /// so sibling-defer overlap can be resolved by the planner without having to
-    /// re-walk the defer fragment's AST.
-    /// </summary>
-    public ImmutableArray<string> TopLevelResponseNames { get; }
-}
-
-/// <summary>
-/// A segment of a field path, identifying a field by its name and optional alias.
-/// </summary>
-internal readonly record struct FieldPathSegment(string FieldName, string? Alias)
-{
-    public string ResponseName => Alias ?? FieldName;
 }
