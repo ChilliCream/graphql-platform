@@ -230,6 +230,7 @@
     <Project Path="HotChocolate/Fusion/test/Fusion.AspNetCore.Tests/HotChocolate.Fusion.AspNetCore.Tests.csproj" />
     <Project Path="HotChocolate/Fusion/test/Fusion.Composition.Tests/HotChocolate.Fusion.Composition.Tests.csproj" />
     <Project Path="HotChocolate/Fusion/test/Fusion.Composition.ApolloFederation.Tests/HotChocolate.Fusion.Composition.ApolloFederation.Tests.csproj" />
+    <Project Path="HotChocolate/Fusion/test/Fusion.Connectors.ApolloFederation.Compliance.Tests/HotChocolate.Fusion.Connectors.ApolloFederation.Compliance.Tests.csproj" />
     <Project Path="HotChocolate/Fusion/test/Fusion.Connectors.ApolloFederation.Tests/HotChocolate.Fusion.Connectors.ApolloFederation.Tests.csproj" />
     <Project Path="HotChocolate/Fusion/test/Fusion.Connectors.InMemory.Tests/HotChocolate.Fusion.Connectors.InMemory.Tests.csproj" />
     <Project Path="HotChocolate/Fusion/test/Fusion.Caching.Tests/HotChocolate.Fusion.Caching.Tests.csproj" />
