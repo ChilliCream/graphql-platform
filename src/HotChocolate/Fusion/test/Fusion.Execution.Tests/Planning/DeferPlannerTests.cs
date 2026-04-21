@@ -45,12 +45,13 @@ public class DeferPlannerTests : FusionTestBase
             """);
 
         // assert
-        Assert.Single(plan.DeferredGroups);
+        Assert.Single(plan.DeferredSubPlans);
 
-        var group = plan.DeferredGroups[0];
-        Assert.Equal(0, group.DeferId);
+        var subPlan = plan.DeferredSubPlans[0];
+        var group = subPlan.DeliveryGroups[0];
+        Assert.Equal(0, group.Id);
         Assert.Null(group.Label);
-        Assert.Equal("$.user", group.Path.ToString());
+        Assert.Equal("$.user", group.Path!.ToString());
     }
 
     [Fact]
@@ -106,14 +107,14 @@ public class DeferPlannerTests : FusionTestBase
             """);
 
         // assert
-        Assert.Equal(2, plan.DeferredGroups.Length);
+        Assert.Equal(2, plan.DeferredSubPlans.Length);
 
-        var emailGroup = plan.DeferredGroups.First(g => g.Label == "emailDefer");
-        var bioGroup = plan.DeferredGroups.First(g => g.Label == "bioDefer");
+        var emailSubPlan = plan.DeferredSubPlans.First(s => s.DeliveryGroups[0].Label == "emailDefer");
+        var bioSubPlan = plan.DeferredSubPlans.First(s => s.DeliveryGroups[0].Label == "bioDefer");
 
-        Assert.NotNull(emailGroup);
-        Assert.NotNull(bioGroup);
-        Assert.NotEqual(emailGroup.DeferId, bioGroup.DeferId);
+        Assert.NotNull(emailSubPlan);
+        Assert.NotNull(bioSubPlan);
+        Assert.NotEqual(emailSubPlan.DeliveryGroups[0].Id, bioSubPlan.DeliveryGroups[0].Id);
     }
 
     [Fact]
@@ -159,8 +160,8 @@ public class DeferPlannerTests : FusionTestBase
             """);
 
         // assert
-        Assert.Single(plan.DeferredGroups);
-        Assert.Equal("myLabel", plan.DeferredGroups[0].Label);
+        Assert.Single(plan.DeferredSubPlans);
+        Assert.Equal("myLabel", plan.DeferredSubPlans[0].DeliveryGroups[0].Label);
     }
 
     [Fact]
@@ -206,7 +207,7 @@ public class DeferPlannerTests : FusionTestBase
             """);
 
         // assert
-        Assert.False(plan.DeferredGroups.IsEmpty);
+        Assert.False(plan.DeferredSubPlans.IsEmpty);
     }
 
     [Fact]
@@ -250,7 +251,7 @@ public class DeferPlannerTests : FusionTestBase
             """);
 
         // assert
-        Assert.True(plan.DeferredGroups.IsEmpty);
+        Assert.True(plan.DeferredSubPlans.IsEmpty);
         Assert.False(plan.Operation.HasIncrementalParts);
     }
 
@@ -297,8 +298,8 @@ public class DeferPlannerTests : FusionTestBase
             """);
 
         // assert
-        Assert.Single(plan.DeferredGroups);
-        Assert.Equal("shouldDefer", plan.DeferredGroups[0].IfVariable);
+        Assert.Single(plan.DeferredSubPlans);
+        Assert.Equal("shouldDefer", plan.DeferredSubPlans[0].DeliveryGroups[0].IfVariable);
     }
 
     [Fact]
@@ -347,11 +348,11 @@ public class DeferPlannerTests : FusionTestBase
         Assert.NotEmpty(plan.RootNodes);
         Assert.NotEmpty(plan.AllNodes);
 
-        // The deferred group should also have its own execution nodes
-        var deferredGroup = plan.DeferredGroups[0];
-        Assert.False(deferredGroup.RootNodes.IsEmpty);
-        Assert.False(deferredGroup.AllNodes.IsEmpty);
-        Assert.Null(deferredGroup.Parent);
+        // The deferred subplan should also have its own execution nodes
+        var subPlan = plan.DeferredSubPlans[0];
+        Assert.False(subPlan.RootNodes.IsEmpty);
+        Assert.False(subPlan.AllNodes.IsEmpty);
+        Assert.Null(subPlan.DeliveryGroups[0].Parent);
     }
 
     [Fact]
@@ -397,7 +398,7 @@ public class DeferPlannerTests : FusionTestBase
             """);
 
         // assert
-        Assert.True(plan.DeferredGroups.IsEmpty);
+        Assert.True(plan.DeferredSubPlans.IsEmpty);
     }
 
     [Fact]
@@ -443,8 +444,8 @@ public class DeferPlannerTests : FusionTestBase
             """);
 
         // assert
-        Assert.Single(plan.DeferredGroups);
-        Assert.Null(plan.DeferredGroups[0].IfVariable);
+        Assert.Single(plan.DeferredSubPlans);
+        Assert.Null(plan.DeferredSubPlans[0].DeliveryGroups[0].IfVariable);
     }
 
     [Fact]
@@ -494,14 +495,18 @@ public class DeferPlannerTests : FusionTestBase
             """);
 
         // assert
-        Assert.Equal(2, plan.DeferredGroups.Length);
+        Assert.Equal(2, plan.DeferredSubPlans.Length);
 
-        var outerGroup = plan.DeferredGroups.First(g => g.Label == "outer");
-        var innerGroup = plan.DeferredGroups.First(g => g.Label == "inner");
+        var outerGroup = plan.DeferredSubPlans
+            .Select(s => s.DeliveryGroups[0])
+            .First(g => g.Label == "outer");
+        var innerGroup = plan.DeferredSubPlans
+            .Select(s => s.DeliveryGroups[0])
+            .First(g => g.Label == "inner");
 
         Assert.Null(outerGroup.Parent);
         Assert.NotNull(innerGroup.Parent);
-        Assert.Equal(outerGroup.DeferId, innerGroup.Parent.DeferId);
+        Assert.Equal(outerGroup.Id, innerGroup.Parent.Id);
     }
 
     [Fact]
@@ -547,7 +552,130 @@ public class DeferPlannerTests : FusionTestBase
             """);
 
         // assert
-        Assert.Single(plan.DeferredGroups);
+        Assert.Single(plan.DeferredSubPlans);
+    }
+
+    [Fact]
+    public void Plan_Should_Partition_Nested_Defer_With_Mixed_If_Conditions_Correctly()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+                address: String!
+            }
+            """);
+
+        // act + assert: a=true, b=true (both active)
+        var planBothActive = PlanOperation(
+            schema,
+            """
+            {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "outer", if: true) {
+                        email
+                        ... @defer(label: "inner", if: true) {
+                            address
+                        }
+                    }
+                }
+            }
+            """);
+
+        Assert.Equal(2, planBothActive.DeferredSubPlans.Length);
+        var outerSubPlan = planBothActive.DeferredSubPlans
+            .First(s => s.DeliveryGroups.Any(g => g.Label == "outer"));
+        var innerSubPlan = planBothActive.DeferredSubPlans
+            .First(s => s.DeliveryGroups.Any(g => g.Label == "inner"));
+        Assert.Single(outerSubPlan.DeliveryGroups, g => g.Label == "outer");
+        Assert.Single(innerSubPlan.DeliveryGroups, g => g.Label == "inner");
+        Assert.Null(outerSubPlan.DeliveryGroups[0].Parent);
+        var innerParent = innerSubPlan.DeliveryGroups[0].Parent;
+        Assert.NotNull(innerParent);
+        Assert.Equal(outerSubPlan.DeliveryGroups[0].Id, innerParent.Id);
+
+        // act + assert: a=true, b=false (inner inactive, its address collapses into outer)
+        var planInnerInactive = PlanOperation(
+            schema,
+            """
+            {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "outer", if: true) {
+                        email
+                        ... @defer(label: "inner", if: false) {
+                            address
+                        }
+                    }
+                }
+            }
+            """);
+
+        Assert.Single(planInnerInactive.DeferredSubPlans);
+        var collapsedOuter = planInnerInactive.DeferredSubPlans[0];
+        Assert.Single(collapsedOuter.DeliveryGroups);
+        Assert.Equal("outer", collapsedOuter.DeliveryGroups[0].Label);
+
+        // act + assert: a=false, b=true (outer inactive, inner is top-level; email in initial)
+        var planOuterInactive = PlanOperation(
+            schema,
+            """
+            {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "outer", if: false) {
+                        email
+                        ... @defer(label: "inner", if: true) {
+                            address
+                        }
+                    }
+                }
+            }
+            """);
+
+        Assert.Single(planOuterInactive.DeferredSubPlans);
+        var innerOnly = planOuterInactive.DeferredSubPlans[0];
+        Assert.Single(innerOnly.DeliveryGroups);
+        Assert.Equal("inner", innerOnly.DeliveryGroups[0].Label);
+        Assert.Null(innerOnly.DeliveryGroups[0].Parent);
+
+        // act + assert: a=false, b=false (both inactive, no subplans)
+        var planBothInactive = PlanOperation(
+            schema,
+            """
+            {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "outer", if: false) {
+                        email
+                        ... @defer(label: "inner", if: false) {
+                            address
+                        }
+                    }
+                }
+            }
+            """);
+
+        Assert.True(planBothInactive.DeferredSubPlans.IsEmpty);
     }
 
     [Fact(Skip = "Known bug: BuildDeferredOperation forces OperationType.Query, causing KeyNotFoundException for mutation fields")]
@@ -597,10 +725,10 @@ public class DeferPlannerTests : FusionTestBase
             """);
 
         // assert
-        Assert.Single(plan.DeferredGroups);
+        Assert.Single(plan.DeferredSubPlans);
 
-        var group = plan.DeferredGroups[0];
-        Assert.False(group.RootNodes.IsEmpty);
-        Assert.False(group.AllNodes.IsEmpty);
+        var subPlan = plan.DeferredSubPlans[0];
+        Assert.False(subPlan.RootNodes.IsEmpty);
+        Assert.False(subPlan.AllNodes.IsEmpty);
     }
 }
