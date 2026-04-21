@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.Buffers;
+using HotChocolate.Execution;
 using JsonWriter = HotChocolate.Text.Json.JsonWriter;
 
 namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
@@ -83,7 +84,8 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WritePropertyName("nodes");
         WriteNodes(jsonWriter, plan.Operation, plan.AllNodes, trace);
 
-        WriteDeferredGroups(jsonWriter, plan.DeferredGroups);
+        WriteDeliveryGroups(jsonWriter, plan.DeliveryGroups);
+        WriteDeferredSubPlans(jsonWriter, plan.DeferredSubPlans);
 
         jsonWriter.WriteEndObject();
     }
@@ -168,66 +170,105 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WriteEndArray();
     }
 
-    private static void WriteDeferredGroups(
+    private static void WriteDeliveryGroups(
         JsonWriter jsonWriter,
-        ImmutableArray<DeferredExecutionGroup> deferredGroups)
+        ImmutableArray<DeferUsage> deliveryGroups)
     {
-        if (deferredGroups.IsDefaultOrEmpty)
+        if (deliveryGroups.IsDefaultOrEmpty)
         {
             return;
         }
 
-        jsonWriter.WritePropertyName("deferredGroups");
+        jsonWriter.WritePropertyName("deliveryGroups");
         jsonWriter.WriteStartArray();
 
-        foreach (var group in deferredGroups)
+        foreach (var deliveryGroup in deliveryGroups)
         {
-            WriteDeferredGroup(jsonWriter, group);
+            WriteDeliveryGroup(jsonWriter, deliveryGroup);
         }
 
         jsonWriter.WriteEndArray();
     }
 
-    private static void WriteDeferredGroup(
+    private static void WriteDeliveryGroup(
         JsonWriter jsonWriter,
-        DeferredExecutionGroup group)
+        DeferUsage deliveryGroup)
     {
         jsonWriter.WriteStartObject();
 
         jsonWriter.WritePropertyName("id");
-        jsonWriter.WriteNumberValue(group.DeferId);
-
-        if (group.Label is not null)
-        {
-            jsonWriter.WritePropertyName("label");
-            jsonWriter.WriteStringValue(group.Label);
-        }
+        jsonWriter.WriteNumberValue(deliveryGroup.Id);
 
         jsonWriter.WritePropertyName("path");
-        jsonWriter.WriteStringValue(group.Path.ToString());
+        jsonWriter.WriteStringValue((deliveryGroup.Path ?? SelectionPath.Root).ToString());
 
-        if (group.IfVariable is not null)
+        if (deliveryGroup.Label is not null)
+        {
+            jsonWriter.WritePropertyName("label");
+            jsonWriter.WriteStringValue(deliveryGroup.Label);
+        }
+
+        if (deliveryGroup.IfVariable is not null)
         {
             jsonWriter.WritePropertyName("ifVariable");
-            jsonWriter.WriteStringValue("$" + group.IfVariable);
+            jsonWriter.WriteStringValue("$" + deliveryGroup.IfVariable);
         }
 
-        if (group.Parent is not null)
+        if (deliveryGroup.Parent is not null)
         {
             jsonWriter.WritePropertyName("parentId");
-            jsonWriter.WriteNumberValue(group.Parent.DeferId);
+            jsonWriter.WriteNumberValue(deliveryGroup.Parent.Id);
         }
 
+        jsonWriter.WriteEndObject();
+    }
+
+    private static void WriteDeferredSubPlans(
+        JsonWriter jsonWriter,
+        ImmutableArray<ExecutionSubPlan> deferredSubPlans)
+    {
+        if (deferredSubPlans.IsDefaultOrEmpty)
+        {
+            return;
+        }
+
+        jsonWriter.WritePropertyName("deferredSubPlans");
+        jsonWriter.WriteStartArray();
+
+        foreach (var subPlan in deferredSubPlans)
+        {
+            WriteDeferredSubPlan(jsonWriter, subPlan);
+        }
+
+        jsonWriter.WriteEndArray();
+    }
+
+    private static void WriteDeferredSubPlan(
+        JsonWriter jsonWriter,
+        ExecutionSubPlan subPlan)
+    {
+        jsonWriter.WriteStartObject();
+
+        jsonWriter.WritePropertyName("deliveryGroupIds");
+        jsonWriter.WriteStartArray();
+
+        foreach (var deliveryGroup in subPlan.DeliveryGroups)
+        {
+            jsonWriter.WriteNumberValue(deliveryGroup.Id);
+        }
+
+        jsonWriter.WriteEndArray();
+
         jsonWriter.WritePropertyName("parentNodeId");
-        jsonWriter.WriteNumberValue(group.ParentNodeId);
+        jsonWriter.WriteNumberValue(subPlan.ParentNodeId);
 
         jsonWriter.WritePropertyName("operation");
-        WriteOperation(jsonWriter, group.Operation);
+        WriteOperation(jsonWriter, subPlan.Operation);
 
-        if (!group.AllNodes.IsDefaultOrEmpty)
+        if (!subPlan.AllNodes.IsDefaultOrEmpty)
         {
             jsonWriter.WritePropertyName("nodes");
-            WriteNodes(jsonWriter, group.Operation, group.AllNodes, null);
+            WriteNodes(jsonWriter, subPlan.Operation, subPlan.AllNodes, null);
         }
 
         jsonWriter.WriteEndObject();

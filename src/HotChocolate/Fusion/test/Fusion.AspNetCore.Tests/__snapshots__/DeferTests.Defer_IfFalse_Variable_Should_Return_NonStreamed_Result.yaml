@@ -196,11 +196,14 @@ operationPlan:
           passingValue: false
       dependencies:
         - id: 1
-  deferredGroups:
+  deliveryGroups:
     - id: 0
-      label: reviews
       path: $.user
+      label: reviews
       ifVariable: $shouldDefer
+  deferredSubPlans:
+    - deliveryGroupIds:
+        - 0
       parentNodeId: 2
       nodes:
         - id: 1

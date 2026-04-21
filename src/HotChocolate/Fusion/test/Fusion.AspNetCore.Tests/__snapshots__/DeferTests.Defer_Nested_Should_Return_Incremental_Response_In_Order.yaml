@@ -228,10 +228,17 @@ operationPlan:
             name
           }
         }
-  deferredGroups:
+  deliveryGroups:
     - id: 0
-      label: outer
       path: $.user
+      label: outer
+    - id: 1
+      path: $.user
+      label: inner
+      parentId: 0
+  deferredSubPlans:
+    - deliveryGroupIds:
+        - 0
       parentNodeId: 1
       nodes:
         - id: 1
@@ -260,10 +267,8 @@ operationPlan:
                 id
           dependencies:
             - id: 1
-    - id: 1
-      label: inner
-      path: $.user
-      parentId: 0
+    - deliveryGroupIds:
+        - 1
       parentNodeId: 2
       nodes:
         - id: 1

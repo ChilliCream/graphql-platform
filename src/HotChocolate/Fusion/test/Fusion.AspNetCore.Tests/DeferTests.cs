@@ -278,9 +278,7 @@ public class DeferTests : FusionTestBase
     [Fact]
     public async Task Defer_Nested_Without_Label_On_Inner_Should_Return_Incremental_Response()
     {
-        // arrange — outer @defer has a label, inner @defer has no label.
-        // Per spec, label is optional; the pending entry for the inner defer
-        // should omit the label field.
+        // arrange
         using var server1 = CreateSourceSchema(
             "A",
             """
@@ -343,9 +341,7 @@ public class DeferTests : FusionTestBase
     [Fact]
     public async Task Defer_Two_Siblings_With_Overlapping_Fields_Should_Deduplicate()
     {
-        // arrange — two sibling @defer fragments both select the same field (email).
-        // Per spec, if a field appears in multiple deferred fragments, it should be
-        // delivered with the earliest completing group and not duplicated.
+        // arrange
         using var server1 = CreateSourceSchema(
             "A",
             """
@@ -407,11 +403,77 @@ public class DeferTests : FusionTestBase
     }
 
     [Fact]
+    public async Task Defer_Two_Siblings_Sharing_Field_Emit_One_Incremental_That_Completes_Both_Groups()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            """
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """);
+
+        using var server2 = CreateSourceSchema(
+            "B",
+            """
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+                address: String!
+            }
+            """);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1),
+            ("B", server2)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "contact") {
+                        email
+                    }
+                    ... @defer(label: "location") {
+                        email
+                        address
+                    }
+                }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        // The stable-stream snapshot lays out the per-frame timeline (pending /
+        // incremental / completed) so the shared subplan emitting once under the
+        // best delivery-group id while still completing both groups is visible
+        // as a single block.
+        await MatchSnapshotAsync(gateway, request, result, stableStream: true);
+    }
+
+    [Fact]
     public async Task Defer_With_Error_In_Deferred_Fragment_Should_Return_Error_In_Incremental_Payload()
     {
-        // arrange — source B's email field is annotated with @error, which causes the
-        // mock resolver to throw a GraphQLException. The gateway should propagate that
-        // error in the deferred incremental payload.
+        // arrange
         using var server1 = CreateSourceSchema(
             "A",
             """

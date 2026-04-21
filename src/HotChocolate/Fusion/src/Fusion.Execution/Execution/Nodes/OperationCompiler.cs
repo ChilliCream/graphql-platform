@@ -1,4 +1,5 @@
 using System.Buffers;
+using HotChocolate.Fusion.Planning;
 using HotChocolate.Fusion.Rewriters;
 using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
@@ -47,7 +48,17 @@ public sealed class OperationCompiler
         var includeConditions = new IncludeConditionCollection();
         var deferConditions = new DeferConditionCollection();
         IncludeConditionVisitor.Instance.Visit(operationDefinition, includeConditions);
-        DeferConditionVisitor.Instance.Visit(operationDefinition, deferConditions);
+
+        // Scans the operation for @defer fragments and creates one
+        // DeferUsage object for each. Also fills deferConditions with any
+        // @defer(if: ...) expressions found along the way.
+        //
+        // Important: each @defer must always map to the same DeferUsage
+        // instance. Runtime matching checks if two are the same object,
+        // not just equal in content, so handing back a fresh copy with
+        // equal field values would silently break it.
+        var partitioning = new DeferPartitioner().Partition(operationDefinition, deferConditions);
+
         var fields = _fieldsPool.Get();
 
         var compilationContext = new CompilationContext(s_objectArrayPool.Rent(128));
@@ -64,7 +75,7 @@ public sealed class OperationCompiler
                 rootType,
                 fields,
                 includeConditions,
-                deferConditions,
+                partitioning.ByFragment,
                 parentDeferUsage: null);
 
             var hasIncrementalParts = HasDeferDirective(operationDefinition);
@@ -87,6 +98,7 @@ public sealed class OperationCompiler
                 this,
                 includeConditions,
                 deferConditions,
+                partitioning.ByFragment,
                 hasIncrementalParts,
                 lastId,
                 compilationContext.ElementsById);
@@ -101,7 +113,7 @@ public sealed class OperationCompiler
         Selection selection,
         FusionObjectTypeDefinition objectType,
         IncludeConditionCollection includeConditions,
-        DeferConditionCollection deferConditions,
+        IReadOnlyDictionary<InlineFragmentNode, DeferUsage> deferUsageByFragment,
         ref object[] elementsById,
         ref int lastId)
     {
@@ -120,7 +132,7 @@ public sealed class OperationCompiler
                 objectType,
                 fields,
                 includeConditions,
-                deferConditions,
+                deferUsageByFragment,
                 parentDeferUsage: first.DeferUsage);
 
             if (nodes.Length > 1)
@@ -135,7 +147,7 @@ public sealed class OperationCompiler
                         objectType,
                         fields,
                         includeConditions,
-                        deferConditions,
+                        deferUsageByFragment,
                         parentDeferUsage: nodes[i].DeferUsage);
                 }
             }
@@ -157,7 +169,7 @@ public sealed class OperationCompiler
         IObjectTypeDefinition typeContext,
         OrderedDictionary<string, List<FieldSelectionNode>> fields,
         IncludeConditionCollection includeConditions,
-        DeferConditionCollection deferConditions,
+        IReadOnlyDictionary<InlineFragmentNode, DeferUsage> deferUsageByFragment,
         DeferUsage? parentDeferUsage)
     {
         for (var i = 0; i < selections.Count; i++)
@@ -194,15 +206,13 @@ public sealed class OperationCompiler
                     pathIncludeFlags |= 1ul << index;
                 }
 
-                var newDeferUsage = parentDeferUsage;
-
-                if (DeferCondition.TryCreate(inlineFragmentNode, out var deferCondition))
-                {
-                    deferConditions.Add(deferCondition);
-                    var deferIndex = deferConditions.IndexOf(deferCondition);
-                    var label = GetDeferLabel(inlineFragmentNode);
-                    newDeferUsage = new DeferUsage(label, parentDeferUsage, (byte)deferIndex);
-                }
+                // Look up the canonical DeferUsage from the pre-computed
+                // partitioning. The partitioner created one instance per
+                // `... @defer` occurrence; using it here guarantees downstream
+                // set-identity comparisons work correctly.
+                var newDeferUsage = deferUsageByFragment.TryGetValue(inlineFragmentNode, out var canonical)
+                    ? canonical
+                    : parentDeferUsage;
 
                 CollectFields(
                     pathIncludeFlags,
@@ -210,7 +220,7 @@ public sealed class OperationCompiler
                     typeContext,
                     fields,
                     includeConditions,
-                    deferConditions,
+                    deferUsageByFragment,
                     newDeferUsage);
             }
         }
@@ -288,8 +298,9 @@ public sealed class OperationCompiler
             }
 
             // If any field node is not inside a deferred fragment, the selection
-            // is not deferred — it must be included in the initial response.
+            // is not deferred, so it must be included in the initial response.
             ulong deferMask = 0;
+            DeferUsage[]? selectionDeferUsages = null;
 
             if (!hasNonDeferredNode && deferUsages.Count > 0)
             {
@@ -316,6 +327,10 @@ public sealed class OperationCompiler
                     deferMask |= 1ul << usage.DeferConditionIndex;
                 }
 
+                // Preserve the pruned list on the Selection so the runtime can
+                // answer GetActiveDeferUsages and HasActiveDeferUsage.
+                selectionDeferUsages = deferUsages.ToArray();
+
                 hasIncrementalParts = true;
             }
 
@@ -330,7 +345,8 @@ public sealed class OperationCompiler
                 nodes.ToArray(),
                 includeFlags.ToArray(),
                 isInternal,
-                deferMask);
+                deferMask,
+                selectionDeferUsages);
 
             // Register the selection in the elements array
             compilationContext.Register(selection, selection.Id);
@@ -530,34 +546,6 @@ public sealed class OperationCompiler
         {
             public bool Found;
         }
-    }
-
-    private static string? GetDeferLabel(InlineFragmentNode node)
-    {
-        for (var i = 0; i < node.Directives.Count; i++)
-        {
-            var directive = node.Directives[i];
-
-            if (!directive.Name.Value.Equals(DirectiveNames.Defer.Name, StringComparison.Ordinal))
-            {
-                continue;
-            }
-
-            for (var j = 0; j < directive.Arguments.Count; j++)
-            {
-                var arg = directive.Arguments[j];
-
-                if (arg.Name.Value.Equals(DirectiveNames.Defer.Arguments.Label, StringComparison.Ordinal)
-                    && arg.Value is StringValueNode labelValue)
-                {
-                    return labelValue.Value;
-                }
-            }
-
-            return null;
-        }
-
-        return null;
     }
 
     private class IncludeConditionVisitor : SyntaxWalker<IncludeConditionCollection>

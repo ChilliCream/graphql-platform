@@ -128,44 +128,25 @@ sourceSchemas:
       }
     interactions:
       - request:
-          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
-          kind: OperationBatch
-          items:
-            - document: |
-                query Op_defer_2($__fusion_1_id: ID!) {
-                  userById(id: $__fusion_1_id) {
-                    email
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_1_id": "VXNlcjox"
-                }
-            - document: |
-                query Op_defer_3($__fusion_2_id: ID!) {
-                  userById(id: $__fusion_2_id) {
-                    address
-                  }
-                }
-              variables: |
-                {
-                  "__fusion_2_id": "VXNlcjox"
-                }
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_defer_2($__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                email
+                address
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "VXNlcjox"
+            }
         response:
-          contentType: application/jsonl; charset=utf-8
           results:
             - |
               {
                 "data": {
                   "userById": {
-                    "email": "User: VXNlcjox"
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "userById": {
+                    "email": "User: VXNlcjox",
                     "address": "User: VXNlcjox"
                   }
                 }
@@ -191,10 +172,16 @@ operationPlan:
             name
           }
         }
-  deferredGroups:
+  deliveryGroups:
     - id: 0
-      label: outer
       path: $.user
+      label: outer
+    - id: 1
+      path: $.user
+      parentId: 0
+  deferredSubPlans:
+    - deliveryGroupIds:
+        - 0
       parentNodeId: 1
       nodes:
         - id: 1
@@ -213,31 +200,13 @@ operationPlan:
             query Op_defer_2($__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
                 email
-              }
-            }
-          source: $.userById
-          target: $.user
-          batchingGroupId: 2
-          requirements:
-            - name: __fusion_1_id
-              selectionMap: >-
-                id
-          dependencies:
-            - id: 1
-        - id: 3
-          type: Operation
-          schema: B
-          operation: |
-            query Op_defer_3($__fusion_2_id: ID!) {
-              userById(id: $__fusion_2_id) {
                 address
               }
             }
           source: $.userById
           target: $.user
-          batchingGroupId: 2
           requirements:
-            - name: __fusion_2_id
+            - name: __fusion_1_id
               selectionMap: >-
                 id
           dependencies:

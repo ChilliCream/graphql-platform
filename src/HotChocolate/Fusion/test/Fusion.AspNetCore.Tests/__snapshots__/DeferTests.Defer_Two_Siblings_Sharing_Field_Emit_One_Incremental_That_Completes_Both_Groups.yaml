@@ -1,25 +1,22 @@
-title: Defer_IfTrue_Variable_Should_Return_Streamed_Result
+title: Defer_Two_Siblings_Sharing_Field_Emit_One_Incremental_That_Completes_Both_Groups
 request:
   document: |
-    query GetUser($shouldDefer: Boolean!) {
+    {
       user(id: "1") {
         name
-        ... @defer(if: $shouldDefer, label: "reviews") {
-          reviews {
-            title
-            body
-          }
+        ... @defer(label: "contact") {
+          email
+        }
+        ... @defer(label: "location") {
+          email
+          address
         }
       }
-    }
-  variables: |
-    {
-      "shouldDefer": true
     }
 stableResponseStream: |
   {
     "kind": "stable-stream",
-    "payloadCount": 2,
+    "payloadCount": 3,
     "initial": {
       "data": {
         "user": {
@@ -33,7 +30,14 @@ stableResponseStream: |
         "path": [
           "user"
         ],
-        "label": "reviews"
+        "label": "contact"
+      },
+      {
+        "id": "1",
+        "path": [
+          "user"
+        ],
+        "label": "location"
       }
     ],
     "incremental": [
@@ -43,46 +47,33 @@ stableResponseStream: |
           "user"
         ],
         "data": {
-          "reviews": [
-            {
-              "body": "Review: UmV2aWV3OjE=",
-              "title": "Review: UmV2aWV3OjE="
-            },
-            {
-              "body": "Review: UmV2aWV3OjI=",
-              "title": "Review: UmV2aWV3OjI="
-            },
-            {
-              "body": "Review: UmV2aWV3OjM=",
-              "title": "Review: UmV2aWV3OjM="
-            }
-          ]
+          "email": "User: VXNlcjox"
+        }
+      },
+      {
+        "id": "1",
+        "path": [
+          "user"
+        ],
+        "data": {
+          "address": "User: VXNlcjox"
         }
       }
     ],
     "completed": [
       {
         "id": "0"
+      },
+      {
+        "id": "1"
       }
     ],
     "final": {
       "data": {
         "user": {
-          "name": "User: VXNlcjox",
-          "reviews": [
-            {
-              "body": "Review: UmV2aWV3OjE=",
-              "title": "Review: UmV2aWV3OjE="
-            },
-            {
-              "body": "Review: UmV2aWV3OjI=",
-              "title": "Review: UmV2aWV3OjI="
-            },
-            {
-              "body": "Review: UmV2aWV3OjM=",
-              "title": "Review: UmV2aWV3OjM="
-            }
-          ]
+          "address": "User: VXNlcjox",
+          "email": "User: VXNlcjox",
+          "name": "User: VXNlcjox"
         }
       }
     }
@@ -101,23 +92,15 @@ sourceSchemas:
       type User @key(fields: "id") {
         id: ID!
         name: String!
-        email: String!
       }
     interactions:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query GetUser_033679a6_1($shouldDefer: Boolean!) {
+            query Op_29ccee0f_1 {
               user(id: "1") {
                 name
-                ... @skip(if: $shouldDefer) {
-                  id
-                }
               }
-            }
-          variables: |
-            {
-              "shouldDefer": true
             }
         response:
           results:
@@ -132,7 +115,25 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query GetUser_defer_1 {
+            query Op_defer_1 {
+              user(id: "1") {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "user": {
+                    "id": "VXNlcjox"
+                  }
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_defer_1 {
               user(id: "1") {
                 id
               }
@@ -157,25 +158,18 @@ sourceSchemas:
         userById(id: ID!): User @lookup
       }
 
-      type Review {
-        title: String!
-        body: String!
-      }
-
       type User @key(fields: "id") {
         id: ID!
-        reviews: [Review!]!
+        email: String!
+        address: String!
       }
     interactions:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query GetUser_defer_2($__fusion_1_id: ID!) {
+            query Op_defer_2($__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
-                reviews {
-                  title
-                  body
-                }
+                email
               }
             }
           variables: |
@@ -188,95 +182,71 @@ sourceSchemas:
               {
                 "data": {
                   "userById": {
-                    "reviews": [
-                      {
-                        "title": "Review: UmV2aWV3OjE=",
-                        "body": "Review: UmV2aWV3OjE="
-                      },
-                      {
-                        "title": "Review: UmV2aWV3OjI=",
-                        "body": "Review: UmV2aWV3OjI="
-                      },
-                      {
-                        "title": "Review: UmV2aWV3OjM=",
-                        "body": "Review: UmV2aWV3OjM="
-                      }
-                    ]
+                    "email": "User: VXNlcjox"
+                  }
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_defer_2($__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                address
+              }
+            }
+          variables: |
+            {
+              "__fusion_1_id": "VXNlcjox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "address": "User: VXNlcjox"
                   }
                 }
               }
 operationPlan:
   operation:
     - document: |
-        query GetUser($shouldDefer: Boolean!) {
+        {
           user(id: "1") {
             name
-            ... @skip(if: $shouldDefer) {
-              reviews {
-                title
-                body
-              }
-              id @fusion__requirement
-            }
           }
         }
-      name: GetUser
-      hash: 033679a6deb9150ce9d5cd47bd725497
+      hash: 29ccee0fa1c82a6cb002b417ee776893
       searchSpace: 1
-      expandedNodes: 2
+      expandedNodes: 1
   nodes:
     - id: 1
       type: Operation
       schema: A
       operation: |
-        query GetUser_033679a6_1($shouldDefer: Boolean!) {
+        query Op_29ccee0f_1 {
           user(id: "1") {
             name
-            ... @skip(if: $shouldDefer) {
-              id
-            }
           }
         }
-      forwardedVariables:
-        - shouldDefer
-    - id: 2
-      type: Operation
-      schema: B
-      operation: |
-        query GetUser_033679a6_2($__fusion_1_id: ID!) {
-          userById(id: $__fusion_1_id) {
-            reviews {
-              title
-              body
-            }
-          }
-        }
-      source: $.userById
-      target: $.user
-      requirements:
-        - name: __fusion_1_id
-          selectionMap: >-
-            id
-      conditions:
-        - variable: $shouldDefer
-          passingValue: false
-      dependencies:
-        - id: 1
   deliveryGroups:
     - id: 0
       path: $.user
-      label: reviews
-      ifVariable: $shouldDefer
+      label: contact
+    - id: 1
+      path: $.user
+      label: location
   deferredSubPlans:
     - deliveryGroupIds:
         - 0
-      parentNodeId: 2
+        - 1
+      parentNodeId: 1
       nodes:
         - id: 1
           type: Operation
           schema: A
           operation: |
-            query GetUser_defer_1 {
+            query Op_defer_1 {
               user(id: "1") {
                 id
               }
@@ -285,12 +255,39 @@ operationPlan:
           type: Operation
           schema: B
           operation: |
-            query GetUser_defer_2($__fusion_1_id: ID!) {
+            query Op_defer_2($__fusion_1_id: ID!) {
               userById(id: $__fusion_1_id) {
-                reviews {
-                  title
-                  body
-                }
+                email
+              }
+            }
+          source: $.userById
+          target: $.user
+          requirements:
+            - name: __fusion_1_id
+              selectionMap: >-
+                id
+          dependencies:
+            - id: 1
+    - deliveryGroupIds:
+        - 1
+      parentNodeId: 1
+      nodes:
+        - id: 1
+          type: Operation
+          schema: A
+          operation: |
+            query Op_defer_1 {
+              user(id: "1") {
+                id
+              }
+            }
+        - id: 2
+          type: Operation
+          schema: B
+          operation: |
+            query Op_defer_2($__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                address
               }
             }
           source: $.userById

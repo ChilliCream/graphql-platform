@@ -1,4 +1,5 @@
 using System.Text;
+using HotChocolate.Execution;
 
 namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
 
@@ -30,14 +31,27 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
 
         writer.Unindent();
 
-        if (!plan.DeferredGroups.IsDefaultOrEmpty)
+        if (!plan.DeliveryGroups.IsDefaultOrEmpty)
         {
-            writer.WriteLine("deferredGroups:");
+            writer.WriteLine("deliveryGroups:");
             writer.Indent();
 
-            foreach (var group in plan.DeferredGroups)
+            foreach (var deliveryGroup in plan.DeliveryGroups)
             {
-                WriteDeferredGroup(group, writer);
+                WriteDeliveryGroup(deliveryGroup, writer);
+            }
+
+            writer.Unindent();
+        }
+
+        if (!plan.DeferredSubPlans.IsDefaultOrEmpty)
+        {
+            writer.WriteLine("deferredSubPlans:");
+            writer.Indent();
+
+            foreach (var subPlan in plan.DeferredSubPlans)
+            {
+                WriteDeferredSubPlan(subPlan, writer);
             }
 
             writer.Unindent();
@@ -68,36 +82,52 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         }
     }
 
-    private static void WriteDeferredGroup(DeferredExecutionGroup group, CodeWriter writer)
+    private static void WriteDeliveryGroup(DeferUsage deliveryGroup, CodeWriter writer)
     {
-        writer.WriteLine("- id: {0}", group.DeferId);
+        writer.WriteLine("- id: {0}", deliveryGroup.Id);
         writer.Indent();
 
-        if (group.Label is not null)
+        writer.WriteLine("path: {0}", (deliveryGroup.Path ?? SelectionPath.Root).ToString());
+
+        if (deliveryGroup.Label is not null)
         {
-            writer.WriteLine("label: {0}", group.Label);
+            writer.WriteLine("label: {0}", deliveryGroup.Label);
         }
 
-        writer.WriteLine("path: {0}", group.Path.ToString());
-
-        if (group.IfVariable is not null)
+        if (deliveryGroup.IfVariable is not null)
         {
-            writer.WriteLine("ifVariable: ${0}", group.IfVariable);
+            writer.WriteLine("ifVariable: ${0}", deliveryGroup.IfVariable);
         }
 
-        if (group.Parent is not null)
+        if (deliveryGroup.Parent is not null)
         {
-            writer.WriteLine("parentId: {0}", group.Parent.DeferId);
+            writer.WriteLine("parentId: {0}", deliveryGroup.Parent.Id);
         }
 
-        writer.WriteLine("parentNodeId: {0}", group.ParentNodeId);
+        writer.Unindent();
+    }
 
-        if (!group.AllNodes.IsDefaultOrEmpty)
+    private static void WriteDeferredSubPlan(ExecutionSubPlan subPlan, CodeWriter writer)
+    {
+        writer.WriteLine("- deliveryGroupIds:");
+        writer.Indent();
+        writer.Indent();
+
+        foreach (var deliveryGroup in subPlan.DeliveryGroups)
+        {
+            writer.WriteLine("- {0}", deliveryGroup.Id);
+        }
+
+        writer.Unindent();
+
+        writer.WriteLine("parentNodeId: {0}", subPlan.ParentNodeId);
+
+        if (!subPlan.AllNodes.IsDefaultOrEmpty)
         {
             writer.WriteLine("nodes:");
             writer.Indent();
 
-            foreach (var node in group.AllNodes)
+            foreach (var node in subPlan.AllNodes)
             {
                 WriteNode(node, nodeTrace: null, writer);
             }
