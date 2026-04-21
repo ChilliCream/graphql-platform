@@ -785,7 +785,7 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
             if (!dataElement.TryGetProperty("_entities"u8, out var entitiesElement)
                 || entitiesElement.ValueKind != JsonValueKind.Array)
             {
-                // No _entities array — yield raw result.
+                // No _entities array, yield raw result.
                 var path = variables.IsDefaultOrEmpty ? CompactPath.Root : variables[0].Path;
                 yield return new SourceSchemaResult(path, sourceDocument);
                 yield break;

@@ -9,15 +9,23 @@ public class ApolloFederationConnectorTests
     [Fact]
     public void Configuration_Should_StoreProperties()
     {
-        // arrange & act
+        // arrange
+        var baseAddress = new Uri("http://localhost:5000/graphql");
+        var lookups = new Dictionary<string, LookupFieldInfo>();
+
+        // act
         var config = new ApolloFederationSourceSchemaClientConfiguration(
             "products",
             "products-http",
+            baseAddress,
+            lookups,
             SupportedOperationType.Query);
 
         // assert
         Assert.Equal("products", config.Name);
         Assert.Equal("products-http", config.HttpClientName);
+        Assert.Same(baseAddress, config.BaseAddress);
+        Assert.Same(lookups, config.Lookups);
         Assert.Equal(SupportedOperationType.Query, config.SupportedOperations);
     }
 
@@ -27,7 +35,9 @@ public class ApolloFederationConnectorTests
         // arrange & act
         var config = new ApolloFederationSourceSchemaClientConfiguration(
             "products",
-            "products-http");
+            "products-http",
+            new Uri("http://localhost:5000/graphql"),
+            new Dictionary<string, LookupFieldInfo>());
 
         // assert
         Assert.Equal(
@@ -191,7 +201,7 @@ public class ApolloFederationConnectorTests
         // act
         var result = rewriter.GetOrRewrite(sourceText, 55555UL);
 
-        // assert — the rewritten query should declare $representations: [_Any!]!
+        // assert: the rewritten query should declare $representations: [_Any!]!
         Assert.Contains("$representations: [_Any!]!", result.OperationText);
         Assert.Equal("productById", result.LookupFieldName);
     }
@@ -220,7 +230,7 @@ public class ApolloFederationConnectorTests
         var result1 = rewriter.GetOrRewrite(sourceText, 100UL);
         var result2 = rewriter.GetOrRewrite(sourceText, 200UL);
 
-        // assert — different hash keys produce separate cache entries
+        // assert: different hash keys produce separate cache entries
         Assert.NotSame(result1, result2);
         // but the content should be equivalent since the source text is the same
         Assert.Equal(result1.OperationText, result2.OperationText);
@@ -354,7 +364,7 @@ public class ApolloFederationConnectorTests
         var (queryText, variablesJson) =
             ApolloFederationSourceSchemaClient.BuildCombinedEntityQuery(requests, rewrittenOps);
 
-        // assert — query structure
+        // assert: query structure
         Assert.Contains("$r0: [_Any!]!", queryText);
         Assert.Contains("$r1: [_Any!]!", queryText);
         Assert.Contains("____request0: _entities(representations: $r0)", queryText);
@@ -362,7 +372,7 @@ public class ApolloFederationConnectorTests
         Assert.Contains("... on Product", queryText);
         Assert.Contains("... on User", queryText);
 
-        // assert — variables structure
+        // assert: variables structure
         Assert.Contains("\"r0\"", variablesJson);
         Assert.Contains("\"r1\"", variablesJson);
         Assert.Contains("\"__typename\":\"Product\"", variablesJson);

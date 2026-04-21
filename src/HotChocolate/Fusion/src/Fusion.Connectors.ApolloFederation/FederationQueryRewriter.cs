@@ -18,7 +18,7 @@ namespace HotChocolate.Fusion.Execution.Clients;
 internal sealed class FederationQueryRewriter
 {
     private readonly ConcurrentDictionary<ulong, RewrittenOperation> _cache = new();
-    private readonly Dictionary<string, LookupFieldInfo> _lookupFields;
+    private readonly IReadOnlyDictionary<string, LookupFieldInfo> _lookupFields;
 
     /// <summary>
     /// Initializes a new instance of <see cref="FederationQueryRewriter"/>.
@@ -27,7 +27,7 @@ internal sealed class FederationQueryRewriter
     /// A dictionary mapping query field names (e.g. <c>"productById"</c>) to their
     /// <see cref="LookupFieldInfo"/> describing the entity type and key argument mappings.
     /// </param>
-    public FederationQueryRewriter(Dictionary<string, LookupFieldInfo> lookupFields)
+    public FederationQueryRewriter(IReadOnlyDictionary<string, LookupFieldInfo> lookupFields)
     {
         ArgumentNullException.ThrowIfNull(lookupFields);
         _lookupFields = lookupFields;
@@ -60,7 +60,7 @@ internal sealed class FederationQueryRewriter
             return RewriteEntityLookup(lookupField, lookupInfo);
         }
 
-        // Not an entity lookup — pass through unchanged.
+        // Not an entity lookup, pass through unchanged.
         return new RewrittenOperation
         {
             OperationText = operationSourceText,
