@@ -122,7 +122,9 @@ internal sealed class VariableVisitor : TypeDocumentValidatorVisitor
     {
         if (IntrospectionFields.TypeName.EqualsOrdinal(node.Name.Value))
         {
-            return Skip;
+            context.OutputFields.Push(TypeNameField);
+            context.Types.Push(TypeNameField.Type);
+            return Continue;
         }
 
         if (context.Types.TryPeek(out var type) &&

@@ -110,6 +110,20 @@ public class NoUnusedVariablesRuleTests
     }
 
     [Fact]
+    public void VariableUsedByIncludeDirectiveInFragment()
+    {
+        ExpectValid(
+            """
+            query Q($v: Boolean!) {
+              ...F
+            }
+            fragment F on Query {
+              __typename @include(if: $v)
+            }
+            """);
+    }
+
+    [Fact]
     public void MultipleVariablesNotUsed()
     {
         ExpectErrors(@"
