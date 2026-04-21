@@ -201,7 +201,6 @@ public sealed partial class OperationPlanner
                 deferredSubPlans = PlanDeferredSubPlans(
                     id,
                     hash,
-                    shortHash,
                     deferSplit.Value,
                     eventSourceEnabled,
                     cancellationToken);

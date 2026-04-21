@@ -14,9 +14,9 @@ namespace HotChocolate.Fusion.Text.Json;
 public readonly partial struct CompositeResultElement
 {
     private readonly CompositeResultDocument _parent;
-    private readonly CompositeResultDocument.Cursor _cursor;
+    private readonly Cursor _cursor;
 
-    internal CompositeResultElement(CompositeResultDocument parent, CompositeResultDocument.Cursor cursor)
+    internal CompositeResultElement(CompositeResultDocument parent, Cursor cursor)
     {
         // parent is usually not null, but the Current property
         // on the enumerators (when initialized as `default`) can
@@ -43,79 +43,15 @@ public readonly partial struct CompositeResultElement
     {
         CheckValidInstance();
 
-        var formatter = new CompositeResultDocument.RawJsonFormatter(_parent, jsonWriter);
+        var formatter = new RawJsonFormatter(_parent, jsonWriter);
         var row = _parent._metaDb.Get(_cursor);
         formatter.WriteValue(_cursor, row);
     }
 
     /// <summary>
-    /// Marks the direct property with the given UTF-8 name as
-    /// <see cref="ElementFlags.IsExcluded"/> so subsequent JSON writes skip it.
-    /// This is a targeted runtime-dedup hook for sibling <c>@defer</c> fragments
-    /// where a field appears in multiple deferred payloads and only the
-    /// earliest-declaring active fragment should deliver it.
-    /// </summary>
-    /// <param name="utf8PropertyName">
-    /// The property name as UTF-8 bytes without surrounding JSON quotes
-    /// (matching <see cref="Selection.Utf8ResponseName"/>).
-    /// </param>
-    /// <returns>
-    /// <c>true</c> if a matching, not-yet-excluded property was found and marked;
-    /// <c>false</c> otherwise (including when the current element is not an object).
-    /// </returns>
-    internal bool TryExcludeProperty(ReadOnlySpan<byte> utf8PropertyName)
-    {
-        CheckValidInstance();
-
-        var cursor = _cursor;
-        var startRow = _parent._metaDb.Get(cursor);
-
-        // Objects may be stored out-of-line behind a Reference row; resolve
-        // to the actual StartObject before iterating properties.
-        if (startRow.TokenType is ElementTokenType.Reference)
-        {
-            cursor = Cursor.FromIndex(startRow.Location);
-            startRow = _parent._metaDb.Get(cursor);
-        }
-
-        if (startRow.TokenType is not ElementTokenType.StartObject)
-        {
-            return false;
-        }
-
-        var current = cursor + 1;
-        var end = cursor + startRow.NumberOfRows;
-
-        while (current < end)
-        {
-            var row = _parent._metaDb.Get(current);
-
-            if (row.TokenType is not ElementTokenType.PropertyName)
-            {
-                break;
-            }
-
-            // PropertyName rows alternate with their values. The composite
-            // document stores the response name (unquoted UTF-8 bytes) via
-            // Selection.Utf8ResponseName and the JSON writer quotes on output.
-            var nameBytes = _parent.GetPropertyNameRaw(current + 1);
-
-            if (nameBytes.SequenceEqual(utf8PropertyName))
-            {
-                _parent._metaDb.SetFlags(current, row.Flags | ElementFlags.IsExcluded);
-                return true;
-            }
-
-            current += 2;
-        }
-
-        return false;
-    }
-
-    /// <summary>
     /// Gets the internal meta-db cursor.
     /// </summary>
-    internal CompositeResultDocument.Cursor Cursor => _cursor;
+    internal Cursor Cursor => _cursor;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private ElementTokenType TokenType => _parent?.GetElementTokenType(_cursor) ?? ElementTokenType.None;
@@ -182,7 +118,7 @@ public readonly partial struct CompositeResultElement
         {
             CheckValidInstance();
 
-            if (_cursor == CompositeResultDocument.Cursor.Zero)
+            if (_cursor == Cursor.Zero)
             {
                 return null;
             }
@@ -200,7 +136,7 @@ public readonly partial struct CompositeResultElement
     {
         get
         {
-            if (_cursor == CompositeResultDocument.Cursor.Zero)
+            if (_cursor == Cursor.Zero)
             {
                 return null;
             }
@@ -301,7 +237,7 @@ public readonly partial struct CompositeResultElement
         {
             CheckValidInstance();
 
-            if (_cursor == CompositeResultDocument.Cursor.Zero)
+            if (_cursor == Cursor.Zero)
             {
                 return false;
             }
