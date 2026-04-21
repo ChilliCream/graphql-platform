@@ -9,7 +9,6 @@ namespace HotChocolate.Fusion.Execution.Pipeline;
 
 internal sealed class OperationExecutionMiddleware
 {
-    private readonly OperationPlanExecutor _planExecutor = new();
     private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
 
     private OperationExecutionMiddleware(IFusionExecutionDiagnosticEvents diagnosticEvents)
@@ -46,7 +45,7 @@ internal sealed class OperationExecutionMiddleware
                     return;
                 }
 
-                context.Result = await _planExecutor.SubscribeAsync(context, operationPlan, cancellationToken);
+                context.Result = await OperationPlanExecutor.SubscribeAsync(context, operationPlan, cancellationToken);
             }
             else
             {
@@ -69,7 +68,7 @@ internal sealed class OperationExecutionMiddleware
 
                     for (var i = 0; i < variableValues.Length; i++)
                     {
-                        tasks[i] = _planExecutor.ExecuteAsync(
+                        tasks[i] = OperationPlanExecutor.ExecuteAsync(
                             context,
                             variableValues[i],
                             operationPlan,
@@ -81,7 +80,7 @@ internal sealed class OperationExecutionMiddleware
                 }
                 else if (!operationPlan.DeferredSubPlans.IsEmpty)
                 {
-                    context.Result = await _planExecutor.ExecuteWithDeferAsync(
+                    context.Result = await OperationPlanExecutor.ExecuteWithDeferAsync(
                         context,
                         context.VariableValues[0],
                         operationPlan,
@@ -89,7 +88,7 @@ internal sealed class OperationExecutionMiddleware
                 }
                 else
                 {
-                    context.Result = await _planExecutor.ExecuteAsync(
+                    context.Result = await OperationPlanExecutor.ExecuteAsync(
                         context,
                         context.VariableValues[0],
                         operationPlan,
