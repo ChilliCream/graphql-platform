@@ -11,15 +11,8 @@ namespace HotChocolate.Fusion.Execution;
 /// pending path rather than the fully rooted result, so this formatter writes the
 /// subtree element directly instead of the composite result document's root.
 /// </summary>
-internal sealed class DeferredPayloadDataFormatter : IRawJsonFormatter
+internal sealed class DeferredPayloadDataFormatter(CompositeResultElement element) : IRawJsonFormatter
 {
-    private readonly CompositeResultElement _element;
-
-    public DeferredPayloadDataFormatter(CompositeResultElement element)
-    {
-        _element = element;
-    }
-
     public void WriteDataTo(JsonWriter jsonWriter)
-        => _element.WriteTo(jsonWriter);
+        => element.WriteTo(jsonWriter);
 }

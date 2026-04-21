@@ -593,7 +593,7 @@ internal static class OperationPlanExecutor
     {
         if (rootData.Value is not CompositeResultDocument document)
         {
-            // Unknown backing value: fall through to the default behaviour and
+            // Unknown backing value: fall through to the default behavior and
             // emit the result as-is.
             incrementalData = rootData;
             return true;
