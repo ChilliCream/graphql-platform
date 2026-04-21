@@ -3,12 +3,10 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using HotChocolate.Buffers;
-using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Transport;
 using HotChocolate.Fusion.Transport.Http;
 using HotChocolate.Language;
-using HotChocolate.Text.Json;
 
 namespace HotChocolate.Fusion.Execution.Clients;
 
@@ -800,8 +798,7 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
                 var entity = entitiesElement[i];
 
                 // Build a wrapper: {"data": {"<lookupFieldName>": <entity>}}
-                var entityJson = ApolloFederationSourceSchemaClient.BuildWrappedEntityJson(
-                    lookupFieldName, entity);
+                var entityJson = BuildWrappedEntityJson(lookupFieldName, entity);
                 var entityBytes = Encoding.UTF8.GetBytes(entityJson);
                 var entityDocument = SourceResultDocument.Parse(entityBytes, entityBytes.Length);
 

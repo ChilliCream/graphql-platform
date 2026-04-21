@@ -11,8 +11,8 @@ public sealed class ApolloFederationSourceSchemaClientConfiguration : ISourceSch
     /// </summary>
     /// <param name="name">The name of the source schema.</param>
     /// <param name="httpClientName">
-    /// The name of the <see cref="System.Net.Http.HttpClient"/> to resolve from
-    /// <see cref="System.Net.Http.IHttpClientFactory"/>.
+    /// The name of the <see cref="HttpClient"/> to resolve from
+    /// <see cref="IHttpClientFactory"/>.
     /// </param>
     /// <param name="supportedOperations">The supported operation types.</param>
     public ApolloFederationSourceSchemaClientConfiguration(
