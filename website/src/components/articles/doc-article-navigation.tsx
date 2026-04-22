@@ -137,14 +137,14 @@ export const DocArticleNavigation: FC<DocArticleNavigationProps> = ({
           fullWidth={!hasVersions}
           onClick={toggleProductSwitcher}
         >
-          {activeProduct?.title}
+          <ProductSwitcherLabel>{activeProduct?.title}</ProductSwitcherLabel>
           <IconContainer $size={14}>
             <Icon {...Grid2IconSvg} />
           </IconContainer>
         </ProductSwitcherButton>
         {hasVersions && (
           <ProductSwitcherButton onClick={toggleVersionSwitcher}>
-            {activeVersion?.title}
+            <ProductSwitcherLabel>{activeVersion?.title}</ProductSwitcherLabel>
             <IconContainer $size={14}>
               {versionSwitcherOpen ? (
                 <Icon {...ChevronUpIconSvg} />
@@ -319,6 +319,14 @@ type EnhancedItem = Item & {
   fullpath: string;
 };
 
+const ProductSwitcherLabel = styled.span`
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
 const ProductSwitcherButton = styled.button<{ readonly fullWidth?: boolean }>`
   display: flex;
   flex: 0 0 auto;
@@ -328,7 +336,7 @@ const ProductSwitcherButton = styled.button<{ readonly fullWidth?: boolean }>`
   box-sizing: border-box;
   border-radius: var(--button-border-radius);
   border: 2px solid ${THEME_COLORS.primaryButtonBorder};
-  min-width: 62px;
+  min-width: 0;
   height: 38px;
   padding-right: 8px;
   padding-left: 8px;
