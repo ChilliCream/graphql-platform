@@ -61,3 +61,11 @@ production code, and a one-paragraph fix sketch.
   composite schema spec behavior that key fields are always projected by the
   lookup.
 
+## keys-mashup (partial)
+
+- File: `src/HotChocolate/Fusion/src/Fusion/Planning/` query planner; the same `@requires` projection gap surfaced by the mutations and include-skip suites.
+- Repro suite: `Suites/KeysMashup/KeysMashupTests.cs::B_Resolves_A_Name_And_NameInB_Via_Requires`.
+- Rule that is wrong: subgraph `b` declares `nameInB: String! @requires(fields: "name")` on the `A` entity. The planner should fetch `name` from subgraph `a` (where it lives) and attach it to the entity representation passed to subgraph `b`'s entity lookup so the `nameInB` resolver receives a populated `name`. Today the resolver runs without `name`, throws, and the gateway surfaces "Unexpected Execution Error".
+- Expected behavior: the planner identifies fields with `@requires` annotations and routes the dependency selection through the entity lookup to the subgraph that owns the dependency, then enriches the lookup representation with the resolved value before invoking the downstream `__resolveReference`.
+- Fix sketch: same Phase C work item as the mutations entry above. Once the planner threads `@requires` dependencies through the lookup, this case unblocks without changes here.
+
