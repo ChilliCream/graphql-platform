@@ -27,7 +27,7 @@ public sealed class MutationsTests : ComplianceTestBase
     /// <c>b</c> contributes <c>isExpensive</c> (via <c>@requires(price)</c>)
     /// and <c>isAvailable</c> through an entity reference.
     /// </summary>
-    [Fact(Skip = "Planner does not yet route the @requires(price) field through the entity lookup, so the @requires resolver runs without its required input. See APOLLO_FEDERATION_COMPLIANCE_FOLLOWUP.md follow-up.")]
+    [Fact]
     public Task AddProduct_Composes_From_Two_Subgraphs() => RunAsync(
         query: """
             mutation {
@@ -55,7 +55,7 @@ public sealed class MutationsTests : ComplianceTestBase
     /// planner enriches it with <c>isExpensive</c> and <c>isAvailable</c>
     /// from <c>b</c>.
     /// </summary>
-    [Fact(Skip = "Planner does not yet route the @requires(price) field through the entity lookup, so the @requires resolver runs without its required input. See APOLLO_FEDERATION_COMPLIANCE_FOLLOWUP.md follow-up.")]
+    [Fact]
     public Task Product_Composes_From_Two_Subgraphs() => RunAsync(
         query: """
             query {

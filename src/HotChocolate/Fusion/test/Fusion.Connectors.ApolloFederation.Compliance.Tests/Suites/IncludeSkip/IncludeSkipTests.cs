@@ -66,7 +66,7 @@ public sealed class IncludeSkipTests : ComplianceTestBase
     /// <c>@requires</c> path must still deliver <c>isExpensive</c> to
     /// <c>c</c>'s <c>include</c> resolver.
     /// </summary>
-    [Fact(Skip = "Planner does not yet route the @requires(isExpensive) field through the entity lookup. See APOLLO_FEDERATION_COMPLIANCE_FOLLOWUP.md follow-up.")]
+    [Fact]
     public Task Include_Resolves_Through_Requires_Chain() => RunAsync(
         query: """
             query ($bool: Boolean = true) {
@@ -87,7 +87,7 @@ public sealed class IncludeSkipTests : ComplianceTestBase
     /// <c>@requires</c> path must still deliver <c>isExpensive</c> to
     /// <c>c</c>'s <c>skip</c> resolver.
     /// </summary>
-    [Fact(Skip = "Planner does not yet route the @requires(isExpensive) field through the entity lookup. See APOLLO_FEDERATION_COMPLIANCE_FOLLOWUP.md follow-up.")]
+    [Fact]
     public Task Skip_Resolves_Through_Requires_Chain() => RunAsync(
         query: """
             query ($bool: Boolean = false) {

@@ -22,7 +22,7 @@ public sealed class KeysMashupTests : ComplianceTestBase
     /// <c>b.a[].nameInB</c> (from subgraph <c>b</c>'s
     /// <c>@requires(name)</c>).
     /// </summary>
-    [Fact(Skip = "Planner does not yet route the @requires(name) field through the entity lookup. See APOLLO_FEDERATION_COMPLIANCE_FOLLOWUP.md follow-up.")]
+    [Fact]
     public Task B_Resolves_A_Name_And_NameInB_Via_Requires() => RunAsync(
         query: """
             query {
