@@ -72,9 +72,6 @@
   <data name="SourceSchemaRequestDispatcher_OperationAborted" xml:space="preserve">
     <value>The operation execution was aborted.</value>
   </data>
-  <data name="SourceSchemaRequestDispatcher_BatchResponseCountMismatch" xml:space="preserve">
-    <value>The client did not return a response for each request in the batch.</value>
-  </data>
   <data name="OperationPlan_NodeNotFound" xml:space="preserve">
     <value>No execution node with id '{0}' exists in this plan.</value>
   </data>

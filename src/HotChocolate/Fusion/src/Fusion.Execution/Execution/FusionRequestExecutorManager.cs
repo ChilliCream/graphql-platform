@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.IO.Hashing;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Channels;
@@ -12,6 +12,7 @@ using HotChocolate.Execution.Errors;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Features;
 using HotChocolate.Fusion.Configuration;
+using HotChocolate.Fusion.Configuration.Parsers;
 using HotChocolate.Fusion.Diagnostics;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Fusion.Execution.Introspection;
@@ -40,6 +41,8 @@ internal sealed class FusionRequestExecutorManager
     private readonly IOptionsMonitor<FusionGatewaySetup> _optionsMonitor;
     private readonly EventObservable _events = new();
     private readonly IServiceProvider _applicationServices;
+    private readonly ImmutableArray<ISourceSchemaClientConfigurationParser> _builtInParsers =
+        [new HttpSourceSchemaClientConfigurationParser()];
 
     private bool _disposed;
     private ulong _version;
@@ -310,12 +313,26 @@ internal sealed class FusionRequestExecutorManager
         {
             foreach (var sourceSchema in sourceSchemas.EnumerateObject())
             {
-                if (sourceSchema.Value.TryGetProperty("transports", out var transports))
+                if (!sourceSchema.Value.TryGetProperty("transports", out var transports))
                 {
-                    if (transports.TryGetProperty("http", out var http))
+                    throw new InvalidOperationException(
+                        $"Source schema '{sourceSchema.Name}' has no 'transports' section.");
+                }
+
+                var anyConfig = false;
+                foreach (var transport in transports.EnumerateObject())
+                {
+                    if (TryParseTransport(sourceSchema, transport, setup, out var config))
                     {
-                        configurations.Add(CreateHttpClientConfiguration(sourceSchema.Name, http));
+                        configurations.Add(config);
+                        anyConfig = true;
                     }
+                }
+
+                if (!anyConfig)
+                {
+                    throw new InvalidOperationException(
+                        $"No parser claimed any transport for source schema '{sourceSchema.Name}'.");
                 }
             }
         }
@@ -328,100 +345,30 @@ internal sealed class FusionRequestExecutorManager
         return new SourceSchemaClientConfigurations(configurations);
     }
 
-    private static SourceSchemaHttpClientConfiguration CreateHttpClientConfiguration(
-        string schemaName,
-        JsonElement http)
+    private bool TryParseTransport(
+        JsonProperty sourceSchema,
+        JsonProperty transport,
+        FusionGatewaySetup setup,
+        [NotNullWhen(true)] out ISourceSchemaClientConfiguration? configuration)
     {
-        var clientName = SourceSchemaHttpClientConfiguration.DefaultClientName;
-        var capabilities = SourceSchemaClientCapabilities.All;
-        var supportedOperations = SupportedOperationType.All;
-        ImmutableArray<MediaTypeWithQualityHeaderValue>? defaultAcceptHeaderValues = null;
-        ImmutableArray<MediaTypeWithQualityHeaderValue>? batchingAcceptHeaderValues = null;
-        ImmutableArray<MediaTypeWithQualityHeaderValue>? subscriptionAcceptHeaderValues = null;
-
-        if (http.TryGetProperty("clientName", out var clientNameProperty)
-            && clientNameProperty.ValueKind is JsonValueKind.String
-            && clientNameProperty.GetString() is { } customClientName
-            && !string.IsNullOrEmpty(customClientName))
+        foreach (var parser in setup.SourceSchemaClientConfigurationParsers)
         {
-            clientName = customClientName;
-        }
-
-        if (http.TryGetProperty("capabilities", out var capabilitiesElement))
-        {
-            if (capabilitiesElement.TryGetProperty("standard", out var standard))
+            if (parser.TryParse(sourceSchema, transport, out configuration))
             {
-                if (standard.TryGetProperty("formats", out var formats))
-                {
-                    var builder = ImmutableArray.CreateBuilder<MediaTypeWithQualityHeaderValue>();
-
-                    foreach (var format in formats.EnumerateArray())
-                    {
-                        builder.Add(MediaTypeWithQualityHeaderValue.Parse(format.GetString()!));
-                    }
-
-                    defaultAcceptHeaderValues = builder.ToImmutable();
-                }
-            }
-
-            if (capabilitiesElement.TryGetProperty("batching", out var batchingElement))
-            {
-                if (batchingElement.TryGetProperty("variableBatching", out var supported)
-                    && !supported.GetBoolean())
-                {
-                    capabilities &= ~SourceSchemaClientCapabilities.VariableBatching;
-                }
-
-                if (batchingElement.TryGetProperty("requestBatching", out supported)
-                    && !supported.GetBoolean())
-                {
-                    capabilities &= ~SourceSchemaClientCapabilities.RequestBatching;
-                }
-
-                if (batchingElement.TryGetProperty("formats", out var formats))
-                {
-                    var builder = ImmutableArray.CreateBuilder<MediaTypeWithQualityHeaderValue>();
-
-                    foreach (var format in formats.EnumerateArray())
-                    {
-                        builder.Add(MediaTypeWithQualityHeaderValue.Parse(format.GetString()!));
-                    }
-
-                    batchingAcceptHeaderValues = builder.ToImmutable();
-                }
-            }
-
-            if (capabilitiesElement.TryGetProperty("subscriptions", out var subscriptionsElement))
-            {
-                if (subscriptionsElement.TryGetProperty("supported", out var supported)
-                    && !supported.GetBoolean())
-                {
-                    supportedOperations &= ~SupportedOperationType.Subscription;
-                }
-
-                if (subscriptionsElement.TryGetProperty("formats", out var formats))
-                {
-                    var builder = ImmutableArray.CreateBuilder<MediaTypeWithQualityHeaderValue>();
-
-                    foreach (var format in formats.EnumerateArray())
-                    {
-                        builder.Add(MediaTypeWithQualityHeaderValue.Parse(format.GetString()!));
-                    }
-
-                    subscriptionAcceptHeaderValues = builder.ToImmutable();
-                }
+                return true;
             }
         }
 
-        return new SourceSchemaHttpClientConfiguration(
-            name: schemaName,
-            httpClientName: clientName,
-            baseAddress: new Uri(http.GetProperty("url").GetString()!),
-            supportedOperations: supportedOperations,
-            capabilities: capabilities,
-            defaultAcceptHeaderValues: defaultAcceptHeaderValues,
-            batchingAcceptHeaderValues: batchingAcceptHeaderValues,
-            subscriptionAcceptHeaderValues: subscriptionAcceptHeaderValues);
+        foreach (var parser in _builtInParsers)
+        {
+            if (parser.TryParse(sourceSchema, transport, out configuration))
+            {
+                return true;
+            }
+        }
+
+        configuration = null;
+        return false;
     }
 
     private FeatureCollection CreateSchemaFeatures(
