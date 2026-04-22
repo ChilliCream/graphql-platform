@@ -13,7 +13,7 @@ public sealed class MutationsState
     private readonly List<Product> _products = [];
     private readonly List<Category> _categories = [];
     private readonly ConcurrentDictionary<string, int> _numbers = new(StringComparer.Ordinal);
-    private readonly Lock _lock = new();
+    private readonly object _lock = new();
     private bool _initialized;
 
     /// <summary>
