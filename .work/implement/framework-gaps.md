@@ -5,6 +5,14 @@ This log captures framework gaps that block individual compliance suites in
 Each entry lists the suite, the failing scenario, the location of the offending
 production code, and a one-paragraph fix sketch.
 
+## enum-intersection (partial)
+
+- File: `src/HotChocolate/Fusion/src/Fusion.Execution/` (response shaping for enum values).
+- Repro suite: `Suites/EnumIntersection/EnumIntersectionTests.cs::UsersB_Type_Returns_Null_For_Inaccessible_Value` and `Suites/EnumIntersection/EnumIntersectionTests.cs::Users_Type_Returns_Null_For_Subgraph_A_Side`.
+- Rule that is wrong: when the supergraph excludes an enum value (because it is `@inaccessible` or because it is missing from one source schema's enum), the gateway should null out the field and emit an error if the source subgraph returns the excluded value. Today the gateway forwards the source value as-is.
+- Expected behavior: after composing the supergraph enum, the gateway should validate the values returned by source subgraphs against the public enum set. Excluded values become `null` (with an error attached when the field is non-null) and never leak through to clients.
+- Fix sketch: in the result shaping code that converts subgraph enum values into the gateway response, look up each value against the supergraph enum's public values. When the value is missing or inaccessible, emit a field error and produce `null`.
+
 ## mutations (partial)
 
 - File: `src/HotChocolate/Fusion/src/Fusion/Planning/` planner; specifically the absence of `@requires` field projection through the entity lookup.
