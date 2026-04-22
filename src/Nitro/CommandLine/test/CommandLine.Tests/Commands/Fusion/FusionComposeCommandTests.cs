@@ -41,7 +41,6 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
             Options:
               -f, --source-schema-file <source-schema-file>  One or more paths to a source schema file (.graphqls) or directory containing a source schema file
               -a, --archive, --configuration <archive>       The path to a Fusion archive file (the '--configuration' alias is deprecated) [env: NITRO_FUSION_CONFIG_FILE]
-              --legacy-v1-archive <legacy-v1-archive>        The path to a Fusion v1 archive file. This option is only intended to be used during the migration from Fusion v1 to Fusion v2+.
               -e, --env, --environment <environment>         The name of the environment used for value substitution in the schema-settings.json files
               --enable-global-object-identification          Add the 'Query.node' field for global object identification
               --include-satisfiability-paths                 Include paths in satisfiability error messages
@@ -317,31 +316,6 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task Compose_WithLegacyArchive_FileDoesNotExist_ReturnsError()
-    {
-        // arrange
-        var archiveFileName = CreateTempFile();
-
-        // act
-        var result = await ExecuteCommandAsync(
-            "fusion",
-            "compose",
-            "--source-schema-file",
-            Path.Combine(s_resourcesDir, "valid-example-1/source-schema-1.graphqls"),
-            "--archive",
-            archiveFileName,
-            "--legacy-v1-archive",
-            LegacyArchiveFile);
-
-        // assert
-        result.StdErr.MatchInlineSnapshot(
-            """
-            Legacy archive file '/some/working/directory/fusion-v1.fgp' does not exist.
-            """);
-        Assert.Equal(1, result.ExitCode);
-    }
-
-    [Fact]
     public async Task Compose_FromNonExistentFiles()
     {
         // arrange
@@ -509,8 +483,7 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
             archiveFileName);
 
         // assert
-        Assert.Equal(1, result.ExitCode);
-        result.StdErr.MatchInlineSnapshot(
+        result.AssertError(
             """
             Schema settings file '/some/working/directory/missing-settings/schema-settings.json' does not exist.
             """);
