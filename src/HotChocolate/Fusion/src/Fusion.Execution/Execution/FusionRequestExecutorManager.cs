@@ -180,7 +180,7 @@ internal sealed class FusionRequestExecutorManager
 
         var options = CreateOptions(setup);
         var requestOptions = CreateRequestOptions(setup);
-        var plannerOptions = CreatePlannerOptions(setup);
+        var plannerOptions = CreatePlannerOptions(setup, options);
         var parserOptions = CreateParserOptions(setup);
         var clientConfigurations = CreateClientConfigurations(setup, configuration.Settings.Document);
         var features = CreateSchemaFeatures(
@@ -267,18 +267,21 @@ internal sealed class FusionRequestExecutorManager
         return options;
     }
 
-    private static OperationPlannerOptions CreatePlannerOptions(FusionGatewaySetup setup)
+    private static OperationPlannerOptions CreatePlannerOptions(FusionGatewaySetup setup, FusionOptions options)
     {
-        var options = new OperationPlannerOptions();
+        var plannerOptions = new OperationPlannerOptions
+        {
+            EnableDefer = options.EnableDefer
+        };
 
         foreach (var configure in setup.PlannerOptionsModifiers)
         {
-            configure.Invoke(options);
+            configure.Invoke(plannerOptions);
         }
 
-        options.MakeReadOnly();
+        plannerOptions.MakeReadOnly();
 
-        return options;
+        return plannerOptions;
     }
 
     private static ParserOptions CreateParserOptions(FusionGatewaySetup setup)

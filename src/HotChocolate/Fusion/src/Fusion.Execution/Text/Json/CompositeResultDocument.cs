@@ -13,18 +13,21 @@ public sealed partial class CompositeResultDocument : IDisposable
     private readonly List<SourceResultDocument> _sources = [];
     private readonly Operation _operation;
     private readonly ulong _includeFlags;
+    private readonly ulong _deferFlags;
     private readonly PathSegmentLocalPool? _pathPool;
     internal MetaDb _metaDb;
-    private bool _disposed;
+    private int _disposed;
 
     internal CompositeResultDocument(
         Operation operation,
         ulong includeFlags,
+        ulong deferFlags = 0,
         PathSegmentLocalPool? pathPool = null)
     {
         _metaDb = MetaDb.CreateForEstimatedRows(Cursor.RowsPerChunk * 8);
         _operation = operation;
         _includeFlags = includeFlags;
+        _deferFlags = deferFlags;
         _pathPool = pathPool;
 
         Data = CreateObject(Cursor.Zero, operation.RootSelectionSet);
@@ -83,7 +86,7 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     internal CompositeResultElement GetArrayIndexElement(Cursor current, int arrayIndex)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.GetValue(ref current);
         CheckExpectedType(ElementTokenType.StartArray, row.TokenType);
@@ -99,7 +102,7 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     internal int GetArrayLength(Cursor current)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.GetValue(ref current);
         CheckExpectedType(ElementTokenType.StartArray, row.TokenType);
@@ -109,7 +112,7 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     internal int GetPropertyCount(Cursor current)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.GetValue(ref current);
         CheckExpectedType(ElementTokenType.StartObject, row.TokenType);
@@ -226,7 +229,7 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     internal bool IsInvalidated(Cursor current)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.Get(current);
 
@@ -250,7 +253,7 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     internal bool IsNullOrInvalidated(Cursor current)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.Get(current);
 
@@ -274,7 +277,7 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     internal bool IsInternalProperty(Cursor current)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         // The flag sits on the property row (one before value)
         var propertyCursor = current.AddRows(-1);
@@ -284,7 +287,7 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     internal void Invalidate(Cursor current)
     {
-        ObjectDisposedException.ThrowIf(_disposed, this);
+        ObjectDisposedException.ThrowIf(_disposed != 0, this);
 
         var row = _metaDb.Get(current);
 
@@ -469,7 +472,7 @@ public sealed partial class CompositeResultDocument : IDisposable
             flags = ElementFlags.IsInternal;
         }
 
-        if (!selection.IsIncluded(_includeFlags))
+        if (!selection.IsIncluded(_includeFlags) || selection.IsDeferred(_deferFlags))
         {
             flags |= ElementFlags.IsExcluded;
         }
@@ -498,10 +501,19 @@ public sealed partial class CompositeResultDocument : IDisposable
 
     public void Dispose()
     {
-        if (!_disposed)
-        {
-            _metaDb.Dispose();
-            _disposed = true;
-        }
+        ReturnRentedMemory();
+        GC.SuppressFinalize(this);
     }
+
+    private void ReturnRentedMemory()
+    {
+        if (Interlocked.Exchange(ref _disposed, 1) != 0)
+        {
+            return;
+        }
+
+        _metaDb.Dispose();
+    }
+
+    ~CompositeResultDocument() => ReturnRentedMemory();
 }
