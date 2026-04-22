@@ -10,8 +10,6 @@ authorUrl: https://github.com/pascalsenn
 authorImageUrl: https://avatars.githubusercontent.com/u/14233220?v=4
 ---
 
-# Semantic Introspection
-
 The agentic age of software has just begun, and it brings a whole new set of challenges for our applications.
 Until recently, the consumers of our APIs, web apps, and mobile apps were human users. Going forward, our APIs will increasingly be consumed by LLMs.
 
