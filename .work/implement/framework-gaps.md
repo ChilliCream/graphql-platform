@@ -5,6 +5,14 @@ This log captures framework gaps that block individual compliance suites in
 Each entry lists the suite, the failing scenario, the location of the offending
 production code, and a one-paragraph fix sketch.
 
+## typename
+
+- File: `src/HotChocolate/Fusion/src/Fusion.Composition.ApolloFederation/` (composer adapter), specifically the absence of `@interfaceObject` translation.
+- Repro suite: `Suites/Typename/TypenameTests.cs` (six audit cases).
+- Rule that is wrong: subgraph `b` uses `type User @key(fields: "id") @interfaceObject` to abstractly extend an interface defined in subgraph `a`. Without an `@interfaceObject` translation in the Apollo Federation adapter the composer either rejects the SDL or fails to recognize the subgraph as contributing fields to all concrete implementations.
+- Expected behavior: composing across `@interfaceObject` should treat `type User @interfaceObject` as a contribution to every concrete type that implements `interface User` in any other subgraph. Apollo Federation's composer accepts this and the runtime honors `__typename` from the source schema that owns the concrete type (in this audit, subgraph `a`).
+- Fix sketch: extend the federation transformer in `Fusion.Composition.ApolloFederation` to recognize `@interfaceObject` and emit field contributions onto every concrete implementer of the interface declared in another subgraph. Mirror Apollo's behavior: forward `name` requests on each implementer to the `@interfaceObject` source schema via the entity lookup keyed on the interface key fields. This is the Phase E `@interfaceObject` work and is intentionally out of scope for the Phase A enablement pass.
+
 ## parent-entity-call
 
 - File: `src/HotChocolate/Fusion/src/Fusion.Composition/SatisfiabilityValidator.cs`

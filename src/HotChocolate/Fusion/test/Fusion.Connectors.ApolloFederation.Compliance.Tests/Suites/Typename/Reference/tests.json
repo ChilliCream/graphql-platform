@@ -1,0 +1,50 @@
+[
+  {
+    "query": "query {\n  union {\n    __typename\n    typename: __typename\n  }\n}\n",
+    "expected": {
+      "data": {
+        "union": { "__typename": "Oven", "typename": "Oven" }
+      }
+    }
+  },
+  {
+    "query": "query {\n  interface {\n    id\n    __typename\n    typename: __typename\n    t: __typename\n  }\n}\n",
+    "expected": {
+      "data": {
+        "interface": { "id": "2", "__typename": "Toaster", "typename": "Toaster", "t": "Toaster" }
+      }
+    }
+  },
+  {
+    "query": "query {\n  union {\n    __typename\n    ... on Oven { typename: __typename }\n    ... on Toaster { typename: __typename }\n  }\n}\n",
+    "expected": {
+      "data": {
+        "union": { "__typename": "Oven", "typename": "Oven" }
+      }
+    }
+  },
+  {
+    "query": "query {\n  interface {\n    __typename\n    ... on Oven { typename: __typename }\n    ... on Toaster { typename: __typename }\n  }\n}\n",
+    "expected": {
+      "data": {
+        "interface": { "__typename": "Toaster", "typename": "Toaster" }
+      }
+    }
+  },
+  {
+    "query": "query {\n  users { id }\n}\n",
+    "expected": {
+      "data": {
+        "users": [ { "id": "u1" }, { "id": "u2" } ]
+      }
+    }
+  },
+  {
+    "query": "query {\n  users { __typename }\n}\n",
+    "expected": {
+      "data": {
+        "users": [ { "__typename": "Admin" }, { "__typename": "Admin" } ]
+      }
+    }
+  }
+]
