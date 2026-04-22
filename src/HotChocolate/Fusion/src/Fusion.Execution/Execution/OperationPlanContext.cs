@@ -40,7 +40,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     private ISourceSchemaClientScope _clientScope = default!;
     private string? _traceId;
     private long _start;
-    private bool _disposed;
+    private int _disposed;
     private int _nodeSlotCapacity;
     internal OperationPlanContextPool? _pool;
 

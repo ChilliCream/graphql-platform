@@ -132,7 +132,7 @@ internal static class OperationPlanExecutor
 
             // Return a ResponseStream that yields the initial result then deferred results.
             var stream = new ResponseStream(
-                () => CreateDeferredStream(
+                () => CreateIncrementalStream(
                     requestContext,
                     variables,
                     operationPlan,
@@ -158,7 +158,7 @@ internal static class OperationPlanExecutor
         }
     }
 
-    private static async IAsyncEnumerable<OperationResult> CreateDeferredStream(
+    private static async IAsyncEnumerable<OperationResult> CreateIncrementalStream(
         RequestContext requestContext,
         IVariableValueCollection variables,
         OperationPlan operationPlan,
@@ -219,7 +219,12 @@ internal static class OperationPlanExecutor
             started.Add(subPlan);
             pendingSubPlanCount++;
             _ = ExecuteDeferredSubPlanInBackground(
-                requestContext, variables, operationPlan, subPlan, channel.Writer, cancellationToken);
+                    requestContext,
+                    variables,
+                    operationPlan,
+                    subPlan,
+                    channel.Writer,
+                    cancellationToken);
         }
 
         // Track which delivery groups we have already announced as pending so
