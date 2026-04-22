@@ -77,3 +77,11 @@ production code, and a one-paragraph fix sketch.
 - Expected behavior: the transformer should detect the collision and either reuse the existing root field (if it already returns the same entity by the same key) or pick a non-colliding generated name (for example, prefix with an internal marker) so the composition continues. Apollo Federation tolerates this overlap because it routes entity calls through the synthetic `_entities(representations: [_Any!]!)` field, not through the user-declared root field.
 - Fix sketch: in `GenerateLookupFields.Apply`, before calling `schema.QueryType.Fields.Add`, check whether a field with that name is already present. If so, either skip the generated lookup (the user-declared field can serve as the entity gateway) or emit it under a mangled name with the `@internal @lookup` directives still in place. The latter keeps the connector wired to a guaranteed-internal field and avoids tripping the field collection.
 
+## fed2-external-extension
+
+- File: same as fed2-external-extends, `src/HotChocolate/Fusion/src/Fusion.Composition.ApolloFederation/GenerateLookupFields.cs` line 105.
+- Repro suite: every test in `Suites/Fed2ExternalExtension/Fed2ExternalExtensionTests.cs` (four cases).
+- Rule that is wrong: identical collision as fed2-external-extends. The audit's subgraph `b` exposes `Query.userById(id: ID): User` together with `User @key(fields: "id")`. The only difference between this suite and fed2-external-extends is that subgraph `a` declares `extend type User @key(...)` (the v2 form) instead of `type User @key(...) @extends` (the v1-style form). Both forms exercise the same composer path and hit the same name collision in the lookup field generator.
+- Expected behavior: same as fed2-external-extends.
+- Fix sketch: same as fed2-external-extends. The same fix unblocks both suites in lockstep.
+
