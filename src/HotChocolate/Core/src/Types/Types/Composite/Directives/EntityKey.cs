@@ -58,8 +58,7 @@ public sealed class EntityKey
     public EntityKey(string fields)
     {
         ArgumentNullException.ThrowIfNull(fields);
-        fields = $"{{ {fields.Trim('{', '}')} }}";
-        Fields = Utf8GraphQLParser.Syntax.ParseSelectionSet(fields);
+        Fields = FieldSelectionSetType.ParseSelectionSet(fields);
     }
 
     /// <summary>

@@ -793,7 +793,9 @@ internal static class CompositeSchemaBuilder
                     fieldDirective.SourceName ?? fieldDefinition.Name,
                     context.GetSchemaName(fieldDirective.SchemaKey),
                     requirements,
-                    CompleteType(fieldDef.Type, fieldDirective.SourceType, context)));
+                    CompleteType(fieldDef.Type, fieldDirective.SourceType, context),
+                    fieldDirective.IsExternal,
+                    fieldDirective.Provides));
         }
 
         return new SourceObjectFieldCollection(temp.ToImmutable());
