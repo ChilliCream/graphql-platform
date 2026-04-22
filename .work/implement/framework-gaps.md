@@ -69,3 +69,11 @@ production code, and a one-paragraph fix sketch.
 - Expected behavior: the planner identifies fields with `@requires` annotations and routes the dependency selection through the entity lookup to the subgraph that owns the dependency, then enriches the lookup representation with the resolved value before invoking the downstream `__resolveReference`.
 - Fix sketch: same Phase C work item as the mutations entry above. Once the planner threads `@requires` dependencies through the lookup, this case unblocks without changes here.
 
+## fed2-external-extends
+
+- File: `src/HotChocolate/Fusion/src/Fusion.Composition.ApolloFederation/GenerateLookupFields.cs` line 105.
+- Repro suite: every test in `Suites/Fed2ExternalExtends/Fed2ExternalExtendsTests.cs` (four cases).
+- Rule that is wrong: the lookup field generator builds a name like `userById` from `User @key(fields: "id")` (camel-case type plus `By` plus pascal-case argument). When the source subgraph already exposes a user-declared `Query.userById(id: ID): User` field, `Schema.QueryType.Fields.Add` throws `An item with the same key has already been added. Key: userById` and the entire composition fails. The audit's subgraph `b` exposes exactly that user-facing root field together with the resolvable `User @key("id")`, so the suite cannot compose at all.
+- Expected behavior: the transformer should detect the collision and either reuse the existing root field (if it already returns the same entity by the same key) or pick a non-colliding generated name (for example, prefix with an internal marker) so the composition continues. Apollo Federation tolerates this overlap because it routes entity calls through the synthetic `_entities(representations: [_Any!]!)` field, not through the user-declared root field.
+- Fix sketch: in `GenerateLookupFields.Apply`, before calling `schema.QueryType.Fields.Add`, check whether a field with that name is already present. If so, either skip the generated lookup (the user-declared field can serve as the entity gateway) or emit it under a mangled name with the `@internal @lookup` directives still in place. The latter keeps the connector wired to a guaranteed-internal field and avoids tripping the field collection.
+
