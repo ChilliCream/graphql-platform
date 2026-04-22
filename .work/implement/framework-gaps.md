@@ -5,6 +5,14 @@ This log captures framework gaps that block individual compliance suites in
 Each entry lists the suite, the failing scenario, the location of the offending
 production code, and a one-paragraph fix sketch.
 
+## shared-root (partial)
+
+- File: `src/HotChocolate/Fusion/src/Fusion/Planning/` query planner; specifically the absence of cross-subgraph list zipping for shareable non-entity types.
+- Repro suite: `Suites/SharedRoot/SharedRootTests.cs::Products_Composes_Fields_From_Three_Subgraphs`.
+- Rule that is wrong: when a non-keyed object type is reachable through the same shareable list root field in multiple subgraphs, the planner picks a single subgraph for the list and emits `null` for fields that subgraph cannot resolve. The expectation in Apollo's reference is to issue parallel root queries, then merge the lists element-by-element by position.
+- Expected behavior: for shareable list roots over a non-entity type, the planner should fan out to all subgraphs that can produce at least one needed field, then zip the parallel result lists by index. The single-product variant already works because there is only one element to merge.
+- Fix sketch: extend the planner to recognize shareable root selections returning list-of-non-entity-types and emit a parallel-fanout, zip-by-index merge plan. The merge step needs no key, only an index alignment guarantee from each subgraph's resolver. This is a planner enhancement and is out of scope for the test enablement pass.
+
 ## typename
 
 - File: `src/HotChocolate/Fusion/src/Fusion.Composition.ApolloFederation/` (composer adapter), specifically the absence of `@interfaceObject` translation.
