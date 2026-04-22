@@ -158,6 +158,50 @@ public sealed class FederationSchemaTransformerTests
     }
 
     [Fact]
+    public void Transform_Should_Generate_Nullable_RequireArgument_When_SourceField_Is_Nullable()
+    {
+        // arrange: 'price' and 'weight' on the owning type are nullable so the
+        // generated '@require' arguments must mirror that nullability. Wrapping
+        // them in NonNull would cause post-merge validation to reject the
+        // composition because the composed schema's field types stay nullable.
+        const string federationSdl =
+            """
+            schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key", "@requires", "@external"]) {
+              query: Query
+            }
+            type Product @key(fields: "id") {
+              id: ID!
+              price: Float @external
+              weight: Float @external
+              shippingEstimate: Float @requires(fields: "price weight")
+            }
+            type Query {
+              product(id: ID!): Product
+              _service: _Service!
+              _entities(representations: [_Any!]!): [_Entity]!
+            }
+            type _Service { sdl: String! }
+            union _Entity = Product
+            scalar FieldSet
+            scalar _Any
+            directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+            directive @requires(fields: FieldSet!) on FIELD_DEFINITION
+            directive @external on FIELD_DEFINITION
+            directive @link(url: String! import: [String!]) repeatable on SCHEMA
+            """;
+
+        // act
+        var result = FederationSchemaTransformer.Transform(federationSdl);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Assert.Contains("price: Float @require(field: \"price\")", result.Value);
+        Assert.Contains("weight: Float @require(field: \"weight\")", result.Value);
+        Assert.DoesNotContain("price: Float!", result.Value);
+        Assert.DoesNotContain("weight: Float!", result.Value);
+    }
+
+    [Fact]
     public void Transform_ProvidesDirective()
     {
         // arrange

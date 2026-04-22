@@ -114,10 +114,12 @@ internal static class TransformRequiresToRequire
                     continue;
                 }
 
-                var fieldType = sourceField.Type;
-                var nonNullType = EnsureNonNull(StripNonNull(fieldType));
-
-                if (nonNullType is not IInputType inputType)
+                // Mirror the source field's nullability on the generated
+                // argument. The composed schema validator compares this
+                // argument against the owning source field as-is, so
+                // wrapping a nullable source in NonNull here would make
+                // every post-merge validation reject the composition.
+                if (sourceField.Type is not IInputType inputType)
                 {
                     continue;
                 }
@@ -171,25 +173,5 @@ internal static class TransformRequiresToRequire
         }
 
         return result;
-    }
-
-    private static IType StripNonNull(IType type)
-    {
-        if (type is NonNullType nonNull)
-        {
-            return nonNull.NullableType;
-        }
-
-        return type;
-    }
-
-    private static IType EnsureNonNull(IType type)
-    {
-        if (type.Kind is TypeKind.NonNull)
-        {
-            return type;
-        }
-
-        return new NonNullType(type);
     }
 }
