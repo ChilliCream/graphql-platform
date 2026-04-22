@@ -17,8 +17,12 @@ namespace HotChocolate.Fusion.Execution.Clients;
 /// </summary>
 internal sealed class FederationQueryRewriter
 {
+    private static readonly IReadOnlyDictionary<string, EntityRequiresInfo> s_emptyEntityRequires
+        = new Dictionary<string, EntityRequiresInfo>(StringComparer.Ordinal);
+
     private readonly ConcurrentDictionary<ulong, RewrittenOperation> _cache = new();
     private readonly IReadOnlyDictionary<string, LookupFieldInfo> _lookupFields;
+    private readonly IReadOnlyDictionary<string, EntityRequiresInfo> _entityRequires;
 
     /// <summary>
     /// Initializes a new instance of <see cref="FederationQueryRewriter"/>.
@@ -27,10 +31,19 @@ internal sealed class FederationQueryRewriter
     /// A dictionary mapping query field names (e.g. <c>"productById"</c>) to their
     /// <see cref="LookupFieldInfo"/> describing the entity type and key argument mappings.
     /// </param>
-    public FederationQueryRewriter(IReadOnlyDictionary<string, LookupFieldInfo> lookupFields)
+    /// <param name="entityRequires">
+    /// A dictionary keyed by entity type name (e.g. <c>"Product"</c>) that
+    /// describes the <c>@require</c> arguments declared on each entity field.
+    /// Optional; when <see langword="null"/> the rewriter treats every entity
+    /// type as having no require arguments.
+    /// </param>
+    public FederationQueryRewriter(
+        IReadOnlyDictionary<string, LookupFieldInfo> lookupFields,
+        IReadOnlyDictionary<string, EntityRequiresInfo>? entityRequires = null)
     {
         ArgumentNullException.ThrowIfNull(lookupFields);
         _lookupFields = lookupFields;
+        _entityRequires = entityRequires ?? s_emptyEntityRequires;
     }
 
     /// <summary>
@@ -57,7 +70,7 @@ internal sealed class FederationQueryRewriter
             && selections[0] is FieldNode lookupField
             && _lookupFields.TryGetValue(lookupField.Name.Value, out var lookupInfo))
         {
-            return RewriteEntityLookup(lookupField, lookupInfo);
+            return RewriteEntityLookup(lookupField, lookupInfo, _entityRequires);
         }
 
         // Not an entity lookup, pass through unchanged.
@@ -73,7 +86,8 @@ internal sealed class FederationQueryRewriter
 
     private static RewrittenOperation RewriteEntityLookup(
         FieldNode lookupField,
-        LookupFieldInfo lookupInfo)
+        LookupFieldInfo lookupInfo,
+        IReadOnlyDictionary<string, EntityRequiresInfo> entityRequires)
     {
         // 1. Build the variable-to-key-field mapping by inspecting the lookup field's arguments.
         //    The planner passes arguments like: productById(id: $__fusion_1_id)
@@ -89,7 +103,24 @@ internal sealed class FederationQueryRewriter
             }
         }
 
-        // 2. Build the _entities query AST.
+        // 2. Project any '@require' arguments declared on the lookup field's
+        //    selection into the representation. The planner emits the require
+        //    arguments as a variable reference on each inline-fragment field;
+        //    we strip those arguments from the outgoing selection and record
+        //    the variable-to-representation mapping so the client can splice
+        //    the bound variable value onto the representation body.
+        //
+        //    The walk only descends into the lookup field's top-level selection
+        //    set. Nested '@require' paths (require arguments on fields nested
+        //    inside other selections) are not yet handled; the composer does
+        //    not currently generate them for any enabled compliance suite.
+        var innerSelections = StripRequireArguments(
+            lookupField.SelectionSet,
+            lookupInfo.EntityTypeName,
+            entityRequires,
+            variableToKeyFieldMap);
+
+        // 3. Build the _entities query AST.
         //    query($representations: [_Any!]!) {
         //      _entities(representations: $representations) {
         //        ... on EntityType { <inner selections> }
@@ -113,8 +144,7 @@ internal sealed class FederationQueryRewriter
             location: null,
             typeCondition: new NamedTypeNode(lookupInfo.EntityTypeName),
             directives: [],
-            selectionSet: lookupField.SelectionSet
-                ?? new SelectionSetNode(Array.Empty<ISelectionNode>()));
+            selectionSet: innerSelections);
 
         // The _entities field: _entities(representations: $representations) { ... on Product { ... } }
         var entitiesField = new FieldNode(
@@ -146,6 +176,100 @@ internal sealed class FederationQueryRewriter
             LookupFieldName = lookupField.Name.Value,
             InlineFragment = inlineFragment
         };
+    }
+
+    /// <summary>
+    /// Returns the lookup field's inner selection set with every
+    /// <c>@require</c>-tagged argument removed. The stripped variables are
+    /// recorded into <paramref name="variableToKeyFieldMap"/> so that the
+    /// client merges them into the <c>_entities</c> representation body.
+    /// </summary>
+    private static SelectionSetNode StripRequireArguments(
+        SelectionSetNode? selectionSet,
+        string entityTypeName,
+        IReadOnlyDictionary<string, EntityRequiresInfo> entityRequires,
+        Dictionary<string, string> variableToKeyFieldMap)
+    {
+        if (selectionSet is null)
+        {
+            return new SelectionSetNode(Array.Empty<ISelectionNode>());
+        }
+
+        if (!entityRequires.TryGetValue(entityTypeName, out var requiresInfo)
+            || requiresInfo.Fields.Count == 0)
+        {
+            return selectionSet;
+        }
+
+        var selections = selectionSet.Selections;
+        List<ISelectionNode>? rewritten = null;
+
+        for (var i = 0; i < selections.Count; i++)
+        {
+            var selection = selections[i];
+
+            if (selection is not FieldNode fieldNode
+                || !requiresInfo.Fields.TryGetValue(fieldNode.Name.Value, out var requiresArgs))
+            {
+                rewritten?.Add(selection);
+                continue;
+            }
+
+            // Walk the field's arguments and drop any that match a require
+            // argument name; record the bound variable name against the
+            // require field path so the client can inject it into the
+            // representation.
+            var arguments = fieldNode.Arguments;
+            List<ArgumentNode>? retained = null;
+
+            for (var j = 0; j < arguments.Count; j++)
+            {
+                var argument = arguments[j];
+
+                if (requiresArgs.TryGetValue(argument.Name.Value, out var requireFieldPath)
+                    && argument.Value is VariableNode variable)
+                {
+                    variableToKeyFieldMap[variable.Name.Value] = requireFieldPath;
+
+                    if (retained is null)
+                    {
+                        retained = new List<ArgumentNode>(arguments.Count);
+                        for (var k = 0; k < j; k++)
+                        {
+                            retained.Add(arguments[k]);
+                        }
+                    }
+
+                    continue;
+                }
+
+                retained?.Add(argument);
+            }
+
+            if (retained is null)
+            {
+                rewritten?.Add(selection);
+                continue;
+            }
+
+            if (rewritten is null)
+            {
+                rewritten = new List<ISelectionNode>(selections.Count);
+                for (var k = 0; k < i; k++)
+                {
+                    rewritten.Add(selections[k]);
+                }
+            }
+
+            rewritten.Add(fieldNode.WithArguments(retained));
+        }
+
+        if (rewritten is null)
+        {
+            return selectionSet;
+        }
+
+        return new SelectionSetNode(rewritten);
     }
 
     private static OperationDefinitionNode GetOperationDefinition(DocumentNode document)

@@ -21,12 +21,19 @@ public sealed class ApolloFederationSourceSchemaClientConfiguration : ISourceSch
     /// The lookup field metadata used to rewrite Fusion planner queries into
     /// Apollo Federation <c>_entities</c> queries.
     /// </param>
+    /// <param name="entityRequires">
+    /// Per-entity-type metadata describing the <c>@require</c> arguments on
+    /// each entity field. Enables the rewriter to strip synthetic require
+    /// arguments from outgoing queries and to inject the bound variable
+    /// values into the <c>_entities</c> representation body.
+    /// </param>
     /// <param name="supportedOperations">The supported operation types.</param>
     internal ApolloFederationSourceSchemaClientConfiguration(
         string name,
         string httpClientName,
         Uri baseAddress,
         IReadOnlyDictionary<string, LookupFieldInfo> lookups,
+        IReadOnlyDictionary<string, EntityRequiresInfo>? entityRequires = null,
         SupportedOperationType supportedOperations = SupportedOperationType.Query | SupportedOperationType.Mutation)
     {
         ArgumentException.ThrowIfNullOrEmpty(name);
@@ -38,6 +45,8 @@ public sealed class ApolloFederationSourceSchemaClientConfiguration : ISourceSch
         HttpClientName = httpClientName;
         BaseAddress = baseAddress;
         Lookups = lookups;
+        EntityRequires = entityRequires
+            ?? new Dictionary<string, EntityRequiresInfo>(StringComparer.Ordinal);
         SupportedOperations = supportedOperations;
     }
 
@@ -59,6 +68,12 @@ public sealed class ApolloFederationSourceSchemaClientConfiguration : ISourceSch
     /// into Apollo Federation <c>_entities</c> queries.
     /// </summary>
     internal IReadOnlyDictionary<string, LookupFieldInfo> Lookups { get; }
+
+    /// <summary>
+    /// Gets the per-entity-type <c>@require</c> argument metadata keyed by
+    /// entity type name (e.g. <c>"Product"</c>).
+    /// </summary>
+    internal IReadOnlyDictionary<string, EntityRequiresInfo> EntityRequires { get; }
 
     /// <inheritdoc />
     public SupportedOperationType SupportedOperations { get; }
