@@ -1,15 +1,18 @@
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Threading.Channels;
 using HotChocolate.Execution;
 using HotChocolate.Fusion.Execution.Nodes;
+using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Fusion.Execution;
 
-internal sealed class OperationPlanExecutor
+internal static class OperationPlanExecutor
 {
-    public async Task<IExecutionResult> ExecuteAsync(
+    public static async Task<IExecutionResult> ExecuteAsync(
         RequestContext requestContext,
         IVariableValueCollection variables,
         OperationPlan operationPlan,
@@ -46,7 +49,598 @@ internal sealed class OperationPlanExecutor
         return context.Complete();
     }
 
-    public async Task<IExecutionResult> SubscribeAsync(
+    public static async Task<IExecutionResult> ExecuteWithDeferAsync(
+        RequestContext requestContext,
+        IVariableValueCollection variables,
+        OperationPlan operationPlan,
+        CancellationToken cancellationToken)
+    {
+        // Execute the main (non-deferred) plan nodes first.
+        var executionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        OperationPlanContext? context = null;
+
+        try
+        {
+            context = requestContext.Schema.Services.GetRequiredService<OperationPlanContextPool>().Rent();
+            context.Initialize(requestContext, variables, operationPlan, executionCts);
+
+            context.Begin();
+
+            switch (operationPlan.Operation.Definition.Operation)
+            {
+                case OperationType.Query:
+                    await ExecuteQueryAsync(context, operationPlan, executionCts.Token);
+                    break;
+
+                case OperationType.Mutation:
+                    await ExecuteMutationAsync(context, operationPlan, executionCts.Token);
+                    break;
+
+                default:
+                    throw new InvalidOperationException("Only queries and mutations can use @defer.");
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Build the initial result.
+            var initialResult = context.Complete();
+
+            // Compute the active delivery groups (one per @defer occurrence whose
+            // @defer(if:) evaluates to true) and the subplans that will actually run.
+            // A subplan is active if at least one of its delivery groups is active.
+            var activeDeliveryGroupIds = new HashSet<int>();
+            foreach (var deliveryGroup in operationPlan.DeliveryGroups)
+            {
+                if (IsDeliveryGroupActive(deliveryGroup, variables))
+                {
+                    activeDeliveryGroupIds.Add(deliveryGroup.Id);
+                }
+            }
+
+            // Announce every top-level active delivery group as pending on the
+            // initial payload. Nested delivery groups are announced when their
+            // parent's subplan completes.
+            var pendingResults = ImmutableList.CreateBuilder<PendingResult>();
+            foreach (var deliveryGroup in operationPlan.DeliveryGroups)
+            {
+                if (deliveryGroup.Parent is not null)
+                {
+                    continue;
+                }
+
+                if (!activeDeliveryGroupIds.Contains(deliveryGroup.Id))
+                {
+                    continue;
+                }
+
+                pendingResults.Add(new PendingResult(
+                    deliveryGroup.Id,
+                    BuildPath(deliveryGroup.Path ?? SelectionPath.Root),
+                    deliveryGroup.Label));
+            }
+
+            initialResult.HasNext = pendingResults.Count > 0;
+            initialResult.Pending = pendingResults.ToImmutable();
+
+            if (pendingResults.Count == 0)
+            {
+                // No active deferred subplans (all conditions were false).
+                executionCts.Dispose();
+                await context.DisposeAsync();
+                return initialResult;
+            }
+
+            // Return a ResponseStream that yields the initial result then deferred results.
+            var stream = new ResponseStream(
+                () => CreateIncrementalStream(
+                    requestContext,
+                    variables,
+                    operationPlan,
+                    initialResult,
+                    activeDeliveryGroupIds,
+                    cancellationToken),
+                ExecutionResultKind.DeferredResult);
+
+            stream.RegisterForCleanup(context);
+            stream.RegisterForCleanup(executionCts);
+            return stream;
+        }
+        catch (Exception)
+        {
+            executionCts.Dispose();
+
+            if (context is not null)
+            {
+                await context.DisposeAsync();
+            }
+
+            throw;
+        }
+    }
+
+    private static async IAsyncEnumerable<OperationResult> CreateIncrementalStream(
+        RequestContext requestContext,
+        IVariableValueCollection variables,
+        OperationPlan operationPlan,
+        OperationResult initialResult,
+        HashSet<int> activeDeliveryGroupIds,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        // Yield the initial result first.
+        yield return initialResult;
+
+        var deferredSubPlans = operationPlan.DeferredSubPlans;
+
+        // Per-delivery-group completion tracking. A delivery group is considered
+        // complete when every subplan whose DeliveryGroups contains it has
+        // finished. We also track which subplans are "active" so an inactive
+        // @defer(if: false) group does not block completion accounting.
+        var pendingCountByDeliveryGroup = new Dictionary<int, int>();
+        foreach (var subPlan in deferredSubPlans)
+        {
+            if (!IsSubPlanActive(subPlan, activeDeliveryGroupIds))
+            {
+                continue;
+            }
+
+            foreach (var deliveryGroup in subPlan.DeliveryGroups)
+            {
+                if (!activeDeliveryGroupIds.Contains(deliveryGroup.Id))
+                {
+                    continue;
+                }
+
+                pendingCountByDeliveryGroup[deliveryGroup.Id] =
+                    pendingCountByDeliveryGroup.GetValueOrDefault(deliveryGroup.Id) + 1;
+            }
+        }
+
+        // A subplan starts running once every delivery group it depends on has
+        // had its parent subplan dispatched. For now we keep the simpler rule
+        // used previously: a subplan is top-level when its first delivery group
+        // has no parent. Nested subplans are launched when their parent delivery
+        // group's subplan completes.
+        var started = new HashSet<ExecutionSubPlan>();
+        var channel = Channel.CreateUnbounded<(ExecutionSubPlan SubPlan, OperationResult? Result, Exception? Error)>();
+        var pendingSubPlanCount = 0;
+
+        foreach (var subPlan in deferredSubPlans)
+        {
+            if (!IsSubPlanActive(subPlan, activeDeliveryGroupIds))
+            {
+                continue;
+            }
+
+            if (subPlan.DeliveryGroups[0].Parent is not null)
+            {
+                continue;
+            }
+
+            started.Add(subPlan);
+            pendingSubPlanCount++;
+            _ = ExecuteDeferredSubPlanInBackground(
+                    requestContext,
+                    variables,
+                    operationPlan,
+                    subPlan,
+                    channel.Writer,
+                    cancellationToken);
+        }
+
+        // Track which delivery groups we have already announced as pending so
+        // we do not re-announce nested groups multiple times when they belong
+        // to more than one subplan.
+        var announcedDeliveryGroupIds = new HashSet<int>();
+        foreach (var deliveryGroup in operationPlan.DeliveryGroups)
+        {
+            if (deliveryGroup.Parent is null && activeDeliveryGroupIds.Contains(deliveryGroup.Id))
+            {
+                announcedDeliveryGroupIds.Add(deliveryGroup.Id);
+            }
+        }
+
+        // Yield results as they complete.
+        while (pendingSubPlanCount > 0 && !cancellationToken.IsCancellationRequested)
+        {
+            var (subPlan, result, error) = await channel.Reader.ReadAsync(cancellationToken);
+            pendingSubPlanCount--;
+
+            // Start nested subplans whose parent delivery group belongs to the
+            // just-completed subplan, then announce their delivery groups as
+            // pending. We collect announcements for the outgoing payload.
+            var childPending = ImmutableList.CreateBuilder<PendingResult>();
+            foreach (var candidate in deferredSubPlans)
+            {
+                if (!IsSubPlanActive(candidate, activeDeliveryGroupIds))
+                {
+                    continue;
+                }
+
+                if (started.Contains(candidate))
+                {
+                    continue;
+                }
+
+                var candidateParent = candidate.DeliveryGroups[0].Parent;
+                if (candidateParent is null)
+                {
+                    continue;
+                }
+
+                var parentBelongsToJustCompleted = false;
+                foreach (var deliveryGroup in subPlan.DeliveryGroups)
+                {
+                    if (ReferenceEquals(deliveryGroup, candidateParent))
+                    {
+                        parentBelongsToJustCompleted = true;
+                        break;
+                    }
+                }
+
+                if (!parentBelongsToJustCompleted)
+                {
+                    continue;
+                }
+
+                started.Add(candidate);
+                pendingSubPlanCount++;
+                _ = ExecuteDeferredSubPlanInBackground(
+                    requestContext,
+                    variables,
+                    operationPlan,
+                    candidate,
+                    channel.Writer,
+                    cancellationToken);
+
+                foreach (var deliveryGroup in candidate.DeliveryGroups)
+                {
+                    if (!activeDeliveryGroupIds.Contains(deliveryGroup.Id))
+                    {
+                        continue;
+                    }
+
+                    if (!announcedDeliveryGroupIds.Add(deliveryGroup.Id))
+                    {
+                        continue;
+                    }
+
+                    childPending.Add(new PendingResult(
+                        deliveryGroup.Id,
+                        BuildPath(deliveryGroup.Path ?? SelectionPath.Root),
+                        deliveryGroup.Label));
+                }
+            }
+
+            // Pick the best delivery group for this subplan's emission: the
+            // one whose Path is the longest prefix of the data's actual path
+            // (equivalently: produces the shortest subPath). This follows the
+            // graphql-js `_getBestIdAndSubPath` rule. Ties are broken by the
+            // smallest DeferUsage.Id for determinism, which matches the sorted
+            // DeliveryGroups order.
+            var bestDeliveryGroup = PickBestDeliveryGroup(subPlan);
+
+            // Build the incremental payload following the GraphQL incremental
+            // delivery spec. Deferred data goes in `incremental`; `completed`
+            // signals a delivery group is done; `hasNext` indicates more
+            // payloads follow. We compute completed entries by decrementing
+            // each delivery group the subplan contributed to.
+            var completed = ImmutableList.CreateBuilder<CompletedResult>();
+            OperationResult payload;
+
+            if (error is not null)
+            {
+                var errorObj = ErrorBuilder.New()
+                    .SetMessage(error.Message)
+                    .Build();
+                payload = OperationResult.FromError(errorObj);
+                CompleteDeliveryGroupsForSubPlan(
+                    subPlan,
+                    activeDeliveryGroupIds,
+                    pendingCountByDeliveryGroup,
+                    completed,
+                    errors: [errorObj]);
+            }
+            else if (result is not null)
+            {
+                payload = result;
+
+                // Wrap the deferred result's data in IncrementalObjectResult
+                // and clear top-level data/errors (per spec, subsequent payloads
+                // use `incremental` array, not root `data`).
+                //
+                // The deferred plan executes against a standalone operation whose
+                // result is rooted at Query (e.g. `{ user: { reviews: [...] } }`),
+                // but the incremental delivery contract requires `incremental.data`
+                // to be the delta at `pending.path`. We navigate down the best
+                // delivery group's path and emit only the subtree at that location.
+                if (result.Data.HasValue
+                    && !result.Data.Value.IsValueNull
+                    && TryCreateIncrementalData(
+                        result.Data.Value,
+                        bestDeliveryGroup,
+                        out var incrementalData))
+                {
+                    payload.Incremental =
+                    [
+                        new IncrementalObjectResult(
+                            bestDeliveryGroup.Id,
+                            result.Errors.Count > 0 ? result.Errors : null,
+                            data: incrementalData)
+                    ];
+                }
+
+                CompleteDeliveryGroupsForSubPlan(
+                    subPlan,
+                    activeDeliveryGroupIds,
+                    pendingCountByDeliveryGroup,
+                    completed,
+                    errors: result.Errors.Count > 0 && payload.Incremental.Count == 0
+                        ? result.Errors
+                        : null);
+            }
+            else
+            {
+                // Empty deferred subplan: all fields may have been conditional
+                // and excluded. Report a successful completion with no data.
+                // We use FromError to create a valid OperationResult, then
+                // clear top-level errors since this is a successful completion.
+                var placeholder = ErrorBuilder.New()
+                    .SetMessage("placeholder")
+                    .Build();
+                payload = OperationResult.FromError(placeholder);
+                CompleteDeliveryGroupsForSubPlan(
+                    subPlan,
+                    activeDeliveryGroupIds,
+                    pendingCountByDeliveryGroup,
+                    completed,
+                    errors: null);
+            }
+
+            // Set Completed first so the IncrementalDataFeature is established
+            // before clearing the top-level Errors (which validates against it).
+            if (completed.Count > 0)
+            {
+                payload.Completed = completed.ToImmutable();
+            }
+
+            if (childPending.Count > 0)
+            {
+                payload.Pending = childPending.ToImmutable();
+            }
+
+            // Per spec: subsequent payloads use `incremental` array, not root
+            // `data`. Clear top-level data/errors so the formatter only renders
+            // incremental delivery fields.
+            payload.Data = null;
+            if (payload.Errors.Count > 0)
+            {
+                payload.Errors = [];
+            }
+
+            payload.HasNext = pendingSubPlanCount > 0;
+            yield return payload;
+        }
+    }
+
+    private static async Task ExecuteDeferredSubPlanInBackground(
+        RequestContext requestContext,
+        IVariableValueCollection variables,
+        OperationPlan operationPlan,
+        ExecutionSubPlan subPlan,
+        ChannelWriter<(ExecutionSubPlan, OperationResult?, Exception?)> writer,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (subPlan.AllNodes.IsEmpty)
+            {
+                await writer.WriteAsync((subPlan, null, null), cancellationToken);
+                return;
+            }
+
+            var representative = subPlan.DeliveryGroups[0];
+
+            // Create a mini OperationPlan for the deferred subplan using the
+            // subplan's own compiled Operation for correct result mapping.
+            var deferPlan = OperationPlan.Create(
+                operationPlan.Id + "#defer_" + representative.Id,
+                subPlan.Operation,
+                subPlan.RootNodes,
+                subPlan.AllNodes,
+                [],
+                [],
+                0,
+                0);
+
+            using var executionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+            await using var context = requestContext.Schema.Services
+                .GetRequiredService<OperationPlanContextPool>().Rent();
+            context.Initialize(requestContext, variables, deferPlan, executionCts);
+
+            context.Begin();
+
+            await ExecuteQueryAsync(context, deferPlan, executionCts.Token);
+
+            var deferredResult = context.Complete();
+            await writer.WriteAsync((subPlan, deferredResult, null), cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            // Write a cancellation result so the consumer doesn't hang.
+            await writer.WriteAsync((subPlan, null, null), CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            await writer.WriteAsync((subPlan, null, ex), CancellationToken.None);
+        }
+    }
+
+    private static bool IsDeliveryGroupActive(DeferUsage deliveryGroup, IVariableValueCollection variables)
+    {
+        if (deliveryGroup.IfVariable is null)
+        {
+            return true;
+        }
+
+        if (!variables.TryGetValue<BooleanValueNode>(deliveryGroup.IfVariable, out var boolValue))
+        {
+            throw new InvalidOperationException(
+                $"The variable {deliveryGroup.IfVariable} has an invalid value.");
+        }
+
+        return boolValue.Value;
+    }
+
+    private static bool IsSubPlanActive(ExecutionSubPlan subPlan, HashSet<int> activeDeliveryGroupIds)
+    {
+        foreach (var deliveryGroup in subPlan.DeliveryGroups)
+        {
+            if (activeDeliveryGroupIds.Contains(deliveryGroup.Id))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Picks the best delivery group for emitting a subplan's incremental
+    /// payload. Per graphql-js <c>_getBestIdAndSubPath</c>, the best group is
+    /// the one whose <see cref="DeferUsage.Path"/> is the longest prefix of
+    /// the data's actual path (equivalently, the shortest <c>subPath</c>).
+    /// Ties are broken by the smallest <see cref="DeferUsage.Id"/>, which is
+    /// the first element in the sorted <see cref="ExecutionSubPlan.DeliveryGroups"/>.
+    /// </summary>
+    private static DeferUsage PickBestDeliveryGroup(ExecutionSubPlan subPlan)
+    {
+        var best = subPlan.DeliveryGroups[0];
+        var bestLength = best.Path?.Length ?? 0;
+
+        for (var i = 1; i < subPlan.DeliveryGroups.Length; i++)
+        {
+            var candidate = subPlan.DeliveryGroups[i];
+            var candidateLength = candidate.Path?.Length ?? 0;
+
+            if (candidateLength > bestLength)
+            {
+                best = candidate;
+                bestLength = candidateLength;
+            }
+        }
+
+        return best;
+    }
+
+    private static void CompleteDeliveryGroupsForSubPlan(
+        ExecutionSubPlan subPlan,
+        HashSet<int> activeDeliveryGroupIds,
+        Dictionary<int, int> pendingCountByDeliveryGroup,
+        ImmutableList<CompletedResult>.Builder completed,
+        IReadOnlyList<IError>? errors)
+    {
+        foreach (var deliveryGroup in subPlan.DeliveryGroups)
+        {
+            if (!activeDeliveryGroupIds.Contains(deliveryGroup.Id))
+            {
+                continue;
+            }
+
+            if (!pendingCountByDeliveryGroup.TryGetValue(deliveryGroup.Id, out var count))
+            {
+                continue;
+            }
+
+            count--;
+            if (count <= 0)
+            {
+                pendingCountByDeliveryGroup.Remove(deliveryGroup.Id);
+                completed.Add(errors is { Count: > 0 }
+                    ? new CompletedResult(deliveryGroup.Id, errors)
+                    : new CompletedResult(deliveryGroup.Id));
+            }
+            else
+            {
+                pendingCountByDeliveryGroup[deliveryGroup.Id] = count;
+            }
+        }
+    }
+
+    private static Path BuildPath(SelectionPath selectionPath)
+    {
+        var path = Path.Root;
+
+        for (var i = 0; i < selectionPath.Length; i++)
+        {
+            var segment = selectionPath[i];
+
+            if (segment.Kind is SelectionPathSegmentKind.Field)
+            {
+                path = path.Append(segment.Name);
+            }
+        }
+
+        return path;
+    }
+
+    /// <summary>
+    /// Produces an <see cref="OperationResultData"/> whose logical root is the
+    /// subtree at the best delivery group's path within the deferred plan's
+    /// composite result. The incremental delivery contract requires
+    /// <c>incremental.data</c> to be the delta to merge at the pending path,
+    /// not the fully rooted result.
+    /// </summary>
+    private static bool TryCreateIncrementalData(
+        OperationResultData rootData,
+        DeferUsage bestDeliveryGroup,
+        out OperationResultData incrementalData)
+    {
+        if (rootData.Value is not CompositeResultDocument document)
+        {
+            // Unknown backing value: fall through to the default behavior and
+            // emit the result as-is.
+            incrementalData = rootData;
+            return true;
+        }
+
+        var element = document.Data;
+        var selectionPath = bestDeliveryGroup.Path ?? SelectionPath.Root;
+
+        for (var i = 0; i < selectionPath.Length; i++)
+        {
+            var segment = selectionPath[i];
+
+            // Inline fragments/type-conditions do not introduce an extra level
+            // in the result tree, so we only walk field segments.
+            if (segment.Kind is not SelectionPathSegmentKind.Field)
+            {
+                continue;
+            }
+
+            if (!element.TryGetProperty(segment.Name, out var next)
+                || next.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+            {
+                // The path could not be resolved or is null; nothing to merge.
+                incrementalData = default;
+                return false;
+            }
+
+            element = next;
+        }
+
+        // MemoryHolder is intentionally not carried over: the surrounding
+        // OperationResult already owns the composite document's lifetime,
+        // and the IncrementalObjectResult is a non-owning view over it.
+        incrementalData = new OperationResultData(
+            document,
+            isValueNull: false,
+            new DeferredPayloadDataFormatter(element),
+            memoryHolder: null);
+        return true;
+    }
+
+    public static async Task<IExecutionResult> SubscribeAsync(
         RequestContext requestContext,
         OperationPlan operationPlan,
         CancellationToken cancellationToken)

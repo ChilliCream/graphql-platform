@@ -56,6 +56,7 @@ dotnet test src/HotChocolate/Fusion
 - Use test naming format: `Method_Should_Outcome_When_Condition`.
 - Do not write vacuous assertions (`Assert.NotNull` alone is not a complete test).
 - If a test requires excessive stubs and reflection, use a more appropriate test tier.
+- Do not use em dash style sentences in docs, comments, or XML documentation. Use commas, periods, parentheses, or colons instead.
 
 ### Testing
 
