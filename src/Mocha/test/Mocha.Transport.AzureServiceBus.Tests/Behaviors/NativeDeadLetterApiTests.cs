@@ -140,9 +140,11 @@ public class NativeDeadLetterApiTests
     {
         public async ValueTask ConsumeAsync(IConsumeContext<OrderCreated> context)
         {
-            await context.AzureServiceBus().DeadLetterAsync(
-                "InvalidPayload",
-                $"Missing customer id for {context.Message.OrderId}");
+            var args = context.GetAzureServiceBusEventArgs();
+            await args.DeadLetterMessageAsync(
+                args.Message,
+                deadLetterReason: "InvalidPayload",
+                deadLetterErrorDescription: $"Missing customer id for {context.Message.OrderId}");
         }
     }
 
@@ -179,14 +181,17 @@ public class NativeDeadLetterApiTests
 
         public async ValueTask ConsumeAsync(IConsumeContext<OrderCreated> context)
         {
-            var asb = context.AzureServiceBus();
-            var hasMarker = asb.Message.ApplicationProperties.ContainsKey(MarkerKey);
-            capture.Record(asb.DeliveryCount, hasMarker);
+            var args = context.GetAzureServiceBusEventArgs();
+            var message = args.Message;
+            var hasMarker = message.ApplicationProperties.ContainsKey(MarkerKey);
+            capture.Record((int)message.DeliveryCount, hasMarker);
 
             if (!hasMarker)
             {
                 // First delivery: stamp a marker and abandon so the broker redelivers.
-                await asb.AbandonAsync(new Dictionary<string, object> { [MarkerKey] = "abandoned-once" });
+                await args.AbandonMessageAsync(
+                    message,
+                    new Dictionary<string, object> { [MarkerKey] = "abandoned-once" });
             }
             // On the second delivery the marker is set, so we just return and the ack MW completes.
         }

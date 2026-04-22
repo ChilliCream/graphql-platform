@@ -1,6 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Mocha.Features;
 using Mocha.Scheduling;
 using static System.StringSplitOptions;
@@ -44,9 +42,7 @@ public sealed class AzureServiceBusMessagingTransport : MessagingTransport
     {
         var configuration = (AzureServiceBusTransportConfiguration)Configuration;
 
-        ClientManager = new AzureServiceBusClientManager(
-            configuration,
-            context.Services.GetRequiredService<ILogger<AzureServiceBusClientManager>>());
+        ClientManager = new AzureServiceBusClientManager(configuration);
 
         var builder = new UriBuilder
         {

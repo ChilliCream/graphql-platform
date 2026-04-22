@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Administration;
-using Microsoft.Extensions.Logging;
 
 namespace Mocha.Transport.AzureServiceBus;
 
@@ -15,23 +14,17 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
     private readonly ServiceBusClient _client;
     private readonly ServiceBusAdministrationClient? _adminClient;
     private readonly ConcurrentDictionary<string, ServiceBusSender> _senders = new();
-    private readonly ILogger<AzureServiceBusClientManager> _logger;
     private volatile bool _isDisposed;
 
     /// <summary>
     /// Creates a new client manager from the given transport configuration.
     /// </summary>
     /// <param name="configuration">The transport configuration containing connection settings.</param>
-    /// <param name="logger">The logger instance.</param>
     /// <exception cref="InvalidOperationException">
     /// Thrown when neither a connection string nor a fully qualified namespace with credential is provided.
     /// </exception>
-    public AzureServiceBusClientManager(
-        AzureServiceBusTransportConfiguration configuration,
-        ILogger<AzureServiceBusClientManager> logger)
+    public AzureServiceBusClientManager(AzureServiceBusTransportConfiguration configuration)
     {
-        _logger = logger;
-
         var clientOptions = new ServiceBusClientOptions
         {
             TransportType = configuration.TransportType,
