@@ -82,6 +82,7 @@ internal static class FusionGatewayBuilder
             gatewayServices
                 .AddGraphQLGateway()
                 .AddApolloFederationSupport()
+                .ModifyRequestOptions(o => o.IncludeExceptionDetails = true)
                 .AddInMemoryConfiguration(schemaDocument, settings);
 
             var services = gatewayServices.BuildServiceProvider();

@@ -5,6 +5,14 @@ This log captures framework gaps that block individual compliance suites in
 Each entry lists the suite, the failing scenario, the location of the offending
 production code, and a one-paragraph fix sketch.
 
+## mutations (partial)
+
+- File: `src/HotChocolate/Fusion/src/Fusion/Planning/` planner; specifically the absence of `@requires` field projection through the entity lookup.
+- Repro suite: `Suites/Mutations/MutationsTests.cs::AddProduct_Composes_From_Two_Subgraphs` and `Suites/Mutations/MutationsTests.cs::Product_Composes_From_Two_Subgraphs`.
+- Rule that is wrong: when subgraph `b` declares `isExpensive: Boolean! @requires(fields: "price")`, the resolver in `b` expects the parent <c>Product</c> to carry a populated `price` value. The planner should fetch `price` from the subgraph that owns it (subgraph `a`) and attach it to the entity representation passed to `b._entities`. Today the resolver runs without `price`, throws, and the gateway surfaces "Unexpected Execution Error".
+- Expected behavior: the planner identifies fields with `@requires` annotation, fetches their dependency selection from any subgraph that can produce the dependency, and includes those fields in the entity representation handed to the lookup. The downstream `__resolveReference` then receives the dependency in its key argument or via the federation external setter.
+- Fix sketch: in the planner, before emitting the entity lookup call to the subgraph hosting a `@requires` field, plan a sibling fetch for the required dependency from a subgraph that owns it, then enrich the lookup representation with the resolved value. The Apollo Federation runtime adapter already exposes the `ExternalSetter` mechanism that would populate the field on the resolved entity. This is the Phase C bucket work.
+
 ## shared-root (partial)
 
 - File: `src/HotChocolate/Fusion/src/Fusion/Planning/` query planner; specifically the absence of cross-subgraph list zipping for shareable non-entity types.
