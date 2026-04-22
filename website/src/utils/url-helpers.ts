@@ -2,6 +2,66 @@
  * Utility functions for working with URL parameters
  */
 
+const SAFE_URL_PROTOCOLS = new Set(["http:", "https:", "mailto:", "tel:"]);
+
+const SAFE_IMG_PROTOCOLS = new Set(["http:", "https:"]);
+
+/**
+ * Sanitizes a URL to prevent XSS via dangerous protocols such as
+ * `javascript:` or `data:`. Returns the original URL when the protocol
+ * is safe, or "about:blank" otherwise.  Relative and hash-only URLs are
+ * always allowed.
+ */
+export function sanitizeUrl(url: string): string {
+  const trimmed = url.trim();
+
+  // Relative paths and hash links are safe.
+  if (
+    trimmed === "" ||
+    trimmed.startsWith("/") ||
+    trimmed.startsWith("#") ||
+    trimmed.startsWith("?")
+  ) {
+    return trimmed;
+  }
+
+  try {
+    const parsed = new URL(trimmed, "http://placeholder.invalid");
+
+    if (SAFE_URL_PROTOCOLS.has(parsed.protocol)) {
+      return trimmed;
+    }
+  } catch {
+    // Malformed URL — reject.
+  }
+
+  return "about:blank";
+}
+
+/**
+ * Sanitizes an image `src` value, allowing only http(s) and relative
+ * paths.  Returns an empty string for anything else.
+ */
+export function sanitizeImageSrc(src: string): string {
+  const trimmed = src.trim();
+
+  if (trimmed === "" || trimmed.startsWith("/")) {
+    return trimmed;
+  }
+
+  try {
+    const parsed = new URL(trimmed, "http://placeholder.invalid");
+
+    if (SAFE_IMG_PROTOCOLS.has(parsed.protocol)) {
+      return trimmed;
+    }
+  } catch {
+    // Malformed URL — reject.
+  }
+
+  return "";
+}
+
 /**
  * Gets a query parameter value from the current URL
  * @param paramName - The name of the parameter to retrieve

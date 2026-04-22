@@ -1,5 +1,6 @@
 import NextLink from "next/link";
 import React, { FC } from "react";
+import { sanitizeUrl } from "@/utils/url-helpers";
 
 export const Link: FC<{
   className?: string;
@@ -9,25 +10,26 @@ export const Link: FC<{
   prefetch?: false;
   children?: React.ReactNode;
 }> = ({ to, prefetch, children, ...rest }) => {
-  const isHash = to.startsWith("#");
-  const internal = isHash || /^\/(?!\/)/.test(to);
+  const safeUrl = sanitizeUrl(to);
+  const isHash = safeUrl.startsWith("#");
+  const internal = isHash || /^\/(?!\/)/.test(safeUrl);
 
   return isHash ? (
-    <a href={to} {...rest}>
+    <a href={safeUrl} {...rest}>
       {children}
     </a>
   ) : internal ? (
     prefetch === false ? (
-      <a href={to} {...rest}>
+      <a href={safeUrl} {...rest}>
         {children}
       </a>
     ) : (
-      <NextLink href={to} {...rest}>
+      <NextLink href={safeUrl} {...rest}>
         {children}
       </NextLink>
     )
   ) : (
-    <a href={to} target="_blank" rel="noopener noreferrer" {...rest}>
+    <a href={safeUrl} target="_blank" rel="noopener noreferrer" {...rest}>
       {children}
     </a>
   );
