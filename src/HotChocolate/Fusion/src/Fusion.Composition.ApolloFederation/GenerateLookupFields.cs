@@ -1,13 +1,30 @@
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Types.Mutable;
+
 namespace HotChocolate.Fusion.ApolloFederation;
 
 /// <summary>
 /// Generates <c>@lookup</c> query fields for each resolvable entity key.
+/// <para>
+/// Flat scalar keys (<c>@key(fields: "id")</c>, <c>@key(fields: "sku package")</c>)
+/// produce a lookup field whose arguments mirror the key fields one-to-one.
+/// </para>
+/// <para>
+/// Nested object and list keys (<c>@key(fields: "metadata { id }")</c>,
+/// <c>@key(fields: "products { id }")</c>,
+/// <c>@key(fields: "products { id pid category { id tag } } selected { id }")</c>)
+/// produce a lookup field with a single <c>key</c> argument of a freshly
+/// generated input object type. The input type exposes one field per top-level
+/// segment of the <c>@key</c> selection and mirrors the entity-representation
+/// shape so the Apollo Federation connector can copy the variable value
+/// straight into the <c>_entities(representations: ...)</c> payload.
+/// </para>
 /// </summary>
 internal static class GenerateLookupFields
 {
+    private const string NestedLookupArgumentName = "key";
+
     /// <summary>
     /// Applies the lookup field generation to the schema.
     /// </summary>
@@ -24,13 +41,31 @@ internal static class GenerateLookupFields
         var internalDef = new MutableDirectiveDefinition("internal");
         var lookupDef = new MutableDirectiveDefinition("lookup");
         var isDef = new MutableDirectiveDefinition("is");
+        var shareableDef = new MutableDirectiveDefinition("shareable");
 
-        foreach (var type in schema.Types)
+        // Generated input object types are cached by name so that repeated
+        // references to the same nested shape share a single input type.
+        var inputTypeCache = new Dictionary<string, MutableInputObjectTypeDefinition>(
+            StringComparer.Ordinal);
+
+        // Snapshot the owning types up front: generating lookup fields for
+        // nested keys appends new input object types to 'schema.Types', which
+        // would otherwise invalidate an in-flight enumerator.
+        var complexTypes = schema.Types
+            .OfType<MutableComplexTypeDefinition>()
+            .ToArray();
+
+        foreach (var complexType in complexTypes)
         {
-            if (type is not MutableComplexTypeDefinition complexType)
-            {
-                continue;
-            }
+            // Keys whose selection set references a list-typed field on the
+            // owner (e.g. '@key(fields: "products { id }")' where 'products'
+            // is '[Product!]!') are surfaced in the composite schema purely
+            // via the generated '@lookup' field + '@is' metadata. The '@key'
+            // directive itself is dropped from the type because the Composite
+            // Schema Spec disallows list, interface, or union top-level fields
+            // in '@key' selections.
+            var keysToRemove = new List<Directive>();
+            var fieldsToMarkShareable = new HashSet<string>(StringComparer.Ordinal);
 
             foreach (var keyDirective in complexType.Directives["key"])
             {
@@ -53,29 +88,65 @@ internal static class GenerateLookupFields
                     continue;
                 }
 
-                var field = GenerateLookupField(
+                var result = GenerateLookupField(
                     schema,
                     complexType,
                     fieldsString.Value,
                     internalDef,
                     lookupDef,
-                    isDef);
+                    isDef,
+                    inputTypeCache);
 
-                if (field is not null)
+                if (result is null)
                 {
-                    schema.QueryType.Fields.Add(field);
+                    continue;
+                }
+
+                schema.QueryType.Fields.Add(result.Field);
+
+                if (result.KeyHasListSegment)
+                {
+                    keysToRemove.Add(keyDirective);
+
+                    foreach (var fieldName in result.TopLevelKeyFieldNames)
+                    {
+                        fieldsToMarkShareable.Add(fieldName);
+                    }
+                }
+            }
+
+            foreach (var directive in keysToRemove)
+            {
+                complexType.Directives.Remove(directive);
+            }
+
+            // Apollo Federation treats fields referenced by a '@key' directive
+            // as implicitly shareable. Once the list-typed '@key' is dropped
+            // we must surface that sharing intent explicitly so the Composite
+            // Schema Spec's field-sharing rule does not reject the field
+            // being produced by multiple source schemas.
+            if (fieldsToMarkShareable.Count > 0)
+            {
+                foreach (var fieldName in fieldsToMarkShareable)
+                {
+                    if (complexType.Fields.TryGetField(fieldName, out var keyField)
+                        && !keyField.Directives.ContainsName("shareable"))
+                    {
+                        keyField.Directives.Add(new Directive(shareableDef));
+                    }
                 }
             }
         }
     }
 
-    private static MutableOutputFieldDefinition? GenerateLookupField(
+    private static GenerateLookupFieldResult? GenerateLookupField(
         MutableSchemaDefinition schema,
         MutableComplexTypeDefinition complexType,
         string fieldsSelection,
         MutableDirectiveDefinition internalDef,
         MutableDirectiveDefinition lookupDef,
-        MutableDirectiveDefinition isDef)
+        MutableDirectiveDefinition isDef,
+        Dictionary<string, MutableInputObjectTypeDefinition> inputTypeCache)
     {
         SelectionSetNode selectionSet;
 
@@ -89,16 +160,44 @@ internal static class GenerateLookupFields
             return null;
         }
 
-        var leafFields = new List<LeafFieldInfo>();
-        ExtractLeafFields(selectionSet, [], leafFields);
+        var topLevelFieldNames = new List<string>();
+        var hasNestedSegment = false;
+        var keyHasListSegment = false;
 
-        if (leafFields.Count == 0)
+        foreach (var selection in selectionSet.Selections)
+        {
+            if (selection is not FieldNode topLevelField)
+            {
+                continue;
+            }
+
+            var keyFieldName = topLevelField.Name.Value;
+
+            if (!complexType.Fields.TryGetField(keyFieldName, out var ownerField))
+            {
+                return null;
+            }
+
+            topLevelFieldNames.Add(keyFieldName);
+
+            if (topLevelField.SelectionSet is null
+                || topLevelField.SelectionSet.Selections.Count == 0)
+            {
+                continue;
+            }
+
+            hasNestedSegment = true;
+
+            if (IsListType(ownerField.Type))
+            {
+                keyHasListSegment = true;
+            }
+        }
+
+        if (topLevelFieldNames.Count == 0)
         {
             return null;
         }
-
-        var nameParts = new List<string>();
-        var fieldName = ToCamelCase(complexType.Name) + "By";
 
         // Build a temporary field to set as DeclaringMember on arguments.
         var lookupField = new MutableOutputFieldDefinition(
@@ -108,38 +207,68 @@ internal static class GenerateLookupFields
             DeclaringMember = schema.QueryType
         };
 
-        foreach (var leaf in leafFields)
+        var fieldName = hasNestedSegment
+            ? BuildNestedLookupField(
+                schema,
+                complexType,
+                selectionSet,
+                lookupField,
+                isDef,
+                inputTypeCache)
+            : BuildFlatLookupField(complexType, selectionSet, lookupField);
+
+        if (fieldName is null)
         {
-            var fieldType = ResolveLeafFieldType(leaf, complexType, schema);
+            return null;
+        }
 
-            if (fieldType is null)
+        lookupField.Name = fieldName;
+        lookupField.Directives.Add(new Directive(internalDef));
+        lookupField.Directives.Add(new Directive(lookupDef));
+
+        return new GenerateLookupFieldResult(lookupField, keyHasListSegment, topLevelFieldNames);
+    }
+
+    private static string? BuildFlatLookupField(
+        MutableComplexTypeDefinition complexType,
+        SelectionSetNode selectionSet,
+        MutableOutputFieldDefinition lookupField)
+    {
+        var nameParts = new List<string>();
+
+        foreach (var selection in selectionSet.Selections)
+        {
+            if (selection is not FieldNode topLevelField)
             {
                 continue;
             }
 
-            // Make the type NonNull.
-            var nonNullType = EnsureNonNull(fieldType);
+            var keyFieldName = topLevelField.Name.Value;
 
-            if (nonNullType is not IInputType inputType)
+            if (!complexType.Fields.TryGetField(keyFieldName, out var ownerField))
+            {
+                return null;
+            }
+
+            if (ownerField.Type is not IInputType inputType)
             {
                 continue;
             }
 
-            var argument = new MutableInputFieldDefinition(leaf.ArgumentName, inputType)
+            var scalarArgumentType = EnsureNonNull(inputType);
+
+            if (scalarArgumentType is not IInputType nonNullScalar)
+            {
+                continue;
+            }
+
+            var scalarArgument = new MutableInputFieldDefinition(keyFieldName, nonNullScalar)
             {
                 DeclaringMember = lookupField
             };
 
-            // If the field has a nested path, add @is directive.
-            if (leaf.Path.Count > 0)
-            {
-                var fieldPath = BuildFieldPath(leaf);
-                argument.Directives.Add(
-                    new Directive(isDef, new ArgumentAssignment("field", fieldPath)));
-            }
-
-            lookupField.Arguments.Add(argument);
-            nameParts.Add(ToPascalCase(leaf.ArgumentName));
+            lookupField.Arguments.Add(scalarArgument);
+            nameParts.Add(ToPascalCase(keyFieldName));
         }
 
         if (lookupField.Arguments.Count == 0)
@@ -147,67 +276,82 @@ internal static class GenerateLookupFields
             return null;
         }
 
-        fieldName += string.Join("And", nameParts);
-
-        // Update the field name now that we know it.
-        lookupField.Name = fieldName;
-
-        lookupField.Directives.Add(new Directive(internalDef));
-        lookupField.Directives.Add(new Directive(lookupDef));
-
-        return lookupField;
+        return ToCamelCase(complexType.Name) + "By" + string.Join("And", nameParts);
     }
 
-    private static IType? ResolveLeafFieldType(
-        LeafFieldInfo leaf,
-        MutableComplexTypeDefinition owningType,
-        MutableSchemaDefinition schema)
+    private static string? BuildNestedLookupField(
+        MutableSchemaDefinition schema,
+        MutableComplexTypeDefinition complexType,
+        SelectionSetNode selectionSet,
+        MutableOutputFieldDefinition lookupField,
+        MutableDirectiveDefinition isDef,
+        Dictionary<string, MutableInputObjectTypeDefinition> inputTypeCache)
     {
-        if (leaf.Path.Count == 0)
-        {
-            // Simple field: look up directly.
-            if (owningType.Fields.TryGetField(leaf.FieldName, out var field))
-            {
-                return field.Type;
-            }
+        // For nested/list keys we collapse the whole '@key' selection into a
+        // single input object type whose shape mirrors the Apollo Federation
+        // representation root. The connector then copies the variable value
+        // directly into the '_entities' representation (under the entity
+        // '__typename'), without needing to split across multiple arguments.
+        // The input type name encodes the full selection shape so that two
+        // source schemas with different sub-selections on the same top-level
+        // path generate distinct input types that survive composition merge.
+        var wrapperBaseName = complexType.Name
+            + "By"
+            + BuildSelectionFingerprint(selectionSet)
+            + "Input";
 
+        var wrapperInput = BuildInputTypeFromSelection(
+            schema,
+            complexType,
+            selectionSet,
+            wrapperBaseName,
+            inputTypeCache);
+
+        if (wrapperInput is null)
+        {
             return null;
         }
 
-        // Nested field: walk the path.
-        var currentType = owningType;
+        IType argumentType = new NonNullType(wrapperInput);
 
-        foreach (var pathSegment in leaf.Path)
+        if (argumentType is not IInputType argumentInputType)
         {
-            if (!currentType.Fields.TryGetField(pathSegment, out var pathField))
-            {
-                return null;
-            }
-
-            var namedType = pathField.Type.NamedType();
-
-            if (!schema.Types.TryGetType<MutableComplexTypeDefinition>(namedType.Name, out var nestedType))
-            {
-                return null;
-            }
-
-            currentType = nestedType;
+            return null;
         }
 
-        // Now look up the final leaf field.
-        if (currentType.Fields.TryGetField(leaf.FieldName, out var leafField))
+        var keyArgument = new MutableInputFieldDefinition(NestedLookupArgumentName, argumentInputType)
         {
-            return leafField.Type;
-        }
+            DeclaringMember = lookupField
+        };
 
-        return null;
+        // Emit '@is(field: "{ ... }")' in Fusion FSM so downstream composer
+        // stages can discover the key shape. The expression describes how each
+        // top-level input field populates the corresponding output path on
+        // the entity type.
+        var fsm = BuildRootFieldSelectionMap(complexType, selectionSet);
+
+        keyArgument.Directives.Add(
+            new Directive(isDef, new ArgumentAssignment("field", fsm)));
+
+        lookupField.Arguments.Add(keyArgument);
+
+        return ToCamelCase(complexType.Name) + "By" + BuildSelectionFingerprint(selectionSet);
     }
 
-    private static void ExtractLeafFields(
+    private static MutableInputObjectTypeDefinition? BuildInputTypeFromSelection(
+        MutableSchemaDefinition schema,
+        ITypeDefinition ownerType,
         SelectionSetNode selectionSet,
-        List<string> parentPath,
-        List<LeafFieldInfo> results)
+        string baseName,
+        Dictionary<string, MutableInputObjectTypeDefinition> inputTypeCache)
     {
+        if (ownerType is not MutableComplexTypeDefinition ownerComplex)
+        {
+            return null;
+        }
+
+        var inputType = new MutableInputObjectTypeDefinition(baseName);
+
         foreach (var selection in selectionSet.Selections)
         {
             if (selection is not FieldNode fieldNode)
@@ -217,66 +361,206 @@ internal static class GenerateLookupFields
 
             var fieldName = fieldNode.Name.Value;
 
-            if (fieldNode.SelectionSet?.Selections.Count > 0)
+            if (!ownerComplex.Fields.TryGetField(fieldName, out var childField))
             {
-                // Nested field: recurse with the current field added to the path.
-                var nestedPath = new List<string>(parentPath) { fieldName };
-                ExtractLeafFields(fieldNode.SelectionSet, nestedPath, results);
+                return null;
+            }
+
+            IInputType inputFieldType;
+
+            if (fieldNode.SelectionSet is null
+                || fieldNode.SelectionSet.Selections.Count == 0)
+            {
+                // Leaf scalar inside the nested selection.
+                if (childField.Type is not IInputType leafInputType)
+                {
+                    return null;
+                }
+
+                inputFieldType = leafInputType;
             }
             else
             {
-                // Leaf field.
-                var argumentName = parentPath.Count > 0
-                    ? BuildArgumentName(parentPath, fieldName)
-                    : fieldName;
+                // Deeper nested object/list: recurse into another input type.
+                var childIsList = IsListType(childField.Type);
+                var nestedBaseName = baseName + "_" + ToPascalCase(fieldName);
 
-                results.Add(new LeafFieldInfo
+                var nestedInput = BuildInputTypeFromSelection(
+                    schema,
+                    childField.Type.NamedType(),
+                    fieldNode.SelectionSet,
+                    nestedBaseName,
+                    inputTypeCache);
+
+                if (nestedInput is null)
                 {
-                    FieldName = fieldName,
-                    ArgumentName = argumentName,
-                    Path = parentPath
-                });
+                    return null;
+                }
+
+                IType nestedType = nestedInput;
+
+                if (childIsList)
+                {
+                    nestedType = new NonNullType(new ListType(new NonNullType(nestedType)));
+                }
+
+                if (nestedType is not IInputType nestedInputFieldType)
+                {
+                    return null;
+                }
+
+                inputFieldType = nestedInputFieldType;
             }
-        }
-    }
 
-    private static string BuildArgumentName(List<string> path, string fieldName)
-    {
-        // e.g., path=["variation"], fieldName="id" => "variationId"
-        var result = path[0];
-
-        for (var i = 1; i < path.Count; i++)
-        {
-            result += ToPascalCase(path[i]);
-        }
-
-        result += ToPascalCase(fieldName);
-        return result;
-    }
-
-    private static string BuildFieldPath(LeafFieldInfo leaf)
-    {
-        // Build something like "variation { id }"
-        var result = string.Empty;
-
-        for (var i = 0; i < leaf.Path.Count; i++)
-        {
-            if (i > 0)
+            var inputField = new MutableInputFieldDefinition(fieldName, inputFieldType)
             {
-                result += " { ";
+                DeclaringMember = inputType
+            };
+
+            inputType.Fields.Add(inputField);
+        }
+
+        if (inputType.Fields.Count == 0)
+        {
+            return null;
+        }
+
+        // Deduplicate: an identically shaped input type may already have been
+        // generated for a prior key that referenced the same owner type.
+        if (inputTypeCache.TryGetValue(inputType.Name, out var existing))
+        {
+            return existing;
+        }
+
+        inputTypeCache[inputType.Name] = inputType;
+        schema.Types.Add(inputType);
+
+        return inputType;
+    }
+
+    private static bool IsListType(IType type)
+    {
+        while (true)
+        {
+            switch (type)
+            {
+                case ListType:
+                    return true;
+                case NonNullType nonNull:
+                    type = nonNull.NullableType;
+                    continue;
+                default:
+                    return false;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Builds a PascalCase fingerprint of a key's selection set so that two
+    /// source schemas with divergent sub-selections on the same top-level path
+    /// generate distinct, non-colliding input type names.
+    /// </summary>
+    private static string BuildSelectionFingerprint(SelectionSetNode selectionSet)
+    {
+        var parts = new List<string>();
+
+        foreach (var selection in selectionSet.Selections)
+        {
+            if (selection is not FieldNode fieldNode)
+            {
+                continue;
             }
 
-            result += leaf.Path[i];
+            parts.Add(ToPascalCase(fieldNode.Name.Value));
+
+            if (fieldNode.SelectionSet?.Selections.Count > 0)
+            {
+                parts.Add(BuildSelectionFingerprint(fieldNode.SelectionSet));
+            }
         }
 
-        result += " { " + leaf.FieldName + " }";
+        return string.Join("And", parts);
+    }
 
-        for (var i = 1; i < leaf.Path.Count; i++)
+    /// <summary>
+    /// Builds the '@is(field: "{ ... }")' expression for a nested/list lookup
+    /// argument. Each top-level selection in the '@key' is emitted as an
+    /// object-field in Fusion FSM syntax that names the entity-side field and
+    /// the value-selection that derives it from the input.
+    /// </summary>
+    private static string BuildRootFieldSelectionMap(
+        MutableComplexTypeDefinition complexType,
+        SelectionSetNode selectionSet)
+    {
+        var parts = new List<string>();
+
+        foreach (var selection in selectionSet.Selections)
         {
-            result += " }";
+            if (selection is not FieldNode topLevelField)
+            {
+                continue;
+            }
+
+            var keyFieldName = topLevelField.Name.Value;
+
+            if (!complexType.Fields.TryGetField(keyFieldName, out var ownerField))
+            {
+                continue;
+            }
+
+            if (topLevelField.SelectionSet is null
+                || topLevelField.SelectionSet.Selections.Count == 0)
+            {
+                parts.Add(keyFieldName);
+                continue;
+            }
+
+            var innerBody = BuildInnerObjectBody(topLevelField.SelectionSet);
+            var ownerIsList = IsListType(ownerField.Type);
+
+            var valueExpression = ownerIsList
+                ? $"{keyFieldName}[{{ {innerBody} }}]"
+                : $"{keyFieldName}.{{ {innerBody} }}";
+
+            parts.Add($"{keyFieldName}: {valueExpression}");
         }
 
-        return result;
+        return "{ " + string.Join(", ", parts) + " }";
+    }
+
+    /// <summary>
+    /// Renders the contents of the '{ ... }' object selection for a Fusion
+    /// field-selection-map value. Leaf fields are emitted as bare names; nested
+    /// object selections use <c>name: path.{ ... }</c>; nested list selections
+    /// currently also use <c>name: path.{ ... }</c> since we cannot resolve the
+    /// child field's list-ness from a <see cref="SelectionSetNode"/> alone at
+    /// deeper levels.
+    /// </summary>
+    private static string BuildInnerObjectBody(SelectionSetNode selectionSet)
+    {
+        var parts = new List<string>();
+
+        foreach (var selection in selectionSet.Selections)
+        {
+            if (selection is not FieldNode fieldNode)
+            {
+                continue;
+            }
+
+            var fieldName = fieldNode.Name.Value;
+
+            if (fieldNode.SelectionSet is null
+                || fieldNode.SelectionSet.Selections.Count == 0)
+            {
+                parts.Add(fieldName);
+                continue;
+            }
+
+            var innerBody = BuildInnerObjectBody(fieldNode.SelectionSet);
+            parts.Add($"{fieldName}: {fieldName}.{{ {innerBody} }}");
+        }
+
+        return string.Join(", ", parts);
     }
 
     private static IType EnsureNonNull(IType type)
@@ -319,12 +603,8 @@ internal static class GenerateLookupFields
         return char.ToUpperInvariant(value[0]) + value[1..];
     }
 
-    private sealed class LeafFieldInfo
-    {
-        public required string FieldName { get; init; }
-
-        public required string ArgumentName { get; init; }
-
-        public required List<string> Path { get; init; }
-    }
+    private sealed record GenerateLookupFieldResult(
+        MutableOutputFieldDefinition Field,
+        bool KeyHasListSegment,
+        IReadOnlyList<string> TopLevelKeyFieldNames);
 }

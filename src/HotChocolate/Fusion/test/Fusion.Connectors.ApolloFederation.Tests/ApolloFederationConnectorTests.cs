@@ -378,4 +378,166 @@ public class ApolloFederationConnectorTests
         Assert.Contains("\"__typename\":\"Product\"", variablesJson);
         Assert.Contains("\"__typename\":\"User\"", variablesJson);
     }
+
+    [Fact]
+    public void Rewrite_NestedObjectLookup_Should_MapArgumentToKeyPath()
+    {
+        // arrange
+        var lookupFields = new Dictionary<string, LookupFieldInfo>
+        {
+            // Apollo Federation '@key(fields: "metadata { id }")' composed into
+            // a single wrapper argument whose JSON is splatted into the
+            // '_entities' representation root.
+            ["articleByMetadata"] = new LookupFieldInfo
+            {
+                EntityTypeName = "Article",
+                ArgumentToKeyFieldMap = new Dictionary<string, string> { ["key"] = string.Empty }
+            }
+        };
+        var rewriter = new FederationQueryRewriter(lookupFields);
+
+        const string sourceText = """
+            query GetArticle($__fusion_1_key: ArticleByMetadataInput!) {
+              articleByMetadata(key: $__fusion_1_key) {
+                title
+              }
+            }
+            """;
+
+        // act
+        var result = rewriter.GetOrRewrite(sourceText, 101UL);
+
+        // assert
+        Assert.True(result.IsEntityLookup);
+        Assert.Equal("Article", result.EntityTypeName);
+        Assert.Equal("articleByMetadata", result.LookupFieldName);
+        Assert.Equal(string.Empty, result.VariableToKeyFieldMap["__fusion_1_key"]);
+        Assert.Contains("... on Article", result.OperationText);
+        Assert.Contains("_entities", result.OperationText);
+    }
+
+    [Fact]
+    public void Rewrite_NestedListLookup_Should_MapArgumentToKeyPath()
+    {
+        // arrange
+        var lookupFields = new Dictionary<string, LookupFieldInfo>
+        {
+            // Apollo Federation '@key(fields: "products { id }")' composed
+            // into a wrapper argument whose JSON (containing a 'products'
+            // list) is splatted into the '_entities' representation root.
+            ["productListByProductsAndId"] = new LookupFieldInfo
+            {
+                EntityTypeName = "ProductList",
+                ArgumentToKeyFieldMap = new Dictionary<string, string> { ["key"] = string.Empty }
+            }
+        };
+        var rewriter = new FederationQueryRewriter(lookupFields);
+
+        const string sourceText = """
+            query GetList($__fusion_1_key: ProductListByProductsAndIdInput!) {
+              productListByProductsAndId(key: $__fusion_1_key) {
+                products { id }
+              }
+            }
+            """;
+
+        // act
+        var result = rewriter.GetOrRewrite(sourceText, 102UL);
+
+        // assert
+        Assert.True(result.IsEntityLookup);
+        Assert.Equal("ProductList", result.EntityTypeName);
+        Assert.Equal("productListByProductsAndId", result.LookupFieldName);
+        Assert.Equal(string.Empty, result.VariableToKeyFieldMap["__fusion_1_key"]);
+    }
+
+    [Fact]
+    public void Rewrite_DeeplyNestedListLookup_Should_MapArgumentToKeyPath()
+    {
+        // arrange: mirrors the audit's 'price' subgraph '@key(fields:
+        // "products { id pid category { id tag } } selected { id }")'.
+        var lookupFields = new Dictionary<string, LookupFieldInfo>
+        {
+            ["productListByProductsAndIdAndPidAndCategoryAndIdAndTagAndSelectedAndId"]
+                = new LookupFieldInfo
+                {
+                    EntityTypeName = "ProductList",
+                    ArgumentToKeyFieldMap =
+                        new Dictionary<string, string> { ["key"] = string.Empty }
+                }
+        };
+        var rewriter = new FederationQueryRewriter(lookupFields);
+
+        const string sourceText = """
+            query($__fusion_1_key: ProductListByProductsAndIdAndPidAndCategoryAndIdAndTagAndSelectedAndIdInput!) {
+              productListByProductsAndIdAndPidAndCategoryAndIdAndTagAndSelectedAndId(
+                key: $__fusion_1_key
+              ) {
+                selected { id }
+                first { id }
+              }
+            }
+            """;
+
+        // act
+        var result = rewriter.GetOrRewrite(sourceText, 103UL);
+
+        // assert
+        Assert.True(result.IsEntityLookup);
+        Assert.Equal("ProductList", result.EntityTypeName);
+        Assert.Equal(string.Empty, result.VariableToKeyFieldMap["__fusion_1_key"]);
+        Assert.Contains("... on ProductList", result.OperationText);
+    }
+
+    [Fact]
+    public void BuildCombinedEntityQuery_Should_ProduceEntitiesAliasForNestedLookup()
+    {
+        // arrange: a wrapper-shape argument lookup generated for a nested
+        // '@key' is rewritten into an '_entities(...)' query that accepts the
+        // wrapper's variable JSON as-is.
+        var lookupFields = new Dictionary<string, LookupFieldInfo>
+        {
+            ["productListByProductsAndId"] = new LookupFieldInfo
+            {
+                EntityTypeName = "ProductList",
+                ArgumentToKeyFieldMap = new Dictionary<string, string> { ["key"] = string.Empty }
+            }
+        };
+        var rewriter = new FederationQueryRewriter(lookupFields);
+
+        const string sourceText = """
+            query($__fusion_1_key: ProductListByProductsAndIdInput!) {
+              productListByProductsAndId(key: $__fusion_1_key) {
+                products { id }
+              }
+            }
+            """;
+
+        var rewritten = rewriter.GetOrRewrite(sourceText, 555UL);
+
+        var requests = ImmutableArray.Create(
+            new SourceSchemaClientRequest
+            {
+                Node = null!,
+                SchemaName = "list",
+                OperationType = OperationType.Query,
+                OperationSourceText = rewritten.OperationText,
+                OperationHash = 555UL,
+                Variables = []
+            });
+
+        var rewrittenOps = new[] { rewritten };
+
+        // act
+        var (queryText, variablesJson) =
+            ApolloFederationSourceSchemaClient.BuildCombinedEntityQuery(requests, rewrittenOps);
+
+        // assert: the batched query shape uses '_entities' and carries the
+        // entity '__typename' in its representations, exactly as for a flat
+        // scalar lookup.
+        Assert.Contains("$r0: [_Any!]!", queryText);
+        Assert.Contains("____request0: _entities(representations: $r0)", queryText);
+        Assert.Contains("... on ProductList", queryText);
+        Assert.Contains("\"__typename\":\"ProductList\"", variablesJson);
+    }
 }

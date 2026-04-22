@@ -122,25 +122,38 @@ internal sealed class ApolloFederationClientConfigurationParser : ISourceSchemaC
 
         foreach (var argument in argumentsElement.EnumerateObject())
         {
-            if (argument.Value.ValueKind == JsonValueKind.Object
-                || argument.Value.ValueKind == JsonValueKind.Array)
-            {
-                throw new InvalidOperationException(
-                    $"Source schema '{schemaName}' lookup '{lookupName}' argument '{argument.Name}' "
-                    + "uses a nested/compound key. Nested keys are not supported.");
-            }
-
-            if (argument.Value.ValueKind != JsonValueKind.String
-                || argument.Value.GetString() is not { Length: > 0 } keyFieldName)
-            {
-                throw new InvalidOperationException(
-                    $"Source schema '{schemaName}' lookup '{lookupName}' argument '{argument.Name}' "
-                    + "must map to a non-empty string key field name.");
-            }
-
-            arguments[argument.Name] = keyFieldName;
+            arguments[argument.Name] = ReadArgumentPath(schemaName, lookupName, argument);
         }
 
         return arguments;
+    }
+
+    private static string ReadArgumentPath(
+        string schemaName,
+        string lookupName,
+        JsonProperty argument)
+    {
+        switch (argument.Value.ValueKind)
+        {
+            case JsonValueKind.String:
+                // An empty-string path is the "splat" marker that tells the
+                // connector to spread the variable value's object fields into
+                // the representation root (used for wrapper-shape arguments on
+                // nested '@key' lookups). Any other string is a path segment.
+                return argument.Value.GetString() ?? string.Empty;
+
+            case JsonValueKind.Object:
+                if (argument.Value.TryGetProperty("path", out var pathProperty)
+                    && pathProperty.ValueKind == JsonValueKind.String)
+                {
+                    return pathProperty.GetString() ?? string.Empty;
+                }
+
+                break;
+        }
+
+        throw new InvalidOperationException(
+            $"Source schema '{schemaName}' lookup '{lookupName}' argument '{argument.Name}' "
+            + "must map to a string key field path or an object with a 'path' string property.");
     }
 }

@@ -162,10 +162,26 @@ internal static class FusionGatewayBuilder
     private static DocumentNode ComposeSchema(IReadOnlyList<SourceSchemaText> sourceSchemas)
     {
         var compositionLog = new CompositionLog();
-        var composer = new SchemaComposer(
-            sourceSchemas,
-            new SchemaComposerOptions(),
-            compositionLog);
+        var options = new SchemaComposerOptions();
+
+        // The Apollo Federation transformer already emits every resolvable
+        // '@key' as an explicit '@lookup' field with '@is' metadata. Turning
+        // off key inference per source schema avoids double-emitting the
+        // '@key' directive and prevents the composer from re-introducing
+        // list-typed '@key' directives for nested list keys, which the
+        // Composite Schema Spec disallows at type level.
+        foreach (var sourceSchema in sourceSchemas)
+        {
+            options.SourceSchemas[sourceSchema.Name] = new SourceSchemaOptions
+            {
+                Preprocessor = new SourceSchemaPreprocessorOptions
+                {
+                    InferKeysFromLookups = false
+                }
+            };
+        }
+
+        var composer = new SchemaComposer(sourceSchemas, options, compositionLog);
 
         var result = composer.Compose();
 
@@ -178,6 +194,36 @@ internal static class FusionGatewayBuilder
             {
                 sb.AppendLine();
                 sb.Append(entry.Message);
+
+                if (entry.Extensions is { Count: > 0 } extensions)
+                {
+                    foreach (var (key, value) in extensions)
+                    {
+                        sb.AppendLine();
+                        sb.Append(" - ");
+                        sb.Append(key);
+                        sb.Append(": ");
+
+                        if (value is System.Collections.IEnumerable enumerable
+                            and not string)
+                        {
+                            var first = true;
+                            foreach (var item in enumerable)
+                            {
+                                if (!first)
+                                {
+                                    sb.Append("; ");
+                                }
+                                sb.Append(item);
+                                first = false;
+                            }
+                        }
+                        else
+                        {
+                            sb.Append(value);
+                        }
+                    }
+                }
             }
 
             throw new XunitException(sb.ToString());
@@ -337,12 +383,62 @@ internal static class FusionGatewayBuilder
                 if (string.Equals(argument.Name.Value, "field", StringComparison.Ordinal)
                     && argument.Value is StringValueNode stringValue)
                 {
-                    return stringValue.Value;
+                    return MapLookupArgumentPath(stringValue.Value);
                 }
             }
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// <para>
+    /// Turns the <c>@is(field: "...")</c> value on a lookup argument into the
+    /// marker the runtime connector uses when building the
+    /// <c>_entities(representations: [...])</c> payload.
+    /// </para>
+    /// <para>
+    /// The <c>@is</c> value is a Field Selection Map (FSM). That is the
+    /// Composite Schema Spec syntax for a field path (e.g. <c>id</c>,
+    /// <c>category.{id, tag}</c>, <c>products[{id, pid}]</c>).
+    /// </para>
+    /// <para>Two cases:</para>
+    /// <list type="bullet">
+    /// <item>
+    /// <description>
+    /// The FSM starts with <c>{</c>. The argument is a wrapper whose value is
+    /// already shaped like the representation. Return an empty string, which
+    /// tells the connector to spread the argument's fields into the
+    /// representation root instead of nesting under a field name.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <description>
+    /// Any other FSM. The argument maps to one top-level representation field.
+    /// Return the first path segment, that is, everything before the first
+    /// <c>.</c>, <c>[</c>, <c>{</c> or space.
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </summary>
+    private static string MapLookupArgumentPath(string fieldSelectionMap)
+    {
+        if (fieldSelectionMap.Length > 0 && fieldSelectionMap[0] == '{')
+        {
+            return string.Empty;
+        }
+
+        for (var i = 0; i < fieldSelectionMap.Length; i++)
+        {
+            var c = fieldSelectionMap[i];
+
+            if (c is '.' or '[' or '{' or ' ')
+            {
+                return fieldSelectionMap[..i];
+            }
+        }
+
+        return fieldSelectionMap;
     }
 
     private static string? GetNamedTypeName(ITypeNode type) => type switch

@@ -348,6 +348,15 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
     /// Writes a JSON array of entity representations for the given variable sets.
     /// Extracted from <see cref="BuildRepresentationsJson"/> to allow reuse
     /// in the combined variables builder.
+    /// <para>
+    /// Each lookup argument's mapped path either names a representation field
+    /// (flat or single-segment nested keys) or is empty. An empty path signals
+    /// a "spread" argument: the variable value is itself an object whose
+    /// fields are merged into the representation root. Apollo Federation v2
+    /// nested-path keys (e.g. <c>@key(fields: "products { id }")</c>) use the
+    /// spread form so the wrapper input's fields map to the entity's
+    /// top-level key fields 1-to-1.
+    /// </para>
     /// </summary>
     private static void WriteRepresentationsArray(
         Utf8JsonWriter writer,
@@ -384,14 +393,25 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
                             var propertyName = reader.GetString()!;
                             reader.Read();
 
-                            if (variableToKeyFieldMap.TryGetValue(propertyName, out var keyFieldName))
+                            if (!variableToKeyFieldMap.TryGetValue(propertyName, out var keyFieldName))
                             {
-                                writer.WritePropertyName(keyFieldName);
-                                WriteCurrentValue(writer, ref reader);
+                                reader.Skip();
+                                continue;
+                            }
+
+                            if (keyFieldName.Length == 0)
+                            {
+                                // Spread semantics: the variable value is an
+                                // object shaped like the representation body
+                                // itself. Copy each of its fields verbatim so
+                                // that list and nested-object values flow
+                                // through with their structure intact.
+                                SpreadObjectValue(writer, ref reader);
                             }
                             else
                             {
-                                reader.Skip();
+                                writer.WritePropertyName(keyFieldName);
+                                WriteCurrentValue(writer, ref reader);
                             }
                         }
                     }
@@ -402,6 +422,40 @@ public sealed class ApolloFederationSourceSchemaClient : ISourceSchemaClient
         }
 
         writer.WriteEndArray();
+    }
+
+    /// <summary>
+    /// Writes every property of the current object value directly into
+    /// <paramref name="writer"/>, preserving nested object and array structure.
+    /// When the reader does not sit on an object start token the value is
+    /// skipped; the representation is left unchanged for that argument.
+    /// </summary>
+    private static void SpreadObjectValue(Utf8JsonWriter writer, ref Utf8JsonReader reader)
+    {
+        if (reader.TokenType != JsonTokenType.StartObject)
+        {
+            reader.Skip();
+            return;
+        }
+
+        while (reader.Read())
+        {
+            if (reader.TokenType == JsonTokenType.EndObject)
+            {
+                return;
+            }
+
+            if (reader.TokenType != JsonTokenType.PropertyName)
+            {
+                continue;
+            }
+
+            var propertyName = reader.GetString()!;
+            reader.Read();
+
+            writer.WritePropertyName(propertyName);
+            WriteCurrentValue(writer, ref reader);
+        }
     }
 
     /// <summary>

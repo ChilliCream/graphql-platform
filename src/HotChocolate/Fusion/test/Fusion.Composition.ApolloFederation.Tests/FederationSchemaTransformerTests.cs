@@ -492,4 +492,133 @@ public sealed class FederationSchemaTransformerTests
         Assert.Throws<ArgumentException>(
             () => FederationSchemaTransformer.Transform(string.Empty));
     }
+
+    [Fact]
+    public void Transform_NestedObjectKey()
+    {
+        // arrange
+        const string federationSdl =
+            """
+            schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"]) {
+              query: Query
+            }
+            type Article @key(fields: "metadata { id }") {
+              metadata: ArticleMetadata!
+              title: String!
+            }
+            type ArticleMetadata {
+              id: ID!
+              author: String
+            }
+            type Query {
+              article: Article
+              _service: _Service!
+              _entities(representations: [_Any!]!): [_Entity]!
+            }
+            type _Service { sdl: String! }
+            union _Entity = Article
+            scalar FieldSet
+            scalar _Any
+            directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+            directive @link(url: String! import: [String!]) repeatable on SCHEMA
+            """;
+
+        // act
+        var result = FederationSchemaTransformer.Transform(federationSdl);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Snapshot.Create()
+            .Add(federationSdl, "Apollo Federation SDL", "graphql")
+            .Add(result.Value, "Transformed SDL", "graphql")
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public void Transform_NestedListKey()
+    {
+        // arrange
+        const string federationSdl =
+            """
+            schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"]) {
+              query: Query
+            }
+            type ProductList @key(fields: "products { id }") {
+              products: [Product!]!
+            }
+            type Product @key(fields: "id") {
+              id: ID!
+            }
+            type Query {
+              topProducts: ProductList!
+              _service: _Service!
+              _entities(representations: [_Any!]!): [_Entity]!
+            }
+            type _Service { sdl: String! }
+            union _Entity = ProductList | Product
+            scalar FieldSet
+            scalar _Any
+            directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+            directive @link(url: String! import: [String!]) repeatable on SCHEMA
+            """;
+
+        // act
+        var result = FederationSchemaTransformer.Transform(federationSdl);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Snapshot.Create()
+            .Add(federationSdl, "Apollo Federation SDL", "graphql")
+            .Add(result.Value, "Transformed SDL", "graphql")
+            .MatchMarkdownSnapshot();
+    }
+
+    [Fact]
+    public void Transform_DeeplyNestedListKey()
+    {
+        // arrange
+        const string federationSdl =
+            """
+            schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key", "@shareable"]) {
+              query: Query
+            }
+            type ProductList
+              @key(fields: "products { id pid category { id tag } } selected { id }") {
+              products: [Product!]!
+              first: Product @shareable
+              selected: Product @shareable
+            }
+            type Product @key(fields: "id pid category { id tag }") {
+              id: String!
+              pid: String
+              category: Category
+            }
+            type Category @key(fields: "id tag") {
+              id: String!
+              tag: String
+            }
+            type Query {
+              topProducts: ProductList!
+              _service: _Service!
+              _entities(representations: [_Any!]!): [_Entity]!
+            }
+            type _Service { sdl: String! }
+            union _Entity = ProductList | Product | Category
+            scalar FieldSet
+            scalar _Any
+            directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+            directive @shareable on FIELD_DEFINITION | OBJECT
+            directive @link(url: String! import: [String!]) repeatable on SCHEMA
+            """;
+
+        // act
+        var result = FederationSchemaTransformer.Transform(federationSdl);
+
+        // assert
+        Assert.True(result.IsSuccess);
+        Snapshot.Create()
+            .Add(federationSdl, "Apollo Federation SDL", "graphql")
+            .Add(result.Value, "Transformed SDL", "graphql")
+            .MatchMarkdownSnapshot();
+    }
 }
