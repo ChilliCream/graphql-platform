@@ -85,3 +85,11 @@ production code, and a one-paragraph fix sketch.
 - Expected behavior: same as fed2-external-extends.
 - Fix sketch: same as fed2-external-extends. The same fix unblocks both suites in lockstep.
 
+## null-keys (flaky)
+
+- File: planner / runtime entity-call path under `src/HotChocolate/Fusion/src/Fusion.Execution/`.
+- Repro suite: `Suites/NullKeys/NullKeysTests.cs::BookContainers_Resolves_Null_Author_When_Bridge_Subgraph_Returns_Null` (intermittent: about one in five runs fails with all three book authors null instead of just the third).
+- Rule that is wrong: the three-subgraph chain `a -> b -> c` should produce `[{author: Alice}, {author: Bob}, {author: null}]`. The third book's `author` becomes `null` because subgraph `b`'s reference resolver returns `null` for the bridge book with `id == "3"`. When the run fails, all three authors come back `null`, suggesting the planner mis-aligns the `_entities` response from subgraph `b` against the `bookContainers` list (or, when one element of `_entities` is null, the runtime drops the entity-call results for the surviving siblings).
+- Expected behavior: the planner must zip `_entities` results back to the originating list positions stably. A null entry in the `_entities` response should leave the corresponding slot null without affecting the other slots' downstream entity calls.
+- Fix sketch: audit the slot-matching code in the entity-call result merger. Verify that when an entity-call response contains a null at index `i`, the merger skips downstream calls for slot `i` only and continues to issue downstream calls for slots `j != i`. A reproducer that runs the suite under a fixed RNG seed (or a single planner thread) would help isolate the race.
+
