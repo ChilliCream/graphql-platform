@@ -25,12 +25,6 @@ internal static class Messages
 
     public static string LegacyArchiveFileDoesNotExist(string path) => $"Legacy archive file '{path}' does not exist.";
 
-    public static string LegacyArchiveAsCompositionBase(string filePath)
-        => $"Using legacy v1 archive '{filePath}' as the composition base.";
-
-    public static string LegacyArchiveFromRegistryAsCompositionBase(string stageName)
-        => $"No .far archive found on stage '{stageName}'. Using downloaded legacy v1 archive as the composition base.";
-
     public static string FailedToOpenLegacyArchive(string filePath, string detail)
         => $"Failed to open legacy v1 archive '{filePath}': {detail}";
 

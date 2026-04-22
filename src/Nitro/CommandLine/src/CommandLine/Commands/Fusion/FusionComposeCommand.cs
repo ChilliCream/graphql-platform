@@ -442,12 +442,9 @@ internal sealed class FusionComposeCommand : Command
             if (legacyArchiveFile is not null)
             {
                 await using var legacyFileStream = fileSystem.OpenReadStream(legacyArchiveFile);
-                legacyBuffer = await LegacyFusionArchiveMigrator.BufferAsync(
-                    legacyFileStream,
-                    cancellationToken);
-
-                console.WriteLine(
-                    $"⚠️ {Messages.LegacyArchiveAsCompositionBase(legacyArchiveFile)}");
+                legacyBuffer = new MemoryStream();
+                await legacyFileStream.CopyToAsync(legacyBuffer, cancellationToken);
+                legacyBuffer.Position = 0;
             }
 
             try

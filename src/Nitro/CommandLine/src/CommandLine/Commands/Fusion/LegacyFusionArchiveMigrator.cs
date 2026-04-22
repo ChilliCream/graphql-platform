@@ -6,18 +6,6 @@ namespace ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
 internal static class LegacyFusionArchiveMigrator
 {
-    public static async Task<MemoryStream> BufferAsync(
-        Stream legacyArchive,
-        CancellationToken cancellationToken)
-    {
-        ArgumentNullException.ThrowIfNull(legacyArchive);
-
-        var buffer = new MemoryStream();
-        await legacyArchive.CopyToAsync(buffer, cancellationToken);
-        buffer.Position = 0;
-        return buffer;
-    }
-
     public static async Task<CompositionSettings?> MergeIntoAsync(
         MemoryStream legacyBuffer,
         Dictionary<string, (SourceSchemaText, JsonDocument)> sourceSchemas,

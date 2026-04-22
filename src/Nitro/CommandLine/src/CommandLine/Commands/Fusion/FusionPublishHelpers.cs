@@ -1,7 +1,9 @@
 using System.Text.Json;
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.FusionConfiguration;
+using ChilliCream.Nitro.CommandLine.FusionCompatibility;
 using ChilliCream.Nitro.CommandLine.Helpers;
+using ChilliCream.Nitro.CommandLine.Services;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Logging;
 using HotChocolate.Fusion.Packaging;
@@ -399,6 +401,167 @@ internal static class FusionPublishHelpers
         }
 
         return false;
+    }
+
+    public static async Task<Stream> PrepareComposedArchiveAsync(
+        INitroConsoleActivity activity,
+        string apiId,
+        string stageName,
+        string? legacyArchiveFile,
+        Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas,
+        IFusionConfigurationClient client,
+        IFileSystem fileSystem,
+        INitroConsole console,
+        CancellationToken cancellationToken)
+    {
+        Stream? existingArchiveStream;
+        MemoryStream? legacyBuffer = null;
+        CompositionSettings? compositionSettings = null;
+
+        await using (var downloadActivity = activity.StartChildActivity(
+                         $"Downloading existing configuration from '{stageName}'",
+                         "Failed to download the existing Fusion configuration."))
+        {
+            existingArchiveStream = await client.DownloadLatestFusionArchiveAsync(
+                apiId,
+                stageName,
+                WellKnownVersions.LatestGatewayFormatVersion.ToString(),
+                ArchiveFormats.Far,
+                cancellationToken);
+
+            Stream? serverLegacyStream = null;
+
+            if (existingArchiveStream is not null)
+            {
+                downloadActivity.Success($"Downloaded existing configuration from '{stageName}'.");
+            }
+            else
+            {
+                serverLegacyStream = await client.DownloadLatestFusionArchiveAsync(
+                    apiId,
+                    stageName,
+                    WellKnownVersions.LegacyGatewayFormatVersion.ToString(),
+                    ArchiveFormats.Fgp,
+                    cancellationToken);
+
+                if (serverLegacyStream is not null)
+                {
+                    downloadActivity.Success(
+                        $"Downloaded existing legacy v1 configuration from '{stageName}'.");
+                }
+                else
+                {
+                    downloadActivity.Warning($"There is no existing configuration on '{stageName}'.");
+                }
+            }
+
+            // Precedence:
+            //   server .far present        -> existingArchiveStream (flag silently ignored;
+            //                                 embedded .fgp carries forward via Update mode)
+            //   server .fgp + local flag   -> local flag wins (no warning — expected mid-migration)
+            //   server .fgp + no flag      -> server .fgp is the base
+            //   nothing + local flag       -> local flag is the base (bootstrap)
+            //   nothing + no flag          -> fresh compose
+            if (existingArchiveStream is null)
+            {
+                if (legacyArchiveFile is not null)
+                {
+                    if (serverLegacyStream is not null)
+                    {
+                        await serverLegacyStream.DisposeAsync();
+                    }
+
+                    try
+                    {
+                        await using var fs = fileSystem.OpenReadStream(legacyArchiveFile);
+                        legacyBuffer = new MemoryStream();
+                        await fs.CopyToAsync(legacyBuffer, cancellationToken);
+                        legacyBuffer.Position = 0;
+                    }
+                    catch (IOException ex)
+                    {
+                        throw new ExitException(
+                            Messages.FailedToOpenLegacyArchive(legacyArchiveFile, ex.Message));
+                    }
+                }
+                else if (serverLegacyStream is not null)
+                {
+                    legacyBuffer = new MemoryStream();
+                    await serverLegacyStream.CopyToAsync(legacyBuffer, cancellationToken);
+                    legacyBuffer.Position = 0;
+                    await serverLegacyStream.DisposeAsync();
+                }
+            }
+        }
+
+        await using var composeActivity = activity.StartChildActivity(
+            "Composing new configuration",
+            "Failed to compose new configuration.");
+
+        try
+        {
+            if (legacyBuffer is not null)
+            {
+                try
+                {
+                    var migratedSettings = await LegacyFusionArchiveMigrator.MergeIntoAsync(
+                        legacyBuffer,
+                        newSourceSchemas,
+                        newSourceSchemas.Keys,
+                        cancellationToken);
+
+                    compositionSettings = new CompositionSettings().MergeInto(
+                        migratedSettings ?? new CompositionSettings());
+                }
+                catch (FusionGraphPackageException ex) when (legacyArchiveFile is not null)
+                {
+                    throw new ExitException(
+                        Messages.FailedToOpenLegacyArchive(legacyArchiveFile, ex.Message));
+                }
+            }
+
+            var archiveStream = new MemoryStream();
+            var (result, compositionLog) = await ComposeAsync(
+                archiveStream,
+                existingArchiveStream,
+                stageName,
+                newSourceSchemas,
+                compositionSettings,
+                legacyBuffer,
+                cancellationToken);
+
+            if (result.IsSuccess)
+            {
+                composeActivity.Success("Composed new configuration.");
+
+                return archiveStream;
+            }
+
+            await composeActivity.FailAllAsync();
+
+            console.WriteLine();
+            console.WriteLine("## Composition log");
+            console.WriteLine();
+
+            FusionComposeCommand.WriteCompositionLog(
+                compositionLog,
+                console.Out,
+                false);
+
+            foreach (var error in result.Errors)
+            {
+                console.Error.WriteErrorLine(error.Message);
+            }
+
+            throw new ExitException();
+        }
+        finally
+        {
+            if (legacyBuffer is not null)
+            {
+                await legacyBuffer.DisposeAsync();
+            }
+        }
     }
 
     public static async Task<(CompositionResult<MutableSchemaDefinition>, CompositionLog)> ComposeAsync(
