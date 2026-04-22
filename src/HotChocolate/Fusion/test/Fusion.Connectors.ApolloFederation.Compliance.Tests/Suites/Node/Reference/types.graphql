@@ -1,0 +1,20 @@
+extend schema
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.3"
+    import: ["@key", "@shareable"]
+  )
+
+interface Node {
+  id: ID!
+}
+
+type Product implements Node @key(fields: "id") @shareable {
+  id: ID!
+  name: String!
+  price: Float!
+}
+
+type Category implements Node @key(fields: "id") {
+  id: ID!
+  name: String!
+}
