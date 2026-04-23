@@ -64,6 +64,11 @@ internal sealed class NitroConsole(
             + "Check the documentation of the command to see all options");
     }
 
+    public void WriteAnsi(Action<AnsiWriter> action)
+    {
+        outConsole.WriteAnsi(action);
+    }
+
     public Profile Profile => outConsole.Profile;
 
     public IAnsiConsoleCursor Cursor => outConsole.Cursor;
