@@ -204,6 +204,62 @@ public sealed class FusionGraphPackage : IDisposable, IAsyncDisposable
         return ReadJsonPartAsync(part, cancellationToken);
     }
 
+    internal async Task<ReadOnlyMemory<byte>?> TryGetFusionGraphSettingsRawAsync(
+        CancellationToken cancellationToken = default)
+    {
+        if ((_package.FileOpenAccess & FileAccess.Read) != FileAccess.Read)
+        {
+            throw new FusionGraphPackageException(FusionGraphPackage_CannotRead);
+        }
+
+        if (!_package.RelationshipExists(FusionSettingsId))
+        {
+            return null;
+        }
+
+        var relationship = _package.GetRelationship(FusionSettingsId);
+        var part = _package.GetPart(relationship.TargetUri);
+        return await ReadPartRawBytesAsync(part, cancellationToken);
+    }
+
+    internal async Task<ReadOnlyMemory<byte>?> TryGetSubgraphConfigurationRawAsync(
+        string name,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(name);
+
+        if ((_package.FileOpenAccess & FileAccess.Read) != FileAccess.Read)
+        {
+            throw new FusionGraphPackageException(FusionGraphPackage_CannotRead);
+        }
+
+        if (!_package.RelationshipExists(name))
+        {
+            return null;
+        }
+
+        var relationship = _package.GetRelationship(name);
+        var rootPart = _package.GetPart(relationship.TargetUri);
+        return await ReadPartRawBytesAsync(rootPart, cancellationToken);
+    }
+
+    private static async Task<ReadOnlyMemory<byte>> ReadPartRawBytesAsync(
+        PackagePart part,
+        CancellationToken ct)
+    {
+        await using var stream = part.GetStream(FileMode.Open, FileAccess.Read);
+        var buffer = new ArrayBufferWriter<byte>();
+        int read;
+
+        do
+        {
+            read = await stream.ReadAsync(buffer.GetMemory(256), ct);
+            buffer.Advance(read);
+        } while (read > 0);
+
+        return buffer.WrittenMemory;
+    }
+
     public Task SetFusionGraphSettingsAsync(
         JsonDocument document,
         CancellationToken cancellationToken = default)
