@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Pipeline;
@@ -280,7 +281,10 @@ public static partial class RequestExecutorBuilderExtensions
     /// <returns>
     /// An <see cref="IRequestExecutorBuilder"/> that can be used to configure a schema and its execution.
     /// </returns>
-    public static IRequestExecutorBuilder UseRequest<TMiddleware>(
+    public static IRequestExecutorBuilder UseRequest<
+        [DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.PublicConstructors
+            | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>(
         this IRequestExecutorBuilder builder,
         string? key = null,
         string? before = null,

@@ -432,7 +432,8 @@ const ProductVersionDialog = styled.div<{
   border: 1px solid ${THEME_COLORS.boxBorder};
   border-radius: var(--button-border-radius);
   padding: 2px;
-  width: 59px;
+  width: max-content;
+  min-width: 59px;
   backdrop-filter: blur(2px);
   background-image: linear-gradient(
     to right bottom,
@@ -491,6 +492,7 @@ const VersionLink = styled(Link).withConfig<LinkProps>({
   color: ${THEME_COLORS.text};
   border-radius: var(--button-border-radius);
   padding: 6px 9px;
+  white-space: nowrap;
   cursor: pointer;
   transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
 

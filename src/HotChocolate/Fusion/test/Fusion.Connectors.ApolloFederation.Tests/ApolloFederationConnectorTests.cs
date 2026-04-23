@@ -1,4 +1,7 @@
 using System.Collections.Immutable;
+using System.Text.Json;
+using HotChocolate.Buffers;
+using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
 using HotChocolate.Language;
 
@@ -6,6 +9,9 @@ namespace HotChocolate.Fusion;
 
 public class ApolloFederationConnectorTests
 {
+    private static readonly IReadOnlyDictionary<string, EntityRequiresInfo> s_noRequires
+        = new Dictionary<string, EntityRequiresInfo>(StringComparer.Ordinal);
+
     [Fact]
     public void Configuration_Should_StoreProperties()
     {
@@ -19,7 +25,8 @@ public class ApolloFederationConnectorTests
             "products-http",
             baseAddress,
             lookups,
-            SupportedOperationType.Query);
+            new Dictionary<string, EntityRequiresInfo>(),
+            supportedOperations: SupportedOperationType.Query);
 
         // assert
         Assert.Equal("products", config.Name);
@@ -37,7 +44,8 @@ public class ApolloFederationConnectorTests
             "products",
             "products-http",
             new Uri("http://localhost:5000/graphql"),
-            new Dictionary<string, LookupFieldInfo>());
+            new Dictionary<string, LookupFieldInfo>(),
+            new Dictionary<string, EntityRequiresInfo>());
 
         // assert
         Assert.Equal(
@@ -57,7 +65,7 @@ public class ApolloFederationConnectorTests
                 ArgumentToKeyFieldMap = new Dictionary<string, string> { ["id"] = "id" }
             }
         };
-        var rewriter = new FederationQueryRewriter(lookupFields);
+        var rewriter = new FederationQueryRewriter(lookupFields, s_noRequires);
 
         const string sourceText = """
             query GetProduct($__fusion_1_id: ID!) {
@@ -99,7 +107,7 @@ public class ApolloFederationConnectorTests
                 }
             }
         };
-        var rewriter = new FederationQueryRewriter(lookupFields);
+        var rewriter = new FederationQueryRewriter(lookupFields, s_noRequires);
 
         const string sourceText = """
             query Op($__fusion_1_sku: String!, $__fusion_1_package: String!) {
@@ -126,7 +134,7 @@ public class ApolloFederationConnectorTests
     {
         // arrange
         var lookupFields = new Dictionary<string, LookupFieldInfo>();
-        var rewriter = new FederationQueryRewriter(lookupFields);
+        var rewriter = new FederationQueryRewriter(lookupFields, s_noRequires);
 
         const string sourceText = """
             query {
@@ -159,7 +167,7 @@ public class ApolloFederationConnectorTests
                 ArgumentToKeyFieldMap = new Dictionary<string, string> { ["id"] = "id" }
             }
         };
-        var rewriter = new FederationQueryRewriter(lookupFields);
+        var rewriter = new FederationQueryRewriter(lookupFields, s_noRequires);
 
         const string sourceText = """
             query Op($__fusion_1_id: ID!) {
@@ -187,7 +195,7 @@ public class ApolloFederationConnectorTests
                 ArgumentToKeyFieldMap = new Dictionary<string, string> { ["id"] = "id" }
             }
         };
-        var rewriter = new FederationQueryRewriter(lookupFields);
+        var rewriter = new FederationQueryRewriter(lookupFields, s_noRequires);
 
         const string sourceText = """
             query GetProduct($__fusion_1_id: ID!) {
@@ -218,7 +226,7 @@ public class ApolloFederationConnectorTests
                 ArgumentToKeyFieldMap = new Dictionary<string, string> { ["id"] = "id" }
             }
         };
-        var rewriter = new FederationQueryRewriter(lookupFields);
+        var rewriter = new FederationQueryRewriter(lookupFields, s_noRequires);
 
         const string sourceText = """
             query Op($__fusion_1_id: ID!) {
@@ -248,7 +256,7 @@ public class ApolloFederationConnectorTests
                 ArgumentToKeyFieldMap = new Dictionary<string, string> { ["id"] = "id" }
             }
         };
-        var rewriter = new FederationQueryRewriter(lookupFields);
+        var rewriter = new FederationQueryRewriter(lookupFields, s_noRequires);
 
         const string sourceText = """
             query GetProduct($__fusion_1_id: ID!) {
@@ -282,7 +290,7 @@ public class ApolloFederationConnectorTests
     {
         // arrange
         var lookupFields = new Dictionary<string, LookupFieldInfo>();
-        var rewriter = new FederationQueryRewriter(lookupFields);
+        var rewriter = new FederationQueryRewriter(lookupFields, s_noRequires);
 
         const string sourceText = """
             query {
@@ -319,8 +327,8 @@ public class ApolloFederationConnectorTests
             }
         };
 
-        var productRewriter = new FederationQueryRewriter(productLookup);
-        var userRewriter = new FederationQueryRewriter(userLookup);
+        var productRewriter = new FederationQueryRewriter(productLookup, s_noRequires);
+        var userRewriter = new FederationQueryRewriter(userLookup, s_noRequires);
 
         var productOp = productRewriter.GetOrRewrite(
             """
@@ -394,7 +402,7 @@ public class ApolloFederationConnectorTests
                 ArgumentToKeyFieldMap = new Dictionary<string, string> { ["key"] = string.Empty }
             }
         };
-        var rewriter = new FederationQueryRewriter(lookupFields);
+        var rewriter = new FederationQueryRewriter(lookupFields, s_noRequires);
 
         const string sourceText = """
             query GetArticle($__fusion_1_key: ArticleByMetadataInput!) {
@@ -431,7 +439,7 @@ public class ApolloFederationConnectorTests
                 ArgumentToKeyFieldMap = new Dictionary<string, string> { ["key"] = string.Empty }
             }
         };
-        var rewriter = new FederationQueryRewriter(lookupFields);
+        var rewriter = new FederationQueryRewriter(lookupFields, s_noRequires);
 
         const string sourceText = """
             query GetList($__fusion_1_key: ProductListByProductsAndIdInput!) {
@@ -466,7 +474,7 @@ public class ApolloFederationConnectorTests
                         new Dictionary<string, string> { ["key"] = string.Empty }
                 }
         };
-        var rewriter = new FederationQueryRewriter(lookupFields);
+        var rewriter = new FederationQueryRewriter(lookupFields, s_noRequires);
 
         const string sourceText = """
             query($__fusion_1_key: ProductListByProductsAndIdAndPidAndCategoryAndIdAndTagAndSelectedAndIdInput!) {
@@ -503,7 +511,7 @@ public class ApolloFederationConnectorTests
                 ArgumentToKeyFieldMap = new Dictionary<string, string> { ["key"] = string.Empty }
             }
         };
-        var rewriter = new FederationQueryRewriter(lookupFields);
+        var rewriter = new FederationQueryRewriter(lookupFields, s_noRequires);
 
         const string sourceText = """
             query($__fusion_1_key: ProductListByProductsAndIdInput!) {
@@ -539,5 +547,175 @@ public class ApolloFederationConnectorTests
         Assert.Contains("____request0: _entities(representations: $r0)", queryText);
         Assert.Contains("... on ProductList", queryText);
         Assert.Contains("\"__typename\":\"ProductList\"", variablesJson);
+    }
+
+    [Fact]
+    public void Rewrite_Should_Strip_RequireArgument_And_Record_RepresentationMapping()
+    {
+        // arrange: the composer translates '@requires(fields: "price")' on
+        // 'Product.isExpensive' into a synthetic 'price' argument on the
+        // composite-schema field. The planner emits the argument as a
+        // variable reference, and the rewriter must strip it from the
+        // outgoing '_entities' selection while recording the bound variable
+        // against the representation field 'price'.
+        var lookupFields = new Dictionary<string, LookupFieldInfo>
+        {
+            ["productById"] = new LookupFieldInfo
+            {
+                EntityTypeName = "Product",
+                ArgumentToKeyFieldMap = new Dictionary<string, string> { ["id"] = "id" }
+            }
+        };
+        var entityRequires = new Dictionary<string, EntityRequiresInfo>
+        {
+            ["Product"] = new EntityRequiresInfo
+            {
+                Fields = new Dictionary<string, IReadOnlyDictionary<string, string>>
+                {
+                    ["isExpensive"] = new Dictionary<string, string> { ["price"] = "price" }
+                }
+            }
+        };
+        var rewriter = new FederationQueryRewriter(lookupFields, entityRequires);
+
+        const string sourceText = """
+            query($__fusion_1_id: ID!, $__fusion_2_price: Float!) {
+              productById(id: $__fusion_1_id) {
+                isExpensive(price: $__fusion_2_price)
+                isAvailable
+              }
+            }
+            """;
+
+        // act
+        var result = rewriter.GetOrRewrite(sourceText, 201UL);
+
+        // assert
+        Assert.True(result.IsEntityLookup);
+        Assert.Equal("Product", result.EntityTypeName);
+        Assert.Equal("id", result.VariableToKeyFieldMap["__fusion_1_id"]);
+        Assert.Equal("price", result.VariableToKeyFieldMap["__fusion_2_price"]);
+        Assert.DoesNotContain("price:", result.OperationText);
+        Assert.Contains("isExpensive", result.OperationText);
+        Assert.Contains("isAvailable", result.OperationText);
+    }
+
+    [Fact]
+    public void Rewrite_Should_Leave_NonRequireArguments_Untouched()
+    {
+        // arrange: an argument on a selection field that is not tagged as a
+        // require must pass through to the outgoing operation verbatim.
+        var lookupFields = new Dictionary<string, LookupFieldInfo>
+        {
+            ["productById"] = new LookupFieldInfo
+            {
+                EntityTypeName = "Product",
+                ArgumentToKeyFieldMap = new Dictionary<string, string> { ["id"] = "id" }
+            }
+        };
+        var entityRequires = new Dictionary<string, EntityRequiresInfo>
+        {
+            ["Product"] = new EntityRequiresInfo
+            {
+                Fields = new Dictionary<string, IReadOnlyDictionary<string, string>>
+                {
+                    ["isExpensive"] = new Dictionary<string, string> { ["price"] = "price" }
+                }
+            }
+        };
+        var rewriter = new FederationQueryRewriter(lookupFields, entityRequires);
+
+        const string sourceText = """
+            query($__fusion_1_id: ID!, $__fusion_2_limit: Int!) {
+              productById(id: $__fusion_1_id) {
+                relatedBy(limit: $__fusion_2_limit)
+              }
+            }
+            """;
+
+        // act
+        var result = rewriter.GetOrRewrite(sourceText, 202UL);
+
+        // assert
+        Assert.True(result.IsEntityLookup);
+        Assert.Contains("limit: $__fusion_2_limit", result.OperationText);
+        Assert.False(result.VariableToKeyFieldMap.ContainsKey("__fusion_2_limit"));
+    }
+
+    [Fact]
+    public void BuildCombinedEntityQuery_Should_Write_RequireField_Into_Representation()
+    {
+        // arrange: pair the rewritten '@require' variable mapping with a
+        // variable payload that carries the bound values. The resulting
+        // representations array must contain both the entity key field and
+        // the require field projected as top-level entries.
+        var lookupFields = new Dictionary<string, LookupFieldInfo>
+        {
+            ["productById"] = new LookupFieldInfo
+            {
+                EntityTypeName = "Product",
+                ArgumentToKeyFieldMap = new Dictionary<string, string> { ["id"] = "id" }
+            }
+        };
+        var entityRequires = new Dictionary<string, EntityRequiresInfo>
+        {
+            ["Product"] = new EntityRequiresInfo
+            {
+                Fields = new Dictionary<string, IReadOnlyDictionary<string, string>>
+                {
+                    ["isExpensive"] = new Dictionary<string, string> { ["price"] = "price" }
+                }
+            }
+        };
+        var rewriter = new FederationQueryRewriter(lookupFields, entityRequires);
+
+        const string sourceText = """
+            query($__fusion_1_id: ID!, $__fusion_2_price: Float!) {
+              productById(id: $__fusion_1_id) {
+                isExpensive(price: $__fusion_2_price)
+              }
+            }
+            """;
+
+        var rewritten = rewriter.GetOrRewrite(sourceText, 203UL);
+
+        var variableValues = CreateVariableValues(
+            """{"__fusion_1_id":"p1","__fusion_2_price":9.99}""");
+
+        var requests = ImmutableArray.Create(
+            new SourceSchemaClientRequest
+            {
+                Node = null!,
+                SchemaName = "products",
+                OperationType = OperationType.Query,
+                OperationSourceText = rewritten.OperationText,
+                OperationHash = 203UL,
+                Variables = [variableValues]
+            });
+
+        var rewrittenOps = new[] { rewritten };
+
+        // act
+        var (_, variablesJson) =
+            ApolloFederationSourceSchemaClient.BuildCombinedEntityQuery(requests, rewrittenOps);
+
+        // assert
+        Assert.Contains("\"__typename\":\"Product\"", variablesJson);
+        Assert.Contains("\"id\":\"p1\"", variablesJson);
+        Assert.Contains("\"price\":9.99", variablesJson);
+    }
+
+    private static VariableValues CreateVariableValues(string json)
+    {
+        var writer = new ChunkedArrayWriter();
+        var startPosition = writer.Position;
+        using (var jsonWriter = new Utf8JsonWriter(writer))
+        {
+            using var document = JsonDocument.Parse(json);
+            document.RootElement.WriteTo(jsonWriter);
+            jsonWriter.Flush();
+        }
+        var length = writer.Position - startPosition;
+        return new VariableValues(default, JsonSegment.Create(writer, startPosition, length));
     }
 }

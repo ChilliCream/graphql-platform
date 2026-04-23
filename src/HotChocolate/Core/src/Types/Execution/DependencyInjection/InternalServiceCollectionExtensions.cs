@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using GreenDonut;
 using GreenDonut.DependencyInjection;
 using HotChocolate.Execution;
@@ -136,7 +137,8 @@ internal static class InternalServiceCollectionExtensions
         this IServiceCollection services)
         => services.TryAddParameterExpressionBuilder<DataLoaderParameterExpressionBuilder>();
 
-    internal static IServiceCollection TryAddParameterExpressionBuilder<T>(
+    internal static IServiceCollection TryAddParameterExpressionBuilder<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IServiceCollection services)
         where T : class, IParameterExpressionBuilder
     {

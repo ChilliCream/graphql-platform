@@ -59,12 +59,14 @@ internal sealed class ApolloFederationClientConfigurationParser : ISourceSchemaC
         }
 
         var lookups = ParseLookups(schemaName, federation);
+        var entityRequires = ParseEntityRequires(schemaName, federation);
 
         return new ApolloFederationSourceSchemaClientConfiguration(
             schemaName,
             clientName,
             new Uri(url),
-            lookups);
+            lookups,
+            entityRequires);
     }
 
     private static Dictionary<string, LookupFieldInfo> ParseLookups(
@@ -105,6 +107,83 @@ internal sealed class ApolloFederationClientConfigurationParser : ISourceSchemaC
         }
 
         return lookups;
+    }
+
+    private static Dictionary<string, EntityRequiresInfo> ParseEntityRequires(
+        string schemaName,
+        JsonElement federation)
+    {
+        if (!federation.TryGetProperty("entityTypes", out var entityTypesElement)
+            || entityTypesElement.ValueKind != JsonValueKind.Object)
+        {
+            return [];
+        }
+
+        var entityRequires = new Dictionary<string, EntityRequiresInfo>(StringComparer.Ordinal);
+
+        foreach (var entityType in entityTypesElement.EnumerateObject())
+        {
+            if (entityType.Value.ValueKind != JsonValueKind.Object)
+            {
+                throw new InvalidOperationException(
+                    $"Source schema '{schemaName}' entity type '{entityType.Name}' must be a JSON object.");
+            }
+
+            if (!entityType.Value.TryGetProperty("fields", out var fieldsElement)
+                || fieldsElement.ValueKind != JsonValueKind.Object)
+            {
+                continue;
+            }
+
+            var fields = new Dictionary<string, IReadOnlyDictionary<string, string>>(StringComparer.Ordinal);
+
+            foreach (var field in fieldsElement.EnumerateObject())
+            {
+                if (field.Value.ValueKind != JsonValueKind.Object)
+                {
+                    throw new InvalidOperationException(
+                        $"Source schema '{schemaName}' entity type '{entityType.Name}' "
+                        + $"field '{field.Name}' must be a JSON object.");
+                }
+
+                if (!field.Value.TryGetProperty("requires", out var requiresElement)
+                    || requiresElement.ValueKind != JsonValueKind.Object)
+                {
+                    continue;
+                }
+
+                var requires = new Dictionary<string, string>(StringComparer.Ordinal);
+
+                foreach (var argument in requiresElement.EnumerateObject())
+                {
+                    if (argument.Value.ValueKind != JsonValueKind.String
+                        || argument.Value.GetString() is not { Length: > 0 } path)
+                    {
+                        throw new InvalidOperationException(
+                            $"Source schema '{schemaName}' entity type '{entityType.Name}' "
+                            + $"field '{field.Name}' require argument '{argument.Name}' "
+                            + "must map to a non-empty string representing the field path.");
+                    }
+
+                    requires[argument.Name] = path;
+                }
+
+                if (requires.Count > 0)
+                {
+                    fields[field.Name] = requires;
+                }
+            }
+
+            if (fields.Count > 0)
+            {
+                entityRequires[entityType.Name] = new EntityRequiresInfo
+                {
+                    Fields = fields
+                };
+            }
+        }
+
+        return entityRequires;
     }
 
     private static Dictionary<string, string> ParseArguments(
