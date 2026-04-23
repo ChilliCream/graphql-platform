@@ -86,10 +86,9 @@ jobs:
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
           images: ${{ secrets.CONTAINER_REG_DOMAIN }}/ccc-website-${{ github.ref_name }}:${{ github.run_id }}
 
-      - name: Purge CDN Cache
-        run: |
-          curl --request POST \
-            --url https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache \
-            --header 'Content-Type: application/json' \
-            --header 'Authorization: Bearer ${{ secrets.CLOUDFLARE_AUTH_TOKEN }}' \
-            --data '{ "purge_everything": true }'
+      # No purge step. HTML and RSC payloads are served with
+      # cf-cache-status: DYNAMIC (not edge-cached), and every asset under
+      # /_next/static is content-hashed + immutable, so new builds create
+      # new URLs. A purge_everything here would only invalidate the
+      # immutable chunks and stampede the origin right as the container is
+      # being swapped — the exact race that caused the 2026-04-23 outage.
