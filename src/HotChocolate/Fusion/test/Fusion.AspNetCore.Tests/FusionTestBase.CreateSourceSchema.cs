@@ -110,7 +110,7 @@ public abstract partial class FusionTestBase
     }
 
     // ReSharper disable once ClassNeverInstantiated.Local
-    private sealed class RegisterFusionDirectivesTypeInterceptor : TypeInterceptor
+    protected sealed class RegisterFusionDirectivesTypeInterceptor : TypeInterceptor
     {
         private bool _registeredTypes;
 
