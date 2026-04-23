@@ -19,7 +19,7 @@ public class DefaultNamingConventionsTests
         // arrange
         var namingConventions = new DefaultNamingConventions(
             new XmlDocumentationProvider(
-                new XmlDocumentationFileResolver(),
+                new XmlDocumentationResolver(),
                 new NoOpStringBuilderPool()));
 
         // act
@@ -44,7 +44,7 @@ public class DefaultNamingConventionsTests
         // arrange
         var namingConventions = new DefaultNamingConventions(
             new XmlDocumentationProvider(
-                new XmlDocumentationFileResolver(),
+                new XmlDocumentationResolver(),
                 new NoOpStringBuilderPool()));
 
         // act
@@ -64,7 +64,7 @@ public class DefaultNamingConventionsTests
         // arrange
         var namingConventions = new DefaultNamingConventions(
             new XmlDocumentationProvider(
-                new XmlDocumentationFileResolver(),
+                new XmlDocumentationResolver(),
                 new NoOpStringBuilderPool()));
 
         // act
@@ -80,7 +80,7 @@ public class DefaultNamingConventionsTests
         // arrange
         var namingConventions = new DefaultNamingConventions(
             new XmlDocumentationProvider(
-                new XmlDocumentationFileResolver(),
+                new XmlDocumentationResolver(),
                 new NoOpStringBuilderPool()));
 
         // act
@@ -96,7 +96,7 @@ public class DefaultNamingConventionsTests
         // arrange
         var namingConventions = new DefaultNamingConventions(
             new XmlDocumentationProvider(
-                new XmlDocumentationFileResolver(),
+                new XmlDocumentationResolver(),
                 new NoOpStringBuilderPool()));
         // act
         var result = namingConventions.GetEnumValueDescription(Foo.Baz);
@@ -117,7 +117,7 @@ public class DefaultNamingConventionsTests
         // arrange
         var namingConventions = new DefaultNamingConventions(
             new XmlDocumentationProvider(
-                new XmlDocumentationFileResolver(),
+                new XmlDocumentationResolver(),
                 new NoOpStringBuilderPool()));
 
         // act

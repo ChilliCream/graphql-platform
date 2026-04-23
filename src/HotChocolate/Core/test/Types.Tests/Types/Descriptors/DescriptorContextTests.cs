@@ -13,7 +13,7 @@ public class DescriptorContextTests
         var options = new SchemaOptions();
         var naming = new DefaultNamingConventions(
             new XmlDocumentationProvider(
-                new XmlDocumentationFileResolver(),
+                new XmlDocumentationResolver(),
                 new NoOpStringBuilderPool()));
 
         var namingConventionKey = new ConventionKey(typeof(INamingConventions), null);
