@@ -130,28 +130,34 @@ public class ProvidesPlannerTests : FusionTestBase
             """);
 
         // assert
+        // op4 fetches 'weight' from 'orders' via the @provides inlining path, not despite @external.
         MatchSnapshot(plan);
     }
 
     [Fact]
-    public void Mysterious_External()
+    public void Planner_Should_Route_To_Owning_Source_When_Local_Field_Is_Orphan_External()
     {
         // arrange
-        var schema = CreateMysteriousExternalSchema();
+        var schema = CreateOrphanExternalSchema();
 
         // act
         var plan = PlanOperation(
             schema,
             """
             query {
-              products {
-                id
-                name
+              reviews {
+                product {
+                  name
+                }
               }
             }
             """);
 
         // assert
+        // The query enters the 'reviews' source (which owns Query.reviews). 'reviews'
+        // also declares Product.name, but as @external with no @provides on the query
+        // path referencing it. The partitioner must therefore refuse to resolve 'name'
+        // from 'reviews' and route it to 'products' via a productById lookup.
         MatchSnapshot(plan);
     }
 
@@ -404,25 +410,9 @@ public class ProvidesPlannerTests : FusionTestBase
             """);
     }
 
-    private static FusionSchemaDefinition CreateMysteriousExternalSchema()
+    private static FusionSchemaDefinition CreateOrphanExternalSchema()
     {
         return ComposeSchema(
-            """
-            # name: products
-            schema {
-              query: Query
-            }
-
-            type Query {
-              products: [Product]
-              productById(id: ID! @is(field: "id")): Product @lookup @internal
-            }
-
-            type Product @key(fields: "id") {
-              id: ID!
-              name: String!
-            }
-            """,
             """
             # name: reviews
             schema {
@@ -430,37 +420,36 @@ public class ProvidesPlannerTests : FusionTestBase
             }
 
             type Query {
-              productById(id: ID! @is(field: "id")): Product @lookup @internal
-            }
-
-            type Product @key(fields: "id") {
-              id: ID!
               reviews: [Review]
+              # off-path @provides exists only to satisfy the ExternalUnusedRule;
+              # it is never exercised by the query under test.
+              productByName(name: String!): Product @provides(fields: "name")
             }
 
             type Review @key(fields: "id") {
               id: ID!
-              author: User @provides(fields: "displayName")
+              body: String
+              product: Product
             }
 
-            type User @key(fields: "id") {
+            type Product @key(fields: "id") {
               id: ID!
-              displayName: String @external
+              name: String @external
             }
             """,
             """
-            # name: users
+            # name: products
             schema {
               query: Query
             }
 
             type Query {
-              userById(id: ID! @is(field: "id")): User @lookup @internal
+              productById(id: ID! @is(field: "id")): Product @lookup @internal
             }
 
-            type User @key(fields: "id") {
+            type Product @key(fields: "id") {
               id: ID!
-              displayName: String
+              name: String
             }
             """);
     }

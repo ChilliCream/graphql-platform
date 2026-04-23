@@ -1,3 +1,4 @@
+using System.Text.Json;
 using HotChocolate.Transport;
 using HotChocolate.Transport.Http;
 
@@ -432,30 +433,14 @@ public class ProvidesTests : FusionTestBase
     }
 
     [Fact]
-    public async Task Mysterious_External()
+    public async Task Planner_Should_Route_To_Owning_Source_When_Local_Field_Is_Orphan_External()
     {
         // arrange
-        // Scenario: an external field is declared in a source whose provides
-        // references it; composition accepts the schema and planning continues
-        // even though the query does not request the covered field.
-        using var serverProducts = CreateSourceSchema(
-            "products",
-            """
-            schema {
-              query: Query
-            }
-
-            type Query {
-              products: [Product]
-              productById(id: ID! @is(field: "id")): Product @lookup @internal
-            }
-
-            type Product @key(fields: "id") {
-              id: ID!
-              name: String!
-            }
-            """);
-
+        // The query enters the 'reviews' source (which owns Query.reviews). 'reviews'
+        // also declares Product.name, but as @external with no @provides on the query
+        // path referencing it. The off-path productByName root field exists only to
+        // satisfy the composite-schemas-spec ExternalUnusedRule. The planner must not
+        // trust 'reviews' for 'name' and must route it to 'products' via productById.
         using var serverReviews = CreateSourceSchema(
             "reviews",
             """
@@ -466,47 +451,43 @@ public class ProvidesTests : FusionTestBase
             }
 
             type Query {
-              productById(id: ID! @is(field: "id")): Product @lookup @internal
-            }
-
-            type Product @key(fields: "id") {
-              id: ID!
               reviews: [Review]
+              productByName(name: String!): Product @provides(fields: "name")
             }
 
             type Review @key(fields: "id") {
               id: ID!
-              author: User @provides(fields: "displayName")
+              body: String
+              product: Product
             }
 
-            type User @key(fields: "id") {
+            type Product @key(fields: "id") {
               id: ID!
-              displayName: String @external
+              name: String @external
             }
             """);
 
-        using var serverUsers = CreateSourceSchema(
-            "users",
+        using var serverProducts = CreateSourceSchema(
+            "products",
             """
             schema {
               query: Query
             }
 
             type Query {
-              userById(id: ID! @is(field: "id")): User @lookup @internal
+              productById(id: ID! @is(field: "id")): Product @lookup @internal
             }
 
-            type User @key(fields: "id") {
+            type Product @key(fields: "id") {
               id: ID!
-              displayName: String
+              name: String
             }
             """);
 
         using var gateway = await CreateCompositeSchemaAsync(
         [
-            ("products", serverProducts),
             ("reviews", serverReviews),
-            ("users", serverUsers)
+            ("products", serverProducts)
         ]);
 
         // act
@@ -515,9 +496,10 @@ public class ProvidesTests : FusionTestBase
         var request = new OperationRequest(
             """
             {
-              products {
-                id
-                name
+              reviews {
+                product {
+                  name
+                }
               }
             }
             """);
@@ -527,6 +509,36 @@ public class ProvidesTests : FusionTestBase
             new Uri("http://localhost:5000/graphql"));
 
         // assert
+        // Every interaction with the 'reviews' source must fetch product { id } only,
+        // never 'name'. A 'name' fetch from 'reviews' would mean the planner wrongly
+        // trusted the orphan @external declaration. Every interaction with the
+        // 'products' source must be a productById lookup that returns 'name'.
+        var reviewsInteractions = gateway.Interactions.GetValueOrDefault("reviews");
+        Assert.NotNull(reviewsInteractions);
+        foreach (var interaction in reviewsInteractions!.Values)
+        {
+            Assert.NotNull(interaction.Request);
+            interaction.Request!.Body.Position = 0;
+            using var body = JsonDocument.Parse(interaction.Request.Body);
+            var query = body.RootElement.GetProperty("query").GetString()!;
+            Assert.DoesNotContain("name", query);
+            Assert.Contains("product", query);
+            interaction.Request.Body.Position = 0;
+        }
+
+        var productsInteractions = gateway.Interactions.GetValueOrDefault("products");
+        Assert.NotNull(productsInteractions);
+        foreach (var interaction in productsInteractions!.Values)
+        {
+            Assert.NotNull(interaction.Request);
+            interaction.Request!.Body.Position = 0;
+            using var body = JsonDocument.Parse(interaction.Request.Body);
+            var query = body.RootElement.GetProperty("query").GetString()!;
+            Assert.Contains("productById", query);
+            Assert.Contains("name", query);
+            interaction.Request.Body.Position = 0;
+        }
+
         await MatchSnapshotAsync(gateway, request, result);
     }
 }
