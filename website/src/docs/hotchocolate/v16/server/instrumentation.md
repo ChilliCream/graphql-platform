@@ -15,8 +15,8 @@ You can implement diagnostic event listeners for the following event types:
 After creating a diagnostic event listener, register it by calling `AddDiagnosticEventListener` on the `IRequestExecutorBuilder`:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddDiagnosticEventListener<MyExecutionEventListener>();
 ```
 
@@ -227,8 +227,8 @@ Add the `HotChocolate.Diagnostics` package to your project:
 Add `AddInstrumentation` to your GraphQL configuration:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<Query>()
     .AddInstrumentation();
 ```
@@ -276,8 +276,8 @@ using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<Query>()
     .AddInstrumentation();
 
@@ -337,8 +337,8 @@ DataLoader spans:
 By default, Hot Chocolate does not instrument all execution events. You can increase the level of detail by enabling more instrumentation scopes:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<Query>()
     .AddInstrumentation(o =>
     {
@@ -353,8 +353,8 @@ builder.Services
 You can also include the operation details in the root activity:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<Query>()
     .AddInstrumentation(o =>
     {
@@ -393,8 +393,8 @@ Register the custom activity enricher as a singleton and make it available to th
 ```csharp
 builder.Services.AddSingleton<ActivityEnricher, CustomActivityEnricher>();
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddApplicationService<ActivityEnricher>();
 ```
 

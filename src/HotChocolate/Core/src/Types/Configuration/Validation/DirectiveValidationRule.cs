@@ -7,7 +7,7 @@ namespace HotChocolate.Configuration.Validation;
 
 /// <summary>
 /// Implements directive type validation defined in the spec.
-/// https://spec.graphql.org/draft/#sec-Type-System.Directives.Validation
+/// https://spec.graphql.org/September2025/#sec-Type-System.Directives.Type-Validation
 /// </summary>
 internal sealed class DirectiveValidationRule : ISchemaValidationRule
 {

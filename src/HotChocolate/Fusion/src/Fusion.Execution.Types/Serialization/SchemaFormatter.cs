@@ -12,7 +12,7 @@ public static class SchemaFormatter
         new()
         {
             Indented = true,
-            MaxDirectivesPerLine = 0
+            PrintWidth = 80
         };
 
     public static string FormatAsString(

@@ -274,7 +274,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         _schemaTypeCfg
             .GetLegacyConfiguration()
             .AddDirective(
-                new LinkDirective(version.ToUrl(), federationTypes),
+                new LinkDirective(version.ToUrl(), federationTypes.Order().ToArray()),
                 _typeInspector);
 
         foreach (var import in _imports)
@@ -287,7 +287,7 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
             _schemaTypeCfg
                 .GetLegacyConfiguration()
                 .AddDirective(
-                    new LinkDirective(import.Key, import.Value),
+                    new LinkDirective(import.Key, import.Value.Order().ToArray()),
                     _typeInspector);
         }
     }
@@ -564,8 +564,11 @@ internal sealed class FederationTypeInterceptor : TypeInterceptor
         ObjectType objectType,
         ObjectTypeConfiguration objectTypeCfg)
     {
-        if (objectTypeCfg.Directives.FirstOrDefault(d => d.Value is KeyDirective) is { } keyDirective
-            && ((KeyDirective)keyDirective.Value).Resolvable)
+        // Apollo Federation adds a type to the '_Entity' union as soon as it
+        // carries any resolvable '@key'. Scanning only the first key directive
+        // miscategorizes types whose first declared key is marked
+        // 'resolvable: false' even though a later key is resolvable.
+        if (objectTypeCfg.Directives.Any(d => d.Value is KeyDirective keyDirective && keyDirective.Resolvable))
         {
             _entityTypes.Add(objectType);
             return;

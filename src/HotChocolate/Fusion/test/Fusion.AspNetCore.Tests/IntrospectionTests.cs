@@ -358,6 +358,76 @@ public class IntrospectionTests : FusionTestBase
         await MatchSnapshotAsync(gateway, request, result);
     }
 
+    [Fact]
+    public async Task Introspection_OfType_Without_SelectionSet()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            TestSchema);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              __schema {
+                types {
+                  ofType
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
+    [Fact]
+    public async Task Introspection_Field_Type_Without_SelectionSet()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            TestSchema);
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var request = new OperationRequest(
+            """
+            {
+              __type(name: "Query") {
+                fields {
+                  type
+                }
+              }
+            }
+            """);
+
+        using var result = await client.PostAsync(
+            request,
+            new Uri("http://localhost:5000/graphql"));
+
+        // assert
+        await MatchSnapshotAsync(gateway, request, result);
+    }
+
     [Theory]
     [InlineData("SchemaCapabilitiesQuery")]
     [InlineData("InputValueCapabilitiesQuery")]
@@ -539,7 +609,7 @@ public class IntrospectionTests : FusionTestBase
                 };
 
             [Lookup]
-            public Book GetBookById(int id)
+            public Book? GetBookById(int id)
                 => _books[id];
 
             [UsePaging]
@@ -578,7 +648,7 @@ public class IntrospectionTests : FusionTestBase
 
             [Internal]
             [Lookup]
-            public Author GetAuthorById(int id)
+            public Author? GetAuthorById(int id)
                 => _authors[id];
 
             [UsePaging]

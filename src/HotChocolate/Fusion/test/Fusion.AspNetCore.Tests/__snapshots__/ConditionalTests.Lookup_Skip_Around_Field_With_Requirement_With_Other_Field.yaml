@@ -1,9 +1,7 @@
 title: Lookup_Skip_Around_Field_With_Requirement_With_Other_Field
 request:
   document: |
-    query testQuery(
-      $skip: Boolean!
-    ) {
+    query testQuery($skip: Boolean!) {
       productBySlug(slug: "product") {
         ... @skip(if: $skip) {
           dimension
@@ -40,9 +38,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_c97c6b3f_1(
-              $skip: Boolean!
-            ) {
+            query testQuery_c97c6b3f_1($skip: Boolean!) {
               productBySlug(slug: "product") {
                 ... @skip(if: $skip) {
                   id
@@ -93,9 +89,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $skip: Boolean!
-        ) {
+        query testQuery($skip: Boolean!) {
           productBySlug(slug: "product") {
             ... @skip(if: $skip) {
               dimension
@@ -114,9 +108,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_c97c6b3f_1(
-          $skip: Boolean!
-        ) {
+        query testQuery_c97c6b3f_1($skip: Boolean!) {
           productBySlug(slug: "product") {
             ... @skip(if: $skip) {
               id
@@ -129,9 +121,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query testQuery_c97c6b3f_2(
-          $__fusion_1_id: ID!
-        ) {
+        query testQuery_c97c6b3f_2($__fusion_1_id: ID!) {
           productById(id: $__fusion_1_id) {
             price
           }
@@ -151,10 +141,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query testQuery_c97c6b3f_3(
-          $__fusion_2_size: Int!
-            $__fusion_3_id: ID!
-        ) {
+        query testQuery_c97c6b3f_3($__fusion_2_size: Int!, $__fusion_3_id: ID!) {
           productById(id: $__fusion_3_id) {
             dimension(size: $__fusion_2_size)
           }
@@ -175,9 +162,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_c97c6b3f_4(
-          $__fusion_4_id: ID!
-        ) {
+        query testQuery_c97c6b3f_4($__fusion_4_id: ID!) {
           productById(id: $__fusion_4_id) {
             size
           }

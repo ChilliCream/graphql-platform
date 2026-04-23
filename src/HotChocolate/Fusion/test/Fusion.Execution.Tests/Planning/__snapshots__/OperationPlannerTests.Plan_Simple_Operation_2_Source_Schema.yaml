@@ -40,7 +40,11 @@ nodes:
           $__fusion_2_width: Int!
       ) {
         productById(id: $__fusion_1_id) {
-          estimatedDelivery(postCode: "12345", height: $__fusion_2_height, width: $__fusion_2_width)
+          estimatedDelivery(
+            postCode: "12345"
+            height: $__fusion_2_height
+            width: $__fusion_2_width
+          )
         }
       }
     source: $.productById

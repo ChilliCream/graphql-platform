@@ -1,10 +1,7 @@
 title: Lookup_Multiple_Skip_Levels_Around_Fields_Fetched_Through_Lookup_And_On_Same_Source_Schema
 request:
   document: |
-    query testQuery(
-      $skip1: Boolean!
-        $skip2: Boolean!
-    ) {
+    query testQuery($skip1: Boolean!, $skip2: Boolean!) {
       productBySlug(slug: "product") {
         name
         review {
@@ -59,10 +56,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_28ca75a0_1(
-              $skip1: Boolean!
-                $skip2: Boolean!
-            ) {
+            query testQuery_28ca75a0_1($skip1: Boolean!, $skip2: Boolean!) {
               productBySlug(slug: "product") {
                 name
                 review {
@@ -109,10 +103,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $skip1: Boolean!
-            $skip2: Boolean!
-        ) {
+        query testQuery($skip1: Boolean!, $skip2: Boolean!) {
           productBySlug(slug: "product") {
             name
             review {
@@ -136,10 +127,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_28ca75a0_1(
-          $skip1: Boolean!
-            $skip2: Boolean!
-        ) {
+        query testQuery_28ca75a0_1($skip1: Boolean!, $skip2: Boolean!) {
           productBySlug(slug: "product") {
             name
             review {
@@ -159,9 +147,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_28ca75a0_2(
-          $__fusion_1_id: ID!
-        ) {
+        query testQuery_28ca75a0_2($__fusion_1_id: ID!) {
           reviewById(id: $__fusion_1_id) {
             title
             rating

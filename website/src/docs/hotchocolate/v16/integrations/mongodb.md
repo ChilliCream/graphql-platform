@@ -40,8 +40,8 @@ public IExecutable<Person> GetPersonById(
 Register the MongoDB filtering convention on the schema builder:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<Query>()
     .AddMongoDbFiltering();
 ```
@@ -86,8 +86,8 @@ _Mongo Query:_
 Register the MongoDB sorting convention on the schema builder:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<Query>()
     .AddMongoDbSorting();
 ```
@@ -125,8 +125,8 @@ _Mongo Query:_
 Register the MongoDB projection convention on the schema builder:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<Query>()
     .AddMongoDbProjections();
 ```
@@ -163,8 +163,8 @@ _Mongo Query:_
 Register the MongoDB-specific pagination providers:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddMongoDbPagingProviders();
 ```
 

@@ -36,26 +36,19 @@ public sealed class SourceSchemaMergerArgumentTests : SourceSchemaMergerTestBase
             ],
             """
             schema {
-                query: Query
+              query: Query
             }
 
-            type Query
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                searchProducts("Filter to apply to the search" filter: ProductFilter!
-                    @fusion__inputField(schema: A)
-                    @fusion__inputField(schema: B, sourceType: "ProductFilter")): [Product]
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              searchProducts(
+                "Filter to apply to the search"
+                filter: ProductFilter! @fusion__inputField(schema: A) @fusion__inputField(schema: B, sourceType: "ProductFilter")
+              ): [Product] @fusion__field(schema: A) @fusion__field(schema: B)
             }
 
-            scalar Product
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
+            scalar Product @fusion__type(schema: A) @fusion__type(schema: B)
 
-            scalar ProductFilter
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
+            scalar ProductFilter @fusion__type(schema: A) @fusion__type(schema: B)
             """);
     }
 
@@ -81,18 +74,13 @@ public sealed class SourceSchemaMergerArgumentTests : SourceSchemaMergerTestBase
             ],
             """
             schema {
-                query: Query
+              query: Query
             }
 
-            type Query
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field(limit: Int
-                    @fusion__inputField(schema: A)
-                    @fusion__inputField(schema: B)
-                    @fusion__inaccessible): Int
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              field(
+                limit: Int @fusion__inputField(schema: A) @fusion__inputField(schema: B) @fusion__inaccessible
+              ): Int @fusion__field(schema: A) @fusion__field(schema: B)
             }
             """);
     }
@@ -123,17 +111,14 @@ public sealed class SourceSchemaMergerArgumentTests : SourceSchemaMergerTestBase
             ],
             """
             schema {
-                query: Query
+              query: Query
             }
 
-            type Query
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field("Number of items to fetch" limit: Int! = 10
-                    @fusion__inputField(schema: A, sourceType: "Int")
-                    @fusion__inputField(schema: B)): Int
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              field(
+                "Number of items to fetch"
+                limit: Int! = 10 @fusion__inputField(schema: A, sourceType: "Int") @fusion__inputField(schema: B)
+              ): Int @fusion__field(schema: A) @fusion__field(schema: B)
             }
             """);
     }
@@ -162,28 +147,20 @@ public sealed class SourceSchemaMergerArgumentTests : SourceSchemaMergerTestBase
                 """
             ],
             """
-            type Product
-                @fusion__type(schema: A) {
-                delivery(zip: String!
-                    @fusion__inputField(schema: A)): DeliveryEstimates
-                    @fusion__field(schema: A)
-                    @fusion__requires(schema: A, requirements: "dimension { size weight }", field: "delivery(zip: String! size: Int! weight: Int!): DeliveryEstimates", map: [null, "dimension.size", "dimension.weight"])
-                dimension: ProductDimension!
-                    @fusion__field(schema: A)
-                id: ID!
-                    @fusion__field(schema: A)
+            type Product @fusion__type(schema: A) {
+              delivery(zip: String! @fusion__inputField(schema: A)): DeliveryEstimates
+                @fusion__field(schema: A)
+                @fusion__requires(schema: A, requirements: "dimension { size weight }", field: "delivery(zip: String! size: Int! weight: Int!): DeliveryEstimates", map: [null, "dimension.size", "dimension.weight"])
+              dimension: ProductDimension! @fusion__field(schema: A)
+              id: ID! @fusion__field(schema: A)
             }
 
-            type ProductDimension
-                @fusion__type(schema: A) {
-                size: Int!
-                    @fusion__field(schema: A)
-                weight: Int!
-                    @fusion__field(schema: A)
+            type ProductDimension @fusion__type(schema: A) {
+              size: Int! @fusion__field(schema: A)
+              weight: Int! @fusion__field(schema: A)
             }
 
-            scalar DeliveryEstimates
-                @fusion__type(schema: A)
+            scalar DeliveryEstimates @fusion__type(schema: A)
             """);
     }
 
@@ -208,15 +185,10 @@ public sealed class SourceSchemaMergerArgumentTests : SourceSchemaMergerTestBase
                 """
             ],
             """
-            type Product
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                reviews(filter: String
-                    @fusion__inputField(schema: A)
-                    @fusion__inputField(schema: B)
-                    @deprecated(reason: "Some reason")): [String]
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type Product @fusion__type(schema: A) @fusion__type(schema: B) {
+              reviews(
+                filter: String @fusion__inputField(schema: A) @fusion__inputField(schema: B) @deprecated(reason: "Some reason")
+              ): [String] @fusion__field(schema: A) @fusion__field(schema: B)
             }
             """);
     }
@@ -242,15 +214,10 @@ public sealed class SourceSchemaMergerArgumentTests : SourceSchemaMergerTestBase
                 """
             ],
             """
-            type Product
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                reviews(filter: String
-                    @fusion__inputField(schema: A)
-                    @fusion__inputField(schema: B)
-                    @deprecated(reason: "Some reason")): [String]
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type Product @fusion__type(schema: A) @fusion__type(schema: B) {
+              reviews(
+                filter: String @fusion__inputField(schema: A) @fusion__inputField(schema: B) @deprecated(reason: "Some reason")
+              ): [String] @fusion__field(schema: A) @fusion__field(schema: B)
             }
             """);
     }
@@ -276,15 +243,10 @@ public sealed class SourceSchemaMergerArgumentTests : SourceSchemaMergerTestBase
                 """
             ],
             """
-            type Product
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                reviews(filter: String
-                    @fusion__inputField(schema: A)
-                    @fusion__inputField(schema: B)
-                    @deprecated(reason: "No longer supported.")): [String]
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type Product @fusion__type(schema: A) @fusion__type(schema: B) {
+              reviews(
+                filter: String @fusion__inputField(schema: A) @fusion__inputField(schema: B) @deprecated(reason: "No longer supported.")
+              ): [String] @fusion__field(schema: A) @fusion__field(schema: B)
             }
             """);
     }

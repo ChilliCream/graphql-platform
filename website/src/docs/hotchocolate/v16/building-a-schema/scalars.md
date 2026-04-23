@@ -162,8 +162,8 @@ public sealed class Product
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddDocumentFromString(
         """
         type Query {
@@ -246,8 +246,8 @@ To customize the built-in scalars, register configured scalar instances explicit
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddType(new DateTimeType(new DateTimeOptions
     {
         OutputPrecision = 3
@@ -282,8 +282,8 @@ To change the default format:
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddType(new UuidType('N'));
 ```
 
@@ -360,8 +360,8 @@ By default, `Any` expects a `JsonElement`. To return common .NET types such as `
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddJsonTypeConverter();
 ```
 
@@ -383,8 +383,8 @@ For custom reference types, register a dedicated converter to control serializat
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddTypeConverter<TimeZoneInfo, JsonElement>(
         value => JsonSerializer.SerializeToElement(value.Id));
 ```
@@ -458,8 +458,8 @@ Register them with `AddNodaTime()`:
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddNodaTime();
 ```
 
@@ -471,8 +471,8 @@ If you prefer, you can still register individual scalar types explicitly. For ex
 // Program.cs
 using NodaTimeDurationType = HotChocolate.Types.NodaTime.DurationType;
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddType<NodaTimeDurationType>();
 ```
 
@@ -494,8 +494,8 @@ using NodaTimeDateTimeType = HotChocolate.Types.NodaTime.DateTimeType;
 using NodaTimeLocalDateTimeType = HotChocolate.Types.NodaTime.LocalDateTimeType;
 using NodaTimeLocalTimeType = HotChocolate.Types.NodaTime.LocalTimeType;
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddType(new NodaTimeDateTimeType(new NodaTimeDateTimeOptions
     {
         OutputPrecision = 3
@@ -516,8 +516,8 @@ You can override the default .NET-to-scalar mappings by specifying type bindings
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .BindRuntimeType<string, StringType>();
 ```
 
@@ -525,8 +525,8 @@ You can also bind scalars to arrays or complex types:
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .BindRuntimeType<byte[], Base64StringType>();
 ```
 
@@ -547,8 +547,8 @@ public sealed class ScheduleQueries
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<ScheduleQueries>()
     .BindRuntimeType<OffsetDateTime, DateTimeType>()
     .AddTypeConverter<OffsetDateTime, DateTimeOffset>(
@@ -690,8 +690,8 @@ You can also instantiate `RegexType` directly when registering scalars:
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddType(new RegexType(
         "PostalCode",
         @"^\d{5}(-\d{4})?$",

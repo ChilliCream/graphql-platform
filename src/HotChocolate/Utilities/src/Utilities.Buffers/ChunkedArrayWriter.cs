@@ -138,9 +138,11 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
             }
 
             var take = Math.Min(source.Length, remaining);
+#pragma warning disable IDE0057 // Use range operator -- not supported in .NET Standard 2.0.
             source.Slice(0, take).CopyTo(chunk.AsSpan(_currentChunkOffset, take));
             _currentChunkOffset += take;
             source = source.Slice(take);
+#pragma warning restore IDE0057 // Use range operator
         }
     }
 
@@ -623,6 +625,7 @@ internal sealed class ChunkedArrayWriter : IBufferWriter<byte>, IDisposable
         // Return any pre-allocated chunks beyond the used range.
         for (var i = usedChunks; i < _chunkCount; i++)
         {
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             if (_chunks[i] is not null)
             {
                 JsonMemory.Return(_memoryKind, _chunks[i]);

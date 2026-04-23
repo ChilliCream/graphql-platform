@@ -155,8 +155,8 @@ If you do not want XML comments to appear in the schema:
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyOptions(opt => opt.UseXmlDocumentation = false);
 ```
 
@@ -186,8 +186,8 @@ public class CustomNamingConventions : DefaultNamingConventions
 // Program.cs
 IReadOnlySchemaOptions capturedSchemaOptions;
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyOptions(opt => capturedSchemaOptions = opt)
     .AddConvention<INamingConventions>(sp =>
         new CustomNamingConventions(

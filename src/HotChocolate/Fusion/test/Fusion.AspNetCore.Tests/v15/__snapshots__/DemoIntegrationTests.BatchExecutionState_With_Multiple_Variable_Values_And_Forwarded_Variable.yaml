@@ -1,10 +1,7 @@
 title: BatchExecutionState_With_Multiple_Variable_Values_And_Forwarded_Variable
 request:
   document: |
-    query(
-      $arg1: String
-        $arg2: String
-    ) {
+    query($arg1: String, $arg2: String) {
       userBySlug(slug: "me") {
         feedbacks {
           edges {
@@ -91,10 +88,7 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Op_b1ca18eb_3(
-              $arg2: String
-                $__fusion_2_id: ID!
-            ) {
+            query Op_b1ca18eb_3($arg2: String, $__fusion_2_id: ID!) {
               node(id: $__fusion_2_id) {
                 __typename
                 ... on User {
@@ -189,10 +183,7 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Op_b1ca18eb_4(
-              $arg1: String
-                $__fusion_3_id: ID!
-            ) {
+            query Op_b1ca18eb_4($arg1: String, $__fusion_3_id: ID!) {
               node(id: $__fusion_3_id) {
                 __typename
                 ... on User {
@@ -285,9 +276,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_b1ca18eb_2(
-              $__fusion_1_id: ID!
-            ) {
+            query Op_b1ca18eb_2($__fusion_1_id: ID!) {
               node(id: $__fusion_1_id) {
                 __typename
                 ... on User {
@@ -353,10 +342,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query(
-          $arg1: String
-            $arg2: String
-        ) {
+        query($arg1: String, $arg2: String) {
           userBySlug(slug: "me") {
             feedbacks {
               edges {
@@ -391,9 +377,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query Op_b1ca18eb_2(
-          $__fusion_1_id: ID!
-        ) {
+        query Op_b1ca18eb_2($__fusion_1_id: ID!) {
           node(id: $__fusion_1_id) {
             __typename
             ... on User {
@@ -423,10 +407,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_b1ca18eb_3(
-          $arg2: String
-            $__fusion_2_id: ID!
-        ) {
+        query Op_b1ca18eb_3($arg2: String, $__fusion_2_id: ID!) {
           node(id: $__fusion_2_id) {
             __typename
             ... on User {
@@ -448,10 +429,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_b1ca18eb_4(
-          $arg1: String
-            $__fusion_3_id: ID!
-        ) {
+        query Op_b1ca18eb_4($arg1: String, $__fusion_3_id: ID!) {
           node(id: $__fusion_3_id) {
             __typename
             ... on User {

@@ -19,8 +19,7 @@ public sealed class Provides
     public Provides(string fields)
     {
         ArgumentNullException.ThrowIfNull(fields);
-        fields = $"{{ {fields.Trim('{', '}')} }}";
-        Fields = Utf8GraphQLParser.Syntax.ParseSelectionSet(fields);
+        Fields = FieldSelectionSetType.ParseSelectionSet(fields);
     }
 
     [GraphQLType<NonNullType<FieldSelectionSetType>>]
@@ -43,8 +42,7 @@ public static class ProvidesDirectiveExtensions
 
         try
         {
-            fields = $"{{ {fields.Trim('{', '}')} }}";
-            selectionSet = Utf8GraphQLParser.Syntax.ParseSelectionSet(fields);
+            selectionSet = FieldSelectionSetType.ParseSelectionSet(fields);
         }
         catch (SyntaxException ex)
         {

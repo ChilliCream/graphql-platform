@@ -15,3 +15,5 @@ type Product {
   id: Int!
   name: String!
 }
+
+directive @defer(if: Boolean = true, label: String) on FRAGMENT_SPREAD | INLINE_FRAGMENT

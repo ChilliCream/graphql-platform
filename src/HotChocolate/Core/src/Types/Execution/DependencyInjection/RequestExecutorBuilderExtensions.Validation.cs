@@ -334,6 +334,36 @@ public static partial class RequestExecutorBuilderExtensions
     }
 
     /// <summary>
+    /// Sets the maximum allowed field merge comparisons during
+    /// overlapping-fields-can-be-merged validation.
+    /// </summary>
+    /// <param name="builder">
+    /// The <see cref="IRequestExecutorBuilder"/>.
+    /// </param>
+    /// <param name="maxAllowedFieldMergeComparisons">
+    /// The maximum number of field-merge comparisons.
+    /// </param>
+    /// <returns>
+    /// Returns an <see cref="IRequestExecutorBuilder"/> that can be used to chain
+    /// configuration.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">
+    /// <paramref name="builder"/> is <c>null</c>.
+    /// </exception>
+    public static IRequestExecutorBuilder SetMaxAllowedFieldMergeComparisons(
+        this IRequestExecutorBuilder builder,
+        int maxAllowedFieldMergeComparisons)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        ConfigureValidation(
+            builder,
+            (_, b) => b.ModifyOptions(o => o.MaxAllowedFieldMergeComparisons = maxAllowedFieldMergeComparisons));
+
+        return builder;
+    }
+
+    /// <summary>
     /// Configures the underlying <see cref="DocumentValidatorBuilder"/>.
     /// </summary>
     /// <param name="builder">

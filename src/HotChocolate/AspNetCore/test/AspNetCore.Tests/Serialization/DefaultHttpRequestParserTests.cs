@@ -30,7 +30,10 @@ public sealed class DefaultHttpRequestParserTests
             new Sha256DocumentHashProvider(),
             256,
             ParserOptions.Default);
-        var request = await parser.ParseRequestAsync(PipeReader.Create(stream), CancellationToken.None);
+        var request = await parser.ParseRequestAsync(
+            PipeReader.Create(stream),
+            skipDocumentBody: false,
+            CancellationToken.None);
 
         // assert
         Assert.Collection(
@@ -60,7 +63,10 @@ public sealed class DefaultHttpRequestParserTests
                 256,
                 ParserOptions.Default);
 
-            await parser.ParseRequestAsync(PipeReader.Create(stream), CancellationToken.None);
+            await parser.ParseRequestAsync(
+                PipeReader.Create(stream),
+                skipDocumentBody: false,
+                CancellationToken.None);
         }
 
         // assert

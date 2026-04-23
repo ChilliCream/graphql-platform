@@ -528,9 +528,7 @@ internal sealed class TypeInitializer
         ObjectFieldConfiguration definition,
         IResolverCompiler resolverCompiler)
     {
-        var method = (definition.ResolverMember ?? definition.Member) as MethodInfo;
-
-        if (method is null)
+        if ((definition.ResolverMember ?? definition.Member) is not MethodInfo method)
         {
             return null;
         }
@@ -560,9 +558,7 @@ internal sealed class TypeInitializer
         InterfaceFieldConfiguration definition,
         IResolverCompiler resolverCompiler)
     {
-        var method = (definition.ResolverMember ?? definition.Member) as MethodInfo;
-
-        if (method is null)
+        if ((definition.ResolverMember ?? definition.Member) is not MethodInfo method)
         {
             return null;
         }

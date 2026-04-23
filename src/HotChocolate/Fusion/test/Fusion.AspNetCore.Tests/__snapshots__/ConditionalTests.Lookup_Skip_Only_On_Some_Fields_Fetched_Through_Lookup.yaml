@@ -1,9 +1,7 @@
 title: Lookup_Skip_Only_On_Some_Fields_Fetched_Through_Lookup
 request:
   document: |
-    query testQuery(
-      $skip: Boolean!
-    ) {
+    query testQuery($skip: Boolean!) {
       productBySlug(slug: "product") {
         name
         review {
@@ -92,10 +90,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_8a7e6c10_2(
-              $skip: Boolean!
-                $__fusion_1_id: ID!
-            ) {
+            query testQuery_8a7e6c10_2($skip: Boolean!, $__fusion_1_id: ID!) {
               reviewById(id: $__fusion_1_id) {
                 rating
                 title @skip(if: $skip)
@@ -119,9 +114,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $skip: Boolean!
-        ) {
+        query testQuery($skip: Boolean!) {
           productBySlug(slug: "product") {
             name
             review {
@@ -152,10 +145,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_8a7e6c10_2(
-          $skip: Boolean!
-            $__fusion_1_id: ID!
-        ) {
+        query testQuery_8a7e6c10_2($skip: Boolean!, $__fusion_1_id: ID!) {
           reviewById(id: $__fusion_1_id) {
             rating
             title @skip(if: $skip)

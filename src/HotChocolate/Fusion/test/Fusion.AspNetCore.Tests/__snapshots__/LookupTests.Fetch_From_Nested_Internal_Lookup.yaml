@@ -108,7 +108,7 @@ sourceSchemas:
       }
 
       type InternalLookups @internal {
-        authorById(id: ID!): Author! @lookup
+        authorById(id: ID!): Author @lookup
       }
 
       type Query {
@@ -118,9 +118,7 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Op_76f18599_2(
-              $__fusion_1_id: ID!
-            ) {
+            query Op_76f18599_2($__fusion_1_id: ID!) {
               lookups {
                 authorById(id: $__fusion_1_id) {
                   name
@@ -189,9 +187,7 @@ operationPlan:
       type: Operation
       schema: b
       operation: |
-        query Op_76f18599_2(
-          $__fusion_1_id: ID!
-        ) {
+        query Op_76f18599_2($__fusion_1_id: ID!) {
           lookups {
             authorById(id: $__fusion_1_id) {
               name

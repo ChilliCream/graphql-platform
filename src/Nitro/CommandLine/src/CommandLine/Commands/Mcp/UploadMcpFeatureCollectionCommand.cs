@@ -1,10 +1,9 @@
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Mcp;
 using ChilliCream.Nitro.CommandLine.Commands.Mcp.Options;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
-using StrawberryShake;
-using Command = System.CommandLine.Command;
+using ChilliCream.Nitro.CommandLine.Services;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Mcp;
 
@@ -12,104 +11,111 @@ internal sealed class UploadMcpFeatureCollectionCommand : Command
 {
     public UploadMcpFeatureCollectionCommand() : base("upload")
     {
-        Description = "Upload a new MCP Feature Collection version";
+        Description = "Upload a new MCP feature collection version.";
 
-        AddOption(Opt<TagOption>.Instance);
-        AddOption(Opt<McpFeatureCollectionIdOption>.Instance);
-        AddOption(Opt<McpPromptFilePatternOption>.Instance);
-        AddOption(Opt<McpToolFilePatternOption>.Instance);
-        AddOption(Opt<OptionalSourceMetadataOption>.Instance);
+        Options.Add(Opt<McpFeatureCollectionIdOption>.Instance);
+        Options.Add(Opt<TagOption>.Instance);
+        Options.Add(Opt<McpPromptFilePatternOption>.Instance);
+        Options.Add(Opt<McpToolFilePatternOption>.Instance);
+        Options.Add(Opt<OptionalSourceMetadataOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Opt<TagOption>.Instance,
-            Opt<McpPromptFilePatternOption>.Instance,
-            Opt<McpToolFilePatternOption>.Instance,
-            Opt<McpFeatureCollectionIdOption>.Instance,
-            Opt<OptionalSourceMetadataOption>.Instance,
-            Bind.FromServiceProvider<CancellationToken>());
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples(
+            """
+            mcp upload \
+              --mcp-feature-collection-id "<collection-id>" \
+              --tag "v1" \
+              --prompt-pattern "./prompts/**/*.json" \
+              --tool-pattern "./tools/**/*.graphql"
+            """);
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        IAnsiConsole console,
-        IApiClient client,
-        string tag,
-        List<string> promptPatterns,
-        List<string> toolPatterns,
-        string mcpFeatureCollectionId,
-        string? sourceMetadataJson,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken cancellationToken)
     {
-        if (console.IsHumanReadable())
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IMcpClient>();
+        var fileSystem = services.GetRequiredService<IFileSystem>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+
+        parseResult.AssertHasAuthentication(sessionService);
+
+        var tag = parseResult.GetRequiredValue(Opt<TagOption>.Instance);
+        var promptPatterns = parseResult.GetRequiredValue(Opt<McpPromptFilePatternOption>.Instance);
+        var toolPatterns = parseResult.GetRequiredValue(Opt<McpToolFilePatternOption>.Instance);
+        var mcpFeatureCollectionId = parseResult.GetRequiredValue(Opt<McpFeatureCollectionIdOption>.Instance);
+        var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
+
+        var source = SourceMetadataParser.Parse(sourceMetadataJson);
+
+        var promptFiles = fileSystem.GlobMatch(promptPatterns, ["**/bin/**", "**/obj/**"]).ToArray();
+        var toolFiles = fileSystem.GlobMatch(toolPatterns, ["**/bin/**", "**/obj/**"]).ToArray();
+
+        if (promptFiles.Length < 1 && toolFiles.Length < 1)
         {
-            await console
-                .Status()
-                .Spinner(Spinner.Known.BouncingBar)
-                .SpinnerStyle(Style.Parse("green bold"))
-                .StartAsync("Uploading new MCP Feature Collection version...", UploadMcpFeatureCollection);
+            throw new ExitException(
+                "Could not find any MCP prompt or tool definition files with the provided patterns.");
         }
-        else
+
+        var archiveStream =
+            await McpFeatureCollectionHelpers.BuildMcpFeatureCollectionArchive(
+                fileSystem,
+                promptFiles,
+                toolFiles,
+                cancellationToken);
+
+        await using var activity = console.StartActivity(
+            $"Uploading new version '{tag.EscapeMarkup()}' for MCP feature collection '{mcpFeatureCollectionId.EscapeMarkup()}'",
+            "Failed to upload a new MCP feature collection version.");
+
+        activity.Update($"Found {promptFiles.Length} prompt(s) and {toolFiles.Length} tool(s).");
+
+        var data = await client.UploadMcpFeatureCollectionVersionAsync(
+            mcpFeatureCollectionId,
+            tag,
+            archiveStream,
+            source,
+            cancellationToken);
+
+        if (data.Errors?.Count > 0)
         {
-            await UploadMcpFeatureCollection(null);
+            await activity.FailAllAsync();
+
+            foreach (var error in data.Errors)
+            {
+                var errorMessage = error switch
+                {
+                    IMcpFeatureCollectionNotFoundError err => err.Message,
+                    IUnauthorizedOperation err => err.Message,
+                    IInvalidSourceMetadataInputError err => err.Message,
+                    IDuplicatedTagError err => err.Message,
+                    IConcurrentOperationError err => err.Message,
+                    IInvalidMcpFeatureCollectionArchiveError err =>
+                        Messages.InvalidArchive(err.Message),
+                    IError err => Messages.UnexpectedMutationError(err),
+                    _ => Messages.UnexpectedMutationError()
+                };
+
+                console.Error.WriteErrorLine(errorMessage);
+            }
+
+            return ExitCodes.Error;
         }
+
+        if (data.McpFeatureCollectionVersion is null)
+        {
+            await activity.FailAllAsync();
+            console.Error.WriteErrorLine("Could not upload MCP Feature Collection version.");
+            return ExitCodes.Error;
+        }
+
+        activity.Success($"Uploaded new MCP feature collection version '{tag.EscapeMarkup()}'.");
 
         return ExitCodes.Success;
-
-        async Task UploadMcpFeatureCollection(StatusContext? ctx)
-        {
-            console.Log("Searching for MCP prompt definition files with the following patterns:");
-            foreach (var promptPattern in promptPatterns)
-            {
-                console.Log($"- {promptPattern}");
-            }
-
-            console.Log("Searching for MCP tool definition files with the following patterns:");
-            foreach (var toolPattern in toolPatterns)
-            {
-                console.Log($"- {toolPattern}");
-            }
-
-            var promptFiles = GlobMatcher.Match(promptPatterns).ToArray();
-            var toolFiles = GlobMatcher.Match(toolPatterns).ToArray();
-
-            if (promptFiles.Length < 1 && toolFiles.Length < 1)
-            {
-                console.WriteLine("Could not find any MCP prompt or tool definition files with the provided patterns.");
-                return;
-            }
-
-            console.Log($"Found {promptFiles.Length} MCP prompt definition file(s).");
-            console.Log($"Found {toolFiles.Length} MCP tool definition file(s).");
-
-            var archiveStream =
-                await McpFeatureCollectionHelpers.BuildMcpFeatureCollectionArchive(
-                    promptFiles,
-                    toolFiles,
-                    cancellationToken);
-
-            var input = new UploadMcpFeatureCollectionInput
-            {
-                Collection = new Upload(archiveStream, "collection.zip"),
-                McpFeatureCollectionId = mcpFeatureCollectionId,
-                Tag = tag,
-                Source = SourceMetadataHelper.Parse(sourceMetadataJson)
-            };
-
-            console.Log("Uploading MCP Feature Collection..");
-            var result = await client.UploadMcpFeatureCollectionCommandMutation.ExecuteAsync(input, cancellationToken);
-
-            console.EnsureNoErrors(result);
-            var data = console.EnsureData(result);
-            console.PrintErrorsAndExit(data.UploadMcpFeatureCollection.Errors);
-
-            if (data.UploadMcpFeatureCollection.McpFeatureCollectionVersion?.Id is null)
-            {
-                throw new ExitException("Upload of MCP Feature Collection failed.");
-            }
-
-            console.Success("Successfully uploaded new MCP Feature Collection version!");
-        }
     }
 }

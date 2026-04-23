@@ -641,7 +641,7 @@ public class ObjectFieldDescriptor
     /// <param name="member">The member this field represents</param>
     /// <param name="sourceType">The type of the member</param>
     /// <param name="resolverType">The resolved type</param>
-    /// <returns></returns>
+    /// <returns>A new <see cref="ObjectFieldDescriptor"/>.</returns>
     public static ObjectFieldDescriptor New(
         IDescriptorContext context,
         MemberInfo member,
@@ -656,7 +656,7 @@ public class ObjectFieldDescriptor
     /// <param name="expression">The expression this field is based on</param>
     /// <param name="sourceType">The type of the member</param>
     /// <param name="resolverType">The resolved type</param>
-    /// <returns></returns>
+    /// <returns>A new <see cref="ObjectFieldDescriptor"/>.</returns>
     public static ObjectFieldDescriptor New(
         IDescriptorContext context,
         LambdaExpression expression,
@@ -669,7 +669,7 @@ public class ObjectFieldDescriptor
     /// </summary>
     /// <param name="context">The descriptor context</param>
     /// <param name="definition">The definition of the field</param>
-    /// <returns></returns>
+    /// <returns>A new <see cref="ObjectFieldDescriptor"/>.</returns>
     public static ObjectFieldDescriptor From(
         IDescriptorContext context,
         ObjectFieldConfiguration definition)

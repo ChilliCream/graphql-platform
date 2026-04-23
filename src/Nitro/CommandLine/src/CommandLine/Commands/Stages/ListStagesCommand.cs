@@ -1,11 +1,10 @@
-using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
-using ChilliCream.Nitro.CommandLine.Commands.Apis.Inputs;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Apis;
+using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.CommandLine.Commands.Stages.Components;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
+using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Stages;
 
@@ -13,49 +12,50 @@ internal sealed class ListStagesCommand : Command
 {
     public ListStagesCommand() : base("list")
     {
-        Description = "Lists all stages of an API";
+        Description = "List all stages of an API.";
 
-        AddOption(Opt<OptionalApiIdOption>.Instance);
+        Options.Add(Opt<OptionalApiIdOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples("stage list --api-id \"<api-id>\"");
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken ct)
     {
-        if (console.IsHumanReadable())
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IStagesClient>();
+        var apisClient = services.GetRequiredService<IApisClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
+
+        parseResult.AssertHasAuthentication(sessionService);
+
+        if (console.IsInteractive)
         {
-            return await RenderInteractiveAsync(context, console, client, ct);
+            return await RenderInteractiveAsync(parseResult, console, client, apisClient, sessionService, resultHolder, ct);
         }
 
-        return await RenderNonInteractiveAsync(context, console, client, ct);
+        return await RenderNonInteractiveAsync(parseResult, client, resultHolder, ct);
     }
 
     private static async Task<int> RenderInteractiveAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        ParseResult parseResult,
+        INitroConsole console,
+        IStagesClient client,
+        IApisClient apisClient,
+        ISessionService sessionService,
+        IResultHolder resultHolder,
         CancellationToken ct)
     {
-        const string apiMessage = "For which API do you want to display the clients?";
-        var apiId = await context.GetOrSelectApiId(apiMessage);
+        var apiId = await console.GetOrPromptForApiIdAsync("For which API do you want to display the clients?", parseResult, apisClient, sessionService, ct);
 
-        var result = await client.ListStagesQuery.ExecuteAsync(apiId, ct);
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        var stages = (data.Node as IListStagesQuery_Node_Api)?.Stages;
-        if (stages is null)
-        {
-            throw ThrowHelper.Exit("Could not load stages");
-        }
+        var stages = await client.ListStagesAsync(apiId, ct) ?? [];
 
         var stage = await SelectableTable
             .From(stages)
@@ -64,40 +64,35 @@ internal sealed class ListStagesCommand : Command
             .AddColumn("Name", x => x.Name)
             .AddColumn("After",
                 x => x.Conditions
-                    .OfType<IListStagesQuery_Node_Stages_Conditions_AfterStageCondition>()
-                    .Select(x => x.AfterStage!.Name)
+                    .OfType<IAfterStageCondition>()
+                    .Select(y => y.AfterStage?.Name)
+                    .OfType<string>()
                     .Join(","))
             .RenderAsync(console, ct);
 
-        if (stage is IStageDetailPrompt_Stage node)
+        if (stage is not null)
         {
-            context.SetResult(StageDetailPrompt.From(node).ToObject());
+            resultHolder.SetResult(new ObjectResult(StageDetailPrompt.From(stage).ToObject()));
         }
 
         return ExitCodes.Success;
     }
 
     private static async Task<int> RenderNonInteractiveAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        ParseResult parseResult,
+        IStagesClient client,
+        IResultHolder resultHolder,
         CancellationToken ct)
     {
-        var apiId = context.ParseResult.GetValueForOption(Opt<OptionalApiIdOption>.Instance);
-        if (apiId is null)
-        {
-            throw ThrowHelper.Exit("The API ID is required in non-interactive mode.");
-        }
+        var apiId = parseResult.GetRequiredOptionalValue(Opt<OptionalApiIdOption>.Instance);
 
-        var result = await client.ListStagesQuery.ExecuteAsync(apiId, ct);
-
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        var items = (data.Node as IListStagesQuery_Node_Api)?.Stages
+        var data = await client.ListStagesAsync(apiId, ct) ?? [];
+        var items = data
             .Select(x => StageDetailPrompt.From(x).ToObject())
-            .ToArray() ?? [];
+            .ToArray();
 
-        context.SetResult(new PaginatedListResult<StageDetailPrompt.StageDetailPromptResult>(items, null));
+        resultHolder.SetResult(
+            new PaginatedListResult<StageDetailPrompt.StageDetailPromptResult>(items, null));
 
         return ExitCodes.Success;
     }

@@ -143,7 +143,7 @@ public interface ITypeInspector : IConvention
     /// <param name="scope">
     /// The type scope.
     /// </param>
-    /// <returns></returns>
+    /// <returns>The extended type reference.</returns>
     ExtendedTypeReference GetTypeRef(
         Type type,
         TypeContext context = TypeContext.None,

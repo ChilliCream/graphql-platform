@@ -17,23 +17,53 @@ response:
       "data": {
         "books": [
           {
-            "a": {
-              "a": "Author 1"
-            },
-            "b": {
-              "b": "Author 1 - 2"
-            }
+            "a": null,
+            "b": null
           },
           {
-            "a": {
-              "a": "Author 2"
-            },
-            "b": {
-              "b": "Author 2 - 2"
-            }
+            "a": null,
+            "b": null
           }
         ]
-      }
+      },
+      "errors": [
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "books",
+            0,
+            "a",
+            "a"
+          ]
+        },
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "books",
+            0,
+            "b",
+            "b"
+          ]
+        },
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "books",
+            1,
+            "a",
+            "a"
+          ]
+        },
+        {
+          "message": "Unexpected Execution Error",
+          "path": [
+            "books",
+            1,
+            "b",
+            "b"
+          ]
+        }
+      ]
     }
 sourceSchemas:
   - name: a
@@ -122,9 +152,7 @@ sourceSchemas:
           kind: OperationBatch
           items:
             - document: |
-                query Op_1b3419da_2(
-                  $__fusion_1_id: ID!
-                ) {
+                query Op_1b3419da_2($__fusion_1_id: ID!) {
                   authorById(id: $__fusion_1_id) {
                     b: name(postFix: "2")
                   }
@@ -134,9 +162,7 @@ sourceSchemas:
                   "__fusion_1_id": "1"
                 }
             - document: |
-                query Op_1b3419da_2(
-                  $__fusion_1_id: ID!
-                ) {
+                query Op_1b3419da_2($__fusion_1_id: ID!) {
                   authorById(id: $__fusion_1_id) {
                     b: name(postFix: "2")
                   }
@@ -146,9 +172,7 @@ sourceSchemas:
                   "__fusion_1_id": "2"
                 }
             - document: |
-                query Op_1b3419da_3(
-                  $__fusion_2_id: ID!
-                ) {
+                query Op_1b3419da_3($__fusion_2_id: ID!) {
                   authorById(id: $__fusion_2_id) {
                     a: name
                   }
@@ -158,9 +182,7 @@ sourceSchemas:
                   "__fusion_2_id": "1"
                 }
             - document: |
-                query Op_1b3419da_3(
-                  $__fusion_2_id: ID!
-                ) {
+                query Op_1b3419da_3($__fusion_2_id: ID!) {
                   authorById(id: $__fusion_2_id) {
                     a: name
                   }
@@ -170,40 +192,8 @@ sourceSchemas:
                   "__fusion_2_id": "2"
                 }
         response:
-          contentType: application/json; charset=utf-8
-          results:
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "b": "Author 1 - 2"
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "b": "Author 2 - 2"
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "a": "Author 1"
-                  }
-                }
-              }
-            - |
-              {
-                "data": {
-                  "authorById": {
-                    "a": "Author 2"
-                  }
-                }
-              }
+          statusCode: 500
+          contentType: text/plain; charset=utf-8
 operationPlan:
   operation:
     - document: |
@@ -241,9 +231,7 @@ operationPlan:
       type: Operation
       schema: b
       operation: |
-        query Op_1b3419da_2(
-          $__fusion_1_id: ID!
-        ) {
+        query Op_1b3419da_2($__fusion_1_id: ID!) {
           authorById(id: $__fusion_1_id) {
             b: name(postFix: "2")
           }
@@ -261,9 +249,7 @@ operationPlan:
       type: Operation
       schema: b
       operation: |
-        query Op_1b3419da_3(
-          $__fusion_2_id: ID!
-        ) {
+        query Op_1b3419da_3($__fusion_2_id: ID!) {
           authorById(id: $__fusion_2_id) {
             a: name
           }

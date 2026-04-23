@@ -3545,9 +3545,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the InsertPeople GraphQL operation
     /// <code>
-    /// mutation InsertPeople(
-    ///   $people: [people_insert_input!]!
-    /// ) {
+    /// mutation InsertPeople($people: [people_insert_input!]!) {
     ///   insert_people(objects: $people) {
     ///     __typename
     ///     affected_rows
@@ -3581,9 +3579,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the InsertPeople GraphQL operation
     /// <code>
-    /// mutation InsertPeople(
-    ///   $people: [people_insert_input!]!
-    /// ) {
+    /// mutation InsertPeople($people: [people_insert_input!]!) {
     ///   insert_people(objects: $people) {
     ///     __typename
     ///     affected_rows
@@ -3687,9 +3683,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the InsertPeople GraphQL operation
     /// <code>
-    /// mutation InsertPeople(
-    ///   $people: [people_insert_input!]!
-    /// ) {
+    /// mutation InsertPeople($people: [people_insert_input!]!) {
     ///   insert_people(objects: $people) {
     ///     __typename
     ///     affected_rows

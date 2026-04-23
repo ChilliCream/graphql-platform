@@ -58,6 +58,35 @@ public sealed class OperationPlannerOptions
     } = true;
 
     /// <summary>
+    /// Gets or sets whether <c>@defer</c> support is enabled in the planner.
+    /// When disabled, the planner skips defer processing entirely.
+    /// </summary>
+    public bool EnableDefer
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+            field = value;
+        }
+    } = true;
+
+    /// <summary>
+    /// When enabled, nested <c>@defer</c> fragments without a label are inlined
+    /// into their parent deferred group instead of producing a separate group.
+    /// This reduces incremental delivery overhead at the cost of less granular streaming.
+    /// </summary>
+    public bool InlineUnlabeledDeferFragments
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+            field = value;
+        }
+    } = true;
+
+    /// <summary>
     /// Gets or sets how aggressively structurally-identical operations are merged
     /// to reduce downstream request count. Cycle safety is always enforced regardless
     /// of this setting.

@@ -1,9 +1,9 @@
-namespace ChilliCream.Nitro.CommandLine.Options;
+namespace ChilliCream.Nitro.CommandLine;
 
 internal sealed class OptionalBaseSchemaFileOption : BaseSchemaFileOption
 {
     public OptionalBaseSchemaFileOption() : base()
     {
-        IsRequired = false;
+        Required = false;
     }
 }

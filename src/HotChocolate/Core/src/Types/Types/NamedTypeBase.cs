@@ -150,7 +150,7 @@ public abstract class NamedTypeBase<TConfiguration>
     /// <summary>
     /// Returns a <see cref="ITypeDefinitionNode"/> from the named type.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The type definition syntax node.</returns>
     public ITypeDefinitionNode ToSyntaxNode() => FormatType();
 
     ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode() => FormatType();

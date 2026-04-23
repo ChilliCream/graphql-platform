@@ -1,0 +1,16 @@
+namespace HotChocolate.Fusion.Suites.InputObjectIntersection.B;
+
+/// <summary>
+/// Seed data for the <c>b</c> subgraph.
+/// </summary>
+internal static class BData
+{
+    public static readonly IReadOnlyList<User> Users =
+    [
+        new User { Id = "u1", Name = "u1-name" },
+        new User { Id = "u2", Name = "u2-name" }
+    ];
+
+    public static readonly IReadOnlyDictionary<string, User> ById =
+        Users.ToDictionary(static u => u.Id, StringComparer.Ordinal);
+}

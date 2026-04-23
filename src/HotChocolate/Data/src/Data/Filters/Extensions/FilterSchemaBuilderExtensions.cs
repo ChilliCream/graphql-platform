@@ -47,7 +47,7 @@ public static class FilterSchemaBuilderExtensions
         Action<IFilterConventionDescriptor> configure,
         string? name = null) =>
         builder
-            .TryAddConvention<IFilterConvention>(sp => new FilterConvention(configure), name)
+            .TryAddConvention<IFilterConvention>(_ => new FilterConvention(configure), name)
             .TryAddTypeInterceptor<FilterTypeInterceptor>()
             .TryAddTypeInterceptor<DataTypeInterceptor>();
 

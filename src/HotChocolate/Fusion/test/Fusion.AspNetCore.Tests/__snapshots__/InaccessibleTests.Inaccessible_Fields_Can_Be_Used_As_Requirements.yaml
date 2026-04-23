@@ -37,7 +37,7 @@ sourceSchemas:
       }
 
       type Query {
-        bookById(id: Int!): Book! @lookup
+        bookById(id: Int!): Book @lookup
         inaccessibleText(text: String! = "This is the default!" @inaccessible): String!
         books: [Book!]!
       }
@@ -76,7 +76,7 @@ sourceSchemas:
       }
 
       type Query {
-        authorById(id: Int!): Author! @internal @lookup
+        authorById(id: Int!): Author @internal @lookup
         enumField(value: SomeEnum!): SomeEnum!
         shareable(input: SomeInput!): String!
       }
@@ -94,9 +94,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_2f49c6c6_2(
-              $__fusion_1_id: Int!
-            ) {
+            query Op_2f49c6c6_2($__fusion_1_id: Int!) {
               authorById(id: $__fusion_1_id) {
                 name
               }
@@ -145,9 +143,7 @@ operationPlan:
       type: Operation
       schema: b
       operation: |
-        query Op_2f49c6c6_2(
-          $__fusion_1_id: Int!
-        ) {
+        query Op_2f49c6c6_2($__fusion_1_id: Int!) {
           authorById(id: $__fusion_1_id) {
             name
           }

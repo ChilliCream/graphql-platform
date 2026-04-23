@@ -35,6 +35,7 @@ internal static class AspireCompositionHelper
             archive,
             environment,
             compositionSettings,
+            legacyArchive: null,
             cancellationToken);
 
         var output = new StringBuilder();

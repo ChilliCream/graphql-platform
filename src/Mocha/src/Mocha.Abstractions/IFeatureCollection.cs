@@ -25,7 +25,7 @@ public interface IFeatureCollection : IEnumerable<KeyValuePair<Type, object>>
     /// <summary>
     /// Gets or sets a given feature. Setting a null value removes the feature.
     /// </summary>
-    /// <param name="key"></param>
+    /// <param name="key">The type of the feature to get or set.</param>
     /// <returns>The requested feature, or null if it is not present.</returns>
     object? this[Type key] { get; set; }
 

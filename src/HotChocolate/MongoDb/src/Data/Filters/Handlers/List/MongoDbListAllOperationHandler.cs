@@ -13,7 +13,7 @@ public class MongoDbListAllOperationHandler : MongoDbListOperationHandlerBase
     /// <inheritdoc />
     protected override int Operation => DefaultFilterOperations.All;
 
-    public static MongoDbListAllOperationHandler Create(FilterProviderContext context)
+    public static MongoDbListAllOperationHandler Create(FilterProviderContext _)
         => new();
 
     /// <inheritdoc />

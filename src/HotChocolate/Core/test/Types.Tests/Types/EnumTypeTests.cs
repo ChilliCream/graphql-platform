@@ -305,7 +305,7 @@ public class EnumTypeTests : TypeTestBase
             .Errors.Single().Message.MatchInlineSnapshot(
                 """
                 `SÆT` is not a valid GraphQL name.
-                https://spec.graphql.org/October2021/#sec-Names
+                https://spec.graphql.org/September2025/#sec-Names
                  (Parameter 'value')
                 """);
     }

@@ -1,0 +1,15 @@
+[
+  {
+    "query": "{\n  productNode {\n    ... on Product {\n      id\n      name\n      __typename\n      price\n    }\n  }\n}\n",
+    "expected": {
+      "data": {
+        "productNode": {
+          "id": "p-1",
+          "name": "Product 1",
+          "__typename": "Product",
+          "price": 10
+        }
+      }
+    }
+  }
+]

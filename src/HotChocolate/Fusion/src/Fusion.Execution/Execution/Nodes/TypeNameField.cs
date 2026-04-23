@@ -13,9 +13,22 @@ internal sealed class TypeNameField : IOutputFieldDefinition
         ArgumentNullException.ThrowIfNull(nonNullStringType);
         Type = nonNullStringType;
         var features = new FeatureCollection();
-        features.Set(new ResolveFieldValue(
-            ctx => ctx.WriteValue(ctx.Selection.DeclaringSelectionSet.Type.Name)));
+        features.Set(new ResolveFieldValue(ResolveTypeName));
         Features = features.ToReadOnly();
+    }
+
+    private static void ResolveTypeName(FieldContext context)
+    {
+        var type = context.Selection.DeclaringSelectionSet.Type;
+
+        if (!type.IsAbstractType())
+        {
+            context.WriteValue(type.Name);
+            return;
+        }
+
+        var typeName = SchemaDefinitionTypeResolver.ResolveTypeName(context.Parent<object?>());
+        context.WriteValue(typeName);
     }
 
     public string Name => IntrospectionFieldNames.TypeName;

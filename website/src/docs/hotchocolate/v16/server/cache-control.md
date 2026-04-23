@@ -128,8 +128,8 @@ Then configure the server to register the directive and write the final headers:
 ```csharp
 using HotChocolate.Caching;
 
-builder.Services
-    .AddGraphQLServer()`
+builder
+    .AddGraphQL()
     .AddQueryType<Query>()
     .UseQueryCache()
     .AddCacheControl()
@@ -148,8 +148,8 @@ builder.Services
 ```csharp
 using HotChocolate.Caching;
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<Query>()
     .UseQueryCache()
     .AddCacheControl()
@@ -208,8 +208,8 @@ public sealed class NoCacheHeaderInterceptor : DefaultHttpRequestInterceptor
 Register the interceptor:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddHttpRequestInterceptor<NoCacheHeaderInterceptor>();
 ```
 

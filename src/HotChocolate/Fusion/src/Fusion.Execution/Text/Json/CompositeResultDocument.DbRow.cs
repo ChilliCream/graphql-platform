@@ -12,24 +12,31 @@ public sealed partial class CompositeResultDocument
         public const int Size = 20;
         public const int UnknownSize = -1;
 
-        // 27 bits for location + 2 bits OpRefType + 3 reserved bits
-        private readonly int _locationAndOpRefType;
+        // Byte offsets used by MetaDb's direct-read fast paths.
+        internal const int TypeAndParentOffset = 0;
+        internal const int SelectionAndFlagsOffset = 4;
+        internal const int SizeOffset = 8;
+        internal const int LocationOrRowsOffset = 12;
+        internal const int SourceOffset = 16;
 
-        // A Sign bit for HasComplexChildren + 31 bits for size/length
+        // 4 bits TokenType + 28 bits ParentRow
+        private readonly int _typeAndParent;
+
+        // 15 bits OperationReferenceId + 2 bits OperationReferenceType + 6 bits Flags + 9 reserved
+        private readonly int _selectionAndFlags;
+
+        // 1 bit HasComplexChildren (sign) + 31 bits SizeOrLength
         private readonly int _sizeOrLengthUnion;
 
-        // 4 bits TokenType + 27 bits NumberOfRows + 1 reserved bit
-        private readonly int _numberOfRowsTypeAndReserved;
+        // 27 bits — either Location or NumberOfRows, depending on TokenType/Flags
+        private readonly int _locationOrRows;
 
-        // 15 bits SourceDocumentId + 17 bits (high 17 bits of ParentRow)
-        private readonly int _sourceAndParentHigh;
-
-        // 15 bits OperationReferenceId + 6 bits Flags + 11 bits (low bits of ParentRow)
-        private readonly int _selectionSetFlagsAndParentLow;
+        // 15 bits SourceDocumentId + 17 reserved
+        private readonly int _source;
 
         public DbRow(
             ElementTokenType tokenType,
-            int location,
+            int location = 0,
             int sizeOrLength = 0,
             int sourceDocumentId = 0,
             int parentRow = 0,
@@ -49,20 +56,24 @@ public sealed partial class CompositeResultDocument
             Debug.Assert((byte)operationReferenceType <= 3); // 2 bits
             Debug.Assert(Unsafe.SizeOf<DbRow>() == Size);
 
-            _locationAndOpRefType = location | ((int)operationReferenceType << 27);
+            var locationOrRows = location != 0 ? location : numberOfRows;
+
+            _typeAndParent = ((int)tokenType & 0x0F) | (parentRow << 4);
+            _selectionAndFlags = operationReferenceId
+                | ((int)operationReferenceType << 15)
+                | ((int)flags << 17);
             _sizeOrLengthUnion = sizeOrLength;
-            _numberOfRowsTypeAndReserved = ((int)tokenType << 28) | (numberOfRows & 0x07FFFFFF);
-            _sourceAndParentHigh = sourceDocumentId | ((parentRow >> 11) << 15);
-            _selectionSetFlagsAndParentLow = operationReferenceId | ((int)flags << 15) | ((parentRow & 0x7FF) << 21);
+            _locationOrRows = locationOrRows & 0x07FFFFFF;
+            _source = sourceDocumentId & 0x7FFF;
         }
 
         /// <summary>
         /// Element token type (includes Reference for composition).
         /// </summary>
         /// <remarks>
-        /// 4 bits = possible values
+        /// 4 bits = 16 possible values
         /// </remarks>
-        public ElementTokenType TokenType => (ElementTokenType)(unchecked((uint)_numberOfRowsTypeAndReserved) >> 28);
+        public ElementTokenType TokenType => (ElementTokenType)(_typeAndParent & 0x0F);
 
         /// <summary>
         /// Operation reference type indicating the type of GraphQL operation element.
@@ -71,15 +82,15 @@ public sealed partial class CompositeResultDocument
         /// 2 bits = 4 possible values
         /// </remarks>
         public OperationReferenceType OperationReferenceType
-            => (OperationReferenceType)((_locationAndOpRefType >> 27) & 0x03);
+            => (OperationReferenceType)((_selectionAndFlags >> 15) & 0x03);
 
         /// <summary>
-        /// Byte offset in source data OR metaDb row index for references
+        /// Byte offset in source data or metaDb row index for references.
         /// </summary>
         /// <remarks>
         /// 27 bits = 134M limit
         /// </remarks>
-        public int Location => _locationAndOpRefType & 0x07FFFFFF;
+        public int Location => _locationOrRows & 0x07FFFFFF;
 
         /// <summary>
         /// Length of data in JSON payload, number of elements if array or number of properties in an object.
@@ -95,7 +106,7 @@ public sealed partial class CompositeResultDocument
         public bool HasComplexChildren => _sizeOrLengthUnion < 0;
 
         /// <summary>
-        /// Specifies if a size for the item has ben set.
+        /// Specifies if a size for the item has not been set.
         /// </summary>
         public bool IsUnknownSize => _sizeOrLengthUnion == UnknownSize;
 
@@ -105,7 +116,7 @@ public sealed partial class CompositeResultDocument
         /// <remarks>
         /// 27 bits = 134M rows
         /// </remarks>
-        public int NumberOfRows => _numberOfRowsTypeAndReserved & 0x07FFFFFF;
+        public int NumberOfRows => _locationOrRows & 0x07FFFFFF;
 
         /// <summary>
         /// Which source JSON document contains the data.
@@ -113,7 +124,7 @@ public sealed partial class CompositeResultDocument
         /// <remarks>
         /// 15 bits = 32K documents
         /// </remarks>
-        public int SourceDocumentId => _sourceAndParentHigh & 0x7FFF;
+        public int SourceDocumentId => _source & 0x7FFF;
 
         /// <summary>
         /// Index of parent element in metadb for navigation and null propagation.
@@ -121,8 +132,7 @@ public sealed partial class CompositeResultDocument
         /// <remarks>
         /// 28 bits = 268M rows
         /// </remarks>
-        public int ParentRow
-            => ((int)((uint)_sourceAndParentHigh >> 15) << 11) | ((_selectionSetFlagsAndParentLow >> 21) & 0x7FF);
+        public int ParentRow => (int)((uint)_typeAndParent >> 4);
 
         /// <summary>
         /// Reference to GraphQL selection set or selection metadata.
@@ -130,7 +140,7 @@ public sealed partial class CompositeResultDocument
         /// <remarks>
         /// 15 bits = 32K selections
         /// </remarks>
-        public int OperationReferenceId => _selectionSetFlagsAndParentLow & 0x7FFF;
+        public int OperationReferenceId => _selectionAndFlags & 0x7FFF;
 
         /// <summary>
         /// Element metadata flags.
@@ -138,7 +148,7 @@ public sealed partial class CompositeResultDocument
         /// <remarks>
         /// 6 bits = 64 combinations
         /// </remarks>
-        public ElementFlags Flags => (ElementFlags)((_selectionSetFlagsAndParentLow >> 15) & 0x3F);
+        public ElementFlags Flags => (ElementFlags)((_selectionAndFlags >> 17) & 0x3F);
 
         /// <summary>
         /// True for primitive JSON values (strings, numbers, booleans, null).

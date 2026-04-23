@@ -84,7 +84,9 @@ public static partial class HotChocolateAspNetCoreServiceCollectionExtensions
     /// <param name="handler">
     /// A delegate that allows to configure the GraphQL request.
     /// </param>
-    /// <returns></returns>
+    /// <returns>
+    /// The <see cref="IRequestExecutorBuilder"/> for configuration chaining.
+    /// </returns>
     public static IRequestExecutorBuilder AddHttpRequestInterceptor(
         this IRequestExecutorBuilder builder,
         Func<HttpContext, IRequestExecutor, OperationRequestBuilder, CancellationToken, ValueTask> handler)

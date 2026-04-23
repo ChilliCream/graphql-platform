@@ -462,6 +462,7 @@ public class CodeFirstAuthorizationTests
         Action<AuthorizationOptions>? configure = null)
         => new ServiceCollection()
             .AddGraphQLServer()
+            .DisableIntrospection(disable: false)
             .AddQueryType<QueryType>()
             .AddGlobalObjectIdentification(o => o.EnsureAllNodesCanBeResolved = false)
             .AddAuthorizationHandler(_ => handler)

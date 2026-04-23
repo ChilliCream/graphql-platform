@@ -20,8 +20,8 @@ Install the `HotChocolate.ApolloFederation` package:
 Register the Apollo Federation services:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddApolloFederation();
 ```
 
@@ -239,8 +239,8 @@ Register the type in the GraphQL schema:
 <Implementation>
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddApolloFederation()
     .AddType<Product>();
 ```
@@ -250,8 +250,8 @@ builder.Services
 <Code>
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddApolloFederation()
     .AddType<ProductType>();
 ```
@@ -300,8 +300,8 @@ public class Product
     public string Id { get; set; }
 }
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddApolloFederation()
     .AddType<Product>();
 ```
@@ -321,8 +321,8 @@ public class ProductType : ObjectType<Product>
     }
 }
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddApolloFederation()
     .AddType<ProductType>();
 ```

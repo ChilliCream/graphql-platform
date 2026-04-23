@@ -9,6 +9,9 @@ request:
 response:
   body: |
     {
+      "data": {
+        "productById": null
+      },
       "errors": [
         {
           "message": "Could not resolve Product",
@@ -31,7 +34,7 @@ sourceSchemas:
       }
 
       type Query {
-        productById(id: Int!): Product! @lookup
+        productById(id: Int!): Product @lookup
       }
     interactions:
       - request:
@@ -54,7 +57,9 @@ sourceSchemas:
                     ]
                   }
                 ],
-                "data": null
+                "data": {
+                  "productById": null
+                }
               }
 operationPlan:
   operation:
