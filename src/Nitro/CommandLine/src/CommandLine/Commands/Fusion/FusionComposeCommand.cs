@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using System.Threading.Channels;
+using ChilliCream.Nitro.CommandLine.FusionCompatibility;
 using ChilliCream.Nitro.CommandLine.Services;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Logging;
@@ -72,7 +73,7 @@ internal sealed class FusionComposeCommand : Command
         {
             sourceSchemaFiles.AddRange(
                 fileSystem.GetFiles(workingDirectory, "*.graphql*", SearchOption.AllDirectories)
-                    .Where(f => IsSchemaFile(Path.GetFileName(f))));
+                    .Where(f => FusionCompositionHelpers.IsSchemaFile(Path.GetFileName(f))));
         }
         else
         {
@@ -106,6 +107,7 @@ internal sealed class FusionComposeCommand : Command
             console,
             fileSystem,
             environmentVariables,
+            workingDirectory,
             sourceSchemaFiles,
             archiveFile,
             environment,
@@ -147,6 +149,7 @@ internal sealed class FusionComposeCommand : Command
             console,
             fileSystem,
             environmentVariables,
+            workingDirectory,
             sourceSchemaFiles,
             archiveFile,
             environment,
@@ -184,6 +187,7 @@ internal sealed class FusionComposeCommand : Command
             console,
             fileSystem,
             environmentVariables,
+            workingDirectory,
             sourceSchemaFiles,
             archiveFile,
             environment,
@@ -204,7 +208,7 @@ internal sealed class FusionComposeCommand : Command
                     sourceSchemaPath,
                     compositionChannel.Writer);
             }
-            else if (IsSchemaFile(sourceSchemaPath))
+            else if (FusionCompositionHelpers.IsSchemaFile(sourceSchemaPath))
             {
                 var sourceSchemaDirectory = Path.GetDirectoryName(sourceSchemaPath)!;
                 CreateSourceSchemaWatcher(
@@ -314,6 +318,7 @@ internal sealed class FusionComposeCommand : Command
         INitroConsole console,
         IFileSystem fileSystem,
         IEnvironmentVariableProvider environmentVariables,
+        string workingDirectory,
         List<string> sourceSchemaFiles,
         string archiveFile,
         string? environment,
@@ -349,6 +354,7 @@ internal sealed class FusionComposeCommand : Command
                     console,
                     fileSystem,
                     environmentVariables,
+                    workingDirectory,
                     sourceSchemaFiles,
                     archiveFile,
                     environment,
@@ -380,21 +386,11 @@ internal sealed class FusionComposeCommand : Command
         }
     }
 
-    public static bool IsSchemaFile(string? fileName)
-    {
-        if (fileName is null)
-        {
-            return false;
-        }
-
-        return fileName.EndsWith(".graphql", StringComparison.OrdinalIgnoreCase)
-            || fileName.EndsWith(".graphqls", StringComparison.OrdinalIgnoreCase);
-    }
-
     private static async Task<int> ComposeAsync(
         INitroConsole console,
         IFileSystem fileSystem,
         IEnvironmentVariableProvider environmentVariables,
+        string workingDirectory,
         List<string> sourceSchemaFiles,
         string archiveFile,
         string? environment,
@@ -409,8 +405,9 @@ internal sealed class FusionComposeCommand : Command
 
         try
         {
-            var sourceSchemas = await ReadSourceSchemasAsync(
+            var sourceSchemas = await FusionCompositionHelpers.ReadSourceSchemasAsync(
                 fileSystem,
+                workingDirectory,
                 sourceSchemaFiles,
                 cancellationToken);
 
@@ -422,6 +419,7 @@ internal sealed class FusionComposeCommand : Command
                 archive,
                 environment,
                 compositionSettings,
+                legacyArchive: null,
                 cancellationToken);
 
             WriteCompositionLog(
@@ -497,75 +495,6 @@ internal sealed class FusionComposeCommand : Command
 
             output.WriteLine(message);
         }
-    }
-
-    internal static async Task<Dictionary<string, (SourceSchemaText, JsonDocument)>> ReadSourceSchemasAsync(
-        IFileSystem fileSystem,
-        List<string> sourceSchemaFiles,
-        CancellationToken cancellationToken)
-    {
-        var sourceSchemas = new Dictionary<string, (SourceSchemaText, JsonDocument)>();
-
-        foreach (var sourceSchemaFile in sourceSchemaFiles)
-        {
-            var (schemaName, sourceText, settings) = await ReadSourceSchemaAsync(
-                fileSystem,
-                sourceSchemaFile,
-                cancellationToken);
-
-            sourceSchemas.Add(schemaName, (sourceText, settings));
-        }
-
-        return sourceSchemas;
-    }
-
-    internal static async Task<(string SchemaName, SourceSchemaText SourceText, JsonDocument Settings)> ReadSourceSchemaAsync(
-        IFileSystem fileSystem,
-        string sourceSchemaPath,
-        CancellationToken cancellationToken)
-    {
-        string? schemaFilePath = null;
-
-        if (fileSystem.DirectoryExists(sourceSchemaPath))
-        {
-            schemaFilePath =
-                fileSystem
-                    .GetFiles(sourceSchemaPath, "*.graphql*", SearchOption.AllDirectories)
-                    .FirstOrDefault(f => IsSchemaFile(Path.GetFileName(f)));
-        }
-        else if (fileSystem.FileExists(sourceSchemaPath))
-        {
-            schemaFilePath = sourceSchemaPath;
-        }
-
-        if (schemaFilePath is null)
-        {
-            throw new InvalidOperationException(
-                $"❌ Source schema file '{sourceSchemaPath}' does not exist.");
-        }
-
-        var settingsFilePath = Path.Combine(
-            Path.GetDirectoryName(schemaFilePath)!,
-            Path.GetFileNameWithoutExtension(schemaFilePath) + "-settings.json");
-
-        if (!fileSystem.FileExists(settingsFilePath))
-        {
-            throw new InvalidOperationException(
-                $"Missing source schema settings file `{settingsFilePath}`.");
-        }
-
-        var settings = JsonDocument.Parse(
-            await fileSystem.ReadAllBytesAsync(settingsFilePath, cancellationToken));
-        var schemaName = settings.RootElement.GetProperty("name").GetString();
-
-        if (schemaName is null)
-        {
-            throw new InvalidOperationException("Invalid source schema settings format.");
-        }
-
-        var sourceText = await fileSystem.ReadAllTextAsync(schemaFilePath, cancellationToken);
-
-        return (schemaName, new SourceSchemaText(schemaName, sourceText), settings);
     }
 
     /// <summary>

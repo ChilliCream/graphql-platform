@@ -337,7 +337,7 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
 
         stderr.MatchInlineSnapshot(
             """
-            ❌ Source schema file '/path/to/non-existent-1.graphqls' does not exist.
+            Schema file '/path/to/non-existent-1.graphqls' does not exist.
             """);
         Assert.Equal(1, result.ExitCode);
     }
@@ -470,7 +470,7 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
     {
         // arrange
         var archiveFileName = CreateTempFile();
-        var schemaFile = Path.Combine(s_resourcesDir, "missing-settings/schema.graphqls");
+        const string schemaFile = "/some/working/directory/missing-settings/schema.graphqls";
         SetupFile(schemaFile, "type Query { hello: String }");
 
         // act
@@ -483,8 +483,10 @@ public sealed class FusionComposeCommandTests(NitroCommandFixture fixture)
             archiveFileName);
 
         // assert
-        Assert.Equal(1, result.ExitCode);
-        Assert.Contains("Missing source schema settings file", result.StdErr);
+        result.AssertError(
+            """
+            Schema settings file '/some/working/directory/missing-settings/schema-settings.json' does not exist.
+            """);
     }
 
     [Fact]
