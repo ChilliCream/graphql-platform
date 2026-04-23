@@ -42,4 +42,16 @@ internal sealed class DeferSubPlanDescriptor(
     /// emitted subplan whose set contains a matching ancestor.
     /// </summary>
     public DeferSubPlanDescriptor? Parent { get; } = parent;
+
+    /// <summary>
+    /// Plan-scope requirements this subplan sources from the parent plan's
+    /// variable flow. Populated by the parent plan's requirement system
+    /// during parent planning so that the parent plan produces every value
+    /// the subplan needs before the subplan executes. A resolved entry maps
+    /// a variable name used inside the subplan to a selection in the parent
+    /// plan's result tree. Keyed by requirement name to dedup across groups
+    /// that share the same requirement.
+    /// </summary>
+    public SortedDictionary<string, OperationRequirement> Requirements { get; } =
+        new(StringComparer.Ordinal);
 }

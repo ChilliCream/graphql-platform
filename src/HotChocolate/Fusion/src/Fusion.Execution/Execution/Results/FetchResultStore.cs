@@ -1392,6 +1392,99 @@ AddErrors_Next:
         return new VariableValues(path, JsonSegment.Create(_variableWriter, startPosition, length));
     }
 
+    /// <summary>
+    /// Copies variable value sets produced by another <see cref="FetchResultStore"/>
+    /// into this store's writer and path pool, so the resulting array has no
+    /// reference to the source store. Used by deferred sub-plans: plan-scope
+    /// requirement values are resolved once against the parent store at
+    /// sub-plan creation time, materialized here, and consumed without any
+    /// dependency on the parent store's lifetime.
+    /// </summary>
+    internal ImmutableArray<VariableValues> ImportVariableValues(
+        ImmutableArray<VariableValues> source)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+
+        if (source.IsDefaultOrEmpty)
+        {
+            return [];
+        }
+
+        var builder = ImmutableArray.CreateBuilder<VariableValues>(source.Length);
+
+        lock (_lock)
+        {
+            foreach (var entry in source)
+            {
+                builder.Add(ImportVariableValuesEntry(entry));
+            }
+        }
+
+        return builder.MoveToImmutable();
+    }
+
+    private VariableValues ImportVariableValuesEntry(VariableValues source)
+    {
+        var path = ImportPath(source.Path);
+        var values = ImportJsonSegment(source.Values);
+        var additionalPaths = ImportAdditionalPaths(source.AdditionalPaths);
+
+        return new VariableValues(path, values)
+        {
+            AdditionalPaths = additionalPaths
+        };
+    }
+
+    private JsonSegment ImportJsonSegment(JsonSegment source)
+    {
+        if (source.IsEmpty)
+        {
+            return JsonSegment.Empty;
+        }
+
+        var startPosition = _variableWriter.Position;
+        foreach (var memory in source.AsSequence())
+        {
+            var span = _variableWriter.GetSpan(memory.Length);
+            memory.Span.CopyTo(span);
+            _variableWriter.Advance(memory.Length);
+        }
+
+        var length = _variableWriter.Position - startPosition;
+        return JsonSegment.Create(_variableWriter, startPosition, length);
+    }
+
+    private static CompactPath ImportPath(CompactPath source)
+    {
+        if (source.IsRoot)
+        {
+            return CompactPath.Root;
+        }
+
+        var segments = source.Segments;
+        var copy = new int[segments.Length + 1];
+        copy[0] = segments.Length;
+        segments.CopyTo(copy.AsSpan(1));
+        return new CompactPath(copy);
+    }
+
+    private static CompactPathSegment ImportAdditionalPaths(CompactPathSegment source)
+    {
+        if (source.IsDefaultOrEmpty)
+        {
+            return default;
+        }
+
+        var paths = source.AsSpan();
+        var copy = new CompactPath[paths.Length];
+        for (var i = 0; i < paths.Length; i++)
+        {
+            copy[i] = ImportPath(paths[i]);
+        }
+
+        return new CompactPathSegment(copy, 0, copy.Length);
+    }
+
     private static void AppendUnrolledLists(
         CompositeResultElement list,
         ref CompositeResultElement[] destination,
@@ -1550,6 +1643,21 @@ AddErrors_Next:
     {
         var result = GetStartResult(path);
         Debug.Assert(result.ValueKind is JsonValueKind.Object or JsonValueKind.Null or JsonValueKind.Undefined);
+
+        // The target slot itself can be Undefined when the defer's first
+        // surviving step writes into a path the planner did not materialize
+        // ahead of time. Promote the target to an empty StartObject backed by
+        // the target's declared selection set so the subsequent value-
+        // completion merge has a valid parent to populate.
+        if (result.ValueKind is JsonValueKind.Undefined)
+        {
+            var selection = result.AssertSelection();
+            var objectType = selection.Field.Type.NamedType<IObjectTypeDefinition>();
+            var selectionSet = _operation.GetSelectionSet(selection, objectType);
+            result.SetObjectValue(selectionSet);
+            return result;
+        }
+
         return result.ValueKind is JsonValueKind.Object or JsonValueKind.Null ? result : default;
     }
 
@@ -1600,6 +1708,19 @@ AddErrors_Next:
             if (element.ValueKind is JsonValueKind.Null)
             {
                 return element;
+            }
+
+            // A deferred sub-plan may target a path whose enclosing object
+            // slot was never materialized by the parent's own fetch.
+            // Materialize an empty StartObject sized by the slot's selection
+            // set so the next GetPropertyBySelectionId call has a parent
+            // row to index into.
+            if (element.ValueKind is JsonValueKind.Undefined)
+            {
+                var selection = element.AssertSelection();
+                var objectType = selection.Field.Type.NamedType<IObjectTypeDefinition>();
+                var selectionSet = _operation.GetSelectionSet(selection, objectType);
+                element.SetObjectValue(selectionSet);
             }
 
             if (segment >= 0)

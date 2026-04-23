@@ -545,7 +545,7 @@ public sealed partial class OperationPlanner
         selectionSetNode = PruneNonValueTypeChildren(selectionSetNode, operationStep.Type, schema);
         var resultSelectionSet = ResultSelectionSet.Create(selectionSetNode, schema);
 
-        return new OperationExecutionNode(
+        var node = new OperationExecutionNode(
             operationStep.Id,
             operationSource,
             operationStep.SchemaName,
@@ -556,6 +556,13 @@ public sealed partial class OperationPlanner
             resultSelectionSet,
             operationStep.Conditions,
             requiresFileUpload);
+
+        foreach (var parentDependency in operationStep.ParentDependencies)
+        {
+            node.AddParentDependency(parentDependency.StepId);
+        }
+
+        return node;
     }
 
     private static void MergeAndBatchOperations(
@@ -924,7 +931,8 @@ public sealed partial class OperationPlanner
     private static BatchOperationDefinition CreateBatchOperationDefinition(MergeResult merge)
     {
         var primary = merge.Primary;
-        return new BatchOperationDefinition(
+
+        var definition = new BatchOperationDefinition(
             primary.Id,
             merge.CanonicalOp,
             primary.SchemaName,
@@ -935,11 +943,18 @@ public sealed partial class OperationPlanner
             primary.ResultSelectionSet,
             primary.Conditions.ToArray(),
             primary.RequiresFileUpload);
+
+        foreach (var parentDependency in primary.ParentDependencies)
+        {
+            definition.AddParentDependency(parentDependency);
+        }
+
+        return definition;
     }
 
     private static SingleOperationDefinition CreateSingleOperationDefinition(OperationExecutionNode member)
     {
-        return new SingleOperationDefinition(
+        var definition = new SingleOperationDefinition(
             member.Id,
             member.Operation,
             member.SchemaName,
@@ -950,6 +965,13 @@ public sealed partial class OperationPlanner
             member.ResultSelectionSet,
             member.Conditions.ToArray(),
             member.RequiresFileUpload);
+
+        foreach (var parentDependency in member.ParentDependencies)
+        {
+            definition.AddParentDependency(parentDependency);
+        }
+
+        return definition;
     }
 
     /// <summary>

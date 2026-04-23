@@ -28,16 +28,23 @@ public sealed class ExecutionSubPlan
     /// by <see cref="DeferUsage.Id"/>. Every element is a delivery group that
     /// receives this subplan's data on the wire when the subplan completes.
     /// </param>
+    /// <param name="requirements">
+    /// The plan-scope requirements that must be supplied from the parent plan
+    /// before this subplan can execute. Each requirement maps a variable name
+    /// to a selection in the parent plan's result tree.
+    /// </param>
     public ExecutionSubPlan(
         Operation operation,
         ImmutableArray<ExecutionNode> rootNodes,
         ImmutableArray<ExecutionNode> allNodes,
-        ImmutableArray<DeferUsage> deliveryGroups)
+        ImmutableArray<DeferUsage> deliveryGroups,
+        ImmutableArray<OperationRequirement> requirements)
     {
         Operation = operation;
         RootNodes = rootNodes;
         AllNodes = allNodes;
         DeliveryGroups = deliveryGroups;
+        Requirements = requirements.IsDefault ? [] : requirements;
     }
 
     /// <summary>
@@ -64,6 +71,14 @@ public sealed class ExecutionSubPlan
     /// as an incremental payload on the wire.
     /// </summary>
     public ImmutableArray<DeferUsage> DeliveryGroups { get; }
+
+    /// <summary>
+    /// Gets the plan-scope requirements that the parent plan must supply
+    /// before this subplan can execute. Each requirement wires a variable
+    /// used inside this subplan to a selection in the parent plan's result
+    /// tree.
+    /// </summary>
+    public ImmutableArray<OperationRequirement> Requirements { get; }
 
     /// <summary>
     /// Gets the <see cref="ExecutionNode.Id"/> in the owning plan (the main plan

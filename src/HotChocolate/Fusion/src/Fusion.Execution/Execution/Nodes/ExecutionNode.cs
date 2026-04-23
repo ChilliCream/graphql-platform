@@ -11,9 +11,11 @@ public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNo
     private IOperationPlanNode[] _dependents = [];
     private IOperationPlanNode[] _dependencies = [];
     private IOperationPlanNode[] _optionalDependencies = [];
+    private int[] _parentDependencies = [];
     private int _dependentCount;
     private int _dependencyCount;
     private int _optionalDependencyCount;
+    private int _parentDependencyCount;
 
     /// <summary>
     /// The unique id of this execution node.
@@ -53,6 +55,13 @@ public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNo
     /// When an optional dependency is skipped or failed this node still gets executed.
     /// </summary>
     public ReadOnlySpan<IOperationPlanNode> OptionalDependencies => _optionalDependencies;
+
+    /// <summary>
+    /// Gets the identifiers of steps in the enclosing parent plan scope that
+    /// this node depends on. Used by deferred sub-plan nodes to reference
+    /// steps that live in the parent plan rather than the sub-plan itself.
+    /// </summary>
+    public ReadOnlySpan<int> ParentDependencies => _parentDependencies.AsSpan(0, _parentDependencyCount);
 
 #pragma warning disable CA2012
     public void BeginExecute(
@@ -172,6 +181,23 @@ public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNo
         _dependents[_dependentCount++] = node;
     }
 
+    internal void AddParentDependency(int parentNodeId)
+    {
+        ExpectMutable();
+
+        if (_parentDependencies.Length == 0)
+        {
+            _parentDependencies = new int[4];
+        }
+
+        if (_parentDependencyCount == _parentDependencies.Length)
+        {
+            Array.Resize(ref _parentDependencies, _parentDependencyCount * 2);
+        }
+
+        _parentDependencies[_parentDependencyCount++] = parentNodeId;
+    }
+
     internal void AddOptionalDependency(IOperationPlanNode node)
     {
         ExpectMutable();
@@ -215,9 +241,15 @@ public abstract class ExecutionNode : IOperationPlanNode, IEquatable<ExecutionNo
             Array.Resize(ref _optionalDependencies, _optionalDependencyCount);
         }
 
+        if (_parentDependencies.Length > _parentDependencyCount)
+        {
+            Array.Resize(ref _parentDependencies, _parentDependencyCount);
+        }
+
         Array.Sort(_dependencies, static (a, b) => a.Id.CompareTo(b.Id));
         Array.Sort(_dependents, static (a, b) => a.Id.CompareTo(b.Id));
         Array.Sort(_optionalDependencies, static (a, b) => a.Id.CompareTo(b.Id));
+        Array.Sort(_parentDependencies);
 
         OnSealingNode();
 

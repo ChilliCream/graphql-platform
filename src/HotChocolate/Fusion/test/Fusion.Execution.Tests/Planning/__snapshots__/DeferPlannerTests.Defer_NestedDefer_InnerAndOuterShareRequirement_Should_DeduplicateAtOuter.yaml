@@ -1,0 +1,140 @@
+operation:
+  - document: |
+      {
+        product(id: "1") {
+          name
+          id @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 1
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        product(id: "1") {
+          name
+          id
+        }
+      }
+  - id: 2
+    type: Operation
+    schema: b
+    operation: |
+      query Op_defer_4($__fusion_4_id: ID!) {
+        productById(id: $__fusion_4_id) {
+          productSku
+        }
+      }
+    source: $.productById
+    target: $.product
+    requirements:
+      - name: __fusion_4_id
+        selectionMap: >-
+          id
+deliveryGroups:
+  - id: 0
+    path: $.product
+    label: outer
+  - id: 1
+    path: $.product
+    label: inner
+    parentId: 0
+deferredSubPlans:
+  - deliveryGroupIds:
+      - 0
+    parentNodeId: 2
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+      - name: __fusion_2_productSku
+        selectionMap: >-
+          productSku
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    nodes:
+      - id: 2
+        type: Operation
+        schema: c
+        operation: |
+          query Op_defer_3($__fusion_2_productSku: String!, $__fusion_3_id: ID!) {
+            productById(id: $__fusion_3_id) {
+              reviews(productSku: $__fusion_2_productSku)
+            }
+          }
+        source: $.productById
+        target: $.product
+        requirements:
+          - name: __fusion_2_productSku
+            selectionMap: >-
+              productSku
+          - name: __fusion_3_id
+            selectionMap: >-
+              id
+        dependencies:
+          - parentNodeId: 1
+          - parentNodeId: 2
+      - id: 3
+        type: Operation
+        schema: a
+        operation: |
+          query Op_defer_1 {
+            product(id: "1") {
+              id
+            }
+          }
+      - id: 4
+        type: Operation
+        schema: b
+        operation: |
+          query Op_defer_4($__fusion_4_id: ID!) {
+            productById(id: $__fusion_4_id) {
+              productSku
+            }
+          }
+        source: $.productById
+        target: $.product
+        requirements:
+          - name: __fusion_4_id
+            selectionMap: >-
+              id
+  - deliveryGroupIds:
+      - 1
+    parentNodeId: 2
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+      - name: __fusion_2_productSku
+        selectionMap: >-
+          productSku
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    nodes:
+      - id: 2
+        type: Operation
+        schema: c
+        operation: |
+          query Op_defer_3($__fusion_2_productSku: String!, $__fusion_3_id: ID!) {
+            productById(id: $__fusion_3_id) {
+              summary(productSku: $__fusion_2_productSku)
+            }
+          }
+        source: $.productById
+        target: $.product
+        requirements:
+          - name: __fusion_2_productSku
+            selectionMap: >-
+              productSku
+          - name: __fusion_3_id
+            selectionMap: >-
+              id
+        dependencies:
+          - parentNodeId: 3
+          - parentNodeId: 4

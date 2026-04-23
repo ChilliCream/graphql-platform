@@ -170,11 +170,35 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 .Where(n => n.Dependencies.Length == 0 && n.OptionalDependencies.Length == 0)
                 .ToImmutableArray();
 
+            var subPlanRequirements = ImmutableArray<OperationRequirement>.Empty;
+
+            if (subPlanElement.TryGetProperty("requirements", out var requirementsElement))
+            {
+                var requirementsBuilder = ImmutableArray.CreateBuilder<OperationRequirement>();
+
+                foreach (var requirementElement in requirementsElement.EnumerateArray())
+                {
+                    var requirementName = requirementElement.GetProperty("name").GetString()!;
+                    var requirementType = requirementElement.GetProperty("type").GetString()!;
+                    var requirementPath = requirementElement.GetProperty("path").GetString()!;
+                    var selectionMap = requirementElement.GetProperty("selectionMap").GetString()!;
+
+                    requirementsBuilder.Add(new OperationRequirement(
+                        requirementName,
+                        Utf8GraphQLParser.Syntax.ParseTypeReference(requirementType),
+                        SelectionPath.Parse(requirementPath),
+                        FieldSelectionMapParser.Parse(selectionMap)));
+                }
+
+                subPlanRequirements = requirementsBuilder.ToImmutable();
+            }
+
             var subPlan = new ExecutionSubPlan(
                 subPlanOperation,
                 rootSubPlanNodes,
                 subPlanNodes,
-                subPlanDeliveryGroupsBuilder.ToImmutable())
+                subPlanDeliveryGroupsBuilder.ToImmutable(),
+                subPlanRequirements)
             {
                 ParentNodeId = subPlanElement.GetProperty("parentNodeId").GetInt32()
             };
@@ -464,7 +488,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         JsonElement nodeElement, int id, ISchemaDefinition schema)
     {
         var (schemaName, opSource, source, requirements, forwardedVariables,
-            resultSelectionSet, dependencies, batchingGroupId, conditions,
+            resultSelectionSet, dependencies, parentDependencies, batchingGroupId, conditions,
             requiresFileUpload) = ParseCommonOperationFields(nodeElement, schema);
 
         SelectionPath? target = null;
@@ -485,6 +509,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             ForwardedVariables = forwardedVariables ?? [],
             ResultSelectionSet = ResultSelectionSet.Create(resultSelectionSet!, schema),
             Dependencies = dependencies,
+            ParentDependencies = parentDependencies,
             BatchingGroupId = batchingGroupId,
             Conditions = conditions,
             RequiresFileUpload = requiresFileUpload,
@@ -496,7 +521,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         JsonElement nodeElement, int id, ISchemaDefinition schema)
     {
         var (schemaName, opSource, source, requirements, forwardedVariables,
-            resultSelectionSet, dependencies, batchingGroupId, conditions,
+            resultSelectionSet, dependencies, parentDependencies, batchingGroupId, conditions,
             requiresFileUpload) = ParseCommonOperationFields(nodeElement, schema);
 
         var targets = nodeElement.TryGetProperty("targets", out var targetsElement)
@@ -514,6 +539,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             ForwardedVariables = forwardedVariables ?? [],
             ResultSelectionSet = ResultSelectionSet.Create(resultSelectionSet!, schema),
             Dependencies = dependencies,
+            ParentDependencies = parentDependencies,
             BatchingGroupId = batchingGroupId,
             Conditions = conditions,
             RequiresFileUpload = requiresFileUpload,
@@ -523,8 +549,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
     private static (string? schemaName, OperationSourceText opSource, SelectionPath? source,
         List<OperationRequirement>? requirements, string[]? forwardedVariables,
-        SelectionSetNode? resultSelectionSet, int[]? dependencies, int? batchingGroupId,
-        ExecutionNodeCondition[] conditions, bool requiresFileUpload)
+        SelectionSetNode? resultSelectionSet, int[]? dependencies, int[]? parentDependencies,
+        int? batchingGroupId, ExecutionNodeCondition[] conditions, bool requiresFileUpload)
         ParseCommonOperationFields(JsonElement nodeElement, ISchemaDefinition _)
     {
         string? schemaName = null;
@@ -546,6 +572,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         string[]? forwardedVariables = null;
         SelectionSetNode? resultSelectionSet = null;
         int[]? dependencies = null;
+        int[]? parentDependencies = null;
         int? batchingGroupId = null;
 
         if (nodeElement.TryGetProperty("source", out var sourceElement))
@@ -593,10 +620,31 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         if (nodeElement.TryGetProperty("dependencies", out var dependenciesElement))
         {
-            dependencies = dependenciesElement
-                .EnumerateArray()
-                .Select(e => e.GetInt32())
-                .ToArray();
+            List<int>? intDeps = null;
+            List<int>? parentDeps = null;
+
+            foreach (var dependencyElement in dependenciesElement.EnumerateArray())
+            {
+                switch (dependencyElement.ValueKind)
+                {
+                    case JsonValueKind.Number:
+                        intDeps ??= [];
+                        intDeps.Add(dependencyElement.GetInt32());
+                        break;
+
+                    case JsonValueKind.Object:
+                        parentDeps ??= [];
+                        parentDeps.Add(dependencyElement.GetProperty("parentNodeId").GetInt32());
+                        break;
+
+                    default:
+                        throw new InvalidOperationException(
+                            $"Unsupported dependency element kind: {dependencyElement.ValueKind}.");
+                }
+            }
+
+            dependencies = intDeps?.ToArray();
+            parentDependencies = parentDeps?.ToArray();
         }
 
         if (nodeElement.TryGetProperty("batchingGroupId", out var batchingGroupIdElement))
@@ -610,7 +658,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             && requiresFileUploadElement.ValueKind == JsonValueKind.True;
 
         return (schemaName, opSource, source, requirements, forwardedVariables,
-            resultSelectionSet, dependencies, batchingGroupId, conditions, requiresFileUpload);
+            resultSelectionSet, dependencies, parentDependencies, batchingGroupId, conditions, requiresFileUpload);
     }
 
     private static ParsedNodeInfo ParseIntrospectionNodeInfo(
@@ -744,6 +792,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         public string[] ForwardedVariables { get; init; } = [];
         public required ResultSelectionSet ResultSelectionSet { get; init; }
         public int? BatchingGroupId { get; init; }
+        public int[]? ParentDependencies { get; init; }
         public ExecutionNodeCondition[] Conditions { get; init; } = [];
         public bool RequiresFileUpload { get; init; }
         public required ISchemaDefinition Schema { get; init; }
@@ -757,7 +806,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         public override OperationDefinition ToOperationDefinition()
         {
-            return new SingleOperationDefinition(
+            var definition = new SingleOperationDefinition(
                 Id,
                 OperationSource,
                 SchemaName,
@@ -768,6 +817,16 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 ResultSelectionSet,
                 Conditions,
                 RequiresFileUpload);
+
+            if (ParentDependencies is not null)
+            {
+                foreach (var parentId in ParentDependencies)
+                {
+                    definition.AddParentDependency(parentId);
+                }
+            }
+
+            return definition;
         }
 
         public override (ExecutionNode, int[]?, Dictionary<string, int>?, int?) ToExecutionNodeTuple()
@@ -784,6 +843,14 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 Conditions,
                 RequiresFileUpload);
 
+            if (ParentDependencies is not null)
+            {
+                foreach (var parentId in ParentDependencies)
+                {
+                    node.AddParentDependency(parentId);
+                }
+            }
+
             return (node, Dependencies, null, null);
         }
     }
@@ -794,7 +861,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         public override OperationDefinition ToOperationDefinition()
         {
-            return new BatchOperationDefinition(
+            var definition = new BatchOperationDefinition(
                 Id,
                 OperationSource,
                 SchemaName,
@@ -805,6 +872,16 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 ResultSelectionSet,
                 Conditions,
                 RequiresFileUpload);
+
+            if (ParentDependencies is not null)
+            {
+                foreach (var parentId in ParentDependencies)
+                {
+                    definition.AddParentDependency(parentId);
+                }
+            }
+
+            return definition;
         }
 
         public override (ExecutionNode, int[]?, Dictionary<string, int>?, int?) ToExecutionNodeTuple()

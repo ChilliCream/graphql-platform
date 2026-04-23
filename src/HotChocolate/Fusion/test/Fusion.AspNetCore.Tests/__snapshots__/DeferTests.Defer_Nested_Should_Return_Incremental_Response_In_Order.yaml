@@ -99,23 +99,6 @@ sourceSchemas:
             query Op_d1db12b9_1 {
               user(id: "1") {
                 name
-              }
-            }
-        response:
-          results:
-            - |
-              {
-                "data": {
-                  "user": {
-                    "name": "User: VXNlcjox"
-                  }
-                }
-              }
-      - request:
-          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
-          document: |
-            query Op_defer_1 {
-              user(id: "1") {
                 id
               }
             }
@@ -125,6 +108,7 @@ sourceSchemas:
               {
                 "data": {
                   "user": {
+                    "name": "User: VXNlcjox",
                     "id": "VXNlcjox"
                   }
                 }
@@ -213,6 +197,7 @@ operationPlan:
         {
           user(id: "1") {
             name
+            id @fusion__requirement
           }
         }
       hash: d1db12b9a5735063f8b816612efd3c53
@@ -226,6 +211,7 @@ operationPlan:
         query Op_d1db12b9_1 {
           user(id: "1") {
             name
+            id
           }
         }
   deliveryGroups:
@@ -240,17 +226,12 @@ operationPlan:
     - deliveryGroupIds:
         - 0
       parentNodeId: 1
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
       nodes:
         - id: 1
-          type: Operation
-          schema: A
-          operation: |
-            query Op_defer_1 {
-              user(id: "1") {
-                id
-              }
-            }
-        - id: 2
           type: Operation
           schema: B
           operation: |
@@ -266,12 +247,8 @@ operationPlan:
               selectionMap: >-
                 id
           dependencies:
-            - id: 1
-    - deliveryGroupIds:
-        - 1
-      parentNodeId: 2
-      nodes:
-        - id: 1
+            - parentNodeId: 1
+        - id: 2
           type: Operation
           schema: A
           operation: |
@@ -280,7 +257,15 @@ operationPlan:
                 id
               }
             }
-        - id: 2
+    - deliveryGroupIds:
+        - 1
+      parentNodeId: 1
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      nodes:
+        - id: 1
           type: Operation
           schema: B
           operation: |
@@ -296,4 +281,4 @@ operationPlan:
               selectionMap: >-
                 id
           dependencies:
-            - id: 1
+            - parentNodeId: 2

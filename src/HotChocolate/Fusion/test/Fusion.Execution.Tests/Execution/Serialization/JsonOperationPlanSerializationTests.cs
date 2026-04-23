@@ -247,6 +247,87 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
     }
 
     [Fact]
+    public void Parse_Plan_Preserves_ParentDependencies_On_Deferred_SubPlan_Nodes()
+    {
+        // arrange
+        // Same-subgraph hoist injects the key into the parent op so the
+        // deferred sub-plan node carries a ParentStepRef on its plan step
+        // and a {"parentNodeId": N} entry in its serialized dependencies.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+            }
+            """);
+
+        var originalPlan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "contact") {
+                        email
+                    }
+                }
+            }
+            """);
+
+        using var buffer = new PooledArrayWriter();
+        var formatter = new JsonOperationPlanFormatter(
+            new JsonWriterOptions
+            {
+                Indented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+        formatter.Format(buffer, originalPlan);
+
+        var compiler = new OperationCompiler(
+            schema,
+            new DefaultObjectPool<OrderedDictionary<string, List<FieldSelectionNode>>>(
+                new DefaultPooledObjectPolicy<OrderedDictionary<string, List<FieldSelectionNode>>>()));
+        var parser = new JsonOperationPlanParser(compiler);
+
+        // act
+        var parsedPlan = parser.Parse(buffer.WrittenMemory);
+
+        // assert
+        var originalSubPlanNode = originalPlan.DeferredSubPlans
+            .Single()
+            .AllNodes
+            .OfType<OperationExecutionNode>()
+            .Single(n => n.ParentDependencies.Length > 0);
+        var parsedSubPlanNode = parsedPlan.DeferredSubPlans
+            .Single()
+            .AllNodes
+            .OfType<OperationExecutionNode>()
+            .Single(n => n.Id == originalSubPlanNode.Id);
+        Assert.Equal(
+            originalSubPlanNode.ParentDependencies.ToArray(),
+            parsedSubPlanNode.ParentDependencies.ToArray());
+        Assert.Equal(
+            originalSubPlanNode.Dependencies.Length,
+            parsedSubPlanNode.Dependencies.Length);
+    }
+
+    [Fact]
     public void Parse_Plan_Without_BatchingGroupId()
     {
         // arrange

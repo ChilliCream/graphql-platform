@@ -1,0 +1,80 @@
+operation:
+  - document: |
+      {
+        user(id: "1") {
+          name
+          id @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 1
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        user(id: "1") {
+          name
+          id
+        }
+      }
+deliveryGroups:
+  - id: 0
+    path: $.user
+    label: contact
+  - id: 1
+    path: $.user
+    label: location
+deferredSubPlans:
+  - deliveryGroupIds:
+      - 0
+    parentNodeId: 1
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    nodes:
+      - id: 1
+        type: Operation
+        schema: b
+        operation: |
+          query Op_defer_2($__fusion_1_id: ID!) {
+            userById(id: $__fusion_1_id) {
+              email
+            }
+          }
+        source: $.userById
+        target: $.user
+        requirements:
+          - name: __fusion_1_id
+            selectionMap: >-
+              id
+        dependencies:
+          - parentNodeId: 1
+  - deliveryGroupIds:
+      - 1
+    parentNodeId: 1
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    nodes:
+      - id: 1
+        type: Operation
+        schema: b
+        operation: |
+          query Op_defer_2($__fusion_1_id: ID!) {
+            userById(id: $__fusion_1_id) {
+              address
+            }
+          }
+        source: $.userById
+        target: $.user
+        requirements:
+          - name: __fusion_1_id
+            selectionMap: >-
+              id
+        dependencies:
+          - parentNodeId: 1

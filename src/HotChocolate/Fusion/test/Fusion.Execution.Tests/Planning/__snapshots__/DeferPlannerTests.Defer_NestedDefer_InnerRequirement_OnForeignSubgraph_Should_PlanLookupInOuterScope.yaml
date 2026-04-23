@@ -1,0 +1,117 @@
+operation:
+  - document: |
+      {
+        user(id: "1") {
+          name
+          id @fusion__requirement
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 1
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        user(id: "1") {
+          name
+          id
+        }
+      }
+deliveryGroups:
+  - id: 0
+    path: $.user
+    label: outer
+  - id: 1
+    path: $.user
+    label: inner
+    parentId: 0
+deferredSubPlans:
+  - deliveryGroupIds:
+      - 0
+    parentNodeId: 1
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+    nodes:
+      - id: 1
+        type: Operation
+        schema: b
+        operation: |
+          query Op_defer_2($__fusion_1_id: ID!) {
+            userById(id: $__fusion_1_id) {
+              email
+            }
+          }
+        source: $.userById
+        target: $.user
+        batchingGroupId: 1
+        requirements:
+          - name: __fusion_1_id
+            selectionMap: >-
+              id
+        dependencies:
+          - parentNodeId: 1
+      - id: 3
+        type: Operation
+        schema: b
+        operation: |
+          query Op_defer_4($__fusion_4_id: ID!) {
+            userById(id: $__fusion_4_id) {
+              nickname
+            }
+          }
+        source: $.userById
+        target: $.user
+        batchingGroupId: 1
+        requirements:
+          - name: __fusion_4_id
+            selectionMap: >-
+              id
+      - id: 2
+        type: Operation
+        schema: a
+        operation: |
+          query Op_defer_1 {
+            user(id: "1") {
+              id
+            }
+          }
+  - deliveryGroupIds:
+      - 1
+    parentNodeId: 2
+    requirements:
+      - name: __fusion_1_id
+        selectionMap: >-
+          id
+      - name: __fusion_2_nickname
+        selectionMap: >-
+          nickname
+      - name: __fusion_3_id
+        selectionMap: >-
+          id
+    nodes:
+      - id: 2
+        type: Operation
+        schema: c
+        operation: |
+          query Op_defer_3($__fusion_2_nickname: String!, $__fusion_3_id: ID!) {
+            userById(id: $__fusion_3_id) {
+              badge(nickname: $__fusion_2_nickname)
+            }
+          }
+        source: $.userById
+        target: $.user
+        requirements:
+          - name: __fusion_2_nickname
+            selectionMap: >-
+              nickname
+          - name: __fusion_3_id
+            selectionMap: >-
+              id
+        dependencies:
+          - parentNodeId: 2
+          - parentNodeId: 3

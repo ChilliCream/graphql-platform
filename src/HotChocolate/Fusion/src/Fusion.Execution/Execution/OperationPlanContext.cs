@@ -33,6 +33,8 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     private List<IOperationPlanNode>?[] _skippedDefinitions = [];
     private readonly IFusionExecutionDiagnosticEvents _diagnosticEvents;
     private readonly FetchResultStore _resultStore;
+    private ImmutableArray<VariableValues> _requirementValues;
+    private HashSet<string>? _requirementKeys;
     private readonly ExecutionState _executionState;
     private readonly INodeIdParser _nodeIdParser;
     private readonly IErrorHandler _errorHandler;
@@ -260,6 +262,21 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         }
         else
         {
+            // A deferred sub-plan receives its plan-scope requirement values
+            // as a pre-materialized snapshot at creation time (see
+            // SetRequirements). The snapshot is rooted in this context's
+            // own store, so by the time we read it the parent plan is free to
+            // complete and dispose. When any requested requirement key is
+            // covered by the snapshot, we return it wholesale; the fetch's
+            // requirement set is always a subset of the sub-plan's plan-scope
+            // requirements in that case. Step-scope requirements (produced by
+            // an earlier step within this sub-plan) resolve through the own
+            // store as usual.
+            if (HasStoredValueFor(requirements))
+            {
+                return _requirementValues;
+            }
+
             var variableValues = GetPathThroughVariables(forwardedVariables);
             return _resultStore.CreateVariableValueSets(selectionSet, variableValues, requirements);
         }
@@ -282,9 +299,91 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         }
         else
         {
+            // See the single-selection-set overload above for the invariant:
+            // a deferred sub-plan's plan-scope requirements resolve through
+            // the pre-materialized snapshot; all other requirements resolve
+            // through the own result store.
+            if (HasStoredValueFor(requiredData))
+            {
+                return _requirementValues;
+            }
+
             var variableValues = GetPathThroughVariables(forwardedVariables);
             return _resultStore.CreateVariableValueSets(selectionSets, variableValues, requiredData);
         }
+    }
+
+    private bool HasStoredValueFor(ReadOnlySpan<OperationRequirement> requirements)
+    {
+        if (_requirementKeys is null || _requirementValues.IsDefaultOrEmpty)
+        {
+            return false;
+        }
+
+        foreach (var requirement in requirements)
+        {
+            if (_requirementKeys.Contains(requirement.Key))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Installs a pre-resolved plan-scope variable snapshot on this context.
+    /// Called exclusively by the executor when launching a deferred sub-plan,
+    /// after the executor has resolved the sub-plan's parent-sourced
+    /// requirements against the enclosing plan's result store. The raw values
+    /// are imported into this context's own store, so after the call this
+    /// context holds no reference to the parent store: the parent plan is
+    /// free to complete and dispose independently. A non-defer context never
+    /// has this called, so the snapshot remains empty and all requirement
+    /// resolution routes through the own store.
+    /// </summary>
+    internal void SetRequirements(
+        ImmutableArray<VariableValues> parentValues,
+        HashSet<string> keys)
+    {
+        ArgumentNullException.ThrowIfNull(keys);
+
+        if (parentValues.IsDefaultOrEmpty || keys.Count == 0)
+        {
+            return;
+        }
+
+        _requirementValues = _resultStore.ImportVariableValues(parentValues);
+        _requirementKeys = keys;
+    }
+
+    /// <summary>
+    /// Returns this context's result store so the executor can read pending
+    /// plan-scope requirement values from it when launching a deferred
+    /// sub-plan. Only the executor calls this, and only on contexts playing
+    /// the parent role (the root plan's context for a top-level defer, or an
+    /// enclosing sub-plan's context for a nested defer). The child sub-plan's
+    /// own code never invokes this and has no pathway back to a parent store
+    /// once <see cref="SetRequirements"/> has copied the values in.
+    /// </summary>
+    internal FetchResultStore GetResultStoreForChildDefer() => _resultStore;
+
+    /// <summary>
+    /// Transfers ownership of the result store's retained memory owners to
+    /// the supplied <see cref="OperationResult"/>. Used when a defer-capable
+    /// plan ends up with no active deferred sub-plans: in that case the
+    /// retained backing memory must ride on the returned result's cleanup
+    /// chain so it survives beyond the context's return to the pool.
+    /// </summary>
+    internal void TransferRetainedMemoryTo(OperationResult operationResult)
+    {
+        var memoryOwners = _resultStore.MemoryOwners;
+        foreach (var disposable in memoryOwners)
+        {
+            operationResult.RegisterForCleanup(disposable);
+        }
+
+        memoryOwners.Clear();
     }
 
     private CompactPath ToResultPath(SelectionPath selectionSet)
@@ -418,7 +517,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         }
     }
 
-    internal OperationResult Complete(bool reusable = false)
+    internal OperationResult Complete(bool reusable = false, bool retainMemoryForDefer = false)
     {
         _resultStore.FinalizePocketedErrors();
 
@@ -436,24 +535,36 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
             : null;
 
         var resultDocument = _resultStore.Result;
+
+        // When this completion drives a deferred stream, deferred sub-plans
+        // read the composite result document well after the initial payload
+        // has been written and disposed by the transport layer. Omitting the
+        // memory holder keeps ownership of the backing document on the store
+        // so it survives until the context itself is returned to the pool
+        // at stream close. Retained memory is transferred to the returned
+        // result later via TransferRetainedMemoryTo when no defers end up
+        // being active.
         var operationResult = new OperationResult(
             new OperationResultData(
                 resultDocument,
                 resultDocument.Data.IsNullOrInvalidated,
                 resultDocument,
-                resultDocument),
+                retainMemoryForDefer ? null : resultDocument),
             _resultStore.Errors?.ToImmutableList());
 
-        // we take over the memory owners from the result context
-        // and store them on the response so that the server can
-        // dispose them when it disposes of the result itself.
-        var memoryOwners = _resultStore.MemoryOwners;
-        foreach (var disposable in memoryOwners)
+        if (!retainMemoryForDefer)
         {
-            operationResult.RegisterForCleanup(disposable);
-        }
+            // we take over the memory owners from the result context
+            // and store them on the response so that the server can
+            // dispose them when it disposes of the result itself.
+            var memoryOwners = _resultStore.MemoryOwners;
+            foreach (var disposable in memoryOwners)
+            {
+                operationResult.RegisterForCleanup(disposable);
+            }
 
-        memoryOwners.Clear();
+            memoryOwners.Clear();
+        }
 
         operationResult.Features.Set(OperationPlan);
 

@@ -330,3 +330,4 @@ Directory.Build.user.props
 .claude/
 
 src/Mocha/benchmarks/Mocha.Mediator.Benchmarks/Generated/
+.work/

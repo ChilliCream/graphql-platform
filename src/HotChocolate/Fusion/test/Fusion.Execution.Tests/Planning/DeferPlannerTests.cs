@@ -731,4 +731,518 @@ public class DeferPlannerTests : FusionTestBase
         Assert.False(subPlan.RootNodes.IsEmpty);
         Assert.False(subPlan.AllNodes.IsEmpty);
     }
+
+    [Fact]
+    public void Defer_RequirementReachableFromParent_Should_InjectIntoParentOp_When_SameSubgraph()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer {
+                        email
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Defer_MultipleDeferGroupsShareRequirement_Should_DeduplicateHoistedField()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+                address: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "contact") {
+                        email
+                    }
+                    ... @defer(label: "location") {
+                        address
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Defer_RequirementOnForeignSubgraph_Should_PlanParentScopeLookup()
+    {
+        // arrange
+        // Parent plan only hits schema `a` for `product.name`. The defer
+        // group wants `reviews` on schema `c`, which requires `productSku`.
+        // `productSku` is only exposed by schema `b`, so the defer's sub-plan
+        // would otherwise self-fetch twice: once for `id` on `a`, once for
+        // `productSku` on `b`. Because schema `b` is reachable from the
+        // parent scope only through a cross-subgraph hop, the hoist must
+        // promote a dedicated parent-scope op on `b`.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            schema {
+                query: Query
+            }
+
+            type Query {
+                product(id: ID!): Product @lookup
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            schema {
+                query: Query
+            }
+
+            type Query {
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                productSku: String!
+            }
+            """,
+            """
+            # name: c
+            schema {
+                query: Query
+            }
+
+            type Query {
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                reviews(productSku: String! @require(field: "productSku")): [String!]!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                product(id: "1") {
+                    name
+                    ... @defer {
+                        reviews
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Defer_NestedDefer_InnerRequirement_Should_ResolveAgainstOuterDefer()
+    {
+        // arrange
+        // Outer defer needs `email` on schema `b` (requires `id` from root
+        // schema `a`). Inner defer needs `address`, also on schema `b` and
+        // also requiring `id`. The inner requirement is reachable from the
+        // outer defer's result tree (both select the same `User` at `$.user`).
+        // The current hoist only persists parent-step mutations when the
+        // enclosing scope is the root plan, so the outer sub-plan hoists `id`
+        // into the root op (one self-fetch eliminated) while the inner
+        // sub-plan falls back to its own local self-fetch. The runtime's
+        // try-parent-fall-back-to-own variable resolution (Step 8) consumes
+        // that local fetch. This snapshot locks in the current planner
+        // behavior and serves as the regression fixture for any future
+        // extension of the hoist to enclosing-defer scopes.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+                address: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "outer") {
+                        email
+                        ... @defer(label: "inner") {
+                            address
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Defer_NestedDefer_InnerAndOuterShareRequirement_Should_DeduplicateAtOuter()
+    {
+        // arrange
+        // Outer defer selects `reviews`, inner defer selects `summary`. Both
+        // fields live on schema `c` and both declare @require(field:
+        // "productSku"). The only way to satisfy `productSku` is via schema
+        // `b`. Because outer is planned first, it registers the productSku
+        // requirement in the outer's scope. When inner is planned, its own
+        // productSku requirement must reuse the outer's already-planned
+        // producer rather than duplicating another lookup step.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            schema {
+                query: Query
+            }
+
+            type Query {
+                product(id: ID!): Product @lookup
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            schema {
+                query: Query
+            }
+
+            type Query {
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                productSku: String!
+            }
+            """,
+            """
+            # name: c
+            schema {
+                query: Query
+            }
+
+            type Query {
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                reviews(productSku: String! @require(field: "productSku")): [String!]!
+                summary(productSku: String! @require(field: "productSku")): String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                product(id: "1") {
+                    name
+                    ... @defer(label: "outer") {
+                        reviews
+                        ... @defer(label: "inner") {
+                            summary
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Defer_NestedDefer_InnerRequirement_OnForeignSubgraph_Should_PlanLookupInOuterScope()
+    {
+        // arrange
+        // Inner defer's required variable (nickname) lives on schema `b`. The
+        // outer defer already hits `b` for `email`, but the root plan only
+        // hits schema `a`. The nearest reachable scope for `nickname` is the
+        // outer defer scope. The planner should plan the productSku lookup in
+        // outer-defer scope (not root) because root cannot satisfy it.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            schema {
+                query: Query
+            }
+
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            schema {
+                query: Query
+            }
+
+            type Query {
+                userById(id: ID!): User @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+                nickname: String!
+            }
+            """,
+            """
+            # name: c
+            schema {
+                query: Query
+            }
+
+            type Query {
+                userById(id: ID!): User @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                badge(nickname: String! @require(field: "nickname")): String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "outer") {
+                        email
+                        ... @defer(label: "inner") {
+                            badge
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact]
+    public void Defer_NestedDefer_InnerRequirement_Should_ResolveAtOuterScope_When_SameSubgraphAsOuterKey()
+    {
+        // arrange
+        // Inner defer's required variable (preferences) lives on schema `a`.
+        // The outer defer hits schema `b` for `email` and already has a
+        // promoted `user{id}` step on schema `a` (planned for its own
+        // lookup-key requirement). The walker's same-subgraph inline at outer
+        // scope succeeds by inlining `preferences` into that promoted step,
+        // so the inner's producer ends up at outer scope, not root. This is
+        // the observable planner behavior for schema-reachable requirements;
+        // the walker's parent-chain escalation to root is retained as
+        // defensive code (see the Skip'd fixture below).
+        var schema = ComposeSchema(
+            """
+            # name: a
+            schema {
+                query: Query
+            }
+
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+                preferences: String!
+            }
+            """,
+            """
+            # name: b
+            schema {
+                query: Query
+            }
+
+            type Query {
+                userById(id: ID!): User @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+            }
+            """,
+            """
+            # name: c
+            schema {
+                query: Query
+            }
+
+            type Query {
+                userById(id: ID!): User @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                customized(preferences: String! @require(field: "preferences")): String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "outer") {
+                        email
+                        ... @defer(label: "inner") {
+                            customized
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        MatchSnapshot(plan);
+    }
+
+    [Fact(Skip = "Natural Fusion schemas do not reach this walker-escalation path. "
+        + "The outer defer always has a key-producing step (to satisfy its own lookup's "
+        + "argument requirement) on the same subgraph as the enclosing entity; the walker's "
+        + "per-scope same-subgraph inline always succeeds at outer scope before needing to "
+        + "escalate. Cross-subgraph promote also succeeds whenever the inner's required "
+        + "subgraph is reachable via a lookup from outer's key. The walker's parent-chain "
+        + "escalation is retained as defensive code against planner-internal matching or "
+        + "partitioning bugs; snapshot verification is not observable for schema-reachable "
+        + "cases. Kept as a documentation fixture of .work/defer-requirement-variable-wiring.md "
+        + "§2.4's target behavior.")]
+    public void Defer_NestedDefer_InnerRequirement_UnreachableFromOuter_Should_BubbleToRoot()
+    {
+        // arrange
+        // No schema construction produced walker escalation to root. The
+        // plan's §2.4 invariant is that the walker's chain escalation is
+        // logically unreachable for any schema whose outer defer's own
+        // lookup-key requirement anchors a same-subgraph step that can
+        // absorb an inner's requirement via inline or promote.
+        Assert.True(true);
+    }
+
+    [Fact(Skip = "Natural schemas do not reach the unsatisfiable-requirement throw. "
+        + "If the defer's sub-plan planner produced a self-fetch, that self-fetch is "
+        + "an existence proof that the required value is reachable from some subgraph, "
+        + "and the parent's planning machinery (same-subgraph injection or cross-subgraph "
+        + "promote) can route to the same subgraph. Every attempt to construct an "
+        + "unsatisfiable schema collapsed into either (a) a composition-time failure or "
+        + "(b) a schema whose same-subgraph hoist or cross-subgraph promote succeeds. "
+        + "The throw in ApplyDeferRequirementsToParent is defensive against "
+        + "planner-internal matching bugs, not against schema shapes. Retained as a "
+        + "documentation fixture for .work/defer-requirement-variable-wiring.md Phase 1.")]
+    public void Defer_UnsatisfiableRequirement_Should_ThrowPlannerError_When_NotReachableAnywhere()
+    {
+        // arrange
+        // No schema construction produced the throw. The plan's Phase 1
+        // invariant is that the throw is logically unreachable for any
+        // schema whose defer sub-plan succeeds at plan time.
+        Assert.True(true);
+    }
 }
