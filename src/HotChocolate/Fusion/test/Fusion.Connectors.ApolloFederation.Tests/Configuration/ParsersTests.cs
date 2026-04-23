@@ -235,6 +235,93 @@ public sealed class ParsersTests
         Assert.Equal("id", lookup.ArgumentToKeyFieldMap["id"]);
     }
 
+    [Fact]
+    public void TryParse_Should_Accept_EntityRequires_Block()
+    {
+        // arrange: the composer emits per-entity-type field require metadata
+        // under 'extensions.apolloFederation.entityTypes'. For each field
+        // with synthetic '@require' arguments, the block carries the
+        // argument name to representation field path mapping that the
+        // rewriter uses to strip the argument and project the variable
+        // value onto the '_entities' representation.
+        const string settingsJson =
+            """
+            {
+              "inventory": {
+                "transports": { "http": { "url": "http://inventory/graphql" } },
+                "extensions": {
+                  "apolloFederation": {
+                    "lookups": {
+                      "productById": {
+                        "entityType": "Product",
+                        "arguments": { "id": "id" }
+                      }
+                    },
+                    "entityTypes": {
+                      "Product": {
+                        "fields": {
+                          "shippingEstimate": {
+                            "requires": { "price": "price", "weight": "weight" }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """;
+
+        var (sourceSchema, transport) = ReadSettings(settingsJson);
+        var parser = new ApolloFederationClientConfigurationParser();
+
+        // act
+        var matched = parser.TryParse(sourceSchema, transport, out var configuration);
+
+        // assert
+        Assert.True(matched);
+        var federationConfig = Assert.IsType<ApolloFederationSourceSchemaClientConfiguration>(configuration);
+        Assert.True(federationConfig.EntityRequires.TryGetValue("Product", out var productRequires));
+        Assert.True(productRequires.Fields.TryGetValue("shippingEstimate", out var shippingArgs));
+        Assert.Equal("price", shippingArgs["price"]);
+        Assert.Equal("weight", shippingArgs["weight"]);
+    }
+
+    [Fact]
+    public void TryParse_Should_Treat_Missing_EntityRequires_As_Empty()
+    {
+        // arrange
+        const string settingsJson =
+            """
+            {
+              "products": {
+                "transports": { "http": { "url": "http://products/graphql" } },
+                "extensions": {
+                  "apolloFederation": {
+                    "lookups": {
+                      "productById": {
+                        "entityType": "Product",
+                        "arguments": { "id": "id" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """;
+
+        var (sourceSchema, transport) = ReadSettings(settingsJson);
+        var parser = new ApolloFederationClientConfigurationParser();
+
+        // act
+        var matched = parser.TryParse(sourceSchema, transport, out var configuration);
+
+        // assert
+        Assert.True(matched);
+        var federationConfig = Assert.IsType<ApolloFederationSourceSchemaClientConfiguration>(configuration);
+        Assert.Empty(federationConfig.EntityRequires);
+    }
+
     private static (JsonProperty SourceSchema, JsonProperty Transport) ReadSettings(string settingsJson)
     {
         var document = JsonDocument.Parse(settingsJson);

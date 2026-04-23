@@ -6,30 +6,38 @@
 schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key", "@shareable"]) {
   query: Query
 }
+
 type ProductList
   @key(fields: "products { id pid category { id tag } } selected { id }") {
   products: [Product!]!
   first: Product @shareable
   selected: Product @shareable
 }
+
 type Product @key(fields: "id pid category { id tag }") {
   id: String!
   pid: String
   category: Category
 }
+
 type Category @key(fields: "id tag") {
   id: String!
   tag: String
 }
+
 type Query {
   topProducts: ProductList!
   _service: _Service!
   _entities(representations: [_Any!]!): [_Entity]!
 }
+
 type _Service { sdl: String! }
+
 union _Entity = ProductList | Product | Category
+
 scalar FieldSet
 scalar _Any
+
 directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
 directive @shareable on FIELD_DEFINITION | OBJECT
 directive @link(url: String! import: [String!]) repeatable on SCHEMA

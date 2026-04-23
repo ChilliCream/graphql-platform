@@ -33,7 +33,7 @@ public sealed class ApolloFederationSourceSchemaClientFactory
 
         var queryRewriter = _rewritersBySchema.GetOrAdd(
             configuration.Name,
-            static (_, config) => new FederationQueryRewriter(config.Lookups),
+            static (_, config) => new FederationQueryRewriter(config.Lookups, config.EntityRequires),
             configuration);
 
         var graphQLClient = GraphQLHttpClient.Create(httpClient, disposeHttpClient: true);

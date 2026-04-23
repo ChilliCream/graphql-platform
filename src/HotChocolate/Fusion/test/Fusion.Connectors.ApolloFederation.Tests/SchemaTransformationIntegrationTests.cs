@@ -9,6 +9,9 @@ namespace HotChocolate.Fusion;
 
 public class SchemaTransformationIntegrationTests
 {
+    private static readonly IReadOnlyDictionary<string, EntityRequiresInfo> s_noRequires
+        = new Dictionary<string, EntityRequiresInfo>(StringComparer.Ordinal);
+
     [Fact]
     public async Task Transform_FederationSubgraph_Should_ProduceValidCompositeSchema()
     {
@@ -79,7 +82,7 @@ public class SchemaTransformationIntegrationTests
             }
         };
 
-        var rewriter = new FederationQueryRewriter(lookupFields);
+        var rewriter = new FederationQueryRewriter(lookupFields, s_noRequires);
 
         // Simulate what the Fusion planner would generate
         const string plannerQuery = """
@@ -183,7 +186,7 @@ public class SchemaTransformationIntegrationTests
                 ArgumentToKeyFieldMap = new Dictionary<string, string> { ["email"] = "email" }
             }
         };
-        var rewriter = new FederationQueryRewriter(lookupFields);
+        var rewriter = new FederationQueryRewriter(lookupFields, s_noRequires);
 
         // 4. Simulate planner query and rewrite
         const string plannerQuery = """
