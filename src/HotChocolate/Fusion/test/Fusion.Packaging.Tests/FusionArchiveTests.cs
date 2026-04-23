@@ -661,6 +661,57 @@ public class FusionArchiveTests : IDisposable
         Assert.Empty(names);
     }
 
+    [Fact]
+    public async Task SetLegacyArchiveFile_WithValidContent_RoundTripsCorrectly()
+    {
+        // arrange
+        await using var stream = CreateStream();
+        var content = Encoding.UTF8.GetBytes("legacy archive payload");
+        await using var contentStream = new MemoryStream(content);
+
+        // act
+        using (var archive = FusionArchive.Create(stream, leaveOpen: true))
+        {
+            await archive.SetLegacyArchiveFileAsync(contentStream);
+            await archive.CommitAsync();
+        }
+
+        // assert
+        stream.Position = 0;
+        using var readArchive = FusionArchive.Open(stream, leaveOpen: true);
+        await using var retrieved = await readArchive.TryGetLegacyArchiveFileAsync();
+        Assert.NotNull(retrieved);
+        await using var buffer = new MemoryStream();
+        await retrieved.CopyToAsync(buffer);
+        Assert.Equal(content, buffer.ToArray());
+    }
+
+    [Fact]
+    public async Task SetLegacyArchiveFile_WithNullContent_ThrowsArgumentNullException()
+    {
+        // arrange
+        await using var stream = CreateStream();
+        using var archive = FusionArchive.Create(stream);
+
+        // act & assert
+        await Assert.ThrowsAsync<ArgumentNullException>(
+            () => archive.SetLegacyArchiveFileAsync(null!));
+    }
+
+    [Fact]
+    public async Task TryGetLegacyArchiveFile_WhenNotSet_ReturnsNull()
+    {
+        // arrange
+        await using var stream = CreateStream();
+        using var archive = FusionArchive.Create(stream);
+
+        // act
+        var result = await archive.TryGetLegacyArchiveFileAsync();
+
+        // assert
+        Assert.Null(result);
+    }
+
     private Stream CreateStream()
     {
         var stream = new MemoryStream();

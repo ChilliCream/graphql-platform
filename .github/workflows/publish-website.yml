@@ -40,7 +40,9 @@ jobs:
       - name: Cache Next.js Build Artifacts
         uses: actions/cache@v5
         with:
-          path: website/.next/cache
+          path: |
+            website/.next/cache
+            website/public/optimized
           key: ${{ runner.os }}-nextjs-${{ hashFiles('website/yarn.lock') }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('website/yarn.lock') }}-
