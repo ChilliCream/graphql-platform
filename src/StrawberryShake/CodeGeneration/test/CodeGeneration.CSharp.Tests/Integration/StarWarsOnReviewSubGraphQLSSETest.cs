@@ -19,7 +19,7 @@ public class StarWarsOnReviewSubGraphQLSSETest : ServerTestBase
         // arrange
         using var cts = new CancellationTokenSource(20_000);
         var ct = cts.Token;
-        using var host = TestServerHelper.CreateServer(
+        await using var host = TestServerHelper.CreateServer(
             _ => { },
             out var port);
         var serviceCollection = new ServiceCollection();

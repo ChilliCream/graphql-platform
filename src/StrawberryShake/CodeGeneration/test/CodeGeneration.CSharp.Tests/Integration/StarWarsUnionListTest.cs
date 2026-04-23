@@ -17,7 +17,7 @@ public class StarWarsUnionListTest : ServerTestBase
         // arrange
         using var cts = new CancellationTokenSource(20_000);
 
-        using var host = TestServerHelper.CreateServer(
+        await using var host = TestServerHelper.CreateServer(
             _ => { },
             out var port);
         var serviceCollection = new ServiceCollection();
