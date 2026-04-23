@@ -17,9 +17,6 @@ namespace HotChocolate.Fusion.Execution.Clients;
 /// </summary>
 internal sealed class FederationQueryRewriter
 {
-    private static readonly IReadOnlyDictionary<string, EntityRequiresInfo> s_emptyEntityRequires
-        = new Dictionary<string, EntityRequiresInfo>(StringComparer.Ordinal);
-
     private readonly ConcurrentDictionary<ulong, RewrittenOperation> _cache = new();
     private readonly IReadOnlyDictionary<string, LookupFieldInfo> _lookupFields;
     private readonly IReadOnlyDictionary<string, EntityRequiresInfo> _entityRequires;
@@ -34,16 +31,15 @@ internal sealed class FederationQueryRewriter
     /// <param name="entityRequires">
     /// A dictionary keyed by entity type name (e.g. <c>"Product"</c>) that
     /// describes the <c>@require</c> arguments declared on each entity field.
-    /// Optional; when <see langword="null"/> the rewriter treats every entity
-    /// type as having no require arguments.
     /// </param>
     public FederationQueryRewriter(
         IReadOnlyDictionary<string, LookupFieldInfo> lookupFields,
-        IReadOnlyDictionary<string, EntityRequiresInfo>? entityRequires = null)
+        IReadOnlyDictionary<string, EntityRequiresInfo> entityRequires)
     {
         ArgumentNullException.ThrowIfNull(lookupFields);
+        ArgumentNullException.ThrowIfNull(entityRequires);
         _lookupFields = lookupFields;
-        _entityRequires = entityRequires ?? s_emptyEntityRequires;
+        _entityRequires = entityRequires;
     }
 
     /// <summary>

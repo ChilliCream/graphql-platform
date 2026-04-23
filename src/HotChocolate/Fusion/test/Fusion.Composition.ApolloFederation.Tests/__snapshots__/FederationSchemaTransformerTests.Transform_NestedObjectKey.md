@@ -6,23 +6,30 @@
 schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"]) {
   query: Query
 }
+
 type Article @key(fields: "metadata { id }") {
   metadata: ArticleMetadata!
   title: String!
 }
+
 type ArticleMetadata {
   id: ID!
   author: String
 }
+
 type Query {
   article: Article
   _service: _Service!
   _entities(representations: [_Any!]!): [_Entity]!
 }
+
 type _Service { sdl: String! }
+
 union _Entity = Article
+
 scalar FieldSet
 scalar _Any
+
 directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
 directive @link(url: String! import: [String!]) repeatable on SCHEMA
 ```

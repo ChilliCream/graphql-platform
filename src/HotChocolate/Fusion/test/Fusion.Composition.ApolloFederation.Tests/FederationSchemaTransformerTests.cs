@@ -11,19 +11,25 @@ public sealed class FederationSchemaTransformerTests
             schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"]) {
               query: Query
             }
+
             type Product @key(fields: "id") {
               id: ID!
               name: String
             }
+
             type Query {
               product(id: ID!): Product
               _service: _Service!
               _entities(representations: [_Any!]!): [_Entity]!
             }
+
             type _Service { sdl: String! }
+
             union _Entity = Product
+
             scalar FieldSet
             scalar _Any
+
             directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
             directive @link(url: String! import: [String!]) repeatable on SCHEMA
             """;
@@ -48,20 +54,26 @@ public sealed class FederationSchemaTransformerTests
             schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"]) {
               query: Query
             }
+
             type Product @key(fields: "sku package") {
               sku: String!
               package: String!
               name: String
             }
+
             type Query {
               products: [Product]
               _service: _Service!
               _entities(representations: [_Any!]!): [_Entity]!
             }
+
             type _Service { sdl: String! }
+
             union _Entity = Product
+
             scalar FieldSet
             scalar _Any
+
             directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
             directive @link(url: String! import: [String!]) repeatable on SCHEMA
             """;
@@ -86,21 +98,27 @@ public sealed class FederationSchemaTransformerTests
             schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"]) {
               query: Query
             }
+
             type Product @key(fields: "id") @key(fields: "sku package") {
               id: ID!
               sku: String!
               package: String!
               name: String
             }
+
             type Query {
               products: [Product]
               _service: _Service!
               _entities(representations: [_Any!]!): [_Entity]!
             }
+
             type _Service { sdl: String! }
+
             union _Entity = Product
+
             scalar FieldSet
             scalar _Any
+
             directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
             directive @link(url: String! import: [String!]) repeatable on SCHEMA
             """;
@@ -125,21 +143,27 @@ public sealed class FederationSchemaTransformerTests
             schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key", "@requires", "@external"]) {
               query: Query
             }
+
             type Product @key(fields: "id") {
               id: ID!
               price: Float @external
               weight: Float @external
               shippingEstimate: Float @requires(fields: "price weight")
             }
+
             type Query {
               product(id: ID!): Product
               _service: _Service!
               _entities(representations: [_Any!]!): [_Entity]!
             }
+
             type _Service { sdl: String! }
+
             union _Entity = Product
+
             scalar FieldSet
             scalar _Any
+
             directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
             directive @requires(fields: FieldSet!) on FIELD_DEFINITION
             directive @external on FIELD_DEFINITION
@@ -169,21 +193,27 @@ public sealed class FederationSchemaTransformerTests
             schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key", "@requires", "@external"]) {
               query: Query
             }
+
             type Product @key(fields: "id") {
               id: ID!
               price: Float @external
               weight: Float @external
               shippingEstimate: Float @requires(fields: "price weight")
             }
+
             type Query {
               product(id: ID!): Product
               _service: _Service!
               _entities(representations: [_Any!]!): [_Entity]!
             }
+
             type _Service { sdl: String! }
+
             union _Entity = Product
+
             scalar FieldSet
             scalar _Any
+
             directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
             directive @requires(fields: FieldSet!) on FIELD_DEFINITION
             directive @external on FIELD_DEFINITION
@@ -210,24 +240,31 @@ public sealed class FederationSchemaTransformerTests
             schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key", "@provides"]) {
               query: Query
             }
+
             type User @key(fields: "id") {
               id: ID!
               username: String
               totalProductsCreated: Int
             }
+
             type Review {
               body: String
               author: User @provides(fields: "username")
             }
+
             type Query {
               reviews: [Review]
               _service: _Service!
               _entities(representations: [_Any!]!): [_Entity]!
             }
+
             type _Service { sdl: String! }
+
             union _Entity = User
+
             scalar FieldSet
             scalar _Any
+
             directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
             directive @provides(fields: FieldSet!) on FIELD_DEFINITION
             directive @link(url: String! import: [String!]) repeatable on SCHEMA
@@ -253,19 +290,25 @@ public sealed class FederationSchemaTransformerTests
             schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key", "@external"]) {
               query: Query
             }
+
             type Product @key(fields: "id") {
               id: ID!
               price: Float @external
             }
+
             type Query {
               products: [Product]
               _service: _Service!
               _entities(representations: [_Any!]!): [_Entity]!
             }
+
             type _Service { sdl: String! }
+
             union _Entity = Product
+
             scalar FieldSet
             scalar _Any
+
             directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
             directive @external on FIELD_DEFINITION
             directive @link(url: String! import: [String!]) repeatable on SCHEMA
@@ -291,19 +334,25 @@ public sealed class FederationSchemaTransformerTests
             schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"]) {
               query: Query
             }
+
             type Product @key(fields: "id", resolvable: false) {
               id: ID!
               name: String
             }
+
             type Query {
               products: [Product]
               _service: _Service!
               _entities(representations: [_Any!]!): [_Entity]!
             }
+
             type _Service { sdl: String! }
+
             union _Entity = Product
+
             scalar FieldSet
             scalar _Any
+
             directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
             directive @link(url: String! import: [String!]) repeatable on SCHEMA
             """;
@@ -328,6 +377,7 @@ public sealed class FederationSchemaTransformerTests
             schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key", "@requires", "@provides", "@external"]) {
               query: Query
             }
+
             type Product @key(fields: "id") @key(fields: "sku package") {
               id: ID!
               sku: String!
@@ -338,25 +388,32 @@ public sealed class FederationSchemaTransformerTests
               inStock: Boolean
               createdBy: User @provides(fields: "totalProductsCreated")
             }
+
             type User @key(fields: "id") {
               id: ID!
               username: String @external
               totalProductsCreated: Int
             }
+
             type Review {
               body: String
               author: User
             }
+
             type Query {
               product(id: ID!): Product
               reviews: [Review]
               _service: _Service!
               _entities(representations: [_Any!]!): [_Entity]!
             }
+
             type _Service { sdl: String! }
+
             union _Entity = Product | User
+
             scalar FieldSet
             scalar _Any
+
             directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
             directive @requires(fields: FieldSet!) on FIELD_DEFINITION
             directive @provides(fields: FieldSet!) on FIELD_DEFINITION
@@ -384,19 +441,25 @@ public sealed class FederationSchemaTransformerTests
             schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"]) {
               query: Query
             }
+
             type Product @key(fields: "id", resolvable: true) {
               id: ID!
               name: String
             }
+
             type Query {
               products: [Product]
               _service: _Service!
               _entities(representations: [_Any!]!): [_Entity]!
             }
+
             type _Service { sdl: String! }
+
             union _Entity = Product
+
             scalar FieldSet
             scalar _Any
+
             directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
             directive @link(url: String! import: [String!]) repeatable on SCHEMA
             """;
@@ -421,20 +484,26 @@ public sealed class FederationSchemaTransformerTests
             schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"]) {
               query: Query
             }
+
             type Product @key(fields: "id") @key(fields: "sku", resolvable: false) {
               id: ID!
               sku: String!
               name: String
             }
+
             type Query {
               products: [Product]
               _service: _Service!
               _entities(representations: [_Any!]!): [_Entity]!
             }
+
             type _Service { sdl: String! }
+
             union _Entity = Product
+
             scalar FieldSet
             scalar _Any
+
             directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
             directive @link(url: String! import: [String!]) repeatable on SCHEMA
             """;
@@ -459,19 +528,25 @@ public sealed class FederationSchemaTransformerTests
             schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key", "@interfaceObject"]) {
               query: Query
             }
+
             type Product @key(fields: "id") @interfaceObject {
               id: ID!
               name: String
             }
+
             type Query {
               products: [Product]
               _service: _Service!
               _entities(representations: [_Any!]!): [_Entity]!
             }
+
             type _Service { sdl: String! }
+
             union _Entity = Product
+
             scalar FieldSet
             scalar _Any
+
             directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
             directive @interfaceObject on OBJECT
             directive @link(url: String! import: [String!]) repeatable on SCHEMA
@@ -497,9 +572,11 @@ public sealed class FederationSchemaTransformerTests
               id: ID!
               name: String
             }
+
             type Query {
               product(id: ID!): Product
             }
+
             directive @key(fields: String!) repeatable on OBJECT | INTERFACE
             """;
 
@@ -546,23 +623,30 @@ public sealed class FederationSchemaTransformerTests
             schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"]) {
               query: Query
             }
+
             type Article @key(fields: "metadata { id }") {
               metadata: ArticleMetadata!
               title: String!
             }
+
             type ArticleMetadata {
               id: ID!
               author: String
             }
+
             type Query {
               article: Article
               _service: _Service!
               _entities(representations: [_Any!]!): [_Entity]!
             }
+
             type _Service { sdl: String! }
+
             union _Entity = Article
+
             scalar FieldSet
             scalar _Any
+
             directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
             directive @link(url: String! import: [String!]) repeatable on SCHEMA
             """;
@@ -587,21 +671,28 @@ public sealed class FederationSchemaTransformerTests
             schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"]) {
               query: Query
             }
+
             type ProductList @key(fields: "products { id }") {
               products: [Product!]!
             }
+
             type Product @key(fields: "id") {
               id: ID!
             }
+
             type Query {
               topProducts: ProductList!
               _service: _Service!
               _entities(representations: [_Any!]!): [_Entity]!
             }
+
             type _Service { sdl: String! }
+
             union _Entity = ProductList | Product
+
             scalar FieldSet
             scalar _Any
+
             directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
             directive @link(url: String! import: [String!]) repeatable on SCHEMA
             """;
@@ -626,30 +717,38 @@ public sealed class FederationSchemaTransformerTests
             schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key", "@shareable"]) {
               query: Query
             }
+
             type ProductList
               @key(fields: "products { id pid category { id tag } } selected { id }") {
               products: [Product!]!
               first: Product @shareable
               selected: Product @shareable
             }
+
             type Product @key(fields: "id pid category { id tag }") {
               id: String!
               pid: String
               category: Category
             }
+
             type Category @key(fields: "id tag") {
               id: String!
               tag: String
             }
+
             type Query {
               topProducts: ProductList!
               _service: _Service!
               _entities(representations: [_Any!]!): [_Entity]!
             }
+
             type _Service { sdl: String! }
+
             union _Entity = ProductList | Product | Category
+
             scalar FieldSet
             scalar _Any
+
             directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
             directive @shareable on FIELD_DEFINITION | OBJECT
             directive @link(url: String! import: [String!]) repeatable on SCHEMA

@@ -33,20 +33,20 @@ public sealed class ApolloFederationSourceSchemaClientConfiguration : ISourceSch
         string httpClientName,
         Uri baseAddress,
         IReadOnlyDictionary<string, LookupFieldInfo> lookups,
-        IReadOnlyDictionary<string, EntityRequiresInfo>? entityRequires = null,
+        IReadOnlyDictionary<string, EntityRequiresInfo> entityRequires,
         SupportedOperationType supportedOperations = SupportedOperationType.Query | SupportedOperationType.Mutation)
     {
         ArgumentException.ThrowIfNullOrEmpty(name);
         ArgumentException.ThrowIfNullOrEmpty(httpClientName);
         ArgumentNullException.ThrowIfNull(baseAddress);
         ArgumentNullException.ThrowIfNull(lookups);
+        ArgumentNullException.ThrowIfNull(entityRequires);
 
         Name = name;
         HttpClientName = httpClientName;
         BaseAddress = baseAddress;
         Lookups = lookups;
-        EntityRequires = entityRequires
-            ?? new Dictionary<string, EntityRequiresInfo>(StringComparer.Ordinal);
+        EntityRequires = entityRequires;
         SupportedOperations = supportedOperations;
     }
 

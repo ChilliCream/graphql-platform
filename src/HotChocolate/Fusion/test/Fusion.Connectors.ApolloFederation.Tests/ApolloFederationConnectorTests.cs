@@ -3,13 +3,15 @@ using System.Text.Json;
 using HotChocolate.Buffers;
 using HotChocolate.Fusion.Execution;
 using HotChocolate.Fusion.Execution.Clients;
-using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Language;
 
 namespace HotChocolate.Fusion;
 
 public class ApolloFederationConnectorTests
 {
+    private static readonly IReadOnlyDictionary<string, EntityRequiresInfo> s_noRequires
+        = new Dictionary<string, EntityRequiresInfo>(StringComparer.Ordinal);
+
     [Fact]
     public void Configuration_Should_StoreProperties()
     {
@@ -23,6 +25,7 @@ public class ApolloFederationConnectorTests
             "products-http",
             baseAddress,
             lookups,
+            new Dictionary<string, EntityRequiresInfo>(),
             supportedOperations: SupportedOperationType.Query);
 
         // assert
@@ -41,7 +44,8 @@ public class ApolloFederationConnectorTests
             "products",
             "products-http",
             new Uri("http://localhost:5000/graphql"),
-            new Dictionary<string, LookupFieldInfo>());
+            new Dictionary<string, LookupFieldInfo>(),
+            new Dictionary<string, EntityRequiresInfo>());
 
         // assert
         Assert.Equal(
@@ -61,7 +65,7 @@ public class ApolloFederationConnectorTests
                 ArgumentToKeyFieldMap = new Dictionary<string, string> { ["id"] = "id" }
             }
         };
-        var rewriter = new FederationQueryRewriter(lookupFields);
+        var rewriter = new FederationQueryRewriter(lookupFields, s_noRequires);
 
         const string sourceText = """
             query GetProduct($__fusion_1_id: ID!) {
@@ -103,7 +107,7 @@ public class ApolloFederationConnectorTests
                 }
             }
         };
-        var rewriter = new FederationQueryRewriter(lookupFields);
+        var rewriter = new FederationQueryRewriter(lookupFields, s_noRequires);
 
         const string sourceText = """
             query Op($__fusion_1_sku: String!, $__fusion_1_package: String!) {
@@ -130,7 +134,7 @@ public class ApolloFederationConnectorTests
     {
         // arrange
         var lookupFields = new Dictionary<string, LookupFieldInfo>();
-        var rewriter = new FederationQueryRewriter(lookupFields);
+        var rewriter = new FederationQueryRewriter(lookupFields, s_noRequires);
 
         const string sourceText = """
             query {
@@ -163,7 +167,7 @@ public class ApolloFederationConnectorTests
                 ArgumentToKeyFieldMap = new Dictionary<string, string> { ["id"] = "id" }
             }
         };
-        var rewriter = new FederationQueryRewriter(lookupFields);
+        var rewriter = new FederationQueryRewriter(lookupFields, s_noRequires);
 
         const string sourceText = """
             query Op($__fusion_1_id: ID!) {
@@ -191,7 +195,7 @@ public class ApolloFederationConnectorTests
                 ArgumentToKeyFieldMap = new Dictionary<string, string> { ["id"] = "id" }
             }
         };
-        var rewriter = new FederationQueryRewriter(lookupFields);
+        var rewriter = new FederationQueryRewriter(lookupFields, s_noRequires);
 
         const string sourceText = """
             query GetProduct($__fusion_1_id: ID!) {
@@ -222,7 +226,7 @@ public class ApolloFederationConnectorTests
                 ArgumentToKeyFieldMap = new Dictionary<string, string> { ["id"] = "id" }
             }
         };
-        var rewriter = new FederationQueryRewriter(lookupFields);
+        var rewriter = new FederationQueryRewriter(lookupFields, s_noRequires);
 
         const string sourceText = """
             query Op($__fusion_1_id: ID!) {
@@ -252,7 +256,7 @@ public class ApolloFederationConnectorTests
                 ArgumentToKeyFieldMap = new Dictionary<string, string> { ["id"] = "id" }
             }
         };
-        var rewriter = new FederationQueryRewriter(lookupFields);
+        var rewriter = new FederationQueryRewriter(lookupFields, s_noRequires);
 
         const string sourceText = """
             query GetProduct($__fusion_1_id: ID!) {
@@ -286,7 +290,7 @@ public class ApolloFederationConnectorTests
     {
         // arrange
         var lookupFields = new Dictionary<string, LookupFieldInfo>();
-        var rewriter = new FederationQueryRewriter(lookupFields);
+        var rewriter = new FederationQueryRewriter(lookupFields, s_noRequires);
 
         const string sourceText = """
             query {
@@ -323,8 +327,8 @@ public class ApolloFederationConnectorTests
             }
         };
 
-        var productRewriter = new FederationQueryRewriter(productLookup);
-        var userRewriter = new FederationQueryRewriter(userLookup);
+        var productRewriter = new FederationQueryRewriter(productLookup, s_noRequires);
+        var userRewriter = new FederationQueryRewriter(userLookup, s_noRequires);
 
         var productOp = productRewriter.GetOrRewrite(
             """
@@ -398,7 +402,7 @@ public class ApolloFederationConnectorTests
                 ArgumentToKeyFieldMap = new Dictionary<string, string> { ["key"] = string.Empty }
             }
         };
-        var rewriter = new FederationQueryRewriter(lookupFields);
+        var rewriter = new FederationQueryRewriter(lookupFields, s_noRequires);
 
         const string sourceText = """
             query GetArticle($__fusion_1_key: ArticleByMetadataInput!) {
@@ -435,7 +439,7 @@ public class ApolloFederationConnectorTests
                 ArgumentToKeyFieldMap = new Dictionary<string, string> { ["key"] = string.Empty }
             }
         };
-        var rewriter = new FederationQueryRewriter(lookupFields);
+        var rewriter = new FederationQueryRewriter(lookupFields, s_noRequires);
 
         const string sourceText = """
             query GetList($__fusion_1_key: ProductListByProductsAndIdInput!) {
@@ -470,7 +474,7 @@ public class ApolloFederationConnectorTests
                         new Dictionary<string, string> { ["key"] = string.Empty }
                 }
         };
-        var rewriter = new FederationQueryRewriter(lookupFields);
+        var rewriter = new FederationQueryRewriter(lookupFields, s_noRequires);
 
         const string sourceText = """
             query($__fusion_1_key: ProductListByProductsAndIdAndPidAndCategoryAndIdAndTagAndSelectedAndIdInput!) {
@@ -507,7 +511,7 @@ public class ApolloFederationConnectorTests
                 ArgumentToKeyFieldMap = new Dictionary<string, string> { ["key"] = string.Empty }
             }
         };
-        var rewriter = new FederationQueryRewriter(lookupFields);
+        var rewriter = new FederationQueryRewriter(lookupFields, s_noRequires);
 
         const string sourceText = """
             query($__fusion_1_key: ProductListByProductsAndIdInput!) {
