@@ -34,7 +34,8 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
 
         _maxConcurrentCalls = Math.Clamp(
             configuration.MaxConcurrency ?? ReceiveEndpointConfiguration.Defaults.MaxConcurrency,
-            1, 1000);
+            1,
+            1000);
 
         // Compute a sensible PrefetchCount default when not explicitly set.
         // Without this, ServiceBusProcessor falls back to synchronous one-at-a-time pull (PrefetchCount=0).
