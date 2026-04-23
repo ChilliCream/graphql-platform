@@ -54,6 +54,11 @@ internal sealed class CreateApiCommand : Command
                 Opt<ApiPathOption>.Instance,
                 ct);
 
+        if (!pathResult.StartsWith('/'))
+        {
+            throw new ExitException($"The path '{pathResult}' is invalid. It must start with '/'.");
+        }
+
         var path = pathResult.Split("/", TrimEntries | RemoveEmptyEntries);
 
         var kind = GetApiKind(parseResult);
