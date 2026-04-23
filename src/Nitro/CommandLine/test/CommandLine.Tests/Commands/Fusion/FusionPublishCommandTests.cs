@@ -4601,7 +4601,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
 
     private static async Task AssertEmbeddedLegacyArchiveAsync(FusionArchive archive)
     {
-        await using var stream = await archive.GetFileAsync("legacy-v1-archive.fgp");
+        await using var stream = await archive.TryGetLegacyArchiveFileAsync();
         Assert.NotNull(stream);
         await using var package = FusionGraphPackage.Open(stream, FileAccess.Read);
         var configs = await package.GetSubgraphConfigurationsAsync();
@@ -4612,7 +4612,7 @@ public sealed class FusionPublishCommandTests(NitroCommandFixture fixture) : Fus
 
     private static async Task AssertNoEmbeddedLegacyArchiveAsync(FusionArchive archive)
     {
-        await using var stream = await archive.GetFileAsync("legacy-v1-archive.fgp");
+        await using var stream = await archive.TryGetLegacyArchiveFileAsync();
         Assert.Null(stream);
     }
 

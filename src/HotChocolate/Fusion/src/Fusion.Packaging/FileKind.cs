@@ -7,5 +7,5 @@ internal enum FileKind
     Manifest,
     Metadata,
     Signature,
-    File
+    LegacyArchive
 }

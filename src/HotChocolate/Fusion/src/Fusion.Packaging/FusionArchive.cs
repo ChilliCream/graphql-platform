@@ -105,7 +105,8 @@ public sealed class FusionArchive : IDisposable
         ArgumentNullException.ThrowIfNull(stream);
         var readOptions = new FusionArchiveReadOptions(
             options.MaxAllowedSchemaSize ?? FusionArchiveReadOptions.Default.MaxAllowedSchemaSize,
-            options.MaxAllowedSettingsSize ?? FusionArchiveReadOptions.Default.MaxAllowedSettingsSize);
+            options.MaxAllowedSettingsSize ?? FusionArchiveReadOptions.Default.MaxAllowedSettingsSize,
+            options.MaxAllowedLegacyArchiveSize ?? FusionArchiveReadOptions.Default.MaxAllowedLegacyArchiveSize);
         return new FusionArchive(stream, mode, leaveOpen, readOptions);
     }
 
@@ -534,51 +535,43 @@ public sealed class FusionArchive : IDisposable
     }
 
     /// <summary>
-    /// Sets a file in the archive by copying the content from the provided stream.
+    /// Sets the legacy archive file in the archive by copying the content from the provided stream.
     /// </summary>
-    /// <param name="path">The path of the file within the archive.</param>
-    /// <param name="content">The stream containing the file content.</param>
+    /// <param name="content">The stream containing the legacy archive content.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <exception cref="ArgumentException">Thrown when path is null or empty.</exception>
     /// <exception cref="ArgumentNullException">Thrown when content is null.</exception>
     /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
     /// <exception cref="InvalidOperationException">Thrown when the archive is read-only.</exception>
-    public async Task SetFileAsync(
-        string path,
+    public async Task SetLegacyArchiveFileAsync(
         Stream content,
         CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrEmpty(path);
         ArgumentNullException.ThrowIfNull(content);
         ObjectDisposedException.ThrowIf(_disposed, this);
         EnsureMutable();
 
-        await using var stream = _session.OpenWrite(path);
+        await using var stream = _session.OpenWrite(FileNames.LegacyArchive);
         await content.CopyToAsync(stream, cancellationToken);
     }
 
     /// <summary>
-    /// Gets a file from the archive as a stream.
-    /// Returns null if the file does not exist in the archive.
+    /// Attempts to get the legacy archive file from the archive as a stream.
+    /// Returns null if no legacy archive file is present.
     /// </summary>
-    /// <param name="path">The path of the file within the archive.</param>
     /// <param name="cancellationToken">Token to cancel the operation.</param>
-    /// <returns>A stream to read the file content, or null if the file does not exist.</returns>
-    /// <exception cref="ArgumentException">Thrown when path is null or empty.</exception>
+    /// <returns>A stream to read the legacy archive content, or null if not present.</returns>
     /// <exception cref="ObjectDisposedException">Thrown when the archive has been disposed.</exception>
-    public async Task<Stream?> GetFileAsync(
-        string path,
+    public async Task<Stream?> TryGetLegacyArchiveFileAsync(
         CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNullOrEmpty(path);
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        if (!await _session.ExistsAsync(path, FileKind.File, cancellationToken))
+        if (!await _session.ExistsAsync(FileNames.LegacyArchive, FileKind.LegacyArchive, cancellationToken))
         {
             return null;
         }
 
-        return await _session.OpenReadAsync(path, FileKind.File, cancellationToken);
+        return await _session.OpenReadAsync(FileNames.LegacyArchive, FileKind.LegacyArchive, cancellationToken);
     }
 
     /// <summary>

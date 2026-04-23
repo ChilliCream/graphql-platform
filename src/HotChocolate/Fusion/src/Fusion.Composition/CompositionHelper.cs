@@ -156,7 +156,7 @@ internal static class CompositionHelper
                 legacyArchive.Position = 0;
             }
 
-            await archive.SetFileAsync("legacy-v1-archive.fgp", legacyArchive, cancellationToken);
+            await archive.SetLegacyArchiveFileAsync(legacyArchive, cancellationToken);
         }
 
         await archive.CommitAsync(cancellationToken);
