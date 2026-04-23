@@ -12,13 +12,18 @@ namespace HotChocolate.Types;
 
 public static class DataLoaderObjectFieldExtensions
 {
-    public static IObjectFieldDescriptor UseDataLoader<TDataLoader>(
+    [RequiresDynamicCode("Creates generic types at runtime for data loader middleware.")]
+    public static IObjectFieldDescriptor UseDataLoader<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)]
+        TDataLoader>(
         this IObjectFieldDescriptor descriptor)
         where TDataLoader : IDataLoader
         => UseDataLoader(descriptor, typeof(TDataLoader));
 
+    [RequiresDynamicCode("Creates generic types at runtime for data loader middleware.")]
     public static IObjectFieldDescriptor UseDataLoader(
         this IObjectFieldDescriptor descriptor,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)]
         Type dataLoaderType)
     {
         FieldMiddlewareConfiguration placeholder = new(_ => _ => default, key: DataLoader);
@@ -69,6 +74,7 @@ public static class DataLoaderObjectFieldExtensions
         return descriptor;
     }
 
+    [RequiresDynamicCode("Creates generic types at runtime for data loader middleware.")]
     private static void CompileMiddleware(
         ObjectFieldConfiguration definition,
         FieldMiddlewareConfiguration placeholder,
@@ -96,6 +102,7 @@ public static class DataLoaderObjectFieldExtensions
     }
 
     private static bool TryGetDataLoaderTypes(
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)]
         Type type,
         [NotNullWhen(true)] out Type? key,
         [NotNullWhen(true)] out Type? value)

@@ -1,4 +1,5 @@
 using System.Buffers;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Utilities;
@@ -251,9 +252,11 @@ public class DefaultNamingConventions
 
         if (enumType.IsEnum)
         {
+#pragma warning disable IL2075 // 'this' argument does not satisfy 'DynamicallyAccessedMembersAttribute' - enumType is obtained from GetType() which cannot be statically annotated.
             var enumMember = enumType
                 .GetMember(value.ToString()!)
                 .FirstOrDefault();
+#pragma warning restore IL2075
 
             if (enumMember?.IsDefined(typeof(GraphQLNameAttribute)) == true)
             {
@@ -353,9 +356,11 @@ public class DefaultNamingConventions
 
         if (enumType.IsEnum)
         {
+#pragma warning disable IL2075 // 'this' argument does not satisfy 'DynamicallyAccessedMembersAttribute' - enumType is obtained from GetType() which cannot be statically annotated.
             var enumMember = enumType
                 .GetMember(value.ToString()!)
                 .FirstOrDefault();
+#pragma warning restore IL2075
 
             if (enumMember != null)
             {
@@ -386,9 +391,11 @@ public class DefaultNamingConventions
 
         if (enumType.IsEnum)
         {
+#pragma warning disable IL2075 // 'this' argument does not satisfy 'DynamicallyAccessedMembersAttribute' - enumType is obtained from GetType() which cannot be statically annotated.
             var enumMember = enumType
                 .GetMember(value.ToString()!)
                 .FirstOrDefault();
+#pragma warning restore IL2075
 
             if (enumMember != null)
             {
