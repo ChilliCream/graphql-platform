@@ -51,8 +51,8 @@ const IndexPage: FC<IndexPageProps> = ({ recentPosts }) => {
         <Fusion />
       </BackgroundContainer>
       <IndexPageHero>
-        <HeroTitleFirst>Unleash the Power</HeroTitleFirst>
-        <HeroTitleSecond>of Unified Services</HeroTitleSecond>
+        <HeroTitleFirst>The API Platform</HeroTitleFirst>
+        <HeroTitleSecond>for Humans and Agents</HeroTitleSecond>
         <HeroTeaser>
           Unify all your APIs into a comprehensive company graph, streamlining
           data accessibility and enhancing integration. Transform the way you
