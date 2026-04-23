@@ -23,6 +23,4 @@ public sealed class SourceOutputField(
     public bool IsExternal { get; } = isExternal;
 
     public SelectionSetNode? Provides { get; } = provides;
-
-    public int BaseCost => 1;
 }
