@@ -97,7 +97,7 @@ internal sealed class PostgresMessageOutbox : IMessageOutbox, IDisposable
 
             await command.ExecuteNonQueryAsync(cancellationToken);
 
-            if (_originalDbContext.Database.CurrentTransaction?.GetDbTransaction() is not NpgsqlTransaction transaction)
+            if (_originalDbContext.Database.CurrentTransaction?.GetDbTransaction() is not NpgsqlTransaction)
             {
                 _signal.Set();
             }
