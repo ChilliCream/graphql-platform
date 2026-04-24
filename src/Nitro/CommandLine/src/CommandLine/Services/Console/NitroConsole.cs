@@ -66,7 +66,16 @@ internal sealed class NitroConsole(
 
     public void WriteAnsi(Action<AnsiWriter> action)
     {
-        outConsole.WriteAnsi(action);
+        if (IsHumanReadable)
+        {
+            _hasWrittenOutput = true;
+            outConsole.WriteAnsi(action);
+            return;
+        }
+
+        throw new ExitException(
+            "Console runs in non interactive mode, yet a user interaction was attempted. "
+            + "Check the documentation of the command to see all options");
     }
 
     public Profile Profile => outConsole.Profile;
