@@ -1,4 +1,8 @@
+using System.Net;
 using System.Text;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Adapters.OpenApi;
@@ -18,6 +22,41 @@ public class HttpEndpointIntegrationTests : HttpEndpointIntegrationTestBase
         {
             builder.AddDiagnosticEventListener(_ => eventListener);
         }
+    }
+
+    [Fact]
+    public async Task MapOpenApiEndpoints_Should_ResolveSchemaName_When_SingleNamedSchemaRegistered()
+    {
+        // arrange
+        var storage = new TestOpenApiDefinitionStorage(
+            """
+            query GetUsers @http(method: GET, route: "/users") {
+              usersWithoutAuth {
+                id
+              }
+            }
+            """);
+        var builder = new WebHostBuilder()
+            .ConfigureServices(services =>
+            {
+                services.AddRouting();
+                services.AddGraphQLServer("NamedSchema")
+                    .AddOpenApiDefinitionStorage(storage)
+                    .AddBasicServer();
+            })
+            .Configure(app =>
+            {
+                app.UseRouting();
+                app.UseEndpoints(endpoints => endpoints.MapOpenApiEndpoints());
+            });
+        var server = new TestServer(builder);
+        var client = server.CreateClient();
+
+        // act
+        var response = await client.GetAsync("/users");
+
+        // assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]
