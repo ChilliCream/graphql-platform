@@ -19,7 +19,20 @@ internal static class Messages
 
     public static string SchemaFileDoesNotExist(string path) => $"Schema file '{path}' does not exist.";
 
+    public static string SchemaSettingsFileDoesNotExist(string path) => $"Schema settings file '{path}' does not exist.";
+
     public static string ArchiveFileDoesNotExist(string path) => $"Archive file '{path}' does not exist.";
+
+    public static string LegacyArchiveFileDoesNotExist(string path) => $"Legacy archive file '{path}' does not exist.";
+
+    public static string FailedToOpenLegacyArchive(string filePath, string detail)
+        => $"Failed to open legacy v1 archive '{filePath}': {detail}";
+
+    public static string LegacyArchiveCorrupt(string filePath, string detail)
+        => $"Legacy v1 archive '{filePath}' is corrupt or malformed: {detail}";
+
+    public static string LegacyArchiveSchemaExtensionsNotSupported(string sourceSchemaName)
+        => $"Legacy archive source schema '{sourceSchemaName}' contains schema extensions which are not supported in .far archives.";
 
     public static string OperationsFileDoesNotExist(string path) => $"Operations file '{path}' does not exist.";
 
@@ -35,9 +48,9 @@ internal static class Messages
 
     public const string Validating = "Validating...";
 
-    public const string ValidationPassed = "Validation successful.";
+    public const string ValidationPassed = "Passed validation.";
 
-    public const string ValidationFailed = "Validation failed.";
+    public const string ValidationFailed = "Failed validation.";
 
     public const string RequestReadyForProcessing =
         "Your request is ready for processing.";

@@ -17,6 +17,7 @@ public sealed class OperationExecutionNode : ExecutionNode
     private readonly ExecutionNodeCondition[] _conditions;
     private readonly bool _requiresFileUpload;
     private readonly OperationSourceText _operation;
+    private readonly ulong _operationHash;
     private readonly string? _schemaName;
     private readonly SelectionPath _target;
     private readonly SelectionPath _source;
@@ -35,6 +36,7 @@ public sealed class OperationExecutionNode : ExecutionNode
     {
         Id = id;
         _operation = operation;
+        _operationHash = operation.SourceText.ComputeHash();
         _schemaName = schemaName;
         _target = target;
         _source = source;
@@ -119,7 +121,8 @@ public sealed class OperationExecutionNode : ExecutionNode
             OperationType = _operation.Type,
             OperationSourceText = _operation.SourceText,
             Variables = variables,
-            RequiresFileUpload = _requiresFileUpload
+            RequiresFileUpload = _requiresFileUpload,
+            OperationHash = _operationHash
         };
 
         var index = 0;
@@ -275,7 +278,8 @@ public sealed class OperationExecutionNode : ExecutionNode
             SchemaName = schemaName,
             OperationType = _operation.Type,
             OperationSourceText = _operation.SourceText,
-            Variables = variables
+            Variables = variables,
+            OperationHash = _operationHash
         };
 
         var subscriptionId = SubscriptionId.Next();

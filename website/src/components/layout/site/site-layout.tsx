@@ -1,10 +1,4 @@
-import React, {
-  FC,
-  ReactElement,
-  ReactNode,
-  useLayoutEffect,
-  useRef,
-} from "react";
+import { FC, ReactElement, ReactNode, useLayoutEffect, useRef } from "react";
 
 import { CookieConsent, Promo } from "@/components/misc";
 import { GlobalStyle } from "@/style";
@@ -40,6 +34,18 @@ function Stars(): ReactElement {
     const numStars = 800;
     const speed = 0.25;
     let stars: Star[] = [];
+    let pointerX = 0;
+    let pointerY = 0;
+    let pointerTargetX = 0;
+    let pointerTargetY = 0;
+    let scrollTiltY = 0;
+    let scrollTargetY = 0;
+    let scrollAccum = 0;
+    let lastScrollTop = 0;
+    let scrollIdleTimer: number | null = null;
+    const pointerMax = 15;
+    const scrollMax = 60;
+    const scrollRampDistance = 400;
 
     function setCanvasSize() {
       canvas.width = window.innerWidth;
@@ -69,8 +75,12 @@ function Stars(): ReactElement {
       }
 
       draw() {
-        const x = ((this.x / this.z) * canvas.width) / 2 + canvas.width / 2;
-        const y = ((this.y / this.z) * canvas.height) / 2 + canvas.height / 2;
+        const x =
+          (((this.x + pointerX) / this.z) * canvas.width) / 2 +
+          canvas.width / 2;
+        const y =
+          (((this.y + pointerY + scrollTiltY) / this.z) * canvas.height) / 2 +
+          canvas.height / 2;
         const radius = (1 - this.z / canvas.width) * this.size;
 
         if (ctx) {
@@ -96,6 +106,45 @@ function Stars(): ReactElement {
 
     function updateStars() {
       stars.forEach((star) => star.update());
+      pointerX += (pointerTargetX - pointerX) * 0.08;
+      pointerY += (pointerTargetY - pointerY) * 0.08;
+      const scrollEase = scrollTargetY === 0 ? 0.009 : 0.08;
+      scrollTiltY += (scrollTargetY - scrollTiltY) * scrollEase;
+    }
+
+    function handlePointerMove(e: PointerEvent) {
+      const nx = (e.clientX / window.innerWidth) * 2 - 1;
+      const ny = (e.clientY / window.innerHeight) * 2 - 1;
+      pointerTargetX = nx * pointerMax;
+      pointerTargetY = ny * pointerMax;
+    }
+
+    function handleScroll(e: Event) {
+      const target = e.target;
+      const scrollTop =
+        target instanceof HTMLElement ? target.scrollTop : window.scrollY;
+      const delta = scrollTop - lastScrollTop;
+      lastScrollTop = scrollTop;
+
+      if (delta !== 0 && Math.sign(delta) !== Math.sign(scrollAccum)) {
+        scrollAccum = 0;
+      }
+      scrollAccum = Math.max(
+        -scrollRampDistance,
+        Math.min(scrollRampDistance, scrollAccum + delta)
+      );
+      const t = Math.abs(scrollAccum) / scrollRampDistance;
+      const eased = t * t * (3 - 2 * t);
+      scrollTargetY = Math.sign(scrollAccum) * eased * scrollMax;
+
+      if (scrollIdleTimer) {
+        window.clearTimeout(scrollIdleTimer);
+      }
+
+      scrollIdleTimer = window.setTimeout(() => {
+        scrollTargetY = 0;
+        scrollAccum = 0;
+      }, 150);
     }
 
     function drawStars() {
@@ -115,6 +164,13 @@ function Stars(): ReactElement {
     window.addEventListener("resize", () => {
       setCanvasSize();
       initStars();
+    });
+    window.addEventListener("pointermove", handlePointerMove, {
+      passive: true,
+    });
+    window.addEventListener("scroll", handleScroll, {
+      capture: true,
+      passive: true,
     });
 
     setCanvasSize();

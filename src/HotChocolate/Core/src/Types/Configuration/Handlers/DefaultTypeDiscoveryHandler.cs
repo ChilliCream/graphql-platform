@@ -11,6 +11,13 @@ internal sealed class DefaultTypeDiscoveryHandler(ITypeInspector typeInspector) 
     private ITypeInspector TypeInspector { get; } =
         typeInspector ?? throw new ArgumentNullException(nameof(typeInspector));
 
+    [UnconditionalSuppressMessage(
+        "AOT",
+        "IL3050",
+        Justification =
+            "MakeGenericType is used for type identity during schema "
+            + "initialization. For AOT the source generator ensures "
+            + "concrete generic types are statically referenced.")]
     public override bool TryInferType(
         TypeReference typeReference,
         TypeDiscoveryInfo typeInfo,

@@ -214,9 +214,11 @@
     <Project Path="HotChocolate/Fusion/src/Fusion.Aspire/HotChocolate.Fusion.Aspire.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.AspNetCore/HotChocolate.Fusion.AspNetCore.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.Composition/HotChocolate.Fusion.Composition.csproj" />
+    <Project Path="HotChocolate/Fusion/src/Fusion.Composition.ApolloFederation/HotChocolate.Fusion.Composition.ApolloFederation.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.Caching/HotChocolate.Fusion.Caching.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.Diagnostics/HotChocolate.Fusion.Diagnostics.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.Execution.Types/HotChocolate.Fusion.Execution.Types.csproj" />
+    <Project Path="HotChocolate/Fusion/src/Fusion.Connectors.ApolloFederation/HotChocolate.Fusion.Connectors.ApolloFederation.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.Connectors.InMemory/HotChocolate.Fusion.Connectors.InMemory.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.Execution/HotChocolate.Fusion.Execution.csproj" />
     <Project Path="HotChocolate/Fusion/src/Fusion.Language/HotChocolate.Fusion.Language.csproj" />
@@ -227,6 +229,9 @@
   <Folder Name="/HotChocolate/Fusion/test/">
     <Project Path="HotChocolate/Fusion/test/Fusion.AspNetCore.Tests/HotChocolate.Fusion.AspNetCore.Tests.csproj" />
     <Project Path="HotChocolate/Fusion/test/Fusion.Composition.Tests/HotChocolate.Fusion.Composition.Tests.csproj" />
+    <Project Path="HotChocolate/Fusion/test/Fusion.Composition.ApolloFederation.Tests/HotChocolate.Fusion.Composition.ApolloFederation.Tests.csproj" />
+    <Project Path="HotChocolate/Fusion/test/Fusion.Connectors.ApolloFederation.Compliance.Tests/HotChocolate.Fusion.Connectors.ApolloFederation.Compliance.Tests.csproj" />
+    <Project Path="HotChocolate/Fusion/test/Fusion.Connectors.ApolloFederation.Tests/HotChocolate.Fusion.Connectors.ApolloFederation.Tests.csproj" />
     <Project Path="HotChocolate/Fusion/test/Fusion.Connectors.InMemory.Tests/HotChocolate.Fusion.Connectors.InMemory.Tests.csproj" />
     <Project Path="HotChocolate/Fusion/test/Fusion.Caching.Tests/HotChocolate.Fusion.Caching.Tests.csproj" />
     <Project Path="HotChocolate/Fusion/test/Fusion.Diagnostics.Tests/HotChocolate.Fusion.Diagnostics.Tests.csproj" />

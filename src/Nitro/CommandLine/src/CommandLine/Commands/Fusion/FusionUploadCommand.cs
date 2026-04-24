@@ -59,18 +59,9 @@ internal sealed class FusionUploadCommand : Command
         var sourceMetadataJson = parseResult.GetValue(Opt<OptionalSourceMetadataOption>.Instance);
         var source = SourceMetadataParser.Parse(sourceMetadataJson);
 
-        if (!Path.IsPathRooted(sourceSchemaFile))
-        {
-            sourceSchemaFile = Path.Combine(workingDirectory, sourceSchemaFile);
-        }
-
-        if (!fileSystem.FileExists(sourceSchemaFile))
-        {
-            throw new ExitException(Messages.SchemaFileDoesNotExist(sourceSchemaFile));
-        }
-
-        var (sourceSchemaName, sourceText, settings) = await FusionComposeCommand.ReadSourceSchemaAsync(
+        var (sourceSchemaName, sourceText, settings) = await FusionCompositionHelpers.ReadSourceSchemaAsync(
             fileSystem,
+            workingDirectory,
             sourceSchemaFile,
             cancellationToken);
 

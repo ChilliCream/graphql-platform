@@ -1,0 +1,20 @@
+extend schema
+  @link(
+    url: "https://specs.apollo.dev/federation/v2.3"
+    import: ["@key", "@inaccessible", "@shareable"]
+  )
+
+type Query {
+  usersByType(type: UserType!): [User!]
+  usersB: [User!]
+}
+
+extend type User @key(fields: "id") {
+  id: ID
+  type: UserType @shareable
+}
+
+enum UserType {
+  ANONYMOUS @inaccessible
+  REGULAR
+}

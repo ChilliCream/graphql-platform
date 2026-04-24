@@ -59,9 +59,11 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
             return cached;
         }
 
+#pragma warning disable IL2070 // 'this' argument does not satisfy 'DynamicallyAccessedMembersAttribute' - type comes from ITypeInspector.GetMembers which cannot be annotated without cascading API changes.
         var members = includeStatic
             ? type.GetMembers(Instance | Static | Public)
             : type.GetMembers(Instance | Public);
+#pragma warning restore IL2070
 
         var temp = ArrayPool<MemberInfo>.Shared.Rent(members.Length);
         var next = 0;
@@ -250,7 +252,11 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
 
         if (enumType != typeof(object) && enumType.IsEnum)
         {
+// Enum.GetValues requires dynamic code but the enum type
+// is schema-registered and guaranteed to be available.
+#pragma warning disable IL3050
             return Enum.GetValues(enumType).Cast<object>();
+#pragma warning restore IL3050
         }
 
         return [];
@@ -265,7 +271,9 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
 
         if (enumType.IsEnum)
         {
+#pragma warning disable IL2075 // 'this' argument does not satisfy 'DynamicallyAccessedMembersAttribute' - enumType is obtained from GetType() which cannot be statically annotated.
             return enumType.GetMember(value.ToString()!).FirstOrDefault();
+#pragma warning restore IL2075
         }
 
         return null;
@@ -305,7 +313,24 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
         return null;
     }
 
-    public virtual MethodInfo? GetNodeResolverMethod(Type nodeType, Type? resolverType = null)
+    public virtual MethodInfo? GetNodeResolverMethod(
+        [DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.PublicConstructors
+            | DynamicallyAccessedMemberTypes.PublicMethods
+            | DynamicallyAccessedMemberTypes.PublicFields
+            | DynamicallyAccessedMemberTypes.PublicNestedTypes
+            | DynamicallyAccessedMemberTypes.PublicProperties
+            | DynamicallyAccessedMemberTypes.PublicEvents
+            | DynamicallyAccessedMemberTypes.Interfaces)]
+        Type nodeType,
+        [DynamicallyAccessedMembers(
+            DynamicallyAccessedMemberTypes.PublicConstructors
+            | DynamicallyAccessedMemberTypes.PublicMethods
+            | DynamicallyAccessedMemberTypes.PublicFields
+            | DynamicallyAccessedMemberTypes.PublicNestedTypes
+            | DynamicallyAccessedMemberTypes.PublicProperties
+            | DynamicallyAccessedMemberTypes.PublicEvents)]
+        Type? resolverType = null)
     {
         ArgumentNullException.ThrowIfNull(nodeType);
 
@@ -322,9 +347,11 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
             }
 
             // check interfaces
+#pragma warning disable IL2070 // 'this' argument does not satisfy 'DynamicallyAccessedMembersAttribute' - interface types returned from GetInterfaces() cannot be statically annotated.
             var interfaceMembers = nodeType
                 .GetInterfaces()
                 .SelectMany(i => i.GetMembers(Static | Public | FlattenHierarchy));
+#pragma warning restore IL2070
 
             foreach (var member in interfaceMembers)
             {
@@ -859,7 +886,9 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
         out object? defaultValue)
     {
         defaultValue = null;
+#pragma warning disable IL2075 // 'this' argument does not satisfy 'DynamicallyAccessedMembersAttribute' - DeclaringType is obtained from a PropertyInfo which cannot be statically annotated.
         var constructors = property.DeclaringType!.GetConstructors();
+#pragma warning restore IL2075
 
         if (constructors.Length == 1)
         {
