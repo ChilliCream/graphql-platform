@@ -56,7 +56,7 @@ internal sealed class CreateApiCommand : Command
 
         if (!pathResult.StartsWith('/'))
         {
-            throw new ExitException($"The path '{pathResult}' is invalid. It must start with '/'.");
+            throw new ExitException($"The path '{pathResult.EscapeMarkup()}' is invalid. It must start with '/'.");
         }
 
         var path = pathResult.Split("/", TrimEntries | RemoveEmptyEntries);
