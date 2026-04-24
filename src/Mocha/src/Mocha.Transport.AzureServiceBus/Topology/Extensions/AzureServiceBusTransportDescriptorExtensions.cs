@@ -19,6 +19,9 @@ public static class AzureServiceBusTransportDescriptorExtensions
         descriptor
             .UseReceive(AzureServiceBusReceiveMiddlewares.Parsing, after: AzureServiceBusReceiveMiddlewares.Acknowledgement.Key);
 
+        descriptor
+            .UseDispatch(AzureServiceBusDispatchMiddlewares.MessageProperties, before: DispatchMiddlewares.Serialization.Key);
+
         return descriptor;
     }
 }

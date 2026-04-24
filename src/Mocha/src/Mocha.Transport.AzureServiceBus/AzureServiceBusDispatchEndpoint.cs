@@ -129,6 +129,46 @@ public sealed class AzureServiceBusDispatchEndpoint(AzureServiceBusMessagingTran
             }
         }
 
+        string? sessionId = null;
+        if (envelope.Headers is { } envelopeHeaders)
+        {
+            if (envelopeHeaders.TryGetValue(AzureServiceBusMessageHeaders.SessionId, out var sessionIdValue)
+                && sessionIdValue is string sessionIdString)
+            {
+                sessionId = sessionIdString;
+                message.SessionId = sessionIdString;
+            }
+
+            if (envelopeHeaders.TryGetValue(AzureServiceBusMessageHeaders.PartitionKey, out var partitionKeyValue)
+                && partitionKeyValue is string partitionKeyString)
+            {
+                if (sessionId is not null && partitionKeyString != sessionId)
+                {
+                    throw new InvalidOperationException(
+                        "PartitionKey must equal SessionId when both are set on an Azure Service Bus message.");
+                }
+
+                message.PartitionKey = partitionKeyString;
+            }
+            else if (sessionId is not null)
+            {
+                // Default PartitionKey to SessionId for partitioned + session-aware entities.
+                message.PartitionKey = sessionId;
+            }
+
+            if (envelopeHeaders.TryGetValue(AzureServiceBusMessageHeaders.ReplyToSessionId, out var replyToSessionIdValue)
+                && replyToSessionIdValue is string replyToSessionIdString)
+            {
+                message.ReplyToSessionId = replyToSessionIdString;
+            }
+
+            if (envelopeHeaders.TryGetValue(AzureServiceBusMessageHeaders.To, out var toValue)
+                && toValue is string toString)
+            {
+                message.To = toString;
+            }
+        }
+
         var props = message.ApplicationProperties;
 
         if (envelope.ConversationId is not null)
@@ -172,11 +212,18 @@ public sealed class AzureServiceBusDispatchEndpoint(AzureServiceBusMessagingTran
             props[AzureServiceBusMessageHeaders.SentAt] = sentAt.ToUnixTimeMilliseconds();
         }
 
-        // User-defined headers
+        // User-defined headers. Framework-internal keys in the x-mocha-* namespace are already
+        // mapped to native SDK properties above (and stripped on receive), so they must not leak
+        // into ApplicationProperties.
         if (envelope.Headers is not null)
         {
             foreach (var header in envelope.Headers)
             {
+                if (header.Key.StartsWith("x-mocha-", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
                 if (header.Value is DateTimeOffset dto)
                 {
                     props[header.Key] = dto.ToUnixTimeMilliseconds();

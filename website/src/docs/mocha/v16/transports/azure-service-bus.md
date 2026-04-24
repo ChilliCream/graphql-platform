@@ -186,6 +186,175 @@ Available queue defaults:
 
 Defaults never override explicitly configured values. If you call `WithMaxDeliveryCount(...)` on a specific queue, the per-queue value wins.
 
+# Configure message properties per type
+
+Azure Service Bus messages carry native broker properties - `SessionId`, `PartitionKey`, `ReplyToSessionId`, `To` - that drive session affinity, partition pinning, request/reply correlation, and autoforward chains. These properties depend on the payload, so Mocha configures them per message type through typed extractors that run at dispatch time. The shape mirrors [RabbitMQ routing keys](/docs/mocha/v16/transports/rabbitmq#routing-keys) - register an extractor next to the message contract and the transport wires it into the outbound `ServiceBusMessage` without bespoke per-endpoint code.
+
+## Configure session affinity with `UseAzureServiceBusSessionId`
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddEventHandler<OrderPlacedEventHandler>()
+    .AddMessage<OrderEvent>(m => m
+        // Session per order: every message for the same OrderId
+        // is delivered in order to a single session receiver.
+        .UseAzureServiceBusSessionId<OrderEvent>(msg => msg.OrderId))
+    .AddAzureServiceBus(transport =>
+    {
+        transport.ConnectionString(connectionString);
+
+        // The destination queue must be created with RequiresSession = true.
+        transport.DeclareQueue("orders")
+            .WithRequiresSession(true);
+    });
+```
+
+Use `UseAzureServiceBusSessionId<T>()` when the destination queue or subscription has `RequiresSession = true`, or when you need per-session FIFO processing. The broker routes every message with the same `SessionId` to the same session receiver, which holds an exclusive lock and consumes them in arrival order. See Microsoft Learn on [message sessions](https://learn.microsoft.com/azure/service-bus-messaging/message-sessions) for the complete FIFO and request-response patterns.
+
+The extractor runs at dispatch time for each message. It receives the message instance and returns the session identifier string. Return `null` to publish without a `SessionId`. On a queue or topic that is both partitioned and session-aware, the broker uses the `SessionId` as the partition key - Mocha mirrors that by defaulting `PartitionKey = SessionId` when no partition-key extractor is configured, so you do not need to set both.
+
+:::warning
+Dispatching a null-session message to a `RequiresSession = true` queue fails at send time - the broker throws a `ServiceBusException` whose `Reason` is `ServiceBusFailureReason.SessionCannotBeLocked`.
+:::
+
+## Configure partitioning with `UseAzureServiceBusPartitionKey`
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddMessage<TenantEvent>(m => m
+        // Pin every tenant's events to the same partition for
+        // in-partition ordering on a non-session-aware entity.
+        .UseAzureServiceBusPartitionKey<TenantEvent>(msg => msg.TenantId))
+    .AddAzureServiceBus(transport =>
+    {
+        transport.ConnectionString(connectionString);
+
+        transport.DeclareQueue("tenant-events")
+            .WithEnablePartitioning(true);
+    });
+```
+
+Use `UseAzureServiceBusPartitionKey<T>()` on partitioned queues and topics when you do not need sessions but still want ordered delivery within a partition, or when you want transactional sends to land on the same broker. Azure Service Bus assigns every message with the same partition key to the same messaging store, so consumers see per-key FIFO even across multiple partitions. See Microsoft Learn on [partitioned queues and topics](https://learn.microsoft.com/azure/service-bus-messaging/service-bus-partitioning).
+
+When a `SessionId` is also configured on the same message type, the broker requires `PartitionKey == SessionId`. Mocha enforces this at dispatch with a fail-fast check and throws:
+
+```text
+PartitionKey must equal SessionId when both are set on an Azure Service Bus message.
+```
+
+This `InvalidOperationException` surfaces before the message reaches the broker, so a mismatch never costs you a round trip. If you want the automatic `PartitionKey = SessionId` behavior, configure only `UseAzureServiceBusSessionId<T>()` and let the transport default the partition key.
+
+:::note
+When the extractor returns `null`, no partition key is set and Service Bus picks a partition with an internal round-robin - use this only when you do not need per-key ordering.
+:::
+
+## Configure reply correlation with `UseAzureServiceBusReplyToSessionId`
+
+```csharp
+public sealed class GetOrderRequest : IEventRequest<OrderResponse>
+{
+    public required string OrderId { get; init; }
+    // Unique per requester instance - typically a process GUID.
+    public required string RequesterId { get; init; }
+}
+
+builder.Services
+    .AddMessageBus()
+    .AddMessage<GetOrderRequest>(m => m
+        // Every reply lands on a session keyed by the requester,
+        // so a shared reply queue fans back out cleanly.
+        .UseAzureServiceBusReplyToSessionId<GetOrderRequest>(
+            req => req.RequesterId))
+    .AddAzureServiceBus(transport =>
+    {
+        transport.ConnectionString(connectionString);
+    });
+```
+
+Use `UseAzureServiceBusReplyToSessionId<T>()` for multiplexed request/reply over a single shared reply queue. Each requester sets its own `ReplyToSessionId` on outbound requests, and the responder copies that value into the reply's `SessionId` so each requester receives only its own replies. This is the [Return Address](https://www.enterpriseintegrationpatterns.com/patterns/messaging/ReturnAddress.html) pattern applied over a session-aware reply queue. See Microsoft Learn on [message routing and correlation](https://learn.microsoft.com/azure/service-bus-messaging/service-bus-messages-payloads#message-routing-and-correlation) for the full multiplexed request/reply protocol.
+
+The extractor lives on the request type, not the response - the requester is the one that tells the responder where replies should land.
+
+:::tip
+`ReplyToSessionId` is capped at **128 characters**. Use a stable identifier per requester instance (a GUID created at process start is idiomatic) so replies reach the right receiver even after reconnects.
+:::
+
+## Configure autoforward chaining with `UseAzureServiceBusTo`
+
+```csharp
+builder.Services
+    .AddMessageBus()
+    .AddMessage<AuditEvent>(m => m
+        // Logical destination for autoforward hops or downstream
+        // inspection. Not used by the broker for routing today.
+        .UseAzureServiceBusTo<AuditEvent>(msg => msg.TargetQueue))
+    .AddAzureServiceBus(transport =>
+    {
+        transport.ConnectionString(connectionString);
+    });
+```
+
+Use `UseAzureServiceBusTo<T>()` when you participate in an [autoforwarding](https://learn.microsoft.com/azure/service-bus-messaging/service-bus-auto-forwarding) chain and want to annotate messages with their logical final destination, or when a downstream component inspects `To` as part of custom routing logic.
+
+:::note
+`To` is broker-reserved. Microsoft Learn explicitly notes that "the **To** property is reserved for future use and might eventually be interpreted by the broker" - today the broker does not use it for routing. Rely on topic subscriptions, autoforward rules, or application properties for real routing decisions, and treat `To` as a metadata annotation only.
+:::
+
+## Override per dispatch via headers
+
+```csharp
+public static class TenantAwareBusExtensions
+{
+    // Pass per-call overrides for the four ASB properties by setting
+    // the framework header on PublishOptions before the message
+    // properties middleware runs.
+    public static ValueTask PublishForTenantAsync<T>(
+        this IMessageBus bus,
+        T message,
+        string tenantId,
+        CancellationToken cancellationToken)
+        where T : class
+    {
+        return bus.PublishAsync(
+            message,
+            new PublishOptions
+            {
+                Headers = new Dictionary<string, object?>
+                {
+                    [AzureServiceBusMessageHeaders.SessionId] = tenantId
+                }
+            },
+            cancellationToken);
+    }
+}
+```
+
+The dispatch middleware that invokes the four extractors checks `context.Headers` first and skips the extractor whenever the corresponding `x-mocha-*` header is already set. User-set headers always win over the registered extractor, which lets send-site code override the per-type default for a single dispatch without reconfiguring the bus. The headers are defined as string constants on `AzureServiceBusMessageHeaders`:
+
+| Constant                                         | Header key                    |
+| ------------------------------------------------ | ----------------------------- |
+| `AzureServiceBusMessageHeaders.SessionId`        | `x-mocha-session-id`          |
+| `AzureServiceBusMessageHeaders.PartitionKey`     | `x-mocha-partition-key`       |
+| `AzureServiceBusMessageHeaders.ReplyToSessionId` | `x-mocha-reply-to-session-id` |
+| `AzureServiceBusMessageHeaders.To`               | `x-mocha-to`                  |
+
+The headers are framework-internal and are filtered out of `ApplicationProperties` on both send and receive, so they do not leak into the consumer-side header bag. This gives you one uniform override channel - whether from a send extension, a pipeline middleware, or a test harness.
+
+## Reference
+
+`SessionId`, `PartitionKey`, and `ReplyToSessionId` are each capped at **128 characters** by the broker.
+
+| Extension method                                   | Sets on `ServiceBusMessage` | Header key                    | Gotcha                                                                                           |
+| -------------------------------------------------- | --------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------ |
+| `UseAzureServiceBusSessionId<T>(extractor)`        | `SessionId`                 | `x-mocha-session-id`          | Defaults `PartitionKey` to the same value when no partition-key extractor is set.                |
+| `UseAzureServiceBusPartitionKey<T>(extractor)`     | `PartitionKey`              | `x-mocha-partition-key`       | Must equal `SessionId` when both are set, else dispatch throws `InvalidOperationException`.      |
+| `UseAzureServiceBusReplyToSessionId<T>(extractor)` | `ReplyToSessionId`          | `x-mocha-reply-to-session-id` | Configure on the request type, not the response.                                                 |
+| `UseAzureServiceBusTo<T>(extractor)`               | `To`                        | `x-mocha-to`                  | Broker-reserved; not used for routing today. Useful for autoforward chains or custom inspection. |
+
+Extractors are the right tool when the ASB property is derived from the payload. When you need to declare the entities they land on - session-aware queues, partitioned topics, or autoforward targets - reach for [the topology builder](#declare-custom-topology) in the next section.
+
 # Declare custom topology
 
 Mocha auto-provisions topology by default. To declare additional topics, queues, or subscriptions:
