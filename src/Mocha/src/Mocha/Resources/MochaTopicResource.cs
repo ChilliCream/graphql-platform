@@ -6,14 +6,6 @@ namespace Mocha.Resources;
 /// <see cref="MochaResource"/> describing a transport topic (e.g. an in-memory topic, a Postgres
 /// topic table).
 /// </summary>
-/// <remarks>
-/// Intentionally <c>public</c> so transport packages
-/// (<c>Mocha.Transport.InMemory</c>, <c>Mocha.Transport.Postgres</c>, and any third-party transport
-/// that exposes topic topology) can construct topic resources from their
-/// <see cref="MessagingTransport.ContributeMochaResources"/> overrides across package boundaries.
-/// Reusing the same typed resource keeps the <c>mocha.topic</c> attribute schema stable across
-/// contributors.
-/// </remarks>
 public sealed class MochaTopicResource : MochaResource
 {
     private readonly string _id;

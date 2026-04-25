@@ -5,11 +5,6 @@ namespace Mocha.Resources;
 /// <summary>
 /// Default <see cref="MochaResource"/> for a <see cref="MessagingTransport"/>.
 /// </summary>
-/// <remarks>
-/// Produced by <see cref="MessagingTransport.ContributeMochaResources"/>'s default
-/// implementation when a transport has not overridden it. Transports that contribute
-/// richer kinds (queue/exchange/topic/binding) typically replace this fallback.
-/// </remarks>
 internal sealed class MochaTransportResource : MochaResource
 {
     private readonly string _id;

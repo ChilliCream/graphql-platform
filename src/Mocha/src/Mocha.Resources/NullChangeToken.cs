@@ -5,10 +5,6 @@ namespace Mocha.Resources;
 /// <summary>
 /// An <see cref="IChangeToken"/> that never fires.
 /// </summary>
-/// <remarks>
-/// Used by <see cref="StaticMochaResourceSource"/> for resources that never change.
-/// Mirrors ASP.NET Core's internal <c>NullChangeToken</c>.
-/// </remarks>
 internal sealed class NullChangeToken : IChangeToken
 {
     public static NullChangeToken Singleton { get; } = new();

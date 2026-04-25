@@ -6,19 +6,6 @@ namespace Mocha.Resources;
 /// Generic <see cref="MochaResource"/> for a <see cref="TopologyEntityDescription"/> whose
 /// kind does not map to a typed transport resource (queue/exchange/topic/binding).
 /// </summary>
-/// <remarks>
-/// <para>
-/// Emits the kind <c>mocha.topology_entity</c>. Used as the fallback when the description
-/// tree's <see cref="TopologyEntityDescription.Kind"/> field doesn't match a known typed
-/// resource — keeping per-kind JSON shapes stable so a consumer reading the schema for
-/// <c>mocha.queue</c> never sees the generic shape and vice versa.
-/// </para>
-/// <para>
-/// Transports with richer topology semantics (RabbitMQ exchanges with arguments, Postgres
-/// durability flags, …) emit the typed <c>Mocha{Queue,Exchange,Topic,Binding}Resource</c>
-/// subclasses directly via <see cref="MessagingTransport.ContributeMochaResources"/>.
-/// </para>
-/// </remarks>
 internal sealed class MochaTopologyEntityResource : MochaResource
 {
     private readonly string _id;

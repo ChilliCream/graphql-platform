@@ -6,12 +6,6 @@ namespace Mocha.Resources;
 /// A <see cref="MochaResourceSource"/> that exposes a fixed, never-changing list of
 /// resources.
 /// </summary>
-/// <remarks>
-/// Mirrors ASP.NET Core's <c>DefaultEndpointDataSource</c>. Suitable for contributors
-/// whose resources are determined at startup and do not change for the lifetime of
-/// the host. <see cref="GetChangeToken"/> always returns a non-firing token so consumers
-/// using <c>ChangeToken.OnChange</c> won't waste registrations.
-/// </remarks>
 public sealed class StaticMochaResourceSource : MochaResourceSource
 {
     private readonly IReadOnlyList<MochaResource> _resources;

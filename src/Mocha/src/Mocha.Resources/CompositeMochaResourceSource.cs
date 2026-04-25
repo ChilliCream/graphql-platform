@@ -8,20 +8,6 @@ namespace Mocha.Resources;
 /// or more child sources, with a single composite change token that fires whenever any
 /// child fires.
 /// </summary>
-/// <remarks>
-/// <para>
-/// Modelled directly on ASP.NET Core's <c>CompositeEndpointDataSource</c>: lazy
-/// initialization of both the snapshot cache and the change token, swap-before-cancel
-/// ordering so callback re-entrancy can neither deadlock nor stack-overflow, and
-/// per-child <c>ChangeToken.OnChange</c> registrations that auto-re-register on each
-/// child's next token.
-/// </para>
-/// <para>
-/// Consumer rule: read <see cref="GetChangeToken"/> <em>before</em> reading
-/// <see cref="Resources"/>; otherwise a change that fires between the two reads is
-/// missed (you'd get a stale snapshot paired with a fresh token).
-/// </para>
-/// </remarks>
 public sealed class CompositeMochaResourceSource : MochaResourceSource, IDisposable
 {
     private readonly object _lock = new();

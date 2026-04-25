@@ -7,12 +7,6 @@ namespace Mocha;
 /// Base class for all messaging transports, managing the lifecycle of receive and dispatch endpoints,
 /// topology, and connection to the underlying messaging infrastructure (e.g., RabbitMQ, in-memory).
 /// </summary>
-/// <remarks>
-/// Transport implementations must override abstract members to provide endpoint creation, configuration,
-/// and topology details. The transport must be initialized before it can be started. Starting a transport
-/// activates all its receive endpoints; stopping deactivates them. Dispatch endpoints are created lazily
-/// as outbound routes are connected.
-/// </remarks>
 public abstract partial class MessagingTransport : IAsyncDisposable, IFeatureProvider
 {
     /// <summary>
@@ -157,18 +151,8 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     /// receive/dispatch endpoints, and its topology entities to the supplied collection.
     /// </summary>
     /// <remarks>
-    /// <para>
-    /// The default implementation contributes nothing. Transports that want to expose richer
-    /// topology semantics (durability flags, exchange types, bindings, …) override this method
-    /// and append their own <see cref="MochaResource"/> subclasses directly. When a transport
-    /// does not override this method, the message-bus resource source falls back to a generic
-    /// projection of <see cref="Describe"/> so consumers always see a transport, its endpoints,
-    /// and its topology entities.
-    /// </para>
-    /// <para>
     /// Implementations must append to <paramref name="resources"/>; they must not clear
     /// or otherwise mutate entries previously added by other contributors.
-    /// </para>
     /// </remarks>
     /// <param name="resources">The collection to append contributed resources to.</param>
     public virtual void ContributeMochaResources(ICollection<MochaResource> resources)

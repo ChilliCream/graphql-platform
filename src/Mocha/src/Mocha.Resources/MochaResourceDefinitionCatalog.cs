@@ -6,10 +6,6 @@ namespace Mocha.Resources;
 /// Default <see cref="IMochaResourceDefinitionCatalog"/> implementation backed by a fixed
 /// list of definitions.
 /// </summary>
-/// <remarks>
-/// Definitions are deduplicated by <see cref="MochaResourceDefinition.Kind"/>; if the same
-/// kind is registered twice the first registration wins.
-/// </remarks>
 public sealed class MochaResourceDefinitionCatalog : IMochaResourceDefinitionCatalog
 {
     private readonly Dictionary<string, MochaResourceDefinition> _byKind;

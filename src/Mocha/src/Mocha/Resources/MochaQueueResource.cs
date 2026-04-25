@@ -5,24 +5,6 @@ namespace Mocha.Resources;
 /// <summary>
 /// <see cref="MochaResource"/> describing a transport queue (durable, exclusive, temporary, etc.).
 /// </summary>
-/// <remarks>
-/// <para>
-/// Reused by every transport that exposes queue topology — RabbitMQ, Postgres, the in-memory
-/// transport, and any third-party transport that follows the same shape. Per-transport
-/// peculiarities (e.g. exclusive flags, broker-specific arguments) are surfaced through the
-/// dedicated <c>Write</c> calls below; transports that need richer payloads ship their own
-/// kind-specific subclass.
-/// </para>
-/// <para>
-/// Intentionally <c>public</c> so transport packages
-/// (<c>Mocha.Transport.RabbitMQ</c>, <c>Mocha.Transport.Postgres</c>, <c>Mocha.Transport.InMemory</c>,
-/// and any third-party transport) can construct queue resources from their
-/// <see cref="MessagingTransport.ContributeMochaResources"/> overrides across package boundaries.
-/// This is the only stable way to honour the "single kind, single attribute schema" rule for
-/// <c>mocha.queue</c> — every contributor builds the same typed resource rather than each shipping
-/// near-duplicate copies.
-/// </para>
-/// </remarks>
 public sealed class MochaQueueResource : MochaResource
 {
     private readonly string _id;

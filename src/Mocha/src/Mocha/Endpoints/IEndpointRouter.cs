@@ -11,12 +11,6 @@ public interface IEndpointRouter
     /// <summary>
     /// Raised after a new <see cref="DispatchEndpoint"/> is added to the router.
     /// </summary>
-    /// <remarks>
-    /// Fires once per endpoint, including endpoints created lazily by
-    /// <see cref="GetOrCreate"/> after startup. The event is raised outside the router's
-    /// internal lock; handlers must not call back into the router synchronously in a way
-    /// that would re-enter that lock.
-    /// </remarks>
     event EventHandler<DispatchEndpointAddedEventArgs>? DispatchEndpointAdded;
 
     /// <summary>

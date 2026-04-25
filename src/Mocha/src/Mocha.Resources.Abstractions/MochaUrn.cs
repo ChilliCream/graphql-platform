@@ -3,18 +3,9 @@ using System.Text;
 namespace Mocha.Resources;
 
 /// <summary>
-/// Helpers for building deterministic URN-shaped identifiers for <see cref="MochaResource"/>.
+/// Helpers for building URN-shaped identifiers for <see cref="MochaResource"/> of the form
+/// <c>urn:mocha:&lt;system&gt;:&lt;kind&gt;:&lt;segment&gt;[:&lt;segment&gt;...]</c>.
 /// </summary>
-/// <remarks>
-/// All Mocha resource ids share the form
-/// <c>urn:mocha:&lt;system&gt;:&lt;kind&gt;:&lt;segment&gt;[:&lt;segment&gt;...]</c>
-/// where <c>system</c> identifies the contributing transport or component
-/// (e.g. <c>rabbitmq</c>, <c>postgres</c>, <c>memory</c>, <c>core</c>) and
-/// <c>kind</c> matches the short kind name (e.g. <c>queue</c>, <c>handler</c>).
-/// Including the system in every id avoids cross-transport collisions —
-/// <c>urn:mocha:rabbitmq:queue:bus:orders</c> is distinct from
-/// <c>urn:mocha:memory:queue:bus:orders</c>.
-/// </remarks>
 public static class MochaUrn
 {
     /// <summary>

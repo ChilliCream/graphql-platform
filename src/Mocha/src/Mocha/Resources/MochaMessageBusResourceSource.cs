@@ -7,21 +7,6 @@ namespace Mocha.Resources;
 /// <see cref="MochaResourceSource"/> that projects a live <see cref="MessagingRuntime"/> into a
 /// flat list of <see cref="MochaResource"/> instances.
 /// </summary>
-/// <remarks>
-/// <para>
-/// The source rebuilds its snapshot lazily on first read using
-/// <see cref="MessageBusDescriptionVisitor"/> to walk the runtime exactly once — the visitor
-/// remains the single intermediate, avoiding duplicate traversal logic. Each transport's
-/// <see cref="MessagingTransport.ContributeMochaResources"/> override appends transport-specific
-/// resources (queues, exchanges, topics, bindings) onto the snapshot.
-/// </para>
-/// <para>
-/// To keep dispatch endpoints created lazily (post-startup) observable, the source subscribes to
-/// <see cref="IEndpointRouter.DispatchEndpointAdded"/> and fires its change token after each new
-/// endpoint is observed. Idiomatic ordering — swap the token before cancelling, the same pattern
-/// used by <c>CompositeMochaResourceSource</c> — keeps consumer callbacks safe under re-entrancy.
-/// </para>
-/// </remarks>
 public sealed class MochaMessageBusResourceSource : MochaResourceSource, IDisposable
 {
     private readonly object _lock = new();

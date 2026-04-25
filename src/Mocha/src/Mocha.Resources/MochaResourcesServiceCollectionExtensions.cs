@@ -10,21 +10,9 @@ namespace Mocha.Resources;
 public static class MochaResourcesServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers the composite <see cref="MochaResourceSource"/> consumed by diagnostic surfaces
-    /// (cloud-bugfix's Nitro endpoint, in-process tools, …).
+    /// Registers the composite <see cref="MochaResourceSource"/> that aggregates all contributors
+    /// registered via <see cref="AddMochaResourceSource{TSource}"/>.
     /// </summary>
-    /// <remarks>
-    /// <para>
-    /// Contributors (message bus core, transports, sagas, …) register themselves via
-    /// <see cref="AddMochaResourceSource{TSource}"/>. This method aggregates all such
-    /// contributors into a singleton <see cref="CompositeMochaResourceSource"/> and exposes it as
-    /// the resolved <see cref="MochaResourceSource"/> service. Consumers call
-    /// <c>services.GetService&lt;MochaResourceSource&gt;()</c> and receive the composite view.
-    /// </para>
-    /// <para>
-    /// Idempotent — repeat calls keep the first composite registration.
-    /// </para>
-    /// </remarks>
     /// <param name="services">The service collection to register services into.</param>
     /// <returns>The same <see cref="IServiceCollection"/> for fluent chaining.</returns>
     public static IServiceCollection AddMochaResources(this IServiceCollection services)
@@ -48,11 +36,6 @@ public static class MochaResourcesServiceCollectionExtensions
     /// contributor that will be aggregated by the composite installed by
     /// <see cref="AddMochaResources"/>.
     /// </summary>
-    /// <remarks>
-    /// The same instance is also exposed both as <typeparamref name="TSource"/> and as a
-    /// contributor-marker behind the scenes, so consumers that want the concrete subclass can
-    /// still resolve it directly.
-    /// </remarks>
     /// <typeparam name="TSource">The concrete source subclass.</typeparam>
     /// <param name="services">The service collection.</param>
     /// <returns>The same <see cref="IServiceCollection"/> for fluent chaining.</returns>

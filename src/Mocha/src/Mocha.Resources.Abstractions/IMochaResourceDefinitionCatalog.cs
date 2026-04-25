@@ -5,10 +5,6 @@ namespace Mocha.Resources;
 /// <summary>
 /// Read-only catalog of registered <see cref="MochaResourceDefinition"/> entries.
 /// </summary>
-/// <remarks>
-/// Consumed by UIs that want a schema describing all known resource kinds — for
-/// rendering kind filters, pretty-printing kind names, and so on.
-/// </remarks>
 public interface IMochaResourceDefinitionCatalog
 {
     /// <summary>
