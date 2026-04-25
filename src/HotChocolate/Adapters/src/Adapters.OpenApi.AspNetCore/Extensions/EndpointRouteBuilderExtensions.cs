@@ -13,7 +13,8 @@ public static class EndpointRouteBuilderExtensions
 
         var dataSource = (DynamicEndpointDataSource)endpoints.ServiceProvider
             .GetRequiredService<OpenApiManager>()
-            .GetEndpointDataSource(schemaName);
+            .Get(schemaName)
+            .EndpointDataSource;
 
         if (!endpoints.DataSources.Contains(dataSource))
         {

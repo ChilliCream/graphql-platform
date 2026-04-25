@@ -39,13 +39,7 @@ internal sealed class McpManager : IMcpProvider
         return _optionsMonitor.Get(name);
     }
 
-    public McpRequestExecutorProxy GetRequestExecutorProxy(string? name = null)
-        => GetOrAddRegistration(name).ExecutorProxy;
-
-    public StreamableHttpHandlerProxy GetStreamableHttpHandlerProxy(string? name = null)
-        => GetOrAddRegistration(name).HandlerProxy;
-
-    private McpRegistration GetOrAddRegistration(string? name)
+    public McpRegistration Get(string? name = null)
     {
         name ??= ISchemaDefinition.DefaultName;
         return _registrations.GetOrAdd(
@@ -67,8 +61,4 @@ internal sealed class McpManager : IMcpProvider
 
         return new McpRegistration(executorProxy, handlerProxy);
     }
-
-    private sealed record McpRegistration(
-        McpRequestExecutorProxy ExecutorProxy,
-        StreamableHttpHandlerProxy HandlerProxy);
 }

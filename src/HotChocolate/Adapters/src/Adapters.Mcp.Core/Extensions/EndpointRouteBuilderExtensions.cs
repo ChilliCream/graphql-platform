@@ -22,7 +22,7 @@ public static class EndpointRouteBuilderExtensions
                 "You must call AddMcp(). Unable to find required services. Call "
                 + "builder.Services.AddGraphQL().AddMcp() in application startup code.");
 
-        var streamableHttpHandler = manager.GetStreamableHttpHandlerProxy(schemaName);
+        var streamableHttpHandler = manager.Get(schemaName).HandlerProxy;
 
         var mcpGroup = endpoints.MapGroup(pattern);
 

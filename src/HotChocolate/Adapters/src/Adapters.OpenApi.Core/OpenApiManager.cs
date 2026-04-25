@@ -50,22 +50,7 @@ internal sealed class OpenApiManager : IOpenApiProvider
         return _setupMonitor.Get(name);
     }
 
-    public IOpenApiDefinitionStorage GetDefinitionStorage(string? name = null)
-        => GetOrAddRegistration(name).Storage;
-
-    public OpenApiDefinitionRegistry GetDefinitionRegistry(string? name = null)
-        => GetOrAddRegistration(name).Registry;
-
-    public HttpRequestExecutorProxy GetRequestExecutorProxy(string? name = null)
-        => GetOrAddRegistration(name).ExecutorProxy;
-
-    public IDynamicEndpointDataSource GetEndpointDataSource(string? name = null)
-        => GetOrAddRegistration(name).EndpointDataSource;
-
-    public IDynamicOpenApiDocumentTransformer GetDocumentTransformer(string? name = null)
-        => GetOrAddRegistration(name).DocumentTransformer;
-
-    private OpenApiRegistration GetOrAddRegistration(string? name)
+    public OpenApiRegistration Get(string? name = null)
     {
         name ??= ISchemaDefinition.DefaultName;
         return _registrations.GetOrAdd(
@@ -93,17 +78,9 @@ internal sealed class OpenApiManager : IOpenApiProvider
         var executorProxy = HttpRequestExecutorProxy.Create(_applicationServices, name);
 
         return new OpenApiRegistration(
-            storage,
             registry,
             executorProxy,
             endpointDataSource,
             documentTransformer);
     }
-
-    private sealed record OpenApiRegistration(
-        IOpenApiDefinitionStorage Storage,
-        OpenApiDefinitionRegistry Registry,
-        HttpRequestExecutorProxy ExecutorProxy,
-        IDynamicEndpointDataSource EndpointDataSource,
-        IDynamicOpenApiDocumentTransformer DocumentTransformer);
 }
