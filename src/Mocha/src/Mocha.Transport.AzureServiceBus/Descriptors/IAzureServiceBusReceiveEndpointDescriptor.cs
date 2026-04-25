@@ -1,3 +1,5 @@
+using Azure.Messaging.ServiceBus;
+
 namespace Mocha.Transport.AzureServiceBus;
 
 /// <summary>
@@ -23,6 +25,12 @@ public interface IAzureServiceBusReceiveEndpointDescriptor
     new IAzureServiceBusReceiveEndpointDescriptor SkippedEndpoint(string name);
 
     /// <inheritdoc cref="IReceiveEndpointDescriptor{T}.MaxConcurrency(int)"/>
+    /// <remarks>
+    /// On a session-bound endpoint, when <see cref="WithMaxConcurrentSessions"/> is not explicitly
+    /// set, this value is reinterpreted as the maximum number of concurrently locked sessions
+    /// (see <see cref="ServiceBusSessionProcessorOptions.MaxConcurrentSessions"/>). The resolved
+    /// translation is logged at endpoint startup.
+    /// </remarks>
     new IAzureServiceBusReceiveEndpointDescriptor MaxConcurrency(int maxConcurrency);
 
     /// <summary>
@@ -56,4 +64,45 @@ public interface IAzureServiceBusReceiveEndpointDescriptor
     /// </remarks>
     /// <returns>The descriptor for method chaining.</returns>
     IAzureServiceBusReceiveEndpointDescriptor UseNativeDeadLetterForwarding();
+
+    /// <summary>
+    /// Sets the maximum number of concurrently locked sessions on a session-bound endpoint
+    /// (mapped to <see cref="ServiceBusSessionProcessorOptions.MaxConcurrentSessions"/>).
+    /// Has no effect on non-session endpoints; setting it on a non-session queue causes
+    /// endpoint startup to fail loudly.
+    /// </summary>
+    /// <param name="maxConcurrentSessions">The maximum number of concurrent sessions.</param>
+    /// <returns>The descriptor for method chaining.</returns>
+    IAzureServiceBusReceiveEndpointDescriptor WithMaxConcurrentSessions(int maxConcurrentSessions);
+
+    /// <summary>
+    /// Sets the maximum number of concurrent message dispatches per locked session
+    /// (mapped to <see cref="ServiceBusSessionProcessorOptions.MaxConcurrentCallsPerSession"/>).
+    /// Defaults to <c>1</c> on session endpoints to preserve in-session ordering. Has no effect
+    /// on non-session endpoints; setting it on a non-session queue causes endpoint startup to
+    /// fail loudly.
+    /// </summary>
+    /// <param name="maxConcurrentCallsPerSession">The maximum number of concurrent calls per session.</param>
+    /// <returns>The descriptor for method chaining.</returns>
+    IAzureServiceBusReceiveEndpointDescriptor WithMaxConcurrentCallsPerSession(int maxConcurrentCallsPerSession);
+
+    /// <summary>
+    /// Sets the duration the session processor will wait for new messages on a locked session
+    /// before releasing the session lock
+    /// (mapped to <see cref="ServiceBusSessionProcessorOptions.SessionIdleTimeout"/>). Has no
+    /// effect on non-session endpoints; setting it on a non-session queue causes endpoint startup
+    /// to fail loudly.
+    /// </summary>
+    /// <param name="sessionIdleTimeout">The session idle timeout.</param>
+    /// <returns>The descriptor for method chaining.</returns>
+    IAzureServiceBusReceiveEndpointDescriptor WithSessionIdleTimeout(TimeSpan sessionIdleTimeout);
+
+    /// <summary>
+    /// Sets the maximum total duration over which the SDK will auto-renew the message lock.
+    /// On session endpoints the same duration also bounds session-lock renewal (the SDK uses one
+    /// duration for both lock kinds). Defaults to five minutes on both modes.
+    /// </summary>
+    /// <param name="maxAutoLockRenewalDuration">The maximum auto lock renewal duration.</param>
+    /// <returns>The descriptor for method chaining.</returns>
+    IAzureServiceBusReceiveEndpointDescriptor WithMaxAutoLockRenewalDuration(TimeSpan maxAutoLockRenewalDuration);
 }

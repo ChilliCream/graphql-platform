@@ -18,7 +18,7 @@ internal sealed class AzureServiceBusParsingMiddleware
     public async ValueTask InvokeAsync(IReceiveContext context, ReceiveDelegate next)
     {
         var feature = context.Features.GetOrSet<AzureServiceBusReceiveFeature>();
-        var message = feature.ProcessMessageEventArgs.Message;
+        var message = feature.Message;
 
         var envelope = AzureServiceBusMessageEnvelopeParser.Instance.Parse(message);
 

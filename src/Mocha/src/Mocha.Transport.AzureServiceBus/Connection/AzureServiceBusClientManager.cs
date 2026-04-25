@@ -109,6 +109,22 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
     }
 
     /// <summary>
+    /// Creates a new <see cref="ServiceBusSessionProcessor"/> for consuming session-bound messages
+    /// from a queue.
+    /// </summary>
+    /// <param name="queueName">The queue to consume from.</param>
+    /// <param name="options">The session processor options controlling concurrency, prefetch, and
+    /// session-lock renewal.</param>
+    /// <returns>A new session processor instance.</returns>
+    public ServiceBusSessionProcessor CreateSessionProcessor(
+        string queueName,
+        ServiceBusSessionProcessorOptions options)
+    {
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
+        return _client.CreateSessionProcessor(queueName, options);
+    }
+
+    /// <summary>
     /// Gets the administration client used for topology provisioning, or <c>null</c> if unavailable.
     /// </summary>
     public ServiceBusAdministrationClient? AdminClient => _adminClient;

@@ -93,6 +93,38 @@ internal sealed class AzureServiceBusReceiveEndpointDescriptor
         return this;
     }
 
+    /// <inheritdoc />
+    public IAzureServiceBusReceiveEndpointDescriptor WithMaxConcurrentSessions(int maxConcurrentSessions)
+    {
+        Configuration.MaxConcurrentSessions = maxConcurrentSessions;
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IAzureServiceBusReceiveEndpointDescriptor WithMaxConcurrentCallsPerSession(int maxConcurrentCallsPerSession)
+    {
+        Configuration.MaxConcurrentCallsPerSession = maxConcurrentCallsPerSession;
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IAzureServiceBusReceiveEndpointDescriptor WithSessionIdleTimeout(TimeSpan sessionIdleTimeout)
+    {
+        Configuration.SessionIdleTimeout = sessionIdleTimeout;
+
+        return this;
+    }
+
+    /// <inheritdoc />
+    public IAzureServiceBusReceiveEndpointDescriptor WithMaxAutoLockRenewalDuration(TimeSpan maxAutoLockRenewalDuration)
+    {
+        Configuration.MaxAutoLockRenewalDuration = maxAutoLockRenewalDuration;
+
+        return this;
+    }
+
     public AzureServiceBusReceiveEndpointConfiguration CreateConfiguration()
     {
         return Configuration;

@@ -7,7 +7,8 @@ namespace Mocha.Transport.AzureServiceBus.Middlewares;
 
 /// <summary>
 /// Receive middleware that completes messages on successful processing and abandons them on failure,
-/// ensuring messages are properly acknowledged or returned to the broker.
+/// ensuring messages are properly acknowledged or returned to the broker. Operates uniformly on
+/// session and non-session endpoints by going through <see cref="IAzureServiceBusMessageActions"/>.
 /// </summary>
 internal sealed class AzureServiceBusAcknowledgementMiddleware
 {
@@ -18,21 +19,20 @@ internal sealed class AzureServiceBusAcknowledgementMiddleware
     /// <param name="next">The next middleware delegate in the pipeline.</param>
     public async ValueTask InvokeAsync(IReceiveContext context, ReceiveDelegate next)
     {
-        var feature = context.Features.GetOrSet<AzureServiceBusReceiveFeature>();
-        var args = feature.ProcessMessageEventArgs;
+        var actions = context.Features.GetOrSet<AzureServiceBusReceiveFeature>().Actions;
         var cancellationToken = context.CancellationToken;
 
         try
         {
             await next(context);
 
-            await CompleteAsync(args, cancellationToken);
+            await CompleteAsync(actions, cancellationToken);
         }
         catch
         {
             try
             {
-                await AbandonAsync(args, cancellationToken);
+                await AbandonAsync(actions, cancellationToken);
             }
             catch
             {
@@ -43,30 +43,34 @@ internal sealed class AzureServiceBusAcknowledgementMiddleware
         }
     }
 
-    private static async Task CompleteAsync(ProcessMessageEventArgs args, CancellationToken cancellationToken)
+    private static async Task CompleteAsync(IAzureServiceBusMessageActions actions, CancellationToken cancellationToken)
     {
         try
         {
-            await args.CompleteMessageAsync(args.Message, cancellationToken);
+            await actions.CompleteAsync(cancellationToken);
         }
-        catch (ServiceBusException ex) when (ex.Reason == ServiceBusFailureReason.MessageLockLost)
+        catch (ServiceBusException ex) when (IsLockLost(ex))
         {
-            // Message was already settled (e.g. handler called DeadLetterMessageAsync directly via
-            // IAzureServiceBusMessageContext, or the lock expired). Treat as already-settled.
+            // Message was already settled (e.g. handler called DeadLetterAsync directly via
+            // IAzureServiceBusMessageActions, or the lock expired). Treat as already-settled.
         }
     }
 
-    private static async Task AbandonAsync(ProcessMessageEventArgs args, CancellationToken cancellationToken)
+    private static async Task AbandonAsync(IAzureServiceBusMessageActions actions, CancellationToken cancellationToken)
     {
         try
         {
-            await args.AbandonMessageAsync(args.Message, cancellationToken: cancellationToken);
+            await actions.AbandonAsync(cancellationToken: cancellationToken);
         }
-        catch (ServiceBusException ex) when (ex.Reason == ServiceBusFailureReason.MessageLockLost)
+        catch (ServiceBusException ex) when (IsLockLost(ex))
         {
             // Message was already settled or the lock expired. Nothing else to do.
         }
     }
+
+    private static bool IsLockLost(ServiceBusException ex)
+        => ex.Reason is ServiceBusFailureReason.MessageLockLost
+            or ServiceBusFailureReason.SessionLockLost;
 
     private static readonly AzureServiceBusAcknowledgementMiddleware s_instance = new();
 

@@ -24,4 +24,30 @@ public sealed class AzureServiceBusReceiveEndpointConfiguration : ReceiveEndpoin
     /// <c>{queueName}_error</c> queue. Defaults to <see langword="false"/>.
     /// </summary>
     public bool UseNativeDeadLetterForwarding { get; set; }
+
+    /// <summary>
+    /// Gets or sets the maximum number of concurrently locked sessions on a session-bound endpoint.
+    /// When <see langword="null"/>, the endpoint falls back to <see cref="ReceiveEndpointConfiguration.MaxConcurrency"/>.
+    /// </summary>
+    public int? MaxConcurrentSessions { get; set; }
+
+    /// <summary>
+    /// Gets or sets the maximum number of concurrent message dispatches per locked session on a
+    /// session-bound endpoint. When <see langword="null"/>, defaults to <c>1</c> to preserve
+    /// in-session ordering.
+    /// </summary>
+    public int? MaxConcurrentCallsPerSession { get; set; }
+
+    /// <summary>
+    /// Gets or sets the duration the session processor will wait for new messages on a locked
+    /// session before releasing the session lock. When <see langword="null"/>, the SDK default applies.
+    /// </summary>
+    public TimeSpan? SessionIdleTimeout { get; set; }
+
+    /// <summary>
+    /// Gets or sets the maximum total duration over which the SDK will auto-renew the message
+    /// lock (and, on session endpoints, the session lock as well). When <see langword="null"/>,
+    /// the endpoint default of five minutes is used.
+    /// </summary>
+    public TimeSpan? MaxAutoLockRenewalDuration { get; set; }
 }
