@@ -9,7 +9,6 @@ using Microsoft.Extensions.Options;
 using System.Diagnostics.CodeAnalysis;
 #endif
 
-
 namespace HotChocolate.Adapters.OpenApi;
 
 #if !NET9_0_OR_GREATER

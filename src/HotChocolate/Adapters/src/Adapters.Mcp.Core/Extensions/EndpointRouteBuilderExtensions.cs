@@ -15,12 +15,13 @@ public static class EndpointRouteBuilderExtensions
         [StringSyntax("Route")] string pattern = "/graphql/mcp",
         string? schemaName = null)
     {
-        schemaName ??= ISchemaDefinition.DefaultName;
-
         var manager = endpoints.ServiceProvider.GetService<McpManager>()
             ?? throw new InvalidOperationException(
                 "You must call AddMcp(). Unable to find required services. Call "
                 + "builder.Services.AddGraphQL().AddMcp() in application startup code.");
+
+        TryResolveSchemaName(manager, ref schemaName);
+        schemaName ??= ISchemaDefinition.DefaultName;
 
         var streamableHttpHandler = manager.Get(schemaName).HandlerProxy;
 
@@ -63,5 +64,13 @@ public static class EndpointRouteBuilderExtensions
         }
 
         return mcpGroup;
+    }
+
+    private static void TryResolveSchemaName(IMcpProvider provider, ref string? schemaName)
+    {
+        if (schemaName is null && provider.Names.Length == 1)
+        {
+            schemaName = provider.Names[0];
+        }
     }
 }

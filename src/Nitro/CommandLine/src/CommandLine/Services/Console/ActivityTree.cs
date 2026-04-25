@@ -17,6 +17,8 @@ internal sealed class ActivityTree : Renderable
     private readonly List<ActivityEntry> _rootEntries = [];
     private readonly Spinner _spinner = Spinner.Known.Default;
 
+    public bool EmitLivePadding { get; set; } = true;
+
     public ActivityEntry AddRoot(string text)
     {
         lock (_lock)
@@ -92,13 +94,15 @@ internal sealed class ActivityTree : Renderable
                 RenderEntry(segments, root, parentPrefix: "", NodePosition.Root, options, maxWidth);
             }
 
-            // Workaround for a Spectre.Console bug: LiveRenderable.PositionCursor emits
-            // `CSI 0 A` when the rendered shape is one line tall, and most terminals treat
-            // that as `CSI 1 A` (move cursor up one row) per ECMA-48 default-parameter
-            // handling. The result is that a single-line tree drifts up one row on every
-            // refresh and overwrites previously-printed output. Forcing the shape to be at
-            // least two lines tall keeps Spectre on the `CursorUp(n>=1)` path.
-            segments.Add(Segment.LineBreak);
+            // Workaround for a Spectre.Console bug (issue #2076): LiveRenderable.PositionCursor
+            // emits `CSI 0 A` when the rendered shape is one line tall, and most terminals treat
+            // that as `CSI 1 A` (move cursor up one row) per ECMA-48 default-parameter handling.
+            // Forcing the shape to be at least two lines tall keeps Spectre on the
+            // `CursorUp(n>=1)` path. Only needed while the tree is rendered through Live.
+            if (EmitLivePadding)
+            {
+                segments.Add(Segment.LineBreak);
+            }
 
             return segments;
         }

@@ -9,12 +9,12 @@ public static class EndpointRouteBuilderExtensions
         this IEndpointRouteBuilder endpoints,
         string? schemaName = null)
     {
+        var manager = endpoints.ServiceProvider.GetRequiredService<OpenApiManager>();
+
+        TryResolveSchemaName(manager, ref schemaName);
         schemaName ??= ISchemaDefinition.DefaultName;
 
-        var dataSource = (DynamicEndpointDataSource)endpoints.ServiceProvider
-            .GetRequiredService<OpenApiManager>()
-            .Get(schemaName)
-            .EndpointDataSource;
+        var dataSource = (DynamicEndpointDataSource)manager.Get(schemaName).EndpointDataSource;
 
         if (!endpoints.DataSources.Contains(dataSource))
         {
@@ -22,5 +22,13 @@ public static class EndpointRouteBuilderExtensions
         }
 
         return endpoints;
+    }
+
+    private static void TryResolveSchemaName(IOpenApiProvider provider, ref string? schemaName)
+    {
+        if (schemaName is null && provider.Names.Length == 1)
+        {
+            schemaName = provider.Names[0];
+        }
     }
 }

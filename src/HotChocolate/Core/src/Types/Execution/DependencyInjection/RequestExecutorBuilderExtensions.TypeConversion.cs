@@ -49,7 +49,8 @@ public static partial class RequestExecutorBuilderExtensions
     /// <exception cref="ArgumentNullException">
     /// Thrown if <paramref name="builder"/> is <c>null</c>.
     /// </exception>
-    public static IRequestExecutorBuilder AddTypeConverter<T>(
+    public static IRequestExecutorBuilder AddTypeConverter<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IRequestExecutorBuilder builder)
         where T : class, IChangeTypeProvider
     {
@@ -187,7 +188,8 @@ public static partial class RequestExecutorBuilderExtensions
     /// <exception cref="ArgumentNullException">
     /// Thrown if <paramref name="services"/> is <c>null</c>.
     /// </exception>
-    public static IServiceCollection AddTypeConverter<T>(
+    public static IServiceCollection AddTypeConverter<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] T>(
         this IServiceCollection services)
         where T : class, IChangeTypeProvider
     {
