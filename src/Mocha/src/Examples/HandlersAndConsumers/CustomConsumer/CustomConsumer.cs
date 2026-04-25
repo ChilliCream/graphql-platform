@@ -6,6 +6,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Mocha;
+using Mocha.Resources;
 using Mocha.Resources.AspNetCore;
 using Mocha.Transport.InMemory;
 

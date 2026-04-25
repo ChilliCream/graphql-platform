@@ -6,8 +6,9 @@
 
 using Mocha;
 using Mocha.Middlewares;
-using Mocha.Transport.InMemory;
+using Mocha.Resources;
 using Mocha.Resources.AspNetCore;
+using Mocha.Transport.InMemory;
 
 // To collect Mocha spans and metrics with the .NET OpenTelemetry SDK, add
 // the packages below and configure tracing/metrics as shown in the comments.

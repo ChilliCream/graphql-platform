@@ -5,9 +5,10 @@
 // $ dotnet run BasicSaga.cs
 
 using Mocha;
+using Mocha.Resources;
+using Mocha.Resources.AspNetCore;
 using Mocha.Sagas;
 using Mocha.Transport.InMemory;
-using Mocha.Resources.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 

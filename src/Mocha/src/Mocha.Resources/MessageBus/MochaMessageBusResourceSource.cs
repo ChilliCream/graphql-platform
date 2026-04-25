@@ -1,8 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Primitives;
-using Mocha.Resources;
 
-namespace Mocha;
+namespace Mocha.Resources;
 
 /// <summary>
 /// <see cref="MochaResourceSource"/> that projects a live <see cref="MessagingRuntime"/> into a
@@ -61,13 +60,14 @@ public sealed class MochaMessageBusResourceSource : MochaResourceSource, IDispos
     /// Gets the cached <see cref="MessageBusDescription"/> the snapshot was projected from.
     /// </summary>
     /// <remarks>
-    /// Exposed so the deprecated <c>MapMessageBusDeveloperTopology</c> bridge can serialise the
+    /// Internal-only escape hatch: exposed exclusively to the deprecated
+    /// <c>MapMessageBusDeveloperTopology</c> bridge in <c>Mocha.Hosting</c> so it can serialise the
     /// legacy <c>DiagramData</c> JSON shape from the same description tree the source already
-    /// builds, avoiding a duplicate visitor traversal. The accessor is internal — direct consumers
-    /// of <see cref="MochaResourceSource"/> should not depend on the description tree, which is
-    /// scheduled for internalization in the next major.
+    /// builds, avoiding a duplicate visitor traversal. Consumers of <see cref="MochaResourceSource"/>
+    /// must not depend on the description tree, which is scheduled for internalization in the next
+    /// major.
     /// </remarks>
-    public MessageBusDescription Description
+    internal MessageBusDescription Description
     {
         get
         {
@@ -225,7 +225,16 @@ public sealed class MochaMessageBusResourceSource : MochaResourceSource, IDispos
 
         foreach (var transport in _runtime.Transports)
         {
+            // Allow transports to emit transport-specific resource subclasses (queues, exchanges,
+            // bindings, etc.). If a transport hasn't overridden ContributeMochaResources, fall back
+            // to the description-tree projection so the snapshot still includes a generic transport
+            // entry plus any topology entities the transport surfaces via Describe().
+            var beforeCount = resources.Count;
             transport.ContributeMochaResources(resources);
+            if (resources.Count == beforeCount)
+            {
+                ProjectTransportFromDescription(resources, transport);
+            }
         }
 
         _resources = resources;
@@ -283,5 +292,49 @@ public sealed class MochaMessageBusResourceSource : MochaResourceSource, IDispos
         }
 
         return null;
+    }
+
+    private static void ProjectTransportFromDescription(
+        List<MochaResource> resources,
+        MessagingTransport transport)
+    {
+        var description = transport.Describe();
+
+        resources.Add(new MochaTransportResource(description));
+
+        foreach (var receiveEndpoint in description.ReceiveEndpoints)
+        {
+            resources.Add(new MochaReceiveEndpointResource(transport.Schema, description.Identifier, receiveEndpoint));
+        }
+
+        foreach (var dispatchEndpoint in description.DispatchEndpoints)
+        {
+            resources.Add(new MochaDispatchEndpointResource(transport.Schema, description.Identifier, dispatchEndpoint));
+        }
+
+        if (description.Topology is { } topology)
+        {
+            foreach (var entity in topology.Entities)
+            {
+                resources.Add(CreateEntityResource(transport.Schema, description.Identifier, entity));
+            }
+        }
+    }
+
+    private static MochaResource CreateEntityResource(string system, string transportId, TopologyEntityDescription entity)
+    {
+        // Map the entity's Kind to a dedicated MochaResource subclass so the fallback path produces
+        // the same per-kind attribute schema as a transport that overrides ContributeMochaResources.
+        // Transport-specific properties (durable, exclusive, etc.) are unavailable via the generic
+        // description tree, so the dedicated resources are constructed with name/address only;
+        // optional fields are omitted from the JSON output via the resource's Write logic.
+        var name = entity.Name ?? entity.Address ?? entity.Kind;
+        return entity.Kind switch
+        {
+            "queue" => new MochaQueueResource(system, transportId, name, entity.Address),
+            "exchange" => new MochaExchangeResource(system, transportId, name, entity.Address),
+            "topic" => new MochaTopicResource(system, transportId, name, entity.Address),
+            _ => new MochaTopologyEntityResource(system, transportId, entity)
+        };
     }
 }

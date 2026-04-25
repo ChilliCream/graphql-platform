@@ -91,6 +91,42 @@ public class MochaMessageBusResourceSourceTests
         Assert.False(fired);
     }
 
+    [Fact]
+    public async Task DispatchEndpointAdded_Should_NotDeadlock_When_HandlerReentersRouter()
+    {
+        // arrange — a handler subscribed to DispatchEndpointAdded synchronously calls back into the
+        // router. This guards against a future regression where the event is raised inside the
+        // router's lock — that would deadlock here. The watchdog cancellation token failsafes the
+        // assertion if the assumption breaks.
+        var runtime = CreateRuntime(b => b.AddEventHandler<OrderCreatedHandler>());
+        using var source = new MochaMessageBusResourceSource(runtime);
+
+        // prime the change token so the source actually fires on endpoint added
+        source.GetChangeToken();
+
+        var reentrantCalls = 0;
+        runtime.Endpoints.DispatchEndpointAdded += (_, _) =>
+        {
+            // call back into the router synchronously — should not deadlock
+            _ = runtime.Endpoints.Endpoints; // read endpoints under the router's lock
+            Interlocked.Increment(ref reentrantCalls);
+        };
+
+        // act — dispatch a brand new message type so the router creates a dispatch endpoint
+        var task = Task.Run(() =>
+        {
+            var messageType = runtime.GetMessageType(typeof(LateBoundMessage));
+            runtime.GetSendEndpoint(messageType);
+        });
+
+        var completed = await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(2)));
+
+        // assert — completes without deadlocking, and the reentrant handler ran
+        Assert.Same(task, completed);
+        await task;
+        Assert.True(reentrantCalls >= 1);
+    }
+
     private static MessagingRuntime CreateRuntime(Action<IMessageBusHostBuilder> configure)
     {
         var services = new ServiceCollection();

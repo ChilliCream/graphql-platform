@@ -367,4 +367,41 @@ public class MochaResourceSnapshotTests
         // assert
         json.MatchSnapshot();
     }
+
+    [Fact]
+    public void Serialize_Should_MatchSnapshot_When_SagaTransitionResourceHasPublishAndSend()
+    {
+        // arrange
+        var sagaId = MochaUrn.Create("core", "saga", InstanceId, "OrderSaga");
+        var fromStateId = MochaUrn.Create("core", "saga_state", InstanceId, "OrderSaga", "AwaitingPayment");
+        var toStateId = MochaUrn.Create("core", "saga_state", InstanceId, "OrderSaga", "Completed");
+        var resource = new MochaSagaTransitionResource(
+            sagaId,
+            fromStateId,
+            toStateId,
+            InstanceId,
+            sagaName: "OrderSaga",
+            fromStateName: "AwaitingPayment",
+            index: 0,
+            new SagaTransitionDescription(
+                EventType: "PaymentReceived",
+                EventTypeFullName: "Acme.Contracts.PaymentReceived",
+                TransitionTo: "Completed",
+                TransitionKind: Mocha.Sagas.SagaTransitionKind.Event,
+                AutoProvision: false,
+                Publish:
+                [
+                    new SagaEventDescription("OrderCompleted", "Acme.Contracts.OrderCompleted")
+                ],
+                Send:
+                [
+                    new SagaEventDescription("ShipOrder", null)
+                ]));
+
+        // act
+        var json = MochaResourceJsonWriter.Serialize(resource);
+
+        // assert
+        json.MatchSnapshot();
+    }
 }

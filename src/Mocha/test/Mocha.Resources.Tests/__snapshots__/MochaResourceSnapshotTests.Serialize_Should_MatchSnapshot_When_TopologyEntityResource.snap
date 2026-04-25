@@ -1,8 +1,9 @@
 {
-  "kind": "mocha.queue",
-  "id": "urn:mocha:memory:queue:memory%3A//test/:orders",
+  "kind": "mocha.topology_entity",
+  "id": "urn:mocha:memory:topology_entity:memory%3A//test/:orders",
   "attributes": {
     "transport_id": "memory://test/",
+    "entity_kind": "queue",
     "name": "orders",
     "address": "memory://test/q/orders",
     "flow": "outbound"

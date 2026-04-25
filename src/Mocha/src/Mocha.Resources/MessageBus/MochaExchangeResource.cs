@@ -6,6 +6,13 @@ namespace Mocha.Resources;
 /// <see cref="MochaResource"/> describing a transport exchange (e.g. RabbitMQ direct/fanout/topic
 /// exchange).
 /// </summary>
+/// <remarks>
+/// Intentionally <c>public</c> so transport packages
+/// (<c>Mocha.Transport.RabbitMQ</c> and any third-party transport that exposes exchange topology)
+/// can construct exchange resources from their <see cref="MessagingTransport.ContributeMochaResources"/>
+/// overrides across package boundaries. Reusing the same typed resource keeps the
+/// <c>mocha.exchange</c> attribute schema stable across contributors.
+/// </remarks>
 public sealed class MochaExchangeResource : MochaResource
 {
     private readonly string _id;

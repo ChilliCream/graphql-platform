@@ -1,7 +1,6 @@
 using System.Text.Json;
-using Mocha.Resources;
 
-namespace Mocha;
+namespace Mocha.Resources;
 
 /// <summary>
 /// Default <see cref="MochaResource"/> for a <see cref="MessagingTransport"/>.

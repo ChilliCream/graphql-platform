@@ -5,8 +5,9 @@
 // $ dotnet run EventPubSub.cs
 
 using Mocha;
-using Mocha.Transport.InMemory;
+using Mocha.Resources;
 using Mocha.Resources.AspNetCore;
+using Mocha.Transport.InMemory;
 
 var builder = WebApplication.CreateBuilder(args);
 

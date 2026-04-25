@@ -7,6 +7,14 @@ namespace Mocha.Resources;
 /// from a source resource (typically an exchange or topic) to a destination resource (queue,
 /// exchange, or topic).
 /// </summary>
+/// <remarks>
+/// Intentionally <c>public</c> so transport packages
+/// (<c>Mocha.Transport.RabbitMQ</c>, <c>Mocha.Transport.Postgres</c>, and any third-party transport
+/// that exposes binding topology) can construct binding resources from their
+/// <see cref="MessagingTransport.ContributeMochaResources"/> overrides across package boundaries.
+/// Reusing the same typed resource keeps the <c>mocha.binding</c> attribute schema stable across
+/// contributors.
+/// </remarks>
 public sealed class MochaBindingResource : MochaResource
 {
     private readonly string _id;

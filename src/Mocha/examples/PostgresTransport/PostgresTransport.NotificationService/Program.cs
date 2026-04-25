@@ -1,4 +1,5 @@
 using Mocha;
+using Mocha.Resources;
 using Mocha.Resources.AspNetCore;
 using Mocha.Transport.Postgres;
 using PostgresTransport.NotificationService.Handlers;

@@ -1,8 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Mocha.Resources;
 
-namespace Mocha;
+namespace Mocha.Resources;
 
 /// <summary>
 /// Provides extension methods on <see cref="IServiceCollection"/> for registering the message
@@ -75,5 +74,6 @@ public static class MochaMessageBusResourcesServiceCollectionExtensions
         services.AddSingleton(new MochaResourceDefinition("mocha.exchange", "Exchange"));
         services.AddSingleton(new MochaResourceDefinition("mocha.topic", "Topic"));
         services.AddSingleton(new MochaResourceDefinition("mocha.binding", "Binding"));
+        services.AddSingleton(new MochaResourceDefinition("mocha.topology_entity", "Topology Entity"));
     }
 }

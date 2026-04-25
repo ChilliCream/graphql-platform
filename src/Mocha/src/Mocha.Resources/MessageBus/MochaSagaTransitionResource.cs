@@ -1,9 +1,8 @@
 using System.Globalization;
 using System.Text.Json;
-using Mocha.Resources;
 using Mocha.Sagas;
 
-namespace Mocha;
+namespace Mocha.Resources;
 
 /// <summary>
 /// <see cref="MochaResource"/> describing a transition between two saga states triggered by a
@@ -19,6 +18,8 @@ internal sealed class MochaSagaTransitionResource : MochaResource
     private readonly string? _eventTypeFullName;
     private readonly SagaTransitionKind _transitionKind;
     private readonly bool _autoProvision;
+    private readonly IReadOnlyList<SagaEventDescription>? _publish;
+    private readonly IReadOnlyList<SagaEventDescription>? _send;
 
     public MochaSagaTransitionResource(
         string sagaId,
@@ -37,6 +38,8 @@ internal sealed class MochaSagaTransitionResource : MochaResource
         _eventTypeFullName = description.EventTypeFullName;
         _transitionKind = description.TransitionKind;
         _autoProvision = description.AutoProvision;
+        _publish = description.Publish;
+        _send = description.Send;
         _id = MochaUrn.Create(
             "core",
             "saga_transition",
@@ -65,5 +68,39 @@ internal sealed class MochaSagaTransitionResource : MochaResource
 
         writer.WriteString("transition_kind", _transitionKind.ToString());
         writer.WriteBoolean("auto_provision", _autoProvision);
+
+        if (_publish is { Count: > 0 })
+        {
+            writer.WriteStartArray("publish");
+            foreach (var entry in _publish)
+            {
+                WriteEvent(writer, entry);
+            }
+
+            writer.WriteEndArray();
+        }
+
+        if (_send is { Count: > 0 })
+        {
+            writer.WriteStartArray("send");
+            foreach (var entry in _send)
+            {
+                WriteEvent(writer, entry);
+            }
+
+            writer.WriteEndArray();
+        }
+    }
+
+    private static void WriteEvent(Utf8JsonWriter writer, SagaEventDescription entry)
+    {
+        writer.WriteStartObject();
+        writer.WriteString("message_type", entry.MessageType);
+        if (entry.MessageTypeFullName is not null)
+        {
+            writer.WriteString("message_type_full_name", entry.MessageTypeFullName);
+        }
+
+        writer.WriteEndObject();
     }
 }

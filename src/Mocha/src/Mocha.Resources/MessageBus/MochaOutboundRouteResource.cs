@@ -1,7 +1,6 @@
 using System.Text.Json;
-using Mocha.Resources;
 
-namespace Mocha;
+namespace Mocha.Resources;
 
 /// <summary>
 /// <see cref="MochaResource"/> describing an outbound route from a message type to a destination

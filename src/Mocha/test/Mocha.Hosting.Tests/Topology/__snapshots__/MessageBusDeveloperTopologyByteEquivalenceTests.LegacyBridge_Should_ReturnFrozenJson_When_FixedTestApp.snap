@@ -1,0 +1,173 @@
+{
+  "services": [
+    {
+      "host": {
+        "serviceName": "byte-equivalence-test",
+        "assemblyName": "Mocha.Hosting.Tests",
+        "instanceId": "11111111-1111-1111-1111-111111111111"
+      },
+      "messageTypes": [
+        {
+          "identity": "urn:message:mocha.events:acknowledged-event",
+          "runtimeType": "AcknowledgedEvent",
+          "runtimeTypeFullName": "Mocha.Events.AcknowledgedEvent",
+          "isInterface": false,
+          "isInternal": true,
+          "enclosedMessageIdentities": [
+            "urn:message:mocha.events:acknowledged-event"
+          ]
+        },
+        {
+          "identity": "urn:message:mocha.events:not-acknowledged-event",
+          "runtimeType": "NotAcknowledgedEvent",
+          "runtimeTypeFullName": "Mocha.Events.NotAcknowledgedEvent",
+          "isInterface": false,
+          "isInternal": true,
+          "enclosedMessageIdentities": [
+            "urn:message:mocha.events:not-acknowledged-event"
+          ]
+        },
+        {
+          "identity": "urn:message:mocha.hosting.tests.topology:test-event",
+          "runtimeType": "TestEvent",
+          "runtimeTypeFullName": "Mocha.Hosting.Tests.Topology.MessageBusDeveloperTopologyByteEquivalenceTests\u002BTestEvent",
+          "isInterface": false,
+          "isInternal": false,
+          "enclosedMessageIdentities": [
+            "urn:message:mocha.hosting.tests.topology:test-event"
+          ]
+        }
+      ],
+      "consumers": [
+        {
+          "name": "Reply",
+          "identityType": "ReplyConsumer",
+          "identityTypeFullName": "Mocha.ReplyConsumer",
+          "isBatch": false
+        },
+        {
+          "name": "TestEventHandler",
+          "identityType": "TestEventHandler",
+          "identityTypeFullName": "Mocha.Hosting.Tests.Topology.MessageBusDeveloperTopologyByteEquivalenceTests\u002BTestEventHandler",
+          "isBatch": false
+        }
+      ],
+      "routes": {
+        "inbound": [
+          {
+            "kind": "reply",
+            "consumerName": "Reply",
+            "endpoint": {
+              "name": "Replies",
+              "address": "memory://localhost/Replies",
+              "transportName": "memory"
+            }
+          },
+          {
+            "kind": "subscribe",
+            "messageTypeIdentity": "urn:message:mocha.hosting.tests.topology:test-event",
+            "consumerName": "TestEventHandler",
+            "endpoint": {
+              "name": "byte-equivalence-test.test-event",
+              "address": "memory://localhost/byte-equivalence-test.test-event",
+              "transportName": "memory"
+            }
+          }
+        ],
+        "outbound": [
+          {
+            "kind": "publish",
+            "messageTypeIdentity": "urn:message:mocha.hosting.tests.topology:test-event",
+            "endpoint": {
+              "name": "t/mocha.hosting.tests.topology.test",
+              "address": "memory://localhost/t/mocha.hosting.tests.topology.test",
+              "transportName": "memory"
+            }
+          }
+        ]
+      },
+      "sagas": []
+    }
+  ],
+  "transports": [
+    {
+      "identifier": "memory://mocha.hosting.tests/",
+      "name": "memory",
+      "schema": "memory",
+      "transportType": "InMemoryMessagingTransport",
+      "receiveEndpoints": [
+        {
+          "name": "Replies",
+          "kind": "reply",
+          "address": "memory://localhost/Replies",
+          "sourceAddress": "memory://mocha.hosting.tests/q/response-11111111111111111111111111111111"
+        },
+        {
+          "name": "byte-equivalence-test.test-event",
+          "kind": "default",
+          "address": "memory://localhost/byte-equivalence-test.test-event",
+          "sourceAddress": "memory://mocha.hosting.tests/q/byte-equivalence-test.test-event"
+        }
+      ],
+      "dispatchEndpoints": [
+        {
+          "name": "Replies",
+          "kind": "reply",
+          "address": "memory://localhost/Replies",
+          "destinationAddress": "memory://mocha.hosting.tests/q/response-11111111111111111111111111111111"
+        },
+        {
+          "name": "t/mocha.hosting.tests.topology.test",
+          "kind": "default",
+          "address": "memory://localhost/t/mocha.hosting.tests.topology.test",
+          "destinationAddress": "memory://mocha.hosting.tests/e/mocha.hosting.tests.topology.test"
+        }
+      ],
+      "topology": {
+        "address": "memory://mocha.hosting.tests/",
+        "entities": [
+          {
+            "kind": "queue",
+            "name": "byte-equivalence-test.test-event",
+            "address": "memory://mocha.hosting.tests/q/byte-equivalence-test.test-event",
+            "flow": "outbound"
+          },
+          {
+            "kind": "queue",
+            "name": "response-11111111111111111111111111111111",
+            "address": "memory://mocha.hosting.tests/q/response-11111111111111111111111111111111",
+            "flow": "outbound"
+          },
+          {
+            "kind": "topic",
+            "name": "mocha.hosting.tests.topology.test",
+            "address": "memory://mocha.hosting.tests/e/mocha.hosting.tests.topology.test",
+            "flow": "inbound"
+          },
+          {
+            "kind": "topic",
+            "name": "test",
+            "address": "memory://mocha.hosting.tests/e/test",
+            "flow": "inbound"
+          }
+        ],
+        "links": [
+          {
+            "kind": "bind",
+            "address": "memory://mocha.hosting.tests/b/t/mocha.hosting.tests.topology.test/t/test",
+            "source": "memory://mocha.hosting.tests/e/mocha.hosting.tests.topology.test",
+            "target": "memory://mocha.hosting.tests/e/test",
+            "direction": "forward"
+          },
+          {
+            "kind": "bind",
+            "address": "memory://mocha.hosting.tests/b/t/test/q/byte-equivalence-test.test-event",
+            "source": "memory://mocha.hosting.tests/e/test",
+            "target": "memory://mocha.hosting.tests/q/byte-equivalence-test.test-event",
+            "direction": "forward"
+          }
+        ]
+      }
+    }
+  ]
+}

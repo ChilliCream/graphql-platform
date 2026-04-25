@@ -1,25 +1,24 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <AssemblyName>Mocha.Hosting.Tests</AssemblyName>
-    <RootNamespace>Mocha.Hosting.Tests</RootNamespace>
+    <AssemblyName>Mocha.Resources.AspNetCore.Tests</AssemblyName>
+    <RootNamespace>Mocha.Resources.AspNetCore.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
+    <Using Include="Mocha.TestHelpers" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
-    <PackageReference Include="Moq" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Mocha\Mocha.csproj" />
-    <ProjectReference Include="..\..\src\Mocha.Hosting\Mocha.Hosting.csproj" />
     <ProjectReference Include="..\..\src\Mocha.Resources.Abstractions\Mocha.Resources.Abstractions.csproj" />
     <ProjectReference Include="..\..\src\Mocha.Resources\Mocha.Resources.csproj" />
     <ProjectReference Include="..\..\src\Mocha.Resources.AspNetCore\Mocha.Resources.AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\Mocha.Transport.InMemory\Mocha.Transport.InMemory.csproj" />
-    <ProjectReference Include="..\..\..\CookieCrumble\src\CookieCrumble\CookieCrumble.csproj" />
-    <ProjectReference Include="..\..\..\CookieCrumble\src\CookieCrumble.Xunit\CookieCrumble.Xunit.csproj" />
-    <ProjectReference Include="..\..\..\CookieCrumble\src\CookieCrumble.Analyzers\CookieCrumble.Analyzers.csproj" OutputItemType="Analyzer" />
+    <ProjectReference Include="..\Mocha.TestHelpers\Mocha.TestHelpers.csproj" />
   </ItemGroup>
 
   <ItemGroup>
