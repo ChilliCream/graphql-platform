@@ -19,7 +19,6 @@
     <Project Path="src/Mocha.Mediator/Mocha.Mediator.csproj" />
     <Project Path="src/Mocha.Outbox/Mocha.Outbox.csproj" />
     <Project Path="src/Mocha.Resources.Abstractions/Mocha.Resources.Abstractions.csproj" />
-    <Project Path="src/Mocha.Resources.AspNetCore/Mocha.Resources.AspNetCore.csproj" />
     <Project Path="src/Mocha.Resources/Mocha.Resources.csproj" />
     <Project Path="src/Mocha.Threading/Mocha.Threading.csproj" />
     <Project Path="src/Mocha.Transport.InMemory/Mocha.Transport.InMemory.csproj" />
@@ -34,7 +33,6 @@
     <Project Path="test/Mocha.EntityFrameworkCore.Tests/Mocha.EntityFrameworkCore.Tests.csproj" />
     <Project Path="test/Mocha.Hosting.Tests/Mocha.Hosting.Tests.csproj" />
     <Project Path="test/Mocha.Mediator.Tests/Mocha.Mediator.Tests.csproj" />
-    <Project Path="test/Mocha.Resources.AspNetCore.Tests/Mocha.Resources.AspNetCore.Tests.csproj" />
     <Project Path="test/Mocha.Resources.Tests/Mocha.Resources.Tests.csproj" />
     <Project Path="test/Mocha.Sagas.TestHelpers/Mocha.Sagas.TestHelpers.csproj" />
     <Project Path="test/Mocha.Sagas.Tests/Mocha.Sagas.Tests.csproj" />

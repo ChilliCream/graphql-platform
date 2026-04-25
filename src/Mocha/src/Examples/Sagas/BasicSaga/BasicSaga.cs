@@ -1,12 +1,9 @@
 // To run without a project file:
 // #:package Mocha@1.0.0-preview.*
-// #:package Mocha.Resources.AspNetCore@1.0.0-preview.*
 // #:package Mocha.Transport.InMemory@1.0.0-preview.*
 // $ dotnet run BasicSaga.cs
 
 using Mocha;
-using Mocha.Resources;
-using Mocha.Resources.AspNetCore;
 using Mocha.Sagas;
 using Mocha.Transport.InMemory;
 
@@ -17,8 +14,6 @@ builder.Services
     .AddSaga<QuickRefundSaga>()
     .AddRequestHandler<ProcessRefundCommandHandler>()
     .AddInMemory();
-
-builder.Services.AddMochaMessageBusResources();
 
 var app = builder.Build();
 
@@ -45,11 +40,6 @@ app.MapGet("/refund", async (IMessageBus bus) =>
 });
 
 Console.WriteLine("Listening on http://localhost:5000/refund");
-
-if (app.Environment.IsDevelopment())
-{
-    app.MapMochaResourceEndpoint();
-}
 
 app.Run();
 

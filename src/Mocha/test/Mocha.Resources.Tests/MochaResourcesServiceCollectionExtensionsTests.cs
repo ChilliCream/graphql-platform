@@ -41,12 +41,11 @@ public class MochaResourcesServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void GetService_Should_ResolveMessageBusContributor_When_AddMochaMessageBusResourcesCalled()
+    public void GetService_Should_ResolveMessageBusContributor_When_AddMessageBusCalled()
     {
         // arrange
         var services = new ServiceCollection();
         services.AddMessageBus().AddInMemory();
-        services.AddMochaMessageBusResources();
         var provider = services.BuildServiceProvider();
 
         // act
@@ -57,12 +56,11 @@ public class MochaResourcesServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void GetService_Should_ResolveDefinitionCatalog_When_AddMochaMessageBusResourcesCalled()
+    public void GetService_Should_ResolveDefinitionCatalog_When_AddMessageBusCalled()
     {
         // arrange
         var services = new ServiceCollection();
         services.AddMessageBus().AddInMemory();
-        services.AddMochaMessageBusResources();
         var provider = services.BuildServiceProvider();
 
         // act

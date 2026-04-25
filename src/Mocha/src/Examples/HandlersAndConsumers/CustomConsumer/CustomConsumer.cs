@@ -1,13 +1,10 @@
 // To run without a project file:
 // #:package Mocha@1.0.0-preview.*
-// #:package Mocha.Resources.AspNetCore@1.0.0-preview.*
 // #:package Mocha.Transport.InMemory@1.0.0-preview.*
 // $ dotnet run CustomConsumer.cs
 
 using Microsoft.Extensions.DependencyInjection;
 using Mocha;
-using Mocha.Resources;
-using Mocha.Resources.AspNetCore;
 using Mocha.Transport.InMemory;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -33,8 +30,6 @@ bus.ConfigureMessageBus(b =>
 
 bus.AddInMemory();
 
-builder.Services.AddMochaMessageBusResources();
-
 var app = builder.Build();
 
 app.MapGet("/orders", async (IMessageBus messageBus) =>
@@ -49,10 +44,6 @@ app.MapGet("/orders", async (IMessageBus messageBus) =>
 });
 
 Console.WriteLine("GET http://localhost:5000/orders to publish an order");
-if (app.Environment.IsDevelopment())
-{
-    app.MapMochaResourceEndpoint();
-}
 
 app.Run();
 

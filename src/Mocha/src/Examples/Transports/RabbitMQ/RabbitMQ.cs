@@ -1,12 +1,9 @@
 // To run without a project file:
 // #:package Mocha@1.0.0-preview.*
-// #:package Mocha.Resources.AspNetCore@1.0.0-preview.*
 // #:package Mocha.Transport.RabbitMQ@1.0.0-preview.*
 // $ dotnet run RabbitMQ.cs
 
 using Mocha;
-using Mocha.Resources;
-using Mocha.Resources.AspNetCore;
 using Mocha.Transport.RabbitMQ;
 using RabbitMQ.Client;
 
@@ -85,8 +82,6 @@ builder.Services
             .AutoProvision();
     });
 
-builder.Services.AddMochaMessageBusResources();
-
 var app = builder.Build();
 
 app.MapGet("/orders", async (IMessageBus bus) =>
@@ -99,11 +94,6 @@ app.MapGet("/orders", async (IMessageBus bus) =>
 
     return Results.Ok(new { OrderId = orderId, Status = "Published" });
 });
-
-if (app.Environment.IsDevelopment())
-{
-    app.MapMochaResourceEndpoint();
-}
 
 app.Run();
 

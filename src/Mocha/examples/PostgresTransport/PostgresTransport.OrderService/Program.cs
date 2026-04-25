@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using Mocha;
 using Mocha.Resources;
-using Mocha.Resources.AspNetCore;
 using Mocha.Transport.Postgres;
 using PostgresTransport.Contracts.Commands;
 using PostgresTransport.Contracts.Events;
@@ -39,7 +38,6 @@ builder
     });
 
 // Resource source diagnostics — exposes the message bus topology as Mocha resources.
-builder.Services.AddMochaMessageBusResources();
 
 builder.Services.AddHostedService<OrderSimulatorWorker>();
 
@@ -247,8 +245,6 @@ app.MapGet(
 
         return Results.Ok(response);
     });
-
-app.MapMochaResourceEndpoint();
 
 app.Run();
 

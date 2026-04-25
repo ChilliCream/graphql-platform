@@ -1,6 +1,5 @@
 using Mocha;
 using Mocha.Resources;
-using Mocha.Resources.AspNetCore;
 using Mocha.Transport.Postgres;
 using PostgresTransport.NotificationService.Handlers;
 
@@ -22,14 +21,11 @@ builder
     .AddPostgres(t => t.ConnectionString(messagingConnectionString));
 
 // Resource source diagnostics — exposes the message bus topology as Mocha resources.
-builder.Services.AddMochaMessageBusResources();
 
 var app = builder.Build();
 
 app.MapDefaultEndpoints();
 
 app.MapGet("/", () => "Notification Service (Postgres Transport)");
-
-app.MapMochaResourceEndpoint();
 
 app.Run();

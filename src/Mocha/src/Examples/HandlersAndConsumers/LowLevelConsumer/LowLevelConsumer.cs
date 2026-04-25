@@ -1,12 +1,9 @@
 // To run without a project file:
 // #:package Mocha@1.0.0-preview.*
-// #:package Mocha.Resources.AspNetCore@1.0.0-preview.*
 // #:package Mocha.Transport.InMemory@1.0.0-preview.*
 // $ dotnet run LowLevelConsumer.cs
 
 using Mocha;
-using Mocha.Resources;
-using Mocha.Resources.AspNetCore;
 using Mocha.Transport.InMemory;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,8 +12,6 @@ builder.Services
     .AddMessageBus()
     .AddConsumer<OrderAuditConsumer>()
     .AddInMemory();
-
-builder.Services.AddMochaMessageBusResources();
 
 var app = builder.Build();
 
@@ -32,11 +27,6 @@ app.MapGet("/orders", async (IMessageBus bus) =>
 });
 
 Console.WriteLine("GET http://localhost:5000/orders to publish an order");
-
-if (app.Environment.IsDevelopment())
-{
-    app.MapMochaResourceEndpoint();
-}
 
 app.Run();
 

@@ -1,13 +1,10 @@
 // To run without a project file:
 // #:package Mocha@1.0.0-preview.*
-// #:package Mocha.Resources.AspNetCore@1.0.0-preview.*
 // #:package Mocha.Transport.InMemory@1.0.0-preview.*
 // $ dotnet run RequestReply.cs
 
 using Mocha;
 using Mocha.Events;
-using Mocha.Resources;
-using Mocha.Resources.AspNetCore;
 using Mocha.Transport.InMemory;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,8 +13,6 @@ builder.Services
     .AddMessageBus()
     .AddRequestHandler<ProcessRefundCommandHandler>()
     .AddInMemory();
-
-builder.Services.AddMochaMessageBusResources();
 
 var app = builder.Build();
 
@@ -53,11 +48,6 @@ app.MapGet("/refund", async (IMessageBus bus, ILogger<Program> logger) =>
 });
 
 Console.WriteLine("Listening on http://localhost:5000/refund");
-
-if (app.Environment.IsDevelopment())
-{
-    app.MapMochaResourceEndpoint();
-}
 
 app.Run();
 

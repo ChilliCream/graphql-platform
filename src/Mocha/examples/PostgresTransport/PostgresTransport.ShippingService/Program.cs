@@ -1,6 +1,5 @@
 using Mocha;
 using Mocha.Resources;
-using Mocha.Resources.AspNetCore;
 using Mocha.Transport.Postgres;
 using PostgresTransport.Contracts.Events;
 using PostgresTransport.ShippingService.Handlers;
@@ -21,7 +20,6 @@ builder
     .AddPostgres(t => t.ConnectionString(messagingConnectionString));
 
 // Resource source diagnostics — exposes the message bus topology as Mocha resources.
-builder.Services.AddMochaMessageBusResources();
 
 var app = builder.Build();
 
@@ -54,8 +52,6 @@ app.MapPost(
             status = "Shipped"
         });
     });
-
-app.MapMochaResourceEndpoint();
 
 app.Run();
 

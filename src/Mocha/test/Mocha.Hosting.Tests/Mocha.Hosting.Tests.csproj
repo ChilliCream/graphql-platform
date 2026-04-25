@@ -15,7 +15,6 @@
     <ProjectReference Include="..\..\src\Mocha.Hosting\Mocha.Hosting.csproj" />
     <ProjectReference Include="..\..\src\Mocha.Resources.Abstractions\Mocha.Resources.Abstractions.csproj" />
     <ProjectReference Include="..\..\src\Mocha.Resources\Mocha.Resources.csproj" />
-    <ProjectReference Include="..\..\src\Mocha.Resources.AspNetCore\Mocha.Resources.AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\Mocha.Transport.InMemory\Mocha.Transport.InMemory.csproj" />
     <ProjectReference Include="..\..\..\CookieCrumble\src\CookieCrumble\CookieCrumble.csproj" />
     <ProjectReference Include="..\..\..\CookieCrumble\src\CookieCrumble.Xunit\CookieCrumble.Xunit.csproj" />

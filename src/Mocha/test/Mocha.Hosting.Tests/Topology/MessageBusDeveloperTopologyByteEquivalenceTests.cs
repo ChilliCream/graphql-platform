@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Mocha.Resources;
 using Mocha.Transport.InMemory;
 
 namespace Mocha.Hosting.Tests.Topology;
@@ -166,8 +165,6 @@ public sealed class MessageBusDeveloperTopologyByteEquivalenceTests
                         d.AssemblyName("Mocha.Hosting.Tests");
                     }));
                     bus.AddInMemory();
-
-                    services.AddMochaMessageBusResources();
                 });
                 webBuilder.Configure(app =>
                 {

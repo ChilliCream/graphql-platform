@@ -1,12 +1,9 @@
 // To run without a project file:
 // #:package Mocha@1.0.0-preview.*
-// #:package Mocha.Resources.AspNetCore@1.0.0-preview.*
 // #:package Mocha.Transport.InMemory@1.0.0-preview.*
 // $ dotnet run CircuitBreaker.cs
 
 using Mocha;
-using Mocha.Resources;
-using Mocha.Resources.AspNetCore;
 using Mocha.Transport.InMemory;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,8 +25,6 @@ builder.Services
     .AddConcurrencyLimiter(opts => opts.MaxConcurrency = 10)
     .AddEventHandler<OrderPlacedHandler>()
     .AddInMemory();
-
-builder.Services.AddMochaMessageBusResources();
 
 var app = builder.Build();
 
@@ -59,11 +54,6 @@ app.MapGet("/quotes", async (IMessageBus bus) =>
 
     return Results.Ok(new { Status = "Quote published with 5-minute expiry" });
 });
-
-if (app.Environment.IsDevelopment())
-{
-    app.MapMochaResourceEndpoint();
-}
 
 app.Run();
 

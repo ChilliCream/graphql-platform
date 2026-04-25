@@ -4,7 +4,6 @@
     <ProjectReference Include="..\..\..\Mocha.Transport.RabbitMQ\Mocha.Transport.RabbitMQ.csproj" />
     <ProjectReference Include="..\..\..\Mocha.EntityFrameworkCore.Postgres\Mocha.EntityFrameworkCore.Postgres.csproj" />
     <ProjectReference Include="..\..\..\Mocha.Outbox\Mocha.Outbox.csproj" />
-      <ProjectReference Include="..\..\..\Mocha.Resources.AspNetCore\Mocha.Resources.AspNetCore.csproj" />
     <ProjectReference Include="..\..\..\Mocha.Hosting\Mocha.Hosting.csproj" />
   </ItemGroup>
 </Project>
