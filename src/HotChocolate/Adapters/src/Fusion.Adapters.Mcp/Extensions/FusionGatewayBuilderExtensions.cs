@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Adapters.Mcp.Configuration;
 using HotChocolate.Adapters.Mcp.Storage;
 using HotChocolate.Fusion.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,21 +20,7 @@ public static class FusionGatewayBuilderExtensions
         ArgumentNullException.ThrowIfNull(builder);
 
         builder.Services.AddMcpServices();
-
-        builder.Services.Configure<McpSetup>(
-            builder.Name,
-            setup =>
-            {
-                if (configureServerOptions is not null)
-                {
-                    setup.ServerOptionsModifiers.Add(configureServerOptions);
-                }
-
-                if (configureServer is not null)
-                {
-                    setup.ServerModifiers.Add(configureServer);
-                }
-            });
+        builder.Services.ConfigureMcpSetup(builder.Name, configureServerOptions, configureServer);
 
         builder.ConfigureSchemaServices(
             (applicationServices, schemaServices) =>

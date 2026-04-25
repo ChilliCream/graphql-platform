@@ -17,28 +17,37 @@ namespace HotChocolate.Adapters.OpenApi;
 #endif
 internal sealed class OpenApiManager : IOpenApiProvider
 {
-    private readonly IOptionsMonitor<OpenApiSetup> _optionsMonitor;
+    private readonly IOptionsMonitor<OpenApiSetup> _setupMonitor;
+    private readonly IOptionsMonitor<OpenApiTransportSetup> _transportSetupMonitor;
     private readonly IServiceProvider _applicationServices;
-    private readonly ConcurrentDictionary<string, OpenApiRegistration> _registrations = new();
+    private readonly ConcurrentDictionary<string, Lazy<OpenApiRegistration>> _registrations = new();
 
     public OpenApiManager(
-        IOptionsMonitor<OpenApiSetup> optionsMonitor,
+        IOptionsMonitor<OpenApiSetup> setupMonitor,
+        IOptionsMonitor<OpenApiTransportSetup> transportSetupMonitor,
         IServiceProvider applicationServices)
     {
-        ArgumentNullException.ThrowIfNull(optionsMonitor);
+        ArgumentNullException.ThrowIfNull(setupMonitor);
+        ArgumentNullException.ThrowIfNull(transportSetupMonitor);
         ArgumentNullException.ThrowIfNull(applicationServices);
-        _optionsMonitor = optionsMonitor;
+        _setupMonitor = setupMonitor;
+        _transportSetupMonitor = transportSetupMonitor;
         _applicationServices = applicationServices;
-        SchemaNames = applicationServices
-            .GetService<IRequestExecutorProvider>()?.SchemaNames ?? [];
     }
 
-    public ImmutableArray<string> SchemaNames { get; }
+    public ImmutableArray<string> SchemaNames =>
+        _applicationServices
+            .GetServices<IConfigureOptions<OpenApiSetup>>()
+            .OfType<ConfigureNamedOptions<OpenApiSetup>>()
+            .Select(c => c.Name)
+            .Where(n => !string.IsNullOrEmpty(n))
+            .Distinct()
+            .ToImmutableArray()!;
 
     public OpenApiSetup GetSetup(string? schemaName = null)
     {
         schemaName ??= ISchemaDefinition.DefaultName;
-        return _optionsMonitor.Get(schemaName);
+        return _setupMonitor.Get(schemaName);
     }
 
     public IOpenApiDefinitionStorage GetDefinitionStorage(string? schemaName = null)
@@ -61,32 +70,25 @@ internal sealed class OpenApiManager : IOpenApiProvider
         schemaName ??= ISchemaDefinition.DefaultName;
         return _registrations.GetOrAdd(
             schemaName,
-            static (name, manager) => manager.CreateRegistration(name),
-            this);
+            static (name, manager) => new Lazy<OpenApiRegistration>(
+                () => manager.CreateRegistration(name),
+                LazyThreadSafetyMode.ExecutionAndPublication),
+            this).Value;
     }
 
     private OpenApiRegistration CreateRegistration(string schemaName)
     {
-        var setup = _optionsMonitor.Get(schemaName);
+        var setup = _setupMonitor.Get(schemaName);
+        var transportSetup = _transportSetupMonitor.Get(schemaName);
 
         var storageFactory = setup.StorageFactory
             ?? throw new InvalidOperationException(
                 $"No OpenAPI definition storage is registered for schema '{schemaName}'. "
                 + "Call AddOpenApiDefinitionStorage(...) when configuring the GraphQL server.");
 
-        var endpointDataSourceFactory = setup.EndpointDataSourceFactory
-            ?? throw new InvalidOperationException(
-                "No OpenAPI endpoint data source factory is registered. "
-                + "Call AddOpenApiDefinitionStorage(...) when configuring the GraphQL server.");
-
-        var documentTransformerFactory = setup.DocumentTransformerFactory
-            ?? throw new InvalidOperationException(
-                "No OpenAPI document transformer factory is registered. "
-                + "Call AddOpenApiDefinitionStorage(...) when configuring the GraphQL server.");
-
         var storage = storageFactory(_applicationServices);
-        var endpointDataSource = endpointDataSourceFactory(_applicationServices, schemaName);
-        var documentTransformer = documentTransformerFactory(_applicationServices, schemaName);
+        var endpointDataSource = transportSetup.EndpointDataSourceFactory!();
+        var documentTransformer = transportSetup.DocumentTransformerFactory!();
         var registry = new OpenApiDefinitionRegistry(storage, documentTransformer, endpointDataSource);
         var executorProxy = HttpRequestExecutorProxy.Create(_applicationServices, schemaName);
 

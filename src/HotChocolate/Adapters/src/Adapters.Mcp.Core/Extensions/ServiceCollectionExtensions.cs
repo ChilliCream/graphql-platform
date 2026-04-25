@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 #if !NET9_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 #endif
+using HotChocolate.Adapters.Mcp.Configuration;
 using HotChocolate.Adapters.Mcp.Diagnostics;
 using HotChocolate.Adapters.Mcp.Handlers;
 using HotChocolate.Adapters.Mcp.Storage;
@@ -25,6 +26,30 @@ internal static class ServiceCollectionExtensions
         services.AddOptions();
         services.TryAddSingleton<McpManager>();
         services.TryAddSingleton<IMcpProvider>(static sp => sp.GetRequiredService<McpManager>());
+    }
+
+    public static void ConfigureMcpSetup(
+        this IServiceCollection services,
+        string schemaName,
+        Action<McpServerOptions>? configureServerOptions,
+        Action<IMcpServerBuilder>? configureServer)
+    {
+        // Always register a named configuration entry, even if both callbacks are null,
+        // so that McpManager.SchemaNames can discover the schema via IConfigureNamedOptions<McpSetup>.
+        services.Configure<McpSetup>(
+            schemaName,
+            setup =>
+            {
+                if (configureServerOptions is not null)
+                {
+                    setup.ServerOptionsModifiers.Add(configureServerOptions);
+                }
+
+                if (configureServer is not null)
+                {
+                    setup.ServerModifiers.Add(configureServer);
+                }
+            });
     }
 
     public static void AddMcpSchemaServices(

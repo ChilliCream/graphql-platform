@@ -12,7 +12,7 @@ internal sealed class McpManager : IMcpProvider
 {
     private readonly IOptionsMonitor<McpSetup> _optionsMonitor;
     private readonly IServiceProvider _applicationServices;
-    private readonly ConcurrentDictionary<string, McpRegistration> _registrations = new();
+    private readonly ConcurrentDictionary<string, Lazy<McpRegistration>> _registrations = new();
 
     public McpManager(
         IOptionsMonitor<McpSetup> optionsMonitor,
@@ -22,11 +22,16 @@ internal sealed class McpManager : IMcpProvider
         ArgumentNullException.ThrowIfNull(applicationServices);
         _optionsMonitor = optionsMonitor;
         _applicationServices = applicationServices;
-        SchemaNames = applicationServices
-            .GetService<IRequestExecutorProvider>()?.SchemaNames ?? [];
     }
 
-    public ImmutableArray<string> SchemaNames { get; }
+    public ImmutableArray<string> SchemaNames =>
+        _applicationServices
+            .GetServices<IConfigureOptions<McpSetup>>()
+            .OfType<ConfigureNamedOptions<McpSetup>>()
+            .Select(c => c.Name)
+            .Where(n => !string.IsNullOrEmpty(n))
+            .Distinct()
+            .ToImmutableArray()!;
 
     public McpSetup GetSetup(string? schemaName = null)
     {
@@ -45,8 +50,10 @@ internal sealed class McpManager : IMcpProvider
         schemaName ??= ISchemaDefinition.DefaultName;
         return _registrations.GetOrAdd(
             schemaName,
-            static (name, manager) => manager.CreateRegistration(name),
-            this);
+            static (name, manager) => new Lazy<McpRegistration>(
+                () => manager.CreateRegistration(name),
+                LazyThreadSafetyMode.ExecutionAndPublication),
+            this).Value;
     }
 
     private McpRegistration CreateRegistration(string schemaName)

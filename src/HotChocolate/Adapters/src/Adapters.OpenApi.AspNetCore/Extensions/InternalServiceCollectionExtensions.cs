@@ -7,10 +7,10 @@ internal static class InternalServiceCollectionExtensions
 {
     public static IServiceCollection AddOpenApiAspNetCoreServices(this IServiceCollection services)
     {
-        services.PostConfigureAll<OpenApiSetup>(static setup =>
+        services.PostConfigureAll<OpenApiTransportSetup>(static setup =>
         {
-            setup.EndpointDataSourceFactory ??= static (_, _) => new DynamicEndpointDataSource();
-            setup.DocumentTransformerFactory ??= static (_, _) => new DynamicOpenApiDocumentTransformer();
+            setup.EndpointDataSourceFactory ??= static () => new DynamicEndpointDataSource();
+            setup.DocumentTransformerFactory ??= static () => new DynamicOpenApiDocumentTransformer();
         });
 
         return services;
