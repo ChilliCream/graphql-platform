@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Mocha.Resources;
 
 namespace Mocha;
 
@@ -154,6 +155,53 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
             receiveEndpoints,
             dispatchEndpoints,
             topology);
+    }
+
+    /// <summary>
+    /// Contributes <see cref="MochaResource"/> instances representing this transport, its
+    /// receive/dispatch endpoints, and its topology entities to the supplied collection.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The default implementation projects the result of <see cref="Describe"/> into a
+    /// minimal set of generic resource subclasses (<c>mocha.transport</c>,
+    /// <c>mocha.receive_endpoint</c>, <c>mocha.dispatch_endpoint</c>, and
+    /// <c>mocha.&lt;entity-kind&gt;</c> for each topology entity). Transports that want to
+    /// expose richer topology semantics (durability flags, exchange types, bindings, …)
+    /// override this method and append their own <see cref="MochaResource"/> subclasses
+    /// directly without going through <see cref="Describe"/>.
+    /// </para>
+    /// <para>
+    /// Implementations must append to <paramref name="resources"/>; they must not clear
+    /// or otherwise mutate entries previously added by other contributors.
+    /// </para>
+    /// </remarks>
+    /// <param name="resources">The collection to append contributed resources to.</param>
+    public virtual void ContributeMochaResources(ICollection<MochaResource> resources)
+    {
+        ArgumentNullException.ThrowIfNull(resources);
+
+        var description = Describe();
+
+        resources.Add(new MochaTransportResource(description));
+
+        foreach (var receiveEndpoint in description.ReceiveEndpoints)
+        {
+            resources.Add(new MochaReceiveEndpointResource(Schema, description.Identifier, receiveEndpoint));
+        }
+
+        foreach (var dispatchEndpoint in description.DispatchEndpoints)
+        {
+            resources.Add(new MochaDispatchEndpointResource(Schema, description.Identifier, dispatchEndpoint));
+        }
+
+        if (description.Topology is { } topology)
+        {
+            foreach (var entity in topology.Entities)
+            {
+                resources.Add(new MochaTopologyEntityResource(Schema, description.Identifier, entity));
+            }
+        }
     }
 
     /// <summary>

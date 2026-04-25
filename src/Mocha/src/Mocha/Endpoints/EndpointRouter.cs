@@ -21,6 +21,9 @@ public sealed class EndpointRouter : IEndpointRouter
     private readonly Dictionary<Uri, ImmutableHashSet<DispatchEndpoint>> _byAddress = [];
 
     /// <inheritdoc />
+    public event EventHandler<DispatchEndpointAddedEventArgs>? DispatchEndpointAdded;
+
+    /// <inheritdoc />
     public IReadOnlyList<DispatchEndpoint> Endpoints
     {
         get
@@ -73,6 +76,9 @@ public sealed class EndpointRouter : IEndpointRouter
             return existing;
         }
 
+        DispatchEndpoint resolved;
+        bool wasAdded;
+
         // Need write lock for resolution/creation
         lock (_lock)
         {
@@ -82,35 +88,54 @@ public sealed class EndpointRouter : IEndpointRouter
                 return endpoints.First();
             }
 
+            resolved = null!;
+            wasAdded = false;
+
             // Ask each transport if they already have this endpoint
             foreach (var transport in context.Transports)
             {
                 if (transport.TryGetDispatchEndpoint(address, out var endpoint))
                 {
-                    AddOrUpdateInternal(endpoint, address);
-                    return endpoint;
+                    wasAdded = AddOrUpdateInternal(endpoint, address);
+                    resolved = endpoint;
+                    break;
                 }
             }
 
             // Try to create on each transport
-            foreach (var transport in context.Transports)
+            if (resolved is null)
             {
-                var configuration = transport.CreateEndpointConfiguration(context, address);
-                if (configuration is not null)
+                foreach (var transport in context.Transports)
                 {
-                    var endpoint = transport.AddEndpoint(context, configuration);
+                    var configuration = transport.CreateEndpointConfiguration(context, address);
+                    if (configuration is not null)
+                    {
+                        var endpoint = transport.AddEndpoint(context, configuration);
 
-                    endpoint.DiscoverTopology(context);
+                        endpoint.DiscoverTopology(context);
 
-                    endpoint.Complete(context);
+                        endpoint.Complete(context);
 
-                    AddOrUpdateInternal(endpoint, address);
-                    return endpoint;
+                        wasAdded = AddOrUpdateInternal(endpoint, address);
+                        resolved = endpoint;
+                        break;
+                    }
                 }
             }
 
-            throw ThrowHelper.NoTransportForAddress(address.ToString());
+            if (resolved is null)
+            {
+                throw ThrowHelper.NoTransportForAddress(address.ToString());
+            }
         }
+
+        // Raise the event outside the lock to avoid re-entrancy deadlocks if a handler calls back into the router.
+        if (wasAdded)
+        {
+            DispatchEndpointAdded?.Invoke(this, new DispatchEndpointAddedEventArgs(resolved));
+        }
+
+        return resolved;
     }
 
     /// <inheritdoc />
@@ -118,9 +143,15 @@ public sealed class EndpointRouter : IEndpointRouter
     {
         ArgumentNullException.ThrowIfNull(endpoint);
 
+        bool wasAdded;
         lock (_lock)
         {
-            AddOrUpdateInternal(endpoint, null);
+            wasAdded = AddOrUpdateInternal(endpoint, null);
+        }
+
+        if (wasAdded)
+        {
+            DispatchEndpointAdded?.Invoke(this, new DispatchEndpointAddedEventArgs(endpoint));
         }
     }
 
@@ -169,7 +200,7 @@ public sealed class EndpointRouter : IEndpointRouter
         }
     }
 
-    private void AddOrUpdateInternal(DispatchEndpoint endpoint, Uri? resolvedAddress)
+    private bool AddOrUpdateInternal(DispatchEndpoint endpoint, Uri? resolvedAddress)
     {
         var endpointAddress = endpoint.Address;
         var resourceAddress = endpoint.Destination?.Address;
@@ -217,33 +248,33 @@ public sealed class EndpointRouter : IEndpointRouter
             }
 
             _endpoints[endpoint] = newAddresses;
+            return false;
         }
-        else
+
+        // New endpoint
+        var addresses = ImmutableHashSet<Uri>.Empty;
+
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+        if (endpointAddress is not null)
         {
-            // New endpoint
-            var addresses = ImmutableHashSet<Uri>.Empty;
-
-            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-            if (endpointAddress is not null)
-            {
-                addresses = addresses.Add(endpointAddress);
-                AddToIndex(_byAddress, endpointAddress, endpoint);
-            }
-
-            if (resourceAddress is not null)
-            {
-                addresses = addresses.Add(resourceAddress);
-                AddToIndex(_byAddress, resourceAddress, endpoint);
-            }
-
-            if (resolvedAddress is not null && !addresses.Contains(resolvedAddress))
-            {
-                addresses = addresses.Add(resolvedAddress);
-                AddToIndex(_byAddress, resolvedAddress, endpoint);
-            }
-
-            _endpoints[endpoint] = addresses;
+            addresses = addresses.Add(endpointAddress);
+            AddToIndex(_byAddress, endpointAddress, endpoint);
         }
+
+        if (resourceAddress is not null)
+        {
+            addresses = addresses.Add(resourceAddress);
+            AddToIndex(_byAddress, resourceAddress, endpoint);
+        }
+
+        if (resolvedAddress is not null && !addresses.Contains(resolvedAddress))
+        {
+            addresses = addresses.Add(resolvedAddress);
+            AddToIndex(_byAddress, resolvedAddress, endpoint);
+        }
+
+        _endpoints[endpoint] = addresses;
+        return true;
     }
 
     private static void AddToIndex(

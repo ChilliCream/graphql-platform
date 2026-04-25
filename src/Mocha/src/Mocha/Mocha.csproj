@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Mocha.Abstractions\Mocha.Abstractions.csproj" />
+    <ProjectReference Include="..\Mocha.Resources.Abstractions\Mocha.Resources.Abstractions.csproj" />
     <ProjectReference Include="..\Mocha.Threading\Mocha.Threading.csproj" />
     <ProjectReference Include="..\Mocha.Utilities\Mocha.Utilities.csproj" />
   </ItemGroup>
