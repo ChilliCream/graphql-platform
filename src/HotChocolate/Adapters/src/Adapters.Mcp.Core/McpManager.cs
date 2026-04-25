@@ -14,9 +14,7 @@ internal sealed class McpManager : IMcpProvider
     private readonly IServiceProvider _applicationServices;
     private readonly ConcurrentDictionary<string, Lazy<McpRegistration>> _registrations = new();
 
-    public McpManager(
-        IOptionsMonitor<McpSetup> optionsMonitor,
-        IServiceProvider applicationServices)
+    public McpManager(IOptionsMonitor<McpSetup> optionsMonitor, IServiceProvider applicationServices)
     {
         ArgumentNullException.ThrowIfNull(optionsMonitor);
         ArgumentNullException.ThrowIfNull(applicationServices);
@@ -24,8 +22,8 @@ internal sealed class McpManager : IMcpProvider
         _applicationServices = applicationServices;
     }
 
-    public ImmutableArray<string> Names =>
-        _applicationServices
+    public ImmutableArray<string> Names
+        => _applicationServices
             .GetServices<IConfigureOptions<McpSetup>>()
             .OfType<ConfigureNamedOptions<McpSetup>>()
             .Select(c => c.Name)
@@ -42,12 +40,15 @@ internal sealed class McpManager : IMcpProvider
     public McpRegistration Get(string? name = null)
     {
         name ??= ISchemaDefinition.DefaultName;
-        return _registrations.GetOrAdd(
-            name,
-            static (key, manager) => new Lazy<McpRegistration>(
-                () => manager.CreateRegistration(key),
-                LazyThreadSafetyMode.ExecutionAndPublication),
-            this).Value;
+        return _registrations
+            .GetOrAdd(
+                name,
+                static (key, manager) =>
+                    new Lazy<McpRegistration>(
+                        () => manager.CreateRegistration(key),
+                        LazyThreadSafetyMode.ExecutionAndPublication),
+                this)
+            .Value;
     }
 
     private McpRegistration CreateRegistration(string name)

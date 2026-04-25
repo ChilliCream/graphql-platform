@@ -1,19 +1,22 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
-#if !NET9_0_OR_GREATER
-using System.Diagnostics.CodeAnalysis;
-#endif
 using HotChocolate.Adapters.OpenApi.Configuration;
 using HotChocolate.AspNetCore;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+#if !NET9_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
+
 
 namespace HotChocolate.Adapters.OpenApi;
 
 #if !NET9_0_OR_GREATER
-[RequiresDynamicCode("JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
-[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
+[RequiresDynamicCode(
+    "JSON serialization and deserialization might require types that cannot be statically analyzed and might need runtime code generation. Use System.Text.Json source generation for native AOT applications.")]
+[RequiresUnreferencedCode(
+    "JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
 #endif
 internal sealed class OpenApiManager : IOpenApiProvider
 {
@@ -35,8 +38,8 @@ internal sealed class OpenApiManager : IOpenApiProvider
         _applicationServices = applicationServices;
     }
 
-    public ImmutableArray<string> Names =>
-        _applicationServices
+    public ImmutableArray<string> Names
+        => _applicationServices
             .GetServices<IConfigureOptions<OpenApiSetup>>()
             .OfType<ConfigureNamedOptions<OpenApiSetup>>()
             .Select(c => c.Name)
@@ -53,12 +56,15 @@ internal sealed class OpenApiManager : IOpenApiProvider
     public OpenApiRegistration Get(string? name = null)
     {
         name ??= ISchemaDefinition.DefaultName;
-        return _registrations.GetOrAdd(
-            name,
-            static (key, manager) => new Lazy<OpenApiRegistration>(
-                () => manager.CreateRegistration(key),
-                LazyThreadSafetyMode.ExecutionAndPublication),
-            this).Value;
+        return _registrations
+            .GetOrAdd(
+                name,
+                static (key, manager) =>
+                    new Lazy<OpenApiRegistration>(
+                        () => manager.CreateRegistration(key),
+                        LazyThreadSafetyMode.ExecutionAndPublication),
+                this)
+            .Value;
     }
 
     private OpenApiRegistration CreateRegistration(string name)
@@ -66,10 +72,11 @@ internal sealed class OpenApiManager : IOpenApiProvider
         var setup = _setupMonitor.Get(name);
         var transportSetup = _transportSetupMonitor.Get(name);
 
-        var storageFactory = setup.StorageFactory
+        var storageFactory =
+            setup.StorageFactory
             ?? throw new InvalidOperationException(
                 $"No OpenAPI definition storage is registered for schema '{name}'. "
-                + "Call AddOpenApiDefinitionStorage(...) when configuring the GraphQL server.");
+                    + "Call AddOpenApiDefinitionStorage(...) when configuring the GraphQL server.");
 
         var storage = storageFactory(_applicationServices);
         var endpointDataSource = transportSetup.EndpointDataSourceFactory!();
@@ -77,10 +84,6 @@ internal sealed class OpenApiManager : IOpenApiProvider
         var registry = new OpenApiDefinitionRegistry(storage, documentTransformer, endpointDataSource);
         var executorProxy = HttpRequestExecutorProxy.Create(_applicationServices, name);
 
-        return new OpenApiRegistration(
-            registry,
-            executorProxy,
-            endpointDataSource,
-            documentTransformer);
+        return new OpenApiRegistration(registry, executorProxy, endpointDataSource, documentTransformer);
     }
 }
