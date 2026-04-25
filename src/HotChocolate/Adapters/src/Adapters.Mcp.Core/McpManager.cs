@@ -24,7 +24,7 @@ internal sealed class McpManager : IMcpProvider
         _applicationServices = applicationServices;
     }
 
-    public ImmutableArray<string> SchemaNames =>
+    public ImmutableArray<string> Names =>
         _applicationServices
             .GetServices<IConfigureOptions<McpSetup>>()
             .OfType<ConfigureNamedOptions<McpSetup>>()

@@ -49,7 +49,7 @@ public sealed class McpSetupCompositionTests
     }
 
     [Fact]
-    public void SchemaNames_Should_ReturnConfiguredNames_When_MultipleSchemasRegistered()
+    public void Names_Should_ReturnRegisteredNames_When_MultipleSchemasRegistered()
     {
         // arrange
         var services = new ServiceCollection();
@@ -60,6 +60,6 @@ public sealed class McpSetupCompositionTests
         var manager = services.BuildServiceProvider().GetRequiredService<McpManager>();
 
         // assert
-        Assert.Equal(["alpha", "beta"], manager.SchemaNames.Order());
+        Assert.Equal(["alpha", "beta"], manager.Names.Order());
     }
 }

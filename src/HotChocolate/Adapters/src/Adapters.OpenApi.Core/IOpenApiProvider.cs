@@ -5,7 +5,7 @@ namespace HotChocolate.Adapters.OpenApi;
 
 internal interface IOpenApiProvider
 {
-    ImmutableArray<string> SchemaNames { get; }
+    ImmutableArray<string> Names { get; }
 
     OpenApiSetup GetSetup(string? schemaName = null);
 }

@@ -35,7 +35,7 @@ internal static class ServiceCollectionExtensions
         Action<IMcpServerBuilder>? configureServer)
     {
         // Always register a named configuration entry, even if both callbacks are null,
-        // so that McpManager.SchemaNames can discover the schema via IConfigureNamedOptions<McpSetup>.
+        // so that McpManager.Names can discover the schema via IConfigureNamedOptions<McpSetup>.
         services.Configure<McpSetup>(
             schemaName,
             setup =>

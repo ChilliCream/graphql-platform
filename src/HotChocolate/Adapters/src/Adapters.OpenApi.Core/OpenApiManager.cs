@@ -35,7 +35,7 @@ internal sealed class OpenApiManager : IOpenApiProvider
         _applicationServices = applicationServices;
     }
 
-    public ImmutableArray<string> SchemaNames =>
+    public ImmutableArray<string> Names =>
         _applicationServices
             .GetServices<IConfigureOptions<OpenApiSetup>>()
             .OfType<ConfigureNamedOptions<OpenApiSetup>>()

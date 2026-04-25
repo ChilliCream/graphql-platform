@@ -5,7 +5,7 @@ namespace HotChocolate.Adapters.Mcp;
 
 internal interface IMcpProvider
 {
-    ImmutableArray<string> SchemaNames { get; }
+    ImmutableArray<string> Names { get; }
 
     McpSetup GetSetup(string? schemaName = null);
 }
