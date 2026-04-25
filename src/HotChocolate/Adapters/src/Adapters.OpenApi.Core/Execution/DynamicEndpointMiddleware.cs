@@ -5,7 +5,6 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.AspNetCore;
 using HotChocolate.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Language;
@@ -58,7 +57,8 @@ internal sealed class DynamicEndpointMiddleware(
                 }
             }
 
-            var proxy = context.RequestServices.GetRequiredKeyedService<HttpRequestExecutorProxy>(schemaName);
+            var proxy = context.RequestServices.GetRequiredService<OpenApiResolver>()
+                .GetRequestExecutorProxy(schemaName);
             var session = await proxy.GetOrCreateSessionAsync(context.RequestAborted);
 
             using var variableBuffer = new PooledArrayWriter();

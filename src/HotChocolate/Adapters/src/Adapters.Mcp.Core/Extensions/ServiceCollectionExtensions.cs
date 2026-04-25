@@ -2,15 +2,15 @@ using System.Collections.Concurrent;
 #if !NET9_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 #endif
+using HotChocolate.Adapters.Mcp.Configuration;
 using HotChocolate.Adapters.Mcp.Diagnostics;
 using HotChocolate.Adapters.Mcp.Handlers;
-using HotChocolate.Adapters.Mcp.Proxies;
 using HotChocolate.Adapters.Mcp.Storage;
-using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using ModelContextProtocol.Server;
 
 namespace HotChocolate.Adapters.Mcp.Extensions;
@@ -21,27 +21,22 @@ namespace HotChocolate.Adapters.Mcp.Extensions;
 #endif
 internal static class ServiceCollectionExtensions
 {
-    public static void AddMcpServices(this IServiceCollection services, string schemaName)
+    public static void AddMcpServices(this IServiceCollection services)
     {
-        services
-            .AddHttpContextAccessor()
-            .AddKeyedSingleton(
-                schemaName,
-                static (sp, name) => new McpRequestExecutorProxy(
-                    sp.GetRequiredService<IRequestExecutorProvider>(),
-                    sp.GetRequiredService<IRequestExecutorEvents>(),
-                    (string)name!))
-            .AddKeyedSingleton(
-                schemaName,
-                static (sp, name) => new StreamableHttpHandlerProxy(
-                    sp.GetRequiredKeyedService<McpRequestExecutorProxy>(name)));
+        services.AddHttpContextAccessor();
+        services.AddOptions();
+        services.TryAddSingleton<McpResolver>();
     }
 
     public static void AddMcpSchemaServices(
         this IServiceCollection services,
-        Action<McpServerOptions>? configureServerOptions = null,
-        Action<IMcpServerBuilder>? configureServer = null)
+        IServiceProvider applicationServices,
+        string schemaName)
     {
+        var setup = applicationServices
+            .GetRequiredService<IOptionsMonitor<McpSetup>>()
+            .Get(schemaName);
+
         services
             .AddLogging()
             .TryAddSingleton(
@@ -86,7 +81,11 @@ internal static class ServiceCollectionExtensions
             services
                 .AddMcpServer(options =>
                 {
-                    configureServerOptions?.Invoke(options);
+                    foreach (var modifier in setup.ServerOptionsModifiers)
+                    {
+                        modifier(options);
+                    }
+
                     options.Capabilities?.Prompts?.ListChanged = true;
                     options.Capabilities?.Tools?.ListChanged = true;
                 })
@@ -125,6 +124,9 @@ internal static class ServiceCollectionExtensions
                     (context, _) => ValueTask.FromResult(ListToolsHandler.Handle(context)))
                 .WithCallToolHandler(CallToolHandler.HandleAsync);
 
-        configureServer?.Invoke(mcpServerBuilder);
+        foreach (var modifier in setup.ServerModifiers)
+        {
+            modifier(mcpServerBuilder);
+        }
     }
 }

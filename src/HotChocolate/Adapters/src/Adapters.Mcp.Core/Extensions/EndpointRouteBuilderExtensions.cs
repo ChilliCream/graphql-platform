@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using HotChocolate.Adapters.Mcp.Proxies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Metadata;
@@ -18,11 +17,12 @@ public static class EndpointRouteBuilderExtensions
     {
         schemaName ??= ISchemaDefinition.DefaultName;
 
-        var streamableHttpHandler =
-            endpoints.ServiceProvider.GetKeyedService<StreamableHttpHandlerProxy>(schemaName)
+        var resolver = endpoints.ServiceProvider.GetService<McpResolver>()
             ?? throw new InvalidOperationException(
                 "You must call AddMcp(). Unable to find required services. Call "
                 + "builder.Services.AddGraphQL().AddMcp() in application startup code.");
+
+        var streamableHttpHandler = resolver.GetStreamableHttpHandlerProxy(schemaName);
 
         var mcpGroup = endpoints.MapGroup(pattern);
 
