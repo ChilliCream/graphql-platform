@@ -204,7 +204,7 @@ public sealed class PostgresMessagingTransport : MessagingTransport
     }
 
     /// <inheritdoc />
-    public override TransportDescription Describe()
+    internal override TransportDescription Describe()
     {
         var receiveEndpoints = ReceiveEndpoints.Select(e => e.Describe()).ToList();
         var dispatchEndpoints = DispatchEndpoints.Select(e => e.Describe()).ToList();

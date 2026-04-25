@@ -8,7 +8,7 @@ namespace Mocha;
 /// <param name="IdentityTypeFullName">The fully qualified type name of the handler, or <c>null</c> if unavailable.</param>
 /// <param name="SagaName">The name of the associated saga, or <c>null</c> if this consumer is not part of a saga.</param>
 /// <param name="IsBatch">Whether this consumer processes messages in batches.</param>
-public sealed record ConsumerDescription(
+internal sealed record ConsumerDescription(
     string Name,
     string IdentityType,
     string? IdentityTypeFullName,

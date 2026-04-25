@@ -9,7 +9,7 @@ namespace Mocha;
 /// <param name="Target">The target entity name, or <c>null</c> if not applicable.</param>
 /// <param name="Direction">The direction of the link, or <c>null</c> if not applicable.</param>
 /// <param name="Properties">Additional transport-specific properties, or <c>null</c> if none.</param>
-public sealed record TopologyLinkDescription(
+internal sealed record TopologyLinkDescription(
     string Kind,
     string? Address,
     string? Source,

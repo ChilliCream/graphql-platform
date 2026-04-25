@@ -6,7 +6,7 @@ namespace Mocha;
 /// Base class for implementing the visitor pattern over a <see cref="MessagingRuntime"/> graph, traversing message types, consumers, routes, transports, endpoints, and sagas.
 /// </summary>
 /// <typeparam name="TContext">The type of context carried through the visitor traversal.</typeparam>
-public abstract class MessagingVisitor<TContext>
+internal abstract class MessagingVisitor<TContext>
 {
     /// <summary>
     /// Begins visiting the specified messaging runtime with the given context.

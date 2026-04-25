@@ -5,6 +5,6 @@ namespace Mocha;
 /// </summary>
 /// <param name="Publish">Events published on state entry, or <c>null</c> if none.</param>
 /// <param name="Send">Commands sent on state entry, or <c>null</c> if none.</param>
-public sealed record SagaLifeCycleDescription(
+internal sealed record SagaLifeCycleDescription(
     IReadOnlyList<SagaEventDescription>? Publish,
     IReadOnlyList<SagaEventDescription>? Send);

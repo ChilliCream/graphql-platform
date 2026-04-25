@@ -5,16 +5,7 @@ namespace Mocha;
 /// <summary>
 /// A visitor that traverses a <see cref="MessagingRuntime"/> and builds a <see cref="MessageBusDescription"/> for diagnostic output.
 /// </summary>
-/// <remarks>
-/// <para>
-/// This visitor and the <c>*Description</c> record tree it produces are kept public for the
-/// duration of release N so the deprecated <c>MapMessageBusDeveloperTopology</c> bridge can keep
-/// emitting the legacy JSON shape from the same intermediate. They are scheduled for
-/// internalization in the next major — new code should consume <c>MochaResource</c> via
-/// <c>MochaResourceSource</c> instead.
-/// </para>
-/// </remarks>
-public sealed class MessageBusDescriptionVisitor : MessagingVisitor<MessageBusDescriptionVisitor.Context>
+internal sealed class MessageBusDescriptionVisitor : MessagingVisitor<MessageBusDescriptionVisitor.Context>
 {
     /// <summary>
     /// Visits the specified runtime and returns a complete diagnostic description.
@@ -31,7 +22,7 @@ public sealed class MessageBusDescriptionVisitor : MessagingVisitor<MessageBusDe
     /// <summary>
     /// Accumulates visitor results during traversal of the messaging runtime.
     /// </summary>
-    public sealed class Context
+    internal sealed class Context
     {
         internal HostDescription? Host { get; set; }
         internal List<MessageTypeDescription> MessageTypes { get; } = [];
@@ -101,5 +92,5 @@ public sealed class MessageBusDescriptionVisitor : MessagingVisitor<MessageBusDe
     /// <summary>
     /// Gets the singleton instance of the description visitor.
     /// </summary>
-    public static MessageBusDescriptionVisitor Instance { get; } = new MessageBusDescriptionVisitor();
+    internal static MessageBusDescriptionVisitor Instance { get; } = new MessageBusDescriptionVisitor();
 }

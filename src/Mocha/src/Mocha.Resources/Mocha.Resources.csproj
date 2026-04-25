@@ -14,7 +14,6 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Mocha" />
-    <InternalsVisibleTo Include="Mocha.Hosting" />
     <InternalsVisibleTo Include="Mocha.Resources.Tests" />
   </ItemGroup>
 </Project>

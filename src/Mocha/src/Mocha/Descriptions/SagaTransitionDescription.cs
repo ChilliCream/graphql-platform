@@ -12,7 +12,7 @@ namespace Mocha;
 /// <param name="AutoProvision">Whether the saga instance is auto-provisioned when this event arrives.</param>
 /// <param name="Publish">Events published during this transition, or <c>null</c> if none.</param>
 /// <param name="Send">Commands sent during this transition, or <c>null</c> if none.</param>
-public sealed record SagaTransitionDescription(
+internal sealed record SagaTransitionDescription(
     string EventType,
     string? EventTypeFullName,
     string TransitionTo,

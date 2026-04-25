@@ -336,14 +336,7 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
         IsInitialized = true;
     }
 
-    /// <summary>
-    /// Creates a read-only description of this endpoint for diagnostic or introspection purposes.
-    /// </summary>
-    /// <returns>
-    /// A <see cref="ReceiveEndpointDescription"/> containing the endpoint name, kind, address,
-    /// and source address.
-    /// </returns>
-    public ReceiveEndpointDescription Describe()
+    internal ReceiveEndpointDescription Describe()
     {
         return new ReceiveEndpointDescription(Name, Kind, Address?.ToString(), Source?.Address?.ToString());
     }

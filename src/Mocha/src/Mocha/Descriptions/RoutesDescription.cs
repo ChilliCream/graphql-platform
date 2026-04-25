@@ -5,6 +5,6 @@ namespace Mocha;
 /// </summary>
 /// <param name="Inbound">The inbound route descriptions.</param>
 /// <param name="Outbound">The outbound route descriptions.</param>
-public sealed record RoutesDescription(
+internal sealed record RoutesDescription(
     IReadOnlyList<InboundRouteDescription> Inbound,
     IReadOnlyList<OutboundRouteDescription> Outbound);

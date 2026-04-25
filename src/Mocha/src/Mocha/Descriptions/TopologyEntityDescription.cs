@@ -8,7 +8,7 @@ namespace Mocha;
 /// <param name="Address">The address of the entity, or <c>null</c> if not applicable.</param>
 /// <param name="Flow">The flow direction of the entity, or <c>null</c> if not applicable.</param>
 /// <param name="Properties">Additional transport-specific properties, or <c>null</c> if none.</param>
-public sealed record TopologyEntityDescription(
+internal sealed record TopologyEntityDescription(
     string Kind,
     string? Name,
     string? Address,

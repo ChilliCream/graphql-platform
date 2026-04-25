@@ -198,11 +198,7 @@ public abstract class Consumer
         _isInitialized = true;
     }
 
-    /// <summary>
-    /// Returns a description of this consumer for diagnostic and visualization purposes.
-    /// </summary>
-    /// <returns>A <see cref="ConsumerDescription"/> containing the consumer's name, type, and optional saga association.</returns>
-    public virtual ConsumerDescription Describe()
+    internal virtual ConsumerDescription Describe()
     {
         return new ConsumerDescription(Name, DescriptionHelpers.GetTypeName(Identity), Identity.FullName, null, false);
     }
