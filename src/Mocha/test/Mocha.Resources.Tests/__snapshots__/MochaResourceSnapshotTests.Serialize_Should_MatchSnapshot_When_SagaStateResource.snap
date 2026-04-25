@@ -1,0 +1,10 @@
+{
+  "kind": "mocha.saga.state",
+  "id": "urn:mocha:core:saga_state:00000000-0000-0000-0000-000000000001:OrderSaga:AwaitingPayment",
+  "attributes": {
+    "saga_id": "urn:mocha:core:saga:00000000-0000-0000-0000-000000000001:OrderSaga",
+    "name": "AwaitingPayment",
+    "is_initial": false,
+    "is_final": false
+  }
+}

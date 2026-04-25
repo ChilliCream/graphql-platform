@@ -1,0 +1,14 @@
+{
+  "kind": "mocha.queue",
+  "id": "urn:mocha:rabbitmq:queue:rabbitmq%3A//localhost%3A5672/:amq.gen-replies-aaa",
+  "attributes": {
+    "system": "rabbitmq",
+    "transport_id": "rabbitmq://localhost:5672/",
+    "name": "amq.gen-replies-aaa",
+    "address": "rabbitmq://localhost:5672/q/amq.gen-replies-aaa",
+    "durable": false,
+    "exclusive": true,
+    "auto_delete": true,
+    "temporary": true
+  }
+}

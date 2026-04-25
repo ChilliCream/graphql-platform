@@ -1,0 +1,10 @@
+{
+  "kind": "mocha.handler",
+  "id": "urn:mocha:core:handler:00000000-0000-0000-0000-000000000001:OrderPlacedHandler",
+  "attributes": {
+    "name": "OrderPlacedHandler",
+    "identity_type": "OrderPlacedHandler",
+    "identity_type_full_name": "Acme.OrderService.Handlers.OrderPlacedHandler",
+    "is_batch": false
+  }
+}

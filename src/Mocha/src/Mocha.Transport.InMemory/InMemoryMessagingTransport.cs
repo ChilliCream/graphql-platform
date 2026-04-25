@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Mocha.Resources;
 using static System.StringSplitOptions;
 
 namespace Mocha.Transport.InMemory;
@@ -121,6 +122,108 @@ public sealed class InMemoryMessagingTransport : MessagingTransport
             receiveEndpoints,
             dispatchEndpoints,
             topology);
+    }
+
+    /// <inheritdoc />
+    public override void ContributeMochaResources(ICollection<MochaResource> resources)
+    {
+        ArgumentNullException.ThrowIfNull(resources);
+
+        var transportId = _topology.Address.ToString();
+
+        resources.Add(
+            new MochaTransportResource(
+                new TransportDescription(
+                    transportId,
+                    Name,
+                    Schema,
+                    GetType().Name,
+                    [],
+                    [],
+                    null)));
+
+        foreach (var receiveEndpoint in ReceiveEndpoints)
+        {
+            resources.Add(new MochaReceiveEndpointResource(Schema, transportId, receiveEndpoint.Describe()));
+        }
+
+        foreach (var dispatchEndpoint in DispatchEndpoints)
+        {
+            resources.Add(new MochaDispatchEndpointResource(Schema, transportId, dispatchEndpoint.Describe()));
+        }
+
+        foreach (var topic in _topology.Topics)
+        {
+            resources.Add(
+                new MochaTopicResource(
+                    Schema,
+                    transportId,
+                    topic.Name,
+                    topic.Address?.ToString()));
+        }
+
+        var queueIdsByName = new Dictionary<string, string>(StringComparer.Ordinal);
+        var topicIdsByName = new Dictionary<string, string>(StringComparer.Ordinal);
+
+        foreach (var topic in _topology.Topics)
+        {
+            topicIdsByName[topic.Name] = MochaUrn.Create(Schema, "topic", transportId, topic.Name);
+        }
+
+        var replyQueueAddress = ReplyReceiveEndpoint is { Kind: ReceiveEndpointKind.Reply, Source.Address: { } source }
+            ? source
+            : null;
+
+        foreach (var queue in _topology.Queues)
+        {
+            var isReplyQueue = replyQueueAddress is not null && replyQueueAddress == queue.Address;
+
+            var queueResource = new MochaQueueResource(
+                Schema,
+                transportId,
+                queue.Name,
+                queue.Address?.ToString(),
+                temporary: isReplyQueue);
+            resources.Add(queueResource);
+            queueIdsByName[queue.Name] = queueResource.Id;
+        }
+
+        foreach (var binding in _topology.Bindings)
+        {
+            string? destinationName = binding switch
+            {
+                InMemoryQueueBinding qb => qb.Destination.Name,
+                InMemoryTopicBinding tb => tb.Destination.Name,
+                _ => null
+            };
+
+            if (destinationName is null)
+            {
+                continue;
+            }
+
+            string? destinationId = binding switch
+            {
+                InMemoryQueueBinding qb when queueIdsByName.TryGetValue(qb.Destination.Name, out var id) => id,
+                InMemoryTopicBinding tb when topicIdsByName.TryGetValue(tb.Destination.Name, out var id) => id,
+                _ => null
+            };
+
+            if (destinationId is null || !topicIdsByName.TryGetValue(binding.Source.Name, out var sourceId))
+            {
+                continue;
+            }
+
+            resources.Add(
+                new MochaBindingResource(
+                    Schema,
+                    transportId,
+                    binding.Source.Name,
+                    destinationName,
+                    sourceId,
+                    destinationId,
+                    address: binding.Address?.ToString()));
+        }
     }
 
     /// <inheritdoc />

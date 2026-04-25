@@ -33,6 +33,7 @@
     <Project Path="test/Mocha.EntityFrameworkCore.Tests/Mocha.EntityFrameworkCore.Tests.csproj" />
     <Project Path="test/Mocha.Hosting.Tests/Mocha.Hosting.Tests.csproj" />
     <Project Path="test/Mocha.Mediator.Tests/Mocha.Mediator.Tests.csproj" />
+    <Project Path="test/Mocha.Resources.Tests/Mocha.Resources.Tests.csproj" />
     <Project Path="test/Mocha.Sagas.TestHelpers/Mocha.Sagas.TestHelpers.csproj" />
     <Project Path="test/Mocha.Sagas.Tests/Mocha.Sagas.Tests.csproj" />
     <Project Path="test/Mocha.TestHelpers/Mocha.TestHelpers.csproj" />

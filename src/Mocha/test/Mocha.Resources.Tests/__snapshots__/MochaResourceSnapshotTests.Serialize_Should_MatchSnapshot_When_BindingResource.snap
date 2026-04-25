@@ -1,0 +1,13 @@
+{
+  "kind": "mocha.binding",
+  "id": "urn:mocha:rabbitmq:binding:rabbitmq%3A//localhost%3A5672/:events:orders",
+  "attributes": {
+    "system": "rabbitmq",
+    "transport_id": "rabbitmq://localhost:5672/",
+    "source_id": "urn:mocha:rabbitmq:exchange:rabbitmq%3A//localhost%3A5672/:events",
+    "destination_id": "urn:mocha:rabbitmq:queue:rabbitmq%3A//localhost%3A5672/:orders",
+    "routing_key": "order.*",
+    "address": "rabbitmq://localhost:5672/b/e/events/q/orders",
+    "auto_provision": true
+  }
+}

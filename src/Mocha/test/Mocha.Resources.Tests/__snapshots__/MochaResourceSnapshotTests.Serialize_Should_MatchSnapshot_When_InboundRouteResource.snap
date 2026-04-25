@@ -1,0 +1,12 @@
+{
+  "kind": "mocha.inbound_route",
+  "id": "urn:mocha:core:inbound_route:00000000-0000-0000-0000-000000000001:OrderPlacedHandler",
+  "attributes": {
+    "kind": "Subscribe",
+    "message_type_identity": "urn:message:Acme.Contracts:OrderPlaced",
+    "consumer_name": "OrderPlacedHandler",
+    "endpoint_name": "orders",
+    "endpoint_transport_name": "RabbitMQ",
+    "endpoint_address": "rabbitmq://localhost:5672/q/orders"
+  }
+}

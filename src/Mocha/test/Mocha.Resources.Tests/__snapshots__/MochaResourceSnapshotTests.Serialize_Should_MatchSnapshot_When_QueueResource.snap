@@ -1,0 +1,14 @@
+{
+  "kind": "mocha.queue",
+  "id": "urn:mocha:rabbitmq:queue:rabbitmq%3A//localhost%3A5672/:orders",
+  "attributes": {
+    "system": "rabbitmq",
+    "transport_id": "rabbitmq://localhost:5672/",
+    "name": "orders",
+    "address": "rabbitmq://localhost:5672/q/orders",
+    "durable": true,
+    "exclusive": false,
+    "auto_delete": false,
+    "auto_provision": true
+  }
+}

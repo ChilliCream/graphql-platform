@@ -1,0 +1,10 @@
+{
+  "kind": "mocha.queue",
+  "id": "urn:mocha:memory:queue:memory%3A//test/:orders",
+  "attributes": {
+    "transport_id": "memory://test/",
+    "name": "orders",
+    "address": "memory://test/q/orders",
+    "flow": "outbound"
+  }
+}

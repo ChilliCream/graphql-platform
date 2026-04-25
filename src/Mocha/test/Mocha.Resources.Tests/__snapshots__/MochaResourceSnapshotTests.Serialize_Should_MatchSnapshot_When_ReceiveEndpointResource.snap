@@ -1,0 +1,11 @@
+{
+  "kind": "mocha.receive_endpoint",
+  "id": "urn:mocha:rabbitmq:receive_endpoint:rabbitmq%3A//localhost%3A5672/:orders",
+  "attributes": {
+    "transport_id": "rabbitmq://localhost:5672/",
+    "name": "orders",
+    "kind": "Default",
+    "address": "rabbitmq://localhost:5672/q/orders",
+    "source_address": "rabbitmq://localhost:5672/e/orders"
+  }
+}
