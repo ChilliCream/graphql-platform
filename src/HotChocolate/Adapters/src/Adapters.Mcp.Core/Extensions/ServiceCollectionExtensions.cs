@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 #if !NET9_0_OR_GREATER
 using System.Diagnostics.CodeAnalysis;
 #endif
-using HotChocolate.Adapters.Mcp.Configuration;
 using HotChocolate.Adapters.Mcp.Diagnostics;
 using HotChocolate.Adapters.Mcp.Handlers;
 using HotChocolate.Adapters.Mcp.Storage;
@@ -10,7 +9,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using ModelContextProtocol.Server;
 
 namespace HotChocolate.Adapters.Mcp.Extensions;
@@ -25,7 +23,8 @@ internal static class ServiceCollectionExtensions
     {
         services.AddHttpContextAccessor();
         services.AddOptions();
-        services.TryAddSingleton<McpResolver>();
+        services.TryAddSingleton<McpManager>();
+        services.TryAddSingleton<IMcpProvider>(static sp => sp.GetRequiredService<McpManager>());
     }
 
     public static void AddMcpSchemaServices(
@@ -34,8 +33,8 @@ internal static class ServiceCollectionExtensions
         string schemaName)
     {
         var setup = applicationServices
-            .GetRequiredService<IOptionsMonitor<McpSetup>>()
-            .Get(schemaName);
+            .GetRequiredService<McpManager>()
+            .GetSetup(schemaName);
 
         services
             .AddLogging()

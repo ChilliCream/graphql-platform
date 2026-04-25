@@ -57,7 +57,7 @@ internal sealed class DynamicEndpointMiddleware(
                 }
             }
 
-            var proxy = context.RequestServices.GetRequiredService<OpenApiResolver>()
+            var proxy = context.RequestServices.GetRequiredService<OpenApiManager>()
                 .GetRequestExecutorProxy(schemaName);
             var session = await proxy.GetOrCreateSessionAsync(context.RequestAborted);
 

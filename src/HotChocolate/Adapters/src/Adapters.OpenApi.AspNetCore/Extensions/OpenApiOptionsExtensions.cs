@@ -12,7 +12,7 @@ public static class OpenApiOptionsExtensions
         return options.AddDocumentTransformer((document, context, ct) =>
         {
             var transformer = (DynamicOpenApiDocumentTransformer)context.ApplicationServices
-                .GetRequiredService<OpenApiResolver>()
+                .GetRequiredService<OpenApiManager>()
                 .GetDocumentTransformer(schemaName);
 
             return transformer.TransformAsync(document, context, ct);

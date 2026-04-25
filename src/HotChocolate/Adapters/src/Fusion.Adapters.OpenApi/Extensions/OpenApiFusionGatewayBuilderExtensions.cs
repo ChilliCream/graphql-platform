@@ -164,7 +164,7 @@ public static class OpenApiFusionGatewayBuilderExtensions
             factory: schemaServices =>
             {
                 var registry = schemaServices.GetRootServiceProvider()
-                    .GetRequiredService<OpenApiResolver>()
+                    .GetRequiredService<OpenApiManager>()
                     .GetDefinitionRegistry(schemaName);
 
                 return new OpenApiWarmupTask(registry);

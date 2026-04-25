@@ -75,12 +75,10 @@ public static class FusionGatewayBuilderExtensions
         this IFusionGatewayBuilder builder,
         Func<IServiceProvider, bool>? skipIf = null)
     {
-        builder.AddWarmupTask(async (executor, cancellationToken) =>
-        {
-            var schema = executor.Schema;
-            var storageObserver = schema.Services.GetRequiredService<McpStorageObserver>();
-            await storageObserver.StartAsync(cancellationToken);
-        }, skipIf);
+        builder.AddWarmupTask(
+            factory: schemaServices => new McpStorageWarmupTask(
+                schemaServices.GetRequiredService<McpStorageObserver>()),
+            skipIf: skipIf);
 
         return builder;
     }
