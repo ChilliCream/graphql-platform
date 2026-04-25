@@ -29,6 +29,9 @@ public static class MessageBusEndpointRouteBuilderExtensions
     /// <param name="path">The URL path for the topology endpoint. Defaults to <c>/.well-known/message-topology</c>.</param>
     /// <returns>An <see cref="IEndpointConventionBuilder"/> for further endpoint configuration.</returns>
     /// <exception cref="InvalidOperationException">Thrown if the messaging runtime is not available in the service provider.</exception>
+    [Obsolete(
+        "MapMessageBusDeveloperTopology is deprecated. Use Mocha.Resources.AspNetCore.MapMochaResourceEndpoint or a custom MochaResourceSource consumer. See https://chillicream.com/docs/mocha/resources for migration. Will be removed in the next major.",
+        error: false)]
     public static IEndpointConventionBuilder MapMessageBusDeveloperTopology(
         this IEndpointRouteBuilder endpoints,
         string path = "/.well-known/message-topology")
@@ -37,11 +40,11 @@ public static class MessageBusEndpointRouteBuilderExtensions
             path,
             (HttpContext httpContext) =>
             {
-                var runtime =
-                    httpContext.RequestServices.GetRequiredService<IMessagingRuntime>() as MessagingRuntime
-                    ?? throw new InvalidOperationException("Message bus runtime is not available.");
-
-                var description = MessageBusDescriptionVisitor.Visit(runtime);
+                // Route through MochaMessageBusResourceSource so the bridge consumes the same
+                // visitor-cached description tree that feeds the resource snapshot. Falls back to
+                // an inline visitor pass if the source isn't registered (preserves the pre-resources
+                // behaviour for callers that haven't migrated their DI yet).
+                var description = ResolveDescription(httpContext);
 
                 // Reshape into the DiagramData format expected by the visualizer:
                 // { services: [{ host, messageTypes, consumers, routes, sagas }], transports: [...] }
@@ -60,6 +63,21 @@ public static class MessageBusEndpointRouteBuilderExtensions
                     JsonSerializer.Serialize(diagramData, s_jsonOptions),
                     "application/json");
             });
+    }
+
+    private static MessageBusDescription ResolveDescription(HttpContext httpContext)
+    {
+        var source = httpContext.RequestServices.GetService<MochaMessageBusResourceSource>();
+        if (source is not null)
+        {
+            return source.Description;
+        }
+
+        var runtime =
+            httpContext.RequestServices.GetRequiredService<IMessagingRuntime>() as MessagingRuntime
+            ?? throw new InvalidOperationException("Message bus runtime is not available.");
+
+        return MessageBusDescriptionVisitor.Visit(runtime);
     }
 
     private sealed record DiagramDataPayload(

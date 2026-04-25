@@ -30,6 +30,7 @@ public sealed class MochaMessageBusResourceSource : MochaResourceSource, IDispos
     private readonly EventHandler<DispatchEndpointAddedEventArgs> _dispatchEndpointAddedHandler;
 
     private IReadOnlyList<MochaResource>? _resources;
+    private MessageBusDescription? _description;
     private CancellationTokenSource? _cts;
     private IChangeToken? _consumerChangeToken;
     private bool _disposed;
@@ -53,6 +54,25 @@ public sealed class MochaMessageBusResourceSource : MochaResourceSource, IDispos
         {
             EnsureResourcesInitialized();
             return _resources;
+        }
+    }
+
+    /// <summary>
+    /// Gets the cached <see cref="MessageBusDescription"/> the snapshot was projected from.
+    /// </summary>
+    /// <remarks>
+    /// Exposed so the deprecated <c>MapMessageBusDeveloperTopology</c> bridge can serialise the
+    /// legacy <c>DiagramData</c> JSON shape from the same description tree the source already
+    /// builds, avoiding a duplicate visitor traversal. The accessor is internal — direct consumers
+    /// of <see cref="MochaResourceSource"/> should not depend on the description tree, which is
+    /// scheduled for internalization in the next major.
+    /// </remarks>
+    public MessageBusDescription Description
+    {
+        get
+        {
+            EnsureResourcesInitialized();
+            return _description;
         }
     }
 
@@ -85,17 +105,17 @@ public sealed class MochaMessageBusResourceSource : MochaResourceSource, IDispos
         oldCts?.Dispose();
     }
 
-    [MemberNotNull(nameof(_resources))]
+    [MemberNotNull(nameof(_resources), nameof(_description))]
     private void EnsureResourcesInitialized()
     {
-        if (_resources is not null)
+        if (_resources is not null && _description is not null)
         {
             return;
         }
 
         lock (_lock)
         {
-            if (_resources is not null)
+            if (_resources is not null && _description is not null)
             {
                 return;
             }
@@ -161,10 +181,11 @@ public sealed class MochaMessageBusResourceSource : MochaResourceSource, IDispos
         _consumerChangeToken = new CancellationChangeToken(cts.Token);
     }
 
-    [MemberNotNull(nameof(_resources))]
+    [MemberNotNull(nameof(_resources), nameof(_description))]
     private void CreateResourcesUnsynchronized()
     {
         var description = MessageBusDescriptionVisitor.Visit(_runtime);
+        _description = description;
         var resources = new List<MochaResource>();
 
         var instanceId = description.Host.InstanceId;

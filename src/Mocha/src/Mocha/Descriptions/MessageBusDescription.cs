@@ -3,6 +3,11 @@ namespace Mocha;
 /// <summary>
 /// Provides a complete diagnostic description of a message bus runtime, including host info, message types, consumers, routes, transports, and sagas.
 /// </summary>
+/// <remarks>
+/// Public for release N to support the deprecated <c>MapMessageBusDeveloperTopology</c> bridge;
+/// scheduled for internalization in the next major. New code should consume the resource graph via
+/// <c>MochaResourceSource</c> rather than depending on this record tree directly.
+/// </remarks>
 /// <param name="Host">The host application description.</param>
 /// <param name="MessageTypes">All registered message type descriptions.</param>
 /// <param name="Consumers">All registered consumer descriptions.</param>

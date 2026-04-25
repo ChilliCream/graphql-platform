@@ -1,5 +1,6 @@
 // To run without a project file:
 // #:package Mocha@1.0.0-preview.*
+// #:package Mocha.Resources.AspNetCore@1.0.0-preview.*
 // #:package Mocha.Transport.RabbitMQ@1.0.0-preview.*
 // #:package Mocha.EntityFrameworkCore.Postgres@1.0.0-preview.*
 // #:package Mocha.Outbox@1.0.0-preview.*
@@ -13,7 +14,7 @@ using Mocha.Inbox;
 using Mocha.Outbox;
 using Mocha.Transport.RabbitMQ;
 using RabbitMQ.Client;
-using Mocha.Hosting;
+using Mocha.Resources.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -52,6 +53,8 @@ builder.Services
     })
     .AddRabbitMQ();
 
+builder.Services.AddMochaMessageBusResources();
+
 var app = builder.Build();
 
 app.MapGet("/orders", async (IMessageBus bus) =>
@@ -67,7 +70,7 @@ app.MapGet("/orders", async (IMessageBus bus) =>
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapMessageBusDeveloperTopology();
+    app.MapMochaResourceEndpoint();
 }
 
 app.Run();

@@ -4,10 +4,10 @@ using Demo.Catalog.Queries;
 using Microsoft.EntityFrameworkCore;
 using Mocha;
 using Mocha.EntityFrameworkCore;
-using Mocha.Hosting;
 using Mocha.Mediator;
 using Mocha.Inbox;
 using Mocha.Outbox;
+using Mocha.Resources.AspNetCore;
 using Mocha.Sagas;
 using Mocha.Transport.RabbitMQ;
 
@@ -46,6 +46,9 @@ builder
         p.UsePostgresInbox();
     })
     .AddRabbitMQ();
+
+// Resource source diagnostics — exposes the message bus topology as Mocha resources.
+builder.Services.AddMochaMessageBusResources();
 
 var app = builder.Build();
 
@@ -143,7 +146,7 @@ app.MapPost("/api/returns/initiate", async (InitiateReturnRequestDto request, IS
     });
 });
 
-app.MapMessageBusDeveloperTopology();
+app.MapMochaResourceEndpoint();
 
 app.Run();
 

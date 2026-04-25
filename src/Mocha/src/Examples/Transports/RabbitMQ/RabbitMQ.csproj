@@ -2,6 +2,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Mocha\Mocha.csproj" />
     <ProjectReference Include="..\..\..\Mocha.Transport.RabbitMQ\Mocha.Transport.RabbitMQ.csproj" />
-      <ProjectReference Include="..\..\..\Mocha.Hosting\Mocha.Hosting.csproj" />
+      <ProjectReference Include="..\..\..\Mocha.Resources.AspNetCore\Mocha.Resources.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\..\Mocha.Hosting\Mocha.Hosting.csproj" />
   </ItemGroup>
 </Project>

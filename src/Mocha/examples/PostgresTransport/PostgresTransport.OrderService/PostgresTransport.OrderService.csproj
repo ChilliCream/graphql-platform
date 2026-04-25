@@ -9,5 +9,6 @@
     <ProjectReference Include="..\PostgresTransport.Contracts\PostgresTransport.Contracts.csproj" />
     <ProjectReference Include="..\..\..\src\Mocha.Transport.Postgres\Mocha.Transport.Postgres.csproj" />
     <ProjectReference Include="..\..\..\src\Mocha.Hosting\Mocha.Hosting.csproj" />
+    <ProjectReference Include="..\..\..\src\Mocha.Resources.AspNetCore\Mocha.Resources.AspNetCore.csproj" />
   </ItemGroup>
 </Project>

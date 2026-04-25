@@ -1,12 +1,13 @@
 // To run without a project file:
 // #:package Mocha@1.0.0-preview.*
+// #:package Mocha.Resources.AspNetCore@1.0.0-preview.*
 // #:package Mocha.Transport.InMemory@1.0.0-preview.*
 // $ dotnet run OpenTelemetry.cs
 
 using Mocha;
 using Mocha.Middlewares;
 using Mocha.Transport.InMemory;
-using Mocha.Hosting;
+using Mocha.Resources.AspNetCore;
 
 // To collect Mocha spans and metrics with the .NET OpenTelemetry SDK, add
 // the packages below and configure tracing/metrics as shown in the comments.
@@ -45,6 +46,8 @@ builder.Services
     .AddEventHandler<OrderPlacedHandler>()
     .AddInMemory();
 
+builder.Services.AddMochaMessageBusResources();
+
 var app = builder.Build();
 
 app.MapGet("/orders", async (IMessageBus bus) =>
@@ -64,7 +67,7 @@ app.MapGet("/orders", async (IMessageBus bus) =>
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapMessageBusDeveloperTopology();
+    app.MapMochaResourceEndpoint();
 }
 
 app.Run();

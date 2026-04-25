@@ -5,6 +5,15 @@ namespace Mocha;
 /// <summary>
 /// A visitor that traverses a <see cref="MessagingRuntime"/> and builds a <see cref="MessageBusDescription"/> for diagnostic output.
 /// </summary>
+/// <remarks>
+/// <para>
+/// This visitor and the <c>*Description</c> record tree it produces are kept public for the
+/// duration of release N so the deprecated <c>MapMessageBusDeveloperTopology</c> bridge can keep
+/// emitting the legacy JSON shape from the same intermediate. They are scheduled for
+/// internalization in the next major — new code should consume <c>MochaResource</c> via
+/// <c>MochaResourceSource</c> instead.
+/// </para>
+/// </remarks>
 public sealed class MessageBusDescriptionVisitor : MessagingVisitor<MessageBusDescriptionVisitor.Context>
 {
     /// <summary>

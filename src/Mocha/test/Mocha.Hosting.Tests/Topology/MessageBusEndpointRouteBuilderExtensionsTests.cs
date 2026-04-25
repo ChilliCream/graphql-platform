@@ -8,6 +8,7 @@ using Mocha.Transport.InMemory;
 
 namespace Mocha.Hosting.Tests.Topology;
 
+#pragma warning disable CS0618 // Type or member is obsolete — these tests intentionally exercise the deprecated bridge.
 public sealed class MessageBusEndpointRouteBuilderExtensionsTests
 {
     [Fact]
@@ -113,3 +114,4 @@ public sealed class MessageBusEndpointRouteBuilderExtensionsTests
         return host;
     }
 }
+#pragma warning restore CS0618

@@ -1,5 +1,6 @@
 // To run without a project file:
 // #:package Mocha@1.0.0-preview.*
+// #:package Mocha.Resources.AspNetCore@1.0.0-preview.*
 // #:package Mocha.Transport.InMemory@1.0.0-preview.*
 // $ dotnet run CustomMiddleware.cs
 
@@ -8,7 +9,7 @@ using Microsoft.Extensions.Logging;
 using Mocha;
 using Mocha.Middlewares;
 using Mocha.Transport.InMemory;
-using Mocha.Hosting;
+using Mocha.Resources.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +29,8 @@ messageBus
     .AddEventHandler<OrderPlacedHandler>()
     .AddInMemory();
 
+builder.Services.AddMochaMessageBusResources();
+
 var app = builder.Build();
 
 app.MapGet("/orders", async (IMessageBus bus) =>
@@ -46,7 +49,7 @@ Console.WriteLine("Listening for orders on http://localhost:5000/orders");
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapMessageBusDeveloperTopology();
+    app.MapMochaResourceEndpoint();
 }
 
 app.Run();

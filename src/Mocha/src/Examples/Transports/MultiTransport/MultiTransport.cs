@@ -1,11 +1,12 @@
 // To run without a project file:
 // #:package Mocha@1.0.0-preview.*
+// #:package Mocha.Resources.AspNetCore@1.0.0-preview.*
 // #:package Mocha.Transport.InMemory@1.0.0-preview.*
 // $ dotnet run MultiTransport.cs
 
 using Mocha;
 using Mocha.Transport.InMemory;
-using Mocha.Hosting;
+using Mocha.Resources.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +35,8 @@ builder.Services
             .Handler<AuditHandler>();
     });
 
+builder.Services.AddMochaMessageBusResources();
+
 var app = builder.Build();
 
 app.MapGet("/orders", async (IMessageBus bus) =>
@@ -55,7 +58,7 @@ app.MapGet("/orders", async (IMessageBus bus) =>
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapMessageBusDeveloperTopology();
+    app.MapMochaResourceEndpoint();
 }
 
 app.Run();

@@ -1,11 +1,12 @@
 // To run without a project file:
 // #:package Mocha@1.0.0-preview.*
+// #:package Mocha.Resources.AspNetCore@1.0.0-preview.*
 // #:package Mocha.Transport.InMemory@1.0.0-preview.*
 // $ dotnet run BatchHandler.cs
 
 using Mocha;
 using Mocha.Transport.InMemory;
-using Mocha.Hosting;
+using Mocha.Resources.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +18,8 @@ builder.Services
         opts.BatchTimeout = TimeSpan.FromSeconds(10);
     })
     .AddInMemory();
+
+builder.Services.AddMochaMessageBusResources();
 
 var app = builder.Build();
 
@@ -38,7 +41,7 @@ Console.WriteLine("POST to http://localhost:5000/orders/{count} to publish a bat
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapMessageBusDeveloperTopology();
+    app.MapMochaResourceEndpoint();
 }
 
 app.Run();

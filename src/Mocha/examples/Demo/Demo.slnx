@@ -8,6 +8,9 @@
   <Project Path="../../src/Mocha.Mediator.Abstractions/Mocha.Mediator.Abstractions.csproj" />
   <Project Path="../../src/Mocha.Mediator/Mocha.Mediator.csproj" />
   <Project Path="../../src/Mocha.Outbox/Mocha.Outbox.csproj" />
+  <Project Path="../../src/Mocha.Resources.Abstractions/Mocha.Resources.Abstractions.csproj" />
+  <Project Path="../../src/Mocha.Resources.AspNetCore/Mocha.Resources.AspNetCore.csproj" />
+  <Project Path="../../src/Mocha.Resources/Mocha.Resources.csproj" />
   <Project Path="../../src/Mocha.Threading/Mocha.Threading.csproj" />
   <Project Path="../../src/Mocha.Transport.InMemory/Mocha.Transport.InMemory.csproj" />
   <Project Path="../../src/Mocha.Transport.RabbitMQ/Mocha.Transport.RabbitMQ.csproj" />
