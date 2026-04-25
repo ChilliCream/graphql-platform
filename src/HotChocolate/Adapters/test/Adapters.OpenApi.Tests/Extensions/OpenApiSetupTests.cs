@@ -43,7 +43,9 @@ public sealed class OpenApiSetupTests
 
     private sealed class StubOpenApiDefinitionStorage : IOpenApiDefinitionStorage
     {
+#pragma warning disable CS0067
         public event EventHandler? Changed;
+#pragma warning restore CS0067
 
         public ValueTask<IEnumerable<IOpenApiDefinition>> GetDefinitionsAsync(
             CancellationToken cancellationToken = default)

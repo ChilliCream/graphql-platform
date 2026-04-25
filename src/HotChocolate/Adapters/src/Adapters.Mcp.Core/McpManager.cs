@@ -33,35 +33,35 @@ internal sealed class McpManager : IMcpProvider
             .Distinct()
             .ToImmutableArray()!;
 
-    public McpSetup GetSetup(string? schemaName = null)
+    public McpSetup GetSetup(string? name = null)
     {
-        schemaName ??= ISchemaDefinition.DefaultName;
-        return _optionsMonitor.Get(schemaName);
+        name ??= ISchemaDefinition.DefaultName;
+        return _optionsMonitor.Get(name);
     }
 
-    public McpRequestExecutorProxy GetRequestExecutorProxy(string? schemaName = null)
-        => GetOrAddRegistration(schemaName).ExecutorProxy;
+    public McpRequestExecutorProxy GetRequestExecutorProxy(string? name = null)
+        => GetOrAddRegistration(name).ExecutorProxy;
 
-    public StreamableHttpHandlerProxy GetStreamableHttpHandlerProxy(string? schemaName = null)
-        => GetOrAddRegistration(schemaName).HandlerProxy;
+    public StreamableHttpHandlerProxy GetStreamableHttpHandlerProxy(string? name = null)
+        => GetOrAddRegistration(name).HandlerProxy;
 
-    private McpRegistration GetOrAddRegistration(string? schemaName)
+    private McpRegistration GetOrAddRegistration(string? name)
     {
-        schemaName ??= ISchemaDefinition.DefaultName;
+        name ??= ISchemaDefinition.DefaultName;
         return _registrations.GetOrAdd(
-            schemaName,
-            static (name, manager) => new Lazy<McpRegistration>(
-                () => manager.CreateRegistration(name),
+            name,
+            static (key, manager) => new Lazy<McpRegistration>(
+                () => manager.CreateRegistration(key),
                 LazyThreadSafetyMode.ExecutionAndPublication),
             this).Value;
     }
 
-    private McpRegistration CreateRegistration(string schemaName)
+    private McpRegistration CreateRegistration(string name)
     {
         var executorProxy = new McpRequestExecutorProxy(
             _applicationServices.GetRequiredService<IRequestExecutorProvider>(),
             _applicationServices.GetRequiredService<IRequestExecutorEvents>(),
-            schemaName);
+            name);
 
         var handlerProxy = new StreamableHttpHandlerProxy(executorProxy);
 

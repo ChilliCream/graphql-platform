@@ -44,53 +44,53 @@ internal sealed class OpenApiManager : IOpenApiProvider
             .Distinct()
             .ToImmutableArray()!;
 
-    public OpenApiSetup GetSetup(string? schemaName = null)
+    public OpenApiSetup GetSetup(string? name = null)
     {
-        schemaName ??= ISchemaDefinition.DefaultName;
-        return _setupMonitor.Get(schemaName);
+        name ??= ISchemaDefinition.DefaultName;
+        return _setupMonitor.Get(name);
     }
 
-    public IOpenApiDefinitionStorage GetDefinitionStorage(string? schemaName = null)
-        => GetOrAddRegistration(schemaName).Storage;
+    public IOpenApiDefinitionStorage GetDefinitionStorage(string? name = null)
+        => GetOrAddRegistration(name).Storage;
 
-    public OpenApiDefinitionRegistry GetDefinitionRegistry(string? schemaName = null)
-        => GetOrAddRegistration(schemaName).Registry;
+    public OpenApiDefinitionRegistry GetDefinitionRegistry(string? name = null)
+        => GetOrAddRegistration(name).Registry;
 
-    public HttpRequestExecutorProxy GetRequestExecutorProxy(string? schemaName = null)
-        => GetOrAddRegistration(schemaName).ExecutorProxy;
+    public HttpRequestExecutorProxy GetRequestExecutorProxy(string? name = null)
+        => GetOrAddRegistration(name).ExecutorProxy;
 
-    public IDynamicEndpointDataSource GetEndpointDataSource(string? schemaName = null)
-        => GetOrAddRegistration(schemaName).EndpointDataSource;
+    public IDynamicEndpointDataSource GetEndpointDataSource(string? name = null)
+        => GetOrAddRegistration(name).EndpointDataSource;
 
-    public IDynamicOpenApiDocumentTransformer GetDocumentTransformer(string? schemaName = null)
-        => GetOrAddRegistration(schemaName).DocumentTransformer;
+    public IDynamicOpenApiDocumentTransformer GetDocumentTransformer(string? name = null)
+        => GetOrAddRegistration(name).DocumentTransformer;
 
-    private OpenApiRegistration GetOrAddRegistration(string? schemaName)
+    private OpenApiRegistration GetOrAddRegistration(string? name)
     {
-        schemaName ??= ISchemaDefinition.DefaultName;
+        name ??= ISchemaDefinition.DefaultName;
         return _registrations.GetOrAdd(
-            schemaName,
-            static (name, manager) => new Lazy<OpenApiRegistration>(
-                () => manager.CreateRegistration(name),
+            name,
+            static (key, manager) => new Lazy<OpenApiRegistration>(
+                () => manager.CreateRegistration(key),
                 LazyThreadSafetyMode.ExecutionAndPublication),
             this).Value;
     }
 
-    private OpenApiRegistration CreateRegistration(string schemaName)
+    private OpenApiRegistration CreateRegistration(string name)
     {
-        var setup = _setupMonitor.Get(schemaName);
-        var transportSetup = _transportSetupMonitor.Get(schemaName);
+        var setup = _setupMonitor.Get(name);
+        var transportSetup = _transportSetupMonitor.Get(name);
 
         var storageFactory = setup.StorageFactory
             ?? throw new InvalidOperationException(
-                $"No OpenAPI definition storage is registered for schema '{schemaName}'. "
+                $"No OpenAPI definition storage is registered for schema '{name}'. "
                 + "Call AddOpenApiDefinitionStorage(...) when configuring the GraphQL server.");
 
         var storage = storageFactory(_applicationServices);
         var endpointDataSource = transportSetup.EndpointDataSourceFactory!();
         var documentTransformer = transportSetup.DocumentTransformerFactory!();
         var registry = new OpenApiDefinitionRegistry(storage, documentTransformer, endpointDataSource);
-        var executorProxy = HttpRequestExecutorProxy.Create(_applicationServices, schemaName);
+        var executorProxy = HttpRequestExecutorProxy.Create(_applicationServices, name);
 
         return new OpenApiRegistration(
             storage,

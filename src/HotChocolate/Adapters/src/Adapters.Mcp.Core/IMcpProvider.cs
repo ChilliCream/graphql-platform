@@ -7,5 +7,5 @@ internal interface IMcpProvider
 {
     ImmutableArray<string> Names { get; }
 
-    McpSetup GetSetup(string? schemaName = null);
+    McpSetup GetSetup(string? name = null);
 }

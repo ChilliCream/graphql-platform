@@ -7,5 +7,5 @@ internal interface IOpenApiProvider
 {
     ImmutableArray<string> Names { get; }
 
-    OpenApiSetup GetSetup(string? schemaName = null);
+    OpenApiSetup GetSetup(string? name = null);
 }
