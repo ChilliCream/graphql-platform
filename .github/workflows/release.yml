@@ -25,9 +25,14 @@ jobs:
           if gh release view "$GIT_TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
             echo "Release for $GIT_TAG already exists; leaving it untouched."
           else
+            prerelease_flag=()
+            if [[ ! "$GIT_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              prerelease_flag=(--prerelease)
+            fi
             gh release create "$GIT_TAG" \
               --repo "${{ github.repository }}" \
               --draft \
+              "${prerelease_flag[@]}" \
               --title "$GIT_TAG" \
               --generate-notes \
               --target "$GITHUB_SHA"
@@ -516,9 +521,15 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          if [[ "$GIT_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            prerelease=false
+          else
+            prerelease=true
+          fi
           gh release edit "$GIT_TAG" \
             --repo "${{ github.repository }}" \
-            --draft=false
+            --draft=false \
+            --prerelease=$prerelease
 
   update-homebrew:
     name: 🍺 Update Homebrew Tap
