@@ -66,16 +66,6 @@ jobs:
           echo "is_active_major=$IS_ACTIVE_MAJOR" >> "$GITHUB_OUTPUT"
           echo "is_highest_stable_major=$IS_HIGHEST_STABLE_MAJOR" >> "$GITHUB_OUTPUT"
 
-          {
-            echo "## Release context"
-            echo "- git_tag: \`$GIT_TAG\`"
-            echo "- major: \`$MAJOR\`"
-            echo "- is_stable: \`$IS_STABLE\`"
-            echo "- is_active_major: \`$IS_ACTIVE_MAJOR\`"
-            echo "- is_highest_stable_major: \`$IS_HIGHEST_STABLE_MAJOR\`"
-            echo "- highest_stable_major (registry): \`$HIGHEST\`"
-          } >> "$GITHUB_STEP_SUMMARY"
-
   create-draft:
     name: 📝 Create Draft Release
     runs-on: ubuntu-22.04
@@ -181,11 +171,7 @@ jobs:
       - name: 📤 Attach .nupkg assets to GitHub release
         shell: bash
         run: |
-          set -euo pipefail
-          for file in ./output/packages/*.nupkg; do
-            echo "📤 Uploading $file"
-            gh release upload ${{ env.GIT_TAG }} "$file" --repo "${{ github.repository }}"
-          done
+          gh release upload "$GIT_TAG" ./output/packages/*.nupkg --repo "${{ github.repository }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
