@@ -467,7 +467,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          # 1. Pick the band this release publishes under.
+          # Pick the band this release publishes under, based on release context.
           if [[ "$IS_HIGHEST_STABLE_MAJOR" == "true" ]]; then
             PRIMARY_BAND="latest"
             SECONDARY_BAND="${MAJOR}"
@@ -482,27 +482,13 @@ jobs:
             SECONDARY_BAND=""
           fi
 
-          # 2. Snapshot the current value of the primary band, then publish under it.
-          PREVIOUS=$(npm view "$PKG" "dist-tags.${PRIMARY_BAND}" --registry="$REGISTRY" 2>/dev/null || echo "")
           npm publish "$TARBALL" \
             --access public \
             --registry="$REGISTRY" \
             --tag "$PRIMARY_BAND"
 
-          # 3. If the publish was a backport, restore the band to its previous version.
-          if [[ -n "$PREVIOUS" ]] && ! npx --yes semver -r ">$PREVIOUS" "$GIT_TAG" >/dev/null 2>&1; then
-            npm dist-tag add "${PKG}@${PREVIOUS}" "$PRIMARY_BAND" --registry="$REGISTRY"
-            echo "Restored '${PRIMARY_BAND}' to ${PREVIOUS} (backport publish: ${GIT_TAG} <= ${PREVIOUS})."
-          fi
-
-          # 4. Stable highest also binds the major band, soft-skipped if backport.
           if [[ -n "$SECONDARY_BAND" ]]; then
-            CUR=$(npm view "$PKG" "dist-tags.${SECONDARY_BAND}" --registry="$REGISTRY" 2>/dev/null || echo "0.0.0")
-            if npx --yes semver -r ">$CUR" "$GIT_TAG" >/dev/null 2>&1; then
-              npm dist-tag add "${PKG}@${GIT_TAG}" "$SECONDARY_BAND" --registry="$REGISTRY"
-            else
-              echo "Skipping '${SECONDARY_BAND}' band update: current=${CUR}, new=${GIT_TAG}."
-            fi
+            npm dist-tag add "${PKG}@${GIT_TAG}" "$SECONDARY_BAND" --registry="$REGISTRY"
           fi
 
       - name: 📤 Upload tarball as artifact
@@ -587,7 +573,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          # 1. Pick the band this release publishes under.
+          # Pick the band this release publishes under, based on release context.
           if [[ "$IS_HIGHEST_STABLE_MAJOR" == "true" ]]; then
             PRIMARY_BAND="latest"
             SECONDARY_BAND="${MAJOR}"
@@ -602,27 +588,13 @@ jobs:
             SECONDARY_BAND=""
           fi
 
-          # 2. Snapshot the current value of the primary band, then publish under it.
-          PREVIOUS=$(npm view "$PKG" "dist-tags.${PRIMARY_BAND}" --registry="$REGISTRY" 2>/dev/null || echo "")
           npm publish "$TARBALL" \
             --access public \
             --registry="$REGISTRY" \
             --tag "$PRIMARY_BAND"
 
-          # 3. If the publish was a backport, restore the band to its previous version.
-          if [[ -n "$PREVIOUS" ]] && ! npx --yes semver -r ">$PREVIOUS" "$GIT_TAG" >/dev/null 2>&1; then
-            npm dist-tag add "${PKG}@${PREVIOUS}" "$PRIMARY_BAND" --registry="$REGISTRY"
-            echo "Restored '${PRIMARY_BAND}' to ${PREVIOUS} (backport publish: ${GIT_TAG} <= ${PREVIOUS})."
-          fi
-
-          # 4. Stable highest also binds the major band, soft-skipped if backport.
           if [[ -n "$SECONDARY_BAND" ]]; then
-            CUR=$(npm view "$PKG" "dist-tags.${SECONDARY_BAND}" --registry="$REGISTRY" 2>/dev/null || echo "0.0.0")
-            if npx --yes semver -r ">$CUR" "$GIT_TAG" >/dev/null 2>&1; then
-              npm dist-tag add "${PKG}@${GIT_TAG}" "$SECONDARY_BAND" --registry="$REGISTRY"
-            else
-              echo "Skipping '${SECONDARY_BAND}' band update: current=${CUR}, new=${GIT_TAG}."
-            fi
+            npm dist-tag add "${PKG}@${GIT_TAG}" "$SECONDARY_BAND" --registry="$REGISTRY"
           fi
 
       - name: 📤 Upload tarball as artifact
