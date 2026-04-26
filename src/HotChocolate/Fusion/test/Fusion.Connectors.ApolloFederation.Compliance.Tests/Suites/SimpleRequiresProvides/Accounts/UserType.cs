@@ -6,8 +6,8 @@ namespace HotChocolate.Fusion.Suites.SimpleRequiresProvides.Accounts;
 /// <summary>
 /// Apollo Federation descriptor for the <c>User</c> entity owned by the
 /// <c>accounts</c> subgraph. Mirrors the audit Schema Definition Language
-/// (SDL): <c>type User @key(fields: "id") { id: ID!, name: String,
-/// username: String @shareable }</c>.
+/// (SDL) <c>type User @key(fields: "id")</c> with fields
+/// <c>id: ID!</c>, <c>name: String</c>, and <c>username: String @shareable</c>.
 /// </summary>
 public sealed class UserType : ObjectType<User>
 {

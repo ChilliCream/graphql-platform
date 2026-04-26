@@ -14,8 +14,7 @@ public static class DataLoaderObjectFieldExtensions
 {
     [RequiresDynamicCode("Creates generic types at runtime for data loader middleware.")]
     public static IObjectFieldDescriptor UseDataLoader<
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)]
-        TDataLoader>(
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] TDataLoader>(
         this IObjectFieldDescriptor descriptor)
         where TDataLoader : IDataLoader
         => UseDataLoader(descriptor, typeof(TDataLoader));
