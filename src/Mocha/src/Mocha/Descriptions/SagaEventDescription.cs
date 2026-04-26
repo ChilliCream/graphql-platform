@@ -5,4 +5,4 @@ namespace Mocha;
 /// </summary>
 /// <param name="MessageType">The short type name of the dispatched message.</param>
 /// <param name="MessageTypeFullName">The fully qualified type name, or <c>null</c> if unavailable.</param>
-internal sealed record SagaEventDescription(string MessageType, string? MessageTypeFullName);
+public sealed record SagaEventDescription(string MessageType, string? MessageTypeFullName);

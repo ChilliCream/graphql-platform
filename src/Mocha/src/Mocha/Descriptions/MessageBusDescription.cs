@@ -9,7 +9,7 @@ namespace Mocha;
 /// <param name="Routes">The inbound and outbound route descriptions.</param>
 /// <param name="Transports">All configured transport descriptions.</param>
 /// <param name="Sagas">The saga descriptions, or <c>null</c> if no sagas are registered.</param>
-internal sealed record MessageBusDescription(
+public sealed record MessageBusDescription(
     HostDescription Host,
     IReadOnlyList<MessageTypeDescription> MessageTypes,
     IReadOnlyList<ConsumerDescription> Consumers,

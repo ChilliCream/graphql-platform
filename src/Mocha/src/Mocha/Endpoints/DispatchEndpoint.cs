@@ -159,14 +159,12 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
     public ValueTask ExecuteAsync(IDispatchContext context) => _pipeline(context);
 
     /// <summary>
-    /// Runs topology discovery conventions to resolve the destination resources for this endpoint
-    /// and registers the endpoint in the endpoint collection.
+    /// Runs topology discovery conventions to resolve the destination resources for this endpoint.
     /// </summary>
     /// <param name="context">The messaging configuration context used for topology discovery.</param>
     public void DiscoverTopology(IMessagingConfigurationContext context)
     {
         Transport.Conventions.DiscoverTopology(context, this, Configuration);
-        context.Endpoints.AddOrUpdate(this);
     }
 
     /// <summary>
@@ -204,8 +202,6 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
         _completed = null!;
         IsCompleted = true;
         Address ??= new UriBuilder { Scheme = Transport.Schema, Path = Name }.Uri;
-
-        context.Endpoints.AddOrUpdate(this);
     }
 
     /// <summary>

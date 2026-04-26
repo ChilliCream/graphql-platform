@@ -221,7 +221,10 @@ public abstract partial class MessagingTransport
 
         foreach (var endpoint in _dispatchEndpoints)
         {
-            endpoint.DiscoverTopology(context);
+            if (!endpoint.IsCompleted)
+            {
+                endpoint.DiscoverTopology(context);
+            }
         }
 
         OnAfterDiscoverEndpoints(context);
@@ -279,6 +282,7 @@ public abstract partial class MessagingTransport
             if (!endpoint.IsCompleted)
             {
                 endpoint.Complete(context);
+                context.Endpoints.AddOrUpdate(endpoint);
             }
         }
     }

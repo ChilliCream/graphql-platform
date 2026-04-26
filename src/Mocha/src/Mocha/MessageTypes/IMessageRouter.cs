@@ -174,6 +174,7 @@ public sealed class MessageRouter : IMessageRouter
                 {
                     endpoint.DiscoverTopology(context);
                     endpoint.Complete(context);
+                    context.Endpoints.AddOrUpdate(endpoint);
                 }
 
                 return endpoint;

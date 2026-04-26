@@ -1,9 +1,0 @@
-{
-  "kind": "mocha.service",
-  "id": "urn:mocha:core:service:00000000-0000-0000-0000-000000000001",
-  "attributes": {
-    "service_name": "OrderService",
-    "assembly_name": "Acme.OrderService",
-    "instance_id": "00000000-0000-0000-0000-000000000001"
-  }
-}

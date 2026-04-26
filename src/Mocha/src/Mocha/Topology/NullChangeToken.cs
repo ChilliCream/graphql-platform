@@ -1,10 +1,7 @@
 using Microsoft.Extensions.Primitives;
 
-namespace Mocha.Resources;
+namespace Mocha;
 
-/// <summary>
-/// An <see cref="IChangeToken"/> that never fires.
-/// </summary>
 internal sealed class NullChangeToken : IChangeToken
 {
     public static NullChangeToken Singleton { get; } = new();
@@ -15,11 +12,15 @@ internal sealed class NullChangeToken : IChangeToken
 
     public bool ActiveChangeCallbacks => false;
 
-    public IDisposable RegisterChangeCallback(Action<object?> callback, object? state) => EmptyDisposable.Instance;
+    public IDisposable RegisterChangeCallback(Action<object?> callback, object? state)
+        => EmptyDisposable.Instance;
 
     private sealed class EmptyDisposable : IDisposable
     {
         public static EmptyDisposable Instance { get; } = new();
+
+        private EmptyDisposable() { }
+
         public void Dispose() { }
     }
 }

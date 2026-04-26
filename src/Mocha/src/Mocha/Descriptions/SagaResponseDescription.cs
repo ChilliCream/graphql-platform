@@ -5,4 +5,4 @@ namespace Mocha;
 /// </summary>
 /// <param name="EventType">The short type name of the response event.</param>
 /// <param name="EventTypeFullName">The fully qualified type name, or <c>null</c> if unavailable.</param>
-internal sealed record SagaResponseDescription(string EventType, string? EventTypeFullName);
+public sealed record SagaResponseDescription(string EventType, string? EventTypeFullName);

@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using Mocha;
-using Mocha.Resources;
 using Mocha.Transport.Postgres;
 using PostgresTransport.Contracts.Commands;
 using PostgresTransport.Contracts.Events;
@@ -36,8 +35,6 @@ builder
         t.Endpoint("process-order-ep").Queue("process-order").Handler<ProcessOrderCommandHandler>();
         t.DispatchEndpoint("send-demo").ToQueue("process-order").Send<ProcessOrderCommand>();
     });
-
-// Resource source diagnostics — exposes the message bus topology as Mocha resources.
 
 builder.Services.AddHostedService<OrderSimulatorWorker>();
 

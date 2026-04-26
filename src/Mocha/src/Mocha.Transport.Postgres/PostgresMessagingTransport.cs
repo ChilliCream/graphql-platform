@@ -2,7 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Mocha.Features;
-using Mocha.Resources;
 using Mocha.Scheduling;
 using Mocha.Transport.Postgres.Tasks;
 using static System.StringSplitOptions;
@@ -260,90 +259,6 @@ public sealed class PostgresMessagingTransport : MessagingTransport
             receiveEndpoints,
             dispatchEndpoints,
             topology);
-    }
-
-    /// <inheritdoc />
-    public override void ContributeMochaResources(ICollection<MochaResource> resources)
-    {
-        ArgumentNullException.ThrowIfNull(resources);
-
-        var transportId = _topology.Address.ToString();
-
-        resources.Add(
-            new MochaTransportResource(
-                new TransportDescription(
-                    transportId,
-                    Name,
-                    Schema,
-                    nameof(PostgresMessagingTransport),
-                    [],
-                    [],
-                    null)));
-
-        foreach (var receiveEndpoint in ReceiveEndpoints)
-        {
-            resources.Add(new MochaReceiveEndpointResource(Schema, transportId, receiveEndpoint.Describe()));
-        }
-
-        foreach (var dispatchEndpoint in DispatchEndpoints)
-        {
-            resources.Add(new MochaDispatchEndpointResource(Schema, transportId, dispatchEndpoint.Describe()));
-        }
-
-        var topicIdsByName = new Dictionary<string, string>(StringComparer.Ordinal);
-        var queueIdsByName = new Dictionary<string, string>(StringComparer.Ordinal);
-
-        foreach (var topic in _topology.Topics)
-        {
-            var topicResource = new MochaTopicResource(
-                Schema,
-                transportId,
-                topic.Name,
-                topic.Address?.ToString(),
-                autoProvision: topic.AutoProvision);
-            resources.Add(topicResource);
-            topicIdsByName[topic.Name] = topicResource.Id;
-        }
-
-        var replyQueueAddress = ReplyReceiveEndpoint is { Kind: ReceiveEndpointKind.Reply, Source.Address: { } source }
-            ? source
-            : null;
-
-        foreach (var queue in _topology.Queues)
-        {
-            var isReplyQueue = replyQueueAddress is not null && replyQueueAddress == queue.Address;
-
-            var queueResource = new MochaQueueResource(
-                Schema,
-                transportId,
-                queue.Name,
-                queue.Address?.ToString(),
-                autoDelete: queue.AutoDelete,
-                autoProvision: queue.AutoProvision,
-                temporary: isReplyQueue);
-            resources.Add(queueResource);
-            queueIdsByName[queue.Name] = queueResource.Id;
-        }
-
-        foreach (var subscription in _topology.Subscriptions)
-        {
-            if (!topicIdsByName.TryGetValue(subscription.Source.Name, out var sourceId)
-                || !queueIdsByName.TryGetValue(subscription.Destination.Name, out var destinationId))
-            {
-                continue;
-            }
-
-            resources.Add(
-                new MochaBindingResource(
-                    Schema,
-                    transportId,
-                    subscription.Source.Name,
-                    subscription.Destination.Name,
-                    sourceId,
-                    destinationId,
-                    address: subscription.Address?.ToString(),
-                    autoProvision: subscription.AutoProvision));
-        }
     }
 
     /// <inheritdoc />

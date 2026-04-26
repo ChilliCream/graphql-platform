@@ -1,5 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using Mocha.Resources;
+using Microsoft.Extensions.Primitives;
 
 namespace Mocha;
 
@@ -147,18 +147,9 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     }
 
     /// <summary>
-    /// Contributes <see cref="MochaResource"/> instances representing this transport, its
-    /// receive/dispatch endpoints, and its topology entities to the supplied collection.
+    /// Gets a change token that fires when the transport topology may have changed.
     /// </summary>
-    /// <remarks>
-    /// Implementations must append to <paramref name="resources"/>; they must not clear
-    /// or otherwise mutate entries previously added by other contributors.
-    /// </remarks>
-    /// <param name="resources">The collection to append contributed resources to.</param>
-    public virtual void ContributeMochaResources(ICollection<MochaResource> resources)
-    {
-        ArgumentNullException.ThrowIfNull(resources);
-    }
+    public virtual IChangeToken GetChangeToken() => NullChangeToken.Singleton;
 
     /// <summary>
     /// Attempts to retrieve an existing dispatch endpoint for the specified address.

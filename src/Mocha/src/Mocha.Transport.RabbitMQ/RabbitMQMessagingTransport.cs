@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Mocha.Resources;
 using RabbitMQ.Client;
 using static System.StringSplitOptions;
 
@@ -218,115 +217,6 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
             receiveEndpoints,
             dispatchEndpoints,
             topology);
-    }
-
-    /// <inheritdoc />
-    public override void ContributeMochaResources(ICollection<MochaResource> resources)
-    {
-        ArgumentNullException.ThrowIfNull(resources);
-
-        var transportId = _topology.Address.ToString();
-        var autoProvision = _topology.AutoProvision;
-
-        resources.Add(
-            new MochaTransportResource(
-                new TransportDescription(
-                    transportId,
-                    Name,
-                    Schema,
-                    nameof(RabbitMQMessagingTransport),
-                    [],
-                    [],
-                    null)));
-
-        foreach (var receiveEndpoint in ReceiveEndpoints)
-        {
-            resources.Add(new MochaReceiveEndpointResource(Schema, transportId, receiveEndpoint.Describe()));
-        }
-
-        foreach (var dispatchEndpoint in DispatchEndpoints)
-        {
-            resources.Add(new MochaDispatchEndpointResource(Schema, transportId, dispatchEndpoint.Describe()));
-        }
-
-        var queueIdsByName = new Dictionary<string, string>(StringComparer.Ordinal);
-        var exchangeIdsByName = new Dictionary<string, string>(StringComparer.Ordinal);
-
-        foreach (var exchange in _topology.Exchanges)
-        {
-            var exchangeResource = new MochaExchangeResource(
-                Schema,
-                transportId,
-                exchange.Name,
-                exchange.Address?.ToString(),
-                exchangeType: exchange.Type,
-                durable: exchange.Durable,
-                autoDelete: exchange.AutoDelete,
-                autoProvision: exchange.AutoProvision ?? autoProvision);
-            resources.Add(exchangeResource);
-            exchangeIdsByName[exchange.Name] = exchangeResource.Id;
-        }
-
-        var replyQueueAddress = ReplyReceiveEndpoint is { Kind: ReceiveEndpointKind.Reply, Source.Address: { } source }
-            ? source
-            : null;
-
-        foreach (var queue in _topology.Queues)
-        {
-            var isReplyQueue = replyQueueAddress is not null && replyQueueAddress == queue.Address;
-
-            var queueResource = new MochaQueueResource(
-                Schema,
-                transportId,
-                queue.Name,
-                queue.Address?.ToString(),
-                durable: queue.Durable,
-                exclusive: queue.Exclusive,
-                autoDelete: queue.AutoDelete,
-                autoProvision: queue.AutoProvision ?? autoProvision,
-                temporary: isReplyQueue);
-            resources.Add(queueResource);
-            queueIdsByName[queue.Name] = queueResource.Id;
-        }
-
-        foreach (var binding in _topology.Bindings)
-        {
-            string? destinationName = binding switch
-            {
-                RabbitMQQueueBinding qb => qb.Destination.Name,
-                RabbitMQExchangeBinding eb => eb.Destination.Name,
-                _ => null
-            };
-
-            if (destinationName is null)
-            {
-                continue;
-            }
-
-            string? destinationId = binding switch
-            {
-                RabbitMQQueueBinding qb when queueIdsByName.TryGetValue(qb.Destination.Name, out var id) => id,
-                RabbitMQExchangeBinding eb when exchangeIdsByName.TryGetValue(eb.Destination.Name, out var id) => id,
-                _ => null
-            };
-
-            if (destinationId is null || !exchangeIdsByName.TryGetValue(binding.Source.Name, out var sourceId))
-            {
-                continue;
-            }
-
-            resources.Add(
-                new MochaBindingResource(
-                    Schema,
-                    transportId,
-                    binding.Source.Name,
-                    destinationName,
-                    sourceId,
-                    destinationId,
-                    routingKey: string.IsNullOrEmpty(binding.RoutingKey) ? null : binding.RoutingKey,
-                    address: binding.Address?.ToString(),
-                    autoProvision: binding.AutoProvision ?? autoProvision));
-        }
     }
 
     /// <inheritdoc />

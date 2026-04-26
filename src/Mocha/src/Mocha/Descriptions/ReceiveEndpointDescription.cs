@@ -7,7 +7,7 @@ namespace Mocha;
 /// <param name="Kind">The kind of receive endpoint (e.g., queue, subscription).</param>
 /// <param name="Address">The transport-level address URI, or <c>null</c> if not yet assigned.</param>
 /// <param name="SourceAddress">The source address for subscription-type endpoints, or <c>null</c> if not applicable.</param>
-internal sealed record ReceiveEndpointDescription(
+public sealed record ReceiveEndpointDescription(
     string Name,
     ReceiveEndpointKind Kind,
     string? Address,

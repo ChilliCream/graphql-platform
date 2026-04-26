@@ -10,7 +10,7 @@ namespace Mocha;
 /// <param name="ReceiveEndpoints">The receive endpoints owned by this transport.</param>
 /// <param name="DispatchEndpoints">The dispatch endpoints owned by this transport.</param>
 /// <param name="Topology">The transport-level topology, or <c>null</c> if not available.</param>
-internal sealed record TransportDescription(
+public sealed record TransportDescription(
     string Identifier,
     string Name,
     string Schema,

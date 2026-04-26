@@ -1,0 +1,132 @@
+using Microsoft.Extensions.Primitives;
+
+namespace Mocha;
+
+/// <summary>
+/// Caches the message bus topology snapshot and invalidates it when runtime topology sources change.
+/// </summary>
+public sealed class MessageBusTopology : IMessageBusTopology, IDisposable
+{
+#if NET9_0_OR_GREATER
+    private readonly Lock _lock = new();
+#else
+    private readonly object _lock = new();
+#endif
+
+    private readonly IMessagingRuntime _runtime;
+    private readonly List<IDisposable> _changeTokenRegistrations = [];
+    private CancellationTokenSource _changeTokenSource = new();
+    private IChangeToken _changeToken;
+    private MessageBusDescription? _description;
+    private bool _disposed;
+
+    public MessageBusTopology(IMessagingRuntime runtime)
+    {
+        ArgumentNullException.ThrowIfNull(runtime);
+
+        _runtime = runtime;
+        _changeToken = new CancellationChangeToken(_changeTokenSource.Token);
+
+        _changeTokenRegistrations.Add(ChangeToken.OnChange(_runtime.Endpoints.GetChangeToken, Invalidate));
+
+        foreach (var transport in _runtime.Transports)
+        {
+            _changeTokenRegistrations.Add(ChangeToken.OnChange(transport.GetChangeToken, Invalidate));
+        }
+    }
+
+    /// <inheritdoc />
+    public MessageBusDescription Description
+    {
+        get
+        {
+            lock (_lock)
+            {
+                ThrowIfDisposed();
+                return _description ??= MessageBusDescriptionVisitor.Visit(_runtime);
+            }
+        }
+    }
+
+    /// <inheritdoc />
+    public IChangeToken GetChangeToken()
+    {
+        lock (_lock)
+        {
+            ThrowIfDisposed();
+            return _changeToken;
+        }
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        IDisposable[] registrations;
+        CancellationTokenSource changeTokenSource;
+
+        lock (_lock)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+            registrations = [.. _changeTokenRegistrations];
+            _changeTokenRegistrations.Clear();
+            changeTokenSource = _changeTokenSource;
+            _changeToken = NullChangeToken.Singleton;
+            _description = null;
+        }
+
+        foreach (var registration in registrations)
+        {
+            registration.Dispose();
+        }
+
+        changeTokenSource.Dispose();
+    }
+
+    private void Invalidate()
+    {
+        CancellationTokenSource? changeTokenSource;
+
+        lock (_lock)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _description = null;
+            changeTokenSource = CreateChangeTokenUnsynchronized();
+        }
+
+        CancelChangeToken(changeTokenSource);
+    }
+
+    private CancellationTokenSource CreateChangeTokenUnsynchronized()
+    {
+        var previous = _changeTokenSource;
+        _changeTokenSource = new CancellationTokenSource();
+        _changeToken = new CancellationChangeToken(_changeTokenSource.Token);
+        return previous;
+    }
+
+    private static void CancelChangeToken(CancellationTokenSource changeTokenSource)
+    {
+        try
+        {
+            changeTokenSource.Cancel();
+        }
+        finally
+        {
+            changeTokenSource.Dispose();
+        }
+    }
+
+    private void ThrowIfDisposed()
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+    }
+}

@@ -7,7 +7,7 @@ namespace Mocha;
 /// <param name="MessageTypeIdentity">The identity string of the message type, or <c>null</c> if unknown.</param>
 /// <param name="ConsumerName">The name of the consumer handling messages on this route, or <c>null</c> if unbound.</param>
 /// <param name="Endpoint">The endpoint reference, or <c>null</c> if not yet assigned.</param>
-internal sealed record InboundRouteDescription(
+public sealed record InboundRouteDescription(
     InboundRouteKind Kind,
     string? MessageTypeIdentity,
     string? ConsumerName,

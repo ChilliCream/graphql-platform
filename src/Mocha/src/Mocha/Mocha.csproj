@@ -9,6 +9,7 @@
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.ObjectPool" />
     <PackageReference Include="Microsoft.Extensions.Options" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" />
     <PackageReference Include="Npgsql" />
     <PackageReference Include="OpenTelemetry" />
     <PackageReference Include="Polly" />
@@ -16,8 +17,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Mocha.Abstractions\Mocha.Abstractions.csproj" />
-    <ProjectReference Include="..\Mocha.Resources\Mocha.Resources.csproj" />
-    <ProjectReference Include="..\Mocha.Resources.Abstractions\Mocha.Resources.Abstractions.csproj" />
     <ProjectReference Include="..\Mocha.Threading\Mocha.Threading.csproj" />
     <ProjectReference Include="..\Mocha.Utilities\Mocha.Utilities.csproj" />
   </ItemGroup>

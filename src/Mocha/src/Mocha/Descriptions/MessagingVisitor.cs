@@ -3,7 +3,7 @@ using Mocha.Sagas;
 namespace Mocha;
 
 /// <summary>
-/// Base class for implementing the visitor pattern over a <see cref="MessagingRuntime"/> graph, traversing message types, consumers, routes, transports, endpoints, and sagas.
+/// Base class for implementing the visitor pattern over an <see cref="IMessagingRuntime"/> graph, traversing message types, consumers, routes, transports, endpoints, and sagas.
 /// </summary>
 /// <typeparam name="TContext">The type of context carried through the visitor traversal.</typeparam>
 internal abstract class MessagingVisitor<TContext>
@@ -14,6 +14,14 @@ internal abstract class MessagingVisitor<TContext>
     /// <param name="runtime">The messaging runtime to traverse.</param>
     /// <param name="context">The visitor context to accumulate results.</param>
     public void Visit(MessagingRuntime runtime, TContext context)
+        => Visit((IMessagingRuntime)runtime, context);
+
+    /// <summary>
+    /// Begins visiting the specified messaging runtime with the given context.
+    /// </summary>
+    /// <param name="runtime">The messaging runtime to traverse.</param>
+    /// <param name="context">The visitor context to accumulate results.</param>
+    public void Visit(IMessagingRuntime runtime, TContext context)
     {
         if (Enter(runtime, context) == VisitorAction.Break)
         {
@@ -24,7 +32,7 @@ internal abstract class MessagingVisitor<TContext>
         Leave(runtime, context);
     }
 
-    protected virtual void VisitChildren(MessagingRuntime runtime, TContext context)
+    protected virtual void VisitChildren(IMessagingRuntime runtime, TContext context)
     {
         foreach (var messageType in runtime.Messages.MessageTypes)
         {
@@ -186,7 +194,13 @@ internal abstract class MessagingVisitor<TContext>
         return null;
     }
 
+    protected virtual VisitorAction Enter(IMessagingRuntime runtime, TContext context)
+        => runtime is MessagingRuntime messagingRuntime ? Enter(messagingRuntime, context) : VisitorAction.Continue;
+
     protected virtual VisitorAction Enter(MessagingRuntime runtime, TContext context) => VisitorAction.Continue;
+
+    protected virtual VisitorAction Leave(IMessagingRuntime runtime, TContext context)
+        => runtime is MessagingRuntime messagingRuntime ? Leave(messagingRuntime, context) : VisitorAction.Continue;
 
     protected virtual VisitorAction Leave(MessagingRuntime runtime, TContext context) => VisitorAction.Continue;
 

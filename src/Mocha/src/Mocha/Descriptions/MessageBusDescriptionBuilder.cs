@@ -12,7 +12,7 @@ internal sealed class MessageBusDescriptionVisitor : MessagingVisitor<MessageBus
     /// </summary>
     /// <param name="runtime">The messaging runtime to describe.</param>
     /// <returns>A <see cref="MessageBusDescription"/> containing the full bus topology and configuration.</returns>
-    public static MessageBusDescription Visit(MessagingRuntime runtime)
+    public static MessageBusDescription Visit(IMessagingRuntime runtime)
     {
         var context = new Context();
         Instance.Visit(runtime, context);
@@ -42,7 +42,7 @@ internal sealed class MessageBusDescriptionVisitor : MessagingVisitor<MessageBus
                 Sagas is { Count: > 0 } ? Sagas : null);
     }
 
-    protected override VisitorAction Enter(MessagingRuntime runtime, Context context)
+    protected override VisitorAction Enter(IMessagingRuntime runtime, Context context)
     {
         context.Host = new HostDescription(
             runtime.Host.ServiceName,

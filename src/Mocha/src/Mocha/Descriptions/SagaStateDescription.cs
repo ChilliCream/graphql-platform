@@ -9,7 +9,7 @@ namespace Mocha;
 /// <param name="OnEntry">Lifecycle actions on state entry, or <c>null</c> if none.</param>
 /// <param name="Response">The response sent from this state, or <c>null</c> if none.</param>
 /// <param name="Transitions">The transitions available from this state.</param>
-internal sealed record SagaStateDescription(
+public sealed record SagaStateDescription(
     string Name,
     bool IsInitial,
     bool IsFinal,

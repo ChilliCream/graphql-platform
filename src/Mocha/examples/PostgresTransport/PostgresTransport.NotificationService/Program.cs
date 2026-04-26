@@ -1,5 +1,4 @@
 using Mocha;
-using Mocha.Resources;
 using Mocha.Transport.Postgres;
 using PostgresTransport.NotificationService.Handlers;
 
@@ -19,8 +18,6 @@ builder
     .AddEventHandler<OrderPlacedNotificationHandler>()
     .AddEventHandler<OrderShippedNotificationHandler>()
     .AddPostgres(t => t.ConnectionString(messagingConnectionString));
-
-// Resource source diagnostics — exposes the message bus topology as Mocha resources.
 
 var app = builder.Build();
 

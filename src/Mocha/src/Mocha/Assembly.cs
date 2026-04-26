@@ -21,4 +21,3 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("Mocha.Transport.Postgres.Tests")]
 [assembly: InternalsVisibleTo("Mocha.EntityFrameworkCore.Postgres.Tests")]
 [assembly: InternalsVisibleTo("Mocha.Hosting.Tests")]
-[assembly: InternalsVisibleTo("Mocha.Resources.Tests")]
