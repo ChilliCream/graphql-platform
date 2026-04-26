@@ -15,6 +15,12 @@ inputs:
   version:
     description: Version passed as the `version` input to the dispatched workflow.
     required: true
+  is_stable:
+    description: Whether the release is a stable (X.Y.Z) version. Forwarded to the dispatched workflow.
+    required: true
+  is_active_major:
+    description: Whether the release targets the top lane (version.major >= highest stable major). Forwarded to the dispatched workflow.
+    required: true
   token:
     description: "Token with `actions: write` on the target repository."
     required: true
@@ -47,6 +53,8 @@ runs:
         WORKFLOW: ${{ inputs.workflow }}
         REF: ${{ inputs.ref }}
         VERSION: ${{ inputs.version }}
+        IS_STABLE: ${{ inputs.is_stable }}
+        IS_ACTIVE_MAJOR: ${{ inputs.is_active_major }}
       run: |
         set -euo pipefail
         CORR=$(uuidgen)
@@ -54,6 +62,8 @@ runs:
 
         gh workflow run "$WORKFLOW" --repo "$REPO" --ref "$REF" \
           -f version="$VERSION" \
+          -f is_stable="$IS_STABLE" \
+          -f is_active_major="$IS_ACTIVE_MAJOR" \
           -f correlation_id="$CORR"
 
     - name: 🔎 Locate dispatched run
@@ -81,7 +91,7 @@ runs:
         done
 
         if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
-          echo "::error::Could not locate dispatched run for $REPO ($WORKFLOW)"
+          echo "::error::Could not locate dispatched run for $REPO ($WORKFLOW) with correlation_id=$CORR"
           exit 1
         fi
 

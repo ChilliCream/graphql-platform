@@ -9,42 +9,108 @@ permissions:
   contents: read
 
 jobs:
+  compute-release-context:
+    name: 🧮 Compute release context
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+    outputs:
+      git_tag: ${{ steps.ctx.outputs.git_tag }}
+      major: ${{ steps.ctx.outputs.major }}
+      is_stable: ${{ steps.ctx.outputs.is_stable }}
+      is_active_major: ${{ steps.ctx.outputs.is_active_major }}
+      is_highest_stable_major: ${{ steps.ctx.outputs.is_highest_stable_major }}
+    steps:
+      - name: 🧮 Compute
+        id: ctx
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          GIT_TAG="${GITHUB_REF#refs/tags/}"
+          MAJOR="${GIT_TAG%%.*}"
+
+          if [[ "$GIT_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            IS_STABLE=true
+          else
+            IS_STABLE=false
+          fi
+
+          # Highest stable major already published as a non-prerelease, non-draft GitHub Release.
+          HIGHEST=$(gh release list --repo "$GITHUB_REPOSITORY" --limit 200 \
+            --json tagName,isPrerelease,isDraft \
+            --jq '[.[] | select(.isPrerelease==false and .isDraft==false) | .tagName | select(test("^[0-9]+\\.[0-9]+\\.[0-9]+$"))] | map(split(".")[0] | tonumber) | max // 0')
+
+          if [[ "$MAJOR" -ge "$HIGHEST" ]]; then
+            IS_ACTIVE_MAJOR=true
+          else
+            IS_ACTIVE_MAJOR=false
+          fi
+
+          if [[ "$IS_STABLE" == "true" && "$IS_ACTIVE_MAJOR" == "true" ]]; then
+            IS_HIGHEST_STABLE_MAJOR=true
+          else
+            IS_HIGHEST_STABLE_MAJOR=false
+          fi
+
+          echo "git_tag=$GIT_TAG" >> "$GITHUB_OUTPUT"
+          echo "major=$MAJOR" >> "$GITHUB_OUTPUT"
+          echo "is_stable=$IS_STABLE" >> "$GITHUB_OUTPUT"
+          echo "is_active_major=$IS_ACTIVE_MAJOR" >> "$GITHUB_OUTPUT"
+          echo "is_highest_stable_major=$IS_HIGHEST_STABLE_MAJOR" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "## Release context"
+            echo "- git_tag: \`$GIT_TAG\`"
+            echo "- major: \`$MAJOR\`"
+            echo "- is_stable: \`$IS_STABLE\`"
+            echo "- is_active_major: \`$IS_ACTIVE_MAJOR\`"
+            echo "- is_highest_stable_major: \`$IS_HIGHEST_STABLE_MAJOR\`"
+            echo "- highest_stable_major (registry): \`$HIGHEST\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
   create-draft:
     name: 📝 Create Draft Release
     runs-on: ubuntu-22.04
+    needs: [compute-release-context]
     permissions:
       contents: write
+    env:
+      GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
+      IS_STABLE: ${{ needs.compute-release-context.outputs.is_stable }}
     steps:
-      - name: 🏷 Get the version from tag
-        run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-
       - name: 📝 Create draft release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if gh release view "$GIT_TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
             echo "Release for $GIT_TAG already exists; leaving it untouched."
-          else
-            prerelease_flag=()
-            if [[ ! "$GIT_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-              prerelease_flag=(--prerelease)
-            fi
-            gh release create "$GIT_TAG" \
-              --repo "${{ github.repository }}" \
-              --draft \
-              "${prerelease_flag[@]}" \
-              --title "$GIT_TAG" \
-              --generate-notes \
-              --target "$GITHUB_SHA"
+            exit 0
           fi
+
+          prerelease_flag=()
+          if [[ "$IS_STABLE" != "true" ]]; then
+            prerelease_flag=(--prerelease)
+          fi
+
+          gh release create "$GIT_TAG" \
+            --repo "${{ github.repository }}" \
+            --draft \
+            "${prerelease_flag[@]}" \
+            --title "$GIT_TAG" \
+            --generate-notes \
+            --target "$GITHUB_SHA"
 
   release:
     name: 📦 Build & Publish NuGet Packages
     runs-on: ubuntu-22.04
-    needs: [create-draft]
+    needs: [compute-release-context, create-draft]
     permissions:
       contents: write
       id-token: write
+    env:
+      GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
 
     steps:
       - name: 📦 Checkout
@@ -59,9 +125,6 @@ jobs:
             8.x
             9.x
             10.x
-
-      - name: 🏷 Get the version from tag
-        run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       - name: 📦 Build NuGet Packages
         run: |
@@ -328,11 +391,16 @@ jobs:
   publish-nitro-cli-platforms:
     name: 🧱 Publish Nitro CLI binary to npm
     runs-on: ubuntu-latest
-    needs: [build-nitro-cli]
+    needs: [compute-release-context, build-nitro-cli]
     if: startsWith(github.ref, 'refs/tags/')
     permissions:
       contents: write
       id-token: write
+    env:
+      GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
+      MAJOR: ${{ needs.compute-release-context.outputs.major }}
+      IS_STABLE: ${{ needs.compute-release-context.outputs.is_stable }}
+      IS_HIGHEST_STABLE_MAJOR: ${{ needs.compute-release-context.outputs.is_highest_stable_major }}
     strategy:
       matrix:
         rid:
@@ -392,11 +460,50 @@ jobs:
       - name: 🚀 Publish tarball to npm
         working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro-${{ matrix.rid }}
         shell: bash
+        env:
+          REGISTRY: ${{ vars.NPM_REGISTRY_URL }}
+          PKG: "@chillicream/nitro-${{ matrix.rid }}"
+          TARBALL: "./chillicream-nitro-${{ matrix.rid }}-${{ needs.compute-release-context.outputs.git_tag }}.tgz"
         run: |
-          npm publish "./chillicream-nitro-${{ matrix.rid }}-${GIT_TAG}.tgz" \
+          set -euo pipefail
+
+          # 1. Pick the band this release publishes under.
+          if [[ "$IS_HIGHEST_STABLE_MAJOR" == "true" ]]; then
+            PRIMARY_BAND="latest"
+            SECONDARY_BAND="${MAJOR}"
+          elif [[ "$IS_STABLE" == "true" ]]; then
+            PRIMARY_BAND="${MAJOR}"
+            SECONDARY_BAND=""
+          elif [[ "$GIT_TAG" =~ -rc\. ]]; then
+            PRIMARY_BAND="rc"
+            SECONDARY_BAND=""
+          else
+            PRIMARY_BAND="preview"
+            SECONDARY_BAND=""
+          fi
+
+          # 2. Snapshot the current value of the primary band, then publish under it.
+          PREVIOUS=$(npm view "$PKG" "dist-tags.${PRIMARY_BAND}" --registry="$REGISTRY" 2>/dev/null || echo "")
+          npm publish "$TARBALL" \
             --access public \
-            --registry="${{ vars.NPM_REGISTRY_URL }}" \
-            --tag latest
+            --registry="$REGISTRY" \
+            --tag "$PRIMARY_BAND"
+
+          # 3. If the publish was a backport, restore the band to its previous version.
+          if [[ -n "$PREVIOUS" ]] && ! npx --yes semver -r ">$PREVIOUS" "$GIT_TAG" >/dev/null 2>&1; then
+            npm dist-tag add "${PKG}@${PREVIOUS}" "$PRIMARY_BAND" --registry="$REGISTRY"
+            echo "Restored '${PRIMARY_BAND}' to ${PREVIOUS} (backport publish: ${GIT_TAG} <= ${PREVIOUS})."
+          fi
+
+          # 4. Stable highest also binds the major band, soft-skipped if backport.
+          if [[ -n "$SECONDARY_BAND" ]]; then
+            CUR=$(npm view "$PKG" "dist-tags.${SECONDARY_BAND}" --registry="$REGISTRY" 2>/dev/null || echo "0.0.0")
+            if npx --yes semver -r ">$CUR" "$GIT_TAG" >/dev/null 2>&1; then
+              npm dist-tag add "${PKG}@${GIT_TAG}" "$SECONDARY_BAND" --registry="$REGISTRY"
+            else
+              echo "Skipping '${SECONDARY_BAND}' band update: current=${CUR}, new=${GIT_TAG}."
+            fi
+          fi
 
       - name: 📤 Upload tarball as artifact
         uses: actions/upload-artifact@v7
@@ -414,11 +521,16 @@ jobs:
   publish-nitro-cli-npm:
     name: 🧱 Publish Nitro CLI to npm
     runs-on: ubuntu-latest
-    needs: [publish-nitro-cli-platforms]
+    needs: [compute-release-context, publish-nitro-cli-platforms]
     if: startsWith(github.ref, 'refs/tags/')
     permissions:
       contents: write
       id-token: write
+    env:
+      GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
+      MAJOR: ${{ needs.compute-release-context.outputs.major }}
+      IS_STABLE: ${{ needs.compute-release-context.outputs.is_stable }}
+      IS_HIGHEST_STABLE_MAJOR: ${{ needs.compute-release-context.outputs.is_highest_stable_major }}
 
     steps:
       - name: 📦 Checkout
@@ -430,20 +542,6 @@ jobs:
           node-version: 24
           registry-url: ${{ vars.NPM_REGISTRY_URL }}
           scope: "@chillicream"
-
-      - name: 🏷 Get the version from tag
-        run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-
-      - name: 🏷 Compute dist-tag
-        shell: bash
-        run: |
-          if [[ "$GIT_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "DIST_TAG=latest" >> $GITHUB_ENV
-          elif [[ "$GIT_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\. ]]; then
-            echo "DIST_TAG=rc" >> $GITHUB_ENV
-          else
-            echo "DIST_TAG=preview" >> $GITHUB_ENV
-          fi
 
       - name: 🧰 Enable corepack
         run: corepack enable
@@ -482,11 +580,50 @@ jobs:
       - name: 🚀 Publish tarball to npm
         working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
         shell: bash
+        env:
+          REGISTRY: ${{ vars.NPM_REGISTRY_URL }}
+          PKG: "@chillicream/nitro"
+          TARBALL: "./chillicream-nitro-${{ needs.compute-release-context.outputs.git_tag }}.tgz"
         run: |
-          npm publish "./chillicream-nitro-${GIT_TAG}.tgz" \
+          set -euo pipefail
+
+          # 1. Pick the band this release publishes under.
+          if [[ "$IS_HIGHEST_STABLE_MAJOR" == "true" ]]; then
+            PRIMARY_BAND="latest"
+            SECONDARY_BAND="${MAJOR}"
+          elif [[ "$IS_STABLE" == "true" ]]; then
+            PRIMARY_BAND="${MAJOR}"
+            SECONDARY_BAND=""
+          elif [[ "$GIT_TAG" =~ -rc\. ]]; then
+            PRIMARY_BAND="rc"
+            SECONDARY_BAND=""
+          else
+            PRIMARY_BAND="preview"
+            SECONDARY_BAND=""
+          fi
+
+          # 2. Snapshot the current value of the primary band, then publish under it.
+          PREVIOUS=$(npm view "$PKG" "dist-tags.${PRIMARY_BAND}" --registry="$REGISTRY" 2>/dev/null || echo "")
+          npm publish "$TARBALL" \
             --access public \
-            --registry="${{ vars.NPM_REGISTRY_URL }}" \
-            --tag "${DIST_TAG}"
+            --registry="$REGISTRY" \
+            --tag "$PRIMARY_BAND"
+
+          # 3. If the publish was a backport, restore the band to its previous version.
+          if [[ -n "$PREVIOUS" ]] && ! npx --yes semver -r ">$PREVIOUS" "$GIT_TAG" >/dev/null 2>&1; then
+            npm dist-tag add "${PKG}@${PREVIOUS}" "$PRIMARY_BAND" --registry="$REGISTRY"
+            echo "Restored '${PRIMARY_BAND}' to ${PREVIOUS} (backport publish: ${GIT_TAG} <= ${PREVIOUS})."
+          fi
+
+          # 4. Stable highest also binds the major band, soft-skipped if backport.
+          if [[ -n "$SECONDARY_BAND" ]]; then
+            CUR=$(npm view "$PKG" "dist-tags.${SECONDARY_BAND}" --registry="$REGISTRY" 2>/dev/null || echo "0.0.0")
+            if npx --yes semver -r ">$CUR" "$GIT_TAG" >/dev/null 2>&1; then
+              npm dist-tag add "${PKG}@${GIT_TAG}" "$SECONDARY_BAND" --registry="$REGISTRY"
+            else
+              echo "Skipping '${SECONDARY_BAND}' band update: current=${CUR}, new=${GIT_TAG}."
+            fi
+          fi
 
       - name: 📤 Upload tarball as artifact
         uses: actions/upload-artifact@v7
@@ -534,7 +671,7 @@ jobs:
   update-homebrew:
     name: 🍺 Update Homebrew Tap
     runs-on: ubuntu-latest
-    needs: [publish-release]
+    needs: [compute-release-context, publish-release]
     if: startsWith(github.ref, 'refs/tags/')
 
     steps:
@@ -543,9 +680,6 @@ jobs:
         with:
           sparse-checkout: .github/actions
           show-progress: false
-
-      - name: 🏷️ Get release version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       - name: 🔐 Create GitHub App token
         id: app-token
@@ -561,13 +695,15 @@ jobs:
         with:
           repo: ChilliCream/homebrew-tools
           workflow: release.yaml
-          version: ${{ env.VERSION }}
+          version: ${{ needs.compute-release-context.outputs.git_tag }}
+          is_stable: ${{ needs.compute-release-context.outputs.is_stable }}
+          is_active_major: ${{ needs.compute-release-context.outputs.is_active_major }}
           token: ${{ steps.app-token.outputs.token }}
 
   update-github-actions:
     name: 🔄 Update GitHub Actions
     runs-on: ubuntu-latest
-    needs: [publish-release]
+    needs: [compute-release-context, publish-release]
     if: startsWith(github.ref, 'refs/tags/')
     strategy:
       matrix:
@@ -595,9 +731,6 @@ jobs:
           sparse-checkout: .github/actions
           show-progress: false
 
-      - name: 🏷️ Get release version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-
       - name: 🔐 Create GitHub App token
         id: app-token
         uses: actions/create-github-app-token@v3
@@ -612,5 +745,7 @@ jobs:
         with:
           repo: ChilliCream/${{ matrix.repo }}
           workflow: release.yaml
-          version: ${{ env.VERSION }}
+          version: ${{ needs.compute-release-context.outputs.git_tag }}
+          is_stable: ${{ needs.compute-release-context.outputs.is_stable }}
+          is_active_major: ${{ needs.compute-release-context.outputs.is_active_major }}
           token: ${{ steps.app-token.outputs.token }}
