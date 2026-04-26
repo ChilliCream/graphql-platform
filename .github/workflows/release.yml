@@ -22,12 +22,16 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "$GIT_TAG" \
-            --repo "${{ github.repository }}" \
-            --draft \
-            --title "$GIT_TAG" \
-            --generate-notes \
-            --target "$GITHUB_SHA"
+          if gh release view "$GIT_TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "Release for $GIT_TAG already exists; leaving it untouched."
+          else
+            gh release create "$GIT_TAG" \
+              --repo "${{ github.repository }}" \
+              --draft \
+              --title "$GIT_TAG" \
+              --generate-notes \
+              --target "$GITHUB_SHA"
+          fi
 
   release:
     name: 📦 Build & Publish NuGet Packages
