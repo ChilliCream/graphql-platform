@@ -19,10 +19,10 @@ internal abstract record RequirementConsumer;
 internal sealed record StepConsumer(int StepId) : RequirementConsumer;
 
 /// <summary>
-/// A requirement consumer that lives on a <see cref="DeferSubPlanDescriptor"/>.
+/// A requirement consumer that lives on a <see cref="IncrementalPlanDescriptor"/>.
 /// The resolved requirement becomes a plan-scope requirement on the descriptor's
-/// <see cref="DeferSubPlanDescriptor.Requirements"/> collection so the runtime
+/// <see cref="IncrementalPlanDescriptor.Requirements"/> collection so the runtime
 /// can source the value from the parent plan's result tree before the
 /// sub-plan executes.
 /// </summary>
-internal sealed record DeferConsumer(DeferSubPlanDescriptor Descriptor) : RequirementConsumer;
+internal sealed record DeferConsumer(IncrementalPlanDescriptor Descriptor) : RequirementConsumer;

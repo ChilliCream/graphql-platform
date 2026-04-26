@@ -14,5 +14,5 @@ internal sealed record FieldOccurrence(
     ImmutableArray<FieldPathSegment> ParentPath,
     string ResponseName,
     FieldNode FieldNode,
-    DeferUsage? EnclosingDefer,
+    DeliveryGroup? EnclosingSubPlan,
     NamedTypeNode? TypeCondition);

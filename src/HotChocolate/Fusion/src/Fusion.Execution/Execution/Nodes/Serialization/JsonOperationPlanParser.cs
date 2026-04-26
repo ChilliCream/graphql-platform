@@ -52,9 +52,9 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         var nodes = ParseNodes(rootElement.GetProperty("nodes"), operation);
 
-        var deliveryGroups = ImmutableArray<DeferUsage>.Empty;
-        var deferredSubPlans = ImmutableArray<ExecutionSubPlan>.Empty;
-        var deliveryGroupMap = new Dictionary<int, DeferUsage>();
+        var deliveryGroups = ImmutableArray<DeliveryGroup>.Empty;
+        var deferredSubPlans = ImmutableArray<IncrementalPlan>.Empty;
+        var deliveryGroupMap = new Dictionary<int, DeliveryGroup>();
 
         if (rootElement.TryGetProperty("deliveryGroups", out var deliveryGroupsElement))
         {
@@ -63,7 +63,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
 
         if (rootElement.TryGetProperty("deferredSubPlans", out var deferredSubPlansElement))
         {
-            deferredSubPlans = ParseDeferredSubPlans(deferredSubPlansElement, deliveryGroupMap);
+            deferredSubPlans = ParseIncrementalPlans(deferredSubPlansElement, deliveryGroupMap);
         }
 
         // Root nodes are the entry points of the execution plan. A node is a
@@ -80,14 +80,14 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
             expandedNodes);
     }
 
-    private static ImmutableArray<DeferUsage> ParseDeliveryGroups(
+    private static ImmutableArray<DeliveryGroup> ParseDeliveryGroups(
         JsonElement deliveryGroupsElement,
-        Dictionary<int, DeferUsage> deliveryGroupMap)
+        Dictionary<int, DeliveryGroup> deliveryGroupMap)
     {
-        // Phase 1: Construct every DeferUsage without resolving parent references.
+        // Phase 1: Construct every DeliveryGroup without resolving parent references.
         // Parents are captured as numeric ids for the second pass because a parent
         // may appear after its child in the serialized array.
-        var ordered = new List<(DeferUsage Usage, int? ParentId)>();
+        var ordered = new List<(DeliveryGroup Usage, int? ParentId)>();
 
         foreach (var groupElement in deliveryGroupsElement.EnumerateArray())
         {
@@ -114,7 +114,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 parentId = parentIdElement.GetInt32();
             }
 
-            var deliveryGroup = new DeferUsage(label, Parent: null, DeferConditionIndex: 0)
+            var deliveryGroup = new DeliveryGroup(label, Parent: null, DeferConditionIndex: 0)
             {
                 Id = deferId,
                 Path = path,
@@ -128,8 +128,8 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         // Phase 2: Resolve every parent id against the map and rebuild the records
         // so their Parent references point at the final, canonical instances.
         // Update the map in place so downstream subplan parsing and the returned
-        // array both observe the same DeferUsage instances.
-        var builder = ImmutableArray.CreateBuilder<DeferUsage>(ordered.Count);
+        // array both observe the same DeliveryGroup instances.
+        var builder = ImmutableArray.CreateBuilder<DeliveryGroup>(ordered.Count);
 
         foreach (var (usage, parentId) in ordered)
         {
@@ -144,16 +144,16 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
         return builder.MoveToImmutable();
     }
 
-    private ImmutableArray<ExecutionSubPlan> ParseDeferredSubPlans(
+    private ImmutableArray<IncrementalPlan> ParseIncrementalPlans(
         JsonElement deferredSubPlansElement,
-        Dictionary<int, DeferUsage> deliveryGroupMap)
+        Dictionary<int, DeliveryGroup> deliveryGroupMap)
     {
-        var builder = ImmutableArray.CreateBuilder<ExecutionSubPlan>();
+        var builder = ImmutableArray.CreateBuilder<IncrementalPlan>();
 
         foreach (var subPlanElement in deferredSubPlansElement.EnumerateArray())
         {
             var deliveryGroupIdsElement = subPlanElement.GetProperty("deliveryGroupIds");
-            var subPlanDeliveryGroupsBuilder = ImmutableArray.CreateBuilder<DeferUsage>();
+            var subPlanDeliveryGroupsBuilder = ImmutableArray.CreateBuilder<DeliveryGroup>();
 
             foreach (var idElement in deliveryGroupIdsElement.EnumerateArray())
             {
@@ -193,7 +193,7 @@ public sealed class JsonOperationPlanParser : OperationPlanParser
                 subPlanRequirements = requirementsBuilder.ToImmutable();
             }
 
-            var subPlan = new ExecutionSubPlan(
+            var subPlan = new IncrementalPlan(
                 subPlanOperation,
                 rootSubPlanNodes,
                 subPlanNodes,

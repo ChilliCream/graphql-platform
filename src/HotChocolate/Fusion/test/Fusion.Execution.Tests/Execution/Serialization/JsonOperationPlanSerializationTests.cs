@@ -172,7 +172,7 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
     {
         // arrange
         // Two sibling @defer fragments share a field (email) plus a nested @defer
-        // adds a parent chain. Round-trip must restore canonical DeferUsage instances.
+        // adds a parent chain. Round-trip must restore canonical DeliveryGroup instances.
         var schema = ComposeSchema(
             """
             # name: a
@@ -237,7 +237,7 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         // assert
         Encoding.UTF8.GetString(buffer.WrittenSpan).MatchSnapshot();
         Assert.All(
-            parsedPlan.DeferredSubPlans,
+            parsedPlan.IncrementalPlans,
             p => Assert.All(
                 p.DeliveryGroups,
                 g => Assert.Same(parsedPlan.DeliveryGroups.Single(d => d.Id == g.Id), g)));
@@ -309,12 +309,12 @@ public class JsonOperationPlanSerializationTests : FusionTestBase
         var parsedPlan = parser.Parse(buffer.WrittenMemory);
 
         // assert
-        var originalSubPlanNode = originalPlan.DeferredSubPlans
+        var originalSubPlanNode = originalPlan.IncrementalPlans
             .Single()
             .AllNodes
             .OfType<OperationExecutionNode>()
             .Single(n => n.ParentDependencies.Length > 0);
-        var parsedSubPlanNode = parsedPlan.DeferredSubPlans
+        var parsedSubPlanNode = parsedPlan.IncrementalPlans
             .Single()
             .AllNodes
             .OfType<OperationExecutionNode>()

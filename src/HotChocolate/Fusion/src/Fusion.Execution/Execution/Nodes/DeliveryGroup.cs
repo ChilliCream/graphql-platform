@@ -22,9 +22,9 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// associated with this defer directive. This index maps to a bit position in the
 /// runtime defer flags bitmask.
 /// </param>
-public sealed record DeferUsage(
+public sealed record DeliveryGroup(
     string? Label,
-    DeferUsage? Parent,
+    DeliveryGroup? Parent,
     byte DeferConditionIndex)
 {
     /// <summary>

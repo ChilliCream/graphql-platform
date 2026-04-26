@@ -24,8 +24,8 @@ public sealed partial class OperationPlanner
         Operation operation,
         OperationDefinitionNode operationDefinition,
         ImmutableList<PlanStep> planSteps,
-        ImmutableArray<DeferUsage> deliveryGroups,
-        ImmutableArray<ExecutionSubPlan> deferredSubPlans,
+        ImmutableArray<DeliveryGroup> deliveryGroups,
+        ImmutableArray<IncrementalPlan> deferredSubPlans,
         int searchSpace,
         int expandedNodes,
         CancellationToken cancellationToken)
@@ -77,25 +77,7 @@ public sealed partial class OperationPlanner
             node.Seal();
         }
 
-        // Resolve each deferred subplan's parent execution node id now that both
-        // the main plan's nodes and each subplan's own nodes are built.
-        // Top-level subplans resolve against the main plan's allNodes; a nested
-        // subplan resolves against the enclosing subplan's AllNodes, where the
-        // enclosing subplan is the one whose DeliveryGroups contain the parent
-        // DeferUsage of any usage in the nested subplan's key set.
-        if (!deferredSubPlans.IsDefaultOrEmpty)
-        {
-            foreach (var subPlan in deferredSubPlans)
-            {
-                var path = ResolveSubPlanPath(subPlan);
-                var parent = ResolveSubPlanParent(subPlan, deferredSubPlans);
-                var owningNodes = parent is null ? allNodes : parent.AllNodes;
-                subPlan.ParentNodeId = ResolveDeferParentNodeId(owningNodes, path)
-                    ?? throw ThrowHelper.DeferredSubPlanParentNotFound(path);
-            }
-        }
-
-        return OperationPlan.Create(
+        var operationPlan = OperationPlan.Create(
             operation,
             rootNodes,
             allNodes,
@@ -103,14 +85,41 @@ public sealed partial class OperationPlanner
             deferredSubPlans,
             searchSpace,
             expandedNodes);
+
+        // Resolve each deferred subplan's parent execution node id and assign
+        // its plan-time id now that both the main plan's nodes and each
+        // subplan's own nodes are built. Top-level subplans resolve their
+        // parent against the main plan's allNodes; a nested subplan resolves
+        // against the enclosing subplan's AllNodes, where the enclosing
+        // subplan is the one whose DeliveryGroups contain the parent
+        // DeliveryGroup of any usage in the nested subplan's key set.
+        if (!deferredSubPlans.IsDefaultOrEmpty)
+        {
+            // Plan-time id: the parent id is known here because the root plan
+            // was just created above, and OperationPlan.Create's content hash
+            // does not include subplan ids.
+            for (var i = 0; i < deferredSubPlans.Length; i++)
+            {
+                var subPlan = deferredSubPlans[i];
+                subPlan.Id = $"{operationPlan.Id}#{i}";
+
+                var path = ResolveSubPlanPath(subPlan);
+                var parent = ResolveSubPlanParent(subPlan, deferredSubPlans);
+                var owningNodes = parent is null ? allNodes : parent.AllNodes;
+                subPlan.ParentNodeId = ResolveDeferParentNodeId(owningNodes, path)
+                    ?? throw ThrowHelper.IncrementalPlanParentNotFound(path);
+            }
+        }
+
+        return operationPlan;
     }
 
     /// <summary>
     /// Returns the path at which the given subplan's data is inserted into the
     /// result tree. Equivalent to the deepest
-    /// <see cref="DeferUsage.Path"/> across the subplan's delivery groups.
+    /// <see cref="DeliveryGroup.Path"/> across the subplan's delivery groups.
     /// </summary>
-    private static SelectionPath ResolveSubPlanPath(ExecutionSubPlan subPlan)
+    private static SelectionPath ResolveSubPlanPath(IncrementalPlan subPlan)
     {
         SelectionPath? best = null;
 
@@ -132,13 +141,13 @@ public sealed partial class OperationPlanner
 
     /// <summary>
     /// Finds the enclosing subplan for the given nested subplan. A subplan is
-    /// nested inside another subplan when some <see cref="DeferUsage"/> in its
-    /// key set has a <see cref="DeferUsage.Parent"/> that belongs to another
+    /// nested inside another subplan when some <see cref="DeliveryGroup"/> in its
+    /// key set has a <see cref="DeliveryGroup.Parent"/> that belongs to another
     /// subplan's key set. Returns <c>null</c> for top-level subplans.
     /// </summary>
-    private static ExecutionSubPlan? ResolveSubPlanParent(
-        ExecutionSubPlan subPlan,
-        ImmutableArray<ExecutionSubPlan> subPlans)
+    private static IncrementalPlan? ResolveSubPlanParent(
+        IncrementalPlan subPlan,
+        ImmutableArray<IncrementalPlan> subPlans)
     {
         foreach (var usage in subPlan.DeliveryGroups)
         {

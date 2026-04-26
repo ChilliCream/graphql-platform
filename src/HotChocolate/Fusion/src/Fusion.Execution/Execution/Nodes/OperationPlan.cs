@@ -10,7 +10,7 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// Represents a GraphQL operation execution plan in Hot Chocolate Fusion, containing
 /// the structured nodes and metadata required for distributed query execution.
 /// </summary>
-public sealed record OperationPlan
+public sealed record OperationPlan : IOperationPlan
 {
     private static readonly JsonOperationPlanFormatter s_formatter = new();
     private readonly ExecutionNode?[] _nodesById = [];
@@ -20,8 +20,8 @@ public sealed record OperationPlan
         Operation operation,
         ImmutableArray<ExecutionNode> rootNodes,
         ImmutableArray<ExecutionNode> allNodes,
-        ImmutableArray<DeferUsage> deliveryGroups,
-        ImmutableArray<ExecutionSubPlan> deferredSubPlans,
+        ImmutableArray<DeliveryGroup> deliveryGroups,
+        ImmutableArray<IncrementalPlan> deferredSubPlans,
         int searchSpace,
         int expandedNodes)
     {
@@ -32,7 +32,7 @@ public sealed record OperationPlan
         SearchSpace = searchSpace;
         ExpandedNodes = expandedNodes;
         DeliveryGroups = deliveryGroups;
-        DeferredSubPlans = deferredSubPlans;
+        IncrementalPlans = deferredSubPlans;
         _nodesById = CreateNodeLookup(allNodes);
         MaxNodeId = _nodesById.Length > 0 ? _nodesById.Length - 1 : 0;
     }
@@ -79,22 +79,22 @@ public sealed record OperationPlan
     public int ExpandedNodes { get; }
 
     /// <summary>
-    /// Gets every <see cref="DeferUsage"/> (delivery group) this plan uses, in
-    /// ascending <see cref="DeferUsage.Id"/> order. One element per <c>@defer</c>
+    /// Gets every <see cref="DeliveryGroup"/> (delivery group) this plan uses, in
+    /// ascending <see cref="DeliveryGroup.Id"/> order. One element per <c>@defer</c>
     /// occurrence in the operation. Empty if the operation has no <c>@defer</c>
     /// directives.
     /// </summary>
-    public ImmutableArray<DeferUsage> DeliveryGroups { get; }
+    public ImmutableArray<DeliveryGroup> DeliveryGroups { get; }
 
     /// <summary>
-    /// Gets the deferred execution subplans for this plan. Each subplan is
-    /// keyed by a unique <c>DeferUsageSet</c> and fetches the fields whose
-    /// active defer usage set matches that key. The subplan's data is
-    /// delivered to every <see cref="DeferUsage"/> in its
-    /// <see cref="ExecutionSubPlan.DeliveryGroups"/> when it completes.
+    /// Gets the incremental execution subplans for this plan. Each subplan is
+    /// keyed by a unique <c>DeliveryGroupSet</c> and fetches the fields whose
+    /// active delivery group set matches that key. The subplan's data is
+    /// delivered to every <see cref="DeliveryGroup"/> in its
+    /// <see cref="IncrementalPlan.DeliveryGroups"/> when it completes.
     /// Empty if the operation has no <c>@defer</c> directives.
     /// </summary>
-    public ImmutableArray<ExecutionSubPlan> DeferredSubPlans { get; }
+    public ImmutableArray<IncrementalPlan> IncrementalPlans { get; }
 
     /// <summary>
     /// Gets the maximum node identifier across all nodes in this plan.
@@ -154,12 +154,12 @@ public sealed record OperationPlan
     /// <param name="rootNodes">The root execution nodes.</param>
     /// <param name="allNodes">All execution nodes in the plan.</param>
     /// <param name="deliveryGroups">
-    /// Every <see cref="DeferUsage"/> (delivery group) this plan uses, in ascending
-    /// <see cref="DeferUsage.Id"/> order.
+    /// Every <see cref="DeliveryGroup"/> (delivery group) this plan uses, in ascending
+    /// <see cref="DeliveryGroup.Id"/> order.
     /// </param>
     /// <param name="deferredSubPlans">
-    /// The deferred execution subplans for <c>@defer</c> support, one per unique
-    /// <c>DeferUsageSet</c>.
+    /// The incremental execution subplans for <c>@defer</c> support, one per unique
+    /// <c>DeliveryGroupSet</c>.
     /// </param>
     /// <param name="searchSpace">A number specifying how many possible plans were considered during planning.</param>
     /// <param name="expandedNodes">The number of expanded nodes during planner search.</param>
@@ -172,8 +172,8 @@ public sealed record OperationPlan
         Operation operation,
         ImmutableArray<ExecutionNode> rootNodes,
         ImmutableArray<ExecutionNode> allNodes,
-        ImmutableArray<DeferUsage> deliveryGroups,
-        ImmutableArray<ExecutionSubPlan> deferredSubPlans,
+        ImmutableArray<DeliveryGroup> deliveryGroups,
+        ImmutableArray<IncrementalPlan> deferredSubPlans,
         int searchSpace,
         int expandedNodes)
     {
@@ -194,12 +194,12 @@ public sealed record OperationPlan
     /// <param name="rootNodes">The root execution nodes.</param>
     /// <param name="allNodes">All execution nodes in the plan.</param>
     /// <param name="deliveryGroups">
-    /// Every <see cref="DeferUsage"/> (delivery group) this plan uses, in ascending
-    /// <see cref="DeferUsage.Id"/> order.
+    /// Every <see cref="DeliveryGroup"/> (delivery group) this plan uses, in ascending
+    /// <see cref="DeliveryGroup.Id"/> order.
     /// </param>
     /// <param name="deferredSubPlans">
-    /// The deferred execution subplans for <c>@defer</c> support, one per unique
-    /// <c>DeferUsageSet</c>.
+    /// The incremental execution subplans for <c>@defer</c> support, one per unique
+    /// <c>DeliveryGroupSet</c>.
     /// </param>
     /// <param name="searchSpace">A number specifying how many possible plans were considered during planning.</param>
     /// <param name="expandedNodes">The number of expanded nodes during planner search.</param>
@@ -210,8 +210,8 @@ public sealed record OperationPlan
         Operation operation,
         ImmutableArray<ExecutionNode> rootNodes,
         ImmutableArray<ExecutionNode> allNodes,
-        ImmutableArray<DeferUsage> deliveryGroups,
-        ImmutableArray<ExecutionSubPlan> deferredSubPlans,
+        ImmutableArray<DeliveryGroup> deliveryGroups,
+        ImmutableArray<IncrementalPlan> deferredSubPlans,
         int searchSpace,
         int expandedNodes)
     {

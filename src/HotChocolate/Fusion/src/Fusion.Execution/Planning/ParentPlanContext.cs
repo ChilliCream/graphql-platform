@@ -9,14 +9,14 @@ namespace HotChocolate.Fusion.Planning;
 /// another deferred sub-plan (a nested defer). The <see cref="OwnerDescriptor"/>
 /// identifies the enclosing defer (when applicable) and lets the requirement
 /// resolution walker escalate requirements that the immediate enclosing scope
-/// cannot serve via <see cref="DeferContextGraph.GetEnclosingScope"/>.
+/// cannot serve via <see cref="PlanContextGraph.GetEnclosingScope"/>.
 /// </summary>
 /// <param name="ParentSteps">
 /// The parent plan scope's current list of <see cref="PlanStep"/> instances.
 /// Routing a deferred sub-plan's requirement into the parent scope produces
 /// an updated list that the defer planning pass pushes back via
-/// <see cref="DeferContextGraph.UpdateRootSteps(ImmutableList{PlanStep})"/>
-/// or <see cref="DeferContextGraph.UpdateDeferContext(DeferSubPlanDescriptor, ImmutableList{PlanStep}, OperationDefinitionNode)"/>.
+/// <see cref="PlanContextGraph.UpdateRootSteps(ImmutableList{PlanStep})"/>
+/// or <see cref="PlanContextGraph.UpdateDeferContext(IncrementalPlanDescriptor, ImmutableList{PlanStep}, OperationDefinitionNode)"/>.
 /// </param>
 /// <param name="ParentSelectionSetIndex">
 /// The <see cref="ISelectionSetIndex"/> associated with the parent plan scope's
@@ -25,7 +25,7 @@ namespace HotChocolate.Fusion.Planning;
 /// <param name="ParentInternalOperation">
 /// The planner's internal <see cref="OperationDefinitionNode"/> for the parent
 /// plan scope. For <see cref="ParentScope.Root"/> this is the stripped main
-/// operation, for <see cref="ParentScope.EnclosingDefer"/> this is the
+/// operation, for <see cref="ParentScope.EnclosingSubPlan"/> this is the
 /// enclosing sub-plan's internal operation.
 /// </param>
 /// <param name="Kind">
@@ -33,17 +33,17 @@ namespace HotChocolate.Fusion.Planning;
 /// deferred sub-plan.
 /// </param>
 /// <param name="OwnerDescriptor">
-/// When <see cref="Kind"/> is <see cref="ParentScope.EnclosingDefer"/>, the
+/// When <see cref="Kind"/> is <see cref="ParentScope.EnclosingSubPlan"/>, the
 /// descriptor that owns this scope. <see langword="null"/> for the root scope.
 /// The requirement-resolution walker uses this to escalate to the next
-/// enclosing scope via <see cref="DeferContextGraph.GetEnclosingScope"/>.
+/// enclosing scope via <see cref="PlanContextGraph.GetEnclosingScope"/>.
 /// </param>
-internal sealed record DeferParentContext(
+internal sealed record ParentPlanContext(
     ImmutableList<PlanStep> ParentSteps,
     ISelectionSetIndex ParentSelectionSetIndex,
     OperationDefinitionNode ParentInternalOperation,
     ParentScope Kind,
-    DeferSubPlanDescriptor? OwnerDescriptor = null);
+    IncrementalPlanDescriptor? OwnerDescriptor = null);
 
 /// <summary>
 /// Identifies the kind of plan scope that encloses a deferred sub-plan.
@@ -58,5 +58,5 @@ internal enum ParentScope
     /// <summary>
     /// The enclosing scope is another deferred sub-plan (nested defer).
     /// </summary>
-    EnclosingDefer
+    EnclosingSubPlan
 }

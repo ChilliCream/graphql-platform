@@ -21,7 +21,7 @@ internal static class DeferOccurrenceCollector
     /// </summary>
     /// <param name="operation">The operation definition to walk.</param>
     /// <param name="byFragment">
-    /// The canonical <see cref="InlineFragmentNode"/> to <see cref="DeferUsage"/>
+    /// The canonical <see cref="InlineFragmentNode"/> to <see cref="DeliveryGroup"/>
     /// lookup produced by <see cref="DeferPartitioner"/>.
     /// </param>
     /// <param name="inlineUnlabeledNestedDefers">
@@ -30,7 +30,7 @@ internal static class DeferOccurrenceCollector
     /// </param>
     public static List<FieldOccurrence> Collect(
         OperationDefinitionNode operation,
-        IReadOnlyDictionary<InlineFragmentNode, DeferUsage> byFragment,
+        IReadOnlyDictionary<InlineFragmentNode, DeliveryGroup> byFragment,
         bool inlineUnlabeledNestedDefers)
     {
         var occurrences = new List<FieldOccurrence>();
@@ -48,9 +48,9 @@ internal static class DeferOccurrenceCollector
     private static void CollectOccurrences(
         IReadOnlyList<ISelectionNode> selections,
         ImmutableArray<FieldPathSegment> parentPath,
-        DeferUsage? enclosingDefer,
+        DeliveryGroup? enclosingDefer,
         NamedTypeNode? parentTypeCondition,
-        IReadOnlyDictionary<InlineFragmentNode, DeferUsage> byFragment,
+        IReadOnlyDictionary<InlineFragmentNode, DeliveryGroup> byFragment,
         bool inlineUnlabeledNestedDefers,
         List<FieldOccurrence> occurrences)
     {

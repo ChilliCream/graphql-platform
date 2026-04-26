@@ -21,7 +21,7 @@ public sealed class Operation : IOperation
     private readonly OperationCompiler _compiler;
     private readonly IncludeConditionCollection _includeConditions;
     private readonly DeferConditionCollection _deferConditions;
-    private readonly IReadOnlyDictionary<InlineFragmentNode, DeferUsage> _deferUsageByFragment;
+    private readonly IReadOnlyDictionary<InlineFragmentNode, DeliveryGroup> _deferUsageByFragment;
     private readonly OperationFeatureCollection _features;
     private readonly bool _hasIncrementalParts;
     private object[] _elementsById;
@@ -37,7 +37,7 @@ public sealed class Operation : IOperation
         OperationCompiler compiler,
         IncludeConditionCollection includeConditions,
         DeferConditionCollection deferConditions,
-        IReadOnlyDictionary<InlineFragmentNode, DeferUsage> deferUsageByFragment,
+        IReadOnlyDictionary<InlineFragmentNode, DeliveryGroup> deferUsageByFragment,
         bool hasIncrementalParts,
         int lastId,
         object[] elementsById)

@@ -7,7 +7,7 @@ namespace HotChocolate.Fusion.Planning;
 /// The outcome of planning a single deferred sub-plan. Carries the sub-plan's
 /// own steps and internal operation. Plan-scope requirements are NOT part of
 /// this result: under the variable-wiring model they live on the owning
-/// <see cref="DeferSubPlanDescriptor"/> and are populated by the parent
+/// <see cref="IncrementalPlanDescriptor"/> and are populated by the parent
 /// plan's requirement-resolution pass, not by the sub-plan itself.
 /// </summary>
 /// <param name="Steps">

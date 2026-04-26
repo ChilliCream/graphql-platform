@@ -85,7 +85,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         WriteNodes(jsonWriter, plan.Operation, plan.AllNodes, trace);
 
         WriteDeliveryGroups(jsonWriter, plan.DeliveryGroups);
-        WriteDeferredSubPlans(jsonWriter, plan.DeferredSubPlans);
+        WriteIncrementalPlans(jsonWriter, plan.IncrementalPlans);
 
         jsonWriter.WriteEndObject();
     }
@@ -172,7 +172,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
     private static void WriteDeliveryGroups(
         JsonWriter jsonWriter,
-        ImmutableArray<DeferUsage> deliveryGroups)
+        ImmutableArray<DeliveryGroup> deliveryGroups)
     {
         if (deliveryGroups.IsDefaultOrEmpty)
         {
@@ -192,7 +192,7 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
     private static void WriteDeliveryGroup(
         JsonWriter jsonWriter,
-        DeferUsage deliveryGroup)
+        DeliveryGroup deliveryGroup)
     {
         jsonWriter.WriteStartObject();
 
@@ -223,9 +223,9 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         jsonWriter.WriteEndObject();
     }
 
-    private static void WriteDeferredSubPlans(
+    private static void WriteIncrementalPlans(
         JsonWriter jsonWriter,
-        ImmutableArray<ExecutionSubPlan> deferredSubPlans)
+        ImmutableArray<IncrementalPlan> deferredSubPlans)
     {
         if (deferredSubPlans.IsDefaultOrEmpty)
         {
@@ -237,15 +237,15 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
         foreach (var subPlan in deferredSubPlans)
         {
-            WriteDeferredSubPlan(jsonWriter, subPlan);
+            WriteIncrementalPlan(jsonWriter, subPlan);
         }
 
         jsonWriter.WriteEndArray();
     }
 
-    private static void WriteDeferredSubPlan(
+    private static void WriteIncrementalPlan(
         JsonWriter jsonWriter,
-        ExecutionSubPlan subPlan)
+        IncrementalPlan subPlan)
     {
         jsonWriter.WriteStartObject();
 

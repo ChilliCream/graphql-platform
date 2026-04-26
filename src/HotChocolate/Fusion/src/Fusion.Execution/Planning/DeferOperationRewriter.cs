@@ -9,7 +9,7 @@ namespace HotChocolate.Fusion.Planning;
 /// <summary>
 /// Splits an operation with <c>@defer</c> directives into a main operation
 /// (non-deferred fields only) and one subplan operation per unique
-/// <see cref="DeferUsage"/> set. The set keying follows the GraphQL
+/// <see cref="DeliveryGroup"/> set. The set keying follows the GraphQL
 /// incremental-delivery spec: each field's active defer usage set is the
 /// union of its per-occurrence enclosing <c>@defer</c> leaves (with
 /// parent-child pruning). Two sibling <c>... @defer</c> fragments that share
@@ -88,9 +88,9 @@ internal sealed class DeferOperationRewriter
 
     /// <summary>
     /// Splits the given operation at <c>@defer</c> boundaries using the
-    /// <see cref="DeferUsage"/> topology produced by
+    /// <see cref="DeliveryGroup"/> topology produced by
     /// <see cref="DeferPartitioner"/>. The output contains the stripped main
-    /// operation (fields whose active <c>DeferUsageSet</c> is empty) plus one
+    /// operation (fields whose active <c>DeliveryGroupSet</c> is empty) plus one
     /// subplan per unique non-empty active set. Sibling <c>@defer</c>
     /// fragments that share a field collapse into a single subplan keyed by
     /// the union of both usages.
@@ -113,7 +113,7 @@ internal sealed class DeferOperationRewriter
 
         var mainOperation = BuildMainOperation(operation, partitioning.ByFragment);
 
-        if (partitioning.AllDeferUsages.IsEmpty)
+        if (partitioning.AllDeliveryGroups.IsEmpty)
         {
             return new DeferSplitResult(mainOperation, []);
         }
@@ -123,16 +123,16 @@ internal sealed class DeferOperationRewriter
         return new DeferSplitResult(mainOperation, subPlanDescriptors);
     }
 
-    private static ImmutableArray<DeferSubPlanDescriptor> BuildSubPlanOps(
+    private static ImmutableArray<IncrementalPlanDescriptor> BuildSubPlanOps(
         OperationDefinitionNode operation,
         List<FieldOccurrence> occurrences,
-        Dictionary<FieldLocation, DeferUsageSetKey> effectiveSetByLocation)
+        Dictionary<FieldLocation, DeliveryGroupSetKey> effectiveSetByLocation)
     {
         // Bucket occurrences by effective set. We use a canonical
-        // ImmutableArray<DeferUsage> (sorted by Id) as the set key so the
+        // ImmutableArray<DeliveryGroup> (sorted by Id) as the set key so the
         // resulting buckets are stable across runs and trivially comparable
         // by sequence equality.
-        var buckets = new Dictionary<DeferUsageSetKey, SubPlanBucket>();
+        var buckets = new Dictionary<DeliveryGroupSetKey, SubPlanBucket>();
 
         foreach (var occurrence in occurrences)
         {
@@ -160,21 +160,21 @@ internal sealed class DeferOperationRewriter
         // Synthesize one OperationDefinitionNode per bucket. The output is a
         // query operation rooted at Query, with the wrapping path fields
         // looked up in the original AST so arguments, aliases and directives
-        // are preserved. Buckets are ordered by the smallest DeferUsage Id in
+        // are preserved. Buckets are ordered by the smallest DeliveryGroup Id in
         // the key so subsequent sort-by-Id consumers see a deterministic order.
         var ordered = buckets.Values.ToList();
         ordered.Sort(static (a, b) => a.Key.CompareTo(b.Key));
 
-        var subPlanDescriptors = ImmutableArray.CreateBuilder<DeferSubPlanDescriptor>(ordered.Count);
-        var descriptorByKey = new Dictionary<DeferUsageSetKey, DeferSubPlanDescriptor>(ordered.Count);
+        var subPlanDescriptors = ImmutableArray.CreateBuilder<IncrementalPlanDescriptor>(ordered.Count);
+        var descriptorByKey = new Dictionary<DeliveryGroupSetKey, IncrementalPlanDescriptor>(ordered.Count);
 
         foreach (var bucket in ordered)
         {
             var subPlanOp = BuildSubPlanOperation(operation, bucket);
             var path = DeterminePath(bucket.Key);
             var parent = ResolveParentDescriptor(bucket.Key, descriptorByKey);
-            var descriptor = new DeferSubPlanDescriptor(
-                deferUsageSet: bucket.Key.Items,
+            var descriptor = new IncrementalPlanDescriptor(
+                deliveryGroupSet: bucket.Key.Items,
                 operation: subPlanOp,
                 path: path,
                 parent: parent);
@@ -188,7 +188,7 @@ internal sealed class DeferOperationRewriter
 
     private OperationDefinitionNode BuildMainOperation(
         OperationDefinitionNode operation,
-        IReadOnlyDictionary<InlineFragmentNode, DeferUsage> byFragment)
+        IReadOnlyDictionary<InlineFragmentNode, DeliveryGroup> byFragment)
     {
         var newRoot = StripDeferFromSelectionSet(operation.SelectionSet, byFragment);
         return operation.WithSelectionSet(newRoot);
@@ -196,7 +196,7 @@ internal sealed class DeferOperationRewriter
 
     private SelectionSetNode StripDeferFromSelectionSet(
         SelectionSetNode selectionSet,
-        IReadOnlyDictionary<InlineFragmentNode, DeferUsage> byFragment)
+        IReadOnlyDictionary<InlineFragmentNode, DeliveryGroup> byFragment)
     {
         var selections = new List<ISelectionNode>(selectionSet.Selections.Count);
         var modified = false;
@@ -458,7 +458,7 @@ internal sealed class DeferOperationRewriter
         return builder.ToString();
     }
 
-    private static SelectionPath DeterminePath(DeferUsageSetKey key)
+    private static SelectionPath DeterminePath(DeliveryGroupSetKey key)
     {
         // The subplan roots at the longest shared ancestor of all usages in
         // its set. For siblings (same parent), every usage has the same
@@ -483,12 +483,12 @@ internal sealed class DeferOperationRewriter
         return best ?? SelectionPath.Root;
     }
 
-    private static DeferSubPlanDescriptor? ResolveParentDescriptor(
-        DeferUsageSetKey key,
-        Dictionary<DeferUsageSetKey, DeferSubPlanDescriptor> descriptorByKey)
+    private static IncrementalPlanDescriptor? ResolveParentDescriptor(
+        DeliveryGroupSetKey key,
+        Dictionary<DeliveryGroupSetKey, IncrementalPlanDescriptor> descriptorByKey)
     {
         // A subplan's "parent" is the subplan whose key contains the parent
-        // DeferUsage of any usage in this set. We pick the first usage's
+        // DeliveryGroup of any usage in this set. We pick the first usage's
         // parent chain; all other usages in the set share an equivalent
         // ancestry after parent pruning.
         foreach (var usage in key.Items)
@@ -545,9 +545,9 @@ internal sealed class DeferOperationRewriter
         return false;
     }
 
-    private sealed class SubPlanBucket(DeferUsageSetKey key)
+    private sealed class SubPlanBucket(DeliveryGroupSetKey key)
     {
-        public DeferUsageSetKey Key { get; } = key;
+        public DeliveryGroupSetKey Key { get; } = key;
         public List<FieldOccurrence> Occurrences { get; } = [];
 
         public void Add(FieldOccurrence occurrence) => Occurrences.Add(occurrence);

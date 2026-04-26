@@ -11,25 +11,25 @@ namespace HotChocolate.Fusion.Planning;
 /// </summary>
 /// <remarks>
 /// The immediate enclosing relationship is taken from
-/// <see cref="DeferSubPlanDescriptor.Parent"/>, which the
+/// <see cref="IncrementalPlanDescriptor.Parent"/>, which the
 /// <see cref="DeferOperationRewriter"/> populates during the split phase by
-/// walking each set member's <see cref="Execution.Nodes.DeferUsage.Parent"/>
+/// walking each set member's <see cref="Execution.Nodes.DeliveryGroup.Parent"/>
 /// chain. Because the rewriter emits descriptors in an order where every
 /// parent precedes its children, each nested descriptor's enclosing scope is
 /// already registered by the time it is queried here.
 /// </remarks>
-internal sealed class DeferContextGraph
+internal sealed class PlanContextGraph
 {
-    private readonly Dictionary<DeferSubPlanDescriptor, DeferParentContext> _enclosingContextByDescriptor = [];
-    private DeferParentContext _rootContext;
+    private readonly Dictionary<IncrementalPlanDescriptor, ParentPlanContext> _enclosingContextByDescriptor = [];
+    private ParentPlanContext _rootContext;
 
-    private DeferContextGraph(DeferParentContext rootContext)
+    private PlanContextGraph(ParentPlanContext rootContext)
     {
         _rootContext = rootContext;
     }
 
     /// <summary>
-    /// Creates a new <see cref="DeferContextGraph"/> seeded with the root
+    /// Creates a new <see cref="PlanContextGraph"/> seeded with the root
     /// plan scope state that every top-level deferred sub-plan resolves
     /// against.
     /// </summary>
@@ -44,7 +44,7 @@ internal sealed class DeferContextGraph
     /// The planner's internal operation for the root plan scope. For an
     /// operation with <c>@defer</c> this is the stripped main operation.
     /// </param>
-    public static DeferContextGraph Create(
+    public static PlanContextGraph Create(
         ImmutableList<PlanStep> rootSteps,
         ISelectionSetIndex rootSelectionSetIndex,
         OperationDefinitionNode rootInternalOperation)
@@ -53,13 +53,13 @@ internal sealed class DeferContextGraph
         ArgumentNullException.ThrowIfNull(rootSelectionSetIndex);
         ArgumentNullException.ThrowIfNull(rootInternalOperation);
 
-        var rootContext = new DeferParentContext(
+        var rootContext = new ParentPlanContext(
             rootSteps,
             rootSelectionSetIndex,
             rootInternalOperation,
             ParentScope.Root);
 
-        return new DeferContextGraph(rootContext);
+        return new PlanContextGraph(rootContext);
     }
 
     /// <summary>
@@ -82,14 +82,14 @@ internal sealed class DeferContextGraph
     public OperationDefinitionNode RootInternalOperation => _rootContext.ParentInternalOperation;
 
     /// <summary>
-    /// Returns the immediate enclosing <see cref="DeferParentContext"/> for
+    /// Returns the immediate enclosing <see cref="ParentPlanContext"/> for
     /// the given sub-plan descriptor. A top-level defer resolves against the
     /// root scope, a nested defer resolves against its enclosing sub-plan's
     /// context as registered via
-    /// <see cref="RegisterDeferContext(DeferSubPlanDescriptor, ImmutableList{PlanStep}, ISelectionSetIndex, OperationDefinitionNode)"/>.
+    /// <see cref="RegisterDeferContext(IncrementalPlanDescriptor, ImmutableList{PlanStep}, ISelectionSetIndex, OperationDefinitionNode)"/>.
     /// </summary>
     /// <param name="descriptor">The descriptor whose enclosing context is queried.</param>
-    public DeferParentContext GetParentContext(DeferSubPlanDescriptor descriptor)
+    public ParentPlanContext GetParentContext(IncrementalPlanDescriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
 
@@ -146,7 +146,7 @@ internal sealed class DeferContextGraph
     /// <param name="selectionSetIndex">The selection set index used for the sub-plan.</param>
     /// <param name="internalOperation">The sub-plan's internal operation.</param>
     public void RegisterDeferContext(
-        DeferSubPlanDescriptor descriptor,
+        IncrementalPlanDescriptor descriptor,
         ImmutableList<PlanStep> steps,
         ISelectionSetIndex selectionSetIndex,
         OperationDefinitionNode internalOperation)
@@ -156,11 +156,11 @@ internal sealed class DeferContextGraph
         ArgumentNullException.ThrowIfNull(selectionSetIndex);
         ArgumentNullException.ThrowIfNull(internalOperation);
 
-        var context = new DeferParentContext(
+        var context = new ParentPlanContext(
             steps,
             selectionSetIndex,
             internalOperation,
-            ParentScope.EnclosingDefer,
+            ParentScope.EnclosingSubPlan,
             OwnerDescriptor: descriptor);
 
         _enclosingContextByDescriptor[descriptor] = context;
@@ -176,7 +176,7 @@ internal sealed class DeferContextGraph
     /// the current state of each scope, including mutations applied by
     /// sibling or nested descriptors that were processed in between.
     /// </summary>
-    public DeferParentContext? GetEnclosingScope(DeferParentContext scope)
+    public ParentPlanContext? GetEnclosingScope(ParentPlanContext scope)
     {
         ArgumentNullException.ThrowIfNull(scope);
 
@@ -187,7 +187,7 @@ internal sealed class DeferContextGraph
 
         var ownerDescriptor = scope.OwnerDescriptor
             ?? throw new InvalidOperationException(
-                "An EnclosingDefer-kind scope must carry an OwnerDescriptor.");
+                "An EnclosingSubPlan-kind scope must carry an OwnerDescriptor.");
 
         if (ownerDescriptor.Parent is null)
         {
@@ -209,7 +209,7 @@ internal sealed class DeferContextGraph
     /// (for example a nested inner defer promoting a step into its outer
     /// enclosing scope).
     /// </summary>
-    public ImmutableList<PlanStep> GetRegisteredSteps(DeferSubPlanDescriptor descriptor)
+    public ImmutableList<PlanStep> GetRegisteredSteps(IncrementalPlanDescriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
 
@@ -230,7 +230,7 @@ internal sealed class DeferContextGraph
     /// <see cref="GetRegisteredSteps"/>; keeps the execution-node build pass
     /// from reading a stale snapshot taken at routing time.
     /// </summary>
-    public OperationDefinitionNode GetRegisteredInternalOperation(DeferSubPlanDescriptor descriptor)
+    public OperationDefinitionNode GetRegisteredInternalOperation(IncrementalPlanDescriptor descriptor)
     {
         ArgumentNullException.ThrowIfNull(descriptor);
 
@@ -252,7 +252,7 @@ internal sealed class DeferContextGraph
     /// update.
     /// </summary>
     public void UpdateDeferContext(
-        DeferSubPlanDescriptor descriptor,
+        IncrementalPlanDescriptor descriptor,
         ImmutableList<PlanStep> steps,
         OperationDefinitionNode? internalOperation = null)
     {

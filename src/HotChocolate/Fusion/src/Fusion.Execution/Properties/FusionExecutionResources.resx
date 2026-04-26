@@ -75,7 +75,7 @@
   <data name="OperationPlan_NodeNotFound" xml:space="preserve">
     <value>No execution node with id '{0}' exists in this plan.</value>
   </data>
-  <data name="OperationPlan_DeferredSubPlanParentNotFound" xml:space="preserve">
+  <data name="OperationPlan_IncrementalPlanParentNotFound" xml:space="preserve">
     <value>Could not resolve parent execution node for deferred subplan at path '{0}'.</value>
   </data>
   <data name="OperationBatchExecutionNode_MissingBatchResult" xml:space="preserve">

@@ -11,7 +11,7 @@ namespace HotChocolate.Fusion.Planning;
 public sealed partial class OperationPlanner
 {
     /// <summary>
-    /// Plans each <see cref="DeferSubPlanDescriptor"/> and routes each
+    /// Plans each <see cref="IncrementalPlanDescriptor"/> and routes each
     /// sub-plan's self-fetch requirements into its enclosing scope's
     /// variable-flow graph. Each iteration may mutate the enclosing scope's
     /// step list (via the context graph), so subsequent siblings and nested
@@ -20,12 +20,12 @@ public sealed partial class OperationPlanner
     /// reflects every field absorbed for defer sub-plans by the time compile
     /// consumes it. Execution-node construction for each sub-plan happens in
     /// a separate post-compile pass via
-    /// <see cref="BuildDeferredSubPlans"/>.
+    /// <see cref="BuildIncrementalPlans"/>.
     /// </summary>
-    private ImmutableArray<DeferRoutingState> RouteDeferredSubPlans(
+    private ImmutableArray<DeferRoutingState> RouteIncrementalPlans(
         string id,
         DeferSplitResult splitResult,
-        DeferContextGraph contextGraph,
+        PlanContextGraph contextGraph,
         bool emitPlannerEvents,
         CancellationToken cancellationToken)
     {
@@ -44,7 +44,7 @@ public sealed partial class OperationPlanner
             var descriptor = splitResult.SubPlanDescriptors[i];
 
             var parentContext = contextGraph.GetParentContext(descriptor);
-            var subPlanResult = PlanDeferredSubPlan(
+            var subPlanResult = PlanIncrementalPlan(
                 id,
                 descriptor,
                 i,
@@ -77,11 +77,11 @@ public sealed partial class OperationPlanner
     /// routing pass inlined those fields into the root internal operation
     /// before compile.
     /// </summary>
-    private ImmutableArray<ExecutionSubPlan> BuildDeferredSubPlans(
+    private ImmutableArray<IncrementalPlan> BuildIncrementalPlans(
         string id,
         string hash,
         ImmutableArray<DeferRoutingState> routingStates,
-        DeferContextGraph contextGraph,
+        PlanContextGraph contextGraph,
         CancellationToken cancellationToken)
     {
         if (routingStates.IsDefaultOrEmpty)
@@ -89,7 +89,7 @@ public sealed partial class OperationPlanner
             return [];
         }
 
-        var subPlans = ImmutableArray.CreateBuilder<ExecutionSubPlan>(routingStates.Length);
+        var subPlans = ImmutableArray.CreateBuilder<IncrementalPlan>(routingStates.Length);
 
         foreach (var routingState in routingStates)
         {
@@ -120,11 +120,11 @@ public sealed partial class OperationPlanner
                 ? ImmutableArray<OperationRequirement>.Empty
                 : [.. descriptor.Requirements.Values];
 
-            var subPlan = new ExecutionSubPlan(
+            var subPlan = new IncrementalPlan(
                 deferredOperation,
                 rootNodes,
                 allNodes,
-                descriptor.DeferUsageSet,
+                descriptor.DeliveryGroupSet,
                 planScopeRequirements);
 
             subPlans.Add(subPlan);
@@ -134,12 +134,12 @@ public sealed partial class OperationPlanner
     }
 
     /// <summary>
-    /// Captures the state produced by <see cref="RouteDeferredSubPlans"/>
-    /// that <see cref="BuildDeferredSubPlans"/> needs to emit each sub-plan's
+    /// Captures the state produced by <see cref="RouteIncrementalPlans"/>
+    /// that <see cref="BuildIncrementalPlans"/> needs to emit each sub-plan's
     /// compiled operation and execution-node graph.
     /// </summary>
     private readonly record struct DeferRoutingState(
-        DeferSubPlanDescriptor Descriptor,
+        IncrementalPlanDescriptor Descriptor,
         int Index);
 
     /// <summary>
@@ -148,9 +148,9 @@ public sealed partial class OperationPlanner
     /// scope happens after planning via
     /// <see cref="ApplyDeferRequirementsToParent"/>.
     /// </summary>
-    private DeferSubPlanResult PlanDeferredSubPlan(
+    private DeferSubPlanResult PlanIncrementalPlan(
         string operationId,
-        DeferSubPlanDescriptor descriptor,
+        IncrementalPlanDescriptor descriptor,
         int subPlanId,
         bool emitPlannerEvents,
         CancellationToken cancellationToken)
@@ -210,10 +210,10 @@ public sealed partial class OperationPlanner
     /// Unchanged when the sub-plan has no self-fetch to absorb.
     /// </returns>
     private ImmutableList<PlanStep> ApplyDeferRequirementsToParent(
-        DeferSubPlanDescriptor descriptor,
+        IncrementalPlanDescriptor descriptor,
         ImmutableList<PlanStep> subPlanSteps,
-        DeferParentContext parentContext,
-        DeferContextGraph contextGraph)
+        ParentPlanContext parentContext,
+        PlanContextGraph contextGraph)
     {
         // We can only route a sub-plan's self-fetch into the parent when the
         // self-fetch exists AND at least one downstream step reads from it.
@@ -252,11 +252,11 @@ public sealed partial class OperationPlanner
         // after the loop.
         var resolver = new ValueSelectionToSelectionSetRewriter(_schema);
         ScopeState? rootScopeState = null;
-        var enclosingScopeStates = new Dictionary<DeferSubPlanDescriptor, ScopeState>();
+        var enclosingScopeStates = new Dictionary<IncrementalPlanDescriptor, ScopeState>();
         var lifted = new List<LiftedDeferRequirement>();
         var promotedSubPlanStepIds = new HashSet<int>();
 
-        ScopeState ScopeStateFor(DeferParentContext scope)
+        ScopeState ScopeStateFor(ParentPlanContext scope)
         {
             if (scope.OwnerDescriptor is { } owner)
             {

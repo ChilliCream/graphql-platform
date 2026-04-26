@@ -44,14 +44,14 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
             writer.Unindent();
         }
 
-        if (!plan.DeferredSubPlans.IsDefaultOrEmpty)
+        if (!plan.IncrementalPlans.IsDefaultOrEmpty)
         {
             writer.WriteLine("deferredSubPlans:");
             writer.Indent();
 
-            foreach (var subPlan in plan.DeferredSubPlans)
+            foreach (var subPlan in plan.IncrementalPlans)
             {
-                WriteDeferredSubPlan(subPlan, writer);
+                WriteIncrementalPlan(subPlan, writer);
             }
 
             writer.Unindent();
@@ -82,7 +82,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         }
     }
 
-    private static void WriteDeliveryGroup(DeferUsage deliveryGroup, CodeWriter writer)
+    private static void WriteDeliveryGroup(DeliveryGroup deliveryGroup, CodeWriter writer)
     {
         writer.WriteLine("- id: {0}", deliveryGroup.Id);
         writer.Indent();
@@ -107,7 +107,7 @@ public sealed class YamlOperationPlanFormatter : OperationPlanFormatter
         writer.Unindent();
     }
 
-    private static void WriteDeferredSubPlan(ExecutionSubPlan subPlan, CodeWriter writer)
+    private static void WriteIncrementalPlan(IncrementalPlan subPlan, CodeWriter writer)
     {
         writer.WriteLine("- deliveryGroupIds:");
         writer.Indent();

@@ -92,14 +92,14 @@ public sealed partial class OperationPlanner
         try
         {
             // Check for @defer directives before planning. If present, we split the
-            // operation into a main (non-deferred) part and per-DeferUsageSet subplans.
+            // operation into a main (non-deferred) part and per-DeliveryGroupSet subplans.
             // The main operation is planned without the deferred selections, and each
             // subplan is planned independently.
             //
             // PERF: For non-deferred operations (the common case), the only overhead is
             // the HasDeferDirective check which does a fast AST walk looking for @defer.
-            ImmutableArray<DeferUsage> deliveryGroups = [];
-            ImmutableArray<ExecutionSubPlan> deferredSubPlans = [];
+            ImmutableArray<DeliveryGroup> deliveryGroups = [];
+            ImmutableArray<IncrementalPlan> deferredSubPlans = [];
             DeferSplitResult? deferSplit = null;
             DeferPartitioningResult? partitioning = null;
             var mainOperationDefinition = operationDefinition;
@@ -107,10 +107,10 @@ public sealed partial class OperationPlanner
             if (_options.EnableDefer && DeferOperationRewriter.HasDeferDirective(operationDefinition))
             {
                 // The partitioner walks the original AST once and hands every
-                // @defer fragment a canonical DeferUsage instance (with Id,
+                // @defer fragment a canonical DeliveryGroup instance (with Id,
                 // Path and IfVariable populated). The rewriter consumes the
                 // same instances so its per-set grouping and the compiler's
-                // later Selection._deferUsages entries share object identity.
+                // later Selection._deliveryGroups entries share object identity.
                 var deferConditions = new DeferConditionCollection();
                 partitioning = DeferPartitioner.Partition(operationDefinition, deferConditions);
 
@@ -196,19 +196,19 @@ public sealed partial class OperationPlanner
             // composite result document's shape derives from the compiled
             // operation and a defer's plan-scope variable extraction walks
             // it to read the parent's produced key.
-            DeferContextGraph? deferContextGraph = null;
+            PlanContextGraph? deferContextGraph = null;
             ImmutableArray<DeferRoutingState> deferRoutingStates = [];
 
             if (deferSplit.HasValue && partitioning is not null)
             {
-                deliveryGroups = partitioning.AllDeferUsages;
+                deliveryGroups = partitioning.AllDeliveryGroups;
 
-                deferContextGraph = DeferContextGraph.Create(
+                deferContextGraph = PlanContextGraph.Create(
                     planSteps,
                     index,
                     internalOperationDefinition);
 
-                deferRoutingStates = RouteDeferredSubPlans(
+                deferRoutingStates = RouteIncrementalPlans(
                     id,
                     deferSplit.Value,
                     deferContextGraph,
@@ -230,7 +230,7 @@ public sealed partial class OperationPlanner
 
             if (deferContextGraph is not null)
             {
-                deferredSubPlans = BuildDeferredSubPlans(
+                deferredSubPlans = BuildIncrementalPlans(
                     id,
                     hash,
                     deferRoutingStates,

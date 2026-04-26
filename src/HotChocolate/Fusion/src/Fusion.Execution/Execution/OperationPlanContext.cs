@@ -49,7 +49,7 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
     /// <summary>
     /// Gets the operation plan being executed.
     /// </summary>
-    public OperationPlan OperationPlan { get; private set; } = default!;
+    public IOperationPlan OperationPlan { get; private set; } = default!;
 
     /// <summary>
     /// Gets the coerced variable values for the current request.
@@ -262,23 +262,31 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         }
         else
         {
-            // A deferred sub-plan receives its plan-scope requirement values
-            // as a pre-materialized snapshot at creation time (see
-            // SetRequirements). The snapshot is rooted in this context's
-            // own store, so by the time we read it the parent plan is free to
-            // complete and dispose. When any requested requirement key is
-            // covered by the snapshot, we return it wholesale; the fetch's
-            // requirement set is always a subset of the sub-plan's plan-scope
-            // requirements in that case. Step-scope requirements (produced by
-            // an earlier step within this sub-plan) resolve through the own
-            // store as usual.
-            if (HasStoredValueFor(requirements))
+            var importedMatchCount = CountImportedRequirementKeys(requirements);
+
+            if (importedMatchCount == 0)
+            {
+                var variableValues = GetPathThroughVariables(forwardedVariables);
+                return _resultStore.CreateVariableValueSets(selectionSet, variableValues, requirements);
+            }
+
+            if (importedMatchCount != requirements.Length)
+            {
+                throw new InvalidOperationException(
+                    "A deferred sub-plan fetch mixes parent-sourced and local requirements.");
+            }
+
+            if (forwardedVariables.Length == 0 && requirements.Length == _requirementKeys!.Count)
             {
                 return _requirementValues;
             }
 
-            var variableValues = GetPathThroughVariables(forwardedVariables);
-            return _resultStore.CreateVariableValueSets(selectionSet, variableValues, requirements);
+            var variableValuesFromSnapshot = GetPathThroughVariables(forwardedVariables);
+            return _resultStore.CreateVariableValueSetsFromSnapshot(
+                _requirementValues,
+                _requirementKeys!,
+                variableValuesFromSnapshot,
+                requirements);
         }
     }
 
@@ -299,36 +307,52 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
         }
         else
         {
-            // See the single-selection-set overload above for the invariant:
-            // a deferred sub-plan's plan-scope requirements resolve through
-            // the pre-materialized snapshot; all other requirements resolve
-            // through the own result store.
-            if (HasStoredValueFor(requiredData))
+            var importedMatchCount = CountImportedRequirementKeys(requiredData);
+
+            if (importedMatchCount == 0)
+            {
+                var variableValues = GetPathThroughVariables(forwardedVariables);
+                return _resultStore.CreateVariableValueSets(selectionSets, variableValues, requiredData);
+            }
+
+            if (importedMatchCount != requiredData.Length)
+            {
+                throw new InvalidOperationException(
+                    "A deferred sub-plan fetch mixes parent-sourced and local requirements.");
+            }
+
+            if (forwardedVariables.Length == 0 && requiredData.Length == _requirementKeys!.Count)
             {
                 return _requirementValues;
             }
 
-            var variableValues = GetPathThroughVariables(forwardedVariables);
-            return _resultStore.CreateVariableValueSets(selectionSets, variableValues, requiredData);
+            var variableValuesFromSnapshot = GetPathThroughVariables(forwardedVariables);
+            return _resultStore.CreateVariableValueSetsFromSnapshot(
+                _requirementValues,
+                _requirementKeys!,
+                variableValuesFromSnapshot,
+                requiredData);
         }
     }
 
-    private bool HasStoredValueFor(ReadOnlySpan<OperationRequirement> requirements)
+    private int CountImportedRequirementKeys(ReadOnlySpan<OperationRequirement> requirements)
     {
         if (_requirementKeys is null || _requirementValues.IsDefaultOrEmpty)
         {
-            return false;
+            return 0;
         }
+
+        var count = 0;
 
         foreach (var requirement in requirements)
         {
             if (_requirementKeys.Contains(requirement.Key))
             {
-                return true;
+                count++;
             }
         }
 
-        return false;
+        return count;
     }
 
     /// <summary>
@@ -568,10 +592,11 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
 
         operationResult.Features.Set(OperationPlan);
 
-        if (RequestContext.ContextData.ContainsKey(ExecutionContextData.IncludeOperationPlan))
+        if (OperationPlan is OperationPlan rootPlan
+            && RequestContext.ContextData.ContainsKey(ExecutionContextData.IncludeOperationPlan))
         {
             var writer = new PooledArrayWriter();
-            s_planFormatter.Format(writer, OperationPlan, trace);
+            s_planFormatter.Format(writer, rootPlan, trace);
             var value = new RawJsonValue(writer.WrittenMemory);
             operationResult.Extensions = operationResult.Extensions.SetItem(
                 "fusion",

@@ -5,7 +5,7 @@ namespace HotChocolate.Fusion.Planning;
 /// <summary>
 /// Identifies a leaf field by the path to its parent object plus its
 /// response name. Used as a dictionary key when partitioning fields by
-/// effective <see cref="DeferUsageSetKey"/>. Equality is sequence-based on
+/// effective <see cref="DeliveryGroupSetKey"/>. Equality is sequence-based on
 /// <see cref="Path"/>, which is why this type overrides the record-struct
 /// default (the default would compare the underlying ImmutableArray by
 /// reference, not by contents).

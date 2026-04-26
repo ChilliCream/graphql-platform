@@ -11,13 +11,13 @@ namespace HotChocolate.Fusion.Execution.Nodes;
 /// </summary>
 public sealed class Selection : ISelection
 {
-    private static readonly DeferUsage[] s_emptyDeferUsages = [];
+    private static readonly DeliveryGroup[] s_emptyDeliveryGroups = [];
 
     private readonly FieldSelectionNode[] _syntaxNodes;
     private readonly ulong[] _includeFlags;
     private readonly byte[] _utf8ResponseName;
     private readonly ulong _deferMask;
-    private readonly DeferUsage[] _deferUsages;
+    private readonly DeliveryGroup[] _deliveryGroups;
     private Flags _flags;
 
     public Selection(
@@ -28,7 +28,7 @@ public sealed class Selection : ISelection
         ulong[] includeFlags,
         bool isInternal,
         ulong deferMask = 0,
-        DeferUsage[]? deferUsages = null)
+        DeliveryGroup[]? deferUsages = null)
     {
         ArgumentNullException.ThrowIfNull(field);
 
@@ -45,7 +45,7 @@ public sealed class Selection : ISelection
         _syntaxNodes = syntaxNodes;
         _includeFlags = includeFlags;
         _deferMask = deferMask;
-        _deferUsages = deferUsages ?? s_emptyDeferUsages;
+        _deliveryGroups = deferUsages ?? s_emptyDeliveryGroups;
         _flags = isInternal ? Flags.Internal : Flags.None;
 
         if (field.Type.NamedType().IsLeafType())
@@ -180,25 +180,25 @@ public sealed class Selection : ISelection
     /// Returns <c>null</c> when any occurrence of the field falls outside an
     /// active defer chain (meaning the field belongs in the initial response).
     /// </summary>
-    public DeferUsage[]? GetActiveDeferUsages(ulong deferFlags)
+    public DeliveryGroup[]? GetActiveDeliveryGroups(ulong deferFlags)
     {
-        if (_deferUsages.Length == 0)
+        if (_deliveryGroups.Length == 0)
         {
             return null;
         }
 
-        if (_deferUsages.Length == 1)
+        if (_deliveryGroups.Length == 1)
         {
-            var active = ResolveActiveAncestor(_deferUsages[0], deferFlags);
+            var active = ResolveActiveAncestor(_deliveryGroups[0], deferFlags);
             return active is null ? null : [active];
         }
 
-        DeferUsage[]? result = null;
+        DeliveryGroup[]? result = null;
         var count = 0;
 
-        for (var i = 0; i < _deferUsages.Length; i++)
+        for (var i = 0; i < _deliveryGroups.Length; i++)
         {
-            var effective = ResolveActiveAncestor(_deferUsages[i], deferFlags);
+            var effective = ResolveActiveAncestor(_deliveryGroups[i], deferFlags);
 
             if (effective is null)
             {
@@ -221,7 +221,7 @@ public sealed class Selection : ISelection
 
             if (!duplicate)
             {
-                result ??= new DeferUsage[_deferUsages.Length];
+                result ??= new DeliveryGroup[_deliveryGroups.Length];
                 result[count++] = effective;
             }
         }
@@ -272,20 +272,20 @@ nextItem:
     /// Determines whether <paramref name="target"/> is among this selection's
     /// active defer usages under the runtime <paramref name="deferFlags"/>
     /// (using the same parent-chain walk and parent-child pruning as
-    /// <see cref="GetActiveDeferUsages(ulong)"/>).
+    /// <see cref="GetActiveDeliveryGroups(ulong)"/>).
     /// </summary>
-    public bool HasActiveDeferUsage(ulong deferFlags, DeferUsage target)
+    public bool HasActiveDeliveryGroup(ulong deferFlags, DeliveryGroup target)
     {
-        if (_deferUsages.Length == 0)
+        if (_deliveryGroups.Length == 0)
         {
             return false;
         }
 
         var found = false;
 
-        for (var i = 0; i < _deferUsages.Length; i++)
+        for (var i = 0; i < _deliveryGroups.Length; i++)
         {
-            var effective = ResolveActiveAncestor(_deferUsages[i], deferFlags);
+            var effective = ResolveActiveAncestor(_deliveryGroups[i], deferFlags);
 
             if (effective is null)
             {
@@ -308,7 +308,7 @@ nextItem:
     // @defer. If none on the chain are active, returns null, meaning the
     // field is not deferred at this occurrence.
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static DeferUsage? ResolveActiveAncestor(DeferUsage start, ulong deferFlags)
+    private static DeliveryGroup? ResolveActiveAncestor(DeliveryGroup start, ulong deferFlags)
     {
         var usage = start;
 

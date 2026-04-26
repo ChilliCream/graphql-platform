@@ -4,7 +4,7 @@ using HotChocolate.Fusion.Execution.Nodes;
 namespace HotChocolate.Fusion.Planning;
 
 /// <summary>
-/// Resolves the effective <see cref="DeferUsageSetKey"/> for every leaf
+/// Resolves the effective <see cref="DeliveryGroupSetKey"/> for every leaf
 /// field location collected by <see cref="DeferOccurrenceCollector"/>.
 /// Fields whose set is empty are non-deferred; fields sharing a non-empty
 /// set form a single subplan, matching the GraphQL incremental-delivery
@@ -15,9 +15,9 @@ internal static class DeferEffectiveSetResolver
 {
     /// <summary>
     /// Groups occurrences by <see cref="FieldLocation"/> and computes the
-    /// effective <see cref="DeferUsageSetKey"/> per location.
+    /// effective <see cref="DeliveryGroupSetKey"/> per location.
     /// </summary>
-    public static Dictionary<FieldLocation, DeferUsageSetKey> Resolve(List<FieldOccurrence> occurrences)
+    public static Dictionary<FieldLocation, DeliveryGroupSetKey> Resolve(List<FieldOccurrence> occurrences)
     {
         var leavesByLocation = new Dictionary<FieldLocation, LeavesAccumulator>();
 
@@ -31,10 +31,10 @@ internal static class DeferEffectiveSetResolver
                 leavesByLocation[location] = acc;
             }
 
-            acc.Add(occurrence.EnclosingDefer);
+            acc.Add(occurrence.EnclosingSubPlan);
         }
 
-        var result = new Dictionary<FieldLocation, DeferUsageSetKey>(leavesByLocation.Count);
+        var result = new Dictionary<FieldLocation, DeliveryGroupSetKey>(leavesByLocation.Count);
 
         foreach (var (location, acc) in leavesByLocation)
         {
@@ -46,14 +46,14 @@ internal static class DeferEffectiveSetResolver
 
     private sealed class LeavesAccumulator
     {
-        private bool _hasNonDeferred;
-        private readonly List<DeferUsage> _leaves = [];
+        private bool _hasImmediate;
+        private readonly List<DeliveryGroup> _leaves = [];
 
-        public void Add(DeferUsage? leaf)
+        public void Add(DeliveryGroup? leaf)
         {
             if (leaf is null)
             {
-                _hasNonDeferred = true;
+                _hasImmediate = true;
                 return;
             }
 
@@ -68,16 +68,16 @@ internal static class DeferEffectiveSetResolver
             _leaves.Add(leaf);
         }
 
-        public DeferUsageSetKey ToEffectiveSet()
+        public DeliveryGroupSetKey ToEffectiveSet()
         {
-            if (_hasNonDeferred || _leaves.Count == 0)
+            if (_hasImmediate || _leaves.Count == 0)
             {
-                return DeferUsageSetKey.Empty;
+                return DeliveryGroupSetKey.Empty;
             }
 
             // Parent-child pruning: drop any leaf whose ancestor is also
             // in the set.
-            var pruned = new List<DeferUsage>(_leaves.Count);
+            var pruned = new List<DeliveryGroup>(_leaves.Count);
             for (var i = 0; i < _leaves.Count; i++)
             {
                 var ancestor = _leaves[i].Parent;
@@ -110,11 +110,11 @@ internal static class DeferEffectiveSetResolver
 
             if (pruned.Count == 0)
             {
-                return DeferUsageSetKey.Empty;
+                return DeliveryGroupSetKey.Empty;
             }
 
             pruned.Sort(static (a, b) => a.Id.CompareTo(b.Id));
-            return new DeferUsageSetKey(pruned.ToImmutableArray());
+            return new DeliveryGroupSetKey(pruned.ToImmutableArray());
         }
     }
 }

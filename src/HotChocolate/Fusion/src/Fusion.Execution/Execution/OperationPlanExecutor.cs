@@ -190,7 +190,7 @@ internal static class OperationPlanExecutor
         // Yield the initial result first.
         yield return initialResult;
 
-        var deferredSubPlans = operationPlan.DeferredSubPlans;
+        var deferredSubPlans = operationPlan.IncrementalPlans;
 
         // Per-delivery-group completion tracking. A delivery group is considered
         // complete when every subplan whose DeliveryGroups contains it has
@@ -229,9 +229,9 @@ internal static class OperationPlanExecutor
         // a sub-plan's context is registered here, any nested defer scheduled
         // afterward reads its parent store from it. All stored contexts are
         // disposed in the finally block when the iterator finishes.
-        var started = new HashSet<ExecutionSubPlan>();
-        var subPlanContexts = new Dictionary<ExecutionSubPlan, OperationPlanContext>();
-        var channel = Channel.CreateUnbounded<DeferredSubPlanResult>();
+        var started = new HashSet<IncrementalPlan>();
+        var subPlanContexts = new Dictionary<IncrementalPlan, OperationPlanContext>();
+        var channel = Channel.CreateUnbounded<IncrementalPlanResult>();
         var pendingSubPlanCount = 0;
 
         try
@@ -250,10 +250,9 @@ internal static class OperationPlanExecutor
 
                 started.Add(subPlan);
                 pendingSubPlanCount++;
-                BeginDeferredSubPlan(
+                BeginIncrementalPlan(
                     requestContext,
                     variables,
-                    operationPlan,
                     subPlan,
                     rootContext.GetResultStoreForChildDefer(),
                     channel.Writer,
@@ -327,7 +326,7 @@ internal static class OperationPlanExecutor
                     // enclosing sub-plan's result store, not the root plan's.
                     // Fall back to the root store if the parent sub-plan
                     // produced no context (e.g. an empty sub-plan that
-                    // short-circuited to no work). BeginDeferredSubPlan runs
+                    // short-circuited to no work). BeginIncrementalPlan runs
                     // the import synchronously on this thread while the
                     // chosen parent store is guaranteed alive.
                     var parentStore = subPlanContext?.GetResultStoreForChildDefer()
@@ -335,10 +334,9 @@ internal static class OperationPlanExecutor
 
                     started.Add(candidate);
                     pendingSubPlanCount++;
-                    BeginDeferredSubPlan(
+                    BeginIncrementalPlan(
                         requestContext,
                         variables,
-                        operationPlan,
                         candidate,
                         parentStore,
                         channel.Writer,
@@ -367,7 +365,7 @@ internal static class OperationPlanExecutor
                 // one whose Path is the longest prefix of the data's actual path
                 // (equivalently: produces the shortest subPath). This follows the
                 // graphql-js `_getBestIdAndSubPath` rule. Ties are broken by the
-                // smallest DeferUsage.Id for determinism, which matches the sorted
+                // smallest DeliveryGroup.Id for determinism, which matches the sorted
                 // DeliveryGroups order.
                 var bestDeliveryGroup = PickBestDeliveryGroup(subPlan);
 
@@ -488,49 +486,34 @@ internal static class OperationPlanExecutor
     }
 
     /// <summary>
-    /// Launches a deferred sub-plan. Runs the synchronous prep on the caller
-    /// thread (building the mini plan, renting and initializing the context,
-    /// and importing the plan-scope variable snapshot from the parent store)
-    /// so the parent store is read while it is guaranteed alive; the detached
-    /// async body then runs with a child context that holds no reference to
-    /// the parent. An empty sub-plan short-circuits by publishing an empty
-    /// result to the completion channel.
+    /// Launches an incremental sub-plan. Runs the synchronous prep on the
+    /// caller thread (renting and initializing the context and importing the
+    /// plan-scope variable snapshot from the parent store) so the parent
+    /// store is read while it is guaranteed alive; the detached async body
+    /// then runs with a child context that holds no reference to the parent.
+    /// An empty sub-plan short-circuits by publishing an empty result to the
+    /// completion channel.
     /// </summary>
-    private static void BeginDeferredSubPlan(
+    private static void BeginIncrementalPlan(
         RequestContext requestContext,
         IVariableValueCollection variables,
-        OperationPlan operationPlan,
-        ExecutionSubPlan subPlan,
+        IncrementalPlan subPlan,
         FetchResultStore parentResultStore,
-        ChannelWriter<DeferredSubPlanResult> completion,
+        ChannelWriter<IncrementalPlanResult> completion,
         CancellationToken cancellationToken)
     {
         if (subPlan.AllNodes.IsEmpty)
         {
-            completion.TryWrite(new DeferredSubPlanResult(subPlan, null, null, null));
+            completion.TryWrite(new IncrementalPlanResult(subPlan, null, null, null));
             return;
         }
-
-        var representative = subPlan.DeliveryGroups[0];
-
-        // Mini OperationPlan for the deferred sub-plan using its own compiled
-        // Operation for correct result mapping.
-        var deferPlan = OperationPlan.Create(
-            operationPlan.Id + "#defer_" + representative.Id,
-            subPlan.Operation,
-            subPlan.RootNodes,
-            subPlan.AllNodes,
-            [],
-            [],
-            0,
-            0);
 
         var executionCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         var context = requestContext.Schema.Services.GetRequiredService<OperationPlanContextPool>().Rent();
 
         try
         {
-            context.Initialize(requestContext, variables, deferPlan, executionCts);
+            context.Initialize(requestContext, variables, subPlan, executionCts);
 
             // Resolve the sub-plan's parent-sourced requirements against the
             // parent store once and hand the pre-imported snapshot to the
@@ -545,23 +528,24 @@ internal static class OperationPlanExecutor
             throw;
         }
 
-        // Ownership of context and executionCts passes to ExecuteDeferredSubPlan.
-        _ = ExecuteDeferredSubPlan(context, deferPlan, subPlan, executionCts, completion, cancellationToken);
+        // Ownership of context and executionCts passes to ExecuteIncrementalPlan.
+        _ = ExecuteIncrementalPlan(context, subPlan, executionCts, completion, cancellationToken);
     }
 
-    private static async Task ExecuteDeferredSubPlan(
+    private static async Task ExecuteIncrementalPlan(
         OperationPlanContext context,
-        OperationPlan deferPlan,
-        ExecutionSubPlan subPlan,
+        IOperationPlan plan,
         CancellationTokenSource executionCts,
-        ChannelWriter<DeferredSubPlanResult> completion,
+        ChannelWriter<IncrementalPlanResult> completion,
         CancellationToken cancellationToken)
     {
+        var subPlan = (IncrementalPlan)plan;
+
         try
         {
             context.Begin();
 
-            await ExecuteQueryAsync(context, deferPlan, executionCts.Token);
+            await ExecuteQueryAsync(context, plan, executionCts.Token);
 
             // Retain the backing memory on the store so this sub-plan's
             // composite result document survives past initial write-and-
@@ -569,7 +553,7 @@ internal static class OperationPlanExecutor
             // via GetResultStoreForChildDefer.
             var deferredResult = context.Complete(retainMemoryForDefer: true);
             await completion.WriteAsync(
-                new DeferredSubPlanResult(subPlan, context, deferredResult, null),
+                new IncrementalPlanResult(subPlan, context, deferredResult, null),
                 cancellationToken);
         }
         catch (OperationCanceledException)
@@ -578,13 +562,13 @@ internal static class OperationPlanExecutor
             // context is handed back on the channel so the iterator can
             // dispose it as part of its finally-block cleanup.
             await completion.WriteAsync(
-                new DeferredSubPlanResult(subPlan, context, null, null),
+                new IncrementalPlanResult(subPlan, context, null, null),
                 CancellationToken.None);
         }
         catch (Exception ex)
         {
             await completion.WriteAsync(
-                new DeferredSubPlanResult(subPlan, context, null, ex),
+                new IncrementalPlanResult(subPlan, context, null, ex),
                 CancellationToken.None);
         }
         finally
@@ -605,7 +589,7 @@ internal static class OperationPlanExecutor
     /// </summary>
     private static void CollectSubPlanRequirements(
         FetchResultStore parentResultStore,
-        ExecutionSubPlan subPlan,
+        IncrementalPlan subPlan,
         OperationPlanContext childContext)
     {
         var collected = CollectParentScopeRequirements(subPlan);
@@ -641,7 +625,7 @@ internal static class OperationPlanExecutor
         childContext.SetRequirements(parentValues, keys);
     }
 
-    private static List<OperationRequirement> CollectParentScopeRequirements(ExecutionSubPlan subPlan)
+    private static List<OperationRequirement> CollectParentScopeRequirements(IncrementalPlan subPlan)
     {
         var collected = new List<OperationRequirement>();
         var seen = new HashSet<string>(StringComparer.Ordinal);
@@ -683,7 +667,7 @@ internal static class OperationPlanExecutor
         }
     }
 
-    private static bool IsDeliveryGroupActive(DeferUsage deliveryGroup, IVariableValueCollection variables)
+    private static bool IsDeliveryGroupActive(DeliveryGroup deliveryGroup, IVariableValueCollection variables)
     {
         if (deliveryGroup.IfVariable is null)
         {
@@ -699,7 +683,7 @@ internal static class OperationPlanExecutor
         return boolValue.Value;
     }
 
-    private static bool IsSubPlanActive(ExecutionSubPlan subPlan, HashSet<int> activeDeliveryGroupIds)
+    private static bool IsSubPlanActive(IncrementalPlan subPlan, HashSet<int> activeDeliveryGroupIds)
     {
         foreach (var deliveryGroup in subPlan.DeliveryGroups)
         {
@@ -715,12 +699,12 @@ internal static class OperationPlanExecutor
     /// <summary>
     /// Picks the best delivery group for emitting a subplan's incremental
     /// payload. Per graphql-js <c>_getBestIdAndSubPath</c>, the best group is
-    /// the one whose <see cref="DeferUsage.Path"/> is the longest prefix of
+    /// the one whose <see cref="DeliveryGroup.Path"/> is the longest prefix of
     /// the data's actual path (equivalently, the shortest <c>subPath</c>).
-    /// Ties are broken by the smallest <see cref="DeferUsage.Id"/>, which is
-    /// the first element in the sorted <see cref="ExecutionSubPlan.DeliveryGroups"/>.
+    /// Ties are broken by the smallest <see cref="DeliveryGroup.Id"/>, which is
+    /// the first element in the sorted <see cref="IncrementalPlan.DeliveryGroups"/>.
     /// </summary>
-    private static DeferUsage PickBestDeliveryGroup(ExecutionSubPlan subPlan)
+    private static DeliveryGroup PickBestDeliveryGroup(IncrementalPlan subPlan)
     {
         var best = subPlan.DeliveryGroups[0];
         var bestLength = best.Path?.Length ?? 0;
@@ -741,7 +725,7 @@ internal static class OperationPlanExecutor
     }
 
     private static void CompleteDeliveryGroupsForSubPlan(
-        ExecutionSubPlan subPlan,
+        IncrementalPlan subPlan,
         HashSet<int> activeDeliveryGroupIds,
         Dictionary<int, int> pendingCountByDeliveryGroup,
         ImmutableList<CompletedResult>.Builder completed,
@@ -800,7 +784,7 @@ internal static class OperationPlanExecutor
     /// </summary>
     private static bool TryCreateIncrementalData(
         OperationResultData rootData,
-        DeferUsage bestDeliveryGroup,
+        DeliveryGroup bestDeliveryGroup,
         out OperationResultData incrementalData)
     {
         if (rootData.Value is not CompositeResultDocument document)
@@ -920,7 +904,7 @@ internal static class OperationPlanExecutor
 
     private static async Task ExecuteQueryAsync(
         OperationPlanContext context,
-        OperationPlan plan,
+        IOperationPlan plan,
         CancellationToken cancellationToken)
     {
         var executionState = context.ExecutionState;
@@ -967,7 +951,7 @@ internal static class OperationPlanExecutor
 
     private static async Task ExecuteMutationAsync(
         OperationPlanContext context,
-        OperationPlan plan,
+        IOperationPlan plan,
         CancellationToken cancellationToken)
     {
         var executionState = context.ExecutionState;
@@ -1161,8 +1145,8 @@ internal static class OperationPlanExecutor
     }
 }
 
-internal readonly record struct DeferredSubPlanResult(
-    ExecutionSubPlan SubPlan,
+internal readonly record struct IncrementalPlanResult(
+    IncrementalPlan SubPlan,
     OperationPlanContext? Context,
     OperationResult? Result,
     Exception? Error);

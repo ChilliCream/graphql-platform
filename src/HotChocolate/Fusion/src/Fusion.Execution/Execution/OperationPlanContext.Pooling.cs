@@ -23,7 +23,7 @@ public sealed partial class OperationPlanContext
     internal void Initialize(
         RequestContext requestContext,
         IVariableValueCollection variables,
-        OperationPlan operationPlan,
+        IOperationPlan operationPlan,
         CancellationTokenSource cancellationTokenSource)
     {
         ArgumentNullException.ThrowIfNull(requestContext);

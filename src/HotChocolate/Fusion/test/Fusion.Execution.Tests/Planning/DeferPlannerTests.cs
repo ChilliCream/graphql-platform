@@ -45,9 +45,9 @@ public class DeferPlannerTests : FusionTestBase
             """);
 
         // assert
-        Assert.Single(plan.DeferredSubPlans);
+        Assert.Single(plan.IncrementalPlans);
 
-        var subPlan = plan.DeferredSubPlans[0];
+        var subPlan = plan.IncrementalPlans[0];
         var group = subPlan.DeliveryGroups[0];
         Assert.Equal(0, group.Id);
         Assert.Null(group.Label);
@@ -107,10 +107,10 @@ public class DeferPlannerTests : FusionTestBase
             """);
 
         // assert
-        Assert.Equal(2, plan.DeferredSubPlans.Length);
+        Assert.Equal(2, plan.IncrementalPlans.Length);
 
-        var emailSubPlan = plan.DeferredSubPlans.First(s => s.DeliveryGroups[0].Label == "emailDefer");
-        var bioSubPlan = plan.DeferredSubPlans.First(s => s.DeliveryGroups[0].Label == "bioDefer");
+        var emailSubPlan = plan.IncrementalPlans.First(s => s.DeliveryGroups[0].Label == "emailDefer");
+        var bioSubPlan = plan.IncrementalPlans.First(s => s.DeliveryGroups[0].Label == "bioDefer");
 
         Assert.NotNull(emailSubPlan);
         Assert.NotNull(bioSubPlan);
@@ -160,8 +160,8 @@ public class DeferPlannerTests : FusionTestBase
             """);
 
         // assert
-        Assert.Single(plan.DeferredSubPlans);
-        Assert.Equal("myLabel", plan.DeferredSubPlans[0].DeliveryGroups[0].Label);
+        Assert.Single(plan.IncrementalPlans);
+        Assert.Equal("myLabel", plan.IncrementalPlans[0].DeliveryGroups[0].Label);
     }
 
     [Fact]
@@ -207,7 +207,7 @@ public class DeferPlannerTests : FusionTestBase
             """);
 
         // assert
-        Assert.False(plan.DeferredSubPlans.IsEmpty);
+        Assert.False(plan.IncrementalPlans.IsEmpty);
     }
 
     [Fact]
@@ -251,7 +251,7 @@ public class DeferPlannerTests : FusionTestBase
             """);
 
         // assert
-        Assert.True(plan.DeferredSubPlans.IsEmpty);
+        Assert.True(plan.IncrementalPlans.IsEmpty);
         Assert.False(plan.Operation.HasIncrementalParts);
     }
 
@@ -298,8 +298,8 @@ public class DeferPlannerTests : FusionTestBase
             """);
 
         // assert
-        Assert.Single(plan.DeferredSubPlans);
-        Assert.Equal("shouldDefer", plan.DeferredSubPlans[0].DeliveryGroups[0].IfVariable);
+        Assert.Single(plan.IncrementalPlans);
+        Assert.Equal("shouldDefer", plan.IncrementalPlans[0].DeliveryGroups[0].IfVariable);
     }
 
     [Fact]
@@ -349,7 +349,7 @@ public class DeferPlannerTests : FusionTestBase
         Assert.NotEmpty(plan.AllNodes);
 
         // The deferred subplan should also have its own execution nodes
-        var subPlan = plan.DeferredSubPlans[0];
+        var subPlan = plan.IncrementalPlans[0];
         Assert.False(subPlan.RootNodes.IsEmpty);
         Assert.False(subPlan.AllNodes.IsEmpty);
         Assert.Null(subPlan.DeliveryGroups[0].Parent);
@@ -398,7 +398,7 @@ public class DeferPlannerTests : FusionTestBase
             """);
 
         // assert
-        Assert.True(plan.DeferredSubPlans.IsEmpty);
+        Assert.True(plan.IncrementalPlans.IsEmpty);
     }
 
     [Fact]
@@ -444,8 +444,8 @@ public class DeferPlannerTests : FusionTestBase
             """);
 
         // assert
-        Assert.Single(plan.DeferredSubPlans);
-        Assert.Null(plan.DeferredSubPlans[0].DeliveryGroups[0].IfVariable);
+        Assert.Single(plan.IncrementalPlans);
+        Assert.Null(plan.IncrementalPlans[0].DeliveryGroups[0].IfVariable);
     }
 
     [Fact]
@@ -495,12 +495,12 @@ public class DeferPlannerTests : FusionTestBase
             """);
 
         // assert
-        Assert.Equal(2, plan.DeferredSubPlans.Length);
+        Assert.Equal(2, plan.IncrementalPlans.Length);
 
-        var outerGroup = plan.DeferredSubPlans
+        var outerGroup = plan.IncrementalPlans
             .Select(s => s.DeliveryGroups[0])
             .First(g => g.Label == "outer");
-        var innerGroup = plan.DeferredSubPlans
+        var innerGroup = plan.IncrementalPlans
             .Select(s => s.DeliveryGroups[0])
             .First(g => g.Label == "inner");
 
@@ -552,7 +552,7 @@ public class DeferPlannerTests : FusionTestBase
             """);
 
         // assert
-        Assert.Single(plan.DeferredSubPlans);
+        Assert.Single(plan.IncrementalPlans);
     }
 
     [Fact]
@@ -601,10 +601,10 @@ public class DeferPlannerTests : FusionTestBase
             }
             """);
 
-        Assert.Equal(2, planBothActive.DeferredSubPlans.Length);
-        var outerSubPlan = planBothActive.DeferredSubPlans
+        Assert.Equal(2, planBothActive.IncrementalPlans.Length);
+        var outerSubPlan = planBothActive.IncrementalPlans
             .First(s => s.DeliveryGroups.Any(g => g.Label == "outer"));
-        var innerSubPlan = planBothActive.DeferredSubPlans
+        var innerSubPlan = planBothActive.IncrementalPlans
             .First(s => s.DeliveryGroups.Any(g => g.Label == "inner"));
         Assert.Single(outerSubPlan.DeliveryGroups, g => g.Label == "outer");
         Assert.Single(innerSubPlan.DeliveryGroups, g => g.Label == "inner");
@@ -630,8 +630,8 @@ public class DeferPlannerTests : FusionTestBase
             }
             """);
 
-        Assert.Single(planInnerInactive.DeferredSubPlans);
-        var collapsedOuter = planInnerInactive.DeferredSubPlans[0];
+        Assert.Single(planInnerInactive.IncrementalPlans);
+        var collapsedOuter = planInnerInactive.IncrementalPlans[0];
         Assert.Single(collapsedOuter.DeliveryGroups);
         Assert.Equal("outer", collapsedOuter.DeliveryGroups[0].Label);
 
@@ -652,8 +652,8 @@ public class DeferPlannerTests : FusionTestBase
             }
             """);
 
-        Assert.Single(planOuterInactive.DeferredSubPlans);
-        var innerOnly = planOuterInactive.DeferredSubPlans[0];
+        Assert.Single(planOuterInactive.IncrementalPlans);
+        var innerOnly = planOuterInactive.IncrementalPlans[0];
         Assert.Single(innerOnly.DeliveryGroups);
         Assert.Equal("inner", innerOnly.DeliveryGroups[0].Label);
         Assert.Null(innerOnly.DeliveryGroups[0].Parent);
@@ -675,7 +675,7 @@ public class DeferPlannerTests : FusionTestBase
             }
             """);
 
-        Assert.True(planBothInactive.DeferredSubPlans.IsEmpty);
+        Assert.True(planBothInactive.IncrementalPlans.IsEmpty);
     }
 
     [Fact(Skip = "Known bug: BuildDeferredOperation forces OperationType.Query, causing KeyNotFoundException for mutation fields")]
@@ -725,9 +725,9 @@ public class DeferPlannerTests : FusionTestBase
             """);
 
         // assert
-        Assert.Single(plan.DeferredSubPlans);
+        Assert.Single(plan.IncrementalPlans);
 
-        var subPlan = plan.DeferredSubPlans[0];
+        var subPlan = plan.IncrementalPlans[0];
         Assert.False(subPlan.RootNodes.IsEmpty);
         Assert.False(subPlan.AllNodes.IsEmpty);
     }
@@ -1244,5 +1244,104 @@ public class DeferPlannerTests : FusionTestBase
         // invariant is that the throw is logically unreachable for any
         // schema whose defer sub-plan succeeds at plan time.
         Assert.True(true);
+    }
+
+    [Fact]
+    public void MaxNodeId_Should_Match_Max_Node_Id_Of_AllNodes_When_Computed()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer {
+                        email
+                    }
+                }
+            }
+            """);
+
+        // assert
+        var subPlan = plan.IncrementalPlans[0];
+        Assert.Equal(subPlan.AllNodes.Max(n => n.Id), subPlan.MaxNodeId);
+    }
+
+    [Fact]
+    public void IncrementalPlan_Ids_Should_Be_Positional_When_Plan_Built()
+    {
+        // arrange
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+                address: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "contact") {
+                        email
+                        ... @defer(label: "nested") { address }
+                    }
+                    ... @defer(label: "location") { email }
+                }
+            }
+            """);
+
+        // assert
+        for (var i = 0; i < plan.IncrementalPlans.Length; i++)
+        {
+            Assert.Equal($"{plan.Id}#{i}", plan.IncrementalPlans[i].Id);
+        }
     }
 }
