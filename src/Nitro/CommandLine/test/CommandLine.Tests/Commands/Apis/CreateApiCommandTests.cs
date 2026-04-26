@@ -476,6 +476,28 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : ApisCom
             """);
     }
 
+    [Theory]
+    [InlineData("products")]
+    [InlineData("C:/Program Files/Git/test")]
+    public async Task Create_Should_ReturnError_When_PathDoesNotStartWithSlash(string path)
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "api",
+            "create",
+            "--name",
+            ApiName,
+            "--path",
+            path);
+
+        // assert
+        result.AssertError(
+            $"The path '{path}' is invalid. It must start with '/'.");
+    }
+
     [Fact]
     public async Task Create_Should_ReturnSuccess_When_KindNotProvided()
     {

@@ -61,7 +61,7 @@ internal sealed class LiveActivitySink : IActivitySink
     {
         await _console
             .Live(_tree)
-            .AutoClear(false)
+            .AutoClear(true)
             .Overflow(VerticalOverflow.Visible)
             .StartAsync(async ctx =>
             {
@@ -73,10 +73,11 @@ internal sealed class LiveActivitySink : IActivitySink
                 ctx.Refresh();
             });
 
-        // ActivityTree pads its output with a trailing blank line to work around a
-        // Spectre.Console bug (see ActivityTree.Render). After Live completes, Spectre
-        // has left the cursor one row below that padding. Step back onto the padded
-        // row so subsequent output overwrites it instead of leaving a visible gap.
-        _console.Cursor.Move(CursorDirection.Up, 1);
+        // Live cleared its rendered region. Re-emit the final tree state as a plain
+        // renderable so it lands in scrollback as normal output. This avoids relying
+        // on cursor math to merge live output with subsequent stdout/stderr writes,
+        // which was the source of rendering bleed on Windows terminals.
+        _tree.EmitLivePadding = false;
+        _console.Write(_tree);
     }
 }
