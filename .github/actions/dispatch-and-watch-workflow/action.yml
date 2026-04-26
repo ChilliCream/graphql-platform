@@ -1,0 +1,98 @@
+name: Dispatch and watch workflow
+description: Dispatches a workflow_dispatch in another repository and waits for it to complete.
+
+inputs:
+  repo:
+    description: Target repository in `owner/name` form.
+    required: true
+  workflow:
+    description: Workflow filename (e.g. `release.yaml`) or ID.
+    required: true
+  ref:
+    description: Git ref to dispatch the workflow against.
+    required: false
+    default: main
+  version:
+    description: Version passed as the `version` input to the dispatched workflow.
+    required: true
+  token:
+    description: "Token with `actions: write` on the target repository."
+    required: true
+  locate-attempts:
+    description: How many times to poll for the dispatched run before giving up.
+    required: false
+    default: "30"
+  locate-interval:
+    description: Seconds to wait between locate polls.
+    required: false
+    default: "5"
+
+outputs:
+  run-id:
+    description: Numeric ID of the dispatched run.
+    value: ${{ steps.locate.outputs.run-id }}
+  run-url:
+    description: HTML URL of the dispatched run.
+    value: ${{ steps.locate.outputs.run-url }}
+
+runs:
+  using: composite
+  steps:
+    - name: 🚀 Dispatch workflow
+      id: dispatch
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        REPO: ${{ inputs.repo }}
+        WORKFLOW: ${{ inputs.workflow }}
+        REF: ${{ inputs.ref }}
+        VERSION: ${{ inputs.version }}
+      run: |
+        set -euo pipefail
+        CORR=$(uuidgen)
+        echo "correlation-id=$CORR" >> "$GITHUB_OUTPUT"
+
+        gh workflow run "$WORKFLOW" --repo "$REPO" --ref "$REF" \
+          -f version="$VERSION" \
+          -f correlation_id="$CORR"
+
+    - name: 🔎 Locate dispatched run
+      id: locate
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        REPO: ${{ inputs.repo }}
+        WORKFLOW: ${{ inputs.workflow }}
+        CORR: ${{ steps.dispatch.outputs.correlation-id }}
+        ATTEMPTS: ${{ inputs.locate-attempts }}
+        INTERVAL: ${{ inputs.locate-interval }}
+      run: |
+        set -euo pipefail
+        RUN_ID=""
+        RUN_URL=""
+        for _ in $(seq 1 "$ATTEMPTS"); do
+          read -r RUN_ID RUN_URL < <(gh run list --repo "$REPO" --workflow "$WORKFLOW" \
+            --limit 20 --json databaseId,name,url \
+            --jq "[.[] | select(.name | contains(\"$CORR\"))][0] | \"\(.databaseId) \(.url)\"")
+          if [ -n "$RUN_ID" ] && [ "$RUN_ID" != "null" ]; then
+            break
+          fi
+          sleep "$INTERVAL"
+        done
+
+        if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
+          echo "::error::Could not locate dispatched run for $REPO ($WORKFLOW)"
+          exit 1
+        fi
+
+        echo "run-id=$RUN_ID" >> "$GITHUB_OUTPUT"
+        echo "run-url=$RUN_URL" >> "$GITHUB_OUTPUT"
+        echo "Dispatched run: $RUN_URL"
+
+    - name: 👀 Watch run
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        REPO: ${{ inputs.repo }}
+        RUN_ID: ${{ steps.locate.outputs.run-id }}
+      run: gh run watch "$RUN_ID" --repo "$REPO" --exit-status

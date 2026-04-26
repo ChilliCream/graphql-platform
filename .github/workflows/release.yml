@@ -9,9 +9,30 @@ permissions:
   contents: read
 
 jobs:
+  create-draft:
+    name: 📝 Create Draft Release
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - name: 🏷 Get the version from tag
+        run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: 📝 Create draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GIT_TAG" \
+            --repo "${{ github.repository }}" \
+            --draft \
+            --title "$GIT_TAG" \
+            --generate-notes \
+            --target "$GITHUB_SHA"
+
   release:
     name: 📦 Build & Publish NuGet Packages
     runs-on: ubuntu-22.04
+    needs: [create-draft]
     permissions:
       contents: write
       id-token: write
@@ -471,92 +492,67 @@ jobs:
         run: |
           gh release upload "${{ github.ref_name }}" "chillicream-nitro-${{ github.ref_name }}.tgz" --repo "${{ github.repository }}"
 
+  publish-release:
+    name: 🚀 Publish Release
+    runs-on: ubuntu-22.04
+    needs:
+      - release
+      - build-nitro-cli
+      - publish-nitro-cli-platforms
+      - publish-nitro-cli-npm
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+
+    steps:
+      - name: 🏷 Get the version from tag
+        run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: 🚀 Publish draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release edit "$GIT_TAG" \
+            --repo "${{ github.repository }}" \
+            --draft=false
+
   update-homebrew:
-    name: 🍺 Update Homebrew Formula
+    name: 🍺 Update Homebrew Tap
     runs-on: ubuntu-latest
-    needs: [build-nitro-cli]
+    needs: [publish-release]
     if: startsWith(github.ref, 'refs/tags/')
 
     steps:
-      - name: 📥 Checkout main repo
+      - name: 📦 Checkout
         uses: actions/checkout@v6
         with:
-          fetch-depth: 0
+          sparse-checkout: .github/actions
+          show-progress: false
 
       - name: 🏷️ Get release version
-        id: version
-        run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
-      - name: ⬇️ Download macOS ARM64 release
-        run: |
-          curl -L -o nitro-osx-arm64.zip \
-            "https://github.com/ChilliCream/graphql-platform/releases/download/${{ steps.version.outputs.version }}/nitro-osx-arm64.zip"
-
-      - name: ⬇️ Download macOS x64 release
-        run: |
-          curl -L -o nitro-osx-x64.zip \
-            "https://github.com/ChilliCream/graphql-platform/releases/download/${{ steps.version.outputs.version }}/nitro-osx-x64.zip"
-
-      - name: 🔢 Calculate SHA256 hashes
-        id: hashes
-        run: |
-          ARM64_SHA=$(sha256sum nitro-osx-arm64.zip | cut -d' ' -f1)
-          X64_SHA=$(sha256sum nitro-osx-x64.zip | cut -d' ' -f1)
-          echo "arm64_sha=$ARM64_SHA" >> $GITHUB_OUTPUT
-          echo "x64_sha=$X64_SHA" >> $GITHUB_OUTPUT
-          echo "🔍 ARM64 SHA: $ARM64_SHA"
-          echo "🔍 X64 SHA: $X64_SHA"
-
-      - name: 📝 Generate Homebrew formula
-        run: |
-          cat > nitro-cli.rb << EOF
-          class NitroCli < Formula
-            desc "ChilliCream Nitro Command Line"
-            homepage "https://chillicream.com"
-            url "https://github.com/ChilliCream/graphql-platform"
-            license "MIT"
-
-            on_macos do
-              if Hardware::CPU.arm?
-                url "https://github.com/ChilliCream/graphql-platform/releases/download/${{ steps.version.outputs.version }}/nitro-osx-arm64.zip"
-                sha256 "${{ steps.hashes.outputs.arm64_sha }}"
-              else
-                url "https://github.com/ChilliCream/graphql-platform/releases/download/${{ steps.version.outputs.version }}/nitro-osx-x64.zip"
-                sha256 "${{ steps.hashes.outputs.x64_sha }}"
-              end
-            end
-
-            def install
-              bin.install "nitro"
-            end
-
-            test do
-              system "#{bin}/nitro", "--version"
-            end
-          end
-          EOF
-
-      - name: 📥 Checkout homebrew repo
-        uses: actions/checkout@v6
+      - name: 🔐 Create GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
         with:
-          repository: ChilliCream/homebrew-tools
-          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
-          path: homebrew-tools
+          app-id: ${{ secrets.ACTIONS_APP_ID }}
+          private-key: ${{ secrets.ACTIONS_APP_PRIVATE_KEY }}
+          owner: ChilliCream
+          repositories: homebrew-tools
 
-      - name: 🚀 Update formula in homebrew repo
-        run: |
-          cp nitro-cli.rb homebrew-tools/nitro-cli.rb
-          cd homebrew-tools
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add nitro-cli.rb
-          git commit -m "🍺 Update nitro formula to ${{ steps.version.outputs.version }}" || exit 0
-          git push
+      - name: 🍺 Run homebrew tap update workflow
+        uses: ./.github/actions/dispatch-and-watch-workflow
+        with:
+          repo: ChilliCream/homebrew-tools
+          workflow: release.yaml
+          version: ${{ env.VERSION }}
+          token: ${{ steps.app-token.outputs.token }}
 
   update-github-actions:
     name: 🔄 Update GitHub Actions
     runs-on: ubuntu-latest
-    needs: [build-nitro-cli]
+    needs: [publish-release]
     if: startsWith(github.ref, 'refs/tags/')
     strategy:
       matrix:
@@ -578,6 +574,12 @@ jobs:
           - nitro-schema-validate
 
     steps:
+      - name: 📦 Checkout
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: .github/actions
+          show-progress: false
+
       - name: 🏷️ Get release version
         run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
@@ -590,11 +592,10 @@ jobs:
           owner: ChilliCream
           repositories: ${{ matrix.repo }}
 
-      - name: 🚀 Trigger action repository update workflow
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: |
-          gh api --method POST \
-            "/repos/ChilliCream/${{ matrix.repo }}/dispatches" \
-            -f event_type=update-from-platform \
-            -f client_payload[version]="$VERSION"
+      - name: 🔄 Run action repository update workflow
+        uses: ./.github/actions/dispatch-and-watch-workflow
+        with:
+          repo: ChilliCream/${{ matrix.repo }}
+          workflow: release.yaml
+          version: ${{ env.VERSION }}
+          token: ${{ steps.app-token.outputs.token }}
