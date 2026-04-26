@@ -611,6 +611,7 @@ jobs:
     name: 🍺 Update Homebrew Tap
     runs-on: ubuntu-latest
     needs: [compute-release-context, publish-release]
+    if: needs.compute-release-context.outputs.is_stable == 'true' || needs.compute-release-context.outputs.is_active_major == 'true'
 
     steps:
       - name: 📦 Checkout
