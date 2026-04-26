@@ -183,6 +183,20 @@ public sealed partial class ResultDocument
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal DbRow GetValue(ref Cursor cursor)
+        {
+            var row = Get(cursor);
+
+            if (row.TokenType is ElementTokenType.Reference)
+            {
+                cursor = Cursor.FromIndex(row.Location);
+                row = Get(cursor);
+            }
+
+            return row;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal (Cursor, ElementTokenType) GetStartCursor(Cursor cursor)
         {
             AssertValidCursor(cursor);
