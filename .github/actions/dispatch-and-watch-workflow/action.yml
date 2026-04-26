@@ -72,4 +72,4 @@ runs:
         GH_TOKEN: ${{ inputs.token }}
         REPO: ${{ inputs.repo }}
         RUN_ID: ${{ steps.dispatch.outputs.run-id }}
-      run: gh run watch "$RUN_ID" --repo "$REPO" --exit-status
+      run: gh run watch "$RUN_ID" --repo "$REPO" --exit-status --compact
