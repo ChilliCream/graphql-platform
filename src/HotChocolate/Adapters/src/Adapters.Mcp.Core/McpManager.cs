@@ -8,11 +8,12 @@ using Microsoft.Extensions.Options;
 
 namespace HotChocolate.Adapters.Mcp;
 
-internal sealed class McpManager : IMcpProvider
+internal sealed class McpManager : IMcpProvider, IDisposable
 {
     private readonly IOptionsMonitor<McpSetup> _optionsMonitor;
     private readonly IServiceProvider _applicationServices;
     private readonly ConcurrentDictionary<string, Lazy<McpRegistration>> _registrations = new();
+    private bool _disposed;
 
     public McpManager(IOptionsMonitor<McpSetup> optionsMonitor, IServiceProvider applicationServices)
     {
@@ -61,5 +62,27 @@ internal sealed class McpManager : IMcpProvider
         var handlerProxy = new StreamableHttpHandlerProxy(executorProxy);
 
         return new McpRegistration(executorProxy, handlerProxy);
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+
+        foreach (var lazy in _registrations.Values)
+        {
+            if (!lazy.IsValueCreated)
+            {
+                continue;
+            }
+
+            lazy.Value.ExecutorProxy.Dispose();
+        }
+
+        _registrations.Clear();
     }
 }

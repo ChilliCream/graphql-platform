@@ -17,12 +17,13 @@ namespace HotChocolate.Adapters.OpenApi;
 [RequiresUnreferencedCode(
     "JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
 #endif
-internal sealed class OpenApiManager : IOpenApiProvider
+internal sealed class OpenApiManager : IOpenApiProvider, IAsyncDisposable
 {
     private readonly IOptionsMonitor<OpenApiSetup> _setupMonitor;
     private readonly IOptionsMonitor<OpenApiTransportSetup> _transportSetupMonitor;
     private readonly IServiceProvider _applicationServices;
     private readonly ConcurrentDictionary<string, Lazy<OpenApiRegistration>> _registrations = new();
+    private bool _disposed;
 
     public OpenApiManager(
         IOptionsMonitor<OpenApiSetup> setupMonitor,
@@ -77,12 +78,49 @@ internal sealed class OpenApiManager : IOpenApiProvider
                 $"No OpenAPI definition storage is registered for schema '{name}'. "
                     + "Call AddOpenApiDefinitionStorage(...) when configuring the GraphQL server.");
 
+        var endpointDataSourceFactory =
+            transportSetup.EndpointDataSourceFactory
+            ?? throw new InvalidOperationException(
+                $"No OpenAPI endpoint data source factory is registered for schema '{name}'. "
+                    + "Call AddOpenApiAspNetCoreServices() when configuring the GraphQL server.");
+
+        var documentTransformerFactory =
+            transportSetup.DocumentTransformerFactory
+            ?? throw new InvalidOperationException(
+                $"No OpenAPI document transformer factory is registered for schema '{name}'. "
+                    + "Call AddOpenApiAspNetCoreServices() when configuring the GraphQL server.");
+
         var storage = storageFactory(_applicationServices);
-        var endpointDataSource = transportSetup.EndpointDataSourceFactory!();
-        var documentTransformer = transportSetup.DocumentTransformerFactory!();
+        var endpointDataSource = endpointDataSourceFactory();
+        var documentTransformer = documentTransformerFactory();
         var registry = new OpenApiDefinitionRegistry(storage, documentTransformer, endpointDataSource);
         var executorProxy = HttpRequestExecutorProxy.Create(_applicationServices, name);
 
         return new OpenApiRegistration(registry, executorProxy, endpointDataSource, documentTransformer);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+
+        foreach (var lazy in _registrations.Values)
+        {
+            if (!lazy.IsValueCreated)
+            {
+                continue;
+            }
+
+            var registration = lazy.Value;
+
+            await registration.Registry.DisposeAsync();
+            registration.ExecutorProxy.Dispose();
+        }
+
+        _registrations.Clear();
     }
 }
