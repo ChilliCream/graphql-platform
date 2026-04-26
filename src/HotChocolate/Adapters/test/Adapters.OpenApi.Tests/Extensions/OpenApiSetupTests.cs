@@ -16,14 +16,14 @@ public sealed class OpenApiSetupTests
         // act
         services.AddGraphQL().AddOpenApiDefinitionStorage(storage);
 
-        var setup = services
-            .BuildServiceProvider()
+        var serviceProvider = services.BuildServiceProvider();
+        var setup = serviceProvider
             .GetRequiredService<IOptionsMonitor<OpenApiSetup>>()
             .Get(ISchemaDefinition.DefaultName);
 
         // assert
         Assert.NotNull(setup.StorageFactory);
-        Assert.Same(storage, setup.StorageFactory(null!));
+        Assert.Same(storage, setup.StorageFactory(serviceProvider));
     }
 
     [Fact]
