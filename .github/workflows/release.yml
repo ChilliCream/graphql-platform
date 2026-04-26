@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   compute-release-context:
     name: 🧮 Compute release context
@@ -38,9 +42,11 @@ jobs:
           fi
 
           # Highest stable major already published as a non-prerelease, non-draft GitHub Release.
-          HIGHEST=$(gh release list --repo "$GITHUB_REPOSITORY" --limit 200 \
-            --json tagName,isPrerelease,isDraft \
-            --jq '[.[] | select(.isPrerelease==false and .isDraft==false) | .tagName | select(test("^[0-9]+\\.[0-9]+\\.[0-9]+$"))] | map(split(".")[0] | tonumber) | max // 0')
+          HIGHEST=$(gh release list --repo "$GITHUB_REPOSITORY" \
+            --exclude-drafts --exclude-pre-releases \
+            --limit 100 \
+            --json tagName \
+            --jq '[.[] | .tagName | select(test("^[0-9]+\\.[0-9]+\\.[0-9]+$")) | split(".")[0] | tonumber] | max // 0')
 
           if [[ "$MAJOR" -ge "$HIGHEST" ]]; then
             IS_ACTIVE_MAJOR=true
@@ -135,7 +141,7 @@ jobs:
           NitroIdentityScopes: ${{ secrets.NITRO_IDENTITY_SCOPES }}
 
       - name: 📤 Upload Nitro CLI client operations
-        uses: ChilliCream/nitro-client-upload@v16.0.0-rc.1.14
+        uses: ChilliCream/nitro-client-upload@v16.0.0-rc.1.40
         with:
           tag: ${{ env.GIT_TAG }}
           operations-file: src/Nitro/CommandLine/src/ChilliCream.Nitro.Client/persisted/operations.json
@@ -143,7 +149,7 @@ jobs:
           api-key: ${{ secrets.NITRO_API_KEY }}
 
       - name: 🚀 Publish Nitro CLI client (Dev)
-        uses: ChilliCream/nitro-client-publish@v16.0.0-rc.1.14
+        uses: ChilliCream/nitro-client-publish@v16.0.0-rc.1.40
         with:
           tag: ${{ env.GIT_TAG }}
           stage: Dev
@@ -152,7 +158,7 @@ jobs:
           force: true
 
       - name: 🚀 Publish Nitro CLI client (Prod)
-        uses: ChilliCream/nitro-client-publish@v16.0.0-rc.1.14
+        uses: ChilliCream/nitro-client-publish@v16.0.0-rc.1.40
         with:
           tag: ${{ env.GIT_TAG }}
           stage: Prod
@@ -173,7 +179,9 @@ jobs:
           NuGetApiKey: ${{ steps.login.outputs.NUGET_API_KEY }}
 
       - name: 📤 Attach .nupkg assets to GitHub release
+        shell: bash
         run: |
+          set -euo pipefail
           for file in ./output/packages/*.nupkg; do
             echo "📤 Uploading $file"
             gh release upload ${{ env.GIT_TAG }} "$file" --repo "${{ github.repository }}"
@@ -184,11 +192,12 @@ jobs:
   build-nitro-cli:
     name: 🧱 Build and Publish Nitro CLI
     runs-on: ${{ matrix.os }}
-    # We need to depend on this job, as it publishes the persisted operations of the CLI.
-    needs: [release]
-    if: startsWith(github.ref, 'refs/tags/')
+    # We need to depend on `release`, as it publishes the persisted operations of the CLI.
+    needs: [compute-release-context, release]
     permissions:
       contents: write
+    env:
+      GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
     strategy:
       matrix:
         include:
@@ -221,16 +230,6 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.x
-
-      - name: 🏷 Get the version from tag (Windows)
-        if: runner.os == 'Windows'
-        run: echo "GIT_TAG=$($env:GITHUB_REF -replace '^refs/tags/','')" >> $env:GITHUB_ENV
-        shell: pwsh
-
-      - name: 🏷 Get the version from tag (Unix)
-        if: runner.os != 'Windows'
-        shell: bash
-        run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       - name: 📦 Publish binary (Windows)
         if: runner.os == 'Windows'
@@ -343,22 +342,10 @@ jobs:
       - name: 🖋️ Notarize binary (macOS)
         if: runner.os == 'macOS'
         env:
-          CODESIGN_IDENTITY: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_IDENTITY }}
           APPLE_DEVELOPER_ID_EMAIL: ${{ secrets.APPLE_DEVELOPER_ID_EMAIL }}
           APPLE_DEVELOPER_TEAM_ID: ${{ secrets.APPLE_DEVELOPER_TEAM_ID }}
           APPLE_DEVELOPER_NITRO_CLI_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_DEVELOPER_NITRO_CLI_APP_SPECIFIC_PASSWORD }}
         run: |
-          echo "Code signing 'nitro-${{ matrix.rid }}.zip'..."
-
-          codesign --sign "$CODESIGN_IDENTITY" \
-            --verbose=3 \
-            --options runtime \
-            --timestamp \
-            --force \
-            nitro-${{ matrix.rid }}.zip
-
-          codesign --verify --deep --strict --verbose=2 nitro-${{ matrix.rid }}.zip
-
           echo "Notarizing 'nitro-${{ matrix.rid }}.zip'..."
 
           xcrun notarytool submit nitro-${{ matrix.rid }}.zip \
@@ -366,9 +353,6 @@ jobs:
             --team-id "$APPLE_DEVELOPER_TEAM_ID" \
             --password "$APPLE_DEVELOPER_NITRO_CLI_APP_SPECIFIC_PASSWORD" \
             --wait
-
-          spctl --assess --type exec -vv nitro-${{ matrix.rid }}.zip || true
-          codesign -dvv nitro-${{ matrix.rid }}.zip || true
 
       - name: 🖋️ Clean up signing resources (macOS)
         if: always() && runner.os == 'macOS'
@@ -392,7 +376,6 @@ jobs:
     name: 🧱 Publish Nitro CLI binary to npm
     runs-on: ubuntu-latest
     needs: [compute-release-context, build-nitro-cli]
-    if: startsWith(github.ref, 'refs/tags/')
     permissions:
       contents: write
       id-token: write
@@ -428,9 +411,6 @@ jobs:
         with:
           name: nitro-${{ matrix.rid }}
           path: dist
-
-      - name: 🏷 Get the version from tag
-        run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
       - name: 🗂️ Stage binary in package directory
         shell: bash
@@ -508,7 +488,6 @@ jobs:
     name: 🧱 Publish Nitro CLI to npm
     runs-on: ubuntu-latest
     needs: [compute-release-context, publish-nitro-cli-platforms]
-    if: startsWith(github.ref, 'refs/tags/')
     permissions:
       contents: write
       id-token: write
@@ -614,23 +593,25 @@ jobs:
     name: 🚀 Publish Release
     runs-on: ubuntu-22.04
     needs:
+      - compute-release-context
       - release
       - build-nitro-cli
       - publish-nitro-cli-platforms
       - publish-nitro-cli-npm
-    if: startsWith(github.ref, 'refs/tags/')
     permissions:
       contents: write
+    env:
+      GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
+      IS_STABLE: ${{ needs.compute-release-context.outputs.is_stable }}
 
     steps:
-      - name: 🏷 Get the version from tag
-        run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-
       - name: 🚀 Publish draft release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
         run: |
-          if [[ "$GIT_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          set -euo pipefail
+          if [[ "$IS_STABLE" == "true" ]]; then
             prerelease=false
           else
             prerelease=true
@@ -644,7 +625,6 @@ jobs:
     name: 🍺 Update Homebrew Tap
     runs-on: ubuntu-latest
     needs: [compute-release-context, publish-release]
-    if: startsWith(github.ref, 'refs/tags/')
 
     steps:
       - name: 📦 Checkout
@@ -676,7 +656,6 @@ jobs:
     name: 🔄 Update GitHub Actions
     runs-on: ubuntu-latest
     needs: [compute-release-context, publish-release]
-    if: startsWith(github.ref, 'refs/tags/')
     strategy:
       matrix:
         repo:
