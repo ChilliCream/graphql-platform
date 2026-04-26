@@ -50,32 +50,17 @@ runs:
       run: |
         set -euo pipefail
 
-        PAYLOAD=$(jq -n \
-          --arg ref "$REF" \
-          --arg version "$VERSION" \
-          --arg is_stable "$IS_STABLE" \
-          --arg is_active_major "$IS_ACTIVE_MAJOR" \
-          '{
-            ref: $ref,
-            return_run_details: true,
-            inputs: {
-              version: $version,
-              is_stable: $is_stable,
-              is_active_major: $is_active_major
-            }
-          }')
+        RUN_URL=$(gh workflow run "$WORKFLOW" --repo "$REPO" --ref "$REF" \
+          -f version="$VERSION" \
+          -f is_stable="$IS_STABLE" \
+          -f is_active_major="$IS_ACTIVE_MAJOR")
 
-        RESPONSE=$(echo "$PAYLOAD" | gh api \
-          -X POST "repos/$REPO/actions/workflows/$WORKFLOW/dispatches" \
-          --input -)
-
-        RUN_ID=$(echo "$RESPONSE" | jq -r '.workflow_run_id')
-        RUN_URL=$(echo "$RESPONSE" | jq -r '.html_url')
-
-        if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
-          echo "::error::Dispatch did not return a run ID. Ensure the target host supports return_run_details."
+        if [ -z "$RUN_URL" ]; then
+          echo "::error::Dispatch did not return a run URL. Requires gh >= 2.87.0 against github.com."
           exit 1
         fi
+
+        RUN_ID="${RUN_URL##*/}"
 
         echo "run-id=$RUN_ID" >> "$GITHUB_OUTPUT"
         echo "run-url=$RUN_URL" >> "$GITHUB_OUTPUT"
