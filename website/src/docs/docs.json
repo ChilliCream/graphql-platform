@@ -256,6 +256,10 @@
             "title": "Migration",
             "items": [
               {
+                "path": "migrating-from-15-to-16",
+                "title": "Migrating from v15 to v16"
+              },
+              {
                 "path": "coming-from-apollo-federation",
                 "title": "Coming from Apollo Federation"
               },
