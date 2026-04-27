@@ -17,7 +17,7 @@ public static class SchemaFormatter
     {
         var document = FormatAsDocument(schema, options);
 
-        if (options.Indented != true)
+        if (options.Indented == false)
         {
             return document.ToString(false);
         }
