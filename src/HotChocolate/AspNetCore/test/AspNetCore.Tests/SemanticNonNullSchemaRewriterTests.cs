@@ -1,6 +1,7 @@
+using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.Language;
 
-namespace HotChocolate;
+namespace HotChocolate.AspNetCore;
 
 public class SemanticNonNullSchemaRewriterTests
 {

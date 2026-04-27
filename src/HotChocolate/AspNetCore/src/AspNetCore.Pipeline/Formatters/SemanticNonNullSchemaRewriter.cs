@@ -1,14 +1,14 @@
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate;
+namespace HotChocolate.AspNetCore.Formatters;
 
 /// <summary>
 /// Rewrites a GraphQL schema document by stripping non-null wrappers from
 /// applicable output fields and applying the @semanticNonNull directive to
 /// communicate the original nullability intent.
 /// </summary>
-public static class SemanticNonNullSchemaRewriter
+internal static class SemanticNonNullSchemaRewriter
 {
     private const string MutationTypeName = "Mutation";
     private const string PageInfoTypeName = "PageInfo";

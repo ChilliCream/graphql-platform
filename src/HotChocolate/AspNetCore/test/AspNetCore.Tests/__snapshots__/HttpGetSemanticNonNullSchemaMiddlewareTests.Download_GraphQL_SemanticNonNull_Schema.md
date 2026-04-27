@@ -4,7 +4,7 @@
 Headers:
 Cache-Control: public, must-revalidate, max-age=3600
 Content-Type: application/graphql; charset=utf-8
-Content-Disposition: attachment; filename="schema.semantic-non-null.graphql"
+Content-Disposition: attachment; filename="schema.graphql"
 Last-Modified: Fri, 01 Jan 2021 00:00:00 GMT
 -------------------------->
 Status Code: OK

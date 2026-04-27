@@ -936,7 +936,7 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
         private static string GetSchemaFileName(ISchemaDefinition schema)
             => schema.Name.Equals(ISchemaDefinition.DefaultName, StringComparison.OrdinalIgnoreCase)
-                ? "schema.semantic-non-null.graphql"
-                : schema.Name + ".schema.semantic-non-null.graphql";
+                ? "schema.graphql"
+                : schema.Name + ".schema.graphql";
     }
 }
