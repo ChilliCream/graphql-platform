@@ -136,7 +136,7 @@ public sealed class InboundRoute
         IsInitialized = true;
     }
 
-    internal InboundRouteDescription Describe()
+    public InboundRouteDescription Describe()
     {
         return new InboundRouteDescription(
             Kind,

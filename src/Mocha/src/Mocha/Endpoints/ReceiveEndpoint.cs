@@ -336,7 +336,7 @@ public abstract class ReceiveEndpoint(MessagingTransport transport) : IReceiveEn
         IsInitialized = true;
     }
 
-    internal ReceiveEndpointDescription Describe()
+    public ReceiveEndpointDescription Describe()
     {
         return new ReceiveEndpointDescription(Name, Kind, Address?.ToString(), Source?.Address?.ToString());
     }

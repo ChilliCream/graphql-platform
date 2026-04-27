@@ -69,7 +69,7 @@ public abstract partial class Saga : IFeatureProvider
     /// </returns>
     public abstract Task<bool> HandleEvent(IConsumeContext context);
 
-    internal SagaDescription Describe()
+    public SagaDescription Describe()
     {
         var states = new List<SagaStateDescription>();
 

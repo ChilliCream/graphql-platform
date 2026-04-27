@@ -214,7 +214,7 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
         IMessagingConfigurationContext context,
         DispatchEndpointConfiguration configuration);
 
-    internal DispatchEndpointDescription Describe()
+    public DispatchEndpointDescription Describe()
     {
         return new DispatchEndpointDescription(Name, Kind, Address?.ToString(), Destination?.Address?.ToString());
     }

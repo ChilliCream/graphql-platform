@@ -129,7 +129,7 @@ public sealed class OutboundRoute
         IsInitialized = true;
     }
 
-    internal OutboundRouteDescription Describe()
+    public OutboundRouteDescription Describe()
     {
         return new OutboundRouteDescription(
             Kind,

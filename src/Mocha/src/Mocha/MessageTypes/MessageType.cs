@@ -162,7 +162,7 @@ public sealed class MessageType
         IsCompleted = true;
     }
 
-    internal MessageTypeDescription Describe()
+    public MessageTypeDescription Describe()
     {
         return new MessageTypeDescription(
             Identity,
