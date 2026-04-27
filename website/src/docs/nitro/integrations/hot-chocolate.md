@@ -29,10 +29,18 @@ In this configuration, the GraphQL service remains at the `/graphql` endpoint, a
 
 In some scenarios, you may not want to serve Nitro, e.g., in a production environment. You can disable Nitro by setting the `Enable` property to `false`:
 
+_Before (v15 and below):_
 ```csharp
 endpoints
   .MapGraphQL()
   .WithOptions(o => o.Enable = false);
+```
+
+_After (v16):_
+```csharp
+endpoints
+  .MapGraphQL()
+  .WithOptions((NitroAppOptions o) => o.Enable = false);
 ```
 
 # Serve Modes
@@ -47,10 +55,18 @@ You can also serve the embedded version (`Embedded`) of Nitro, which is included
 
 Depending on your environment or preferences, you can choose the appropriate mode:
 
+_Before (v15 and below):_
 ```csharp
 endpoints
   .MapNitroApp()
   .WithOptions(o => o.ServeMode = ServeMode.Embedded);
+```
+
+_After (v16):_
+```csharp
+endpoints
+  .MapGraphQL()
+  .WithOptions((NitroAppOptions o) => o.ServeMode = ServeMode.Embedded);
 ```
 
 # Configuration Options
@@ -71,10 +87,26 @@ You can tailor Nitro to your needs by setting various options via `NitroAppOptio
 
 Here is an example of how to set these options:
 
+_Before (v15 and below):_
 ```csharp
 endpoints
   .MapNitroApp()
   .WithOptions(o =>
+  {
+      o.ServeMode = ServeMode.Insider;
+      o.Title = "My GraphQL API";
+      o.Document = "Query { hello }";
+      o.GraphQLEndpoint = "/api/graphql";
+      o.IncludeCookies = true;
+      o.Enable = true;
+  });
+```
+
+_After (v16):_
+```csharp
+endpoints
+  .MapNitroApp()
+  .WithOptions((NitroAppOptions o) =>
   {
       o.ServeMode = ServeMode.Insider;
       o.Title = "My GraphQL API";
