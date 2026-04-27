@@ -21,7 +21,7 @@ public sealed class BlobStorageOwnershipStore : IPartitionOwnershipStore
     /// <param name="containerClient">The blob container client for storing ownership blobs.</param>
     public BlobStorageOwnershipStore(BlobContainerClient containerClient)
     {
-        _containerClient = containerClient ?? throw new ArgumentNullException(nameof(containerClient));
+        _containerClient = containerClient;
     }
 
     /// <inheritdoc />

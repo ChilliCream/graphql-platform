@@ -3,7 +3,6 @@ using Azure.Core;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Consumer;
 using Azure.Messaging.EventHubs.Primitives;
-using Azure.Messaging.EventHubs.Processor;
 using Microsoft.Extensions.Logging;
 
 namespace Mocha.Transport.AzureEventHub;
@@ -22,6 +21,7 @@ internal class MochaEventProcessor : EventProcessor<EventProcessorPartition>
     private readonly string _eventHubName;
     private readonly string _consumerGroup;
     private readonly int _checkpointInterval;
+    private readonly EventPosition _defaultStartingPosition;
     private readonly ConcurrentDictionary<string, int> _partitionCounters = new();
     private readonly ConcurrentDictionary<string, long> _partitionLastSequence = new();
     private readonly ConcurrentDictionary<string, long> _partitionLastCheckpointTime = new();
@@ -38,16 +38,15 @@ internal class MochaEventProcessor : EventProcessor<EventProcessorPartition>
         TokenCredential credential,
         Func<EventData, string, CancellationToken, ValueTask> messageHandler,
         ICheckpointStore checkpointStore,
-        IPartitionOwnershipStore? ownershipStore = null,
-        EventProcessorOptions? options = null,
-        int checkpointInterval = 100)
+        IPartitionOwnershipStore? ownershipStore,
+        int checkpointInterval,
+        EventPosition defaultStartingPosition)
         : base(
-            eventBatchMaximumCount: options?.MaximumWaitTime is not null ? 100 : 1,
+            eventBatchMaximumCount: 1,
             consumerGroup: consumerGroup,
             fullyQualifiedNamespace: fullyQualifiedNamespace,
             eventHubName: eventHubName,
-            credential: credential,
-            options: options)
+            credential: credential)
     {
         _logger = logger;
         _messageHandler = messageHandler;
@@ -57,6 +56,7 @@ internal class MochaEventProcessor : EventProcessor<EventProcessorPartition>
         _eventHubName = eventHubName;
         _consumerGroup = consumerGroup;
         _checkpointInterval = checkpointInterval;
+        _defaultStartingPosition = defaultStartingPosition;
     }
 
     /// <summary>
@@ -69,15 +69,14 @@ internal class MochaEventProcessor : EventProcessor<EventProcessorPartition>
         string eventHubName,
         Func<EventData, string, CancellationToken, ValueTask> messageHandler,
         ICheckpointStore checkpointStore,
-        IPartitionOwnershipStore? ownershipStore = null,
-        EventProcessorOptions? options = null,
-        int checkpointInterval = 100)
+        IPartitionOwnershipStore? ownershipStore,
+        int checkpointInterval,
+        EventPosition defaultStartingPosition)
         : base(
-            eventBatchMaximumCount: options?.MaximumWaitTime is not null ? 100 : 1,
+            eventBatchMaximumCount: 1,
             consumerGroup: consumerGroup,
             connectionString: connectionString,
-            eventHubName: eventHubName,
-            options: options)
+            eventHubName: eventHubName)
     {
         _logger = logger;
         _messageHandler = messageHandler;
@@ -89,6 +88,7 @@ internal class MochaEventProcessor : EventProcessor<EventProcessorPartition>
         _eventHubName = eventHubName;
         _consumerGroup = consumerGroup;
         _checkpointInterval = checkpointInterval;
+        _defaultStartingPosition = defaultStartingPosition;
     }
 
     /// <inheritdoc />
@@ -192,17 +192,9 @@ internal class MochaEventProcessor : EventProcessor<EventProcessorPartition>
             partitionId,
             cancellationToken);
 
-        if (sequenceNumber.HasValue)
-        {
-            return new EventProcessorCheckpoint
-            {
-                FullyQualifiedNamespace = _fullyQualifiedNamespace,
-                EventHubName = _eventHubName,
-                ConsumerGroup = _consumerGroup,
-                PartitionId = partitionId,
-                StartingPosition = EventPosition.FromSequenceNumber(sequenceNumber.Value, isInclusive: false)
-            };
-        }
+        var startingPosition = sequenceNumber.HasValue
+            ? EventPosition.FromSequenceNumber(sequenceNumber.Value, isInclusive: false)
+            : _defaultStartingPosition;
 
         return new EventProcessorCheckpoint
         {
@@ -210,7 +202,7 @@ internal class MochaEventProcessor : EventProcessor<EventProcessorPartition>
             EventHubName = _eventHubName,
             ConsumerGroup = _consumerGroup,
             PartitionId = partitionId,
-            StartingPosition = EventPosition.Latest
+            StartingPosition = startingPosition
         };
     }
 

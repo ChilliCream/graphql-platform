@@ -1,4 +1,5 @@
 using Azure.Messaging.EventHubs;
+using Azure.Messaging.EventHubs.Consumer;
 using Mocha.Features;
 using Mocha.Transport.AzureEventHub.Features;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +27,7 @@ public sealed class EventHubReceiveEndpoint(EventHubMessagingTransport transport
     public EventHubSubscription? Subscription { get; private set; }
 
     private int _checkpointInterval = 100;
+    private EventPosition _defaultStartingPosition = EventPosition.Earliest;
     private MochaEventProcessor? _processor;
 
     /// <summary>
@@ -43,8 +45,9 @@ public sealed class EventHubReceiveEndpoint(EventHubMessagingTransport transport
             throw new InvalidOperationException("Hub name is required");
         }
 
-        _consumerGroup = configuration.ConsumerGroup ?? "$Default";
+        _consumerGroup = configuration.ConsumerGroup;
         _checkpointInterval = configuration.CheckpointInterval;
+        _defaultStartingPosition = configuration.DefaultStartingPosition;
     }
 
     /// <inheritdoc />
@@ -67,11 +70,7 @@ public sealed class EventHubReceiveEndpoint(EventHubMessagingTransport transport
         IMessagingRuntimeContext context,
         CancellationToken cancellationToken)
     {
-        if (Transport is not EventHubMessagingTransport ehTransport)
-        {
-            throw new InvalidOperationException("Transport is not EventHubMessagingTransport");
-        }
-
+        var ehTransport = (EventHubMessagingTransport)Transport;
         var connectionProvider = ehTransport.ConnectionManager.ConnectionProvider;
         var transportConfig = ehTransport.TransportConfiguration;
         var checkpointStore = transportConfig.CheckpointStoreFactory is not null
@@ -105,7 +104,8 @@ public sealed class EventHubReceiveEndpoint(EventHubMessagingTransport transport
                 messageHandler,
                 checkpointStore,
                 ownershipStore,
-                checkpointInterval: _checkpointInterval);
+                checkpointInterval: _checkpointInterval,
+                defaultStartingPosition: _defaultStartingPosition);
         }
         else if (connectionProvider.Credential is not null)
         {
@@ -118,7 +118,8 @@ public sealed class EventHubReceiveEndpoint(EventHubMessagingTransport transport
                 messageHandler,
                 checkpointStore,
                 ownershipStore,
-                checkpointInterval: _checkpointInterval);
+                checkpointInterval: _checkpointInterval,
+                defaultStartingPosition: _defaultStartingPosition);
         }
         else
         {
@@ -132,7 +133,7 @@ public sealed class EventHubReceiveEndpoint(EventHubMessagingTransport transport
                 "Event Hub processor for '{HubName}' consumer group '{ConsumerGroup}' has "
                 + "persistent checkpoints but no OwnershipStore. Multiple instances "
                 + "will duplicate event processing.",
-                Topic!.Name, _consumerGroup);
+                Topic.Name, _consumerGroup);
         }
 
         // StartProcessingAsync creates its own internal CancellationTokenSource.

@@ -1,3 +1,5 @@
+using Azure.Messaging.EventHubs.Consumer;
+
 namespace Mocha.Transport.AzureEventHub;
 
 /// <summary>
@@ -21,4 +23,10 @@ public sealed class EventHubReceiveEndpointConfiguration : ReceiveEndpointConfig
     /// Defaults to 100. Set to 1 to checkpoint after every event.
     /// </summary>
     public int CheckpointInterval { get; set; } = 100;
+
+    /// <summary>
+    /// Gets or sets the starting position used when no checkpoint exists for a partition.
+    /// Defaults to <see cref="EventPosition.Earliest"/> to prevent silent data loss on first deploy.
+    /// </summary>
+    public EventPosition DefaultStartingPosition { get; set; } = EventPosition.Earliest;
 }

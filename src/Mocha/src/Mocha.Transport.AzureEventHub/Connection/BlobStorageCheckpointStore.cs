@@ -18,7 +18,7 @@ public sealed class BlobStorageCheckpointStore : ICheckpointStore
     /// <param name="containerClient">The blob container client for storing checkpoint blobs.</param>
     public BlobStorageCheckpointStore(BlobContainerClient containerClient)
     {
-        _containerClient = containerClient ?? throw new ArgumentNullException(nameof(containerClient));
+        _containerClient = containerClient;
     }
 
     /// <inheritdoc />
