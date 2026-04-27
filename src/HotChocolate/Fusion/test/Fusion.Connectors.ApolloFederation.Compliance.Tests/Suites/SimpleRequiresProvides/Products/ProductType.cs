@@ -6,8 +6,8 @@ namespace HotChocolate.Fusion.Suites.SimpleRequiresProvides.Products;
 /// <summary>
 /// Apollo Federation descriptor for the <c>Product</c> entity owned by the
 /// <c>products</c> subgraph. Mirrors the audit Schema Definition Language
-/// (SDL): <c>type Product @key(fields: "upc") { upc: String!, name: String,
-/// price: Int, weight: Int }</c>.
+/// (SDL) <c>type Product @key(fields: "upc")</c> with fields
+/// <c>upc: String!</c>, <c>name: String</c>, <c>price: Int</c>, and <c>weight: Int</c>.
 /// </summary>
 public sealed class ProductType : ObjectType<Product>
 {

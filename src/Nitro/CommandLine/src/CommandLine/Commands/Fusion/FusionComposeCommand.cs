@@ -1,7 +1,5 @@
 using System.Text;
-using System.Text.Json;
 using System.Threading.Channels;
-using ChilliCream.Nitro.CommandLine.FusionCompatibility;
 using ChilliCream.Nitro.CommandLine.Services;
 using HotChocolate.Fusion;
 using HotChocolate.Fusion.Logging;

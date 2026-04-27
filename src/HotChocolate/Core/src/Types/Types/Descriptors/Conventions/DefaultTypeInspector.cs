@@ -252,8 +252,8 @@ public class DefaultTypeInspector(bool ignoreRequiredAttribute = false) : Conven
 
         if (enumType != typeof(object) && enumType.IsEnum)
         {
-// Enum.GetValues requires dynamic code but the enum type
-// is schema-registered and guaranteed to be available.
+            // Enum.GetValues requires dynamic code but the enum type
+            // is schema-registered and guaranteed to be available.
 #pragma warning disable IL3050
             return Enum.GetValues(enumType).Cast<object>();
 #pragma warning restore IL3050

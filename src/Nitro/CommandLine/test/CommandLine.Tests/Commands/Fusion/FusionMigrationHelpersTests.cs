@@ -1,4 +1,3 @@
-using System.Text;
 using System.Text.Json;
 using ChilliCream.Nitro.CommandLine.Commands.Fusion;
 
@@ -12,7 +11,7 @@ public sealed class FusionMigrationHelpersTests
     public void MigrateSubgraphConfig_Should_WriteEmptyName_When_InputIsEmptyObject()
     {
         // arrange
-        var input = Encoding.UTF8.GetBytes("{}");
+        var input = "{}"u8.ToArray();
 
         // act
         using var result = FusionMigrationHelpers.MigrateSubgraphConfig(input);
@@ -25,7 +24,7 @@ public sealed class FusionMigrationHelpersTests
     public void MigrateSubgraphConfig_Should_RenameSubgraphToName_When_SubgraphPropertyPresent()
     {
         // arrange
-        var input = Encoding.UTF8.GetBytes("""{"subgraph":"products"}""");
+        var input = """{"subgraph":"products"}"""u8.ToArray();
 
         // act
         using var result = FusionMigrationHelpers.MigrateSubgraphConfig(input);
@@ -38,8 +37,7 @@ public sealed class FusionMigrationHelpersTests
     public void MigrateSubgraphConfig_Should_RenameHttpBaseAddressToUrlUnderTransports_When_HttpPresent()
     {
         // arrange
-        var input = Encoding.UTF8.GetBytes(
-            """{"subgraph":"products","http":{"baseAddress":"http://localhost/graphql"}}""");
+        var input = """{"subgraph":"products","http":{"baseAddress":"http://localhost/graphql"}}"""u8.ToArray();
 
         // act
         using var result = FusionMigrationHelpers.MigrateSubgraphConfig(input);
@@ -53,8 +51,8 @@ public sealed class FusionMigrationHelpersTests
     public void MigrateSubgraphConfig_Should_PreserveOtherHttpProperties_When_HttpHasMoreThanBaseAddress()
     {
         // arrange
-        var input = Encoding.UTF8.GetBytes(
-            """{"subgraph":"products","http":{"baseAddress":"http://x/gql","clientName":"Fusion","timeout":"00:00:30"}}""");
+        var input =
+            """{"subgraph":"products","http":{"baseAddress":"http://x/gql","clientName":"Fusion","timeout":"00:00:30"}}"""u8.ToArray();
 
         // act
         using var result = FusionMigrationHelpers.MigrateSubgraphConfig(input);
@@ -68,8 +66,7 @@ public sealed class FusionMigrationHelpersTests
     public void MigrateSubgraphConfig_Should_PreserveHttpProperties_When_BaseAddressIsMissing()
     {
         // arrange
-        var input = Encoding.UTF8.GetBytes(
-            """{"subgraph":"products","http":{"clientName":"Fusion"}}""");
+        var input = """{"subgraph":"products","http":{"clientName":"Fusion"}}"""u8.ToArray();
 
         // act
         using var result = FusionMigrationHelpers.MigrateSubgraphConfig(input);
@@ -83,8 +80,7 @@ public sealed class FusionMigrationHelpersTests
     public void MigrateSubgraphConfig_Should_DropWebsocketProperty_When_WebsocketPresent()
     {
         // arrange
-        var input = Encoding.UTF8.GetBytes(
-            """{"subgraph":"products","websocket":{"baseAddress":"ws://localhost/ws"}}""");
+        var input = """{"subgraph":"products","websocket":{"baseAddress":"ws://localhost/ws"}}"""u8.ToArray();
 
         // act
         using var result = FusionMigrationHelpers.MigrateSubgraphConfig(input);
@@ -97,8 +93,7 @@ public sealed class FusionMigrationHelpersTests
     public void MigrateSubgraphConfig_Should_PreserveUnknownTopLevelProperties_When_AdditionalFieldsPresent()
     {
         // arrange
-        var input = Encoding.UTF8.GetBytes(
-            """{"subgraph":"products","extensions":{"custom":true},"retryCount":3}""");
+        var input = """{"subgraph":"products","extensions":{"custom":true},"retryCount":3}"""u8.ToArray();
 
         // act
         using var result = FusionMigrationHelpers.MigrateSubgraphConfig(input);
@@ -112,7 +107,7 @@ public sealed class FusionMigrationHelpersTests
     public void MigrateSubgraphConfig_Should_ProduceFullMigration_When_AllKnownPropertiesPresent()
     {
         // arrange
-        var input = Encoding.UTF8.GetBytes(
+        var input =
             """
             {
               "subgraph": "products",
@@ -120,7 +115,7 @@ public sealed class FusionMigrationHelpersTests
               "websocket": { "baseAddress": "ws://x/ws" },
               "extensions": { "custom": true }
             }
-            """);
+            """u8.ToArray();
 
         // act
         using var result = FusionMigrationHelpers.MigrateSubgraphConfig(input);
@@ -134,7 +129,7 @@ public sealed class FusionMigrationHelpersTests
     public void MigrateSubgraphConfig_Should_PreserveExistingVersion_When_VersionAlreadyPresent()
     {
         // arrange
-        var input = Encoding.UTF8.GetBytes("""{"subgraph":"products","version":"9.9.9"}""");
+        var input = """{"subgraph":"products","version":"9.9.9"}"""u8.ToArray();
 
         // act
         using var result = FusionMigrationHelpers.MigrateSubgraphConfig(input);
@@ -147,7 +142,7 @@ public sealed class FusionMigrationHelpersTests
     public void MigrateSubgraphConfig_Should_InjectDefaultVersion_When_VersionMissing()
     {
         // arrange
-        var input = Encoding.UTF8.GetBytes("""{"subgraph":"products"}""");
+        var input = """{"subgraph":"products"}"""u8.ToArray();
 
         // act
         using var result = FusionMigrationHelpers.MigrateSubgraphConfig(input);
@@ -160,7 +155,7 @@ public sealed class FusionMigrationHelpersTests
     public void MigrateSubgraphConfig_Should_Throw_When_InputIsInvalidJson()
     {
         // arrange
-        var input = Encoding.UTF8.GetBytes("not json");
+        var input = "not json"u8.ToArray();
 
         // act & assert
         Assert.ThrowsAny<JsonException>(() => FusionMigrationHelpers.MigrateSubgraphConfig(input));
@@ -174,7 +169,7 @@ public sealed class FusionMigrationHelpersTests
     public void MigrateGatewaySettings_Should_EmitDefaultScaffolding_When_InputIsEmptyObject()
     {
         // arrange
-        var input = Encoding.UTF8.GetBytes("{}");
+        var input = "{}"u8.ToArray();
 
         // act
         using var result = FusionMigrationHelpers.MigrateGatewaySettings(input);
@@ -187,7 +182,7 @@ public sealed class FusionMigrationHelpersTests
     public void MigrateGatewaySettings_Should_AddEnableGlobalObjectIdentificationTrue_When_NodeFieldEnabled()
     {
         // arrange
-        var input = Encoding.UTF8.GetBytes("""{"nodeField":{"enabled":true}}""");
+        var input = """{"nodeField":{"enabled":true}}"""u8.ToArray();
 
         // act
         using var result = FusionMigrationHelpers.MigrateGatewaySettings(input);
@@ -201,7 +196,7 @@ public sealed class FusionMigrationHelpersTests
     public void MigrateGatewaySettings_Should_AddEnableGlobalObjectIdentificationFalse_When_NodeFieldDisabled()
     {
         // arrange
-        var input = Encoding.UTF8.GetBytes("""{"nodeField":{"enabled":false}}""");
+        var input = """{"nodeField":{"enabled":false}}"""u8.ToArray();
 
         // act
         using var result = FusionMigrationHelpers.MigrateGatewaySettings(input);
@@ -215,7 +210,7 @@ public sealed class FusionMigrationHelpersTests
     public void MigrateGatewaySettings_Should_OmitEnableGlobalObjectIdentification_When_NodeFieldHasNoEnabled()
     {
         // arrange
-        var input = Encoding.UTF8.GetBytes("""{"nodeField":{}}""");
+        var input = """{"nodeField":{}}"""u8.ToArray();
 
         // act
         using var result = FusionMigrationHelpers.MigrateGatewaySettings(input);
@@ -228,7 +223,7 @@ public sealed class FusionMigrationHelpersTests
     public void MigrateGatewaySettings_Should_AddTagMergeBehaviorInclude_When_TagDirectiveMakePublicTrue()
     {
         // arrange
-        var input = Encoding.UTF8.GetBytes("""{"tagDirective":{"makePublic":true}}""");
+        var input = """{"tagDirective":{"makePublic":true}}"""u8.ToArray();
 
         // act
         using var result = FusionMigrationHelpers.MigrateGatewaySettings(input);
@@ -242,7 +237,7 @@ public sealed class FusionMigrationHelpersTests
     public void MigrateGatewaySettings_Should_OmitTagMergeBehavior_When_TagDirectiveMakePublicFalse()
     {
         // arrange
-        var input = Encoding.UTF8.GetBytes("""{"tagDirective":{"makePublic":false}}""");
+        var input = """{"tagDirective":{"makePublic":false}}"""u8.ToArray();
 
         // act
         using var result = FusionMigrationHelpers.MigrateGatewaySettings(input);
@@ -255,7 +250,7 @@ public sealed class FusionMigrationHelpersTests
     public void MigrateGatewaySettings_Should_AddExcludeByTag_When_TagDirectiveExcludeNonEmpty()
     {
         // arrange
-        var input = Encoding.UTF8.GetBytes("""{"tagDirective":{"exclude":["internal","beta"]}}""");
+        var input = """{"tagDirective":{"exclude":["internal","beta"]}}"""u8.ToArray();
 
         // act
         using var result = FusionMigrationHelpers.MigrateGatewaySettings(input);
@@ -269,7 +264,7 @@ public sealed class FusionMigrationHelpersTests
     public void MigrateGatewaySettings_Should_OmitExcludeByTag_When_TagDirectiveExcludeEmpty()
     {
         // arrange
-        var input = Encoding.UTF8.GetBytes("""{"tagDirective":{"exclude":[]}}""");
+        var input = """{"tagDirective":{"exclude":[]}}"""u8.ToArray();
 
         // act
         using var result = FusionMigrationHelpers.MigrateGatewaySettings(input);
@@ -282,7 +277,7 @@ public sealed class FusionMigrationHelpersTests
     public void MigrateGatewaySettings_Should_OmitExcludeByTag_When_TagDirectiveExcludeMissing()
     {
         // arrange
-        var input = Encoding.UTF8.GetBytes("""{"tagDirective":{"makePublic":true}}""");
+        var input = """{"tagDirective":{"makePublic":true}}"""u8.ToArray();
 
         // act
         using var result = FusionMigrationHelpers.MigrateGatewaySettings(input);
@@ -296,7 +291,7 @@ public sealed class FusionMigrationHelpersTests
     public void MigrateGatewaySettings_Should_CombineAllMigrations_When_AllRelevantPropertiesPresent()
     {
         // arrange
-        var input = Encoding.UTF8.GetBytes(
+        var input =
             """
             {
               "tagDirective": { "makePublic": true, "exclude": ["internal"] },
@@ -304,7 +299,7 @@ public sealed class FusionMigrationHelpersTests
               "transport": { "defaultClientName": "Fusion" },
               "reEncodeIds": { "enabled": true }
             }
-            """);
+            """u8.ToArray();
 
         // act
         using var result = FusionMigrationHelpers.MigrateGatewaySettings(input);
@@ -318,7 +313,7 @@ public sealed class FusionMigrationHelpersTests
     public void MigrateGatewaySettings_Should_Throw_When_InputIsInvalidJson()
     {
         // arrange
-        var input = Encoding.UTF8.GetBytes("not json");
+        var input = "not json"u8.ToArray();
 
         // act & assert
         Assert.ThrowsAny<JsonException>(() => FusionMigrationHelpers.MigrateGatewaySettings(input));
