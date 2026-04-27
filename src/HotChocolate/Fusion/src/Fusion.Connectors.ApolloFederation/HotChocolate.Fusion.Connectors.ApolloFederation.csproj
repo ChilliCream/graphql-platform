@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Fusion.Connectors.ApolloFederation</AssemblyName>
+    <RootNamespace>HotChocolate.Fusion</RootNamespace>
+    <LangVersion>preview</LangVersion>
+    <DefineConstants>$(DefineConstants);FUSION</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.ApolloFederation.Tests" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.ApolloFederation.Compliance.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Fusion.Composition.ApolloFederation\HotChocolate.Fusion.Composition.ApolloFederation.csproj" />
+    <ProjectReference Include="..\Fusion.Composition\HotChocolate.Fusion.Composition.csproj" />
+    <ProjectReference Include="..\Fusion.Execution\HotChocolate.Fusion.Execution.csproj" />
+    <ProjectReference Include="..\..\..\AspNetCore\src\Transport.Http\HotChocolate.Transport.Http.csproj" />
+  </ItemGroup>
+
+</Project>

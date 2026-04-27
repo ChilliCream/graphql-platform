@@ -173,7 +173,10 @@ public readonly struct OperationBatchRequest
     /// <param name="right">
     /// The second <see cref="OperationBatchRequest"/> to compare.
     /// </param>
-    /// <returns></returns>
+    /// <returns>
+    /// <c>true</c> if the two objects are equal;
+    /// otherwise, <c>false</c>.
+    /// </returns>
     public static bool operator ==(OperationBatchRequest left, OperationBatchRequest right)
         => left.Equals(right);
 
@@ -186,7 +189,10 @@ public readonly struct OperationBatchRequest
     /// <param name="right">
     /// The second <see cref="OperationBatchRequest"/> to compare.
     /// </param>
-    /// <returns></returns>
+    /// <returns>
+    /// <c>true</c> if the two objects are not equal;
+    /// otherwise, <c>false</c>.
+    /// </returns>
     public static bool operator !=(OperationBatchRequest left, OperationBatchRequest right)
         => !left.Equals(right);
 }

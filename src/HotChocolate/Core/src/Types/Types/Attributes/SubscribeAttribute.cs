@@ -61,7 +61,9 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
             descriptor.Extend().OnBeforeNaming(
                 (_, fieldDef) =>
                 {
+#pragma warning disable IL3050, IL2060
                     var factory = s_subscribeFactory.MakeGenericMethod(MessageType);
+#pragma warning restore IL3050, IL2060
                     factory.Invoke(null, [fieldDef, topicString]);
                 });
         }
@@ -70,9 +72,11 @@ public sealed class SubscribeAttribute : ObjectFieldDescriptorAttribute
             descriptor.Extend().OnBeforeNaming(
                 (_, d) =>
                 {
+#pragma warning disable IL2075
                     var subscribeResolver = member.DeclaringType?.GetMethod(
                         With!,
                         Public | NonPublic | Instance | Static);
+#pragma warning restore IL2075
 
                     if (subscribeResolver is null)
                     {

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -38,6 +39,17 @@ internal static class ServiceExpressionHelper
         string key)
         => BuildDefaultService(parameter, context, key);
 
+    [UnconditionalSuppressMessage(
+        "ReflectionAnalysis",
+        "IL2060",
+        Justification =
+            "The GetService<T> method has no trimming constraints on its type parameter.")]
+    [UnconditionalSuppressMessage(
+        "AOT",
+        "IL3050",
+        Justification =
+            "This method builds expression trees at schema initialization time and is only used in JIT-compatible "
+            + "environments.")]
     private static Expression BuildDefaultService(ParameterInfo parameter, Expression context)
     {
         var parameterType = parameter.ParameterType;
@@ -48,6 +60,17 @@ internal static class ServiceExpressionHelper
         return Expression.Call(argumentMethod, context, isRequired ? s_true : s_false);
     }
 
+    [UnconditionalSuppressMessage(
+        "ReflectionAnalysis",
+        "IL2060",
+        Justification =
+            "The GetKeyedService<T> method has no trimming constraints on its type parameter.")]
+    [UnconditionalSuppressMessage(
+        "AOT",
+        "IL3050",
+        Justification =
+            "This method builds expression trees at schema initialization time and is only used in JIT-compatible "
+            + "environments.")]
     private static Expression BuildDefaultService(ParameterInfo parameter, Expression context, string key)
     {
         var parameterType = parameter.ParameterType;

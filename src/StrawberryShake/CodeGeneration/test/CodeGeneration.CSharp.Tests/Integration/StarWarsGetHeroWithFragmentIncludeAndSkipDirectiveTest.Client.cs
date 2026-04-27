@@ -661,7 +661,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
     /// <code>
     /// query GetHeroWithFragmentIncludeAndSkipDirective(
     ///   $includePageInfo: Boolean = false
-    ///     $skipPageInfo: Boolean = true
+    ///   $skipPageInfo: Boolean = true
     /// ) {
     ///   hero(episode: NEW_HOPE) {
     ///     __typename
@@ -727,7 +727,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
     /// <code>
     /// query GetHeroWithFragmentIncludeAndSkipDirective(
     ///   $includePageInfo: Boolean = false
-    ///     $skipPageInfo: Boolean = true
+    ///   $skipPageInfo: Boolean = true
     /// ) {
     ///   hero(episode: NEW_HOPE) {
     ///     __typename
@@ -867,7 +867,7 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.StarWarsGetHeroWithF
     /// <code>
     /// query GetHeroWithFragmentIncludeAndSkipDirective(
     ///   $includePageInfo: Boolean = false
-    ///     $skipPageInfo: Boolean = true
+    ///   $skipPageInfo: Boolean = true
     /// ) {
     ///   hero(episode: NEW_HOPE) {
     ///     __typename

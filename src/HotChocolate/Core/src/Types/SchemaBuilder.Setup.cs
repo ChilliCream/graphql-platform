@@ -9,6 +9,7 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Factories;
 using HotChocolate.Types.Helpers;
 using HotChocolate.Types.Interceptors;
+using HotChocolate.Types.Introspection;
 using HotChocolate.Types.Pagination;
 using HotChocolate.Types.Relay;
 using HotChocolate.Utilities;
@@ -27,6 +28,11 @@ public partial class SchemaBuilder
             return Create(builder, schema, context);
         }
 
+        [UnconditionalSuppressMessage(
+            "ReflectionAnalysis",
+            "IL2072",
+            Justification =
+                "Type interceptor types are registered by the framework and preserved at runtime.")]
         public static Schema Create(
             SchemaBuilder builder,
             LazySchema lazySchema,
@@ -597,6 +603,13 @@ public partial class SchemaBuilder
                 var accessor = new NodeIdSerializerAccessor();
                 lazy.OnSchemaCreated(accessor.OnSchemaCreated);
                 return accessor;
+            });
+
+        services.TryAddSingleton<ISchemaSearchProvider>(
+            static sp =>
+            {
+                var schema = sp.GetRequiredService<ISchemaDefinition>();
+                return new BM25SearchProvider(schema);
             });
     }
 }

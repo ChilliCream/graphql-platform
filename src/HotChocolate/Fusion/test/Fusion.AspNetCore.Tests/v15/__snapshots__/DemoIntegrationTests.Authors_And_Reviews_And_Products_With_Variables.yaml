@@ -1,9 +1,7 @@
 title: Authors_And_Reviews_And_Products_With_Variables
 request:
   document: |
-    query TopProducts(
-      $first: Int!
-    ) {
+    query TopProducts($first: Int!) {
       topProducts(first: $first) {
         id
       }
@@ -45,7 +43,7 @@ sourceSchemas:
         nodes(ids: [ID!]!): [Node]! @shareable
         userById(id: ID!): User!
         users: [User!]!
-        testWithTwoArgumentsDifferingNullability(first: Int! second: Int): String!
+        testWithTwoArgumentsDifferingNullability(first: Int!, second: Int): String!
       }
 
       type User implements Node {
@@ -131,10 +129,9 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query TopProducts_42998eb3_1(
-              $first: Int!
-            ) {
+            query TopProducts_42998eb3_1($first: Int!) {
               topProducts(first: $first) {
                 id
               }
@@ -164,9 +161,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query TopProducts(
-          $first: Int!
-        ) {
+        query TopProducts($first: Int!) {
           topProducts(first: $first) {
             id
           }
@@ -180,9 +175,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query TopProducts_42998eb3_1(
-          $first: Int!
-        ) {
+        query TopProducts_42998eb3_1($first: Int!) {
           topProducts(first: $first) {
             id
           }

@@ -14,6 +14,8 @@ using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Exporters.Csv;
 using BenchmarkDotNet.Exporters;
 using HotChocolate.Buffers;
+using HotChocolate.Fusion;
+using HotChocolate.Fusion.Execution;
 
 namespace Fusion.Execution.Benchmarks;
 
@@ -49,13 +51,27 @@ public class GraphQLQueryBenchmark
         (_server, _app) = await GraphQLServerHelper.CreateTestServer();
         _client = _server.CreateClient();
 
+        var fusionItems = new HotChocolate.Fusion.Transport.OperationRequest(
+            "{ items }",
+            id: null,
+            operationName: null,
+            onError: null,
+            variables: VariableValues.Empty,
+            extensions: JsonSegment.Empty);
+        var fusionFewItems = new HotChocolate.Fusion.Transport.OperationRequest(
+            "{ fewItems }",
+            id: null,
+            operationName: null,
+            onError: null,
+            variables: VariableValues.Empty,
+            extensions: JsonSegment.Empty);
+
+        _fusionItemsRequest = new FusionGraphQLHttpRequest(fusionItems, _requestUri);
+        _fusionFewItemsRequest = new FusionGraphQLHttpRequest(fusionFewItems, _requestUri);
+        _fusionClient = new FusionClient(_client);
+
         var items = new HotChocolate.Transport.OperationRequest("{ items }");
         var fewItems = new HotChocolate.Transport.OperationRequest("{ fewItems }");
-
-
-        _fusionItemsRequest = new FusionGraphQLHttpRequest(items, _requestUri);
-        _fusionFewItemsRequest = new FusionGraphQLHttpRequest(fewItems, _requestUri);
-        _fusionClient = new FusionClient(_client);
 
         _transportItemsRequest = new TransportGraphQLHttpRequest(items, _requestUri);
         _transportFewItemsRequest = new TransportGraphQLHttpRequest(fewItems, _requestUri);

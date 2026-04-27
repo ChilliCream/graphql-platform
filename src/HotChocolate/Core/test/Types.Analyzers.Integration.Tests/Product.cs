@@ -5,6 +5,7 @@ using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Text.Json;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Types;
 
@@ -46,6 +47,11 @@ public static partial class Query
 {
     [GraphQLIgnore]
     public static PagingArguments PagingArguments { get; private set; }
+
+    public static IsSelectedNode GetIsSelectedTest([IsSelected("name")] bool isSelected)
+    {
+        return new IsSelectedNode { WasNameSelected = isSelected };
+    }
 
     /// <summary>
     /// Gets the product.
@@ -97,6 +103,27 @@ public static partial class Query
 
     public static string NullableListNullableElementArgumentRef(List<string?>? items)
         => throw new Exception();
+}
+
+public class IsSelectedNode
+{
+    public int Id { get; set; }
+
+    public string Name { get; set; } = "test";
+
+    public string Description { get; set; } = "desc";
+
+    public bool WasNameSelected { get; set; }
+}
+
+[ObjectType<IsSelectedNode>]
+public static partial class IsSelectedNodeType
+{
+    [NodeResolver]
+    public static IsSelectedNode? GetIsSelectedNodeById(
+        int id,
+        [IsSelected("name")] bool isSelected)
+        => new() { Id = id, WasNameSelected = isSelected };
 }
 
 public class VersionType : ScalarType<long, StringValueNode>

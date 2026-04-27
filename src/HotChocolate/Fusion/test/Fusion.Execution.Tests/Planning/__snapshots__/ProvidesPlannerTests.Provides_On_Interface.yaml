@@ -1,0 +1,36 @@
+operation:
+  - document: |
+      {
+        book {
+          featured {
+            __typename @fusion__requirement
+            ... on Cat {
+              age
+            }
+            ... on Dog {
+              tricks
+            }
+          }
+        }
+      }
+    hash: 123456789101112
+    searchSpace: 1
+    expandedNodes: 1
+nodes:
+  - id: 1
+    type: Operation
+    schema: a
+    operation: |
+      query Op_123456789101112_1 {
+        book {
+          featured {
+            __typename
+            ... on Cat {
+              age
+            }
+            ... on Dog {
+              tricks
+            }
+          }
+        }
+      }

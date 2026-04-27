@@ -10,26 +10,19 @@ public static class SchemaFormatter
         new()
         {
             Indented = true,
-            MaxDirectivesPerLine = 0
+            PrintWidth = 80
         };
 
     public static string FormatAsString(MutableSchemaDefinition schema, SchemaFormatterOptions options = default)
     {
-        var context = new VisitorContext
-        {
-            Schema = schema,
-            OrderByName = options.OrderByName ?? true,
-            PrintSpecScalars = options.PrintSpecScalars ?? false,
-            PrintSpecDirectives = options.PrintSpecDirectives ?? false
-        };
-        s_visitor.VisitSchema(schema, context);
+        var document = FormatAsDocument(schema, options);
 
-        if (!options.Indented ?? true)
+        if (options.Indented == false)
         {
-            ((DocumentNode)context.Result!).ToString(false);
+            return document.ToString(false);
         }
 
-        return ((DocumentNode)context.Result!).ToString(s_options);
+        return document.ToString(s_options);
     }
 
     public static DocumentNode FormatAsDocument(MutableSchemaDefinition schema, SchemaFormatterOptions options = default)

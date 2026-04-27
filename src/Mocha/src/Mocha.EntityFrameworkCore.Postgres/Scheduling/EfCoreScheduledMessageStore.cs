@@ -15,27 +15,23 @@ namespace Mocha.Scheduling;
 /// Implements <see cref="IScheduledMessageStore"/> for Postgres by inserting serialized message envelopes
 /// into the scheduled messages table using raw SQL through the DbContext Npgsql connection.
 /// </summary>
-internal sealed class EfCoreScheduledMessageStore : IScheduledMessageStore, IDisposable
+/// <remarks>
+/// Creates a new <see cref="EfCoreScheduledMessageStore"/> using the provided DbContext connection,
+/// scheduler signal, and pre-built SQL statements.
+/// </remarks>
+/// <param name="originalDbContext">The DbContext whose underlying Npgsql connection is used for operations.</param>
+/// <param name="signal">The signal used to wake the scheduler after a message is persisted.</param>
+/// <param name="insertSql">The parameterized SQL insert statement for the scheduled messages table.</param>
+/// <param name="cancelSql">The parameterized SQL delete statement for cancelling a scheduled message.</param>
+internal sealed class EfCoreScheduledMessageStore(
+    DbContext originalDbContext,
+    ISchedulerSignal signal,
+    string insertSql,
+    string cancelSql) : IScheduledMessageStore, IDisposable
 {
-    private readonly DbContext _originalDbContext;
-    private readonly ISchedulerSignal _signal;
+    private const string ProviderPrefix = "postgres-scheduler:";
     private readonly SemaphoreSlim _semaphore = new(1, 1);
-    private readonly string? _insertSql;
     private PooledArrayWriter? _arrayWriter;
-
-    /// <summary>
-    /// Creates a new <see cref="EfCoreScheduledMessageStore"/> using the provided DbContext connection,
-    /// scheduler signal, and pre-built insert SQL.
-    /// </summary>
-    /// <param name="originalDbContext">The DbContext whose underlying Npgsql connection is used for inserts.</param>
-    /// <param name="signal">The signal used to wake the scheduler after a message is persisted.</param>
-    /// <param name="insertSql">The parameterized SQL insert statement for the scheduled messages table.</param>
-    public EfCoreScheduledMessageStore(DbContext originalDbContext, ISchedulerSignal signal, string insertSql)
-    {
-        _originalDbContext = originalDbContext;
-        _signal = signal;
-        _insertSql = insertSql;
-    }
 
     /// <summary>
     /// Serializes the message envelope and inserts it into the Postgres scheduled messages table.
@@ -43,7 +39,8 @@ internal sealed class EfCoreScheduledMessageStore : IScheduledMessageStore, IDis
     /// <param name="envelope">The message envelope to persist.</param>
     /// <param name="scheduledTime">The time at which the message should be dispatched.</param>
     /// <param name="cancellationToken">A token to observe for cancellation.</param>
-    public async ValueTask PersistAsync(
+    /// <returns>An opaque token string for later cancellation.</returns>
+    public async ValueTask<string> PersistAsync(
         MessageEnvelope envelope,
         DateTimeOffset scheduledTime,
         CancellationToken cancellationToken)
@@ -54,27 +51,28 @@ internal sealed class EfCoreScheduledMessageStore : IScheduledMessageStore, IDis
         {
             _arrayWriter ??= new PooledArrayWriter();
 
-            var connection = (NpgsqlConnection)_originalDbContext.Database.GetDbConnection();
+            var connection = (NpgsqlConnection)originalDbContext.Database.GetDbConnection();
 
             if (connection.State != ConnectionState.Open)
             {
                 await connection.OpenAsync(cancellationToken);
             }
 
-            var transaction = _originalDbContext.Database.CurrentTransaction?.GetDbTransaction() as NpgsqlTransaction;
+            var transaction = originalDbContext.Database.CurrentTransaction?.GetDbTransaction() as NpgsqlTransaction;
 
             await using var writer = new Utf8JsonWriter(_arrayWriter);
             writer.WriteEnvelope(envelope);
             writer.Flush(); // we know it's not async
 
             // Execute the INSERT command
+            var id = NewVersion();
             await using var command = connection.CreateCommand();
-            command.CommandText = _insertSql;
+            command.CommandText = insertSql;
             if (transaction is not null)
             {
                 command.Transaction = transaction;
             }
-            command.Parameters.AddWithValue("@id", NewVersion());
+            command.Parameters.AddWithValue("@id", id);
             command.Parameters.Add(
                 new NpgsqlParameter("@envelope", NpgsqlDbType.Json) { Value = _arrayWriter.WrittenMemory });
             command.Parameters.AddWithValue("@scheduled_time", scheduledTime.UtcDateTime);
@@ -84,12 +82,62 @@ internal sealed class EfCoreScheduledMessageStore : IScheduledMessageStore, IDis
 
             if (transaction is null)
             {
-                _signal.Notify(scheduledTime);
+                signal.Notify(scheduledTime);
             }
+
+            return $"{ProviderPrefix}{id}";
         }
         finally
         {
             _arrayWriter?.Reset();
+            _semaphore.Release();
+        }
+    }
+
+    /// <summary>
+    /// Cancels a scheduled message by deleting it from the store.
+    /// </summary>
+    /// <param name="token">The opaque scheduling token returned by <see cref="PersistAsync"/>.</param>
+    /// <param name="cancellationToken">A token to observe for cancellation.</param>
+    /// <returns><c>true</c> if the message was cancelled; <c>false</c> if not found or already dispatched.</returns>
+    public async ValueTask<bool> CancelAsync(string token, CancellationToken cancellationToken)
+    {
+        var value = token.StartsWith(ProviderPrefix, StringComparison.Ordinal)
+            ? token[ProviderPrefix.Length..]
+            : token;
+
+        if (!Guid.TryParse(value, out var id))
+        {
+            return false;
+        }
+
+        await _semaphore.WaitAsync(cancellationToken);
+
+        try
+        {
+            var connection = (NpgsqlConnection)originalDbContext.Database.GetDbConnection();
+
+            if (connection.State != ConnectionState.Open)
+            {
+                await connection.OpenAsync(cancellationToken);
+            }
+
+            var transaction = originalDbContext.Database.CurrentTransaction?.GetDbTransaction() as NpgsqlTransaction;
+
+            await using var command = connection.CreateCommand();
+            command.CommandText = cancelSql;
+            if (transaction is not null)
+            {
+                command.Transaction = transaction;
+            }
+            command.Parameters.AddWithValue("@id", id);
+            await command.PrepareAsync(cancellationToken);
+
+            var result = await command.ExecuteScalarAsync(cancellationToken);
+            return result is not null and not DBNull;
+        }
+        finally
+        {
             _semaphore.Release();
         }
     }
@@ -127,8 +175,9 @@ internal sealed class EfCoreScheduledMessageStore : IScheduledMessageStore, IDis
         var optionsMonitor = services.GetRequiredService<IOptionsMonitor<PostgresScheduledMessageOptions>>();
         var options = optionsMonitor.Get(optionsName);
         var insertSql = options.Queries.InsertMessage;
+        var cancelSql = options.Queries.CancelMessage;
 
-        return new EfCoreScheduledMessageStore(dbContext, signal, insertSql);
+        return new EfCoreScheduledMessageStore(dbContext, signal, insertSql, cancelSql);
     }
 }
 

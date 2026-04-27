@@ -1,4 +1,4 @@
-﻿schema {
+schema {
   query: Query
 }
 
@@ -19,5 +19,5 @@ type ItemsCollectionSegment {
 }
 
 type Query {
-  items(skip: Int take: Int): ItemsCollectionSegment
+  items(skip: Int, take: Int): ItemsCollectionSegment
 }

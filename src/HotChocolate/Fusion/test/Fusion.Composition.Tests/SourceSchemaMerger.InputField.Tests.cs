@@ -28,13 +28,9 @@ public sealed class SourceSchemaMergerInputFieldTests : SourceSchemaMergerTestBa
                 """
             ],
             """
-            input OrderFilter
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                "Filter by the minimum order total"
-                minTotal: Int! = 0
-                    @fusion__inputField(schema: A, sourceType: "Int")
-                    @fusion__inputField(schema: B)
+            input OrderFilter @fusion__type(schema: A) @fusion__type(schema: B) {
+              "Filter by the minimum order total"
+              minTotal: Int! = 0 @fusion__inputField(schema: A, sourceType: "Int") @fusion__inputField(schema: B)
             }
             """);
     }
@@ -60,13 +56,8 @@ public sealed class SourceSchemaMergerInputFieldTests : SourceSchemaMergerTestBa
                 """
             ],
             """
-            input OrderFilter
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                minTotal: Int
-                    @fusion__inputField(schema: A)
-                    @fusion__inputField(schema: B)
-                    @fusion__inaccessible
+            input OrderFilter @fusion__type(schema: A) @fusion__type(schema: B) {
+              minTotal: Int @fusion__inputField(schema: A) @fusion__inputField(schema: B) @fusion__inaccessible
             }
             """);
     }
@@ -91,12 +82,8 @@ public sealed class SourceSchemaMergerInputFieldTests : SourceSchemaMergerTestBa
                 """
             ],
             """
-            input OrderFilter
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                minTotal: Int
-                    @fusion__inputField(schema: A)
-                    @fusion__inputField(schema: B)
+            input OrderFilter @fusion__type(schema: A) @fusion__type(schema: B) {
+              minTotal: Int @fusion__inputField(schema: A) @fusion__inputField(schema: B)
             }
             """);
     }
@@ -122,13 +109,8 @@ public sealed class SourceSchemaMergerInputFieldTests : SourceSchemaMergerTestBa
                 """
             ],
             """
-            input OrderFilter
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                minTotal: Int
-                    @fusion__inputField(schema: A)
-                    @fusion__inputField(schema: B)
-                    @deprecated(reason: "Some reason")
+            input OrderFilter @fusion__type(schema: A) @fusion__type(schema: B) {
+              minTotal: Int @fusion__inputField(schema: A) @fusion__inputField(schema: B) @deprecated(reason: "Some reason")
             }
             """);
     }
@@ -154,13 +136,8 @@ public sealed class SourceSchemaMergerInputFieldTests : SourceSchemaMergerTestBa
                 """
             ],
             """
-            input OrderFilter
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                minTotal: Int
-                    @fusion__inputField(schema: A)
-                    @fusion__inputField(schema: B)
-                    @deprecated(reason: "Some reason")
+            input OrderFilter @fusion__type(schema: A) @fusion__type(schema: B) {
+              minTotal: Int @fusion__inputField(schema: A) @fusion__inputField(schema: B) @deprecated(reason: "Some reason")
             }
             """);
     }
@@ -186,13 +163,8 @@ public sealed class SourceSchemaMergerInputFieldTests : SourceSchemaMergerTestBa
                 """
             ],
             """
-            input OrderFilter
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                minTotal: Int
-                    @fusion__inputField(schema: A)
-                    @fusion__inputField(schema: B)
-                    @deprecated(reason: "No longer supported.")
+            input OrderFilter @fusion__type(schema: A) @fusion__type(schema: B) {
+              minTotal: Int @fusion__inputField(schema: A) @fusion__inputField(schema: B) @deprecated(reason: "No longer supported.")
             }
             """);
     }

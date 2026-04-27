@@ -7,6 +7,7 @@ using HotChocolate.Fusion.Types;
 using HotChocolate.Language;
 using HotChocolate.Language.Visitors;
 using HotChocolate.Types;
+using ThrowHelper = HotChocolate.Fusion.Execution.ThrowHelper;
 
 namespace HotChocolate.Fusion.Planning;
 
@@ -23,8 +24,11 @@ public sealed partial class OperationPlanner
         Operation operation,
         OperationDefinitionNode operationDefinition,
         ImmutableList<PlanStep> planSteps,
+        ImmutableArray<DeferUsage> deliveryGroups,
+        ImmutableArray<ExecutionSubPlan> deferredSubPlans,
         int searchSpace,
-        int expandedNodes)
+        int expandedNodes,
+        CancellationToken cancellationToken)
     {
         if (operation.IsIntrospectionOnly())
         {
@@ -36,7 +40,7 @@ public sealed partial class OperationPlanner
 
             var nodes = ImmutableArray.Create<ExecutionNode>(introspectionNode);
 
-            return OperationPlan.Create(operation, nodes, nodes, searchSpace, expandedNodes);
+            return OperationPlan.Create(operation, nodes, nodes, [], [], searchSpace, expandedNodes);
         }
 
         var ctx = new ExecutionPlanBuildContext();
@@ -44,7 +48,7 @@ public sealed partial class OperationPlanner
 
         planSteps = TransformPlanSteps(planSteps, operationDefinition);
         IndexDependencies(planSteps, ctx);
-        BuildExecutionNodes(planSteps, ctx, _schema, hasVariables);
+        BuildExecutionNodes(planSteps, ctx, _schema, hasVariables, cancellationToken);
         MergeAndBatchOperations(ctx, _options.EnableRequestGrouping, _options.MergePolicy);
         WireExecutionDependencies(ctx);
 
@@ -73,7 +77,135 @@ public sealed partial class OperationPlanner
             node.Seal();
         }
 
-        return OperationPlan.Create(operation, rootNodes, allNodes, searchSpace, expandedNodes);
+        // Resolve each deferred subplan's parent execution node id now that both
+        // the main plan's nodes and each subplan's own nodes are built.
+        // Top-level subplans resolve against the main plan's allNodes; a nested
+        // subplan resolves against the enclosing subplan's AllNodes, where the
+        // enclosing subplan is the one whose DeliveryGroups contain the parent
+        // DeferUsage of any usage in the nested subplan's key set.
+        if (!deferredSubPlans.IsDefaultOrEmpty)
+        {
+            foreach (var subPlan in deferredSubPlans)
+            {
+                var path = ResolveSubPlanPath(subPlan);
+                var parent = ResolveSubPlanParent(subPlan, deferredSubPlans);
+                var owningNodes = parent is null ? allNodes : parent.AllNodes;
+                subPlan.ParentNodeId = ResolveDeferParentNodeId(owningNodes, path)
+                    ?? throw ThrowHelper.DeferredSubPlanParentNotFound(path);
+            }
+        }
+
+        return OperationPlan.Create(
+            operation,
+            rootNodes,
+            allNodes,
+            deliveryGroups,
+            deferredSubPlans,
+            searchSpace,
+            expandedNodes);
+    }
+
+    /// <summary>
+    /// Returns the path at which the given subplan's data is inserted into the
+    /// result tree. Equivalent to the deepest
+    /// <see cref="DeferUsage.Path"/> across the subplan's delivery groups.
+    /// </summary>
+    private static SelectionPath ResolveSubPlanPath(ExecutionSubPlan subPlan)
+    {
+        SelectionPath? best = null;
+
+        foreach (var usage in subPlan.DeliveryGroups)
+        {
+            if (usage.Path is null)
+            {
+                continue;
+            }
+
+            if (best is null || usage.Path.Length > best.Length)
+            {
+                best = usage.Path;
+            }
+        }
+
+        return best ?? SelectionPath.Root;
+    }
+
+    /// <summary>
+    /// Finds the enclosing subplan for the given nested subplan. A subplan is
+    /// nested inside another subplan when some <see cref="DeferUsage"/> in its
+    /// key set has a <see cref="DeferUsage.Parent"/> that belongs to another
+    /// subplan's key set. Returns <c>null</c> for top-level subplans.
+    /// </summary>
+    private static ExecutionSubPlan? ResolveSubPlanParent(
+        ExecutionSubPlan subPlan,
+        ImmutableArray<ExecutionSubPlan> subPlans)
+    {
+        foreach (var usage in subPlan.DeliveryGroups)
+        {
+            var ancestor = usage.Parent;
+            while (ancestor is not null)
+            {
+                foreach (var candidate in subPlans)
+                {
+                    if (ReferenceEquals(candidate, subPlan))
+                    {
+                        continue;
+                    }
+
+                    foreach (var candidateUsage in candidate.DeliveryGroups)
+                    {
+                        if (ReferenceEquals(candidateUsage, ancestor))
+                        {
+                            return candidate;
+                        }
+                    }
+                }
+
+                ancestor = ancestor.Parent;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Finds the execution node in <paramref name="owningNodes"/> whose fetch
+    /// lands on (or inside) the selection set where this defer is anchored.
+    /// The match is the node whose <see cref="OperationExecutionNode.Target"/>
+    /// is the deepest path that is an ancestor of (or equal to)
+    /// <paramref name="deferPath"/>, meaning its output contributes to the
+    /// enclosing object where the deferred fragment's fields get merged.
+    /// </summary>
+    private static int? ResolveDeferParentNodeId(
+        ImmutableArray<ExecutionNode> owningNodes,
+        SelectionPath deferPath)
+    {
+        int? match = null;
+        var bestDepth = -1;
+
+        for (var i = 0; i < owningNodes.Length; i++)
+        {
+            if (owningNodes[i] is not OperationExecutionNode op)
+            {
+                continue;
+            }
+
+            if (!op.Target.IsParentOfOrSame(deferPath))
+            {
+                continue;
+            }
+
+            // Pick the deepest matching node so we attach to the most specific
+            // fetch (e.g. a lookup node at $.user rather than a root fetch) when
+            // multiple nodes could claim the defer's anchor.
+            if (op.Target.Length > bestDepth)
+            {
+                match = op.Id;
+                bestDepth = op.Target.Length;
+            }
+        }
+
+        return match;
     }
 
     private static ImmutableList<PlanStep> TransformPlanSteps(
@@ -122,6 +254,10 @@ public sealed partial class OperationPlanner
                 operationPlanStep = updated;
             }
 
+            // Strip @defer directives from subgraph operations. The gateway
+            // manages deferral itself and subgraphs should not see @defer.
+            operationPlanStep = StripDeferDirectivesFromStep(operationPlanStep);
+
             // Attach variable definitions so the operation is syntactically valid
             // when sent to the downstream service.
             updatedPlanSteps = updatedPlanSteps.Replace(
@@ -157,6 +293,80 @@ public sealed partial class OperationPlanner
             return ReferenceEquals(updatedDefinition, step.Definition)
                 ? step
                 : step with { Definition = updatedDefinition };
+        }
+
+        static OperationPlanStep StripDeferDirectivesFromStep(OperationPlanStep step)
+        {
+            var updated = StripDeferFromSelectionSet(step.Definition.SelectionSet);
+
+            if (ReferenceEquals(updated, step.Definition.SelectionSet))
+            {
+                return step;
+            }
+
+            return step with { Definition = step.Definition.WithSelectionSet(updated) };
+        }
+
+        static SelectionSetNode StripDeferFromSelectionSet(SelectionSetNode selectionSet)
+        {
+            List<ISelectionNode>? rewritten = null;
+
+            for (var i = 0; i < selectionSet.Selections.Count; i++)
+            {
+                var selection = selectionSet.Selections[i];
+
+                if (selection is InlineFragmentNode inlineFragment)
+                {
+                    var strippedDirectives = StripDeferDirective(inlineFragment.Directives);
+                    var strippedInner = StripDeferFromSelectionSet(inlineFragment.SelectionSet);
+
+                    if (!ReferenceEquals(strippedDirectives, inlineFragment.Directives)
+                        || !ReferenceEquals(strippedInner, inlineFragment.SelectionSet))
+                    {
+                        rewritten ??= [.. selectionSet.Selections];
+                        rewritten[i] = inlineFragment
+                            .WithDirectives(strippedDirectives)
+                            .WithSelectionSet(strippedInner);
+                    }
+                }
+                else if (selection is FieldNode { SelectionSet: not null } field)
+                {
+                    var strippedInner = StripDeferFromSelectionSet(field.SelectionSet);
+
+                    if (!ReferenceEquals(strippedInner, field.SelectionSet))
+                    {
+                        rewritten ??= [.. selectionSet.Selections];
+                        rewritten[i] = field.WithSelectionSet(strippedInner);
+                    }
+                }
+            }
+
+            return rewritten is null ? selectionSet : new SelectionSetNode(rewritten);
+        }
+
+        static IReadOnlyList<DirectiveNode> StripDeferDirective(IReadOnlyList<DirectiveNode> directives)
+        {
+            for (var i = 0; i < directives.Count; i++)
+            {
+                if (directives[i].Name.Value.Equals(
+                    DirectiveNames.Defer.Name,
+                    StringComparison.Ordinal))
+                {
+                    var result = new List<DirectiveNode>(directives.Count - 1);
+
+                    for (var j = 0; j < directives.Count; j++)
+                    {
+                        if (j != i)
+                        {
+                            result.Add(directives[j]);
+                        }
+                    }
+
+                    return result;
+                }
+            }
+
+            return directives;
         }
 
         static OperationPlanStep AddVariableDefinitions(
@@ -244,7 +454,8 @@ public sealed partial class OperationPlanner
         ImmutableList<PlanStep> planSteps,
         ExecutionPlanBuildContext ctx,
         ISchemaDefinition schema,
-        bool hasVariables)
+        bool hasVariables,
+        CancellationToken cancellationToken)
     {
         var requiresUpload = schema.Types.TryGetType(UploadScalarName, out var uploadType) && uploadType.IsScalarType();
         var readySteps = planSteps.Where(t => !ctx.DependenciesByStepId.ContainsKey(t.Id)).ToList();
@@ -252,6 +463,8 @@ public sealed partial class OperationPlanner
 
         while (ctx.ProcessedStepIds.Count < planSteps.Count)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             foreach (var step in readySteps)
             {
                 if (!ctx.ProcessedStepIds.Add(step.Id))

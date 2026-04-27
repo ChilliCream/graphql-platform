@@ -78,6 +78,7 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_49906eea_1 {
               productById(id: 1) {
@@ -153,12 +154,11 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           kind: OperationBatch
           items:
             - document: |
-                query Op_49906eea_2(
-                  $__fusion_1_id: Int!
-                ) {
+                query Op_49906eea_2($__fusion_1_id: Int!) {
                   product(id: $__fusion_1_id) {
                     schema2
                   }
@@ -168,9 +168,7 @@ sourceSchemas:
                   "__fusion_1_id": 1
                 }
             - document: |
-                query Op_49906eea_3(
-                  $__fusion_2_id: Int!
-                ) {
+                query Op_49906eea_3($__fusion_2_id: Int!) {
                   product(id: $__fusion_2_id) {
                     shared {
                       schema2
@@ -237,9 +235,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_49906eea_2(
-          $__fusion_1_id: Int!
-        ) {
+        query Op_49906eea_2($__fusion_1_id: Int!) {
           product(id: $__fusion_1_id) {
             schema2
           }
@@ -257,9 +253,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_49906eea_3(
-          $__fusion_2_id: Int!
-        ) {
+        query Op_49906eea_3($__fusion_2_id: Int!) {
           product(id: $__fusion_2_id) {
             shared {
               schema2

@@ -51,7 +51,7 @@ sourceSchemas:
         nodes(ids: [ID!]!): [Node]! @shareable
         userById(id: ID!): User!
         users: [User!]!
-        testWithTwoArgumentsDifferingNullability(first: Int! second: Int): String!
+        testWithTwoArgumentsDifferingNullability(first: Int!, second: Int): String!
       }
 
       type User implements Node {
@@ -62,10 +62,9 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query GetUser_bc5cddd0_2(
-              $__fusion_1_id: ID!
-            ) {
+            query GetUser_bc5cddd0_2($__fusion_1_id: ID!) {
               node(id: $__fusion_1_id) {
                 __typename
                 ... on User {
@@ -151,6 +150,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query GetUser_bc5cddd0_1 {
               reviews {
@@ -220,9 +220,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query GetUser_bc5cddd0_2(
-          $__fusion_1_id: ID!
-        ) {
+        query GetUser_bc5cddd0_2($__fusion_1_id: ID!) {
           node(id: $__fusion_1_id) {
             __typename
             ... on User {

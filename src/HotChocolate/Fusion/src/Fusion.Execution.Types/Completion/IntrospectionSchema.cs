@@ -35,6 +35,8 @@ internal static class IntrospectionSchema
           inputFields(includeDeprecated: Boolean! = false): [__InputValue!]
           # must be non-null for NON_NULL and LIST, otherwise null.
           ofType: __Type
+          # must be non-null for INPUT_OBJECT, otherwise null.
+          isOneOf: Boolean
         }
 
         enum __TypeKind {

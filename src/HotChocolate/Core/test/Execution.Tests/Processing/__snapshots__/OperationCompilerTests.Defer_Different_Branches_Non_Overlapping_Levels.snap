@@ -38,9 +38,11 @@
                 d @__execute(id: 10, kind: DEFAULT, type: LEAF)
               }
             }
-            e @__execute(id: 8, kind: DEFAULT, type: COMPOSITE, isDeferred: true) {
+            e
+              @__execute(id: 8, kind: DEFAULT, type: COMPOSITE, isDeferred: true) {
               ... on E {
-                f @__execute(id: 12, kind: DEFAULT, type: LEAF, isDeferred: true)
+                f
+                  @__execute(id: 12, kind: DEFAULT, type: LEAF, isDeferred: true)
               }
             }
           }

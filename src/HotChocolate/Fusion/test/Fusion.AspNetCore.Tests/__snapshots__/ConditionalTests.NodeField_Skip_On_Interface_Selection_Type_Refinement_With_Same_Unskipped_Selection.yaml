@@ -1,9 +1,7 @@
 title: NodeField_Skip_On_Interface_Selection_Type_Refinement_With_Same_Unskipped_Selection
 request:
   document: |
-    query testQuery(
-      $skip: Boolean!
-    ) {
+    query testQuery($skip: Boolean!) {
       node(id: "RGlzY3Vzc2lvbjox") {
         ... on Authorable {
           author @skip(if: $skip) {
@@ -57,10 +55,9 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_ff22954e_3(
-              $skip: Boolean!
-            ) {
+            query testQuery_ff22954e_3($skip: Boolean!) {
               node(id: "RGlzY3Vzc2lvbjox") {
                 __typename
                 ... on Discussion {
@@ -108,10 +105,9 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_ff22954e_4(
-              $__fusion_1_id: ID!
-            ) {
+            query testQuery_ff22954e_4($__fusion_1_id: ID!) {
               authorById(id: $__fusion_1_id) {
                 rating
               }
@@ -133,9 +129,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $skip: Boolean!
-        ) {
+        query testQuery($skip: Boolean!) {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename @fusion__requirement
             ... on Authorable {
@@ -178,9 +172,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_ff22954e_3(
-          $skip: Boolean!
-        ) {
+        query testQuery_ff22954e_3($skip: Boolean!) {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename
             ... on Discussion {
@@ -202,9 +194,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_ff22954e_4(
-          $__fusion_1_id: ID!
-        ) {
+        query testQuery_ff22954e_4($__fusion_1_id: ID!) {
           authorById(id: $__fusion_1_id) {
             rating
           }
@@ -221,9 +211,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_ff22954e_5(
-          $__fusion_2_id: ID!
-        ) {
+        query testQuery_ff22954e_5($__fusion_2_id: ID!) {
           authorById(id: $__fusion_2_id) {
             username
           }

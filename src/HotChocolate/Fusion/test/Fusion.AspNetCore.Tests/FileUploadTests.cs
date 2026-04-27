@@ -317,6 +317,97 @@ public class FileUploadTests : FusionTestBase
         await MatchSnapshotAsync(gateway, operation, result, rawRequest: rawRequest);
     }
 
+    [Fact]
+    public async Task Upload_Nullable_File_Not_Provided()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema1.Query>().AddUploadType());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var operation = new OperationRequest(
+            """
+            query ($file: Upload) {
+              nullableUpload(file: $file) {
+                fileName
+                contentType
+                content
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?>
+            {
+                ["file"] = null
+            });
+
+        var request = new GraphQLHttpRequest(operation, new Uri("http://localhost:5000/graphql"))
+        {
+            Method = GraphQLHttpMethod.Post
+        };
+
+        // act
+        var result = await client.SendAsync(request);
+
+        // assert
+        await MatchSnapshotAsync(gateway, operation, result);
+    }
+
+    [Fact]
+    public async Task Upload_Nullable_File()
+    {
+        // arrange
+        using var server1 = CreateSourceSchema(
+            "A",
+            b => b.AddQueryType<SourceSchema1.Query>().AddUploadType());
+
+        using var gateway = await CreateCompositeSchemaAsync(
+        [
+            ("A", server1)
+        ]);
+
+        // act
+        using var client = GraphQLHttpClient.Create(gateway.CreateClient());
+
+        var stream = new MemoryStream("abc"u8.ToArray());
+
+        var operation = new OperationRequest(
+            """
+            query ($file: Upload) {
+              nullableUpload(file: $file) {
+                fileName
+                contentType
+                content
+              }
+            }
+            """,
+            variables: new Dictionary<string, object?>
+            {
+                ["file"] = new FileReference(() => stream, "test.txt", "text/plain")
+            });
+
+        RawRequest? rawRequest = null;
+        var request = new GraphQLHttpRequest(operation, new Uri("http://localhost:5000/graphql"))
+        {
+            Method = GraphQLHttpMethod.Post,
+            EnableFileUploads = true,
+            OnMessageCreated = (_, request, _) => rawRequest = GetRawRequest(request)
+        };
+
+        // act
+        var result = await client.SendAsync(request);
+
+        // assert
+        await MatchSnapshotAsync(gateway, operation, result, rawRequest: rawRequest);
+    }
+
     private static RawRequest GetRawRequest(HttpRequestMessage requestMessage)
     {
         if (requestMessage.Content is not { } content)
@@ -348,6 +439,16 @@ public class FileUploadTests : FusionTestBase
         public class Query
         {
             public async Task<FileUploadResult> SingleUpload(IFile file) => await ReadFileAsync(file);
+
+            public async Task<FileUploadResult?> NullableUpload(IFile? file)
+            {
+                if (file is null)
+                {
+                    return null;
+                }
+
+                return await ReadFileAsync(file);
+            }
 
             public async Task<FileUploadResult> SingleUploadWithInput(FileInput input)
                 => await ReadFileAsync(input.File);

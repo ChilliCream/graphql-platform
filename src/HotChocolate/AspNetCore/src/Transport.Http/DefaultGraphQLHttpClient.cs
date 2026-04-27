@@ -76,7 +76,7 @@ public sealed class DefaultGraphQLHttpClient : GraphQLHttpClient
     /// <param name="cancellationToken">
     /// A cancellation token that can be used to cancel the HTTP request.
     /// </param>
-    /// <returns></returns>
+    /// <returns>The GraphQL HTTP response.</returns>
     /// <exception cref="ArgumentNullException">
     /// <paramref name="request"/> is <see langword="null"/>.
     /// </exception>

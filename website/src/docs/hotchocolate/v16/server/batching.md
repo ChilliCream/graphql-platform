@@ -11,16 +11,16 @@ Variable batching is based on an [open proposal](https://github.com/graphql/grap
 Batching is disabled by default as a security measure. You enable the types of batching you want to allow through the `AllowedBatching` flags enum using `ModifyServerOptions`:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyServerOptions(o => o.Batching = AllowedBatching.VariableBatching);
 ```
 
 You can combine flags to enable multiple batching modes:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyServerOptions(o => o.Batching =
         AllowedBatching.VariableBatching | AllowedBatching.RequestBatching);
 ```
@@ -28,8 +28,8 @@ builder.Services
 To enable all batching modes at once:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyServerOptions(o => o.Batching = AllowedBatching.All);
 ```
 
@@ -40,8 +40,8 @@ builder.Services
 The maximum number of operations in a single batch defaults to **1024**. You can adjust this limit:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyServerOptions(o => o.MaxBatchSize = 2048);
 ```
 

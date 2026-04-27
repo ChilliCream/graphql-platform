@@ -13,7 +13,9 @@ public static class ErrorHelper
 
     public static IError WithFileReference(
         this IError error,
+#pragma warning disable RCS1163
         IDictionary<ISyntaxNode, string> fileLookup)
+#pragma warning restore RCS1163
     {
         var extensions = ImmutableOrderedDictionary<string, object?>.Empty
             .Add(TitleExtensionKey, "Schema validation error")

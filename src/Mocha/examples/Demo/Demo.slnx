@@ -1,0 +1,22 @@
+<Solution>
+  <Project Path="../../src/Mocha.Abstractions/Mocha.Abstractions.csproj" />
+  <Project Path="../../src/Mocha.Analyzers/Mocha.Analyzers.csproj" />
+  <Project Path="../../src/Mocha.EntityFrameworkCore.Postgres/Mocha.EntityFrameworkCore.Postgres.csproj" />
+  <Project Path="../../src/Mocha.EntityFrameworkCore/Mocha.EntityFrameworkCore.csproj" />
+  <Project Path="../../src/Mocha.Hosting/Mocha.Hosting.csproj" />
+  <Project Path="../../src/Mocha.Inbox/Mocha.Inbox.csproj" />
+  <Project Path="../../src/Mocha.Mediator.Abstractions/Mocha.Mediator.Abstractions.csproj" />
+  <Project Path="../../src/Mocha.Mediator/Mocha.Mediator.csproj" />
+  <Project Path="../../src/Mocha.Outbox/Mocha.Outbox.csproj" />
+  <Project Path="../../src/Mocha.Threading/Mocha.Threading.csproj" />
+  <Project Path="../../src/Mocha.Transport.InMemory/Mocha.Transport.InMemory.csproj" />
+  <Project Path="../../src/Mocha.Transport.RabbitMQ/Mocha.Transport.RabbitMQ.csproj" />
+  <Project Path="../../src/Mocha.Utilities/Mocha.Utilities.csproj" />
+  <Project Path="../../src/Mocha/Mocha.csproj" />
+  <Project Path="Demo.AppHost/Demo.AppHost.csproj" />
+  <Project Path="Demo.Billing/Demo.Billing.csproj" />
+  <Project Path="Demo.Catalog/Demo.Catalog.csproj" />
+  <Project Path="Demo.Contracts/Demo.Contracts.csproj" />
+  <Project Path="Demo.ServiceDefaults/Demo.ServiceDefaults.csproj" />
+  <Project Path="Demo.Shipping/Demo.Shipping.csproj" />
+</Solution>

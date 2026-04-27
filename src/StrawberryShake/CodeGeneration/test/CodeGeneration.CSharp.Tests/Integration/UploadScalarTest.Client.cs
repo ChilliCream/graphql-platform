@@ -560,14 +560,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar
     /// <code>
     /// query TestUpload(
     ///   $nonUpload: String
-    ///     $single: Upload
-    ///     $list: [Upload]
-    ///     $nested: [[Upload]]
-    ///     $object: TestInput
-    ///     $objectList: [TestInput]
-    ///     $objectNested: [[TestInput]]
+    ///   $single: Upload
+    ///   $list: [Upload]
+    ///   $nested: [[Upload]]
+    ///   $object: TestInput
+    ///   $objectList: [TestInput]
+    ///   $objectNested: [[TestInput]]
     /// ) {
-    ///   upload(nonUpload: $nonUpload, single: $single, list: $list, nested: $nested, object: $object, objectList: $objectList, objectNested: $objectNested)
+    ///   upload(
+    ///     nonUpload: $nonUpload
+    ///     single: $single
+    ///     list: $list
+    ///     nested: $nested
+    ///     object: $object
+    ///     objectList: $objectList
+    ///     objectNested: $objectNested
+    ///   )
     /// }
     /// </code>
     /// </summary>
@@ -599,14 +607,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar
     /// <code>
     /// query TestUpload(
     ///   $nonUpload: String
-    ///     $single: Upload
-    ///     $list: [Upload]
-    ///     $nested: [[Upload]]
-    ///     $object: TestInput
-    ///     $objectList: [TestInput]
-    ///     $objectNested: [[TestInput]]
+    ///   $single: Upload
+    ///   $list: [Upload]
+    ///   $nested: [[Upload]]
+    ///   $object: TestInput
+    ///   $objectList: [TestInput]
+    ///   $objectNested: [[TestInput]]
     /// ) {
-    ///   upload(nonUpload: $nonUpload, single: $single, list: $list, nested: $nested, object: $object, objectList: $objectList, objectNested: $objectNested)
+    ///   upload(
+    ///     nonUpload: $nonUpload
+    ///     single: $single
+    ///     list: $list
+    ///     nested: $nested
+    ///     object: $object
+    ///     objectList: $objectList
+    ///     objectNested: $objectNested
+    ///   )
     /// }
     /// </code>
     /// </summary>
@@ -982,14 +998,22 @@ namespace StrawberryShake.CodeGeneration.CSharp.Integration.UploadScalar
     /// <code>
     /// query TestUpload(
     ///   $nonUpload: String
-    ///     $single: Upload
-    ///     $list: [Upload]
-    ///     $nested: [[Upload]]
-    ///     $object: TestInput
-    ///     $objectList: [TestInput]
-    ///     $objectNested: [[TestInput]]
+    ///   $single: Upload
+    ///   $list: [Upload]
+    ///   $nested: [[Upload]]
+    ///   $object: TestInput
+    ///   $objectList: [TestInput]
+    ///   $objectNested: [[TestInput]]
     /// ) {
-    ///   upload(nonUpload: $nonUpload, single: $single, list: $list, nested: $nested, object: $object, objectList: $objectList, objectNested: $objectNested)
+    ///   upload(
+    ///     nonUpload: $nonUpload
+    ///     single: $single
+    ///     list: $list
+    ///     nested: $nested
+    ///     object: $object
+    ///     objectList: $objectList
+    ///     objectNested: $objectNested
+    ///   )
     /// }
     /// </code>
     /// </summary>

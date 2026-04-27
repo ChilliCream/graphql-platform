@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Adapters.Mcp.Proxies;
+using HotChocolate.Execution;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Metadata;
@@ -16,6 +17,7 @@ public static class EndpointRouteBuilderExtensions
         [StringSyntax("Route")] string pattern = "/graphql/mcp",
         string? schemaName = null)
     {
+        TryResolveSchemaName(endpoints.ServiceProvider, ref schemaName);
         schemaName ??= ISchemaDefinition.DefaultName;
 
         var streamableHttpHandler =
@@ -47,9 +49,9 @@ public static class EndpointRouteBuilderExtensions
 
         if (!streamableHttpHandler.HttpServerTransportOptions.Stateless)
         {
-            // The GET and DELETE endpoints are not mapped in Stateless mode since there's no way to
-            // send unsolicited messages for the GET to handle, and there is no server-side state
-            // for the DELETE to clean up.
+            // The GET endpoint is not mapped in Stateless mode since there's no way to send
+            // unsolicited messages. Resuming streams via GET is currently not supported in
+            // Stateless mode.
             streamableHttpGroup
                 .MapGet("", streamableHttpHandler.HandleGetRequestAsync)
                 .WithMetadata(
@@ -57,32 +59,21 @@ public static class EndpointRouteBuilderExtensions
                         StatusCodes.Status200OK,
                         contentTypes: ["text/event-stream"]));
 
+            // The DELETE endpoint is not mapped in Stateless mode since there is no server-side
+            // state for the DELETE to clean up.
             streamableHttpGroup.MapDelete("", streamableHttpHandler.HandleDeleteRequestAsync);
-
-            // Map legacy HTTP with SSE endpoints only if not in Stateless mode, because we cannot
-            // guarantee the /message requests will be handled by the same process as the /sse
-            // request.
-            var sseHandler =
-                endpoints.ServiceProvider.GetRequiredKeyedService<SseHandlerProxy>(schemaName);
-
-            var sseGroup =
-                mcpGroup
-                    .MapGroup("")
-                    .WithDisplayName(b => $"GraphQL MCP HTTP with SSE | {b.DisplayName}");
-
-            sseGroup
-                .MapGet("/sse", sseHandler.HandleSseRequestAsync)
-                .WithMetadata(
-                    new ProducesResponseTypeMetadata(
-                        StatusCodes.Status200OK,
-                        contentTypes: ["text/event-stream"]));
-
-            sseGroup
-                .MapPost("/message", sseHandler.HandleMessageRequestAsync)
-                .WithMetadata(new AcceptsMetadata(["application/json"]))
-                .WithMetadata(new ProducesResponseTypeMetadata(StatusCodes.Status202Accepted));
         }
 
         return mcpGroup;
+    }
+
+    private static void TryResolveSchemaName(IServiceProvider services, ref string? schemaName)
+    {
+        if (schemaName is null
+            && services.GetService<IRequestExecutorProvider>() is { } provider
+            && provider.SchemaNames.Length == 1)
+        {
+            schemaName = provider.SchemaNames[0];
+        }
     }
 }

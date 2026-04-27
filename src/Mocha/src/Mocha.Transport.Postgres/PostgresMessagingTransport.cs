@@ -114,7 +114,7 @@ public sealed class PostgresMessagingTransport : MessagingTransport
             _topology.AddSubscription(subscription);
         }
 
-        Features.GetOrSet<SchedulingTransportFeature>().SupportsSchedulingNatively = true;
+        Features.Configure<SchedulingTransportFeature>(f => f.SupportsSchedulingNatively = true);
     }
 
     /// <summary>

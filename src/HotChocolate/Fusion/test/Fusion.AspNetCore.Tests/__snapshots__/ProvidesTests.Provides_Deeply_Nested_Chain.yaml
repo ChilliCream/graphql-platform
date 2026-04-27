@@ -1,0 +1,148 @@
+title: Provides_Deeply_Nested_Chain
+request:
+  document: |
+    {
+      root {
+        level1 {
+          level2 {
+            level3 {
+              value
+            }
+          }
+        }
+      }
+    }
+response:
+  body: |
+    {
+      "data": {
+        "root": {
+          "level1": {
+            "level2": {
+              "level3": {
+                "value": "Level3: TGV2ZWwzOjQ="
+              }
+            }
+          }
+        }
+      }
+    }
+sourceSchemas:
+  - name: a
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Level1 @key(fields: "id") {
+        id: ID!
+        level2: Level2 @external
+      }
+
+      type Level2 @key(fields: "id") {
+        id: ID!
+        level3: Level3 @external
+      }
+
+      type Level3 @key(fields: "id") {
+        id: ID!
+        value: String @external
+      }
+
+      type Query {
+        root: Root
+      }
+
+      type Root {
+        level1: Level1 @provides(fields: "level2 { level3 { value } }")
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query Op_2f5727f4_1 {
+              root {
+                level1 {
+                  level2 {
+                    level3 {
+                      value
+                    }
+                  }
+                }
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "root": {
+                    "level1": {
+                      "level2": {
+                        "level3": {
+                          "value": "Level3: TGV2ZWwzOjQ="
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+  - name: b
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Level1 @key(fields: "id") {
+        id: ID!
+        level2: Level2
+      }
+
+      type Level2 @key(fields: "id") {
+        id: ID!
+        level3: Level3
+      }
+
+      type Level3 @key(fields: "id") {
+        id: ID!
+        value: String
+      }
+
+      type Query {
+        level1ById(id: ID! @is(field: "id")): Level1 @lookup @internal
+        level2ById(id: ID! @is(field: "id")): Level2 @lookup @internal
+        level3ById(id: ID! @is(field: "id")): Level3 @lookup @internal
+      }
+operationPlan:
+  operation:
+    - document: |
+        {
+          root {
+            level1 {
+              level2 {
+                level3 {
+                  value
+                }
+              }
+            }
+          }
+        }
+      hash: 2f5727f414fe7f10e7369d17f2b3c158
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: a
+      operation: |
+        query Op_2f5727f4_1 {
+          root {
+            level1 {
+              level2 {
+                level3 {
+                  value
+                }
+              }
+            }
+          }
+        }

@@ -29,7 +29,7 @@ sourceSchemas:
       }
 
       type Query {
-        bookById(id: Int!): Book! @lookup
+        bookById(id: Int!): Book @lookup
         inaccessibleText(text: String! = "This is the default!" @inaccessible): String!
         books: [Book!]!
       }
@@ -45,7 +45,7 @@ sourceSchemas:
       }
 
       type Query {
-        authorById(id: Int!): Author! @internal @lookup
+        authorById(id: Int!): Author @internal @lookup
         enumField(value: SomeEnum!): SomeEnum!
         shareable(input: SomeInput!): String!
       }
@@ -61,6 +61,7 @@ sourceSchemas:
       }
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_4d7bd59e_1 {
               enumField(value: ITEM2)

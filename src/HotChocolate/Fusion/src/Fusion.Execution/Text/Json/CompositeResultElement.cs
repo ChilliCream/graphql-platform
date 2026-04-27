@@ -5,6 +5,7 @@ using HotChocolate.Fusion.Execution.Nodes;
 using HotChocolate.Text.Json;
 using HotChocolate.Types;
 using static HotChocolate.Fusion.Properties.FusionExecutionResources;
+using static HotChocolate.Fusion.Text.Json.CompositeResultDocument;
 
 #pragma warning disable CS1574, CS1584, CS1581, CS1580
 
@@ -13,9 +14,9 @@ namespace HotChocolate.Fusion.Text.Json;
 public readonly partial struct CompositeResultElement
 {
     private readonly CompositeResultDocument _parent;
-    private readonly CompositeResultDocument.Cursor _cursor;
+    private readonly Cursor _cursor;
 
-    internal CompositeResultElement(CompositeResultDocument parent, CompositeResultDocument.Cursor cursor)
+    internal CompositeResultElement(CompositeResultDocument parent, Cursor cursor)
     {
         // parent is usually not null, but the Current property
         // on the enumerators (when initialized as `default`) can
@@ -42,7 +43,7 @@ public readonly partial struct CompositeResultElement
     {
         CheckValidInstance();
 
-        var formatter = new CompositeResultDocument.RawJsonFormatter(_parent, jsonWriter);
+        var formatter = new RawJsonFormatter(_parent, jsonWriter);
         var row = _parent._metaDb.Get(_cursor);
         formatter.WriteValue(_cursor, row);
     }
@@ -50,7 +51,7 @@ public readonly partial struct CompositeResultElement
     /// <summary>
     /// Gets the internal meta-db cursor.
     /// </summary>
-    internal CompositeResultDocument.Cursor Cursor => _cursor;
+    internal Cursor Cursor => _cursor;
 
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private ElementTokenType TokenType => _parent?.GetElementTokenType(_cursor) ?? ElementTokenType.None;
@@ -117,7 +118,7 @@ public readonly partial struct CompositeResultElement
         {
             CheckValidInstance();
 
-            if (_cursor == CompositeResultDocument.Cursor.Zero)
+            if (_cursor == Cursor.Zero)
             {
                 return null;
             }
@@ -135,7 +136,7 @@ public readonly partial struct CompositeResultElement
     {
         get
         {
-            if (_cursor == CompositeResultDocument.Cursor.Zero)
+            if (_cursor == Cursor.Zero)
             {
                 return null;
             }
@@ -236,7 +237,7 @@ public readonly partial struct CompositeResultElement
         {
             CheckValidInstance();
 
-            if (_cursor == CompositeResultDocument.Cursor.Zero)
+            if (_cursor == Cursor.Zero)
             {
                 return false;
             }
@@ -811,7 +812,7 @@ public readonly partial struct CompositeResultElement
     {
         CheckValidInstance();
 
-        return _parent.GetRawValue(_cursor, includeQuotes: true);
+        return _parent.GetRawValue(_cursor, includeQuotes);
     }
 
     /// <summary>

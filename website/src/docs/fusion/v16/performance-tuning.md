@@ -146,11 +146,13 @@ Only **query operations** are deduplicated. The following are **not** deduplicat
 - **Subscriptions**: long-lived connections that are inherently unique.
 - **File uploads**: multipart requests bypass deduplication.
 
-## Concurrent Request Limiting
+## Concurrent Execution Limiting
 
-The gateway limits the number of simultaneous HTTP requests it processes using a **concurrency gate**. Capping concurrency keeps the gateway operating in its optimal throughput range. Too many requests competing for the same resources (thread pool, memory, connections) can reduce overall throughput rather than increase it.
+The gateway limits the number of simultaneous **executions** it processes using a **concurrency gate**. An execution is the work of running a single GraphQL operation end-to-end. Each query or mutation counts as one execution, and each event a subscription emits counts as one execution while its selection set runs. Capping concurrency keeps the gateway operating in its optimal throughput range. Too much work competing for the same resources (thread pool, memory, connections) can reduce overall throughput rather than increase it.
 
-The default limit is **64** concurrent HTTP requests. WebSocket and subscription requests bypass this limit. Depending on how many CPU cores your system has, you may want to increase or decrease this value to find the optimal throughput for your hardware. This limit does not reject requests. Instead, it queues them, and the GraphQL executor processes at most 64 concurrent requests by default.
+The default limit is **64 concurrent executions**. The default is calibrated for small containers 1 to 4 CPUs. Depending on your CPU count and typical operation cost, you may want to increase or decrease this value to find the optimal throughput for your hardware. The limit does not reject work; it queues it, and the GraphQL executor processes at most 64 executions concurrently by default.
+
+Subscriptions participate in this limit like any other operation. Each event the gateway processes consumes a slot. Idle subscriptions between events cost nothing.
 
 Set the limit through `ModifyServerOptions` on the gateway builder:
 
@@ -160,7 +162,7 @@ builder
     .AddFileSystemConfiguration("./gateway.far")
     .ModifyServerOptions(options =>
     {
-        options.MaxConcurrentRequests = 128;
+        options.MaxConcurrentExecutions = 128;
     });
 ```
 
@@ -170,19 +172,34 @@ You can override this limit for a specific HTTP endpoint using `WithOptions`:
 app.MapGraphQLHttp()
     .WithOptions(options =>
     {
-        options.MaxConcurrentRequests = 256;
+        options.MaxConcurrentExecutions = 256;
     });
 ```
 
 ### Tuning Guidance
 
-- **Too low**: requests queue behind the concurrency gate, adding latency even when gateway and subgraphs have spare capacity.
-- **Too high**: the gateway forwards more requests than it can efficiently process, leading to thread pool starvation and increased latency.
+- **Too low**: executions queue behind the concurrency gate, adding latency even when the gateway and subgraphs have spare capacity. Subscriptions with high event rates feel this first.
+- **Too high**: the gateway runs more work than it can efficiently process, leading to thread pool starvation and increased latency across queries, mutations, and subscription events.
 
-Start with the default of 64 and adjust based on your workload. Set to `null` to disable the limit entirely.
+Start with the default of 64 and adjust based on your workload. If you expect many long-lived subscriptions firing frequent events, factor those into your sizing. They now contend for the same slots as queries and mutations. Set to `null` to disable the limit entirely.
+
+### Execution Cancellation
+
+Every execution is bounded by the `ExecutionTimeout` option (default 30 seconds). This applies uniformly to queries, mutations, subscription handshakes, and each subscription event. The budget covers both the time an execution spends waiting for a concurrency slot and the time it spends running. When the budget is exceeded, the execution is cancelled and the caller receives a clean timeout error.
+
+`ExecutionTimeout` is the single setting that controls cancellation for every execution. Configure it with `ModifyRequestOptions`:
+
+```csharp
+builder
+    .AddGraphQLGateway()
+    .ModifyRequestOptions(o => o.ExecutionTimeout = TimeSpan.FromSeconds(10));
+```
+
+If executions routinely time out at the gate, that is a signal to scale out or raise `MaxConcurrentExecutions`. Increasing `ExecutionTimeout` only defers the problem.
 
 ## Next Steps
 
+- **"I need CDN and HTTP response caching behavior"**: [Cache Control](/docs/fusion/v16/cache-control) covers `@cacheControl`, composition merge behavior, and gateway response headers.
 - **"I need to secure my gateway"**: [Authentication and Authorization](/docs/fusion/v16/authentication-and-authorization) covers JWT validation, header propagation, and subgraph-level authorization.
 - **"I need to deploy this"**: [Deployment & CI/CD](/docs/fusion/v16/deployment-and-ci-cd) covers production deployment patterns and CI pipeline setup.
 - **"I want to monitor performance"**: Observability and distributed tracing will be covered in future documentation.

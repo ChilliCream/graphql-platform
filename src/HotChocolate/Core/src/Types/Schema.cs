@@ -56,7 +56,6 @@ public partial class Schema
     /// <summary>
     /// Gets the schema directives.
     /// </summary>
-    /// <value></value>
     public DirectiveCollection Directives { get; private set; } = null!;
 
     IReadOnlyDirectiveCollection IDirectivesProvider.Directives

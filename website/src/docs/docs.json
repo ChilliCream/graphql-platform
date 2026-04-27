@@ -1,7 +1,7 @@
 [
   {
     "path": "nitro",
-    "title": "Nitro (fka Banana Cake Pop)",
+    "title": "Nitro",
     "description": "GraphQL API Management",
     "metaDescription": "Nitro is a performant, feature-rich GraphQL IDE that helps developers and data scientists to explore, share, and test any GraphQL API.",
     "latestStableVersion": "",
@@ -166,11 +166,12 @@
     "title": "Fusion",
     "description": "Federated GraphQL Gateway",
     "metaDescription": "Fusion is a powerful, open-source GraphQL gateway that helps developers to build a unified API for their services.",
-    "latestStableVersion": "v16",
+    "latestStableVersion": "v15",
     "versions": [
       {
         "path": "v16",
-        "title": "v16",
+        "title": "v16 (preview)",
+        "preview": true,
         "items": [
           {
             "path": "index",
@@ -185,6 +186,20 @@
             "title": "Adding a Subgraph"
           },
           {
+            "path": "guides",
+            "title": "Guides",
+            "items": [
+              {
+                "path": "third-party-api",
+                "title": "Third-Party API"
+              },
+              {
+                "path": "first-party-api",
+                "title": "First-Party API"
+              }
+            ]
+          },
+          {
             "path": "entities-and-lookups",
             "title": "Entities and Lookups"
           },
@@ -197,32 +212,44 @@
             "title": "Field Ownership"
           },
           {
-            "path": "composition",
-            "title": "Composition"
-          },
-          {
-            "path": "aspire-integration",
-            "title": "Aspire Integration"
-          },
-          {
             "path": "schema-exposure-and-evolution",
             "title": "Schema Exposure and Evolution"
+          },
+          {
+            "path": "composition",
+            "title": "Composition"
           },
           {
             "path": "authentication-and-authorization",
             "title": "Authentication and Authorization"
           },
           {
+            "path": "request-limits",
+            "title": "Request Limits"
+          },
+          {
+            "path": "cache-control",
+            "title": "Cache Control"
+          },
+          {
             "path": "performance-tuning",
             "title": "Performance Tuning"
+          },
+          {
+            "path": "aspire-integration",
+            "title": "Aspire Integration"
           },
           {
             "path": "deployment-and-ci-cd",
             "title": "Deployment and CI/CD"
           },
           {
-            "path": "attribute-and-directive-reference",
-            "title": "Attribute and Directive Reference"
+            "path": "cli",
+            "title": "CLI"
+          },
+          {
+            "path": "directives-reference",
+            "title": "Directive Reference"
           },
           {
             "path": "migration",
@@ -323,11 +350,12 @@
     "title": "Hot Chocolate",
     "description": "GraphQL Server / Gateway",
     "metaDescription": "Hot Chocolate is the most efficient, feature-rich, open-source GraphQL server in the .NET ecosystem, that helps developers to build powerful APIs.",
-    "latestStableVersion": "v16",
+    "latestStableVersion": "v15",
     "versions": [
       {
         "path": "v16",
-        "title": "v16",
+        "title": "v16 (preview)",
+        "preview": true,
         "items": [
           { "path": "index", "title": "Overview" },
           {
@@ -422,6 +450,7 @@
               { "path": "index", "title": "Overview" },
               { "path": "endpoints", "title": "Endpoints" },
               { "path": "http-transport", "title": "Transports" },
+              { "path": "cache-control", "title": "Cache Control" },
               { "path": "interceptors", "title": "Interceptors" },
               { "path": "warmup", "title": "Warmup" },
               { "path": "global-state", "title": "Global State" },
@@ -451,6 +480,7 @@
               { "path": "authentication", "title": "Authentication" },
               { "path": "authorization", "title": "Authorization" },
               { "path": "cost-analysis", "title": "Cost Analysis" },
+              { "path": "request-limits", "title": "Request Limits" },
               { "path": "introspection", "title": "Controlling Introspection" }
             ]
           },
@@ -2323,11 +2353,12 @@
     "title": "Strawberry Shake",
     "description": "GraphQL Client for .NET",
     "metaDescription": "Strawberry Shake is an incredible GraphQL client for the .NET ecosystem, that helps developers to build awesome UIs in Blazor, Maui, and more.",
-    "latestStableVersion": "v16",
+    "latestStableVersion": "v15",
     "versions": [
       {
         "path": "v16",
-        "title": "v16",
+        "title": "v16 (preview)",
+        "preview": true,
         "items": [
           {
             "path": "index",
@@ -2838,11 +2869,12 @@
     "title": "Mocha",
     "description": "Messaging Bus for .NET",
     "metaDescription": "Mocha is a messaging framework for .NET that combines simplicity, flexibility, and observability with deep Nitro integration.",
-    "latestStableVersion": "v1",
+    "latestStableVersion": "v16",
     "versions": [
       {
-        "path": "v1",
-        "title": "v1",
+        "path": "v16",
+        "title": "v16 (preview)",
+        "preview": true,
         "items": [
           {
             "path": "index",

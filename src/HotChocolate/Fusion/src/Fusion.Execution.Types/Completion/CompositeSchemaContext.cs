@@ -166,13 +166,13 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
 
     private FusionScalarTypeDefinition CreateSpecScalar(string name)
     {
-        var type = new FusionScalarTypeDefinition(name, null, isInaccessible: false);
+        var type = new FusionScalarTypeDefinition(name, GetSpecScalarDescription(name), isInaccessible: false);
         var typeDef = new ScalarTypeDefinitionNode(null, new NameNode(name), null, []);
         type.Complete(new CompositeScalarTypeCompletionContext(
             default,
             FusionDirectiveCollection.Empty,
             specifiedBy: null,
-            serializationType: ScalarSerializationType.String,
+            serializationType: GetSpecScalarSerializationType(name),
             pattern: null));
 
         _typeDefinitionNodeLookup = _typeDefinitionNodeLookup.SetItem(name, typeDef);
@@ -180,6 +180,35 @@ internal sealed class CompositeSchemaBuilderContext : ICompositeSchemaBuilderCon
 
         return type;
     }
+
+    private static string? GetSpecScalarDescription(string name)
+        => name switch
+        {
+            SpecScalarNames.String.Name =>
+                "The `String` scalar type represents textual data, represented as a sequence of Unicode code points.",
+            SpecScalarNames.Int.Name =>
+                "The `Int` scalar type represents a signed 32-bit numeric non-fractional value.",
+            SpecScalarNames.Float.Name =>
+                "The `Float` scalar type represents signed double-precision finite values as specified by [IEEE 754](https://en.wikipedia.org/wiki/IEEE_floating_point).",
+            SpecScalarNames.Boolean.Name =>
+                "The `Boolean` scalar type represents `true` or `false`.",
+            SpecScalarNames.ID.Name =>
+                "The `ID` scalar type represents a unique identifier, often used to refetch an object or as the key for a cache.",
+            _ => null
+        };
+
+    private static ScalarSerializationType GetSpecScalarSerializationType(string name)
+        => name switch
+        {
+            SpecScalarNames.String.Name => ScalarSerializationType.String,
+            SpecScalarNames.Int.Name => ScalarSerializationType.Int,
+            SpecScalarNames.Float.Name => ScalarSerializationType.Float,
+            SpecScalarNames.Boolean.Name => ScalarSerializationType.Boolean,
+            SpecScalarNames.ID.Name => ScalarSerializationType.String | ScalarSerializationType.Int,
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(name),
+                $"The specified name `{name}` is not a valid spec scalar name.")
+        };
 
     private static IType CreateType(ITypeNode typeNode, ITypeDefinition compositeNamedType)
     {

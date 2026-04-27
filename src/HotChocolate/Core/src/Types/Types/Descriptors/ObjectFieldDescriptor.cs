@@ -197,9 +197,11 @@ public class ObjectFieldDescriptor
             {
                 var ownerType = definition.ResolverType ?? definition.SourceType;
 
+#pragma warning disable IL2075 // 'this' argument does not satisfy 'DynamicallyAccessedMembersAttribute' - ownerType is obtained from runtime configuration which cannot be statically annotated.
                 var subscribeMember = ownerType?.GetMember(
                     definition.SubscribeWith,
                     Public | NonPublic | Instance | Static)[0];
+#pragma warning restore IL2075
 
                 if (subscribeMember is MethodInfo subscribeMethod)
                 {
@@ -639,7 +641,7 @@ public class ObjectFieldDescriptor
     /// <param name="member">The member this field represents</param>
     /// <param name="sourceType">The type of the member</param>
     /// <param name="resolverType">The resolved type</param>
-    /// <returns></returns>
+    /// <returns>A new <see cref="ObjectFieldDescriptor"/>.</returns>
     public static ObjectFieldDescriptor New(
         IDescriptorContext context,
         MemberInfo member,
@@ -654,7 +656,7 @@ public class ObjectFieldDescriptor
     /// <param name="expression">The expression this field is based on</param>
     /// <param name="sourceType">The type of the member</param>
     /// <param name="resolverType">The resolved type</param>
-    /// <returns></returns>
+    /// <returns>A new <see cref="ObjectFieldDescriptor"/>.</returns>
     public static ObjectFieldDescriptor New(
         IDescriptorContext context,
         LambdaExpression expression,
@@ -667,7 +669,7 @@ public class ObjectFieldDescriptor
     /// </summary>
     /// <param name="context">The descriptor context</param>
     /// <param name="definition">The definition of the field</param>
-    /// <returns></returns>
+    /// <returns>A new <see cref="ObjectFieldDescriptor"/>.</returns>
     public static ObjectFieldDescriptor From(
         IDescriptorContext context,
         ObjectFieldConfiguration definition)

@@ -49,7 +49,6 @@ public static class ErrorCodes
         public const string OneSlicingArgumentRequired = "HC0082";
 
         public const string NonNullViolation = "HC0018";
-        public const string SemanticNonNullViolation = "HC0088";
         public const string MustBeInputType = "HC0017";
         public const string InvalidType = "HC0016";
         public const string OperationDocumentNotFound = "HC0015";
@@ -327,6 +326,11 @@ public static class ErrorCodes
         /// The maximum allowed coordinate cycle depth was exceeded.
         /// </summary>
         public const string MaxCoordinateCycleDepthOverflow = "HC0087";
+
+        /// <summary>
+        /// The field merge validation budget was exhausted.
+        /// </summary>
+        public const string BudgetExceeded = "HC0107";
     }
 
     /// <summary>

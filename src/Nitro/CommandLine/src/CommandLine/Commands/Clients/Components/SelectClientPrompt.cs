@@ -1,9 +1,10 @@
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Clients;
 using ChilliCream.Nitro.CommandLine.Helpers;
 
 namespace ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
 
-public sealed class SelectClientPrompt(IApiClient client, string apiId)
+internal sealed class SelectClientPrompt(IClientsClient client, string apiId)
 {
     private string _title = "Select a client from the list below.";
 
@@ -13,25 +14,21 @@ public sealed class SelectClientPrompt(IApiClient client, string apiId)
         return this;
     }
 
-    public async Task<ISelectClientPrompt_Client?> RenderAsync(
-        IAnsiConsole console,
+    public async Task<IListClientCommandQuery_Node_Clients_Edges_Node?> RenderAsync(
+        INitroConsole console,
         CancellationToken cancellationToken)
     {
-        var paginationContainer = PaginationContainer.Create(
-            (after, first, ct)
-                => client.SelectClientPromptQuery.ExecuteAsync(apiId, after, first, ct),
-            p => p.ApiById?.Clients?.PageInfo,
-            p => p.ApiById?.Clients?.Edges);
+        var paginationContainer = PaginationContainer.CreateConnectionData(
+            async (after, first, ct) => await client.ListClientsAsync(apiId, after, first, ct)
+                ?? throw new ExitException("The API was not found."));
 
-        var selectedEdge = await PagedSelectionPrompt
+        return await PagedSelectionPrompt
             .New(paginationContainer)
             .Title(_title)
-            .UseConverter(x => x.Node.Name)
+            .UseConverter(x => x.Name)
             .RenderAsync(console, cancellationToken);
-
-        return selectedEdge?.Node;
     }
 
-    public static SelectClientPrompt New(IApiClient client, string apiId)
+    public static SelectClientPrompt New(IClientsClient client, string apiId)
         => new(client, apiId);
 }

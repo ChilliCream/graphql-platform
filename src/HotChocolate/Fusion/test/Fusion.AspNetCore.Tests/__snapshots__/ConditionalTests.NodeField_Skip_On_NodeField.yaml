@@ -1,9 +1,7 @@
 title: NodeField_Skip_On_NodeField
 request:
   document: |
-    query testQuery(
-      $skip: Boolean!
-    ) {
+    query testQuery($skip: Boolean!) {
       node(id: "RGlzY3Vzc2lvbjox") @skip(if: $skip) {
         __typename
       }
@@ -39,9 +37,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $skip: Boolean!
-        ) {
+        query testQuery($skip: Boolean!) {
           node(id: "RGlzY3Vzc2lvbjox") @skip(if: $skip) {
             __typename
           }

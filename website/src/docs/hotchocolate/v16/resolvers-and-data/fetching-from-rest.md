@@ -59,8 +59,8 @@ public static partial class TodoQueries
 // Program.cs
 builder.Services.AddHttpClient<TodoService>();
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddTypes();
 ```
 
@@ -103,8 +103,8 @@ public class TodoQueriesType : ObjectType<TodoQueries>
 // Program.cs
 builder.Services.AddHttpClient<TodoService>();
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<TodoQueriesType>();
 ```
 

@@ -1,10 +1,8 @@
-using System.CommandLine.Invocation;
-using ChilliCream.Nitro.CommandLine.Client;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Environments;
 using ChilliCream.Nitro.CommandLine.Commands.Environments.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Environments.Options;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
@@ -15,66 +13,88 @@ internal sealed class CreateEnvironmentCommand : Command
 {
     public CreateEnvironmentCommand() : base("create")
     {
-        Description = "Creates a new environment";
+        Description = "Create a new environment.";
 
-        AddOption(Opt<EnvironmentNameOption>.Instance);
-        AddOption(Opt<WorkspaceIdOption>.Instance);
+        Options.Add(Opt<EnvironmentNameOption>.Instance);
+        Options.Add(Opt<OptionalWorkspaceIdOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Bind.FromServiceProvider<CancellationToken>());
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples("environment create --name \"dev\"");
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken cancellationToken)
     {
-        var workspaceId = context.RequireWorkspaceId();
+        var console = services.GetRequiredService<INitroConsole>();
+        var client = services.GetRequiredService<IEnvironmentsClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        console.WriteLine();
-        console.WriteLine("Creating a environment");
-        console.WriteLine();
+        parseResult.AssertHasAuthentication(sessionService);
 
-        var name = await context.OptionOrAskAsync(
+        var workspaceId = parseResult.GetWorkspaceId(sessionService);
+
+        var name = await console.PromptAsync(
             "Name",
+            defaultValue: null,
+            parseResult,
             Opt<EnvironmentNameOption>.Instance,
             cancellationToken);
 
-        var result = await client.CreateEnvironmentCommandMutation
-            .ExecuteAsync(workspaceId, name, cancellationToken);
-
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        console.PrintErrorsAndExit(data.PushWorkspaceChanges.Errors);
-
-        var changeResult = data.PushWorkspaceChanges.Changes?.SingleOrDefault();
-        if (changeResult is null)
+        await using (var activity = console.StartActivity(
+            $"Creating environment '{name.EscapeMarkup()}'",
+            "Failed to create the environment."))
         {
-            throw Exit("Could not create environment.");
+            var data = await client.CreateEnvironmentAsync(workspaceId, name, cancellationToken);
+
+            if (data.Errors?.Count > 0)
+            {
+                await activity.FailAllAsync();
+
+                foreach (var error in data.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        ICreateEnvironmentCommandMutation_PushWorkspaceChanges_Errors_UnauthorizedOperation err => err.Message,
+                        ICreateEnvironmentCommandMutation_PushWorkspaceChanges_Errors_ChangeStructureInvalid err => err.Message,
+                        IError err => Messages.UnexpectedMutationError(err),
+                        _ => Messages.UnexpectedMutationError()
+                    };
+
+                    console.Error.WriteErrorLine(errorMessage);
+                }
+
+                return ExitCodes.Error;
+            }
+
+            var changeResult = data.Changes?.SingleOrDefault();
+            if (changeResult is null)
+            {
+                throw MutationReturnedNoData();
+            }
+
+            if (changeResult.Error is IError changeError)
+            {
+                await activity.FailAllAsync();
+                console.Error.WriteErrorLine(changeError.Message);
+                return ExitCodes.Error;
+            }
+
+            if (changeResult.Result is not IEnvironmentDetailPrompt_Environment detail)
+            {
+                throw MutationReturnedNoData();
+            }
+
+            activity.Success($"Created environment '{name.EscapeMarkup()}'.");
+
+            resultHolder.SetResult(new ObjectResult(EnvironmentDetailPrompt.From(detail).ToObject()));
+
+            return ExitCodes.Success;
         }
-
-        if (changeResult.Error is IError error)
-        {
-            throw Exit(error.Message);
-        }
-
-        if (changeResult.Result is not ICreateEnvironmentCommandMutation_Environment environment)
-        {
-            throw Exit("Could not create environment.");
-        }
-
-        console.OkLine($"Environment {environment.Name.AsHighlight()} created");
-
-        if (changeResult.Result is IEnvironmentDetailPrompt_Environment detail)
-        {
-            context.SetResult(EnvironmentDetailPrompt.From(detail).ToObject());
-        }
-
-        return ExitCodes.Success;
     }
 }

@@ -35,7 +35,10 @@ nodes:
           $__fusion_3_id: ID!
       ) {
         productById(id: $__fusion_3_id) {
-          canAffordWithAndWithoutDiscount2(isExpensive: $__fusion_2_isExpensive, isExpensiveWithDiscount: $__fusion_2_isExpensiveWithDiscount)
+          canAffordWithAndWithoutDiscount2(
+            isExpensive: $__fusion_2_isExpensive
+            isExpensiveWithDiscount: $__fusion_2_isExpensiveWithDiscount
+          )
         }
       }
     source: $.productById
@@ -80,10 +83,7 @@ nodes:
     type: Operation
     schema: c
     operation: |
-      query Op_123456789101112_5(
-        $__fusion_6_price: Float!
-          $__fusion_7_id: ID!
-      ) {
+      query Op_123456789101112_5($__fusion_6_price: Float!, $__fusion_7_id: ID!) {
         productById(id: $__fusion_7_id) {
           isExpensive(price: $__fusion_6_price)
         }
@@ -135,9 +135,7 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_6(
-        $__fusion_8_id: ID!
-      ) {
+      query Op_123456789101112_6($__fusion_8_id: ID!) {
         productById(id: $__fusion_8_id) {
           price
         }
@@ -160,7 +158,10 @@ nodes:
           $__fusion_9_isExpensiveWithDiscount: Boolean!
       ) {
         productById(id: $__fusion_10_id) {
-          canAffordWithAndWithoutDiscount(isExpensiveWithDiscount: $__fusion_9_isExpensiveWithDiscount, isExpensive: $__fusion_9_isExpensive)
+          canAffordWithAndWithoutDiscount(
+            isExpensiveWithDiscount: $__fusion_9_isExpensiveWithDiscount
+            isExpensive: $__fusion_9_isExpensive
+          )
         }
       }
     source: $.productById

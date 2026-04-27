@@ -24,8 +24,9 @@
     <InternalsVisibleTo Include="HotChocolate.Fusion.Execution.Benchmarks" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Execution.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.AspNetCore.Tests" />
-    <InternalsVisibleTo Include="ChilliCream.Nitro.Fusion" />
     <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.InMemory" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.ApolloFederation" />
+    <InternalsVisibleTo Include="HotChocolate.Fusion.Connectors.ApolloFederation.Tests" />
     <InternalsVisibleTo Include="HotChocolate.Utilities.Tests" />
   </ItemGroup>
 

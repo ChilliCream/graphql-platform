@@ -339,8 +339,8 @@ Call `MapGraphQLPersistedOperations()` on the `IEndpointRouteBuilder` to expose 
 ```csharp
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddQueryType<Query>()
     .AddPersistedOperations(); // Register a persisted operation storage provider
 
@@ -381,12 +381,12 @@ When enabled, requests to `/{operationId}` without an operation name return a `4
 
 For details on storing and managing persisted operations, see [Trusted Documents](/docs/hotchocolate/v16/securing-your-api/trusted-documents).
 
-# AddGraphQLServer Parameters
+# AddGraphQL Parameters
 
-The `AddGraphQLServer()` method on `IServiceCollection` accepts parameters that control request parsing and default security behavior.
+The `AddGraphQL()` method on `WebApplicationBuilder` accepts parameters that control request parsing and default security behavior.
 
 ```csharp
-builder.Services.AddGraphQLServer(
+builder.AddGraphQL(
     maxAllowedRequestSize: 20 * 1000 * 1024,  // ~20 MB (default)
     disableDefaultSecurity: false);             // default
 ```
@@ -398,13 +398,13 @@ Controls the maximum allowed size (in bytes) of an incoming GraphQL request body
 Reduce this value if you expect only small queries and want to protect against excessively large payloads:
 
 ```csharp
-builder.Services.AddGraphQLServer(
+builder.AddGraphQL(
     maxAllowedRequestSize: 1 * 1000 * 1024); // ~1 MB
 ```
 
 ## disableDefaultSecurity
 
-When `false` (the default), `AddGraphQLServer()` automatically enables these security features:
+When `false` (the default), `AddGraphQL()` automatically enables these security features:
 
 - **Cost analysis**: Protects against expensive queries by analyzing the computational cost of each operation.
 - **Introspection disabled in production**: Introspection is automatically turned off when `IHostEnvironment.IsDevelopment()` returns `false`.
@@ -413,8 +413,8 @@ When `false` (the default), `AddGraphQLServer()` automatically enables these sec
 If you need full control over which security features are enabled, set `disableDefaultSecurity` to `true` and configure each feature individually:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer(disableDefaultSecurity: true)
+builder
+    .AddGraphQL(disableDefaultSecurity: true)
     .AddCostAnalyzer(); // Opt in to specific features manually
 ```
 
@@ -491,8 +491,8 @@ app.MapGraphQLWebSocket("/graphql/ws").WithOptions(o =>
 To set defaults that apply to all endpoints, use `ModifyServerOptions` on the request executor builder:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .ModifyServerOptions(o =>
     {
         o.EnableGetRequests = false;

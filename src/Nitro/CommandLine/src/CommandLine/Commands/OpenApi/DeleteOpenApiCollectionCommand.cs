@@ -1,11 +1,9 @@
-using System.CommandLine.Invocation;
+using ChilliCream.Nitro.Client;
+using ChilliCream.Nitro.Client.Apis;
+using ChilliCream.Nitro.Client.OpenApi;
 using ChilliCream.Nitro.CommandLine.Arguments;
-using ChilliCream.Nitro.CommandLine.Client;
-using ChilliCream.Nitro.CommandLine.Commands.Apis.Components;
 using ChilliCream.Nitro.CommandLine.Commands.OpenApi.Components;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Options;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using static ChilliCream.Nitro.CommandLine.ThrowHelper;
@@ -16,97 +14,101 @@ internal sealed class DeleteOpenApiCollectionCommand : Command
 {
     public DeleteOpenApiCollectionCommand() : base("delete")
     {
-        Description = "Deletes an OpenAPI collection";
+        Description = "Delete an OpenAPI collection.";
 
-        AddOption(Opt<ForceOption>.Instance);
-        AddArgument(Opt<OptionalIdArgument>.Instance);
+        Arguments.Add(Opt<OptionalIdArgument>.Instance);
+        Options.Add(Opt<OptionalForceOption>.Instance);
 
-        this.SetHandler(
-            ExecuteAsync,
-            Bind.FromServiceProvider<InvocationContext>(),
-            Bind.FromServiceProvider<IAnsiConsole>(),
-            Bind.FromServiceProvider<IApiClient>(),
-            Opt<OptionalIdArgument>.Instance,
-            Bind.FromServiceProvider<CancellationToken>());
+        this.AddGlobalNitroOptions();
+
+        this.AddExamples("openapi delete \"<openapi-collection-id>\"");
+
+        this.SetActionWithExceptionHandling(ExecuteAsync);
     }
 
     private static async Task<int> ExecuteAsync(
-        InvocationContext context,
-        IAnsiConsole console,
-        IApiClient client,
-        string? openApiCollectionId,
+        ICommandServices services,
+        ParseResult parseResult,
         CancellationToken cancellationToken)
     {
-        console.WriteLine();
-        console.WriteLine("Deleting an OpenAPI collection");
-        console.WriteLine();
+        var console = services.GetRequiredService<INitroConsole>();
+        var apisClient = services.GetRequiredService<IApisClient>();
+        var client = services.GetRequiredService<IOpenApiClient>();
+        var sessionService = services.GetRequiredService<ISessionService>();
+        var resultHolder = services.GetRequiredService<IResultHolder>();
 
-        const string apiMessage = "For which API do you want to delete an OpenAPI collection?";
-        const string openApiCollectionMessage = "Which OpenAPI collection do you want to delete?";
+        parseResult.AssertHasAuthentication(sessionService);
+
+        var openApiCollectionId = parseResult.GetRequiredValueIfNotInteractive(Opt<OptionalIdArgument>.Instance, console);
 
         if (openApiCollectionId is null)
         {
-            if (!console.IsHumanReadable())
-            {
-                throw Exit("The OpenAPI collection ID is required in non-interactive mode.");
-            }
-
-            var workspaceId = context.RequireWorkspaceId();
-
-            var selectedApi = await SelectApiPrompt
-                .New(client, workspaceId)
-                .Title(apiMessage)
-                .RenderAsync(console, cancellationToken) ?? throw NoApiSelected();
-
-            var apiId = selectedApi.Id;
+            var workspaceId = parseResult.GetWorkspaceId(sessionService);
+            var apiId = await console.PromptForApiIdAsync(
+                apisClient,
+                workspaceId,
+                "For which API do you want to delete an OpenAPI collection?",
+                cancellationToken);
 
             var selectedOpenApiCollection = await SelectOpenApiCollectionPrompt
                 .New(client, apiId)
-                .Title(openApiCollectionMessage)
-                .RenderAsync(console, cancellationToken) ?? throw NoOpenApiCollectionSelected();
-
-            console.WriteLine("Selected OpenAPI collection: " + selectedOpenApiCollection.Name);
+                .Title("Which OpenAPI collection do you want to delete?")
+                .RenderAsync(console, cancellationToken) ?? throw new ExitException("You did not select an OpenAPI collection!");
 
             openApiCollectionId = selectedOpenApiCollection.Id;
-            console.OkQuestion(openApiCollectionMessage, openApiCollectionId);
-        }
-        else
-        {
-            console.OkQuestion(openApiCollectionMessage, openApiCollectionId);
         }
 
-        var shouldDelete = await context.ConfirmWhenNotForced(
-            $"Do you want to delete the OpenAPI collection with the ID {openApiCollectionId}?"
-                .EscapeMarkup(),
-            cancellationToken);
-
-        if (!shouldDelete)
+        var force = parseResult.GetValue(Opt<OptionalForceOption>.Instance);
+        if (!force)
         {
-            console.OkLine("Aborted.");
+            var confirmed = await console.ConfirmAsync(
+                $"Do you want to delete the OpenAPI collection with the ID {openApiCollectionId}?"
+                    .EscapeMarkup(),
+                cancellationToken);
+
+            if (!confirmed)
+            {
+                throw Exit("The OpenAPI collection was not deleted.");
+            }
+        }
+
+        await using (var activity = console.StartActivity(
+            $"Deleting OpenAPI collection '{openApiCollectionId.EscapeMarkup()}'",
+            "Failed to delete the OpenAPI collection."))
+        {
+            var data = await client.DeleteOpenApiCollectionAsync(
+                openApiCollectionId,
+                cancellationToken);
+
+            if (data.Errors?.Count > 0)
+            {
+                await activity.FailAllAsync();
+
+                foreach (var error in data.Errors)
+                {
+                    var errorMessage = error switch
+                    {
+                        IOpenApiCollectionNotFoundError err => err.Message,
+                        IUnauthorizedOperation err => err.Message,
+                        IError err => Messages.UnexpectedMutationError(err),
+                        _ => Messages.UnexpectedMutationError()
+                    };
+
+                    console.Error.WriteErrorLine(errorMessage);
+                    return ExitCodes.Error;
+                }
+            }
+
+            if (data.OpenApiCollection is not IOpenApiCollectionDetailPrompt_OpenApiCollection detail)
+            {
+                throw MutationReturnedNoData();
+            }
+
+            activity.Success($"Deleted OpenAPI collection '{openApiCollectionId.EscapeMarkup()}'.");
+
+            resultHolder.SetResult(new ObjectResult(OpenApiCollectionDetailPrompt.From(detail).ToObject()));
+
             return ExitCodes.Success;
         }
-
-        var input = new DeleteOpenApiCollectionByIdInput { OpenApiCollectionId = openApiCollectionId };
-        var result =
-            await client.DeleteOpenApiCollectionByIdCommandMutation.ExecuteAsync(input, cancellationToken);
-
-        console.EnsureNoErrors(result);
-        var data = console.EnsureData(result);
-        console.PrintErrorsAndExit(data.DeleteOpenApiCollectionById.Errors);
-
-        var deletedOpenApiCollection = data.DeleteOpenApiCollectionById.OpenApiCollection;
-        if (deletedOpenApiCollection is null)
-        {
-            throw Exit("Could not delete the OpenAPI collection.");
-        }
-
-        console.OkLine($"OpenAPI collection {deletedOpenApiCollection.Name.AsHighlight()} was deleted.");
-
-        if (deletedOpenApiCollection is IOpenApiCollectionDetailPrompt_OpenApiCollection detail)
-        {
-            context.SetResult(OpenApiCollectionDetailPrompt.From(detail).ToObject([]));
-        }
-
-        return ExitCodes.Success;
     }
 }

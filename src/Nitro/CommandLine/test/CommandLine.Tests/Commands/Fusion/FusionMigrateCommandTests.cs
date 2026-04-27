@@ -1,32 +1,92 @@
-using System.CommandLine;
-using System.CommandLine.Builder;
-using System.CommandLine.Parsing;
+using System.Text;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Fusion;
 
-public sealed class FusionMigrateCommandTests : IDisposable
+public sealed class FusionMigrateCommandTests(NitroCommandFixture fixture) : FusionCommandTestBase(fixture)
 {
-    private readonly string _tempDir;
-
-    public FusionMigrateCommandTests()
+    [Fact]
+    public async Task Help_ReturnsSuccess()
     {
-        _tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-        Directory.CreateDirectory(_tempDir);
+        // arrange & act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "migrate",
+            "--help");
+
+        // assert
+        result.AssertHelpOutput(
+            """
+            Description:
+              Migrate Fusion configuration files.
+
+            Usage:
+              nitro fusion migrate <TARGET> [options]
+
+            Arguments:
+              <subgraph-config>  The migration target
+
+            Options:
+              -w, --working-directory <working-directory>  Set the working directory for the command
+              -?, -h, --help                               Show help and usage information
+
+            Example:
+              nitro fusion migrate subgraph-config
+            """);
     }
 
     [Fact]
-    public async Task Migrate_SubgraphConfig()
+    public async Task MissingRequiredArgument_ReturnsError()
     {
         // arrange
-        await File.WriteAllTextAsync(
-            Path.Combine(_tempDir, "subgraph-config.json"),
+        SetupNoAuthentication();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "migrate");
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Required argument missing for command: 'migrate'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task Migrate_SubgraphConfig_NoFilesFound_ReturnsError()
+    {
+        // arrange
+        SetupNoAuthentication();
+        SetupGlobMatch([]);
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "migrate",
+            "subgraph-config");
+
+        // assert
+        result.StdErr.MatchInlineSnapshot(
+            """
+            Could not find any 'subgraph-config.json' files in '/some/working/directory'.
+            """);
+        Assert.Equal(1, result.ExitCode);
+    }
+
+    [Fact]
+    public async Task Migrate_SubgraphConfig_ReturnsSuccess()
+    {
+        // arrange
+        SetupNoAuthentication();
+        SetupFile(
+            "subgraph-config.json",
             """
             {
               "subgraph": "Order",
               "http": {
                 "clientName": "order-client",
-                "baseAddress": "http://localhost:59093/graphql",
-                "timeout": 30
+                "baseAddress": "http://localhost:59093/graphql"
               },
               "websocket": { "baseAddress": "ws://localhost:59093/graphql" },
               "extensions": {
@@ -37,17 +97,24 @@ public sealed class FusionMigrateCommandTests : IDisposable
             }
             """);
 
-        var builder = GetCommandLineBuilder();
+        SetupGlobMatch(["subgraph-config.json"]);
+        var capturedStream = SetupCreateFile("schema-settings.json");
 
         // act
-        var exitCode = await builder.Build().InvokeAsync(
-            ["fusion", "migrate", "subgraph-config", "--working-directory", _tempDir]);
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "migrate",
+            "subgraph-config");
 
         // assert
-        Assert.Equal(0, exitCode);
+        result.AssertSuccess(
+            """
+            Searching for 'subgraph-config.json' files in '/some/working/directory'...
+            Migrated 1 file(s) to schema-settings.json!
+            /some/working/directory/subgraph-config.json -> schema-settings.json
+            """);
 
-        var json = await File.ReadAllTextAsync(Path.Combine(_tempDir, "schema-settings.json"));
-        json.MatchInlineSnapshot(
+        Encoding.UTF8.GetString(capturedStream.ToArray()).MatchInlineSnapshot(
             """
             {
               "version": "1.0.0",
@@ -55,8 +122,7 @@ public sealed class FusionMigrateCommandTests : IDisposable
               "transports": {
                 "http": {
                   "clientName": "order-client",
-                  "url": "http://localhost:59093/graphql",
-                  "timeout": 30
+                  "url": "http://localhost:59093/graphql"
                 }
               },
               "extensions": {
@@ -69,142 +135,33 @@ public sealed class FusionMigrateCommandTests : IDisposable
     }
 
     [Fact]
-    public async Task Migrate_SubgraphConfig_SkipsIfTargetExists()
+    public async Task Migrate_SubgraphConfig_SkipsIfTargetExists_ReturnsSuccess()
     {
         // arrange
-        const string existingContent = """{ "existing": true }""";
-        await File.WriteAllTextAsync(
-            Path.Combine(_tempDir, "subgraph-config.json"),
+        SetupNoAuthentication();
+        SetupGlobMatch(["subgraph-config.json"]);
+        SetupFile(
+            "subgraph-config.json",
             """
             {
               "subgraph": "Order",
               "http": { "baseAddress": "http://localhost:5001/graphql" }
             }
             """);
-        await File.WriteAllTextAsync(
-            Path.Combine(_tempDir, "schema-settings.json"),
-            existingContent);
-
-        var builder = GetCommandLineBuilder();
+        SetupFile("schema-settings.json", """{ "existing": true }""");
 
         // act
-        var exitCode = await builder.Build().InvokeAsync(
-            ["fusion", "migrate", "subgraph-config", "--working-directory", _tempDir]);
+        var result = await ExecuteCommandAsync(
+            "fusion",
+            "migrate",
+            "subgraph-config");
 
         // assert
-        Assert.Equal(0, exitCode);
-
-        var json = await File.ReadAllTextAsync(Path.Combine(_tempDir, "schema-settings.json"));
-        Assert.Equal(existingContent, json);
-    }
-
-    [Fact]
-    public async Task Migrate_SubgraphConfig_NoFilesFound_ReturnsError()
-    {
-        // arrange
-        var builder = GetCommandLineBuilder();
-
-        // act
-        var exitCode = await builder.Build().InvokeAsync(
-            ["fusion", "migrate", "subgraph-config", "--working-directory", _tempDir]);
-
-        // assert
-        Assert.Equal(-1, exitCode);
-    }
-
-    [Fact]
-    public async Task Migrate_SubgraphConfig_MissingSubgraph()
-    {
-        // arrange
-        await File.WriteAllTextAsync(
-            Path.Combine(_tempDir, "subgraph-config.json"),
+        result.AssertSuccess(
             """
-            {
-              "http": { "baseAddress": "http://localhost:5001/graphql" }
-            }
+            Searching for 'subgraph-config.json' files in '/some/working/directory'...
+            Skipping /some/working/directory/schema-settings.json (already exists)
+            No files were migrated.
             """);
-
-        var builder = GetCommandLineBuilder();
-
-        // act
-        var exitCode = await builder.Build().InvokeAsync(
-            ["fusion", "migrate", "subgraph-config", "--working-directory", _tempDir]);
-
-        // assert
-        Assert.Equal(0, exitCode);
-        var json = await File.ReadAllTextAsync(Path.Combine(_tempDir, "schema-settings.json"));
-        json.MatchInlineSnapshot(
-            """
-            {
-              "version": "1.0.0",
-              "name": "",
-              "transports": {
-                "http": {
-                  "url": "http://localhost:5001/graphql"
-                }
-              }
-            }
-            """);
-    }
-
-    [Fact]
-    public async Task Migrate_SubgraphConfig_MultipleFiles()
-    {
-        // arrange
-        var subDir1 = Path.Combine(_tempDir, "subgraph1");
-        var subDir2 = Path.Combine(_tempDir, "subgraph2");
-        Directory.CreateDirectory(subDir1);
-        Directory.CreateDirectory(subDir2);
-
-        await File.WriteAllTextAsync(
-            Path.Combine(subDir1, "subgraph-config.json"),
-            """
-            {
-              "subgraph": "Order",
-              "http": { "baseAddress": "http://localhost:5001/graphql" }
-            }
-            """);
-
-        await File.WriteAllTextAsync(
-            Path.Combine(subDir2, "subgraph-config.json"),
-            """
-            {
-              "subgraph": "Product",
-              "http": { "baseAddress": "http://localhost:5002/graphql" }
-            }
-            """);
-
-        var builder = GetCommandLineBuilder();
-
-        // act
-        var exitCode = await builder.Build().InvokeAsync(
-            ["fusion", "migrate", "subgraph-config", "--working-directory", _tempDir]);
-
-        // assert
-        Assert.Equal(0, exitCode);
-        Assert.True(File.Exists(Path.Combine(subDir1, "schema-settings.json")));
-        Assert.True(File.Exists(Path.Combine(subDir2, "schema-settings.json")));
-    }
-
-    private static CommandLineBuilder GetCommandLineBuilder()
-    {
-        var rootCommand = new Command("nitro");
-        rootCommand.AddNitroCloudCommands();
-        return new CommandLineBuilder(rootCommand)
-            .UseExtendedConsole()
-            .UseExceptionMiddleware()
-            .UseDefaults();
-    }
-
-    public void Dispose()
-    {
-        try
-        {
-            Directory.Delete(_tempDir, recursive: true);
-        }
-        catch
-        {
-            // ignore
-        }
     }
 }

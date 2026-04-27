@@ -8,13 +8,105 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
+  compute-release-context:
+    name: 🧮 Compute release context
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+    outputs:
+      git_tag: ${{ steps.ctx.outputs.git_tag }}
+      major: ${{ steps.ctx.outputs.major }}
+      is_stable: ${{ steps.ctx.outputs.is_stable }}
+      is_active_major: ${{ steps.ctx.outputs.is_active_major }}
+      is_highest_stable_major: ${{ steps.ctx.outputs.is_highest_stable_major }}
+    steps:
+      - name: 🧮 Compute
+        id: ctx
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          GIT_TAG="${GITHUB_REF#refs/tags/}"
+          MAJOR="${GIT_TAG%%.*}"
+
+          if [[ "$GIT_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            IS_STABLE=true
+          else
+            IS_STABLE=false
+          fi
+
+          # Highest stable major already published as a non-prerelease, non-draft GitHub Release.
+          HIGHEST=$(gh release list --repo "$GITHUB_REPOSITORY" \
+            --exclude-drafts --exclude-pre-releases \
+            --limit 100 \
+            --json tagName \
+            --jq '[.[] | .tagName | select(test("^[0-9]+\\.[0-9]+\\.[0-9]+$")) | split(".")[0] | tonumber] | max // 0')
+
+          if [[ "$MAJOR" -ge "$HIGHEST" ]]; then
+            IS_ACTIVE_MAJOR=true
+          else
+            IS_ACTIVE_MAJOR=false
+          fi
+
+          if [[ "$IS_STABLE" == "true" && "$IS_ACTIVE_MAJOR" == "true" ]]; then
+            IS_HIGHEST_STABLE_MAJOR=true
+          else
+            IS_HIGHEST_STABLE_MAJOR=false
+          fi
+
+          echo "git_tag=$GIT_TAG" >> "$GITHUB_OUTPUT"
+          echo "major=$MAJOR" >> "$GITHUB_OUTPUT"
+          echo "is_stable=$IS_STABLE" >> "$GITHUB_OUTPUT"
+          echo "is_active_major=$IS_ACTIVE_MAJOR" >> "$GITHUB_OUTPUT"
+          echo "is_highest_stable_major=$IS_HIGHEST_STABLE_MAJOR" >> "$GITHUB_OUTPUT"
+
+  create-draft:
+    name: 📝 Create Draft Release
+    runs-on: ubuntu-22.04
+    needs: [compute-release-context]
+    permissions:
+      contents: write
+    env:
+      GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
+      IS_STABLE: ${{ needs.compute-release-context.outputs.is_stable }}
+    steps:
+      - name: 📝 Create draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view "$GIT_TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "Release for $GIT_TAG already exists; leaving it untouched."
+            exit 0
+          fi
+
+          prerelease_flag=()
+          if [[ "$IS_STABLE" != "true" ]]; then
+            prerelease_flag=(--prerelease)
+          fi
+
+          gh release create "$GIT_TAG" \
+            --repo "${{ github.repository }}" \
+            --draft \
+            "${prerelease_flag[@]}" \
+            --title "$GIT_TAG" \
+            --generate-notes \
+            --target "$GITHUB_SHA"
+
   release:
     name: 📦 Build & Publish NuGet Packages
     runs-on: ubuntu-22.04
+    needs: [compute-release-context, create-draft]
     permissions:
       contents: write
       id-token: write
+    env:
+      GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
 
     steps:
       - name: 📦 Checkout
@@ -30,9 +122,6 @@ jobs:
             9.x
             10.x
 
-      - name: 🏷 Get the version from tag
-        run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-
       - name: 📦 Build NuGet Packages
         run: |
           ./build.sh pack --SemVersion ${{ env.GIT_TAG }} --Configuration Release
@@ -41,13 +130,31 @@ jobs:
           NitroIdentityClientId: ${{ secrets.NITRO_IDENTITY_CLIENT_ID }}
           NitroIdentityScopes: ${{ secrets.NITRO_IDENTITY_SCOPES }}
 
-      - name: 📦 Publish Nitro CLI client
-        run: |
-          ./build.sh UploadNitroClient --SemVersion ${{ env.GIT_TAG }}
-          ./build.sh PublishNitroClient --SemVersion ${{ env.GIT_TAG }}
-        env:
-          NitroApiClientId: ${{ secrets.NITRO_API_CLIENT_ID }}
-          NitroApiKey: ${{ secrets.NITRO_API_KEY }}
+      - name: 📤 Upload Nitro CLI client operations
+        uses: ChilliCream/nitro-client-upload@v16.0.0-rc.1.40
+        with:
+          tag: ${{ env.GIT_TAG }}
+          operations-file: src/Nitro/CommandLine/src/ChilliCream.Nitro.Client/persisted/operations.json
+          client-id: ${{ secrets.NITRO_API_CLIENT_ID }}
+          api-key: ${{ secrets.NITRO_API_KEY }}
+
+      - name: 🚀 Publish Nitro CLI client (Dev)
+        uses: ChilliCream/nitro-client-publish@v16.0.0-rc.1.40
+        with:
+          tag: ${{ env.GIT_TAG }}
+          stage: Dev
+          client-id: ${{ secrets.NITRO_API_CLIENT_ID }}
+          api-key: ${{ secrets.NITRO_API_KEY }}
+          force: true
+
+      - name: 🚀 Publish Nitro CLI client (Prod)
+        uses: ChilliCream/nitro-client-publish@v16.0.0-rc.1.40
+        with:
+          tag: ${{ env.GIT_TAG }}
+          stage: Prod
+          client-id: ${{ secrets.NITRO_API_CLIENT_ID }}
+          api-key: ${{ secrets.NITRO_API_KEY }}
+          force: true
 
       - name: NuGet login
         uses: NuGet/login@v1
@@ -62,31 +169,29 @@ jobs:
           NuGetApiKey: ${{ steps.login.outputs.NUGET_API_KEY }}
 
       - name: 📤 Attach .nupkg assets to GitHub release
+        shell: bash
         run: |
-          for file in ./output/packages/*.nupkg; do
-            echo "📤 Uploading $file"
-            gh release upload ${{ env.GIT_TAG }} "$file" --repo "${{ github.repository }}"
-          done
+          gh release upload "$GIT_TAG" ./output/packages/*.nupkg --repo "${{ github.repository }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-nitro-cli:
     name: 🧱 Build and Publish Nitro CLI
     runs-on: ${{ matrix.os }}
-    # We need to depend on this job, as it publishes the persisted operations of the CLI.
-    needs: [release]
-    if: startsWith(github.ref, 'refs/tags/')
+    # We need to depend on `release`, as it publishes the persisted operations of the CLI.
+    needs: [compute-release-context, release]
     permissions:
       contents: write
+    env:
+      GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
     strategy:
       matrix:
         include:
-          # Linux (x64)
+          # Linux
           - os: ubuntu-22.04
             rid: linux-x64
           - os: ubuntu-22.04
             rid: linux-musl-x64
-          # Linux (arm64 on ARM runner!)
           - os: ubuntu-24.04-arm
             rid: linux-arm64
           # macOS
@@ -99,7 +204,7 @@ jobs:
             rid: win-x64
           - os: windows-2025
             rid: win-x86
-          # Windows (arm64 on ARM runner!)
+          # Commented, since azure/artifact-signing-action does not currently support ARM.
           # - os: windows-11-arm
           #   rid: win-arm64
 
@@ -111,16 +216,6 @@ jobs:
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.x
-
-      - name: 🏷 Get the version from tag (Windows)
-        if: runner.os == 'Windows'
-        run: echo "GIT_TAG=$($env:GITHUB_REF -replace '^refs/tags/','')" >> $env:GITHUB_ENV
-        shell: pwsh
-
-      - name: 🏷 Get the version from tag (Unix)
-        if: runner.os != 'Windows'
-        run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-        shell: bash
 
       - name: 📦 Publish binary (Windows)
         if: runner.os == 'Windows'
@@ -134,26 +229,26 @@ jobs:
 
       - name: 📦 Publish binary (Unix)
         if: runner.os != 'Windows'
+        shell: bash
         run: |
           ./build.sh publishaot --SemVersion $GIT_TAG --RuntimeIdentifier ${{ matrix.rid }} --Configuration Release
-        shell: bash
         env:
           NitroApiClientId: ${{ secrets.NITRO_API_CLIENT_ID }}
           NitroIdentityClientId: ${{ secrets.NITRO_IDENTITY_CLIENT_ID }}
           NitroIdentityScopes: ${{ secrets.NITRO_IDENTITY_SCOPES }}
 
       - name: 🖋️ Azure login (Windows)
-        uses: azure/login@v1
+        uses: azure/login@v3
         if: runner.os == 'Windows'
         with:
           creds: ${{ secrets.SIGNING_CREDENTIALS }}
 
       - name: 🖋️ Sign binary (Windows)
-        uses: azure/trusted-signing-action@v0
+        uses: azure/artifact-signing-action@v1
         if: runner.os == 'Windows'
         with:
           endpoint: ${{ vars.AZURE_TRUSTED_SIGNING_ACCOUNT_ENDPOINT }}
-          trusted-signing-account-name: ${{ secrets.AZURE_CODE_SIGNING_NAME }}
+          signing-account-name: ${{ secrets.AZURE_CODE_SIGNING_NAME }}
           certificate-profile-name: ${{ secrets.WINDOWS_APP_CERT_PROFILE_NAME }}
           files: ${{ github.workspace }}\publish\nitro.exe
           file-digest: SHA256
@@ -218,31 +313,25 @@ jobs:
           Compress-Archive -Path (Get-Item publish/nitro.exe) -DestinationPath nitro-${{ matrix.rid }}.zip
         shell: pwsh
 
-      - name: 📦 Zip binary (Unix)
-        if: runner.os != 'Windows'
+      - name: 📦 Zip binary (macOS)
+        if: runner.os == 'macOS'
+        shell: bash
         run: |
           zip -j nitro-${{ matrix.rid }}.zip publish/nitro
+
+      - name: 📦 Tar binary (Linux)
+        if: runner.os == 'Linux'
         shell: bash
+        run: |
+          tar -czf nitro-${{ matrix.rid }}.tar.gz -C publish nitro
 
       - name: 🖋️ Notarize binary (macOS)
         if: runner.os == 'macOS'
         env:
-          CODESIGN_IDENTITY: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_IDENTITY }}
           APPLE_DEVELOPER_ID_EMAIL: ${{ secrets.APPLE_DEVELOPER_ID_EMAIL }}
           APPLE_DEVELOPER_TEAM_ID: ${{ secrets.APPLE_DEVELOPER_TEAM_ID }}
           APPLE_DEVELOPER_NITRO_CLI_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_DEVELOPER_NITRO_CLI_APP_SPECIFIC_PASSWORD }}
         run: |
-          echo "Code signing 'nitro-${{ matrix.rid }}.zip'..."
-
-          codesign --sign "$CODESIGN_IDENTITY" \
-            --verbose=3 \
-            --options runtime \
-            --timestamp \
-            --force \
-            nitro-${{ matrix.rid }}.zip
-
-          codesign --verify --deep --strict --verbose=2 nitro-${{ matrix.rid }}.zip
-
           echo "Notarizing 'nitro-${{ matrix.rid }}.zip'..."
 
           xcrun notarytool submit nitro-${{ matrix.rid }}.zip \
@@ -251,35 +340,46 @@ jobs:
             --password "$APPLE_DEVELOPER_NITRO_CLI_APP_SPECIFIC_PASSWORD" \
             --wait
 
-          spctl --assess --type exec -vv nitro-${{ matrix.rid }}.zip || true
-          codesign -dvv nitro-${{ matrix.rid }}.zip || true
-
       - name: 🖋️ Clean up signing resources (macOS)
         if: always() && runner.os == 'macOS'
         run: |
           security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
 
-      - name: 📤 Upload zipped binary as artifact
-        uses: actions/upload-artifact@v6
+      - name: 📤 Upload packaged binary as artifact
+        uses: actions/upload-artifact@v7
         with:
           name: nitro-${{ matrix.rid }}
-          path: nitro-${{ matrix.rid }}.zip
+          path: nitro-${{ matrix.rid }}.${{ runner.os == 'Linux' && 'tar.gz' || 'zip' }}
 
-      - name: 📤 Attach zipped binary to GitHub release
+      - name: 📤 Attach packaged binary to GitHub release
         shell: bash
         run: |
-          gh release upload ${{ github.ref_name }} nitro-${{ matrix.rid }}.zip --repo ${{ github.repository }}
+          gh release upload ${{ github.ref_name }} nitro-${{ matrix.rid }}.${{ runner.os == 'Linux' && 'tar.gz' || 'zip' }} --repo ${{ github.repository }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  publish-nitro-cli-npm:
-    name: 🧱 Publish Nitro CLI to npm
+  publish-nitro-cli-platforms:
+    name: 🧱 Publish Nitro CLI binary to npm
     runs-on: ubuntu-latest
-    needs: [build-nitro-cli]
-    if: startsWith(github.ref, 'refs/tags/')
+    needs: [compute-release-context, build-nitro-cli]
     permissions:
       contents: write
       id-token: write
+    env:
+      GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
+      MAJOR: ${{ needs.compute-release-context.outputs.major }}
+      IS_STABLE: ${{ needs.compute-release-context.outputs.is_stable }}
+      IS_HIGHEST_STABLE_MAJOR: ${{ needs.compute-release-context.outputs.is_highest_stable_major }}
+    strategy:
+      matrix:
+        rid:
+          - linux-x64
+          - linux-musl-x64
+          - linux-arm64
+          - osx-x64
+          - osx-arm64
+          - win-x64
+          - win-x86
 
     steps:
       - name: 📦 Checkout
@@ -288,175 +388,261 @@ jobs:
       - name: 🧰 Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
+          registry-url: ${{ vars.NPM_REGISTRY_URL }}
+          scope: "@chillicream"
+
+      - name: 📥 Download nitro binary
+        uses: actions/download-artifact@v8
+        with:
+          name: nitro-${{ matrix.rid }}
+          path: dist
+
+      - name: 🗂️ Stage binary in package directory
+        shell: bash
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro-${{ matrix.rid }}
+        run: |
+          set -euo pipefail
+          archive="$GITHUB_WORKSPACE/dist/nitro-${{ matrix.rid }}.tar.gz"
+          if [ ! -f "$archive" ]; then
+            archive="$GITHUB_WORKSPACE/dist/nitro-${{ matrix.rid }}.zip"
+          fi
+          case "$archive" in
+            *.tar.gz) tar -xzf "$archive" ;;
+            *.zip)    unzip -q "$archive" ;;
+          esac
+          if [[ "${{ matrix.rid }}" != win-* ]]; then
+            chmod +x nitro
+          fi
+
+      - name: 🏷️ Set version
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro-${{ matrix.rid }}
+        run: npm version "$GIT_TAG" --no-git-tag-version --allow-same-version
+
+      - name: 📦 Create tarball
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro-${{ matrix.rid }}
+        run: npm pack
+
+      - name: 🚀 Publish tarball to npm
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro-${{ matrix.rid }}
+        shell: bash
+        env:
+          REGISTRY: ${{ vars.NPM_REGISTRY_URL }}
+          PKG: "@chillicream/nitro-${{ matrix.rid }}"
+          TARBALL: "./chillicream-nitro-${{ matrix.rid }}-${{ needs.compute-release-context.outputs.git_tag }}.tgz"
+        run: |
+          set -euo pipefail
+
+          # Pick the band this release publishes under, based on release context.
+          if [[ "$IS_HIGHEST_STABLE_MAJOR" == "true" ]]; then
+            PRIMARY_BAND="latest"
+            SECONDARY_BAND="${MAJOR}"
+          elif [[ "$IS_STABLE" == "true" ]]; then
+            PRIMARY_BAND="${MAJOR}"
+            SECONDARY_BAND=""
+          elif [[ "$GIT_TAG" =~ -rc\. ]]; then
+            PRIMARY_BAND="rc"
+            SECONDARY_BAND=""
+          else
+            PRIMARY_BAND="preview"
+            SECONDARY_BAND=""
+          fi
+
+          npm publish "$TARBALL" \
+            --access public \
+            --registry="$REGISTRY" \
+            --tag "$PRIMARY_BAND"
+
+          if [[ -n "$SECONDARY_BAND" ]]; then
+            npm dist-tag add "${PKG}@${GIT_TAG}" "$SECONDARY_BAND" --registry="$REGISTRY"
+          fi
+
+      - name: 📤 Upload tarball as artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: chillicream-nitro-${{ matrix.rid }}-${{ env.GIT_TAG }}.tgz
+          path: src/Nitro/CommandLine/src/npm/chillicream-nitro-${{ matrix.rid }}/chillicream-nitro-${{ matrix.rid }}-${{ env.GIT_TAG }}.tgz
+
+      - name: 📤 Attach tarball to GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro-${{ matrix.rid }}
+        run: |
+          gh release upload "${{ github.ref_name }}" "chillicream-nitro-${{ matrix.rid }}-${{ github.ref_name }}.tgz" --repo "${{ github.repository }}"
+
+  publish-nitro-cli-npm:
+    name: 🧱 Publish Nitro CLI to npm
+    runs-on: ubuntu-latest
+    needs: [compute-release-context, publish-nitro-cli-platforms]
+    permissions:
+      contents: write
+      id-token: write
+    env:
+      GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
+      MAJOR: ${{ needs.compute-release-context.outputs.major }}
+      IS_STABLE: ${{ needs.compute-release-context.outputs.is_stable }}
+      IS_HIGHEST_STABLE_MAJOR: ${{ needs.compute-release-context.outputs.is_highest_stable_major }}
+
+    steps:
+      - name: 📦 Checkout
+        uses: actions/checkout@v6
+
+      - name: 🧰 Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
           registry-url: ${{ vars.NPM_REGISTRY_URL }}
           scope: "@chillicream"
 
       - name: 🧰 Enable corepack
         run: corepack enable
 
-      - name: 📥 Download all zipped nitro binaries
-        uses: actions/download-artifact@v7
-        with:
-          pattern: nitro-*
-          merge-multiple: true
-          path: dist-zips
-
-      - name: 🏷 Get the version from tag
-        run: echo "GIT_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-
-      - name: 🗂️ Move binaries to npm package
-        run: |
-          PACKAGE_DIR="src/Nitro/CommandLine/src/chillicream-nitro"
-
-          for z in dist-zips/nitro-*.zip; do
-            name=$(basename "$z" .zip)  # e.g. nitro-linux-x64
-            rid=${name#nitro-}          # e.g. linux-x64
-
-            echo "Unpacking $z -> $PACKAGE_DIR/$rid"
-            mkdir -p "$PACKAGE_DIR/$rid"
-            unzip -q "$z" -d "$PACKAGE_DIR/$rid"
-          done
-
-          # Ensure unix binaries are executable
-          chmod +x $PACKAGE_DIR/linux-x64/nitro || true
-          chmod +x $PACKAGE_DIR/linux-musl-x64/nitro || true
-          chmod +x $PACKAGE_DIR/linux-arm64/nitro || true
-          chmod +x $PACKAGE_DIR/osx-x64/nitro || true
-          chmod +x $PACKAGE_DIR/osx-arm64/nitro || true
-
-          # Ensure cli.js is executable
-          chmod +x $PACKAGE_DIR/cli.js
-
-      - name: 🔍 Install dependencies
-        working-directory: src/Nitro/CommandLine/src/chillicream-nitro
+      - name: 📥 Install dependencies
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
         run: yarn install --immutable
 
-      - name: 📥 Install npm@11.9.0
-        run: npm install -g npm@11.9.0
+      - name: 🏗️ Build
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
+        run: yarn build
 
-      - name: 🏷️ Set version
-        working-directory: src/Nitro/CommandLine/src/chillicream-nitro
-        run: npm version $GIT_TAG
+      - name: 🏷️ Bump version and inject optionalDependencies
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm version "$GIT_TAG" --no-git-tag-version --allow-same-version
+          jq --arg v "$GIT_TAG" '
+            .optionalDependencies = {
+              "@chillicream/nitro-linux-arm64": $v,
+              "@chillicream/nitro-linux-musl-x64": $v,
+              "@chillicream/nitro-linux-x64": $v,
+              "@chillicream/nitro-osx-arm64": $v,
+              "@chillicream/nitro-osx-x64": $v,
+              "@chillicream/nitro-win-x64": $v,
+              "@chillicream/nitro-win-x86": $v
+            }
+          ' package.json > package.json.tmp
+          mv package.json.tmp package.json
 
       - name: 📦 Create tarball
-        working-directory: src/Nitro/CommandLine/src/chillicream-nitro
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
         run: npm pack
 
       - name: 🚀 Publish tarball to npm
-        working-directory: src/Nitro/CommandLine/src/chillicream-nitro
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
+        shell: bash
+        env:
+          REGISTRY: ${{ vars.NPM_REGISTRY_URL }}
+          PKG: "@chillicream/nitro"
+          TARBALL: "./chillicream-nitro-${{ needs.compute-release-context.outputs.git_tag }}.tgz"
         run: |
-          TARBALL="chillicream-nitro-${GIT_TAG}.tgz"
+          set -euo pipefail
 
-          if [[ "$GIT_TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            DIST_TAG="latest"
+          # Pick the band this release publishes under, based on release context.
+          if [[ "$IS_HIGHEST_STABLE_MAJOR" == "true" ]]; then
+            PRIMARY_BAND="latest"
+            SECONDARY_BAND="${MAJOR}"
+          elif [[ "$IS_STABLE" == "true" ]]; then
+            PRIMARY_BAND="${MAJOR}"
+            SECONDARY_BAND=""
+          elif [[ "$GIT_TAG" =~ -rc\. ]]; then
+            PRIMARY_BAND="rc"
+            SECONDARY_BAND=""
           else
-            DIST_TAG="preview"
+            PRIMARY_BAND="preview"
+            SECONDARY_BAND=""
           fi
 
-          npm publish "./${TARBALL}" --access public --registry=${{ vars.NPM_REGISTRY_URL }} --tag "${DIST_TAG}"
-        shell: bash
+          npm publish "$TARBALL" \
+            --access public \
+            --registry="$REGISTRY" \
+            --tag "$PRIMARY_BAND"
+
+          if [[ -n "$SECONDARY_BAND" ]]; then
+            npm dist-tag add "${PKG}@${GIT_TAG}" "$SECONDARY_BAND" --registry="$REGISTRY"
+          fi
 
       - name: 📤 Upload tarball as artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: chillicream-nitro-${{ env.GIT_TAG }}.tgz
-          path: src/Nitro/CommandLine/src/chillicream-nitro/chillicream-nitro-${{ env.GIT_TAG }}.tgz
+          path: src/Nitro/CommandLine/src/npm/chillicream-nitro/chillicream-nitro-${{ env.GIT_TAG }}.tgz
 
       - name: 📤 Attach tarball to GitHub release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        working-directory: src/Nitro/CommandLine/src/chillicream-nitro
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
         run: |
           gh release upload "${{ github.ref_name }}" "chillicream-nitro-${{ github.ref_name }}.tgz" --repo "${{ github.repository }}"
 
-  update-homebrew:
-    name: 🍺 Update Homebrew Formula
-    runs-on: ubuntu-latest
-    needs: [build-nitro-cli]
-    if: startsWith(github.ref, 'refs/tags/')
+  publish-release:
+    name: 🚀 Publish Release
+    runs-on: ubuntu-22.04
+    needs:
+      - compute-release-context
+      - release
+      - build-nitro-cli
+      - publish-nitro-cli-platforms
+      - publish-nitro-cli-npm
+    permissions:
+      contents: write
+    env:
+      GIT_TAG: ${{ needs.compute-release-context.outputs.git_tag }}
+      IS_STABLE: ${{ needs.compute-release-context.outputs.is_stable }}
 
     steps:
-      - name: 📥 Checkout main repo
+      - name: 🚀 Publish draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$IS_STABLE" == "true" ]]; then
+            prerelease=false
+          else
+            prerelease=true
+          fi
+          gh release edit "$GIT_TAG" \
+            --repo "${{ github.repository }}" \
+            --draft=false \
+            --prerelease=$prerelease
+
+  update-homebrew:
+    name: 🍺 Update Homebrew Tap
+    runs-on: ubuntu-latest
+    needs: [compute-release-context, publish-release]
+    if: needs.compute-release-context.outputs.is_stable == 'true' || needs.compute-release-context.outputs.is_active_major == 'true'
+
+    steps:
+      - name: 📦 Checkout
         uses: actions/checkout@v6
         with:
-          fetch-depth: 0
+          sparse-checkout: .github/actions
+          show-progress: false
 
-      - name: 🏷️ Get release version
-        id: version
-        run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-
-      - name: ⬇️ Download macOS ARM64 release
-        run: |
-          curl -L -o nitro-osx-arm64.zip \
-            "https://github.com/ChilliCream/graphql-platform/releases/download/${{ steps.version.outputs.version }}/nitro-osx-arm64.zip"
-
-      - name: ⬇️ Download macOS x64 release
-        run: |
-          curl -L -o nitro-osx-x64.zip \
-            "https://github.com/ChilliCream/graphql-platform/releases/download/${{ steps.version.outputs.version }}/nitro-osx-x64.zip"
-
-      - name: 🔢 Calculate SHA256 hashes
-        id: hashes
-        run: |
-          ARM64_SHA=$(sha256sum nitro-osx-arm64.zip | cut -d' ' -f1)
-          X64_SHA=$(sha256sum nitro-osx-x64.zip | cut -d' ' -f1)
-          echo "arm64_sha=$ARM64_SHA" >> $GITHUB_OUTPUT
-          echo "x64_sha=$X64_SHA" >> $GITHUB_OUTPUT
-          echo "🔍 ARM64 SHA: $ARM64_SHA"
-          echo "🔍 X64 SHA: $X64_SHA"
-
-      - name: 📝 Generate Homebrew formula
-        run: |
-          cat > nitro-cli.rb << EOF
-          class NitroCli < Formula
-            desc "ChilliCream Nitro Command Line"
-            homepage "https://chillicream.com"
-            url "https://github.com/ChilliCream/graphql-platform"
-            license "MIT"
-
-            on_macos do
-              if Hardware::CPU.arm?
-                url "https://github.com/ChilliCream/graphql-platform/releases/download/${{ steps.version.outputs.version }}/nitro-osx-arm64.zip"
-                sha256 "${{ steps.hashes.outputs.arm64_sha }}"
-              else
-                url "https://github.com/ChilliCream/graphql-platform/releases/download/${{ steps.version.outputs.version }}/nitro-osx-x64.zip"
-                sha256 "${{ steps.hashes.outputs.x64_sha }}"
-              end
-            end
-
-            def install
-              bin.install "nitro"
-            end
-
-            test do
-              system "#{bin}/nitro", "--version"
-            end
-          end
-          EOF
-
-      - name: 📥 Checkout homebrew repo
-        uses: actions/checkout@v6
+      - name: 🔐 Create GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
         with:
-          repository: ChilliCream/homebrew-tools
-          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
-          path: homebrew-tools
+          app-id: ${{ secrets.ACTIONS_APP_ID }}
+          private-key: ${{ secrets.ACTIONS_APP_PRIVATE_KEY }}
+          owner: ChilliCream
+          repositories: homebrew-tools
 
-      - name: 🚀 Update formula in homebrew repo
-        run: |
-          cp nitro-cli.rb homebrew-tools/nitro-cli.rb
-          cd homebrew-tools
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add nitro-cli.rb
-          git commit -m "🍺 Update nitro formula to ${{ steps.version.outputs.version }}" || exit 0
-          git push
+      - name: 🍺 Run homebrew tap update workflow
+        uses: ./.github/actions/dispatch-and-watch-workflow
+        with:
+          repo: ChilliCream/homebrew-tools
+          workflow: release.yaml
+          version: ${{ needs.compute-release-context.outputs.git_tag }}
+          is_stable: ${{ needs.compute-release-context.outputs.is_stable }}
+          is_active_major: ${{ needs.compute-release-context.outputs.is_active_major }}
+          token: ${{ steps.app-token.outputs.token }}
 
   update-github-actions:
     name: 🔄 Update GitHub Actions
     runs-on: ubuntu-latest
-    needs: [build-nitro-cli]
-    if: startsWith(github.ref, 'refs/tags/')
+    needs: [compute-release-context, publish-release]
     strategy:
       matrix:
         repo:
@@ -477,23 +663,27 @@ jobs:
           - nitro-schema-validate
 
     steps:
-      - name: 🏷️ Get release version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+      - name: 📦 Checkout
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: .github/actions
+          show-progress: false
 
       - name: 🔐 Create GitHub App token
         id: app-token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ secrets.ACTIONS_APP_ID }}
           private-key: ${{ secrets.ACTIONS_APP_PRIVATE_KEY }}
           owner: ChilliCream
           repositories: ${{ matrix.repo }}
 
-      - name: 🚀 Trigger action repository update workflow
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: |
-          gh api --method POST \
-            "/repos/ChilliCream/${{ matrix.repo }}/dispatches" \
-            -f event_type=update-from-platform \
-            -f client_payload[version]="$VERSION"
+      - name: 🔄 Run action repository update workflow
+        uses: ./.github/actions/dispatch-and-watch-workflow
+        with:
+          repo: ChilliCream/${{ matrix.repo }}
+          workflow: release.yaml
+          version: ${{ needs.compute-release-context.outputs.git_tag }}
+          is_stable: ${{ needs.compute-release-context.outputs.is_stable }}
+          is_active_major: ${{ needs.compute-release-context.outputs.is_active_major }}
+          token: ${{ steps.app-token.outputs.token }}

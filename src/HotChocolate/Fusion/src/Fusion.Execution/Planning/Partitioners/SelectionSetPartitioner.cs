@@ -126,16 +126,18 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                     var fragmentConditions = ExtractDirectiveConditions(inlineFragmentNode.Directives);
                     var savedCount = context.PushConditions(fragmentConditions);
 
-                    var (resolvable, unresolvable) =
-                        RewriteFragmentNode(
-                            context,
-                            type,
-                            inlineFragmentNode,
-                            providedSelectionSetNode);
+                    {
+                        var (resolvable, unresolvable) =
+                            RewriteFragmentNode(
+                                context,
+                                type,
+                                inlineFragmentNode,
+                                providedSelectionSetNode);
+
+                        CompleteSelection(inlineFragmentNode, resolvable, unresolvable, i);
+                    }
 
                     context.PopConditions(savedCount);
-
-                    CompleteSelection(inlineFragmentNode, resolvable, unresolvable, i);
                     break;
                 }
             }
@@ -152,11 +154,15 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
 
         if (unresolvableSelections is not null)
         {
-            if (isAbstractType && !unresolvableSelections.Any(IsTypeNameSelection))
+            // When we have unresolvable selections on an abstract type, check if inner
+            // recursive calls already pushed type-specific entries (from inline fragments)
+            // to the unresolvable stack. If so, merge them into this entry to avoid
+            // creating duplicate lookups for the same downstream schema.
+            if (isAbstractType && !context.Unresolvable.IsEmpty)
             {
-                unresolvableSelections = [
-                    new FieldNode(IntrospectionFieldNames.TypeName),
-                    ..unresolvableSelections];
+                var currentPath = context.BuildPath();
+                var currentConditions = context.SnapshotConditions();
+                MergeChildUnresolvableEntries(context, currentPath, currentConditions, unresolvableSelections);
             }
 
             var unresolvableSelectionSet = new SelectionSetNode(unresolvableSelections);
@@ -227,14 +233,9 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
 
         static FieldNode? GetProvidedField(FieldNode fieldNode, SelectionSetNode? providedSelectionSetNode)
         {
-            if (providedSelectionSetNode is not null)
-            {
-                return providedSelectionSetNode.Selections
-                    .OfType<FieldNode>()
-                    .FirstOrDefault(t => t.Name.Value.Equals(fieldNode.Name.Value));
-            }
-
-            return null;
+            return providedSelectionSetNode?.Selections
+                .OfType<FieldNode>()
+                .FirstOrDefault(t => t.Name.Value.Equals(fieldNode.Name.Value));
         }
 
         static SelectionSetNode? GetProvidedSelectionSet(
@@ -242,8 +243,74 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
             FusionSchemaDefinition schema,
             SelectionSetNode? providedSelectionSetNode)
         {
-            // todo match correct inline fragment
-            return providedSelectionSetNode;
+            if (providedSelectionSetNode is null)
+            {
+                return null;
+            }
+
+            List<ISelectionNode>? flattened = null;
+            var hasFragment = false;
+
+            for (var i = 0; i < providedSelectionSetNode.Selections.Count; i++)
+            {
+                var selection = providedSelectionSetNode.Selections[i];
+
+                if (selection is InlineFragmentNode fragment)
+                {
+                    hasFragment = true;
+
+                    if (fragment.TypeCondition is null)
+                    {
+                        flattened ??= CopyUpTo(providedSelectionSetNode.Selections, i);
+                        flattened.AddRange(fragment.SelectionSet.Selections);
+                        continue;
+                    }
+
+                    if (!schema.Types.TryGetType(fragment.TypeCondition.Name.Value, out var fragmentType))
+                    {
+                        flattened ??= CopyUpTo(providedSelectionSetNode.Selections, i);
+                        continue;
+                    }
+
+                    if (fragmentType.IsAssignableFrom(type))
+                    {
+                        flattened ??= CopyUpTo(providedSelectionSetNode.Selections, i);
+                        flattened.AddRange(fragment.SelectionSet.Selections);
+                    }
+                    else if (type.IsAssignableFrom(fragmentType))
+                    {
+                        flattened ??= CopyUpTo(providedSelectionSetNode.Selections, i);
+                        flattened.Add(fragment);
+                    }
+                    else
+                    {
+                        flattened ??= CopyUpTo(providedSelectionSetNode.Selections, i);
+                    }
+                }
+                else
+                {
+                    flattened?.Add(selection);
+                }
+            }
+
+            if (!hasFragment)
+            {
+                return providedSelectionSetNode;
+            }
+
+            return flattened is null
+                ? providedSelectionSetNode
+                : new SelectionSetNode(flattened);
+        }
+
+        static List<ISelectionNode> CopyUpTo(IReadOnlyList<ISelectionNode> selections, int exclusiveEnd)
+        {
+            var copy = new List<ISelectionNode>(selections.Count);
+            for (var j = 0; j < exclusiveEnd; j++)
+            {
+                copy.Add(selections[j]);
+            }
+            return copy;
         }
 
         static bool IsTypeNameSelection(ISelectionNode selection)
@@ -258,6 +325,125 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         }
     }
 
+    /// <summary>
+    /// Merges child unresolvable entries from inline fragments back into the parent's
+    /// unresolvable selections. This prevents duplicate lookups when both interface-level
+    /// fields and type-refinement fields target the same downstream schema.
+    /// </summary>
+    private static void MergeChildUnresolvableEntries(
+        Context context,
+        SelectionPath currentPath,
+        ExecutionNodeCondition[] currentConditions,
+        List<ISelectionNode> unresolvableSelections)
+    {
+        List<ConditionedSelectionSet>? kept = null;
+        var anyMerged = false;
+
+        foreach (var entry in context.Unresolvable)
+        {
+            var entryPath = entry.SelectionSet.Path;
+
+            // A child entry has exactly one more segment than the current path,
+            // and that extra segment is an InlineFragment. The child's conditions must
+            // start with the parent's conditions (prefix check), because the Unresolvable
+            // stack is shared across sibling fragments and may contain entries from
+            // unconditional siblings that must not inherit the parent's conditions.
+            if (entryPath.Length == currentPath.Length + 1
+                && entryPath[entryPath.Length - 1].Kind == SelectionPathSegmentKind.InlineFragment
+                && currentPath.IsParentOfOrSame(entryPath)
+                && IsConditionPrefix(currentConditions, entry.Conditions))
+            {
+                var typeName = entryPath[entryPath.Length - 1].Name;
+                var selectionSet = WrapInExtraConditions(
+                    context,
+                    entry.SelectionSet.Node,
+                    entry.Conditions,
+                    currentConditions.Length);
+
+                unresolvableSelections.Add(new InlineFragmentNode(
+                    null,
+                    new NamedTypeNode(typeName),
+                    [],
+                    selectionSet));
+                anyMerged = true;
+            }
+            else
+            {
+                kept ??= [];
+                kept.Add(entry);
+            }
+        }
+
+        if (anyMerged)
+        {
+            // Rebuild the stack in reverse so the original ordering is preserved,
+            // since ImmutableStack enumeration is LIFO.
+            var stack = ImmutableStack<ConditionedSelectionSet>.Empty;
+            if (kept is not null)
+            {
+                for (var i = kept.Count - 1; i >= 0; i--)
+                {
+                    stack = stack.Push(kept[i]);
+                }
+            }
+
+            context.Unresolvable = stack;
+        }
+    }
+
+    /// <summary>
+    /// Checks whether <paramref name="prefix"/> is a prefix of <paramref name="conditions"/>.
+    /// Conditions accumulate as the partitioner recurses deeper, so a child entry's conditions
+    /// always start with the parent's conditions followed by any additional ones. However,
+    /// the Unresolvable stack is shared across sibling fragments, so entries from unconditional
+    /// siblings may have fewer conditions than the current parent scope.
+    /// </summary>
+    private static bool IsConditionPrefix(
+        ExecutionNodeCondition[] prefix,
+        ExecutionNodeCondition[] conditions)
+    {
+        if (conditions.Length < prefix.Length)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < prefix.Length; i++)
+        {
+            if (!ReferenceEquals(prefix[i], conditions[i]))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Wraps a selection set in inline fragments for each extra condition directive
+    /// beyond the parent's conditions. This preserves the conditional semantics
+    /// within the merged selection set rather than as node-level conditions.
+    /// </summary>
+    private static SelectionSetNode WrapInExtraConditions(
+        Context context,
+        SelectionSetNode selectionSet,
+        ExecutionNodeCondition[] conditions,
+        int startIndex)
+    {
+        for (var i = conditions.Length - 1; i >= startIndex; i--)
+        {
+            selectionSet = new SelectionSetNode([
+                new InlineFragmentNode(
+                    null,
+                    null,
+                    [conditions[i].Directive!],
+                    selectionSet)
+            ]);
+            context.SelectionSetIndexBuilder.Register(selectionSet);
+        }
+
+        return selectionSet;
+    }
+
     private (FieldNode?, FieldNode?) RewriteFieldNode(
         Context context,
         FusionComplexTypeDefinition complexType,
@@ -265,29 +451,29 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         FieldNode? providedFieldNode)
     {
         var field = complexType.Fields.GetField(fieldNode.Name.Value, allowInaccessibleFields: true);
+        field.Sources.TryGetMember(context.SchemaName, out var source);
 
-        if (providedFieldNode is null)
+        // The field is resolvable from the current schema when either the parent's provides
+        // scope covers it, or the schema declares a non-external source for it.
+        var isResolvable = providedFieldNode is not null || source is { IsExternal: false };
+
+        if (!isResolvable)
         {
-            // if the field is not available in the current schema we return null
-            // which will remove the field from the rewritten selection set.
-            if (!field.Sources.TryGetMember(context.SchemaName, out var source))
-            {
-                return (null, fieldNode);
-            }
+            return (null, fieldNode);
+        }
 
-            if (source.Requirements is not null)
-            {
-                context.FieldsWithRequirements =
-                    context.FieldsWithRequirements.Push(
-                        new ConditionedFieldSelection(
-                            new FieldSelection(
-                                context.GetId((SelectionSetNode)context.Nodes.Peek()),
-                                fieldNode,
-                                field,
-                                context.BuildPath()),
-                            context.SnapshotConditions()));
-                return (null, null);
-            }
+        if (providedFieldNode is null && source?.Requirements is not null)
+        {
+            context.FieldsWithRequirements =
+                context.FieldsWithRequirements.Push(
+                    new ConditionedFieldSelection(
+                        new FieldSelection(
+                            context.GetId((SelectionSetNode)context.Nodes.Peek()),
+                            fieldNode,
+                            field,
+                            context.BuildPath()),
+                        context.SnapshotConditions()));
+            return (null, null);
         }
 
         var selectionSet = fieldNode.SelectionSet;
@@ -300,7 +486,7 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
                 context,
                 field.Type.AsTypeDefinition(),
                 selectionSet,
-                providedFieldNode?.SelectionSet);
+                MergeProvidedSelectionSets(providedFieldNode?.SelectionSet, source?.Provides));
 
             context.Nodes.Pop();
 
@@ -315,6 +501,26 @@ internal sealed class SelectionSetPartitioner(FusionSchemaDefinition schema)
         }
 
         return (fieldNode, null);
+    }
+
+    private static SelectionSetNode? MergeProvidedSelectionSets(
+        SelectionSetNode? inherited,
+        SelectionSetNode? fromSource)
+    {
+        if (inherited is null)
+        {
+            return fromSource;
+        }
+
+        if (fromSource is null)
+        {
+            return inherited;
+        }
+
+        var merged = new List<ISelectionNode>(inherited.Selections.Count + fromSource.Selections.Count);
+        merged.AddRange(inherited.Selections);
+        merged.AddRange(fromSource.Selections);
+        return new SelectionSetNode(merged);
     }
 
     private (InlineFragmentNode?, InlineFragmentNode?) RewriteFragmentNode(

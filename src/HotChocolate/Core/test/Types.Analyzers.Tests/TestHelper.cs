@@ -15,6 +15,7 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Processing;
 using HotChocolate.Features;
 using HotChocolate.Language;
+using HotChocolate.Language.Visitors;
 using HotChocolate.Types.Analyzers;
 using HotChocolate.Types.Pagination;
 using Microsoft.AspNetCore.Builder;
@@ -78,6 +79,12 @@ internal static partial class TestHelper
 
             // HotChocolate.Language
             MetadataReference.CreateFromFile(typeof(OperationType).Assembly.Location),
+
+            // HotChocolate.Language.Utf8
+            MetadataReference.CreateFromFile(typeof(ParserOptions).Assembly.Location),
+
+            // HotChocolate.Language.Visitors
+            MetadataReference.CreateFromFile(typeof(SyntaxVisitor).Assembly.Location),
 
             // HotChocolate.Abstractions
             MetadataReference.CreateFromFile(typeof(ParentAttribute).Assembly.Location),
@@ -213,7 +220,9 @@ internal static partial class TestHelper
                 new ShareableScopedOnMemberAnalyzer(),
                 new DataAttributeOrderAnalyzer(),
                 new IdAttributeOnRecordParameterAnalyzer(),
-                new WrongAuthorizationAttributeAnalyzer());
+                new WrongAuthorizationAttributeAnalyzer(),
+                new LookupReturnsNonNullableTypeAnalyzer(),
+                new LookupReturnsListTypeAnalyzer());
 
             var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers);
             var analyzerDiagnostics = compilationWithAnalyzers.GetAllDiagnosticsAsync().Result;

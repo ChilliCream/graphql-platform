@@ -138,13 +138,13 @@ internal static class FileEntryBuilder
     /// </summary>
     private static Path PopAfterValue(Path path)
     {
-        if (path.Parent is not null && path is IndexerPathSegment indexer)
+        if (path is IndexerPathSegment indexer)
         {
             // Inside an array — advance to next index.
             return path.Parent.Append(indexer.Index + 1);
         }
 
-        if (path.Parent is not null && path is NamePathSegment)
+        if (path is NamePathSegment)
         {
             // Inside an object — pop the property name.
             return path.Parent;

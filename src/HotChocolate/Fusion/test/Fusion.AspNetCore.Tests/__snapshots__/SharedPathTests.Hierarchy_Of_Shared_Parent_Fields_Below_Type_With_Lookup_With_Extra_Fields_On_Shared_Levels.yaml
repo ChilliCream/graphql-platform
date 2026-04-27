@@ -86,6 +86,7 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
             query Op_b3a5d887_1 {
               productById(id: 1) {
@@ -167,12 +168,11 @@ sourceSchemas:
       union IUnion = Product | Review
     interactions:
       - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           kind: OperationBatch
           items:
             - document: |
-                query Op_b3a5d887_2(
-                  $__fusion_1_id: Int!
-                ) {
+                query Op_b3a5d887_2($__fusion_1_id: Int!) {
                   product(id: $__fusion_1_id) {
                     schema2
                   }
@@ -182,9 +182,7 @@ sourceSchemas:
                   "__fusion_1_id": 1
                 }
             - document: |
-                query Op_b3a5d887_3(
-                  $__fusion_2_id: Int!
-                ) {
+                query Op_b3a5d887_3($__fusion_2_id: Int!) {
                   product(id: $__fusion_2_id) {
                     shared {
                       schema2
@@ -196,9 +194,7 @@ sourceSchemas:
                   "__fusion_2_id": 1
                 }
             - document: |
-                query Op_b3a5d887_4(
-                  $__fusion_3_id: Int!
-                ) {
+                query Op_b3a5d887_4($__fusion_3_id: Int!) {
                   product(id: $__fusion_3_id) {
                     shared {
                       shared2 {
@@ -286,9 +282,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_b3a5d887_2(
-          $__fusion_1_id: Int!
-        ) {
+        query Op_b3a5d887_2($__fusion_1_id: Int!) {
           product(id: $__fusion_1_id) {
             schema2
           }
@@ -306,9 +300,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_b3a5d887_3(
-          $__fusion_2_id: Int!
-        ) {
+        query Op_b3a5d887_3($__fusion_2_id: Int!) {
           product(id: $__fusion_2_id) {
             shared {
               schema2
@@ -328,9 +320,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query Op_b3a5d887_4(
-          $__fusion_3_id: Int!
-        ) {
+        query Op_b3a5d887_4($__fusion_3_id: Int!) {
           product(id: $__fusion_3_id) {
             shared {
               shared2 {

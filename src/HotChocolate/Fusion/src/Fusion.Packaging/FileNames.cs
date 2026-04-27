@@ -11,6 +11,7 @@ internal static class FileNames
     public const string CompositionSettings = "composition-settings.json";
     public const string SignatureManifest = ".signature/manifest.json";
     public const string Signature = ".signature/signature.p7s";
+    public const string LegacyArchive = "legacy-v1-archive.fgp";
 
     public static string GetGatewaySchemaPath(Version version)
         => string.Format(GatewaySchemaFormat, version);
@@ -45,6 +46,9 @@ internal static class FileNames
 
             case "signature.json":
                 return FileKind.Signature;
+
+            case "legacy-v1-archive.fgp":
+                return FileKind.LegacyArchive;
 
             default:
                 return FileKind.Settings;

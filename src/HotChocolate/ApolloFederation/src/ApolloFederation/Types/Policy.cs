@@ -1,7 +1,7 @@
 namespace HotChocolate.ApolloFederation.Types;
 
 /// <summary>
-/// Scalar <code>Policy</code> representation.
+/// Scalar <c>Policy</c> representation.
 /// </summary>
 public readonly record struct Policy
 {

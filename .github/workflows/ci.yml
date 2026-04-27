@@ -10,6 +10,9 @@ concurrency:
   group: ci-new-2-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   check-changes:
     name: Check for Changes
@@ -71,10 +74,10 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
 
       - name: Install cspell
-        run: npm install -g cspell
+        run: npm install -g cspell@10.0.0
 
       - name: run cspell
         run: cspell --config ./cspell.json "website/src/**/*.md" --no-progress --no-cache
@@ -90,8 +93,8 @@ jobs:
       - uses: actions/setup-node@v6
         name: Setup node
         with:
-          node-version: 22
-      - run: npm install -g markdownlint-cli2@0.19.0
+          node-version: 24
+      - run: npm install -g markdownlint-cli2@0.22.0
         name: Install markdownlint-cli2
       - run: markdownlint-cli2 "*.md" "website/src/**/*.md"
         name: run Markdownlint
@@ -110,7 +113,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
           cache: "yarn"
           cache-dependency-path: "website/yarn.lock"
 
@@ -208,7 +211,7 @@ jobs:
           github.event_name != 'pull_request' ||
           (github.event_name == 'pull_request' &&
            github.event.pull_request.head.repo.full_name == github.repository)
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -229,13 +232,13 @@ jobs:
           CI_BUILD: true
 
       - name: Upload Test Results as Artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: test-results-${{ matrix.name }}
           path: ${{ matrix.directoryPath }}/TestResults/*.trx
 
       - name: Upload Coverage File as Artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-${{ matrix.name }}
           # The * matches a single directory that is named with a GUID.
@@ -244,7 +247,7 @@ jobs:
 
       - name: Upload mismatch files as Artifact
         if: steps.run-tests.outcome == 'failure'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: mismatch-files-${{ matrix.name }}
           path: ${{ matrix.directoryPath }}/**/__mismatch__/*
@@ -255,7 +258,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download all coverage artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           path: ./output/download
           pattern: coverage-*
@@ -271,9 +274,87 @@ jobs:
           flags: unittests
           fail_ci_if_error: true
 
+  validate-nitro-client:
+    name: Validate Nitro Client
+    runs-on: ubuntu-latest
+    needs: check-changes
+    if: needs.check-changes.outputs.src_changes == 'true'
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+        with:
+          show-progress: false
+
+      - name: Validate Client
+        uses: ChilliCream/nitro-client-validate@v16.0.0-rc.1.14
+        with:
+          client-id: ${{ secrets.NITRO_API_CLIENT_ID }}
+          operations-file: src/Nitro/CommandLine/src/ChilliCream.Nitro.Client/persisted/operations.json
+          stage: Dev
+          api-key: ${{ secrets.NITRO_API_KEY }}
+          comment-mode: "review"
+
+  verify-nitro-npm-package:
+    name: Verify Nitro npm package
+    runs-on: ubuntu-latest
+    needs: check-changes
+    if: needs.check-changes.outputs.src_changes == 'true'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+        with:
+          show-progress: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
+        run: yarn install --immutable
+
+      - name: Build
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
+        run: yarn build
+
+      - name: Inject optionalDependencies
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
+        shell: bash
+        run: |
+          set -euo pipefail
+          jq --arg v "0.0.0-ci" '
+            .optionalDependencies = {
+              "@chillicream/nitro-linux-arm64": $v,
+              "@chillicream/nitro-linux-musl-x64": $v,
+              "@chillicream/nitro-linux-x64": $v,
+              "@chillicream/nitro-osx-arm64": $v,
+              "@chillicream/nitro-osx-x64": $v,
+              "@chillicream/nitro-win-x64": $v,
+              "@chillicream/nitro-win-x86": $v
+            }
+          ' package.json > package.json.tmp
+          mv package.json.tmp package.json
+
+      - name: Pack
+        working-directory: src/Nitro/CommandLine/src/npm/chillicream-nitro
+        run: npm pack --dry-run
+
   ci-status-check:
     name: "CI Status Check"
-    needs: [library-tests, website-tests]
+    needs:
+      [
+        library-tests,
+        website-tests,
+        validate-nitro-client,
+        verify-nitro-npm-package,
+      ]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -282,4 +363,5 @@ jobs:
         if: |
           always() &&
           (needs.library-tests.result == 'failure' ||
-           needs.website-tests.result == 'failure')
+           needs.website-tests.result == 'failure' ||
+           needs.verify-nitro-npm-package.result == 'failure')

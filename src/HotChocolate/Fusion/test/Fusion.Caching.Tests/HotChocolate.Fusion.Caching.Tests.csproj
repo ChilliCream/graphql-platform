@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Xunit2.Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))" />
+
+  <PropertyGroup>
+    <AssemblyName>HotChocolate.Fusion.Caching.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.Fusion.Caching</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Fusion.Caching\HotChocolate.Fusion.Caching.csproj" />
+    <ProjectReference Include="..\..\..\Caching\src\Caching\HotChocolate.Caching.csproj" />
+    <ProjectReference Include="..\Fusion.AspNetCore.Tests\HotChocolate.Fusion.AspNetCore.Tests.csproj" />
+  </ItemGroup>
+
+</Project>

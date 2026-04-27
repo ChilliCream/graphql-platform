@@ -43,8 +43,8 @@ builder.Services
 
 // ... or AddPooledDbContextFactory.
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .RegisterDbContextFactory<ApplicationDbContext>()
     .AddTypes();
 ```
@@ -150,8 +150,8 @@ builder.Services.AddDbContextFactory<ApplicationDbContext>(
 
 builder.Services.AddScoped<BookService>();
 
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddTypes();
 ```
 

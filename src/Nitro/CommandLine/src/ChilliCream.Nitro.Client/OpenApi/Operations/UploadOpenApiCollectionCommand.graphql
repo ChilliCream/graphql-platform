@@ -1,0 +1,18 @@
+mutation UploadOpenApiCollectionCommandMutation(
+  $input: UploadOpenApiCollectionInput!
+) {
+  uploadOpenApiCollection(input: $input) {
+    openApiCollectionVersion {
+      id
+    }
+    errors {
+      ...UnauthorizedOperation
+      ...InvalidSourceMetadataInputError
+      ...OpenApiCollectionNotFoundError
+      ...InvalidOpenApiCollectionArchiveError
+      ...DuplicatedTagError
+      ...ConcurrentOperationError
+      ...Error
+    }
+  }
+}

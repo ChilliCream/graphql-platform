@@ -1,5 +1,4 @@
 using System.Globalization;
-using HotChocolate.Execution.Processing;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
@@ -13,7 +12,7 @@ internal static class ErrorHelper
     private const string InterfaceTypeValidation = "sec-Interfaces.Type-Validation";
     private const string ObjectTypeValidation = "sec-Objects.Type-Validation";
     private const string InputObjectTypeValidation = "sec-Input-Objects.Type-Validation";
-    private const string DirectiveValidation = "sec-Type-System.Directives.Validation";
+    private const string DirectiveValidation = "sec-Type-System.Directives.Type-Validation";
 
     public static ISchemaError NeedsOneAtLeastField(ITypeDefinition type)
         => SchemaErrorBuilder.New()
@@ -453,7 +452,7 @@ internal static class ErrorHelper
             .SetTypeSystemObject(type)
             .Build();
 
-    public static IError Relay_NoNodeResolver(string typeName, Path path, Selection selection)
+    public static IError Relay_NoNodeResolver(string typeName, Path path)
         => ErrorBuilder.New()
             .SetMessage(ErrorHelper_Relay_NoNodeResolver, typeName)
             .SetPath(path)
@@ -494,7 +493,6 @@ internal static class ErrorHelper
             .Build();
 
     public static IError FetchedToManyNodesAtOnce(
-        Selection selection,
         Path path,
         int maxAllowedNodes,
         int requestNodes)
