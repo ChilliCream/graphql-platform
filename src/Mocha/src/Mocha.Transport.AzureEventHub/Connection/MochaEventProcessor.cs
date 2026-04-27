@@ -12,7 +12,7 @@ namespace Mocha.Transport.AzureEventHub;
 /// Custom <see cref="EventProcessor{TPartition}"/> subclass that provides built-in reconnection,
 /// partition load balancing, and pluggable checkpoint store integration with the Mocha receive pipeline.
 /// </summary>
-internal sealed class MochaEventProcessor : EventProcessor<EventProcessorPartition>
+internal class MochaEventProcessor : EventProcessor<EventProcessorPartition>
 {
     private readonly ILogger _logger;
     private readonly Func<EventData, string, CancellationToken, ValueTask> _messageHandler;
@@ -113,8 +113,7 @@ internal sealed class MochaEventProcessor : EventProcessor<EventProcessorPartiti
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
                 _logger.ErrorProcessingEvent(ex, _eventHubName, partition.PartitionId, eventData.SequenceNumber);
-                index++;
-                continue;
+                break;
             }
 
             var counter = _partitionCounters.AddOrUpdate(

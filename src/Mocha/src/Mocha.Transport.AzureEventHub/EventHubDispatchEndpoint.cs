@@ -4,7 +4,6 @@ using Azure.Messaging.EventHubs.Producer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Mocha.Middlewares;
-using static System.StringSplitOptions;
 
 namespace Mocha.Transport.AzureEventHub;
 
@@ -43,20 +42,7 @@ public sealed class EventHubDispatchEndpoint(EventHubMessagingTransport transpor
                 throw new InvalidOperationException("Destination address is not a valid URI");
             }
 
-            var path = destinationAddress.AbsolutePath.AsSpan();
-            Span<Range> ranges = stackalloc Range[4];
-            var segmentCount = path.Split(ranges, '/', RemoveEmptyEntries | TrimEntries);
-
-            if (segmentCount >= 1)
-            {
-                var lastSegment = path[ranges[segmentCount - 1]];
-                hubName = new string(lastSegment);
-            }
-            else
-            {
-                throw new InvalidOperationException(
-                    $"Cannot determine hub name from destination address {destinationAddress}");
-            }
+            hubName = ResolveReplyHubName(destinationAddress);
         }
         else
         {
@@ -242,6 +228,29 @@ public sealed class EventHubDispatchEndpoint(EventHubMessagingTransport transpor
             var logger = context.Services.GetRequiredService<ILogger<EventHubBatchDispatcher>>();
             _batchDispatcher = new EventHubBatchDispatcher(producer, logger);
         }
+    }
+
+    /// <summary>
+    /// Resolves the target hub name from a reply destination address by extracting the
+    /// last path segment.
+    /// </summary>
+    /// <param name="destinationAddress">The destination URI carried on the envelope.</param>
+    /// <returns>The hub name corresponding to the last segment of the URI path.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when the path is empty or contains only separators.
+    /// </exception>
+    private static string ResolveReplyHubName(Uri destinationAddress)
+    {
+        var segments = destinationAddress.Segments;
+        var lastSegment = segments.Length > 0 ? segments[^1].Trim('/') : string.Empty;
+
+        if (lastSegment.Length == 0)
+        {
+            throw new InvalidOperationException(
+                $"Cannot determine hub name from destination address '{destinationAddress}': path is empty.");
+        }
+
+        return lastSegment;
     }
 
     /// <summary>
