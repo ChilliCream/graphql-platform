@@ -1,0 +1,565 @@
+title: Defer_Nested_With_Forwarded_Variable_At_Each_Level
+request:
+  document: |
+    query GetUserPostsAndComments($postLimit: Int!, $commentLimit: Int!) {
+      user(id: "1") {
+        id
+        ... @defer(label: "posts") {
+          posts(first: $postLimit) {
+            id
+            ... @defer(label: "comments") {
+              comments(first: $commentLimit) {
+                id
+              }
+            }
+          }
+        }
+      }
+    }
+  variables: |
+    {
+      "postLimit": 3,
+      "commentLimit": 2
+    }
+stableResponseStream: |
+  {
+    "kind": "stable-stream",
+    "payloadCount": 3,
+    "initial": {
+      "data": {
+        "user": {
+          "id": "VXNlcjox"
+        }
+      }
+    },
+    "pending": [
+      {
+        "id": "0",
+        "path": [
+          "user"
+        ],
+        "label": "posts"
+      },
+      {
+        "id": "1",
+        "path": [
+          "user",
+          "posts"
+        ],
+        "label": "comments"
+      }
+    ],
+    "incremental": [
+      {
+        "id": "0",
+        "path": [
+          "user"
+        ],
+        "data": {
+          "posts": [
+            {
+              "id": "UG9zdDox"
+            },
+            {
+              "id": "UG9zdDoy"
+            },
+            {
+              "id": "UG9zdDoz"
+            }
+          ]
+        }
+      },
+      {
+        "id": "1",
+        "path": [
+          "user",
+          "posts"
+        ],
+        "subPath": [
+          0
+        ],
+        "data": {
+          "comments": [
+            {
+              "id": "Q29tbWVudDox"
+            },
+            {
+              "id": "Q29tbWVudDoy"
+            },
+            {
+              "id": "Q29tbWVudDoz"
+            }
+          ]
+        }
+      },
+      {
+        "id": "1",
+        "path": [
+          "user",
+          "posts"
+        ],
+        "subPath": [
+          1
+        ],
+        "data": {
+          "comments": [
+            {
+              "id": "Q29tbWVudDo0"
+            },
+            {
+              "id": "Q29tbWVudDo1"
+            },
+            {
+              "id": "Q29tbWVudDo2"
+            }
+          ]
+        }
+      },
+      {
+        "id": "1",
+        "path": [
+          "user",
+          "posts"
+        ],
+        "subPath": [
+          2
+        ],
+        "data": {
+          "comments": [
+            {
+              "id": "Q29tbWVudDo3"
+            },
+            {
+              "id": "Q29tbWVudDo4"
+            },
+            {
+              "id": "Q29tbWVudDo5"
+            }
+          ]
+        }
+      }
+    ],
+    "completed": [
+      {
+        "id": "0"
+      },
+      {
+        "id": "1"
+      }
+    ],
+    "final": {
+      "data": {
+        "user": {
+          "id": "VXNlcjox",
+          "posts": [
+            {
+              "comments": [
+                {
+                  "id": "Q29tbWVudDox"
+                },
+                {
+                  "id": "Q29tbWVudDoy"
+                },
+                {
+                  "id": "Q29tbWVudDoz"
+                }
+              ],
+              "id": "UG9zdDox"
+            },
+            {
+              "comments": [
+                {
+                  "id": "Q29tbWVudDo0"
+                },
+                {
+                  "id": "Q29tbWVudDo1"
+                },
+                {
+                  "id": "Q29tbWVudDo2"
+                }
+              ],
+              "id": "UG9zdDoy"
+            },
+            {
+              "comments": [
+                {
+                  "id": "Q29tbWVudDo3"
+                },
+                {
+                  "id": "Q29tbWVudDo4"
+                },
+                {
+                  "id": "Q29tbWVudDo5"
+                }
+              ],
+              "id": "UG9zdDoz"
+            }
+          ]
+        }
+      }
+    }
+  }
+sourceSchemas:
+  - name: A
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Query {
+        user(id: ID!): User @lookup
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query GetUserPostsAndComments_5ec00c7b_1 {
+              user(id: "1") {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "user": {
+                    "id": "VXNlcjox"
+                  }
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query GetUserPostsAndComments_defer_1 {
+              user(id: "1") {
+                id
+              }
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "user": {
+                    "id": "VXNlcjox"
+                  }
+                }
+              }
+  - name: B
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Post @key(fields: "id") {
+        id: ID!
+      }
+
+      type Query {
+        userById(id: ID!): User @lookup
+      }
+
+      type User @key(fields: "id") {
+        id: ID!
+        posts(first: Int!): [Post!]!
+      }
+    interactions:
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query GetUserPostsAndComments_defer_2($postLimit: Int!, $__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                posts(first: $postLimit) {
+                  id
+                }
+              }
+            }
+          variables: |
+            {
+              "postLimit": 3,
+              "__fusion_1_id": "VXNlcjox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "posts": [
+                      {
+                        "id": "UG9zdDox"
+                      },
+                      {
+                        "id": "UG9zdDoy"
+                      },
+                      {
+                        "id": "UG9zdDoz"
+                      }
+                    ]
+                  }
+                }
+              }
+      - request:
+          accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          document: |
+            query GetUserPostsAndComments_defer_2($postLimit: Int!, $__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                posts(first: $postLimit) {
+                  id
+                }
+              }
+            }
+          variables: |
+            {
+              "postLimit": 3,
+              "__fusion_1_id": "VXNlcjox"
+            }
+        response:
+          results:
+            - |
+              {
+                "data": {
+                  "userById": {
+                    "posts": [
+                      {
+                        "id": "UG9zdDox"
+                      },
+                      {
+                        "id": "UG9zdDoy"
+                      },
+                      {
+                        "id": "UG9zdDoz"
+                      }
+                    ]
+                  }
+                }
+              }
+  - name: C
+    schema: |
+      schema {
+        query: Query
+      }
+
+      type Comment {
+        id: ID!
+      }
+
+      type Post @key(fields: "id") {
+        id: ID!
+        comments(first: Int!): [Comment!]!
+      }
+
+      type Query {
+        postById(id: ID!): Post @lookup
+      }
+    interactions:
+      - request:
+          accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
+          document: |
+            query GetUserPostsAndComments_defer_3($commentLimit: Int!, $__fusion_2_id: ID!) {
+              postById(id: $__fusion_2_id) {
+                comments(first: $commentLimit) {
+                  id
+                }
+              }
+            }
+          variables: |
+            [
+              {
+                "commentLimit": 2,
+                "__fusion_2_id": "UG9zdDox"
+              },
+              {
+                "commentLimit": 2,
+                "__fusion_2_id": "UG9zdDoy"
+              },
+              {
+                "commentLimit": 2,
+                "__fusion_2_id": "UG9zdDoz"
+              }
+            ]
+        response:
+          contentType: application/jsonl; charset=utf-8
+          results:
+            - |
+              {
+                "data": {
+                  "postById": {
+                    "comments": [
+                      {
+                        "id": "Q29tbWVudDox"
+                      },
+                      {
+                        "id": "Q29tbWVudDoy"
+                      },
+                      {
+                        "id": "Q29tbWVudDoz"
+                      }
+                    ]
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "postById": {
+                    "comments": [
+                      {
+                        "id": "Q29tbWVudDo0"
+                      },
+                      {
+                        "id": "Q29tbWVudDo1"
+                      },
+                      {
+                        "id": "Q29tbWVudDo2"
+                      }
+                    ]
+                  }
+                }
+              }
+            - |
+              {
+                "data": {
+                  "postById": {
+                    "comments": [
+                      {
+                        "id": "Q29tbWVudDo3"
+                      },
+                      {
+                        "id": "Q29tbWVudDo4"
+                      },
+                      {
+                        "id": "Q29tbWVudDo5"
+                      }
+                    ]
+                  }
+                }
+              }
+operationPlan:
+  operation:
+    - document: |
+        query GetUserPostsAndComments($postLimit: Int!, $commentLimit: Int!) {
+          user(id: "1") {
+            id
+            id @fusion__requirement
+          }
+        }
+      name: GetUserPostsAndComments
+      hash: 5ec00c7b8afb06fc2d7d497960fd2bda
+      searchSpace: 1
+      expandedNodes: 1
+  nodes:
+    - id: 1
+      type: Operation
+      schema: A
+      operation: |
+        query GetUserPostsAndComments_5ec00c7b_1 {
+          user(id: "1") {
+            id
+          }
+        }
+  deliveryGroups:
+    - id: 0
+      path: $.user
+      label: posts
+    - id: 1
+      path: $.user.posts
+      label: comments
+      parentId: 0
+  deferredSubPlans:
+    - deliveryGroupIds:
+        - 0
+      parentNodeId: 1
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+      nodes:
+        - id: 1
+          type: Operation
+          schema: B
+          operation: |
+            query GetUserPostsAndComments_defer_2($postLimit: Int!, $__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                posts(first: $postLimit) {
+                  id
+                }
+              }
+            }
+          source: $.userById
+          target: $.user
+          requirements:
+            - name: __fusion_1_id
+              selectionMap: >-
+                id
+          forwardedVariables:
+            - postLimit
+          dependencies:
+            - parentNodeId: 1
+        - id: 2
+          type: Operation
+          schema: A
+          operation: |
+            query GetUserPostsAndComments_defer_1 {
+              user(id: "1") {
+                id
+              }
+            }
+    - deliveryGroupIds:
+        - 1
+      parentNodeId: 1
+      requirements:
+        - name: __fusion_1_id
+          selectionMap: >-
+            id
+        - name: __fusion_2_id
+          selectionMap: >-
+            id
+      nodes:
+        - id: 1
+          type: Operation
+          schema: B
+          operation: |
+            query GetUserPostsAndComments_defer_2($postLimit: Int!, $__fusion_1_id: ID!) {
+              userById(id: $__fusion_1_id) {
+                posts(first: $postLimit) {
+                  id
+                }
+              }
+            }
+          source: $.userById
+          target: $.user
+          requirements:
+            - name: __fusion_1_id
+              selectionMap: >-
+                id
+          forwardedVariables:
+            - postLimit
+          dependencies:
+            - parentNodeId: 2
+        - id: 2
+          type: Operation
+          schema: C
+          operation: |
+            query GetUserPostsAndComments_defer_3($commentLimit: Int!, $__fusion_2_id: ID!) {
+              postById(id: $__fusion_2_id) {
+                comments(first: $commentLimit) {
+                  id
+                }
+              }
+            }
+          source: $.postById
+          target: $.user.posts
+          requirements:
+            - name: __fusion_2_id
+              selectionMap: >-
+                id
+          forwardedVariables:
+            - commentLimit
+          dependencies:
+            - id: 1

@@ -962,6 +962,38 @@ public readonly partial struct CompositeResultElement
         _parent.AssignCompositeValue(this, arr);
     }
 
+    internal void EnsureArrayLength(int length)
+    {
+        CheckValidInstance();
+
+        ArgumentOutOfRangeException.ThrowIfNegative(length);
+
+        var currentLength = GetArrayLength();
+
+        if (currentLength >= length)
+        {
+            return;
+        }
+
+        var arr = _parent.CreateArray(_cursor, length);
+
+        for (var i = 0; i < currentLength; i++)
+        {
+            var current = this[i];
+
+            if (current.ValueKind is JsonValueKind.Undefined)
+            {
+                continue;
+            }
+
+            var cursor = current.Cursor;
+            _ = _parent._metaDb.GetValue(ref cursor);
+            _parent.AssignCompositeValue(arr[i], new CompositeResultElement(_parent, cursor));
+        }
+
+        _parent.AssignCompositeValue(this, arr);
+    }
+
     internal void SetLeafValue(SourceResultElement source)
     {
         CheckValidInstance();

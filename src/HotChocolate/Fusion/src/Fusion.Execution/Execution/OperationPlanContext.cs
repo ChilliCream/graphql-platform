@@ -272,8 +272,11 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
 
             if (importedMatchCount != requirements.Length)
             {
-                throw new InvalidOperationException(
-                    "A deferred sub-plan fetch mixes parent-sourced and local requirements.");
+                // Planner-invariant guard. CollectParentScopeRequirements makes _requirementKeys
+                // the union of every parent-dependent node's full requirement list, so a single
+                // node's requirements are either all imported or none imported. A partial overlap
+                // means the planner produced a shape this routing layer is not built to handle.
+                throw CreateMixedScopeException(requirements);
             }
 
             if (forwardedVariables.Length == 0 && requirements.Length == _requirementKeys!.Count)
@@ -317,8 +320,11 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
 
             if (importedMatchCount != requiredData.Length)
             {
-                throw new InvalidOperationException(
-                    "A deferred sub-plan fetch mixes parent-sourced and local requirements.");
+                // Planner-invariant guard. CollectParentScopeRequirements makes _requirementKeys
+                // the union of every parent-dependent node's full requirement list, so a single
+                // node's requirements are either all imported or none imported. A partial overlap
+                // means the planner produced a shape this routing layer is not built to handle.
+                throw CreateMixedScopeException(requiredData);
             }
 
             if (forwardedVariables.Length == 0 && requiredData.Length == _requirementKeys!.Count)
@@ -333,6 +339,34 @@ public sealed partial class OperationPlanContext : IFeatureProvider, IAsyncDispo
                 variableValuesFromSnapshot,
                 requiredData);
         }
+    }
+
+    private InvalidOperationException CreateMixedScopeException(
+        ReadOnlySpan<OperationRequirement> requirements)
+    {
+        var imported = new List<string>();
+        var local = new List<string>();
+
+        foreach (var requirement in requirements)
+        {
+            if (_requirementKeys!.Contains(requirement.Key))
+            {
+                imported.Add(requirement.Key);
+            }
+            else
+            {
+                local.Add(requirement.Key);
+            }
+        }
+
+        return new InvalidOperationException(
+            "A deferred sub-plan fetch references a mix of imported parent-sourced and local "
+            + "requirement keys. The planner is expected to keep these scopes separate so that "
+            + "each fetch sources its requirements from a single scope. Imported parent keys: ["
+            + string.Join(", ", imported)
+            + "]. Local requested keys: ["
+            + string.Join(", ", local)
+            + "].");
     }
 
     private int CountImportedRequirementKeys(ReadOnlySpan<OperationRequirement> requirements)

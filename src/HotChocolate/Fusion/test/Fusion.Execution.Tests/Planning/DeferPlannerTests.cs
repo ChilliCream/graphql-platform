@@ -1,3 +1,5 @@
+using HotChocolate.Fusion.Execution.Nodes;
+
 namespace HotChocolate.Fusion.Planning;
 
 public class DeferPlannerTests : FusionTestBase
@@ -1342,6 +1344,322 @@ public class DeferPlannerTests : FusionTestBase
         for (var i = 0; i < plan.IncrementalPlans.Length; i++)
         {
             Assert.Equal($"{plan.Id}#{i}", plan.IncrementalPlans[i].Id);
+        }
+    }
+
+    [Fact]
+    public void Defer_SingleAnchor_Should_Keep_NodeRequirements_AllImported_Or_AllLocal()
+    {
+        // arrange
+        // Single defer over a key handoff: the sub-plan's downstream node depends on
+        // a parent-scope step for the user id and has no plan-internal predecessors.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            type Query {
+                userById(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer {
+                        email
+                    }
+                }
+            }
+            """);
+
+        // assert
+        AssertNoMixedRequirementScope(plan);
+    }
+
+    [Fact]
+    public void Defer_NestedDefer_Should_Keep_NodeRequirements_AllImported_Or_AllLocal()
+    {
+        // arrange
+        // Nested defer with a cross-subgraph requirement that the planner promotes
+        // into the outer defer scope. Each inner sub-plan node either lifts its
+        // requirements through ParentDependencies or resolves them through a
+        // sibling step in the same sub-plan, never both at once.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            schema {
+                query: Query
+            }
+
+            type Query {
+                user(id: ID!): User @lookup
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            schema {
+                query: Query
+            }
+
+            type Query {
+                userById(id: ID!): User @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                email: String!
+                nickname: String!
+            }
+            """,
+            """
+            # name: c
+            schema {
+                query: Query
+            }
+
+            type Query {
+                userById(id: ID!): User @lookup @internal
+            }
+
+            type User @key(fields: "id") {
+                id: ID!
+                badge(nickname: String! @require(field: "nickname")): String!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                user(id: "1") {
+                    name
+                    ... @defer(label: "outer") {
+                        email
+                        ... @defer(label: "inner") {
+                            badge
+                        }
+                    }
+                }
+            }
+            """);
+
+        // assert
+        AssertNoMixedRequirementScope(plan);
+    }
+
+    [Fact]
+    public void Defer_StepInternalPredecessor_Should_Keep_NodeRequirements_AllImported_Or_AllLocal()
+    {
+        // arrange
+        // The sub-plan needs an extra hop on schema c to fetch a value that another
+        // sub-plan node consumes via @require. The chained downstream node has only
+        // sub-plan-internal predecessors and so must route through the local store
+        // path, not the imported snapshot path.
+        var schema = ComposeSchema(
+            """
+            # name: a
+            schema {
+                query: Query
+            }
+
+            type Query {
+                product(id: ID!): Product @lookup
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                name: String!
+            }
+            """,
+            """
+            # name: b
+            schema {
+                query: Query
+            }
+
+            type Query {
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                productSku: String!
+            }
+            """,
+            """
+            # name: c
+            schema {
+                query: Query
+            }
+
+            type Query {
+                productById(id: ID!): Product @lookup @internal
+            }
+
+            type Product @key(fields: "id") {
+                id: ID!
+                reviews(productSku: String! @require(field: "productSku")): [String!]!
+            }
+            """);
+
+        // act
+        var plan = PlanOperation(
+            schema,
+            """
+            query {
+                product(id: "1") {
+                    name
+                    ... @defer {
+                        reviews
+                    }
+                }
+            }
+            """);
+
+        // assert
+        AssertNoMixedRequirementScope(plan);
+    }
+
+    /// <summary>
+    /// Asserts the planner contract that backs the defer-time variable routing in
+    /// <c>OperationPlanContext.CreateVariableValueSets</c>. The runtime classifies
+    /// each node's requirement span by computing the executor's imported-key set
+    /// (the union of every parent-dependent node's requirement keys, mirroring
+    /// <c>OperationPlanExecutor.CollectParentScopeRequirements</c>) and then
+    /// asserting that any single node's requirement keys are either fully inside
+    /// that set or fully outside it. A partial overlap is an unreachable shape
+    /// that the routing layer rejects with an explicit invariant exception.
+    /// </summary>
+    private static void AssertNoMixedRequirementScope(OperationPlan plan)
+    {
+        foreach (var subPlan in plan.IncrementalPlans)
+        {
+            var importedKeys = ComputeImportedKeys(subPlan);
+
+            foreach (var node in subPlan.AllNodes)
+            {
+                switch (node)
+                {
+                    case OperationExecutionNode operationNode:
+                        AssertScopeIsUniform(operationNode.Requirements, importedKeys, subPlan, operationNode.Id);
+                        break;
+
+                    case OperationBatchExecutionNode batchNode:
+                        foreach (var op in batchNode.Operations)
+                        {
+                            AssertScopeIsUniform(op.Requirements, importedKeys, subPlan, op.Id);
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    private static HashSet<string> ComputeImportedKeys(IncrementalPlan subPlan)
+    {
+        var keys = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var node in subPlan.AllNodes)
+        {
+            switch (node)
+            {
+                case OperationExecutionNode operationNode when !operationNode.ParentDependencies.IsEmpty:
+                    AddRequirementKeys(operationNode.Requirements, keys);
+                    break;
+
+                case OperationBatchExecutionNode batchNode:
+                    foreach (var op in batchNode.Operations)
+                    {
+                        if (!op.ParentDependencies.IsEmpty)
+                        {
+                            AddRequirementKeys(op.Requirements, keys);
+                        }
+                    }
+                    break;
+            }
+        }
+
+        return keys;
+    }
+
+    private static void AddRequirementKeys(
+        ReadOnlySpan<OperationRequirement> requirements,
+        HashSet<string> keys)
+    {
+        foreach (var requirement in requirements)
+        {
+            keys.Add(requirement.Key);
+        }
+    }
+
+    private static void AssertScopeIsUniform(
+        ReadOnlySpan<OperationRequirement> requirements,
+        HashSet<string> importedKeys,
+        IncrementalPlan subPlan,
+        int nodeId)
+    {
+        if (requirements.Length == 0)
+        {
+            return;
+        }
+
+        var importedCount = 0;
+
+        foreach (var requirement in requirements)
+        {
+            if (importedKeys.Contains(requirement.Key))
+            {
+                importedCount++;
+            }
+        }
+
+        if (importedCount != 0 && importedCount != requirements.Length)
+        {
+            var imported = new List<string>();
+            var local = new List<string>();
+
+            foreach (var requirement in requirements)
+            {
+                if (importedKeys.Contains(requirement.Key))
+                {
+                    imported.Add(requirement.Key);
+                }
+                else
+                {
+                    local.Add(requirement.Key);
+                }
+            }
+
+            Assert.Fail(
+                $"Sub-plan '{subPlan.Id}' node {nodeId} has a requirement span that mixes "
+                + $"imported parent-sourced keys [{string.Join(", ", imported)}] with local keys "
+                + $"[{string.Join(", ", local)}]. The runtime variable routing layer assumes "
+                + "every node's requirements are either all imported or all local.");
         }
     }
 }

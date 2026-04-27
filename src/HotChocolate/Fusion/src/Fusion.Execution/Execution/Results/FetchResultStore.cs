@@ -1834,10 +1834,7 @@ AddErrors_Next:
         // completion merge has a valid parent to populate.
         if (result.ValueKind is JsonValueKind.Undefined)
         {
-            var selection = result.AssertSelection();
-            var objectType = selection.Field.Type.NamedType<IObjectTypeDefinition>();
-            var selectionSet = _operation.GetSelectionSet(selection, objectType);
-            result.SetObjectValue(selectionSet);
+            MaterializeObject(result);
             return result;
         }
 
@@ -1893,38 +1890,74 @@ AddErrors_Next:
                 return element;
             }
 
-            // A deferred sub-plan may target a path whose enclosing object
-            // slot was never materialized by the parent's own fetch.
-            // Materialize an empty StartObject sized by the slot's selection
-            // set so the next GetPropertyBySelectionId call has a parent
-            // row to index into.
-            if (element.ValueKind is JsonValueKind.Undefined)
-            {
-                var selection = element.AssertSelection();
-                var objectType = selection.Field.Type.NamedType<IObjectTypeDefinition>();
-                var selectionSet = _operation.GetSelectionSet(selection, objectType);
-                element.SetObjectValue(selectionSet);
-            }
-
             if (segment >= 0)
             {
+                // A deferred sub-plan may target a path whose enclosing object
+                // slot was never materialized by the parent's own fetch.
+                // Materialize an empty StartObject sized by the slot's selection
+                // set so the next GetPropertyBySelectionId call has a parent
+                // row to index into.
+                if (element.ValueKind is JsonValueKind.Undefined)
+                {
+                    MaterializeObject(element);
+                }
+
                 element = element.GetPropertyBySelectionId(segment);
             }
             else
             {
                 var index = ~segment;
 
-                if (element.GetArrayLength() <= index)
+                if (element.ValueKind is JsonValueKind.Undefined)
+                {
+                    element.SetArrayValue(index + 1);
+                }
+                else if (element.ValueKind is JsonValueKind.Array)
+                {
+                    element.EnsureArrayLength(index + 1);
+                }
+                else
                 {
                     throw new InvalidOperationException(
                         $"The path segment '[{index}]' does not exist in the data.");
                 }
 
-                element = element[index];
+                var list = element;
+                element = list[index];
+
+                if (element.ValueKind is JsonValueKind.Undefined
+                    && (i == path.Length - 1 || path[i + 1] >= 0))
+                {
+                    MaterializeListItemObject(list, element);
+                }
             }
         }
 
         return element;
+    }
+
+    private void MaterializeObject(CompositeResultElement element)
+    {
+        var selection = element.AssertSelection();
+        var objectType = selection.Field.Type.NamedType<IObjectTypeDefinition>();
+        var selectionSet = _operation.GetSelectionSet(selection, objectType);
+        element.SetObjectValue(selectionSet);
+    }
+
+    private void MaterializeListItemObject(
+        CompositeResultElement list,
+        CompositeResultElement element)
+    {
+        var selection = list.AssertSelection();
+
+        if (selection.Field.Type.ElementType().NamedType() is not IObjectTypeDefinition objectType)
+        {
+            throw new InvalidOperationException(
+                "The target path resolves to a list item that is not an object.");
+        }
+
+        var selectionSet = _operation.GetSelectionSet(selection, objectType);
+        element.SetObjectValue(selectionSet);
     }
 
     public void Dispose()

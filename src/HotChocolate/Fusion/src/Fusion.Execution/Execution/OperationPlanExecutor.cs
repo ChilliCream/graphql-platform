@@ -405,18 +405,13 @@ internal static class OperationPlanExecutor
                     // delivery group's path and emit only the subtree at that location.
                     if (result.Data.HasValue
                         && !result.Data.Value.IsValueNull
-                        && TryCreateIncrementalData(
+                        && TryCreateIncrementalResults(
                             result.Data.Value,
                             bestDeliveryGroup,
-                            out var incrementalData))
+                            result.Errors.Count > 0 ? result.Errors : null,
+                            out var incrementalResults))
                     {
-                        payload.Incremental =
-                        [
-                            new IncrementalObjectResult(
-                                bestDeliveryGroup.Id,
-                                result.Errors.Count > 0 ? result.Errors : null,
-                                data: incrementalData)
-                        ];
+                        payload.Incremental = incrementalResults;
                     }
 
                     CompleteDeliveryGroupsForSubPlan(
@@ -776,22 +771,31 @@ internal static class OperationPlanExecutor
     }
 
     /// <summary>
-    /// Produces an <see cref="OperationResultData"/> whose logical root is the
-    /// subtree at the best delivery group's path within the deferred plan's
-    /// composite result. The incremental delivery contract requires
-    /// <c>incremental.data</c> to be the delta to merge at the pending path,
-    /// not the fully rooted result.
+    /// Produces <see cref="IncrementalObjectResult"/> entries whose logical root
+    /// is the subtree at the best delivery group's path within the deferred
+    /// plan's composite result. The incremental delivery contract requires
+    /// <c>incremental.data</c> to be a map of fields to merge at the pending
+    /// path, not the fully rooted result. When the pending path points at a list,
+    /// each list element is emitted as a separate incremental result with a
+    /// relative index <c>subPath</c>.
     /// </summary>
-    private static bool TryCreateIncrementalData(
+    private static bool TryCreateIncrementalResults(
         OperationResultData rootData,
         DeliveryGroup bestDeliveryGroup,
-        out OperationResultData incrementalData)
+        ImmutableList<IError>? errors,
+        out ImmutableList<IIncrementalResult> incrementalResults)
     {
         if (rootData.Value is not CompositeResultDocument document)
         {
             // Unknown backing value: fall through to the default behavior and
             // emit the result as-is.
-            incrementalData = rootData;
+            incrementalResults =
+            [
+                new IncrementalObjectResult(
+                    bestDeliveryGroup.Id,
+                    errors,
+                    data: rootData)
+            ];
             return true;
         }
 
@@ -813,23 +817,60 @@ internal static class OperationPlanExecutor
                 || next.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
             {
                 // The path could not be resolved or is null; nothing to merge.
-                incrementalData = default;
+                incrementalResults = [];
                 return false;
             }
 
             element = next;
         }
 
-        // MemoryHolder is intentionally not carried over: the surrounding
-        // OperationResult already owns the composite document's lifetime,
-        // and the IncrementalObjectResult is a non-owning view over it.
-        incrementalData = new OperationResultData(
+        if (element.ValueKind is JsonValueKind.Array)
+        {
+            var builder = ImmutableList.CreateBuilder<IIncrementalResult>();
+            var length = element.GetArrayLength();
+
+            for (var i = 0; i < length; i++)
+            {
+                var item = element[i];
+
+                if (item.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+                {
+                    continue;
+                }
+
+                builder.Add(
+                    new IncrementalObjectResult(
+                        bestDeliveryGroup.Id,
+                        errors,
+                        subPath: Path.Root.Append(i),
+                        data: CreateIncrementalData(document, item)));
+            }
+
+            incrementalResults = builder.ToImmutable();
+            return true;
+        }
+
+        incrementalResults =
+        [
+            new IncrementalObjectResult(
+                bestDeliveryGroup.Id,
+                errors,
+                data: CreateIncrementalData(document, element))
+        ];
+        return true;
+    }
+
+    private static OperationResultData CreateIncrementalData(
+        CompositeResultDocument document,
+        CompositeResultElement element)
+        // MemoryHolder is intentionally not carried over. The surrounding
+        // OperationResult already owns the composite document's lifetime, and
+        // the IncrementalObjectResult is a non-owning view over it.
+        => new(
             document,
             isValueNull: false,
             new DeferredPayloadDataFormatter(element),
             memoryHolder: null);
-        return true;
-    }
 
     public static async Task<IExecutionResult> SubscribeAsync(
         RequestContext requestContext,
