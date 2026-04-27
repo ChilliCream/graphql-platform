@@ -23,7 +23,7 @@ public sealed class HttpGetSemanticNonNullSchemaMiddleware : MiddlewareBase
 
             if (options.EnableSchemaRequests)
             {
-                using (session.DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpGetSchema))
+                using (session.DiagnosticEvents.ExecuteHttpRequest(context, HttpRequestKind.HttpGetSemanticNonNullSchema))
                 {
                     if (!options.EnableSchemaFileSupport)
                     {

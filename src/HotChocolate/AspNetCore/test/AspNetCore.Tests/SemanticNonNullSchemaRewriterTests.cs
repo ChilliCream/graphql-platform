@@ -411,4 +411,60 @@ public class SemanticNonNullSchemaRewriterTests
             scalar DateTime
             """);
     }
+
+    [Fact]
+    public void Rewrite_Should_Not_Duplicate_Directive_Definition_When_Already_Defined()
+    {
+        // arrange
+        var schema = Utf8GraphQLParser.Parse(
+            """
+            type Query {
+              hello: String!
+            }
+
+            directive @semanticNonNull(levels: [Int!] = [0]) on FIELD_DEFINITION
+            """);
+
+        // act
+        var result = SemanticNonNullSchemaRewriter.Rewrite(schema);
+
+        // assert
+        result.ToString().MatchInlineSnapshot(
+            """
+            type Query {
+              hello: String @semanticNonNull
+            }
+
+            directive @semanticNonNull(levels: [Int!] = [
+              0
+            ]) on FIELD_DEFINITION
+            """);
+    }
+
+    [Fact]
+    public void Rewrite_Should_Replace_Existing_SemanticNonNull_Directive_On_Field()
+    {
+        // arrange
+        var schema = Utf8GraphQLParser.Parse(
+            """
+            type Query {
+              tags: [String!]! @semanticNonNull(levels: [42])
+            }
+            """);
+
+        // act
+        var result = SemanticNonNullSchemaRewriter.Rewrite(schema);
+
+        // assert
+        result.ToString().MatchInlineSnapshot(
+            """
+            type Query {
+              tags: [String] @semanticNonNull(levels: [0, 1])
+            }
+
+            directive @semanticNonNull(levels: [Int!] = [
+              0
+            ]) on FIELD_DEFINITION
+            """);
+    }
 }

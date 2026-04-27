@@ -84,10 +84,28 @@ internal static class SemanticNonNullSchemaRewriter
             return schema;
         }
 
-        var directive = CreateSemanticNonNullDirectiveDefinition();
-        var insertionIndex = FindDirectiveInsertionIndex(definitions, directive.Name.Value);
-        definitions.Insert(insertionIndex, directive);
+        if (!HasDirectiveDefinition(definitions, DirectiveNames.SemanticNonNull.Name))
+        {
+            var directive = CreateSemanticNonNullDirectiveDefinition();
+            var insertionIndex = FindDirectiveInsertionIndex(definitions, directive.Name.Value);
+            definitions.Insert(insertionIndex, directive);
+        }
+
         return schema.WithDefinitions(definitions);
+    }
+
+    private static bool HasDirectiveDefinition(List<IDefinitionNode> definitions, string directiveName)
+    {
+        for (var i = 0; i < definitions.Count; i++)
+        {
+            if (definitions[i] is DirectiveDefinitionNode existing
+                && existing.Name.Value == directiveName)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static int FindDirectiveInsertionIndex(List<IDefinitionNode> definitions, string directiveName)
@@ -219,9 +237,28 @@ internal static class SemanticNonNullSchemaRewriter
 
             rewritten = true;
             var nullableType = ToNullableType(field.Type);
+            var newDirective = CreateSemanticNonNullDirective(levels);
             var directives = new List<DirectiveNode>(field.Directives.Count + 1);
-            directives.AddRange(field.Directives);
-            directives.Add(CreateSemanticNonNullDirective(levels));
+            var replaced = false;
+
+            foreach (var existing in field.Directives)
+            {
+                if (!replaced && existing.Name.Value == DirectiveNames.SemanticNonNull.Name)
+                {
+                    directives.Add(newDirective);
+                    replaced = true;
+                }
+                else
+                {
+                    directives.Add(existing);
+                }
+            }
+
+            if (!replaced)
+            {
+                directives.Add(newDirective);
+            }
+
             result.Add(field.WithType(nullableType).WithDirectives(directives));
         }
 
