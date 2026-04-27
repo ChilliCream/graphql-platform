@@ -142,7 +142,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     }
 
     /// <inheritdoc />
-    internal override TransportDescription Describe()
+    public override TransportDescription Describe()
     {
         var receiveEndpoints = ReceiveEndpoints.Select(e => e.Describe()).ToList();
 

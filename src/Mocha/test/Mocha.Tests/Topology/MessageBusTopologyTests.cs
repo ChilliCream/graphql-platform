@@ -294,7 +294,7 @@ public sealed class MessageBusTopologyTests
             changeTokenSource.Dispose();
         }
 
-        internal override TransportDescription Describe()
+        public override TransportDescription Describe()
             => new("test:/", "test", "test", nameof(MutableTokenTransport), [], [], null);
 
         public override bool TryGetDispatchEndpoint(Uri address, [NotNullWhen(true)] out DispatchEndpoint? endpoint)

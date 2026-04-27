@@ -73,7 +73,7 @@ public sealed class InMemoryMessagingTransport : MessagingTransport
     }
 
     /// <inheritdoc />
-    internal override TransportDescription Describe()
+    public override TransportDescription Describe()
     {
         var receiveEndpoints = ReceiveEndpoints.Select(e => e.Describe()).ToList();
 

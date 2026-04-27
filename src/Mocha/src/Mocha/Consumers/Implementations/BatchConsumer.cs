@@ -116,7 +116,7 @@ internal sealed class BatchConsumer<THandler, TEvent>(
         }
     }
 
-    internal override ConsumerDescription Describe()
+    public override ConsumerDescription Describe()
     {
         return new ConsumerDescription(Name, DescriptionHelpers.GetTypeName(Identity), Identity.FullName, null, true);
     }

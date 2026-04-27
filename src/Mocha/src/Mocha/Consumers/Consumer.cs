@@ -198,7 +198,7 @@ public abstract class Consumer
         _isInitialized = true;
     }
 
-    internal virtual ConsumerDescription Describe()
+    public virtual ConsumerDescription Describe()
     {
         return new ConsumerDescription(Name, DescriptionHelpers.GetTypeName(Identity), Identity.FullName, null, false);
     }

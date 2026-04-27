@@ -7,11 +7,7 @@ namespace Mocha;
 /// </summary>
 public sealed class MessageBusTopology : IMessageBusTopology, IDisposable
 {
-#if NET9_0_OR_GREATER
-    private readonly Lock _lock = new();
-#else
     private readonly object _lock = new();
-#endif
 
     private readonly IMessagingRuntime _runtime;
     private readonly List<IDisposable> _changeTokenRegistrations = [];

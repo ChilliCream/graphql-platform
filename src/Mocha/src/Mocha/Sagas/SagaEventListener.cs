@@ -36,7 +36,7 @@ public sealed class SagaConsumer(Saga saga) : Consumer
     }
 
     /// <inheritdoc />
-    internal override ConsumerDescription Describe()
+    public override ConsumerDescription Describe()
     {
         return new ConsumerDescription(
             Name,

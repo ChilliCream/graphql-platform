@@ -79,7 +79,7 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     /// </summary>
     public IConventionRegistry Conventions { get; protected set; } = null!;
 
-    internal virtual TransportDescription Describe()
+    public virtual TransportDescription Describe()
     {
         var receiveEndpoints = ReceiveEndpoints.Select(e => e.Describe()).ToList();
 
