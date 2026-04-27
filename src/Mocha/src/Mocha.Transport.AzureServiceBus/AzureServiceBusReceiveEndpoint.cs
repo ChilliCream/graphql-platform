@@ -16,8 +16,8 @@ namespace Mocha.Transport.AzureServiceBus;
 public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTransport transport)
     : ReceiveEndpoint<AzureServiceBusReceiveEndpointConfiguration>(transport)
 {
-    private ServiceBusProcessor? _processor;
-    private ServiceBusSessionProcessor? _sessionProcessor;
+    private MessageProcessor? _processor;
+    private QueueHeartbeat? _heartbeat;
     private ILogger<AzureServiceBusReceiveEndpoint>? _logger;
     private int _maxConcurrentCalls = 1;
     private int _prefetchCount;
@@ -102,50 +102,68 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
 
         _logger = context.Services.GetRequiredService<ILogger<AzureServiceBusReceiveEndpoint>>();
 
-        var configuration = Configuration;
-        var maxAutoLockRenewal = configuration.MaxAutoLockRenewalDuration ?? TimeSpan.FromMinutes(5);
-
         if (Queue.RequiresSession == true)
         {
-            var maxSessions = configuration.MaxConcurrentSessions ?? _maxConcurrentCalls;
-            var maxCallsPerSession = configuration.MaxConcurrentCallsPerSession ?? 1;
-
-            var options = new ServiceBusSessionProcessorOptions
-            {
-                MaxConcurrentSessions = maxSessions,
-                MaxConcurrentCallsPerSession = maxCallsPerSession,
-                AutoCompleteMessages = false,
-                ReceiveMode = ServiceBusReceiveMode.PeekLock,
-                PrefetchCount = configuration.PrefetchCount ?? maxSessions * maxCallsPerSession * 2,
-                MaxAutoLockRenewalDuration = maxAutoLockRenewal
-            };
-
-            if (configuration.SessionIdleTimeout is { } idle)
-            {
-                options.SessionIdleTimeout = idle;
-            }
-
-            _sessionProcessor = asbTransport.ClientManager.CreateSessionProcessor(Queue.Name, options);
-            _sessionProcessor.ProcessMessageAsync += OnSessionMessage;
-            _sessionProcessor.ProcessErrorAsync += OnProcessorError;
-            await _sessionProcessor.StartProcessingAsync(cancellationToken);
+            _processor = MessageProcessor.ForSessionProcessor(CreateSessionProcessor(asbTransport));
         }
         else
         {
-            var options = new ServiceBusProcessorOptions
-            {
-                MaxConcurrentCalls = _maxConcurrentCalls,
-                AutoCompleteMessages = false, // We handle ack/nack in middleware
-                ReceiveMode = ServiceBusReceiveMode.PeekLock,
-                PrefetchCount = _prefetchCount,
-                MaxAutoLockRenewalDuration = maxAutoLockRenewal
-            };
-
-            _processor = asbTransport.ClientManager.CreateProcessor(Queue.Name, options);
-            _processor.ProcessMessageAsync += OnNonSessionMessage;
-            _processor.ProcessErrorAsync += OnProcessorError;
-            await _processor.StartProcessingAsync(cancellationToken);
+            _processor = MessageProcessor.ForProcessor(CreateProcessor(asbTransport));
         }
+
+        await _processor.StartProcessingAsync(cancellationToken);
+
+        if (Configuration.Kind == ReceiveEndpointKind.Reply)
+        {
+            var receiver = asbTransport.ClientManager.CreateReceiver(Queue.Name);
+            _heartbeat = new QueueHeartbeat(receiver, _logger, Queue.Name);
+        }
+    }
+
+    private ServiceBusProcessor CreateProcessor(AzureServiceBusMessagingTransport asbTransport)
+    {
+        var maxAutoLockRenewal = Configuration.MaxAutoLockRenewalDuration ?? TimeSpan.FromMinutes(5);
+
+        var options = new ServiceBusProcessorOptions
+        {
+            MaxConcurrentCalls = _maxConcurrentCalls,
+            AutoCompleteMessages = false, // We handle ack/nack in middleware
+            ReceiveMode = ServiceBusReceiveMode.PeekLock,
+            PrefetchCount = _prefetchCount,
+            MaxAutoLockRenewalDuration = maxAutoLockRenewal
+        };
+
+        var processor = asbTransport.ClientManager.CreateProcessor(Queue.Name, options);
+        processor.ProcessMessageAsync += OnNonSessionMessage;
+        processor.ProcessErrorAsync += OnProcessorError;
+        return processor;
+    }
+
+    private ServiceBusSessionProcessor CreateSessionProcessor(AzureServiceBusMessagingTransport asbTransport)
+    {
+        var maxAutoLockRenewal = Configuration.MaxAutoLockRenewalDuration ?? TimeSpan.FromMinutes(5);
+        var maxSessions = Configuration.MaxConcurrentSessions ?? _maxConcurrentCalls;
+        var maxCallsPerSession = Configuration.MaxConcurrentCallsPerSession ?? 1;
+
+        var options = new ServiceBusSessionProcessorOptions
+        {
+            MaxConcurrentSessions = maxSessions,
+            MaxConcurrentCallsPerSession = maxCallsPerSession,
+            AutoCompleteMessages = false,
+            ReceiveMode = ServiceBusReceiveMode.PeekLock,
+            PrefetchCount = Configuration.PrefetchCount ?? maxSessions * maxCallsPerSession * 2,
+            MaxAutoLockRenewalDuration = maxAutoLockRenewal
+        };
+
+        if (Configuration.SessionIdleTimeout is { } idle)
+        {
+            options.SessionIdleTimeout = idle;
+        }
+
+        var sessionProcessor = asbTransport.ClientManager.CreateSessionProcessor(Queue.Name, options);
+        sessionProcessor.ProcessMessageAsync += OnSessionMessage;
+        sessionProcessor.ProcessErrorAsync += OnProcessorError;
+        return sessionProcessor;
     }
 
     private async Task OnNonSessionMessage(ProcessMessageEventArgs args)
@@ -166,28 +184,19 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
 
     private Task OnProcessorError(ProcessErrorEventArgs args)
     {
-        var logger = _logger;
-        if (logger is null)
-        {
-            return Task.CompletedTask;
-        }
-
         // Transient/recoverable conditions are surfaced as warnings; only unknown faults escalate to error.
         if (IsTransientProcessorError(args.Exception))
         {
-            logger.LogWarning(
-                args.Exception,
-                "Azure Service Bus processor transient error on entity {EntityPath} (Source: {ErrorSource})",
-                args.EntityPath,
-                args.ErrorSource);
+            _logger.ProcessorTransientError(args.Exception, args.EntityPath, args.ErrorSource);
         }
         else
         {
-            logger.LogError(
-                args.Exception,
-                "Azure Service Bus processor error on entity {EntityPath} (Source: {ErrorSource})",
-                args.EntityPath,
-                args.ErrorSource);
+            _logger.ProcessorError(args.Exception, args.EntityPath, args.ErrorSource);
+        }
+
+        if (args.Exception is ServiceBusException { Reason: ServiceBusFailureReason.MessagingEntityNotFound })
+        {
+            _processor?.StopProcessingAsync();
         }
 
         return Task.CompletedTask;
@@ -197,18 +206,17 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
         IMessagingRuntimeContext context,
         CancellationToken cancellationToken)
     {
+        if (_heartbeat is not null)
+        {
+            await _heartbeat.DisposeAsync();
+            _heartbeat = null;
+        }
+
         if (_processor is not null)
         {
             await _processor.StopProcessingAsync(cancellationToken);
             await _processor.DisposeAsync();
             _processor = null;
-        }
-
-        if (_sessionProcessor is not null)
-        {
-            await _sessionProcessor.StopProcessingAsync(cancellationToken);
-            await _sessionProcessor.DisposeAsync();
-            _sessionProcessor = null;
         }
     }
 
@@ -231,4 +239,26 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
 
         return false;
     }
+}
+
+internal static partial class Logs
+{
+    [LoggerMessage(
+        LogLevel.Warning,
+        "Azure Service Bus processor transient error on entity {EntityPath} (Source: {ErrorSource})")]
+    public static partial void ProcessorTransientError(
+        this ILogger logger,
+        Exception exception,
+        string entityPath,
+        ServiceBusErrorSource errorSource);
+
+    [LoggerMessage(LogLevel.Error, "Azure Service Bus processor error on entity {EntityPath} (Source: {ErrorSource})")]
+    public static partial void ProcessorError(
+        this ILogger logger,
+        Exception exception,
+        string entityPath,
+        ServiceBusErrorSource errorSource);
+
+    [LoggerMessage(LogLevel.Warning, "Reply queue keep-alive peek failed for {EntityPath}")]
+    public static partial void ReplyQueueKeepAliveFailed(this ILogger logger, Exception exception, string entityPath);
 }

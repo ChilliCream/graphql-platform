@@ -79,6 +79,23 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
     }
 
     /// <summary>
+    /// Removes the cached <see cref="ServiceBusSender"/> for <paramref name="entityPath"/> so the
+    /// next <see cref="GetSender"/> call builds a fresh one against a recreated entity. The
+    /// orphaned sender is left to GC: a concurrent dispatcher may still be mid-send on it, and
+    /// disposing here would race them into <see cref="ObjectDisposedException"/>.
+    /// </summary>
+    /// <param name="entityPath">The queue or topic name whose cached sender should be invalidated.</param>
+    public void InvalidateSender(string entityPath)
+    {
+        if (_isDisposed)
+        {
+            return;
+        }
+
+        _senders.TryRemove(entityPath, out _);
+    }
+
+    /// <summary>
     /// Creates a new <see cref="ServiceBusProcessor"/> for consuming messages from a queue.
     /// </summary>
     /// <param name="queueName">The queue to consume from.</param>
@@ -106,6 +123,19 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
         return _client.CreateProcessor(topicName, subscriptionName, options);
+    }
+
+    /// <summary>
+    /// Creates a new <see cref="ServiceBusReceiver"/> for the specified queue. The returned
+    /// receiver is fresh on every call (not cached); the caller owns its lifetime and must
+    /// dispose it when finished.
+    /// </summary>
+    /// <param name="queueName">The queue to receive from.</param>
+    /// <returns>A new receiver instance.</returns>
+    public ServiceBusReceiver CreateReceiver(string queueName)
+    {
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
+        return _client.CreateReceiver(queueName);
     }
 
     /// <summary>

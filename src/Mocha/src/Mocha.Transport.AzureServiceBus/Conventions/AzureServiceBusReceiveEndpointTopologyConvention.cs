@@ -45,7 +45,9 @@ public sealed class AzureServiceBusReceiveEndpointTopologyConvention
                 new AzureServiceBusQueueConfiguration
                 {
                     Name = configuration.QueueName,
-                    AutoDelete = endpoint.Kind == ReceiveEndpointKind.Reply,
+                    AutoDeleteOnIdle = endpoint.Kind == ReceiveEndpointKind.Reply
+                        ? TimeSpan.FromHours(24)
+                        : null,
                     AutoProvision = configuration.AutoProvision,
                     ForwardDeadLetteredMessagesTo = forwardDeadLetteredMessagesTo
                 });

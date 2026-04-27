@@ -96,15 +96,34 @@ public sealed class AzureServiceBusDispatchEndpoint(AzureServiceBusMessagingTran
         var sender = clientManager.GetSender(entityPath);
         var message = CreateMessage(envelope);
 
-        if (envelope.ScheduledTime is { } scheduledTime)
+        try
         {
-            var sequenceNumber = await sender.ScheduleMessageAsync(message, scheduledTime, cancellationToken);
-            context.Features.Configure<ScheduledMessageFeature>(f =>
-                f.Token = $"asb:{entityPath}:{sequenceNumber.ToString(CultureInfo.InvariantCulture)}");
+            await SendOrScheduleAsync(sender);
         }
-        else
+        // The broker deleted the entity out from under us (e.g. AutoDeleteOnIdle fired, or it
+        // was deleted manually). Re-provision and retry once before giving up.
+        catch (ServiceBusException ex) when (ex.Reason == ServiceBusFailureReason.MessagingEntityNotFound)
         {
-            await sender.SendMessageAsync(message, cancellationToken);
+            InvalidateProvisioning();
+            await EnsureProvisionedAsync(cancellationToken);
+            clientManager.InvalidateSender(entityPath);
+            sender = clientManager.GetSender(entityPath);
+            await SendOrScheduleAsync(sender);
+        }
+
+        async ValueTask SendOrScheduleAsync(ServiceBusSender activeSender)
+        {
+            if (envelope.ScheduledTime is { } scheduledTime)
+            {
+                var sequenceNumber = await activeSender.ScheduleMessageAsync(message, scheduledTime, cancellationToken);
+                context.Features.Configure<ScheduledMessageFeature>(f =>
+                    f.Token = $"asb:{entityPath}:{sequenceNumber.ToString(CultureInfo.InvariantCulture)}"
+                );
+            }
+            else
+            {
+                await activeSender.SendMessageAsync(message, cancellationToken);
+            }
         }
     }
 
@@ -156,8 +175,9 @@ public sealed class AzureServiceBusDispatchEndpoint(AzureServiceBusMessagingTran
                 message.PartitionKey = sessionId;
             }
 
-            if (envelopeHeaders.TryGetValue(AzureServiceBusMessageHeaders.ReplyToSessionId, out var replyToSessionIdValue)
-                && replyToSessionIdValue is string replyToSessionIdString)
+            if (envelopeHeaders.TryGetValue(
+                    AzureServiceBusMessageHeaders.ReplyToSessionId,
+                    out var replyToSessionIdValue) && replyToSessionIdValue is string replyToSessionIdString)
             {
                 message.ReplyToSessionId = replyToSessionIdString;
             }
@@ -242,41 +262,47 @@ public sealed class AzureServiceBusDispatchEndpoint(AzureServiceBusMessagingTran
         return message;
     }
 
-    private int _isProvisioned; // 0 = false, 1 = true
+    private readonly SemaphoreSlim _provisionGate = new(1, 1);
+    private volatile bool _provisioned;
 
-    private async ValueTask EnsureProvisionedAsync(CancellationToken cancellationToken)
+    private async Task EnsureProvisionedAsync(CancellationToken cancellationToken)
     {
-        if (Volatile.Read(ref _isProvisioned) == 1)
+        if (_provisioned)
         {
             return;
         }
 
-        // Only one thread provisions
-        if (Interlocked.CompareExchange(ref _isProvisioned, 1, 0) != 0)
-        {
-            return;
-        }
-
+        await _provisionGate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
+            if (_provisioned)
+            {
+                return;
+            }
+
             var autoProvision = ((AzureServiceBusMessagingTopology)transport.Topology).AutoProvision;
 
+            // Provisioning runs detached from the caller's token so a cancelled caller does
+            // not tear down provisioning for other dispatchers waiting on the gate.
             if (Queue is not null && (Queue.AutoProvision ?? autoProvision))
             {
-                await Queue.ProvisionAsync(transport.ClientManager, cancellationToken);
+                await Queue.ProvisionAsync(transport.ClientManager, CancellationToken.None).ConfigureAwait(false);
             }
 
             if (Topic is not null && (Topic.AutoProvision ?? autoProvision))
             {
-                await Topic.ProvisionAsync(transport.ClientManager, cancellationToken);
+                await Topic.ProvisionAsync(transport.ClientManager, CancellationToken.None).ConfigureAwait(false);
             }
+
+            _provisioned = true;
         }
-        catch
+        finally
         {
-            Volatile.Write(ref _isProvisioned, 0); // Reset on failure
-            throw;
+            _provisionGate.Release();
         }
     }
+
+    private void InvalidateProvisioning() => _provisioned = false;
 
     protected override void OnComplete(
         IMessagingConfigurationContext context,

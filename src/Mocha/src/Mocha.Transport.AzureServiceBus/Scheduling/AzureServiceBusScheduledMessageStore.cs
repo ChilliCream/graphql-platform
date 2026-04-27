@@ -51,7 +51,12 @@ internal sealed class AzureServiceBusScheduledMessageStore(AzureServiceBusClient
             await sender.CancelScheduledMessageAsync(sequenceNumber, cancellationToken);
             return true;
         }
-        catch (ServiceBusException ex) when (ex.Reason == ServiceBusFailureReason.MessageNotFound)
+        // MessageNotFound: scheduled message already cancelled or delivered.
+        // MessagingEntityNotFound: the queue/topic itself is gone (e.g. AutoDeleteOnIdle fired),
+        // so the scheduled message is gone with it. Either way, cancellation is vacuously satisfied.
+        catch (ServiceBusException ex) when (
+            ex.Reason == ServiceBusFailureReason.MessageNotFound
+            || ex.Reason == ServiceBusFailureReason.MessagingEntityNotFound)
         {
             return false;
         }
