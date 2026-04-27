@@ -10,6 +10,9 @@ on:
       - .docker/website/**
       - website/**
 
+permissions:
+  contents: read
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -21,7 +24,7 @@ jobs:
           show-progress: false
 
       - name: Docker Login
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ${{ secrets.CONTAINER_REG_URL }}
           username: ${{ secrets.CONTAINER_REG_USERNAME }}
@@ -30,14 +33,16 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
           cache: "yarn"
           cache-dependency-path: "website/yarn.lock"
 
       - name: Cache Next.js Build Artifacts
         uses: actions/cache@v5
         with:
-          path: website/.next/cache
+          path: |
+            website/.next/cache
+            website/public/optimized
           key: ${{ runner.os }}-nextjs-${{ hashFiles('website/yarn.lock') }}-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('website/yarn.lock') }}-
@@ -66,7 +71,7 @@ jobs:
         working-directory: website
 
       - name: Build WebSite Container
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: ./website
           file: .docker/website/dockerfile

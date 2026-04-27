@@ -1,3 +1,4 @@
+using HotChocolate.Execution;
 using HotChocolate.Fusion.Properties;
 
 namespace HotChocolate.Fusion.Execution;
@@ -13,6 +14,11 @@ internal static class ThrowHelper
         => new(string.Format(
             FusionExecutionResources.OperationPlan_NodeNotFound,
             id));
+
+    public static InvalidOperationException DeferredSubPlanParentNotFound(SelectionPath path)
+        => new(string.Format(
+            FusionExecutionResources.OperationPlan_DeferredSubPlanParentNotFound,
+            path));
 
     public static InvalidOperationException MissingBatchResult(int operationId)
         => new(string.Format(

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Configurations;
 
@@ -45,14 +46,14 @@ public interface IDirectiveTypeDescriptor
     /// <summary>
     /// Configure a middleware for this directive.
     /// </summary>
-    IDirectiveTypeDescriptor Use<TMiddleware>()
+    IDirectiveTypeDescriptor Use<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>()
         where TMiddleware : class;
 
     /// <summary>
     /// Configure a middleware for this directive.
     /// </summary>
     /// <param name="factory">The middleware factory.</param>
-    IDirectiveTypeDescriptor Use<TMiddleware>(
+    IDirectiveTypeDescriptor Use<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>(
         Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
         where TMiddleware : class;
 

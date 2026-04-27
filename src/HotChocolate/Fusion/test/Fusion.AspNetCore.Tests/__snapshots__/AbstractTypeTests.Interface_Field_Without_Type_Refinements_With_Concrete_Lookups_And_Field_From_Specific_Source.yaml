@@ -114,11 +114,8 @@ sourceSchemas:
       - request:
           accept: application/jsonl; charset=utf-8, text/event-stream; charset=utf-8, application/graphql-response+json; charset=utf-8, application/json; charset=utf-8
           document: |
-            query Op_1bcbe788_2(
-              $__fusion_1_id: ID!
-            ) {
+            query Op_1bcbe788_2($__fusion_1_id: ID!) {
               discussionById(id: $__fusion_1_id) {
-                __typename
                 totalVotes
               }
             }
@@ -132,7 +129,6 @@ sourceSchemas:
               {
                 "data": {
                   "discussionById": {
-                    "__typename": "Discussion",
                     "totalVotes": 123
                   }
                 }
@@ -166,11 +162,8 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query Op_1bcbe788_2(
-          $__fusion_1_id: ID!
-        ) {
+        query Op_1bcbe788_2($__fusion_1_id: ID!) {
           discussionById(id: $__fusion_1_id) {
-            __typename
             totalVotes
           }
         }
@@ -187,11 +180,8 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query Op_1bcbe788_3(
-          $__fusion_2_id: ID!
-        ) {
+        query Op_1bcbe788_3($__fusion_2_id: ID!) {
           commentById(id: $__fusion_2_id) {
-            __typename
             totalVotes
           }
         }

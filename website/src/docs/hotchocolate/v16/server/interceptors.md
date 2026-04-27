@@ -26,8 +26,8 @@ public class HttpRequestInterceptor : DefaultHttpRequestInterceptor
 Register your custom `HttpRequestInterceptor`:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddHttpRequestInterceptor<HttpRequestInterceptor>();
 ```
 
@@ -38,8 +38,8 @@ If needed, you can inject services into your custom `HttpRequestInterceptor` usi
 For lightweight interception logic, you can register a delegate instead of creating a class. The delegate receives the `HttpContext`, the `IRequestExecutor`, the `OperationRequestBuilder`, and a `CancellationToken`:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddHttpRequestInterceptor(
         async (context, executor, builder, ct) =>
         {
@@ -142,8 +142,8 @@ public class SocketSessionInterceptor : DefaultSocketSessionInterceptor
 Register your custom `SocketSessionInterceptor`:
 
 ```csharp
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddSocketSessionInterceptor<SocketSessionInterceptor>();
 ```
 

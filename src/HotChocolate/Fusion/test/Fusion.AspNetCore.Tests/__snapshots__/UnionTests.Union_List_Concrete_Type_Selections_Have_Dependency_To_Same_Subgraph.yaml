@@ -140,9 +140,7 @@ sourceSchemas:
           kind: OperationBatch
           items:
             - document: |
-                query testQuery_5f4670e8_2(
-                  $__fusion_1_id: ID!
-                ) {
+                query testQuery_5f4670e8_2($__fusion_1_id: ID!) {
                   authorById(id: $__fusion_1_id) {
                     subgraph2
                   }
@@ -152,9 +150,7 @@ sourceSchemas:
                   "__fusion_1_id": "QXV0aG9yOjU="
                 }
             - document: |
-                query testQuery_5f4670e8_3(
-                  $__fusion_2_id: ID!
-                ) {
+                query testQuery_5f4670e8_3($__fusion_2_id: ID!) {
                   productById(id: $__fusion_2_id) {
                     subgraph2
                   }
@@ -243,9 +239,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_5f4670e8_2(
-          $__fusion_1_id: ID!
-        ) {
+        query testQuery_5f4670e8_2($__fusion_1_id: ID!) {
           authorById(id: $__fusion_1_id) {
             subgraph2
           }
@@ -263,9 +257,7 @@ operationPlan:
       type: Operation
       schema: B
       operation: |
-        query testQuery_5f4670e8_3(
-          $__fusion_2_id: ID!
-        ) {
+        query testQuery_5f4670e8_3($__fusion_2_id: ID!) {
           productById(id: $__fusion_2_id) {
             subgraph2
           }

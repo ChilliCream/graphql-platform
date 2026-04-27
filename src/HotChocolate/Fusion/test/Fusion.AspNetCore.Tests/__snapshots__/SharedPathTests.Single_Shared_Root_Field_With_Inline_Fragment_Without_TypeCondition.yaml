@@ -1,9 +1,7 @@
 title: Single_Shared_Root_Field_With_Inline_Fragment_Without_TypeCondition
 request:
   document: |
-    query(
-      $skip: Boolean!
-    ) {
+    query($skip: Boolean!) {
       viewer {
         ... @skip(if: $skip) {
           schema1
@@ -80,9 +78,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_88b508ac_1(
-              $skip: Boolean!
-            ) {
+            query Op_88b508ac_1($skip: Boolean!) {
               viewer {
                 ... @skip(if: $skip) {
                   schema1
@@ -174,9 +170,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query(
-          $skip: Boolean!
-        ) {
+        query($skip: Boolean!) {
           viewer {
             ... @skip(if: $skip) {
               schema1
@@ -192,9 +186,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query Op_88b508ac_1(
-          $skip: Boolean!
-        ) {
+        query Op_88b508ac_1($skip: Boolean!) {
           viewer {
             ... @skip(if: $skip) {
               schema1

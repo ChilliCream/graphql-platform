@@ -96,8 +96,8 @@ public abstract class PromiseCacheObserver<TValue> : IPromiseCacheObserver
     /// <summary>
     /// The method is called when a new task is added to the cache.
     /// </summary>
-    /// <param name="cache"></param>
-    /// <param name="promise"></param>
+    /// <param name="cache">The promise cache that the new entry was added to.</param>
+    /// <param name="promise">The promise that was added to the cache.</param>
     public abstract void OnNext(IPromiseCache cache, Promise<TValue> promise);
 
     public void Dispose()

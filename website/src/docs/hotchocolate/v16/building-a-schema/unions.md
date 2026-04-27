@@ -74,8 +74,8 @@ public static partial class ContentQueries
 
 ```csharp
 // Program.cs
-builder.Services
-    .AddGraphQLServer()
+builder
+    .AddGraphQL()
     .AddType<TextContent>()
     .AddType<ImageContent>();
 ```

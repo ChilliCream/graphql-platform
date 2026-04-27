@@ -1,10 +1,8 @@
 using System.Text;
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.OpenApi;
 using HotChocolate.Adapters.OpenApi.Packaging;
 using Moq;
 using Moq.Language;
-using static ChilliCream.Nitro.CommandLine.Tests.TestHelpers;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.OpenApi;
 
@@ -14,9 +12,9 @@ public abstract class OpenApiCommandTestBase(NitroCommandFixture fixture) : Comm
     protected const string OpenApiCollectionName = "my-openapi";
     protected const string RequestId = "request-1";
 
-    private const string _openApiDocumentContent =
+    private const string OpenApiDocumentContent =
         """query GetUsers @http(method: GET, route: "/users") { users { id } }""";
-    private const string _invalidOpenApiDocumentContent =
+    private const string InvalidOpenApiDocumentContent =
         """query GetUsers { users { id } }""";
 
     protected static async Task AssertOpenApiCollectionArchive(Stream stream)
@@ -49,13 +47,13 @@ public abstract class OpenApiCommandTestBase(NitroCommandFixture fixture) : Comm
     protected void SetupOpenApiDocument()
     {
         SetupGlobMatch(["document.graphql"]);
-        SetupFile("document.graphql", _openApiDocumentContent);
+        SetupFile("document.graphql", OpenApiDocumentContent);
     }
 
     protected void SetupInvalidOpenApiDocument()
     {
         SetupGlobMatch(["document.graphql"]);
-        SetupFile("document.graphql", _invalidOpenApiDocumentContent);
+        SetupFile("document.graphql", InvalidOpenApiDocumentContent);
     }
 
     protected void SetupEmptyGlobMatch()

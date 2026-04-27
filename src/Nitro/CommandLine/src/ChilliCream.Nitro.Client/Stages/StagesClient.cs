@@ -1,5 +1,3 @@
-using ChilliCream.Nitro.Client.Stages;
-
 namespace ChilliCream.Nitro.Client.Stages;
 
 internal sealed class StagesClient(IApiClient apiClient) : IStagesClient

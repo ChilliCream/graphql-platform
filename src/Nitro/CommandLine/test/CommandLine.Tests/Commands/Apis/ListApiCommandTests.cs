@@ -1,5 +1,3 @@
-using ChilliCream.Nitro.Client;
-
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Apis;
 
 public sealed class ListApiCommandTests(NitroCommandFixture fixture) : ApisCommandTestBase(fixture)
@@ -53,7 +51,7 @@ public sealed class ListApiCommandTests(NitroCommandFixture fixture) : ApisComma
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -75,7 +73,7 @@ public sealed class ListApiCommandTests(NitroCommandFixture fixture) : ApisComma
         // assert
         result.AssertError(
             """
-            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually specify the '--workspace-id' option (if available).
+            Could not determine workspace. Either login via `nitro login` or specify the '--workspace-id' option.
             """);
     }
 

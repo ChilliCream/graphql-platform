@@ -39,7 +39,7 @@ public sealed class StatusCommandTests(NitroCommandFixture fixture) : SessionCom
         // assert
         result.AssertError(
             """
-            Not logged in. Run 'nitro login' first.
+            Not logged in. Run `nitro login` first.
             """);
     }
 
@@ -75,7 +75,7 @@ public sealed class StatusCommandTests(NitroCommandFixture fixture) : SessionCom
         // assert
         result.AssertSuccess(
             """
-            Logged in as user@chillicream.com (Workspace from session workspace)
+            Logged in as user@chillicream.com (Workspace: Workspace from session)
             """);
     }
 
@@ -115,7 +115,7 @@ public sealed class StatusCommandTests(NitroCommandFixture fixture) : SessionCom
         // assert
         result.AssertSuccess(
             """
-            Logged in as user@chillicream.com on api.custom.com (my-workspace workspace)
+            Logged in as user@chillicream.com on api.custom.com (Workspace: my-workspace)
             """);
     }
 }

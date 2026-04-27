@@ -1,7 +1,6 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Mcp;
-using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Commands.Mcp.Components;
 using ChilliCream.Nitro.CommandLine.Commands.Mcp.Options;
 using ChilliCream.Nitro.CommandLine.Helpers;
@@ -45,8 +44,7 @@ internal sealed class CreateMcpFeatureCollectionCommand : Command
 
         parseResult.AssertHasAuthentication(sessionService);
 
-        const string apiMessage = "For which API do you want to create an MCP Feature Collection?";
-        var apiId = await console.GetOrPromptForApiIdAsync(apiMessage, parseResult, apisClient, sessionService, cancellationToken);
+        var apiId = await console.GetOrPromptForApiIdAsync("For which API do you want to create an MCP Feature Collection?", parseResult, apisClient, sessionService, cancellationToken);
 
         var name = await console
             .PromptAsync("Name", defaultValue: null, parseResult, Opt<McpFeatureCollectionNameOption>.Instance, cancellationToken);
@@ -62,7 +60,7 @@ internal sealed class CreateMcpFeatureCollectionCommand : Command
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
 
                 foreach (var error in data.Errors)
                 {

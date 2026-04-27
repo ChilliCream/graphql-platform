@@ -150,7 +150,8 @@ public static class LookupTests
             }
 
             type Query4 {
-              book(by: Book4ByInput! @is(field: "{\n  id\n} | {\n  title\n}")): Book4! @lookup
+              book(by: Book4ByInput! @is(field: "{\n  id\n} | {\n  title\n}")): Book4!
+                @lookup
             }
 
             input Book4ByInput @oneOf {

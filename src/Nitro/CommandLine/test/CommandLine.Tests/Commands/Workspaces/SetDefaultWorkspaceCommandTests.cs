@@ -1,6 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Workspaces;
-using ChilliCream.Nitro.CommandLine.Commands.Workspaces;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Workspaces;
@@ -56,7 +54,7 @@ public sealed class SetDefaultWorkspaceCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -75,7 +73,7 @@ public sealed class SetDefaultWorkspaceCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertError(
             """
-            You do not have any workspaces. Run `[bold blue]nitro launch[/]` and create one.
+            You do not have any workspaces. Run `nitro launch` and create one.
             """);
     }
 
@@ -131,7 +129,7 @@ public sealed class SetDefaultWorkspaceCommandTests(NitroCommandFixture fixture)
         // assert
         result.AssertError(
             """
-            The '--workspace-id' option is required in non-interactive mode.
+            Missing required option '--workspace-id'.
             """);
     }
 
@@ -152,7 +150,7 @@ public sealed class SetDefaultWorkspaceCommandTests(NitroCommandFixture fixture)
         Assert.Empty(result.StdErr);
         Assert.Equal(0, result.ExitCode);
 
-        SessionServiceMock.Verify(
+        _sessionServiceMock.Verify(
             x => x.SelectWorkspaceAsync(
                 It.Is<Services.Sessions.Workspace>(w => w.Id == WorkspaceId && w.Name == WorkspaceName),
                 It.IsAny<CancellationToken>()),
@@ -179,47 +177,26 @@ public sealed class SetDefaultWorkspaceCommandTests(NitroCommandFixture fixture)
     }
 
     [Fact]
-    public async Task SetDefault_Should_AutoSelect_When_SingleWorkspaceAndNotForced()
+    public async Task SingleWorkspace_Should_StillPrompt_When_Interactive()
     {
         // arrange
-        var client = new Mock<IWorkspacesClient>(MockBehavior.Strict);
-        client.Setup(x => x.SelectWorkspacesAsync(
-                null,
-                5,
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ConnectionPage<ISetDefaultWorkspaceCommand_SelectWorkspace_Query_Me_Workspaces_Edges_Node>(
-                [
-                    new SetDefaultWorkspaceCommand_SelectWorkspace_Query_Me_Workspaces_Edges_Node_Workspace(
-                        "ws-1", "my-workspace", false)
-                ], null, false));
+        SetupInteractionMode(InteractionMode.Interactive);
+        SetupSelectWorkspacesQuery(
+            new SetDefaultWorkspaceCommand_SelectWorkspace_Query_Me_Workspaces_Edges_Node_Workspace(
+                WorkspaceId, WorkspaceName, false));
 
-        var console = Mock.Of<INitroConsole>();
-        var sessionService = new Mock<Services.Sessions.ISessionService>(MockBehavior.Strict);
-        sessionService.Setup(x => x.SelectWorkspaceAsync(
-                It.Is<Services.Sessions.Workspace>(w => w.Id == "ws-1" && w.Name == "my-workspace"),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new Services.Sessions.Session(
-                "session-1",
-                "subject-1",
-                "tenant-1",
-                "https://id.chillicream.com",
-                "api.chillicream.com",
-                "user@chillicream.com",
-                tokens: null,
-                workspace: new Services.Sessions.Workspace("ws-1", "my-workspace")));
+        var command = StartInteractiveCommand(
+            "workspace",
+            "set-default");
 
         // act
-        var exitCode = await SetDefaultWorkspaceCommand.ExecuteAsync(
-            forceSelection: false,
-            console,
-            client.Object,
-            sessionService.Object,
-            CancellationToken.None);
+        command.SelectOption(0);
+
+        var result = await command.RunToCompletionAsync();
 
         // assert
-        Assert.Equal(0, exitCode);
+        result.AssertSuccess();
 
-        client.VerifyAll();
-        sessionService.VerifyAll();
+        VerifyWorkspaceSelected(WorkspaceId, WorkspaceName);
     }
 }

@@ -1,12 +1,9 @@
 using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Mocks;
-using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Commands.Mocks.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
-using static ChilliCream.Nitro.CommandLine.ThrowHelper;
-
 namespace ChilliCream.Nitro.CommandLine.Commands.Mocks;
 
 internal sealed class ListMockCommand : Command
@@ -58,8 +55,7 @@ internal sealed class ListMockCommand : Command
         string? cursor,
         CancellationToken ct)
     {
-        const string apiMessage = "For which API do you want to list the mock schemas?";
-        var apiId = await console.GetOrPromptForApiIdAsync(apiMessage, parseResult, apisClient, sessionService, ct);
+        var apiId = await console.GetOrPromptForApiIdAsync("For which API do you want to list the mock schemas?", parseResult, apisClient, sessionService, ct);
 
         var container = PaginationContainer
             .CreateConnectionData((after, first, token) =>
@@ -88,11 +84,7 @@ internal sealed class ListMockCommand : Command
         string? cursor,
         CancellationToken ct)
     {
-        var apiId = parseResult.GetValue(Opt<OptionalApiIdOption>.Instance);
-        if (apiId is null)
-        {
-            throw MissingRequiredOption(ApiIdOption.OptionName);
-        }
+        var apiId = parseResult.GetRequiredOptionalValue(Opt<OptionalApiIdOption>.Instance);
 
         var data = await client.ListMockSchemasAsync(apiId, cursor, 10, ct);
         var items = data.Items

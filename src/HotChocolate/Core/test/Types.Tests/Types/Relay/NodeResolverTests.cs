@@ -275,7 +275,7 @@ public class NodeResolverTests
         var operationResult = result.ExpectOperationResult();
 
         Assert.True(
-            operationResult.Errors is null || operationResult.Errors.Count == 0,
+            operationResult.Errors.Count == 0,
             $"Expected no errors but got: {operationResult.ToJson()}");
 
         using var document = JsonDocument.Parse(operationResult.ToJson());

@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Apis;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Apis;
@@ -63,7 +62,7 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : ApisCom
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -88,7 +87,7 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : ApisCom
         // assert
         result.AssertError(
             """
-            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually specify the '--workspace-id' option (if available).
+            Could not determine workspace. Either login via `nitro login` or specify the '--workspace-id' option.
             """);
     }
 
@@ -475,6 +474,28 @@ public sealed class CreateApiCommandTests(NitroCommandFixture fixture) : ApisCom
               }
             }
             """);
+    }
+
+    [Theory]
+    [InlineData("products")]
+    [InlineData("C:/Program Files/Git/test")]
+    public async Task Create_Should_ReturnError_When_PathDoesNotStartWithSlash(string path)
+    {
+        // arrange
+        SetupSessionWithWorkspace();
+
+        // act
+        var result = await ExecuteCommandAsync(
+            "api",
+            "create",
+            "--name",
+            ApiName,
+            "--path",
+            path);
+
+        // assert
+        result.AssertError(
+            $"The path '{path}' is invalid. It must start with '/'.");
     }
 
     [Fact]

@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Mcp;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Mcp;
 
@@ -60,7 +59,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests(NitroCommandFixture f
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -105,7 +104,7 @@ public sealed class CreateMcpFeatureCollectionCommandTests(NitroCommandFixture f
         // assert
         result.AssertError(
             """
-            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually specify the '--workspace-id' option (if available).
+            Missing required option '--api-id'.
             """);
     }
 

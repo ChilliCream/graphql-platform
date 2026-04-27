@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Apis;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Apis;
 
@@ -58,7 +57,7 @@ public sealed class DeleteApiCommandTests(NitroCommandFixture fixture) : ApisCom
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 

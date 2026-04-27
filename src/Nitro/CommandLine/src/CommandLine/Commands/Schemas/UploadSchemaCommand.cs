@@ -1,9 +1,6 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Schemas;
-using ChilliCream.Nitro.CommandLine;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
-using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 using Command = System.CommandLine.Command;
@@ -64,7 +61,7 @@ internal sealed class UploadSchemaCommand : Command
         }
 
         await using (var activity = console.StartActivity(
-            $"Uploading new schema version '{tag.EscapeMarkup()}' to API '{apiId.EscapeMarkup()}'",
+            $"Uploading new schema version '{tag.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}'",
             "Failed to upload a new schema version."))
         {
             await using var stream = fileSystem.OpenReadStream(schemaFilePath);
@@ -78,7 +75,7 @@ internal sealed class UploadSchemaCommand : Command
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
 
                 foreach (var error in data.Errors)
                 {

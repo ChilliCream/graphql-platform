@@ -48,7 +48,9 @@ public partial class DirectiveType
 
         if (RuntimeType != typeof(object))
         {
+#pragma warning disable IL3050
             TypeIdentity = typeof(DirectiveType<>).MakeGenericType(RuntimeType);
+#pragma warning restore IL3050
         }
 
         IsRepeatable = configuration.IsRepeatable;

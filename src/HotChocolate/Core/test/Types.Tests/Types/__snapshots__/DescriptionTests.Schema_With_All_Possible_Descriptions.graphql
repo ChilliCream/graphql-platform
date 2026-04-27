@@ -20,7 +20,7 @@ interface SomeInterface {
   comment
   """
   fieldMulti: String
-  fieldWithArgs("Single line comment" arg1: String! """
+  fieldWithArgs("Single line comment" arg1: String!, """
   Multi line
   comment
   """ arg2: String!): String
@@ -33,7 +33,7 @@ comment
 type OtherObjectType implements SomeInterface & OtherInterface {
   field: String
   fieldMulti: String
-  fieldWithArgs(arg1: String! arg2: String!): String
+  fieldWithArgs(arg1: String!, arg2: String!): String
 }
 
 """
@@ -48,7 +48,7 @@ type Query {
   comment
   """
   outputFieldMulti: String
-  outputFieldWithArgs("Single line comment" arg1: SomeInput! """
+  outputFieldWithArgs("Single line comment" arg1: SomeInput!, """
   Multi line
   comment
   """ arg2: OtherInput!): String
@@ -117,7 +117,7 @@ enum SomeEnum {
 directive @oneOf on INPUT_OBJECT
 
 "Single line comment"
-directive @other("Single line comment" arg1: String """
+directive @other("Single line comment" arg1: String, """
 Multi line
 comment
 """ arg2: String) on FIELD
@@ -126,7 +126,7 @@ comment
 Multi line
 comment
 """
-directive @some("Single line comment" arg1: String """
+directive @some("Single line comment" arg1: String, """
 Multi line
 comment
 """ arg2: String) on FIELD

@@ -1,0 +1,29 @@
+{
+  "name": "@chillicream/nitro-win-x86",
+  "version": "0.0.0",
+  "description": "Nitro CLI binary for win-x86",
+  "homepage": "https://chillicream.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ChilliCream/graphql-platform",
+    "directory": "src/Nitro/CommandLine/src/npm/chillicream-nitro-win-x86"
+  },
+  "bugs": {
+    "url": "https://github.com/ChilliCream/graphql-platform/issues"
+  },
+  "author": {
+    "name": "ChilliCream",
+    "url": "https://chillicream.com",
+    "email": "info@chillicream.com"
+  },
+  "license": "MIT",
+  "os": [
+    "win32"
+  ],
+  "cpu": [
+    "ia32"
+  ],
+  "files": [
+    "nitro.exe"
+  ]
+}

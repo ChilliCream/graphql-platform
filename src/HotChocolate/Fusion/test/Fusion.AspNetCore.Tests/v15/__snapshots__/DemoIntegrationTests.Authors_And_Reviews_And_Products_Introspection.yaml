@@ -143,6 +143,13 @@ response:
                     "name": "__Type",
                     "kind": "OBJECT"
                   }
+                },
+                {
+                  "name": "isOneOf",
+                  "type": {
+                    "name": "Boolean",
+                    "kind": "SCALAR"
+                  }
                 }
               ]
             },
@@ -615,7 +622,7 @@ sourceSchemas:
         nodes(ids: [ID!]!): [Node]! @shareable
         userById(id: ID!): User!
         users: [User!]!
-        testWithTwoArgumentsDifferingNullability(first: Int! second: Int): String!
+        testWithTwoArgumentsDifferingNullability(first: Int!, second: Int): String!
       }
 
       type User implements Node {

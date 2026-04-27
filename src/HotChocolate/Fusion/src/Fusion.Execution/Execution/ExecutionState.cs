@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -18,7 +19,7 @@ internal sealed class ExecutionState
     private readonly List<int> _trackedNodeStateSlots = [];
     private readonly List<int> _trackedDependencySlots = [];
     private readonly ConcurrentQueue<ExecutionNodeResult> _completedResults = new();
-    private readonly HashSet<int> _failedOrSkippedNodes = [];
+    private ulong[] _failedOrSkippedBitset = [];
 
     private bool _collectTelemetry;
     private CancellationTokenSource _cts = default!;
@@ -42,15 +43,40 @@ internal sealed class ExecutionState
         _cts = default!;
     }
 
+    public void Destroy()
+    {
+        if (_nodeStates.Length > 0)
+        {
+            ArrayPool<byte>.Shared.Return(_nodeStates);
+            _nodeStates = [];
+        }
+
+        if (_remainingDependencies.Length > 0)
+        {
+            ArrayPool<int>.Shared.Return(_remainingDependencies);
+            _remainingDependencies = [];
+        }
+
+        if (_failedOrSkippedBitset.Length > 0)
+        {
+            ArrayPool<ulong>.Shared.Return(_failedOrSkippedBitset);
+            _failedOrSkippedBitset = [];
+        }
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool IsNodeSkipped(int nodeId)
-        => _failedOrSkippedNodes.Contains(nodeId);
+    {
+        var index = nodeId >> 6;
+        return index < _failedOrSkippedBitset.Length
+            && (_failedOrSkippedBitset[index] & (1UL << (nodeId & 63))) != 0;
+    }
 
     public void FillBacklog(OperationPlan plan)
     {
         _ready.Clear();
         _backlogCount = 0;
-        _failedOrSkippedNodes.Clear();
+        ClearFailedOrSkippedBitset();
 
         ResetNodeStates();
         ResetRemainingDependencies();
@@ -104,7 +130,7 @@ internal sealed class ExecutionState
         _stack.Clear();
         _ready.Clear();
         _backlogCount = 0;
-        _failedOrSkippedNodes.Clear();
+        ClearFailedOrSkippedBitset();
 
         ResetNodeStates();
         ResetRemainingDependencies();
@@ -190,7 +216,7 @@ internal sealed class ExecutionState
         {
             foreach (var def in result.SkippedDefinitions)
             {
-                _failedOrSkippedNodes.Add(def.Id);
+                MarkNodeAsSkipped(def.Id);
             }
         }
 
@@ -260,7 +286,7 @@ internal sealed class ExecutionState
 
         while (_stack.TryPop(out var current))
         {
-            _failedOrSkippedNodes.Add(current.Id);
+            MarkNodeAsSkipped(current.Id);
 
             // When a batch node is skipped without executing, every operation
             // definition inside it is also skipped. We mark each of their
@@ -270,7 +296,7 @@ internal sealed class ExecutionState
             {
                 foreach (var op in batchNode.Operations)
                 {
-                    _failedOrSkippedNodes.Add(op.Id);
+                    MarkNodeAsSkipped(op.Id);
                 }
             }
 
@@ -302,7 +328,7 @@ internal sealed class ExecutionState
                 // whose dependencies failed.
                 if (dependent is not ExecutionNode)
                 {
-                    _failedOrSkippedNodes.Add(dependent.Id);
+                    MarkNodeAsSkipped(dependent.Id);
                     continue;
                 }
 
@@ -374,7 +400,7 @@ internal sealed class ExecutionState
         // All dependencies are optional. Check if every one of them failed or was skipped.
         foreach (var optDep in node.OptionalDependencies)
         {
-            if (!_failedOrSkippedNodes.Contains(optDep.Id))
+            if (!IsNodeSkipped(optDep.Id))
             {
                 return false;
             }
@@ -488,12 +514,13 @@ internal sealed class ExecutionState
             newCapacity *= 2;
         }
 
-        var dependencies = new int[newCapacity];
-        Array.Fill(dependencies, -1);
+        var dependencies = ArrayPool<int>.Shared.Rent(newCapacity);
+        dependencies.AsSpan().Fill(-1);
 
         if (_remainingDependencies.Length > 0)
         {
             Array.Copy(_remainingDependencies, dependencies, _remainingDependencies.Length);
+            ArrayPool<int>.Shared.Return(_remainingDependencies);
         }
 
         _remainingDependencies = dependencies;
@@ -521,7 +548,7 @@ internal sealed class ExecutionState
         };
     }
 
-    private void AddToBacklog(ExecutionNode node)
+    internal void AddToBacklog(ExecutionNode node)
     {
         var nodeId = node.Id;
 
@@ -610,13 +637,57 @@ internal sealed class ExecutionState
             newCapacity *= 2;
         }
 
-        var nodeStates = new byte[newCapacity];
+        var nodeStates = ArrayPool<byte>.Shared.Rent(newCapacity);
+        nodeStates.AsSpan().Clear();
 
         if (_nodeStates.Length > 0)
         {
             Array.Copy(_nodeStates, nodeStates, _nodeStates.Length);
+            ArrayPool<byte>.Shared.Return(_nodeStates);
         }
 
         _nodeStates = nodeStates;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void MarkNodeAsSkipped(int nodeId)
+    {
+        var index = nodeId >> 6;
+
+        if (index >= _failedOrSkippedBitset.Length)
+        {
+            EnsureFailedOrSkippedCapacity(index + 1);
+        }
+
+        _failedOrSkippedBitset[index] |= 1UL << (nodeId & 63);
+    }
+
+    private void EnsureFailedOrSkippedCapacity(int minWordCount)
+    {
+        var newCapacity = _failedOrSkippedBitset.Length == 0 ? 2 : _failedOrSkippedBitset.Length;
+
+        while (newCapacity < minWordCount)
+        {
+            newCapacity *= 2;
+        }
+
+        var newBitset = ArrayPool<ulong>.Shared.Rent(newCapacity);
+        newBitset.AsSpan().Clear();
+
+        if (_failedOrSkippedBitset.Length > 0)
+        {
+            _failedOrSkippedBitset.AsSpan().CopyTo(newBitset);
+            ArrayPool<ulong>.Shared.Return(_failedOrSkippedBitset);
+        }
+
+        _failedOrSkippedBitset = newBitset;
+    }
+
+    private void ClearFailedOrSkippedBitset()
+    {
+        if (_failedOrSkippedBitset.Length > 0)
+        {
+            _failedOrSkippedBitset.AsSpan().Clear();
+        }
     }
 }

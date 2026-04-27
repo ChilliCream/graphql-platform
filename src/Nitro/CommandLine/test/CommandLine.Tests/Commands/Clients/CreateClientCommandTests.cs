@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Clients;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Clients;
@@ -60,12 +59,31 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : Clie
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
+            """);
+    }
+
+    [Fact]
+    public async Task NoWorkspaceInSession_And_NoApiId_ReturnsError_Interactive()
+    {
+        // arrange & act
+        SetupSession();
+        SetupInteractionMode(InteractionMode.Interactive);
+
+        var result = await ExecuteCommandAsync(
+            "client",
+            "create",
+            "--name",
+            ClientName);
+
+        // assert
+        result.AssertError(
+            """
+            Could not determine workspace. Either login via `nitro login` or specify the '--workspace-id' option.
             """);
     }
 
     [Theory]
-    [InlineData(InteractionMode.Interactive)]
     [InlineData(InteractionMode.NonInteractive)]
     [InlineData(InteractionMode.JsonOutput)]
     public async Task NoWorkspaceInSession_And_NoApiId_ReturnsError(InteractionMode mode)
@@ -83,7 +101,7 @@ public sealed class CreateClientCommandTests(NitroCommandFixture fixture) : Clie
         // assert
         result.AssertError(
             """
-            You are not logged in. Run `[bold blue]nitro login[/]` to sign in or manually specify the '--workspace-id' option (if available).
+            Missing required option '--api-id'.
             """);
     }
 

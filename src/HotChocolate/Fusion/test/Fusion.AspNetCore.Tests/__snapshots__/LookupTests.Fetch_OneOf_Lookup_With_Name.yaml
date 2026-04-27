@@ -49,7 +49,9 @@ sourceSchemas:
       }
 
       type InternalLookups @internal {
-        author(by: AuthorByInput! @is(field: "{\n  id\n} | {\n  name\n}")): Author! @lookup @internal
+        author(by: AuthorByInput! @is(field: "{\n  id\n} | {\n  name\n}")): Author
+          @lookup
+          @internal
       }
 
       type Query {
@@ -67,9 +69,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query Op_54ef22d5_2(
-              $__fusion_1_by: AuthorByInput!
-            ) {
+            query Op_54ef22d5_2($__fusion_1_by: AuthorByInput!) {
               lookups {
                 author(by: $__fusion_1_by) {
                   id
@@ -153,9 +153,7 @@ operationPlan:
       type: Operation
       schema: b
       operation: |
-        query Op_54ef22d5_2(
-          $__fusion_1_by: AuthorByInput!
-        ) {
+        query Op_54ef22d5_2($__fusion_1_by: AuthorByInput!) {
           lookups {
             author(by: $__fusion_1_by) {
               id

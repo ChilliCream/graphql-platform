@@ -116,9 +116,7 @@ nodes:
     type: Operation
     schema: c
     operation: |
-      query TestQuery_123456789101112_3(
-        $__fusion_1_id: ID!
-      ) {
+      query TestQuery_123456789101112_3($__fusion_1_id: ID!) {
         user(id: $__fusion_1_id) {
           reviews {
             id
@@ -156,9 +154,7 @@ nodes:
     type: Operation
     schema: c
     operation: |
-      query TestQuery_123456789101112_9(
-        $__fusion_9_upc: ID!
-      ) {
+      query TestQuery_123456789101112_9($__fusion_9_upc: ID!) {
         product(upc: $__fusion_9_upc) {
           reviews {
             id
@@ -189,9 +185,7 @@ nodes:
     type: OperationBatch
     schema: b
     operation: |
-      query TestQuery_123456789101112_4(
-        $__fusion_2_upc: ID!
-      ) {
+      query TestQuery_123456789101112_4($__fusion_2_upc: ID!) {
         product(upc: $__fusion_2_upc) {
           name
           price
@@ -249,9 +243,7 @@ nodes:
     type: OperationBatch
     schema: a
     operation: |
-      query TestQuery_123456789101112_6(
-        $__fusion_5_id: ID!
-      ) {
+      query TestQuery_123456789101112_6($__fusion_5_id: ID!) {
         user(id: $__fusion_5_id) {
           username
           name

@@ -8,17 +8,23 @@ public sealed class DataTypeDescriptor : ICodeDescriptor
     /// Describes the DataType
     /// </summary>
     /// <param name="name">
-    ///
+    /// The name of the data type.
     /// </param>
     /// <param name="namespace">
-    ///
+    /// The namespace of the data type.
     /// </param>
     /// <param name="operationTypes">
     /// The types that are subsets of the DataType represented by this descriptor.
     /// </param>
-    /// <param name="implements"></param>
-    /// <param name="documentation"></param>
-    /// <param name="isInterface"></param>
+    /// <param name="implements">
+    /// The interfaces that the data type implements.
+    /// </param>
+    /// <param name="documentation">
+    /// The XML documentation of the data type.
+    /// </param>
+    /// <param name="isInterface">
+    /// Indicates whether the data type is an interface.
+    /// </param>
     public DataTypeDescriptor(
         string name,
         string @namespace,

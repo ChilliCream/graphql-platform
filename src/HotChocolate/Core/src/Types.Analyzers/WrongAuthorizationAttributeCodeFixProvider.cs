@@ -39,6 +39,7 @@ public sealed class WrongAuthorizationAttributeCodeFixProvider : CodeFixProvider
 
         // Get the semantic model
         var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+        // ReSharper disable once UseNullPropagation - https://youtrack.jetbrains.com/issue/RSRP-503517
         if (semanticModel is null)
         {
             return;

@@ -24,9 +24,7 @@ public sealed class SourceSchemaMergerTagDirectiveTests : SourceSchemaMergerTest
                 """
             ],
             """
-            scalar Foo
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
+            scalar Foo @fusion__type(schema: A) @fusion__type(schema: B)
             """,
             options => options.TagMergeBehavior = DirectiveMergeBehavior.Ignore);
     }
@@ -103,89 +101,75 @@ public sealed class SourceSchemaMergerTagDirectiveTests : SourceSchemaMergerTest
                 """
             ],
             $$"""
-            schema
-                @tag(name: "a")
-                @tag(name: "b") {
-                query: Query
+            schema @tag(name: "a") @tag(name: "b") {
+              query: Query
             }
 
-            type Query
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field: Int
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+            type Query @fusion__type(schema: A) @fusion__type(schema: B) {
+              field: Int @fusion__field(schema: A) @fusion__field(schema: B)
             }
 
             type FooObject
+              @tag(name: "a")
+              @tag(name: "b")
+              @fusion__type(schema: A)
+              @fusion__type(schema: B) {
+              field(
+                arg: Int @tag(name: "a") @tag(name: "b") @fusion__inputField(schema: A) @fusion__inputField(schema: B)
+              ): Int
                 @tag(name: "a")
                 @tag(name: "b")
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field(arg: Int
-                    @tag(name: "a")
-                    @tag(name: "b")
-                    @fusion__inputField(schema: A)
-                    @fusion__inputField(schema: B)): Int
-                    @tag(name: "a")
-                    @tag(name: "b")
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
             }
 
             interface FooInterface
+              @tag(name: "a")
+              @tag(name: "b")
+              @fusion__type(schema: A)
+              @fusion__type(schema: B) {
+              field(
+                arg: Int @tag(name: "a") @tag(name: "b") @fusion__inputField(schema: A) @fusion__inputField(schema: B)
+              ): Int
                 @tag(name: "a")
                 @tag(name: "b")
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field(arg: Int
-                    @tag(name: "a")
-                    @tag(name: "b")
-                    @fusion__inputField(schema: A)
-                    @fusion__inputField(schema: B)): Int
-                    @tag(name: "a")
-                    @tag(name: "b")
-                    @fusion__field(schema: A)
-                    @fusion__field(schema: B)
+                @fusion__field(schema: A)
+                @fusion__field(schema: B)
             }
 
             union FooUnion
-                @tag(name: "a")
-                @tag(name: "b")
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
-                @fusion__unionMember(schema: A, member: "FooObject")
-                @fusion__unionMember(schema: B, member: "FooObject") = FooObject
+              @tag(name: "a")
+              @tag(name: "b")
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
+              @fusion__unionMember(schema: A, member: "FooObject")
+              @fusion__unionMember(schema: B, member: "FooObject") = FooObject
 
             input FooInput
-                @tag(name: "a")
-                @tag(name: "b")
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                field: Int
-                    @tag(name: "a")
-                    @tag(name: "b")
-                    @fusion__inputField(schema: A)
-                    @fusion__inputField(schema: B)
+              @tag(name: "a")
+              @tag(name: "b")
+              @fusion__type(schema: A)
+              @fusion__type(schema: B) {
+              field: Int @tag(name: "a") @tag(name: "b") @fusion__inputField(schema: A) @fusion__inputField(schema: B)
             }
 
             enum FooEnum
+              @tag(name: "a")
+              @tag(name: "b")
+              @fusion__type(schema: A)
+              @fusion__type(schema: B) {
+              VALUE
                 @tag(name: "a")
                 @tag(name: "b")
-                @fusion__type(schema: A)
-                @fusion__type(schema: B) {
-                VALUE
-                    @tag(name: "a")
-                    @tag(name: "b")
-                    @fusion__enumValue(schema: A)
-                    @fusion__enumValue(schema: B)
+                @fusion__enumValue(schema: A)
+                @fusion__enumValue(schema: B)
             }
 
             scalar FooScalar
-                @tag(name: "a")
-                @tag(name: "b")
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
+              @tag(name: "a")
+              @tag(name: "b")
+              @fusion__type(schema: A)
+              @fusion__type(schema: B)
 
             directive @tag(name: String!) repeatable on {{s_tagLocations}}
             """,
@@ -212,9 +196,7 @@ public sealed class SourceSchemaMergerTagDirectiveTests : SourceSchemaMergerTest
                 """
             ],
             """
-            scalar Foo
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
+            scalar Foo @fusion__type(schema: A) @fusion__type(schema: B)
             """,
             options => options.TagMergeBehavior = DirectiveMergeBehavior.Include);
     }
@@ -270,10 +252,7 @@ public sealed class SourceSchemaMergerTagDirectiveTests : SourceSchemaMergerTest
                 """
             ],
             $"""
-            scalar Foo
-                @tag(name: "same")
-                @fusion__type(schema: A)
-                @fusion__type(schema: B)
+            scalar Foo @tag(name: "same") @fusion__type(schema: A) @fusion__type(schema: B)
 
             directive @tag(name: String!) repeatable on {s_tagLocations}
             """,

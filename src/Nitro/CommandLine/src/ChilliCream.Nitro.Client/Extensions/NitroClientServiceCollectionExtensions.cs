@@ -206,10 +206,6 @@ public static class NitroClientServiceCollectionExtensions
                 client.DefaultRequestHeaders.Remove("Authorization");
                 client.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken.AccessToken}");
                 break;
-
-            case null:
-                throw new InvalidOperationException(
-                    "You are not authenticated. Either specify --api-key or run 'nitro login'.");
         }
     }
 

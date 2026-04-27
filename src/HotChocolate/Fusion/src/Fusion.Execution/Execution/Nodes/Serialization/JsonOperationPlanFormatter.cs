@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using HotChocolate.Buffers;
+using HotChocolate.Execution;
 using JsonWriter = HotChocolate.Text.Json.JsonWriter;
 
 namespace HotChocolate.Fusion.Execution.Nodes.Serialization;
@@ -82,6 +83,9 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
 
         jsonWriter.WritePropertyName("nodes");
         WriteNodes(jsonWriter, plan.Operation, plan.AllNodes, trace);
+
+        WriteDeliveryGroups(jsonWriter, plan.DeliveryGroups);
+        WriteDeferredSubPlans(jsonWriter, plan.DeferredSubPlans);
 
         jsonWriter.WriteEndObject();
     }
@@ -164,6 +168,110 @@ public sealed class JsonOperationPlanFormatter(JsonWriterOptions? options = null
         }
 
         jsonWriter.WriteEndArray();
+    }
+
+    private static void WriteDeliveryGroups(
+        JsonWriter jsonWriter,
+        ImmutableArray<DeferUsage> deliveryGroups)
+    {
+        if (deliveryGroups.IsDefaultOrEmpty)
+        {
+            return;
+        }
+
+        jsonWriter.WritePropertyName("deliveryGroups");
+        jsonWriter.WriteStartArray();
+
+        foreach (var deliveryGroup in deliveryGroups)
+        {
+            WriteDeliveryGroup(jsonWriter, deliveryGroup);
+        }
+
+        jsonWriter.WriteEndArray();
+    }
+
+    private static void WriteDeliveryGroup(
+        JsonWriter jsonWriter,
+        DeferUsage deliveryGroup)
+    {
+        jsonWriter.WriteStartObject();
+
+        jsonWriter.WritePropertyName("id");
+        jsonWriter.WriteNumberValue(deliveryGroup.Id);
+
+        jsonWriter.WritePropertyName("path");
+        jsonWriter.WriteStringValue((deliveryGroup.Path ?? SelectionPath.Root).ToString());
+
+        if (deliveryGroup.Label is not null)
+        {
+            jsonWriter.WritePropertyName("label");
+            jsonWriter.WriteStringValue(deliveryGroup.Label);
+        }
+
+        if (deliveryGroup.IfVariable is not null)
+        {
+            jsonWriter.WritePropertyName("ifVariable");
+            jsonWriter.WriteStringValue("$" + deliveryGroup.IfVariable);
+        }
+
+        if (deliveryGroup.Parent is not null)
+        {
+            jsonWriter.WritePropertyName("parentId");
+            jsonWriter.WriteNumberValue(deliveryGroup.Parent.Id);
+        }
+
+        jsonWriter.WriteEndObject();
+    }
+
+    private static void WriteDeferredSubPlans(
+        JsonWriter jsonWriter,
+        ImmutableArray<ExecutionSubPlan> deferredSubPlans)
+    {
+        if (deferredSubPlans.IsDefaultOrEmpty)
+        {
+            return;
+        }
+
+        jsonWriter.WritePropertyName("deferredSubPlans");
+        jsonWriter.WriteStartArray();
+
+        foreach (var subPlan in deferredSubPlans)
+        {
+            WriteDeferredSubPlan(jsonWriter, subPlan);
+        }
+
+        jsonWriter.WriteEndArray();
+    }
+
+    private static void WriteDeferredSubPlan(
+        JsonWriter jsonWriter,
+        ExecutionSubPlan subPlan)
+    {
+        jsonWriter.WriteStartObject();
+
+        jsonWriter.WritePropertyName("deliveryGroupIds");
+        jsonWriter.WriteStartArray();
+
+        foreach (var deliveryGroup in subPlan.DeliveryGroups)
+        {
+            jsonWriter.WriteNumberValue(deliveryGroup.Id);
+        }
+
+        jsonWriter.WriteEndArray();
+
+        jsonWriter.WritePropertyName("parentNodeId");
+        jsonWriter.WriteNumberValue(subPlan.ParentNodeId);
+
+        jsonWriter.WritePropertyName("operation");
+        WriteOperation(jsonWriter, subPlan.Operation);
+
+        if (!subPlan.AllNodes.IsDefaultOrEmpty)
+        {
+            jsonWriter.WritePropertyName("nodes");
+            WriteNodes(jsonWriter, subPlan.Operation, subPlan.AllNodes, null);
+        }
+
+        jsonWriter.WriteEndObject();
     }
 
     private static void WriteOperationNode(

@@ -1,4 +1,3 @@
-using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services;
 using Spectre.Console.Rendering;
@@ -6,23 +5,24 @@ using Spectre.Console.Rendering;
 namespace ChilliCream.Nitro.CommandLine;
 
 internal sealed class NitroConsole(
-    IAnsiConsole console,
+    IAnsiConsole outConsole,
     IAnsiConsole errorConsole,
-    IEnvironmentVariableProvider environmentVariables)
+    IEnvironmentVariableProvider environmentVariables,
+    IActivitySinkFactory activitySinkFactory)
     : INitroConsole
 {
     private OutputFormat? _outputFormat;
     private bool _hasWrittenOutput;
 
     public bool IsInteractive =>
-        console.Profile.Capabilities.Interactive
+        outConsole.Profile.Capabilities.Interactive
         && !IsNonInteractiveEnvironment();
 
     public bool IsHumanReadable => _outputFormat is null;
 
     public bool HasWrittenOutput => _hasWrittenOutput;
 
-    public IAnsiConsole Out => console;
+    public IAnsiConsole Out => outConsole;
 
     public IAnsiConsole Error => errorConsole;
 
@@ -31,11 +31,17 @@ internal sealed class NitroConsole(
         _outputFormat = format;
     }
 
+    public INitroConsoleActivity StartActivity(string title, string failureMessage)
+    {
+        var sink = activitySinkFactory.Create(this, IsInteractive);
+        return NitroConsoleActivity.Start(sink, title, failureMessage);
+    }
+
     public void Clear(bool home)
     {
         if (IsHumanReadable)
         {
-            console.Clear(home);
+            outConsole.Clear(home);
         }
     }
 
@@ -44,7 +50,7 @@ internal sealed class NitroConsole(
         if (IsHumanReadable)
         {
             _hasWrittenOutput = true;
-            console.Write(renderable);
+            outConsole.Write(renderable);
             return;
         }
 
@@ -58,20 +64,34 @@ internal sealed class NitroConsole(
             + "Check the documentation of the command to see all options");
     }
 
-    public Profile Profile => console.Profile;
+    public void WriteAnsi(Action<AnsiWriter> action)
+    {
+        if (IsHumanReadable)
+        {
+            _hasWrittenOutput = true;
+            outConsole.WriteAnsi(action);
+            return;
+        }
 
-    public IAnsiConsoleCursor Cursor => console.Cursor;
+        throw new ExitException(
+            "Console runs in non interactive mode, yet a user interaction was attempted. "
+            + "Check the documentation of the command to see all options");
+    }
 
-    public IAnsiConsoleInput Input => console.Input;
+    public Profile Profile => outConsole.Profile;
+
+    public IAnsiConsoleCursor Cursor => outConsole.Cursor;
+
+    public IAnsiConsoleInput Input => outConsole.Input;
 
     public IExclusivityMode ExclusivityMode =>
         IsInteractive
-            ? console.ExclusivityMode
+            ? outConsole.ExclusivityMode
             : throw new ExitException(
                 "Console runs in non interactive mode, yet a user interaction was attempted. "
                 + "Check the documentation of the command to see all options");
 
-    public RenderPipeline Pipeline => console.Pipeline;
+    public RenderPipeline Pipeline => outConsole.Pipeline;
 
     private bool IsNonInteractiveEnvironment()
     {

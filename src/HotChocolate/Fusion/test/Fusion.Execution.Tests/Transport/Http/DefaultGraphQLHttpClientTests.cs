@@ -491,7 +491,7 @@ public class DefaultGraphQLHttpClientTests
         var ms = new MemoryStream();
         var sw = new StreamWriter(ms);
 
-        for (int i = 0; i < 1000; i++)
+        for (var i = 0; i < 1000; i++)
         {
             sw.Write($"{{\"data\":{{\"number\":{i}}}}}");
             sw.Write('\n');
@@ -508,7 +508,7 @@ public class DefaultGraphQLHttpClientTests
             null,
             null,
             null,
-            [..Enumerable.Repeat(VariableValues.Empty, 1000)],
+            [.. Enumerable.Repeat(VariableValues.Empty, 1000)],
             JsonSegment.Empty);
         var request = new GraphQLHttpRequest(operationRequest, new Uri("http://localhost:5000/graphql"));
 
@@ -570,7 +570,7 @@ public class DefaultGraphQLHttpClientTests
         var ms = new MemoryStream();
         var sw = new StreamWriter(ms);
 
-        for (int i = 0; i < LargeTestBatchSize; i++)
+        for (var i = 0; i < LargeTestBatchSize; i++)
         {
             sw.Write("event: next");
             sw.Write('\n');
@@ -666,7 +666,7 @@ public class DefaultGraphQLHttpClientTests
         var sb = new StringBuilder();
         sb.Append("{\"data\":{\"items\":[");
 
-        for (int i = 0; i < itemCount; i++)
+        for (var i = 0; i < itemCount; i++)
         {
             if (i > 0)
             {
@@ -685,7 +685,7 @@ public class DefaultGraphQLHttpClientTests
         var sb = new StringBuilder();
         sb.Append('[');
 
-        for (int i = 0; i < itemCount; i++)
+        for (var i = 0; i < itemCount; i++)
         {
             if (i > 0)
             {

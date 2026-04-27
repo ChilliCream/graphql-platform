@@ -7,7 +7,6 @@ using HotChocolate.Fusion.Properties;
 using HotChocolate.Fusion.Text.Json;
 using HotChocolate.Fusion.Transport;
 using HotChocolate.Fusion.Transport.Http;
-using HotChocolate.Features;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Buffers;
@@ -300,7 +299,8 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             case 0:
                 httpRequest = new GraphQLHttpRequest(CreateSingleRequest(context, originalRequest, ref buffer))
                 {
-                    Uri = _configuration.BaseAddress, AcceptHeaderValue = defaultAcceptHeader
+                    Uri = _configuration.BaseAddress,
+                    AcceptHeaderValue = defaultAcceptHeader
                 };
                 break;
 
@@ -347,7 +347,8 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         bool requiresFileUpload,
         ref ChunkedArrayWriter? buffer)
     {
-        if (requiresFileUpload)
+        if (requiresFileUpload
+            && context.RequestContext.Features.Get<IFileLookup>() is { } fileLookup)
         {
             var capacity = originalRequests.Length;
 
@@ -361,7 +362,6 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 
             var batchRequests = ImmutableArray.CreateBuilder<IOperationRequest>(capacity);
             var fileEntries = ImmutableArray.CreateBuilder<FileEntry>();
-            var fileLookup = context.RequestContext.Features.GetRequired<IFileLookup>();
             buffer ??= new ChunkedArrayWriter();
             var i = 0;
 
@@ -486,10 +486,10 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             ? VariableValues.Empty
             : originalRequest.Variables[0];
 
-        if (originalRequest.RequiresFileUpload)
+        if (originalRequest.RequiresFileUpload
+            && context.RequestContext.Features.Get<IFileLookup>() is { } fileLookup)
         {
             writer ??= new ChunkedArrayWriter();
-            var fileLookup = context.RequestContext.Features.GetRequired<IFileLookup>();
             var (cleanedJson, fileMap) = FileEntryBuilder.Build(writer, variables.Values, fileLookup);
 
             return new OperationRequest(
@@ -535,10 +535,10 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         SourceSchemaClientRequest originalRequest,
         ref ChunkedArrayWriter? writer)
     {
-        if (originalRequest.RequiresFileUpload)
+        if (originalRequest.RequiresFileUpload
+            && context.RequestContext.Features.Get<IFileLookup>() is { } fileLookup)
         {
             writer ??= new ChunkedArrayWriter();
-            var fileLookup = context.RequestContext.Features.GetRequired<IFileLookup>();
             var fileEntries = ImmutableArray.CreateBuilder<FileEntry>();
             var requests = new OperationRequest[originalRequest.Variables.Length];
 
@@ -669,19 +669,19 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         SourceSchemaClientRequest request,
         int variableIndex,
         out CompactPath path,
-        out ImmutableArray<CompactPath> additionalPaths)
+        out CompactPathSegment additionalPaths)
     {
         if (request.Variables.Length == 0)
         {
             path = CompactPath.Root;
-            additionalPaths = [];
+            additionalPaths = default;
             return true;
         }
 
         if ((uint)variableIndex >= (uint)request.Variables.Length)
         {
             path = CompactPath.Root;
-            additionalPaths = [];
+            additionalPaths = default;
             return false;
         }
 

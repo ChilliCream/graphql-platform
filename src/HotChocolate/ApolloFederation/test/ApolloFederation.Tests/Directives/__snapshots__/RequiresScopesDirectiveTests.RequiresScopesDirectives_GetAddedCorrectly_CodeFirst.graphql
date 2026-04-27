@@ -1,4 +1,5 @@
-schema @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@requiresScopes", "@key", "@tag", "FieldSet"]) {
+schema
+  @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key", "@requiresScopes", "@tag", "FieldSet"]) {
   query: Query
 }
 
@@ -8,7 +9,10 @@ type Query {
   _entities(representations: [_Any!]!): [_Entity]!
 }
 
-type Review @key(fields: "id") @key(fields: "id") @requiresScopes(scopes: [["s3"]]) {
+type Review
+  @key(fields: "id")
+  @key(fields: "id")
+  @requiresScopes(scopes: [["s3"]]) {
   id: Int!
 }
 
@@ -21,13 +25,21 @@ type _Service {
 union _Entity = Review
 
 "Used to indicate a combination of fields that can be used to uniquely identify and fetch an object or interface."
-directive @key(fields: FieldSet! resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
+directive @key(fields: FieldSet!, resolvable: Boolean = true) repeatable on OBJECT | INTERFACE
 
 "Links definitions within the document to external schemas."
-directive @link("Gets imported specification url." url: String! "Gets optional list of imported element names." import: [String!]) repeatable on SCHEMA
+directive @link(
+  "Gets imported specification url."
+  url: String!
+  "Gets optional list of imported element names."
+  import: [String!]
+) repeatable on SCHEMA
 
 "Indicates to composition that the target element is accessible only to the authenticated supergraph users with the appropriate JWT scopes."
-directive @requiresScopes("Retrieves list of a list of required JWT scopes." scopes: [[String!]!]!) on SCALAR | OBJECT | FIELD_DEFINITION | INTERFACE | ENUM
+directive @requiresScopes(
+  "Retrieves list of a list of required JWT scopes."
+  scopes: [[String!]!]!
+) on SCALAR | OBJECT | FIELD_DEFINITION | INTERFACE | ENUM
 
 "Scalar representing a set of fields."
 scalar FieldSet

@@ -38,6 +38,7 @@ internal sealed class FusionPublishCommand : Command
         Options.Add(Opt<OptionalSourceSchemaIdentifierListOption>.Instance);
         Options.Add(Opt<OptionalSourceSchemaFileListOption>.Instance);
         Options.Add(Opt<OptionalFusionArchiveFileOption>.Instance);
+        Options.Add(Opt<OptionalLegacyFusionArchiveFileOption>.Instance);
         Options.Add(Opt<OptionalForceOption>.Instance);
         Options.Add(Opt<OptionalWaitForApprovalOption>.Instance);
         Options.Add(Opt<WorkingDirectoryOption>.Instance);
@@ -90,6 +91,8 @@ internal sealed class FusionPublishCommand : Command
             parseResult.GetValue(Opt<OptionalSourceSchemaIdentifierListOption>.Instance) ?? [];
         var archiveFile =
             parseResult.GetValue(Opt<OptionalFusionArchiveFileOption>.Instance);
+        var legacyArchiveFile =
+            parseResult.GetValue(Opt<OptionalLegacyFusionArchiveFileOption>.Instance);
         var force = parseResult.GetValue(Opt<OptionalForceOption>.Instance);
         var waitForApproval = parseResult.GetValue(Opt<OptionalWaitForApprovalOption>.Instance);
         var stageName = parseResult.GetRequiredValue(Opt<StageNameOption>.Instance);
@@ -121,9 +124,29 @@ internal sealed class FusionPublishCommand : Command
 
         if (archiveFile is not null)
         {
+            if (legacyArchiveFile is not null)
+            {
+                throw new ExitException(
+                    $"The options '{FusionArchiveFileOption.OptionName}' and '{OptionalLegacyFusionArchiveFileOption.OptionName}' are mutually exclusive.");
+            }
+
             return await PublishFusionConfigurationWithArchiveAsync();
         }
-        else if (sourceSchemaFiles.Count > 0)
+
+        if (legacyArchiveFile is not null)
+        {
+            if (!Path.IsPathRooted(legacyArchiveFile))
+            {
+                legacyArchiveFile = Path.Combine(workingDirectory, legacyArchiveFile);
+            }
+
+            if (!fileSystem.FileExists(legacyArchiveFile))
+            {
+                throw new ExitException(Messages.LegacyArchiveFileDoesNotExist(legacyArchiveFile));
+            }
+        }
+
+        if (sourceSchemaFiles.Count > 0)
         {
             return await PublishFusionConfigurationWithSourceSchemaFilesAsync();
         }
@@ -144,7 +167,7 @@ internal sealed class FusionPublishCommand : Command
                 throw new ExitException(Messages.ArchiveFileDoesNotExist(archiveFile));
             }
 
-            await using var activity = StartPublishActivity(console, stageName, apiId, force);
+            await using var activity = StartPublishActivity(console, stageName, apiId, tag, force);
             await using var archiveStream = fileSystem.OpenReadStream(archiveFile);
 
             return await ExecutePublishAsync(
@@ -155,32 +178,27 @@ internal sealed class FusionPublishCommand : Command
 
         async Task<int> PublishFusionConfigurationWithSourceSchemaFilesAsync()
         {
-            for (var i = 0; i < sourceSchemaFiles.Count; i++)
-            {
-                var sourceSchemaFile = sourceSchemaFiles[i];
-
-                if (!Path.IsPathRooted(sourceSchemaFile))
-                {
-                    sourceSchemaFiles[i] = sourceSchemaFile = Path.Combine(workingDirectory, sourceSchemaFile);
-                }
-
-                if (!fileSystem.FileExists(sourceSchemaFile))
-                {
-                    throw new ExitException(Messages.SchemaFileDoesNotExist(sourceSchemaFile));
-                }
-            }
-
-            await using var activity = StartPublishActivity(console, stageName, apiId, force);
-
-            var newSourceSchemas = await FusionComposeCommand.ReadSourceSchemasAsync(
+            var newSourceSchemas = await FusionCompositionHelpers.ReadSourceSchemasAsync(
                 fileSystem,
+                workingDirectory,
                 sourceSchemaFiles,
                 cancellationToken);
+
+            await using var activity = StartPublishActivity(console, stageName, apiId, tag, force);
 
             return await ExecutePublishAsync(
                 activity,
                 sourceSchemaVersions: null,
-                prepareArchive: () => ComposeAsync(activity, newSourceSchemas));
+                prepareArchive: () => FusionPublishHelpers.PrepareComposedArchiveAsync(
+                    activity,
+                    apiId,
+                    stageName,
+                    legacyArchiveFile,
+                    newSourceSchemas,
+                    client,
+                    fileSystem,
+                    console,
+                    cancellationToken));
         }
 
         async Task<int> PublishFusionConfigurationWithSourceSchemasAsync()
@@ -189,7 +207,7 @@ internal sealed class FusionPublishCommand : Command
                 .Select(i => ParseSourceSchemaVersion(i, tag))
                 .ToArray();
 
-            await using var activity = StartPublishActivity(console, stageName, apiId, force);
+            await using var activity = StartPublishActivity(console, stageName, apiId, tag, force);
 
             var newSourceSchemas = new Dictionary<string, (SourceSchemaText, JsonDocument)>();
 
@@ -245,56 +263,16 @@ internal sealed class FusionPublishCommand : Command
             return await ExecutePublishAsync(
                 activity,
                 sourceSchemaVersions,
-                prepareArchive: () => ComposeAsync(activity, newSourceSchemas));
-        }
-
-        async Task<Stream> ComposeAsync(
-            INitroConsoleActivity activity,
-            Dictionary<string, (SourceSchemaText, JsonDocument)> newSourceSchemas)
-        {
-            // download
-            var existingArchiveStream = await DownloadExistingFusionConfigurationAsync(activity);
-
-            // compose
-            await using var composeActivity = activity.StartChildActivity(
-                "Composing new configuration",
-                "Failed to compose new configuration.");
-
-            var archiveStream = new MemoryStream();
-            var (result, compositionLog) = await FusionPublishHelpers.ComposeAsync(
-                archiveStream,
-                existingArchiveStream,
-                stageName,
-                newSourceSchemas,
-                null,
-                cancellationToken);
-
-            if (result.IsSuccess)
-            {
-                composeActivity.Success("Composed new configuration.");
-            }
-            else
-            {
-                await composeActivity.FailAllAsync();
-
-                console.WriteLine();
-                console.WriteLine("## Composition log");
-                console.WriteLine();
-
-                FusionComposeCommand.WriteCompositionLog(
-                    compositionLog,
-                    console.Out,
-                    false);
-
-                foreach (var error in result.Errors)
-                {
-                    console.Error.WriteErrorLine(error.Message);
-                }
-
-                throw new ExitException();
-            }
-
-            return archiveStream;
+                prepareArchive: () => FusionPublishHelpers.PrepareComposedArchiveAsync(
+                    activity,
+                    apiId,
+                    stageName,
+                    legacyArchiveFile,
+                    newSourceSchemas,
+                    client,
+                    fileSystem,
+                    console,
+                    cancellationToken));
         }
 
         async Task<int> ExecutePublishAsync(
@@ -367,11 +345,15 @@ internal sealed class FusionPublishCommand : Command
 
                     if (isValidArchive)
                     {
-                        validationActivity.Success("Validated configuration.");
+                        validationActivity.Success("Fusion configuration passed validation.");
                     }
                     else if (!force)
                     {
-                        throw new ExitException("Failed to validate configuration.");
+                        // Write directly instead of throwing so the release-slot fallback
+                        // in the outer catch is not triggered — the publish hasn't actually
+                        // reserved any remote state that needs tearing down here.
+                        console.Error.WriteErrorLine("Fusion configuration failed validation.");
+                        return ExitCodes.Error;
                     }
                 }
 
@@ -438,7 +420,7 @@ internal sealed class FusionPublishCommand : Command
                     {
                         console.Error.WriteErrorLine(
                             "Encountered an unexpected exception while trying to release the deployment slot after an error during the publishing process:");
-                        console.Error.WriteErrorLine(exception.Message);
+                        console.Error.WriteErrorLine(exception.Message.EscapeMarkup());
                         console.Error.WriteErrorLine("This is the error that caused the publishing process to fail in the first place:");
                     }
                 }
@@ -446,42 +428,18 @@ internal sealed class FusionPublishCommand : Command
                 throw;
             }
         }
-
-        async Task<Stream?> DownloadExistingFusionConfigurationAsync(INitroConsoleActivity activity)
-        {
-            await using var downloadActivity = activity.StartChildActivity(
-                $"Downloading existing configuration from '{stageName}'",
-                "Failed to download the existing Fusion configuration.");
-
-            var existingArchiveStream = await client.DownloadLatestFusionArchiveAsync(
-                apiId,
-                stageName,
-                WellKnownVersions.LatestGatewayFormatVersion.ToString(),
-                ArchiveFormats.Far,
-                cancellationToken);
-
-            if (existingArchiveStream is null)
-            {
-                downloadActivity.Warning($"There is no existing configuration on '{stageName}'.");
-            }
-            else
-            {
-                downloadActivity.Success($"Downloaded existing configuration from '{stageName}'.");
-            }
-
-            return existingArchiveStream;
-        }
     }
 
     private static INitroConsoleActivity StartPublishActivity(
         INitroConsole console,
         string stageName,
         string apiId,
+        string tag,
         bool force)
     {
         var activity = console.StartActivity(
-            $"Publishing Fusion configuration to stage '{stageName}' of API '{apiId.EscapeMarkup()}'",
-            "Failed to publish Fusion configuration.");
+            $"Publishing new Fusion configuration version '{tag.EscapeMarkup()}' of API '{apiId.EscapeMarkup()}' to stage '{stageName.EscapeMarkup()}'",
+            "Failed to publish a new Fusion configuration version.");
 
         if (force)
         {

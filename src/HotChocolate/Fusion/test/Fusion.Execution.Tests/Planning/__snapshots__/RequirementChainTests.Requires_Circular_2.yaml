@@ -30,10 +30,7 @@ nodes:
     type: Operation
     schema: a
     operation: |
-      query Op_123456789101112_2(
-        $__fusion_1_byNovice: Boolean!
-          $__fusion_2_id: ID!
-      ) {
+      query Op_123456789101112_2($__fusion_1_byNovice: Boolean!, $__fusion_2_id: ID!) {
         postById(id: $__fusion_2_id) {
           byExpert(byNovice: $__fusion_1_byNovice)
         }
@@ -77,9 +74,7 @@ nodes:
     type: Operation
     schema: b
     operation: |
-      query Op_123456789101112_4(
-        $__fusion_5_id: ID!
-      ) {
+      query Op_123456789101112_4($__fusion_5_id: ID!) {
         postById(id: $__fusion_5_id) {
           id
         }

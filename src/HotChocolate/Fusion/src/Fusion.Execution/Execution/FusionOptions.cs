@@ -168,6 +168,38 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
     }
 
     /// <summary>
+    /// Gets or sets whether <c>@defer</c> is enabled.
+    /// When <c>false</c>, the <c>@defer</c> directive is not exposed in the schema
+    /// and deferred execution is disabled.
+    /// <c>true</c> by default.
+    /// </summary>
+    public bool EnableDefer
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    } = true;
+
+    /// <summary>
+    /// Enables the <c>__search</c> and <c>__definitions</c> introspection fields
+    /// for semantic schema discovery.
+    /// </summary>
+    public bool EnableSemanticIntrospection
+    {
+        get;
+        set
+        {
+            ExpectMutableOptions();
+
+            field = value;
+        }
+    }
+
+    /// <summary>
     /// Clones the options into a new mutable instance.
     /// </summary>
     /// <returns>
@@ -185,7 +217,9 @@ public sealed class FusionOptions : IFusionSchemaOptions, ICloneable
             DefaultErrorHandlingMode = DefaultErrorHandlingMode,
             LazyInitialization = LazyInitialization,
             NodeIdSerializerFormat = NodeIdSerializerFormat,
-            ApplySerializeAsToScalars = ApplySerializeAsToScalars
+            ApplySerializeAsToScalars = ApplySerializeAsToScalars,
+            EnableDefer = EnableDefer,
+            EnableSemanticIntrospection = EnableSemanticIntrospection
         };
     }
 

@@ -253,7 +253,7 @@ HANDLE_RESULT:
         ExecutorSession session)
     {
         var requests =
-            await session.RequestParser.ParseRequestAsync(
+            await session.ParseRequestAsync(
                 context.Request.BodyReader,
                 context.RequestAborted);
 

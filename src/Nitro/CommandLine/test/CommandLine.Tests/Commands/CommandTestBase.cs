@@ -13,7 +13,9 @@ using ChilliCream.Nitro.Client.PersonalAccessTokens;
 using ChilliCream.Nitro.Client.Schemas;
 using ChilliCream.Nitro.Client.Stages;
 using ChilliCream.Nitro.Client.Workspaces;
+using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
+using ChilliCream.Nitro.CommandLine.Tests.Console;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
@@ -45,7 +47,7 @@ public abstract class CommandTestBase
     protected readonly Mock<IPersonalAccessTokensClient> PersonalAccessTokensClientMock = new(MockBehavior.Strict);
     protected readonly Mock<IEnvironmentsClient> EnvironmentsClientMock = new(MockBehavior.Strict);
     protected readonly Mock<IStagesClient> StagesClientMock = new(MockBehavior.Strict);
-    internal readonly Mock<Services.Sessions.ISessionService> SessionServiceMock = new();
+    internal readonly Mock<Services.Sessions.ISessionService> _sessionServiceMock = new();
     protected readonly Mock<IWorkspacesClient> WorkspacesClientMock = new(MockBehavior.Strict);
     private InteractionMode _interactionMode = InteractionMode.NonInteractive;
     private bool _authenticated = true;
@@ -96,11 +98,11 @@ public abstract class CommandTestBase
 
         var outConsole = new TestConsole();
         outConsole.Profile.Out = new AnsiConsoleOutput(stdOutWriter);
-        outConsole.Profile.Width = 10_000;
+        outConsole.Profile.Width = Constants.DefaultPrintWidth;
 
         var errConsole = new TestConsole();
         errConsole.Profile.Out = new AnsiConsoleOutput(stdErrWriter);
-        errConsole.Profile.Width = 10_000;
+        errConsole.Profile.Width = Constants.DefaultPrintWidth;
 
         if (_interactionMode is InteractionMode.JsonOutput)
         {
@@ -115,7 +117,11 @@ public abstract class CommandTestBase
             outConsole.Profile.Capabilities.Interactive = true;
         }
 
-        var console = new NitroConsole(outConsole, errConsole, _environmentVariableProviderMock.Object);
+        var console = new NitroConsole(
+            outConsole,
+            errConsole,
+            _environmentVariableProviderMock.Object,
+            new SnapshotActivitySinkFactory());
         var services = BuildServices(console);
         var rootCommand = _fixture.RootCommand;
 
@@ -153,14 +159,18 @@ public abstract class CommandTestBase
 
         var outConsole = new TestConsole();
         outConsole.Profile.Out = new AnsiConsoleOutput(stdOutWriter);
-        outConsole.Profile.Width = 10_000;
+        outConsole.Profile.Width = Constants.DefaultPrintWidth;
         outConsole.Profile.Capabilities.Interactive = true;
 
         var errConsole = new TestConsole();
         errConsole.Profile.Out = new AnsiConsoleOutput(stdErrWriter);
-        errConsole.Profile.Width = 10_000;
+        errConsole.Profile.Width = Constants.DefaultPrintWidth;
 
-        var console = new NitroConsole(outConsole, errConsole, _environmentVariableProviderMock.Object);
+        var console = new NitroConsole(
+            outConsole,
+            errConsole,
+            _environmentVariableProviderMock.Object,
+            new SnapshotActivitySinkFactory());
         var services = BuildServices(console);
         var rootCommand = _fixture.RootCommand;
 
@@ -197,14 +207,14 @@ public abstract class CommandTestBase
 
         if (_useSession)
         {
-            SessionServiceMock
+            _sessionServiceMock
                 .SetupGet(x => x.Session)
                 .Returns(CreateSession(null));
         }
 
         if (_useSessionWithWorkspace)
         {
-            SessionServiceMock
+            _sessionServiceMock
                 .SetupGet(x => x.Session)
                 .Returns(CreateSession(
                     new Services.Sessions.Workspace(
@@ -214,7 +224,7 @@ public abstract class CommandTestBase
 
         services.Replace(ServiceDescriptor.Singleton(_fileSystemMock.Object));
         services.Replace(ServiceDescriptor.Singleton(_environmentVariableProviderMock.Object));
-        services.Replace(ServiceDescriptor.Singleton(SessionServiceMock.Object));
+        services.Replace(ServiceDescriptor.Singleton(_sessionServiceMock.Object));
         services.Replace(ServiceDescriptor.Singleton(WorkspacesClientMock.Object));
         services.Replace(ServiceDescriptor.Singleton(SchemasClientMock.Object));
         services.Replace(ServiceDescriptor.Singleton(FusionConfigurationClientMock.Object));
@@ -366,6 +376,24 @@ public abstract class CommandTestBase
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ConnectionPage<ISelectApiPromptQuery_WorkspaceById_Apis_Edges_Node>(
                 nodes, null, false));
+    }
+
+    protected void VerifyWorkspaceSelected(string workspaceId, string workspaceName)
+    {
+        _sessionServiceMock.Verify(
+            x => x.SelectWorkspaceAsync(
+                It.Is<Services.Sessions.Workspace>(w => w.Id == workspaceId && w.Name == workspaceName),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    protected void VerifyNoWorkspaceSelected()
+    {
+        _sessionServiceMock.Verify(
+            x => x.SelectWorkspaceAsync(
+                It.IsAny<Services.Sessions.Workspace>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     public async ValueTask DisposeAsync()

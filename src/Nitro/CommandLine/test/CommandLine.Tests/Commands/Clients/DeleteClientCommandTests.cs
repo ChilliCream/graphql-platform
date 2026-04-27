@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Clients;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Clients;
@@ -58,7 +57,7 @@ public sealed class DeleteClientCommandTests(NitroCommandFixture fixture) : Clie
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -122,7 +121,7 @@ public sealed class DeleteClientCommandTests(NitroCommandFixture fixture) : Clie
         // assert
         result.AssertError(
             """
-            The 'id' option is required in non-interactive mode.
+            Missing required argument 'id'.
             """);
     }
 

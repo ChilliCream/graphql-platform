@@ -70,7 +70,8 @@ internal sealed partial class OperationContext
         IVariableValueCollection variables,
         object? rootValue,
         Func<object?> resolveQueryRootValue,
-        int variableIndex = -1)
+        int variableIndex = -1,
+        CancellationToken requestAbortedOverride = default)
     {
         _requestContext = requestContext;
         _schema = Unsafe.As<Schema>(requestContext.Schema);
@@ -78,7 +79,9 @@ internal sealed partial class OperationContext
         _resolvers = scopedServices.GetRequiredService<ResolverProvider>();
         _diagnosticEvents = _schema.Services.GetRequiredService<IExecutionDiagnosticEvents>();
         _contextData = requestContext.ContextData;
-        _requestAborted = requestContext.RequestAborted;
+        _requestAborted = requestAbortedOverride.CanBeCanceled
+            ? requestAbortedOverride
+            : requestContext.RequestAborted;
         _operation = operation;
         _variables = variables;
         _services = scopedServices;

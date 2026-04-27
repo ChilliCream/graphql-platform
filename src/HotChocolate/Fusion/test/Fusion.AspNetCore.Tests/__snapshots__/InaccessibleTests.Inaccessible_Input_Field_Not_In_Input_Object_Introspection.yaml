@@ -39,7 +39,7 @@ sourceSchemas:
       }
 
       type Query {
-        bookById(id: Int!): Book! @lookup
+        bookById(id: Int!): Book @lookup
         inaccessibleText(text: String! = "This is the default!" @inaccessible): String!
         books: [Book!]!
       }
@@ -55,7 +55,7 @@ sourceSchemas:
       }
 
       type Query {
-        authorById(id: Int!): Author! @internal @lookup
+        authorById(id: Int!): Author @internal @lookup
         enumField(value: SomeEnum!): SomeEnum!
         shareable(input: SomeInput!): String!
       }

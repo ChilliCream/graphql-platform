@@ -307,9 +307,11 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
             {
                 var baseType =
                     member.DeclaringType?.GetTypeInfo().BaseType;
+#pragma warning disable IL2075 // 'this' argument does not satisfy 'DynamicallyAccessedMembersAttribute' - baseType is obtained from reflection (BaseType) which cannot be statically annotated.
                 var baseMember =
                     baseType?.GetTypeInfo().DeclaredMembers
                         .SingleOrDefault(m => m.Name == member.Name);
+#pragma warning restore IL2075
 
                 if (baseMember != null)
                 {
@@ -339,12 +341,14 @@ public partial class XmlDocumentationProvider : IDocumentationProvider
     {
         if (member.DeclaringType is { })
         {
+#pragma warning disable IL2075 // 'this' argument does not satisfy 'DynamicallyAccessedMembersAttribute' - DeclaringType is obtained from reflection which cannot be statically annotated.
             foreach (var baseInterface in member.DeclaringType
                 .GetTypeInfo().ImplementedInterfaces)
             {
                 var baseMember = baseInterface.GetTypeInfo()
                     .DeclaredMembers.SingleOrDefault(m =>
                         m.Name.EqualsOrdinal(member.Name));
+#pragma warning restore IL2075
                 if (baseMember != null)
                 {
                     var baseDoc = GetMemberElement(baseMember);

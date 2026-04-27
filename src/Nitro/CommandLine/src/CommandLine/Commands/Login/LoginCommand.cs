@@ -1,7 +1,6 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Workspaces;
-using ChilliCream.Nitro.CommandLine;
-using ChilliCream.Nitro.CommandLine.Commands.Workspaces;
+using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Services;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
 
@@ -35,33 +34,73 @@ internal sealed class LoginCommand : Command
         if (!console.IsInteractive)
         {
             throw new ExitException(
-                "'nitro login' requires an interactive console. "
+                "`nitro login` requires an interactive console. "
                 + $"Use '{OptionalApiKeyOption.OptionName}' to authenticate command invocations in non-interactive environments.");
         }
 
-        var cloudUrl = parseResult.GetRequiredValue(Opt<IdentityCloudUrlOption>.Instance);
+        var cloudUrl = parseResult.GetValue(Opt<IdentityCloudUrlOption>.Instance);
         var url = parseResult.GetValue(Opt<IdentityCloudUrlArgument>.Instance);
 
         url ??= cloudUrl;
 
-        Session? session;
         await using (var activity = console.StartActivity("Logging in via browser", "Failed to log in."))
         {
             activity.Update($"Browser opened at {url.EscapeMarkup()}. Continue login there.");
 
-            session = await sessionService.LoginAsync(url, cancellationToken);
-
+            var session = await sessionService.LoginAsync(url, cancellationToken);
             if (session is null)
             {
                 throw new ExitException("There was a failure and Nitro could not log you in.");
             }
 
-            activity.Success($"Logged in as '{session.Email.EscapeMarkup()}'.");
+            clientContext.Configure(
+                session.ApiUrl,
+                new NitroClientAccessTokenAuthorization(session.Tokens!.AccessToken));
+
+            var page = await client.SelectWorkspacesAsync(null, 5, cancellationToken);
+            var email = session.Email.EscapeMarkup();
+
+            if (page.Items.Count == 0)
+            {
+                activity.Update(
+                    "You do not have any workspaces. Run `nitro launch` and create one.",
+                    ActivityUpdateKind.Warning);
+                activity.Success($"Logged in as [green]{email}[/]");
+                return ExitCodes.Success;
+            }
+
+            if (page.Items.Count == 1)
+            {
+                var only = page.Items[0];
+                await sessionService.SelectWorkspaceAsync(
+                    new Workspace(only.Id, only.Name),
+                    cancellationToken);
+                activity.Success(
+                    $"Logged in as [green]{email}[/] (Workspace: [green]{only.Name.EscapeMarkup()}[/])");
+                return ExitCodes.Success;
+            }
+
+            activity.Success($"Logged in as [green]{email}[/]");
         }
 
-        clientContext.Configure(session.ApiUrl, new NitroClientAccessTokenAuthorization(session.Tokens!.AccessToken));
+        var paginationContainer = PaginationContainer.CreateConnectionData(client.SelectWorkspacesAsync);
+        var selected = await PagedSelectionPrompt
+            .New(paginationContainer)
+            .Title("Which workspace do you want to use as your default?".AsQuestion())
+            .UseConverter(x => x.Name)
+            .RenderAsync(console, cancellationToken);
 
-        return await SetDefaultWorkspaceCommand
-            .ExecuteAsync(forceSelection: false, console, client, sessionService, cancellationToken);
+        if (selected is null)
+        {
+            throw new ExitException("No workspace was selected as default.");
+        }
+
+        await sessionService.SelectWorkspaceAsync(
+            new Workspace(selected.Id, selected.Name),
+            cancellationToken);
+
+        console.MarkupLine($"(Workspace: [green]{selected.Name.EscapeMarkup()}[/])");
+
+        return ExitCodes.Success;
     }
 }

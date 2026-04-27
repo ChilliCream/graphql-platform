@@ -14,12 +14,19 @@ internal static class RootCommandExtensions
         InvocationConfiguration? invocationConfiguration,
         CancellationToken cancellationToken)
     {
-        CommandExecutionContext.Services.Value = new CommandServices(services);
+        CommandExecutionContext.s_services.Value = new CommandServices(services);
 
         var console = services.GetRequiredService<INitroConsole>();
 
         // Parse command
         var parseResult = rootCommand.Parse(args);
+
+        // Short-circuit on parse errors: let InvokeAsync report them and return the
+        // corresponding exit code.
+        if (parseResult.Errors.Count > 0)
+        {
+            return await parseResult.InvokeAsync(invocationConfiguration, cancellationToken);
+        }
 
         var format = parseResult.GetValue(Opt<OptionalOutputFormatOption>.Instance);
 

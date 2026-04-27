@@ -101,6 +101,7 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
 
         foreach (var endpoint in ReceiveEndpoints)
         {
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             if (endpoint.Source is not null)
             {
                 outboundResources.Add(endpoint.Source);
@@ -109,6 +110,7 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
 
         foreach (var endpoint in DispatchEndpoints)
         {
+            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
             if (endpoint.Destination is not null)
             {
                 inboundResources.Add(endpoint.Destination);

@@ -1,12 +1,9 @@
 using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Clients;
-using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Commands.Clients.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
-using static ChilliCream.Nitro.CommandLine.ThrowHelper;
-
 namespace ChilliCream.Nitro.CommandLine.Commands.Clients;
 
 internal sealed class ListClientCommand : Command
@@ -42,32 +39,33 @@ internal sealed class ListClientCommand : Command
         parseResult.AssertHasAuthentication(sessionService);
 
         var cursor = parseResult.GetValue(Opt<OptionalCursorOption>.Instance);
+        var apiId = await console.GetOrPromptForApiIdAsync(
+            "For which API do you want to list the clients?",
+            parseResult,
+            apisClient,
+            sessionService,
+            ct);
 
         if (console.IsInteractive)
         {
-            return await RenderInteractiveAsync(parseResult, console, client, apisClient, sessionService, resultHolder, cursor, ct);
+            return await RenderInteractiveAsync(console, client, resultHolder, apiId, cursor, ct);
         }
 
-        return await RenderNonInteractiveAsync(parseResult, client, resultHolder, cursor, ct);
+        return await RenderNonInteractiveAsync(client, resultHolder, apiId, cursor, ct);
     }
 
     private static async Task<int> RenderInteractiveAsync(
-        ParseResult parseResult,
         INitroConsole console,
         IClientsClient client,
-        IApisClient apisClient,
-        ISessionService sessionService,
         IResultHolder resultHolder,
+        string apiId,
         string? cursor,
         CancellationToken ct)
     {
-        const string apiMessage = "For which API do you want to list the clients?";
-        var apiId = await console.GetOrPromptForApiIdAsync(apiMessage, parseResult, apisClient, sessionService, ct);
-
         var container = PaginationContainer
             .CreateConnectionData(async (after, first, cancellationToken) =>
                 await client.ListClientsAsync(apiId, after ?? cursor, first, cancellationToken)
-                    ?? throw ThereWasAnIssueWithTheRequest("The API was not found."))
+                    ?? throw new ExitException("The API was not found."))
             .PageSize(10);
 
         var selectedClient = await PagedTable
@@ -86,20 +84,14 @@ internal sealed class ListClientCommand : Command
     }
 
     private static async Task<int> RenderNonInteractiveAsync(
-        ParseResult parseResult,
         IClientsClient client,
         IResultHolder resultHolder,
+        string apiId,
         string? cursor,
         CancellationToken ct)
     {
-        var apiId = parseResult.GetValue(Opt<OptionalApiIdOption>.Instance);
-        if (apiId is null)
-        {
-            throw MissingRequiredOption(ApiIdOption.OptionName);
-        }
-
         var page = await client.ListClientsAsync(apiId, cursor, 10, ct)
-            ?? throw ThereWasAnIssueWithTheRequest("The API was not found.");
+            ?? throw new ExitException("The API was not found.");
 
         var items = page.Items
             .Select(x => ClientDetailPrompt.From(x).ToObject())

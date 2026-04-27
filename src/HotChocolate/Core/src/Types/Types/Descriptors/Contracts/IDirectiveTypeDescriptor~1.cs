@@ -1,5 +1,6 @@
 #nullable disable
 
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Configurations;
@@ -88,14 +89,14 @@ public interface IDirectiveTypeDescriptor<T>
     /// <summary>
     /// Configure a middleware for this directive.
     /// </summary>
-    IDirectiveTypeDescriptor<T> Use<TMiddleware>()
+    IDirectiveTypeDescriptor<T> Use<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>()
         where TMiddleware : class;
 
     /// <summary>
     /// Configure a middleware for this directive.
     /// </summary>
     /// <param name="factory">The middleware factory.</param>
-    IDirectiveTypeDescriptor<T> Use<TMiddleware>(
+    IDirectiveTypeDescriptor<T> Use<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>(
         Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
         where TMiddleware : class;
 

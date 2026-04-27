@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.OpenApi;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.OpenApi;
@@ -64,7 +63,7 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -93,10 +92,8 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating OpenAPI collection against stage 'dev'
+            Validating OpenAPI collection 'oa-1' against stage 'dev'
             ├── Found 1 document(s).
-            ├── Starting validation request
-            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the OpenAPI collection.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -126,10 +123,8 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating OpenAPI collection against stage 'dev'
+            Validating OpenAPI collection 'oa-1' against stage 'dev'
             ├── Found 1 document(s).
-            ├── Starting validation request
-            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(expectedStdErr);
@@ -157,10 +152,8 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating OpenAPI collection against stage 'dev'
+            Validating OpenAPI collection 'oa-1' against stage 'dev'
             ├── Found 1 document(s).
-            ├── Starting validation request
-            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the OpenAPI collection.
             """);
         result.StdErr.MatchInlineSnapshot(
@@ -193,13 +186,10 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
         await AssertOpenApiCollectionArchive(capturedStream);
         result.AssertSuccess(
             """
-            Validating OpenAPI collection against stage 'dev'
+            Validating OpenAPI collection 'oa-1' against stage 'dev'
             ├── Found 1 document(s).
-            ├── Starting validation request
-            │   └── ✓ Validation request created (ID: request-1).
-            ├── Validating
-            │   └── ✓ Validation passed.
-            └── ✓ Validated OpenAPI collection against stage 'dev'.
+            ├── Validation request created. (ID: request-1)
+            └── ✓ OpenAPI collection passed validation.
             """);
     }
 
@@ -225,13 +215,10 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
         await AssertOpenApiCollectionArchive(capturedStream);
         result.AssertSuccess(
             """
-            Validating OpenAPI collection against stage 'dev'
+            Validating OpenAPI collection 'oa-1' against stage 'dev'
             ├── Found 1 document(s).
-            ├── Starting validation request
-            │   └── ✓ Validation request created (ID: request-1).
-            ├── Validating
-            │   └── ✓ Validation passed.
-            └── ✓ Validated OpenAPI collection against stage 'dev'.
+            ├── Validation request created. (ID: request-1)
+            └── ✓ OpenAPI collection passed validation.
             """);
     }
 
@@ -258,20 +245,17 @@ public sealed class ValidateOpenApiCollectionCommandTests(NitroCommandFixture fi
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating OpenAPI collection against stage 'dev'
+            Validating OpenAPI collection 'oa-1' against stage 'dev'
             ├── Found 1 document(s).
-            ├── Starting validation request
-            │   └── ✓ Validation request created (ID: request-1).
-            ├── Validating
-            │   └── ✕ Validation failed.
-            │       └── OpenAPI collection 'petstore' (ID: collection-1)
-            │           └── Endpoint 'GET /fail'
-            │               └── The field `person` does not exist on the type `Query`. (1:14)
-            └── ✕ Failed to validate the OpenAPI collection.
+            ├── Validation request created. (ID: request-1)
+            └── ✕ OpenAPI collection failed validation.
+                └── OpenAPI collection 'petstore' (ID: collection-1)
+                    └── Endpoint 'GET /fail'
+                        └── The field `person` does not exist on the type `Query`. (1:14)
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            OpenAPI collection validation failed.
+            OpenAPI collection failed validation.
             """);
         Assert.Equal(1, result.ExitCode);
     }

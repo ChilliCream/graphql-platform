@@ -1,6 +1,5 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.ApiKeys;
-using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Arguments;
 using ChilliCream.Nitro.CommandLine.Commands.ApiKeys.Components;
 using ChilliCream.Nitro.CommandLine.Helpers;
@@ -61,7 +60,7 @@ internal sealed class DeleteApiKeyCommand : Command
 
             if (data.Errors?.Count > 0)
             {
-                activity.Fail();
+                await activity.FailAllAsync();
 
                 foreach (var error in data.Errors)
                 {

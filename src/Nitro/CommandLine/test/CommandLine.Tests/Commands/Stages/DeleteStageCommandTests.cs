@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Stages;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Stages;
 
@@ -62,7 +61,7 @@ public sealed class DeleteStageCommandTests(NitroCommandFixture fixture) : Stage
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 

@@ -1,5 +1,4 @@
 using ChilliCream.Nitro.Client;
-using ChilliCream.Nitro.Client.Mcp;
 using Moq;
 
 namespace ChilliCream.Nitro.CommandLine.Tests.Commands.Mcp;
@@ -69,7 +68,7 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -100,10 +99,8 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating MCP feature collection against stage 'dev'
+            Validating MCP feature collection 'mcp-1' against stage 'dev'
             ├── Found 1 prompt(s) and 1 tool(s).
-            ├── Starting validation request
-            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the MCP feature collection.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -136,10 +133,8 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
         result.StdErr.MatchInlineSnapshot(expectedErrorMessage);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating MCP feature collection against stage 'dev'
+            Validating MCP feature collection 'mcp-1' against stage 'dev'
             ├── Found 1 prompt(s) and 1 tool(s).
-            ├── Starting validation request
-            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the MCP feature collection.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -172,10 +167,8 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
             """);
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating MCP feature collection against stage 'dev'
+            Validating MCP feature collection 'mcp-1' against stage 'dev'
             ├── Found 1 prompt(s) and 1 tool(s).
-            ├── Starting validation request
-            │   └── ✕ Failed to start the validation request.
             └── ✕ Failed to validate the MCP feature collection.
             """);
         Assert.Equal(1, result.ExitCode);
@@ -206,13 +199,10 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
         await AssertMcpFeatureCollectionArchive(capturedStream);
         result.AssertSuccess(
             """
-            Validating MCP feature collection against stage 'dev'
+            Validating MCP feature collection 'mcp-1' against stage 'dev'
             ├── Found 1 prompt(s) and 1 tool(s).
-            ├── Starting validation request
-            │   └── ✓ Validation request created (ID: request-1).
-            ├── Validating
-            │   └── ✓ Validation passed.
-            └── ✓ Validated MCP feature collection against stage 'dev'.
+            ├── Validation request created. (ID: request-1)
+            └── ✓ MCP feature collection passed validation.
             """);
     }
 
@@ -240,13 +230,10 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
         await AssertMcpFeatureCollectionArchive(capturedStream);
         result.AssertSuccess(
             """
-            Validating MCP feature collection against stage 'dev'
+            Validating MCP feature collection 'mcp-1' against stage 'dev'
             ├── Found 1 prompt(s) and 1 tool(s).
-            ├── Starting validation request
-            │   └── ✓ Validation request created (ID: request-1).
-            ├── Validating
-            │   └── ✓ Validation passed.
-            └── ✓ Validated MCP feature collection against stage 'dev'.
+            ├── Validation request created. (ID: request-1)
+            └── ✓ MCP feature collection passed validation.
             """);
     }
 
@@ -275,20 +262,17 @@ public sealed class ValidateMcpFeatureCollectionCommandTests(NitroCommandFixture
         // assert
         result.StdOut.MatchInlineSnapshot(
             """
-            Validating MCP feature collection against stage 'dev'
+            Validating MCP feature collection 'mcp-1' against stage 'dev'
             ├── Found 1 prompt(s) and 1 tool(s).
-            ├── Starting validation request
-            │   └── ✓ Validation request created (ID: request-1).
-            ├── Validating
-            │   └── ✕ Validation failed.
-            │       └── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
-            │           └── Tool 'Fail'
-            │               └── Invalid tool definition. (1:14)
-            └── ✕ Failed to validate the MCP feature collection.
+            ├── Validation request created. (ID: request-1)
+            └── ✕ MCP feature collection failed validation.
+                └── MCP Feature Collection 'mcp-collection' (ID: mcp-1)
+                    └── Tool 'Fail'
+                        └── Invalid tool definition. (1:14)
             """);
         result.StdErr.MatchInlineSnapshot(
             """
-            MCP feature collection validation failed.
+            MCP feature collection failed validation.
             """);
         Assert.Equal(1, result.ExitCode);
     }

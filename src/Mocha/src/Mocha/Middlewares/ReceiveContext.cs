@@ -233,7 +233,9 @@ public sealed class ReceiveContext : IReceiveContext, IConsumeContext
         IServiceProvider services,
         ReceiveEndpoint endpoint,
         IMessagingRuntime runtime,
+#pragma warning disable RCS1163 // Unused parameter
         CancellationToken cancellationToken)
+#pragma warning restore RCS1163 // Unused parameter
     {
         Services = services;
         Endpoint = endpoint;

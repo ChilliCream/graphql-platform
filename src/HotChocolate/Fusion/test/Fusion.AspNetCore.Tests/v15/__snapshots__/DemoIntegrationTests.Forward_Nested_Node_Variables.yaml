@@ -1,10 +1,7 @@
 title: Forward_Nested_Node_Variables
 request:
   document: |
-    query ProductReviews(
-      $id: ID!
-        $first: Int!
-    ) {
+    query ProductReviews($id: ID!, $first: Int!) {
       node(id: $id) {
         ... on Product {
           id
@@ -43,7 +40,7 @@ sourceSchemas:
         nodes(ids: [ID!]!): [Node]! @shareable
         userById(id: ID!): User!
         users: [User!]!
-        testWithTwoArgumentsDifferingNullability(first: Int! second: Int): String!
+        testWithTwoArgumentsDifferingNullability(first: Int!, second: Int): String!
       }
 
       type User implements Node {
@@ -131,10 +128,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query ProductReviews_a31f6868_3(
-              $id: ID!
-                $first: Int!
-            ) {
+            query ProductReviews_a31f6868_3($id: ID!, $first: Int!) {
               node(id: $id) {
                 __typename
                 ... on Product {
@@ -164,10 +158,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query ProductReviews(
-          $id: ID!
-            $first: Int!
-        ) {
+        query ProductReviews($id: ID!, $first: Int!) {
           node(id: $id) {
             __typename @fusion__requirement
             ... on Product {
@@ -191,9 +182,7 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query ProductReviews_a31f6868_2(
-          $id: ID!
-        ) {
+        query ProductReviews_a31f6868_2($id: ID!) {
           node(id: $id) {
             __typename
           }
@@ -206,10 +195,7 @@ operationPlan:
       type: Operation
       schema: C
       operation: |
-        query ProductReviews_a31f6868_3(
-          $id: ID!
-            $first: Int!
-        ) {
+        query ProductReviews_a31f6868_3($id: ID!, $first: Int!) {
           node(id: $id) {
             __typename
             ... on Product {

@@ -1,9 +1,7 @@
 title: OneOf_No_Option_Provided
 request:
   document: |
-    query testQuery(
-      $pet: Pet!
-    ) {
+    query testQuery($pet: Pet!) {
       petName(input: $pet)
     }
   variables: |

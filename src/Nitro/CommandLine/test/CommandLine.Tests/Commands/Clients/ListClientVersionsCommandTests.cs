@@ -52,7 +52,7 @@ public sealed class ListClientVersionsCommandTests(NitroCommandFixture fixture) 
         // assert
         result.AssertError(
             """
-            This command requires an authenticated user. Either specify '--api-key' or run 'nitro login'.
+            This command requires an authenticated user. Either specify '--api-key' or run `nitro login`.
             """);
     }
 
@@ -72,7 +72,7 @@ public sealed class ListClientVersionsCommandTests(NitroCommandFixture fixture) 
         // assert
         result.AssertError(
             """
-            The '--client-id' option is required in non-interactive mode.
+            Missing required option '--client-id'.
             """);
     }
 
@@ -303,7 +303,6 @@ public sealed class ListClientVersionsCommandTests(NitroCommandFixture fixture) 
         // assert
         result.AssertError(
             """
-            There was an issue with the request to the server.
             The client was not found.
             """);
     }

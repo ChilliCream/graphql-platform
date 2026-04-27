@@ -1,9 +1,7 @@
 using ChilliCream.Nitro.Client;
 using ChilliCream.Nitro.Client.Apis;
 using ChilliCream.Nitro.Client.Stages;
-using ChilliCream.Nitro.CommandLine;
 using ChilliCream.Nitro.CommandLine.Commands.Stages.Components;
-using ChilliCream.Nitro.CommandLine.Configuration;
 using ChilliCream.Nitro.CommandLine.Helpers;
 using ChilliCream.Nitro.CommandLine.Results;
 using ChilliCream.Nitro.CommandLine.Services.Sessions;
@@ -55,8 +53,7 @@ internal sealed class ListStagesCommand : Command
         IResultHolder resultHolder,
         CancellationToken ct)
     {
-        const string apiMessage = "For which API do you want to display the clients?";
-        var apiId = await parseResult.GetOrPromptForApiIdAsync(apiMessage, console, apisClient, sessionService, ct);
+        var apiId = await console.GetOrPromptForApiIdAsync("For which API do you want to display the clients?", parseResult, apisClient, sessionService, ct);
 
         var stages = await client.ListStagesAsync(apiId, ct) ?? [];
 
@@ -87,11 +84,7 @@ internal sealed class ListStagesCommand : Command
         IResultHolder resultHolder,
         CancellationToken ct)
     {
-        var apiId = parseResult.GetValue(Opt<OptionalApiIdOption>.Instance);
-        if (apiId is null)
-        {
-            throw ThrowHelper.MissingRequiredOption(ApiIdOption.OptionName);
-        }
+        var apiId = parseResult.GetRequiredOptionalValue(Opt<OptionalApiIdOption>.Instance);
 
         var data = await client.ListStagesAsync(apiId, ct) ?? [];
         var items = data

@@ -96,9 +96,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetId GraphQL operation
     /// <code>
-    /// query GetId(
-    ///   $modelId: ModelIdScalar!
-    /// ) {
+    /// query GetId($modelId: ModelIdScalar!) {
     ///   personId(id: $modelId)
     /// }
     /// </code>
@@ -129,9 +127,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetId GraphQL operation
     /// <code>
-    /// query GetId(
-    ///   $modelId: ModelIdScalar!
-    /// ) {
+    /// query GetId($modelId: ModelIdScalar!) {
     ///   personId(id: $modelId)
     /// }
     /// </code>
@@ -216,9 +212,7 @@ namespace Foo.Bar
     /// <summary>
     /// Represents the operation service of the GetId GraphQL operation
     /// <code>
-    /// query GetId(
-    ///   $modelId: ModelIdScalar!
-    /// ) {
+    /// query GetId($modelId: ModelIdScalar!) {
     ///   personId(id: $modelId)
     /// }
     /// </code>

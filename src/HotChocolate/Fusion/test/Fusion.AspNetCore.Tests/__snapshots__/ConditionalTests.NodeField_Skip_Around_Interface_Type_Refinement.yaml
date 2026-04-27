@@ -1,9 +1,7 @@
 title: NodeField_Skip_Around_Interface_Type_Refinement
 request:
   document: |
-    query testQuery(
-      $skip: Boolean!
-    ) {
+    query testQuery($skip: Boolean!) {
       node(id: "RGlzY3Vzc2lvbjox") {
         ... @skip(if: $skip) {
           ... on Votable {
@@ -63,9 +61,7 @@ sourceSchemas:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
           document: |
-            query testQuery_f0a0d960_3(
-              $skip: Boolean!
-            ) {
+            query testQuery_f0a0d960_3($skip: Boolean!) {
               node(id: "RGlzY3Vzc2lvbjox") {
                 __typename
                 ... on Discussion {
@@ -98,9 +94,7 @@ sourceSchemas:
 operationPlan:
   operation:
     - document: |
-        query testQuery(
-          $skip: Boolean!
-        ) {
+        query testQuery($skip: Boolean!) {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename @fusion__requirement
             ... on Discussion {
@@ -130,9 +124,7 @@ operationPlan:
     - id: 2
       type: Operation
       operation: |
-        query testQuery_f0a0d960_2(
-          $skip: Boolean!
-        ) {
+        query testQuery_f0a0d960_2($skip: Boolean!) {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename
             ... @skip(if: $skip) {
@@ -148,9 +140,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_f0a0d960_3(
-          $skip: Boolean!
-        ) {
+        query testQuery_f0a0d960_3($skip: Boolean!) {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename
             ... on Discussion {
@@ -173,9 +163,7 @@ operationPlan:
       type: Operation
       schema: A
       operation: |
-        query testQuery_f0a0d960_4(
-          $skip: Boolean!
-        ) {
+        query testQuery_f0a0d960_4($skip: Boolean!) {
           node(id: "RGlzY3Vzc2lvbjox") {
             __typename
             ... on Author {
