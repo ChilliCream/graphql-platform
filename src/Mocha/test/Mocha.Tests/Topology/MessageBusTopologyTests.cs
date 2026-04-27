@@ -46,6 +46,112 @@ public sealed class MessageBusTopologyTests
     }
 
     [Fact]
+    public async Task GetDispatchEndpoint_Should_ReturnExistingReplyEndpoint_When_ReplyAliasUsed()
+    {
+        // arrange
+        await using var provider = CreateProvider(b => b.AddEventHandler<TestEventHandler>());
+        var runtime = provider.GetRequiredService<IMessagingRuntime>();
+        var topology = provider.GetRequiredService<IMessageBusTopology>();
+        var transport = runtime.Transports.Single();
+        var beforeCount = transport.DispatchEndpoints.Count;
+        var beforeReplyCount = topology.Description.Transports
+            .Single()
+            .DispatchEndpoints
+            .Count(e => e.Kind == DispatchEndpointKind.Reply);
+
+        // act
+        var endpoint = runtime.GetDispatchEndpoint(new Uri("memory:replies"));
+
+        // assert
+        Assert.Same(transport.ReplyDispatchEndpoint, endpoint);
+        Assert.Equal(beforeCount, transport.DispatchEndpoints.Count);
+        Assert.Equal(
+            beforeReplyCount,
+            topology.Description.Transports.Single().DispatchEndpoints.Count(e => e.Kind == DispatchEndpointKind.Reply));
+    }
+
+    [Fact]
+    public async Task GetEndpoint_Should_CompleteLazyOutboundRoute_When_RuntimeSendEndpointCreated()
+    {
+        // arrange
+        await using var provider = CreateProvider(_ => { });
+        var runtime = provider.GetRequiredService<IMessagingRuntime>();
+        var messageType = runtime.GetMessageType(typeof(LazyCommand));
+
+        // act
+        var endpoint = runtime.GetSendEndpoint(messageType);
+
+        // assert
+        var route = Assert.Single(
+            runtime.Router.GetOutboundByMessageType(messageType),
+            r => r.Kind == OutboundRouteKind.Send);
+        Assert.True(route.IsCompleted);
+        Assert.Same(endpoint, route.Endpoint);
+        Assert.Equal(endpoint.Address, route.Destination);
+    }
+
+    [Fact]
+    public async Task GetEndpoint_Should_ReturnSameCompletedEndpoint_When_AddressLookupRacesWithRouteLookup()
+    {
+        // arrange
+        await using var provider = CreateProvider(_ => { });
+        var runtime = provider.GetRequiredService<IMessagingRuntime>();
+        var messageType = runtime.GetMessageType(typeof(LazyCommand));
+        var address = new Uri($"queue:{runtime.Naming.GetSendEndpointName(typeof(LazyCommand))}");
+
+        // act
+        var endpoints = await Task.WhenAll(
+            Enumerable.Range(0, 20).Select(i => Task.Run(() =>
+                i % 2 == 0
+                    ? runtime.GetSendEndpoint(messageType)
+                    : runtime.GetDispatchEndpoint(address))));
+
+        // assert
+        var endpoint = Assert.Single(endpoints.Distinct());
+        Assert.True(endpoint.IsCompleted);
+        Assert.Equal(
+            1,
+            runtime.Transports.Single().DispatchEndpoints.Count(e => e.Name == endpoint.Name));
+    }
+
+    [Fact]
+    public async Task GetEndpoint_Should_ThrowNoTransportForMessageType_When_NoTransportExists()
+    {
+        // arrange
+        var services = new ServiceCollection();
+        services.AddMessageBus();
+        await using var provider = services.BuildServiceProvider();
+        var runtime = provider.GetRequiredService<IMessagingRuntime>();
+        var messageType = runtime.GetMessageType(typeof(NoTransportCommand));
+
+        // act
+        var exception = Assert.Throws<InvalidOperationException>(() => runtime.GetSendEndpoint(messageType));
+
+        // assert
+        Assert.Contains("No transport can handle message type", exception.Message);
+    }
+
+    [Fact]
+    public async Task GetEndpoint_Should_PreserveExplicitDestination_When_ConfiguredEndpointMatchesMessage()
+    {
+        // arrange
+        await using var provider = CreateProvider(
+            b => b.AddMessage<ExplicitDestinationCommand>(m => m.Send(r => r.ToQueue("configured-command"))),
+            d => d.DispatchEndpoint("configured-endpoint").ToQueue("other-command").Send<ExplicitDestinationCommand>());
+        var runtime = provider.GetRequiredService<IMessagingRuntime>();
+        var messageType = runtime.GetMessageType(typeof(ExplicitDestinationCommand));
+
+        // act
+        var route = Assert.Single(
+            runtime.Router.GetOutboundByMessageType(messageType),
+            r => r.Kind == OutboundRouteKind.Send);
+
+        // assert
+        Assert.Contains("configured-command", route.Destination!.ToString());
+        Assert.DoesNotContain("other-command", route.Destination.ToString());
+    }
+
+    [Fact]
     public async Task GetChangeToken_Should_Fire_When_LazyDispatchEndpointCreated()
     {
         // arrange
@@ -125,18 +231,34 @@ public sealed class MessageBusTopologyTests
         Assert.False(nextToken!.HasChanged);
     }
 
-    private static ServiceProvider CreateProvider(Action<IMessageBusHostBuilder> configure)
+    private static ServiceProvider CreateProvider(
+        Action<IMessageBusHostBuilder> configure,
+        Action<IInMemoryMessagingTransportDescriptor>? configureInMemory = null)
     {
         var services = new ServiceCollection();
         var builder = services.AddMessageBus();
         configure(builder);
-        builder.AddInMemory();
+        if (configureInMemory is null)
+        {
+            builder.AddInMemory();
+        }
+        else
+        {
+            builder.AddInMemory(configureInMemory);
+        }
+
         return services.BuildServiceProvider();
     }
 
     private sealed class TestEvent;
 
     private sealed class TestCommand;
+
+    private sealed class LazyCommand;
+
+    private sealed class NoTransportCommand;
+
+    private sealed class ExplicitDestinationCommand;
 
     private sealed class TestEventHandler : IEventHandler<TestEvent>
     {

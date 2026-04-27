@@ -226,6 +226,11 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
         {
             foreach (var candidate in DispatchEndpoints)
             {
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
                 if (candidate.Address == address)
                 {
                     endpoint = candidate;
@@ -238,6 +243,11 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
         {
             foreach (var candidate in DispatchEndpoints)
             {
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
                 if (candidate.Destination.Address == address)
                 {
                     endpoint = candidate;
@@ -250,6 +260,11 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
         {
             foreach (var candidate in DispatchEndpoints)
             {
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
                 if (candidate.Destination is RabbitMQQueue queue && queue.Name == queueName)
                 {
                     endpoint = candidate;
@@ -262,6 +277,11 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
         {
             foreach (var candidate in DispatchEndpoints)
             {
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
                 if (candidate.Destination is RabbitMQExchange exchange
                     && exchange.Name == exchangeName)
                 {

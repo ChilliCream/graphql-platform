@@ -130,6 +130,11 @@ public sealed class InMemoryMessagingTransport : MessagingTransport
         {
             foreach (var candidate in DispatchEndpoints)
             {
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
                 if (candidate.Address == address)
                 {
                     endpoint = candidate;
@@ -142,6 +147,11 @@ public sealed class InMemoryMessagingTransport : MessagingTransport
         {
             foreach (var candidate in DispatchEndpoints)
             {
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
                 if (candidate.Destination.Address == address)
                 {
                     endpoint = candidate;
@@ -154,6 +164,11 @@ public sealed class InMemoryMessagingTransport : MessagingTransport
         {
             foreach (var candidate in DispatchEndpoints)
             {
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
                 if (candidate.Destination is InMemoryQueue queue && queue.Name == queueName)
                 {
                     endpoint = candidate;
@@ -166,6 +181,11 @@ public sealed class InMemoryMessagingTransport : MessagingTransport
         {
             foreach (var candidate in DispatchEndpoints)
             {
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
                 if (candidate.Destination is InMemoryTopic topic && topic.Name == topicName)
                 {
                     endpoint = candidate;

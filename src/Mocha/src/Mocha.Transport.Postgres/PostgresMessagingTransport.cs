@@ -268,6 +268,11 @@ public sealed class PostgresMessagingTransport : MessagingTransport
         {
             foreach (var candidate in DispatchEndpoints)
             {
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
                 if (candidate.Address == address)
                 {
                     endpoint = candidate;
@@ -280,6 +285,11 @@ public sealed class PostgresMessagingTransport : MessagingTransport
         {
             foreach (var candidate in DispatchEndpoints)
             {
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
                 if (candidate.Destination.Address == address)
                 {
                     endpoint = candidate;
@@ -292,6 +302,11 @@ public sealed class PostgresMessagingTransport : MessagingTransport
         {
             foreach (var candidate in DispatchEndpoints)
             {
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
                 if (candidate.Destination is PostgresQueue queue && queue.Name == queueName)
                 {
                     endpoint = candidate;
@@ -304,6 +319,11 @@ public sealed class PostgresMessagingTransport : MessagingTransport
         {
             foreach (var candidate in DispatchEndpoints)
             {
+                if (!candidate.IsCompleted)
+                {
+                    continue;
+                }
+
                 if (candidate.Destination is PostgresTopic topic && topic.Name == topicName)
                 {
                     endpoint = candidate;

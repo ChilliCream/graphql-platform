@@ -91,11 +91,7 @@ public sealed class EndpointRouter : IEndpointRouter
             {
                 if (transport.TryGetDispatchEndpoint(address, out var endpoint))
                 {
-                    if (endpoint.IsCompleted)
-                    {
-                        changed = Upsert(endpoint, address);
-                    }
-
+                    changed = Upsert(endpoint, address);
                     resolved = endpoint;
                     break;
                 }
@@ -109,8 +105,12 @@ public sealed class EndpointRouter : IEndpointRouter
                     if (configuration is not null)
                     {
                         resolved = transport.AddEndpoint(context, configuration);
-                        resolved.DiscoverTopology(context);
-                        resolved.Complete(context);
+                        if (!resolved.IsCompleted)
+                        {
+                            resolved.DiscoverTopology(context);
+                            resolved.Complete(context);
+                        }
+
                         changed = Upsert(resolved, address);
                         break;
                     }
