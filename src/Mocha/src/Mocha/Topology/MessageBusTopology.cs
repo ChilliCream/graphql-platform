@@ -57,30 +57,22 @@ public sealed class MessageBusTopology : IMessageBusTopology, IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
-        IDisposable[] registrations;
-        CancellationTokenSource changeTokenSource;
-
-        lock (_lock)
+        if (_disposed)
         {
-            if (_disposed)
-            {
-                return;
-            }
-
-            _disposed = true;
-            registrations = [.. _changeTokenRegistrations];
-            _changeTokenRegistrations.Clear();
-            changeTokenSource = _changeTokenSource;
-            _changeToken = NullChangeToken.Singleton;
-            _description = null;
+            return;
         }
 
-        foreach (var registration in registrations)
+        _disposed = true;
+
+        foreach (var registration in _changeTokenRegistrations)
         {
             registration.Dispose();
         }
 
-        changeTokenSource.Dispose();
+        _changeTokenRegistrations.Clear();
+        _changeTokenSource.Dispose();
+        _changeToken = NullChangeToken.Singleton;
+        _description = null;
     }
 
     private void Invalidate()
