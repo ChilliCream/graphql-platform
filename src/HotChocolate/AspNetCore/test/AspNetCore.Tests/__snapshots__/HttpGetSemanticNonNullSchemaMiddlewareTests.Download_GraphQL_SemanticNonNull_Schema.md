@@ -9,10 +9,6 @@ Last-Modified: Fri, 01 Jan 2021 00:00:00 GMT
 -------------------------->
 Status Code: OK
 -------------------------->
-directive @semanticNonNull(levels: [Int!] = [
-  0
-]) on FIELD_DEFINITION
-
 schema {
   query: Query
   mutation: Mutation
@@ -197,6 +193,10 @@ directive @listSize(
   "The `requireOneSlicingArgument` argument can be used to inform the static analysis that it should expect that exactly one of the defined slicing arguments is present in a query. If that is not the case (i.e., if none or multiple slicing arguments are present), the static analysis may throw an error."
   requireOneSlicingArgument: Boolean = true
 ) on FIELD_DEFINITION
+
+directive @semanticNonNull(levels: [Int!] = [
+  0
+]) on FIELD_DEFINITION
 
 "The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
 directive @specifiedBy(

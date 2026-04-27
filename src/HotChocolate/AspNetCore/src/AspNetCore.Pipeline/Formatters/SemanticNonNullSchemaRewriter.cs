@@ -84,8 +84,69 @@ internal static class SemanticNonNullSchemaRewriter
             return schema;
         }
 
-        definitions.Insert(0, CreateSemanticNonNullDirectiveDefinition());
+        var directive = CreateSemanticNonNullDirectiveDefinition();
+        var insertionIndex = FindDirectiveInsertionIndex(definitions, directive.Name.Value);
+        definitions.Insert(insertionIndex, directive);
         return schema.WithDefinitions(definitions);
+    }
+
+    private static int FindDirectiveInsertionIndex(List<IDefinitionNode> definitions, string directiveName)
+    {
+        var firstDirectiveIdx = -1;
+        var lastDirectiveIdx = -1;
+
+        for (var i = 0; i < definitions.Count; i++)
+        {
+            if (definitions[i] is DirectiveDefinitionNode)
+            {
+                if (firstDirectiveIdx < 0)
+                {
+                    firstDirectiveIdx = i;
+                }
+                lastDirectiveIdx = i;
+            }
+        }
+
+        if (firstDirectiveIdx >= 0)
+        {
+            for (var i = firstDirectiveIdx; i <= lastDirectiveIdx; i++)
+            {
+                if (definitions[i] is DirectiveDefinitionNode existing
+                    && string.CompareOrdinal(directiveName, existing.Name.Value) < 0)
+                {
+                    return i;
+                }
+            }
+
+            return lastDirectiveIdx + 1;
+        }
+
+        var firstScalarIdx = -1;
+        var afterLastEnumIdx = -1;
+
+        for (var i = 0; i < definitions.Count; i++)
+        {
+            if (definitions[i] is EnumTypeDefinitionNode)
+            {
+                afterLastEnumIdx = i + 1;
+            }
+            else if (firstScalarIdx < 0 && definitions[i] is ScalarTypeDefinitionNode)
+            {
+                firstScalarIdx = i;
+            }
+        }
+
+        if (firstScalarIdx >= 0)
+        {
+            return firstScalarIdx;
+        }
+
+        if (afterLastEnumIdx >= 0)
+        {
+            return afterLastEnumIdx;
+        }
+
+        return definitions.Count;
     }
 
     private static string ResolveMutationTypeName(DocumentNode schema)

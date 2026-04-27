@@ -53,13 +53,13 @@ public class SemanticNonNullSchemaRewriterTests
         // assert
         result.ToString().MatchInlineSnapshot(
             """
-            directive @semanticNonNull(levels: [Int!] = [
-              0
-            ]) on FIELD_DEFINITION
-
             type Query {
               name: String @semanticNonNull
             }
+
+            directive @semanticNonNull(levels: [Int!] = [
+              0
+            ]) on FIELD_DEFINITION
             """);
     }
 
@@ -82,15 +82,15 @@ public class SemanticNonNullSchemaRewriterTests
         // assert
         result.ToString().MatchInlineSnapshot(
             """
-            directive @semanticNonNull(levels: [Int!] = [
-              0
-            ]) on FIELD_DEFINITION
-
             type Query {
               tags: [String] @semanticNonNull(levels: [0, 1])
               matrix: [[String]] @semanticNonNull(levels: [0, 1, 2])
               innerOnly: [[String]] @semanticNonNull(levels: [2])
             }
+
+            directive @semanticNonNull(levels: [Int!] = [
+              0
+            ]) on FIELD_DEFINITION
             """);
     }
 
@@ -120,10 +120,6 @@ public class SemanticNonNullSchemaRewriterTests
         // assert
         result.ToString().MatchInlineSnapshot(
             """
-            directive @semanticNonNull(levels: [Int!] = [
-              0
-            ]) on FIELD_DEFINITION
-
             schema {
               query: Query
               mutation: MyMutation
@@ -136,6 +132,10 @@ public class SemanticNonNullSchemaRewriterTests
             type MyMutation {
               doStuff: String!
             }
+
+            directive @semanticNonNull(levels: [Int!] = [
+              0
+            ]) on FIELD_DEFINITION
             """);
     }
 
@@ -160,10 +160,6 @@ public class SemanticNonNullSchemaRewriterTests
         // assert
         result.ToString().MatchInlineSnapshot(
             """
-            directive @semanticNonNull(levels: [Int!] = [
-              0
-            ]) on FIELD_DEFINITION
-
             type Query {
               hello: String @semanticNonNull
             }
@@ -171,6 +167,10 @@ public class SemanticNonNullSchemaRewriterTests
             type Mutation {
               doStuff: String!
             }
+
+            directive @semanticNonNull(levels: [Int!] = [
+              0
+            ]) on FIELD_DEFINITION
             """);
     }
 
@@ -199,10 +199,6 @@ public class SemanticNonNullSchemaRewriterTests
         // assert
         result.ToString().MatchInlineSnapshot(
             """
-            directive @semanticNonNull(levels: [Int!] = [
-              0
-            ]) on FIELD_DEFINITION
-
             type Query {
               hero: String @semanticNonNull
             }
@@ -214,6 +210,10 @@ public class SemanticNonNullSchemaRewriterTests
             type CollectionSegmentInfo {
               hasNextPage: Boolean!
             }
+
+            directive @semanticNonNull(levels: [Int!] = [
+              0
+            ]) on FIELD_DEFINITION
             """);
     }
 
@@ -248,10 +248,6 @@ public class SemanticNonNullSchemaRewriterTests
         // assert
         result.ToString().MatchInlineSnapshot(
             """
-            directive @semanticNonNull(levels: [Int!] = [
-              0
-            ]) on FIELD_DEFINITION
-
             type Query {
               hero: Character @semanticNonNull
             }
@@ -269,6 +265,10 @@ public class SemanticNonNullSchemaRewriterTests
               id: ID!
               name: String @semanticNonNull
             }
+
+            directive @semanticNonNull(levels: [Int!] = [
+              0
+            ]) on FIELD_DEFINITION
             """);
     }
 
@@ -294,10 +294,6 @@ public class SemanticNonNullSchemaRewriterTests
         // assert
         result.ToString().MatchInlineSnapshot(
             """
-            directive @semanticNonNull(levels: [Int!] = [
-              0
-            ]) on FIELD_DEFINITION
-
             type Query {
               hero: String @semanticNonNull
               __typename: String!
@@ -306,6 +302,10 @@ public class SemanticNonNullSchemaRewriterTests
             type __Schema {
               types: [String!]!
             }
+
+            directive @semanticNonNull(levels: [Int!] = [
+              0
+            ]) on FIELD_DEFINITION
             """);
     }
 
@@ -326,13 +326,89 @@ public class SemanticNonNullSchemaRewriterTests
         // assert
         result.ToString().MatchInlineSnapshot(
             """
+            type Query {
+              hello: String @deprecated(reason: "old") @semanticNonNull
+            }
+
+            directive @semanticNonNull(levels: [Int!] = [
+              0
+            ]) on FIELD_DEFINITION
+            """);
+    }
+
+    [Fact]
+    public void Rewrite_Should_Insert_Directive_Alphabetically_When_Existing_Directive_Definitions()
+    {
+        // arrange
+        var schema = Utf8GraphQLParser.Parse(
+            """
+            type Query {
+              hello: String!
+            }
+
+            directive @cost(weight: String!) on FIELD_DEFINITION
+            directive @listSize(assumedSize: Int) on FIELD_DEFINITION
+            directive @stream on FIELD
+            """);
+
+        // act
+        var result = SemanticNonNullSchemaRewriter.Rewrite(schema);
+
+        // assert
+        result.ToString().MatchInlineSnapshot(
+            """
+            type Query {
+              hello: String @semanticNonNull
+            }
+
+            directive @cost(weight: String!) on FIELD_DEFINITION
+
+            directive @listSize(assumedSize: Int) on FIELD_DEFINITION
+
             directive @semanticNonNull(levels: [Int!] = [
               0
             ]) on FIELD_DEFINITION
 
+            directive @stream on FIELD
+            """);
+    }
+
+    [Fact]
+    public void Rewrite_Should_Insert_Directive_Between_Enums_And_Scalars_When_No_Existing_Directives()
+    {
+        // arrange
+        var schema = Utf8GraphQLParser.Parse(
+            """
             type Query {
-              hello: String @deprecated(reason: "old") @semanticNonNull
+              hello: String!
             }
+
+            enum Episode {
+              NEW_HOPE
+            }
+
+            scalar DateTime
+            """);
+
+        // act
+        var result = SemanticNonNullSchemaRewriter.Rewrite(schema);
+
+        // assert
+        result.ToString().MatchInlineSnapshot(
+            """
+            type Query {
+              hello: String @semanticNonNull
+            }
+
+            enum Episode {
+              NEW_HOPE
+            }
+
+            directive @semanticNonNull(levels: [Int!] = [
+              0
+            ]) on FIELD_DEFINITION
+
+            scalar DateTime
             """);
     }
 }
