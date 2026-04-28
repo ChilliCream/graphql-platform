@@ -56,9 +56,7 @@ public class SemanticNonNullSchemaRewriterTests
               name: String @semanticNonNull
             }
 
-            directive @semanticNonNull(levels: [Int!] = [
-              0
-            ]) on FIELD_DEFINITION
+            directive @semanticNonNull(levels: [Int!] = [0]) on FIELD_DEFINITION
             """);
     }
 
@@ -87,9 +85,7 @@ public class SemanticNonNullSchemaRewriterTests
               innerOnly: [[String]] @semanticNonNull(levels: [2])
             }
 
-            directive @semanticNonNull(levels: [Int!] = [
-              0
-            ]) on FIELD_DEFINITION
+            directive @semanticNonNull(levels: [Int!] = [0]) on FIELD_DEFINITION
             """);
     }
 
@@ -132,9 +128,7 @@ public class SemanticNonNullSchemaRewriterTests
               doStuff: String!
             }
 
-            directive @semanticNonNull(levels: [Int!] = [
-              0
-            ]) on FIELD_DEFINITION
+            directive @semanticNonNull(levels: [Int!] = [0]) on FIELD_DEFINITION
             """);
     }
 
@@ -167,9 +161,7 @@ public class SemanticNonNullSchemaRewriterTests
               doStuff: String!
             }
 
-            directive @semanticNonNull(levels: [Int!] = [
-              0
-            ]) on FIELD_DEFINITION
+            directive @semanticNonNull(levels: [Int!] = [0]) on FIELD_DEFINITION
             """);
     }
 
@@ -210,9 +202,7 @@ public class SemanticNonNullSchemaRewriterTests
               hasNextPage: Boolean!
             }
 
-            directive @semanticNonNull(levels: [Int!] = [
-              0
-            ]) on FIELD_DEFINITION
+            directive @semanticNonNull(levels: [Int!] = [0]) on FIELD_DEFINITION
             """);
     }
 
@@ -265,9 +255,7 @@ public class SemanticNonNullSchemaRewriterTests
               name: String @semanticNonNull
             }
 
-            directive @semanticNonNull(levels: [Int!] = [
-              0
-            ]) on FIELD_DEFINITION
+            directive @semanticNonNull(levels: [Int!] = [0]) on FIELD_DEFINITION
             """);
     }
 
@@ -302,9 +290,7 @@ public class SemanticNonNullSchemaRewriterTests
               types: [String!]!
             }
 
-            directive @semanticNonNull(levels: [Int!] = [
-              0
-            ]) on FIELD_DEFINITION
+            directive @semanticNonNull(levels: [Int!] = [0]) on FIELD_DEFINITION
             """);
     }
 
@@ -329,9 +315,7 @@ public class SemanticNonNullSchemaRewriterTests
               hello: String @deprecated(reason: "old") @semanticNonNull
             }
 
-            directive @semanticNonNull(levels: [Int!] = [
-              0
-            ]) on FIELD_DEFINITION
+            directive @semanticNonNull(levels: [Int!] = [0]) on FIELD_DEFINITION
             """);
     }
 
@@ -364,9 +348,7 @@ public class SemanticNonNullSchemaRewriterTests
 
             directive @listSize(assumedSize: Int) on FIELD_DEFINITION
 
-            directive @semanticNonNull(levels: [Int!] = [
-              0
-            ]) on FIELD_DEFINITION
+            directive @semanticNonNull(levels: [Int!] = [0]) on FIELD_DEFINITION
 
             directive @stream on FIELD
             """);
@@ -403,9 +385,7 @@ public class SemanticNonNullSchemaRewriterTests
               NEW_HOPE
             }
 
-            directive @semanticNonNull(levels: [Int!] = [
-              0
-            ]) on FIELD_DEFINITION
+            directive @semanticNonNull(levels: [Int!] = [0]) on FIELD_DEFINITION
 
             scalar DateTime
             """);
@@ -434,9 +414,7 @@ public class SemanticNonNullSchemaRewriterTests
               hello: String @semanticNonNull
             }
 
-            directive @semanticNonNull(levels: [Int!] = [
-              0
-            ]) on FIELD_DEFINITION
+            directive @semanticNonNull(levels: [Int!] = [0]) on FIELD_DEFINITION
             """);
     }
 
@@ -461,9 +439,7 @@ public class SemanticNonNullSchemaRewriterTests
               tags: [String] @semanticNonNull(levels: [0, 1])
             }
 
-            directive @semanticNonNull(levels: [Int!] = [
-              0
-            ]) on FIELD_DEFINITION
+            directive @semanticNonNull(levels: [Int!] = [0]) on FIELD_DEFINITION
             """);
     }
 }

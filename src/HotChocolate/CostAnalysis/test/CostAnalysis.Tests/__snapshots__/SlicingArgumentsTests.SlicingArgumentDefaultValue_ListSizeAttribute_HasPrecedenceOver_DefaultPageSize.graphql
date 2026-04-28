@@ -13,7 +13,13 @@ type Query3 {
     "Returns the elements in the list that come before the specified cursor."
     before: String
   ): FoosConnection
-    @listSize(assumedSize: 10, slicingArguments: ["first", "last"], slicingArgumentDefaultValue: 999, sizedFields: ["edges", "nodes"], requireOneSlicingArgument: false)
+    @listSize(
+      assumedSize: 10
+      slicingArguments: ["first", "last"]
+      slicingArgumentDefaultValue: 999
+      sizedFields: ["edges", "nodes"]
+      requireOneSlicingArgument: false
+    )
 }
 
 "A connection to a list of items."

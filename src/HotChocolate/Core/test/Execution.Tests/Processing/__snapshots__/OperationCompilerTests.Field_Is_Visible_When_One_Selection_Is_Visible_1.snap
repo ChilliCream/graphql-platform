@@ -1,7 +1,7 @@
 query foo($v: Boolean!) {
   hero(episode: EMPIRE) {
     name
-    ... abc @include(if: $v)
+    ...abc @include(if: $v)
   }
 }
 

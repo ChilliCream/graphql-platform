@@ -68,7 +68,8 @@ public static class LookupTests
             The @is directive is utilized on lookup fields to describe how the arguments
             can be mapped from the entity type that the lookup field resolves.
             """
-            directive @is("The field selection map syntax." field: FieldSelectionMap!) on ARGUMENT_DEFINITION
+            directive @is("The field selection map syntax." field: FieldSelectionMap!) on
+              | ARGUMENT_DEFINITION
 
             """
             The @lookup directive is used within a source schema to specify output fields
@@ -111,14 +112,17 @@ public static class LookupTests
             The @is directive is utilized on lookup fields to describe how the arguments
             can be mapped from the entity type that the lookup field resolves.
             """
-            directive @is("The field selection map syntax." field: FieldSelectionMap!) on ARGUMENT_DEFINITION
+            directive @is("The field selection map syntax." field: FieldSelectionMap!) on
+              | ARGUMENT_DEFINITION
 
             """
             The @key directive is used to designate an entity's unique key,
             which identifies how to uniquely reference an instance of
             an entity across different source schemas.
             """
-            directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
+            directive @key("The field selection set syntax." fields: FieldSelectionSet!) on
+              | OBJECT
+              | INTERFACE
 
             """
             The @lookup directive is used within a source schema to specify output fields
@@ -167,14 +171,17 @@ public static class LookupTests
             The @is directive is utilized on lookup fields to describe how the arguments
             can be mapped from the entity type that the lookup field resolves.
             """
-            directive @is("The field selection map syntax." field: FieldSelectionMap!) on ARGUMENT_DEFINITION
+            directive @is("The field selection map syntax." field: FieldSelectionMap!) on
+              | ARGUMENT_DEFINITION
 
             """
             The @key directive is used to designate an entity's unique key,
             which identifies how to uniquely reference an instance of
             an entity across different source schemas.
             """
-            directive @key("The field selection set syntax." fields: FieldSelectionSet!) on OBJECT | INTERFACE
+            directive @key("The field selection set syntax." fields: FieldSelectionSet!) on
+              | OBJECT
+              | INTERFACE
 
             """
             The @lookup directive is used within a source schema to specify output fields
@@ -220,7 +227,8 @@ public static class LookupTests
 
             directive @require(field: FieldSelectionMap!) on ARGUMENT_DEFINITION
             """
-            directive @require("The field selection map syntax." field: FieldSelectionMap!) on ARGUMENT_DEFINITION
+            directive @require("The field selection map syntax." field: FieldSelectionMap!) on
+              | ARGUMENT_DEFINITION
             """");
     }
 

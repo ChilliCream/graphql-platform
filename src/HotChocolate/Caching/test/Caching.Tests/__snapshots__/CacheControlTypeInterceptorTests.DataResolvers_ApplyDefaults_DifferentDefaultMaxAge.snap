@@ -28,7 +28,11 @@ type Query {
   queryableFieldWithCacheControlMaxAgeAndSharedMaxAge: [String!]!
     @cacheControl(maxAge: 500, sharedMaxAge: 200)
   queryableFieldWithCacheControlMaxAgeAndSharedMaxAgeAndVary: [String!]!
-    @cacheControl(maxAge: 500, sharedMaxAge: 200, vary: ["accept-language", "x-timezoneoffset"])
+    @cacheControl(
+      maxAge: 500
+      sharedMaxAge: 200
+      vary: ["accept-language", "x-timezoneoffset"]
+    )
   queryableFieldWithConnectionWithCacheControl(
     "Returns the first _n_ elements from the list."
     first: Int
@@ -82,7 +86,11 @@ type NestedType {
   queryableFieldWithCacheControlMaxAgeAndSharedMaxAge: [String!]!
     @cacheControl(maxAge: 500, sharedMaxAge: 200)
   queryableFieldWithCacheControlMaxAgeAndSharedMaxAgeAndVary: [String!]!
-    @cacheControl(maxAge: 500, sharedMaxAge: 200, vary: ["accept-language", "x-timezoneoffset"])
+    @cacheControl(
+      maxAge: 500
+      sharedMaxAge: 200
+      vary: ["accept-language", "x-timezoneoffset"]
+    )
   queryableFieldWithConnectionWithCacheControl(
     "Returns the first _n_ elements from the list."
     first: Int

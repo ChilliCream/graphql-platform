@@ -1125,7 +1125,13 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               schema: fusion__Schema!
               "The weight defined in the source schema."
               weight: String!
-            ) repeatable on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
+            ) repeatable on
+              | SCALAR
+              | OBJECT
+              | FIELD_DEFINITION
+              | ARGUMENT_DEFINITION
+              | ENUM
+              | INPUT_FIELD_DEFINITION
 
             "The @fusion__enumValue directive specifies which source schema provides an enum value."
             directive @fusion__enumValue(
@@ -1154,7 +1160,17 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             ) repeatable on OBJECT | INTERFACE
 
             "The @fusion__inaccessible directive is used to prevent specific type system members from being accessible through the client-facing composite schema, even if they are accessible in the underlying source schemas."
-            directive @fusion__inaccessible on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+            directive @fusion__inaccessible on
+              | SCALAR
+              | OBJECT
+              | FIELD_DEFINITION
+              | ARGUMENT_DEFINITION
+              | INTERFACE
+              | UNION
+              | ENUM
+              | ENUM_VALUE
+              | INPUT_OBJECT
+              | INPUT_FIELD_DEFINITION
 
             "The @fusion__inputField directive specifies which source schema provides an input field in a composite input type."
             directive @fusion__inputField(
@@ -1288,7 +1304,13 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
               schema: fusion__Schema!
               "The weight defined in the source schema."
               weight: String!
-            ) repeatable on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
+            ) repeatable on
+              | SCALAR
+              | OBJECT
+              | FIELD_DEFINITION
+              | ARGUMENT_DEFINITION
+              | ENUM
+              | INPUT_FIELD_DEFINITION
 
             "The @fusion__enumValue directive specifies which source schema provides an enum value."
             directive @fusion__enumValue(
@@ -1317,7 +1339,17 @@ public sealed class FusionValidateCommandTests(NitroCommandFixture fixture) : Fu
             ) repeatable on OBJECT | INTERFACE
 
             "The @fusion__inaccessible directive is used to prevent specific type system members from being accessible through the client-facing composite schema, even if they are accessible in the underlying source schemas."
-            directive @fusion__inaccessible on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | INTERFACE | UNION | ENUM | ENUM_VALUE | INPUT_OBJECT | INPUT_FIELD_DEFINITION
+            directive @fusion__inaccessible on
+              | SCALAR
+              | OBJECT
+              | FIELD_DEFINITION
+              | ARGUMENT_DEFINITION
+              | INTERFACE
+              | UNION
+              | ENUM
+              | ENUM_VALUE
+              | INPUT_OBJECT
+              | INPUT_FIELD_DEFINITION
 
             "The @fusion__inputField directive specifies which source schema provides an input field in a composite input type."
             directive @fusion__inputField(
