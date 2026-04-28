@@ -28,7 +28,9 @@ public class CustomHeaderTests
             .AddConsumer<HeaderSpyConsumer>()
             .AddEventHub(t => t
                 .ConnectionString(_fixture.ConnectionString)
-                .Endpoint(hubName).ConsumerGroup(consumerGroup))
+                .Endpoint(hubName)
+                    .Consumer<HeaderSpyConsumer>()
+                    .ConsumerGroup(consumerGroup))
             .BuildTestBusAsync();
 
         using var scope = bus.Provider.CreateScope();
@@ -44,9 +46,9 @@ public class CustomHeaderTests
             CancellationToken.None);
 
         // assert
-        Assert.True(await capture.WaitAsync(s_timeout), "Consumer did not receive the published message");
+        var headers = await capture.WaitForOrderAsync("ORD-HDR", s_timeout);
+        Assert.NotNull(headers);
 
-        var headers = Assert.Single(capture.CapturedHeaders);
         Assert.True(headers.TryGetValue("x-tenant", out var tenant), "Custom header 'x-tenant' not found");
         Assert.Equal("acme", tenant);
 
@@ -54,10 +56,49 @@ public class CustomHeaderTests
         Assert.Equal("trace-123", traceId);
     }
 
+    [Fact]
+    public async Task PublishAsync_Should_RoundTripDateTimeOffset_When_HeaderContainsDateTimeOffset()
+    {
+        // arrange
+        var capture = new HeaderCapture();
+        var hubName = _fixture.GetHubForTest("headers");
+        var consumerGroup = _fixture.GetUniqueConsumerGroup();
+        await using var bus = await new ServiceCollection()
+            .AddSingleton(capture)
+            .AddMessageBus()
+            .AddConsumer<HeaderSpyConsumer>()
+            .AddEventHub(t => t
+                .ConnectionString(_fixture.ConnectionString)
+                .Endpoint(hubName)
+                    .Consumer<HeaderSpyConsumer>()
+                    .ConsumerGroup(consumerGroup))
+            .BuildTestBusAsync();
+
+        using var scope = bus.Provider.CreateScope();
+        var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
+        var timestamp = new DateTimeOffset(2026, 4, 28, 10, 30, 0, TimeSpan.Zero);
+
+        // act
+        await messageBus.PublishAsync(
+            new OrderCreated { OrderId = "ORD-DTO" },
+            new PublishOptions
+            {
+                Headers = new() { ["x-timestamp"] = timestamp }
+            },
+            CancellationToken.None);
+
+        // assert
+        var headers = await capture.WaitForOrderAsync("ORD-DTO", s_timeout);
+        Assert.NotNull(headers);
+
+        Assert.True(headers.TryGetValue("x-timestamp", out var raw), "Custom header 'x-timestamp' not found");
+        var received = Assert.IsType<DateTimeOffset>(raw);
+        Assert.Equal(timestamp, received);
+    }
+
     public sealed class HeaderCapture
     {
-        private readonly SemaphoreSlim _semaphore = new(0);
-        public ConcurrentBag<Dictionary<string, object?>> CapturedHeaders { get; } = [];
+        public ConcurrentDictionary<string, Dictionary<string, object?>> CapturedByOrderId { get; } = [];
 
         public void Record(IConsumeContext<OrderCreated> context)
         {
@@ -66,20 +107,23 @@ public class CustomHeaderTests
             {
                 dict[h.Key] = h.Value;
             }
-            CapturedHeaders.Add(dict);
-            _semaphore.Release();
+            CapturedByOrderId[context.Message.OrderId] = dict;
         }
 
-        public async Task<bool> WaitAsync(TimeSpan timeout, int expectedCount = 1)
+        public async Task<Dictionary<string, object?>?> WaitForOrderAsync(
+            string orderId,
+            TimeSpan timeout)
         {
-            for (var i = 0; i < expectedCount; i++)
+            using var cts = new CancellationTokenSource(timeout);
+            while (!cts.IsCancellationRequested)
             {
-                if (!await _semaphore.WaitAsync(timeout))
+                if (CapturedByOrderId.TryGetValue(orderId, out var headers))
                 {
-                    return false;
+                    return headers;
                 }
+                await Task.Delay(50, cts.Token).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
             }
-            return true;
+            return null;
         }
     }
 

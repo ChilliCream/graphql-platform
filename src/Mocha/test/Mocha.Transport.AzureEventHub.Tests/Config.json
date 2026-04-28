@@ -11,7 +11,7 @@
           { "Name": "test-hub-batch", "PartitionCount": "4", "ConsumerGroups": [] },
           { "Name": "test-hub-fault", "PartitionCount": "4", "ConsumerGroups": [] },
           { "Name": "test-hub-concurrency", "PartitionCount": "4", "ConsumerGroups": [] },
-          { "Name": "test-hub-headers", "PartitionCount": "4", "ConsumerGroups": [] },
+          { "Name": "mocha.test-helpers.order-created", "PartitionCount": "4", "ConsumerGroups": [] },
           { "Name": "test-hub-partition", "PartitionCount": "4", "ConsumerGroups": [{ "Name": "group-a" }, { "Name": "group-b" }] },
           { "Name": "error", "PartitionCount": "2", "ConsumerGroups": [] },
           { "Name": "replies", "PartitionCount": "4", "ConsumerGroups": [] }

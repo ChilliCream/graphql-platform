@@ -1,4 +1,5 @@
 using Azure.Messaging.EventHubs;
+using Azure.Messaging.EventHubs.Consumer;
 using Azure.Messaging.EventHubs.Primitives;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -71,8 +72,7 @@ public class DeadLetterCheckpointTests
             fakeConnection,
             "test-hub",
             messageHandler,
-            checkpointStore,
-            ownershipStore: null);
+            checkpointStore);
     }
 
     private static EventData CreateEvent(long sequenceNumber, string body)
@@ -98,8 +98,7 @@ public class DeadLetterCheckpointTests
             string connectionString,
             string eventHubName,
             Func<EventData, string, CancellationToken, ValueTask> messageHandler,
-            ICheckpointStore checkpointStore,
-            IPartitionOwnershipStore? ownershipStore = null)
+            ICheckpointStore checkpointStore)
             : base(
                 logger,
                 consumerGroup,
@@ -107,7 +106,9 @@ public class DeadLetterCheckpointTests
                 eventHubName,
                 messageHandler,
                 checkpointStore,
-                ownershipStore)
+                ownershipStore: null,
+                checkpointInterval: 1,
+                defaultStartingPosition: EventPosition.Earliest)
         {
         }
 

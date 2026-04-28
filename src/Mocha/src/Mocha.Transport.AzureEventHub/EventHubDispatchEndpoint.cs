@@ -133,7 +133,7 @@ public sealed class EventHubDispatchEndpoint(EventHubMessagingTransport transpor
 
         if (envelope.SentAt is not null)
         {
-            appProps[EventHubMessageHeaders.SentAt] = envelope.SentAt.Value.ToUnixTimeMilliseconds();
+            appProps[EventHubMessageHeaders.SentAt] = envelope.SentAt.Value;
         }
 
         // Custom headers
@@ -143,12 +143,7 @@ public sealed class EventHubDispatchEndpoint(EventHubMessagingTransport transpor
             {
                 if (header.Value is not null)
                 {
-                    appProps[header.Key] = header.Value switch
-                    {
-                        DateTimeOffset dto => dto.ToUnixTimeMilliseconds(),
-                        DateTime dt => new DateTimeOffset(dt).ToUnixTimeMilliseconds(),
-                        _ => header.Value
-                    };
+                    appProps[header.Key] = header.Value;
                 }
             }
         }

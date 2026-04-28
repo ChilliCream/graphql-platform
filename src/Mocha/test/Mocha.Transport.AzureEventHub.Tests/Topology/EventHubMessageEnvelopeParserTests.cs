@@ -304,4 +304,57 @@ public class EventHubMessageEnvelopeParserTests
         Assert.True(envelope.Headers.TryGetValue("x-tenant", out var tenant));
         Assert.Equal("acme", tenant);
     }
+
+    [Fact]
+    public void Parse_Should_RoundTripDateTimeOffsetHeader_When_StoredAsNativeValue()
+    {
+        // arrange
+        var timestamp = new DateTimeOffset(2026, 4, 27, 10, 30, 0, TimeSpan.Zero);
+        var eventData = new EventData(new byte[] { 0 });
+        var amqp = eventData.GetRawAmqpMessage();
+        amqp.ApplicationProperties["x-timestamp"] = timestamp;
+
+        // act
+        var envelope = _parser.Parse(eventData);
+
+        // assert
+        Assert.NotNull(envelope.Headers);
+        Assert.True(envelope.Headers.TryGetValue("x-timestamp", out var raw));
+        var received = Assert.IsType<DateTimeOffset>(raw);
+        Assert.Equal(timestamp, received);
+    }
+
+    [Fact]
+    public void Parse_Should_RoundTripSentAt_When_StoredAsNativeDateTimeOffset()
+    {
+        // arrange
+        var sentAt = new DateTimeOffset(2026, 4, 27, 15, 0, 0, TimeSpan.Zero);
+        var eventData = new EventData(new byte[] { 0 });
+        var amqp = eventData.GetRawAmqpMessage();
+        amqp.ApplicationProperties[EventHubMessageHeaders.SentAt] = sentAt;
+
+        // act
+        var envelope = _parser.Parse(eventData);
+
+        // assert
+        Assert.NotNull(envelope.SentAt);
+        Assert.Equal(sentAt, envelope.SentAt.Value);
+    }
+
+    [Fact]
+    public void Parse_Should_RoundTripSentAt_When_StoredAsLegacyUnixMilliseconds()
+    {
+        // arrange
+        var sentAt = new DateTimeOffset(2026, 4, 27, 15, 0, 0, TimeSpan.Zero);
+        var eventData = new EventData(new byte[] { 0 });
+        var amqp = eventData.GetRawAmqpMessage();
+        amqp.ApplicationProperties[EventHubMessageHeaders.SentAt] = sentAt.ToUnixTimeMilliseconds();
+
+        // act
+        var envelope = _parser.Parse(eventData);
+
+        // assert
+        Assert.NotNull(envelope.SentAt);
+        Assert.Equal(sentAt, envelope.SentAt.Value);
+    }
 }

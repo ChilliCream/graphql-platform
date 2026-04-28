@@ -73,10 +73,14 @@ internal sealed class EventHubMessageEnvelopeParser
     private static DateTimeOffset? GetDateTimeOffsetOrNull(IDictionary<string, object?>? appProps, string key)
     {
         if (appProps is not null
-            && appProps.TryGetValue(key, out var value)
-            && value is long ms)
+            && appProps.TryGetValue(key, out var value))
         {
-            return DateTimeOffset.FromUnixTimeMilliseconds(ms);
+            return value switch
+            {
+                DateTimeOffset dto => dto,
+                long ms => DateTimeOffset.FromUnixTimeMilliseconds(ms),
+                _ => null
+            };
         }
 
         return null;
