@@ -30,12 +30,12 @@ internal static class ThrowHelper
 
     public static InvalidOperationException RequestIndexOutOfRange(int requestIndex)
         => new(string.Format(
-            FusionExecutionResources.SourceSchemaHttpClient_InvalidRequestIndex,
+            FusionExecutionResources.HttpSourceSchemaClient_InvalidRequestIndex,
             requestIndex));
 
     public static InvalidOperationException VariableIndexOutOfRange(int variableIndex)
         => new(string.Format(
-            FusionExecutionResources.SourceSchemaHttpClient_VariableIndexOutOfRange,
+            FusionExecutionResources.HttpSourceSchemaClient_VariableIndexOutOfRange,
             variableIndex));
 
     public static ArgumentException InvalidClientConfiguration(Type expected, Type actual)

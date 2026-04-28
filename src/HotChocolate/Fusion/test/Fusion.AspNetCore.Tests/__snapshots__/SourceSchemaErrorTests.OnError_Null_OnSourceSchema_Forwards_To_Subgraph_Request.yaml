@@ -1,4 +1,4 @@
-title: SchemaDefault_Null_AppliesWithoutPerRequestOverride
+title: OnError_Null_OnSourceSchema_Forwards_To_Subgraph_Request
 request:
   document: |
     {
@@ -39,6 +39,7 @@ sourceSchemas:
     interactions:
       - request:
           accept: application/graphql-response+json; charset=utf-8, application/json; charset=utf-8, application/jsonl; charset=utf-8, text/event-stream; charset=utf-8
+          onError: Null
           document: |
             query Op_97fd38fc_1 {
               productById(id: 1) {

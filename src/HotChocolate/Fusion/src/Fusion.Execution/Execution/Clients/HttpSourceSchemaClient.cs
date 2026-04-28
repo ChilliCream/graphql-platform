@@ -16,33 +16,35 @@ namespace HotChocolate.Fusion.Execution.Clients;
 /// <summary>
 /// HTTP-based implementation of <see cref="ISourceSchemaClient"/> that sends GraphQL operations
 /// to a downstream service over HTTP. Supports single requests, Apollo-style request batching,
-/// and variable batching depending on the configured <see cref="SourceSchemaHttpClientConfiguration.Capabilities"/>.
+/// and variable batching depending on the configured <see cref="HttpSourceSchemaClientConfiguration.Capabilities"/>.
 /// </summary>
-public sealed class SourceSchemaHttpClient : ISourceSchemaClient
+public sealed class HttpSourceSchemaClient : ISourceSchemaClient
 {
     private static readonly Uri s_unknownUri = new("http://unknown");
     private static ReadOnlySpan<byte> VariableIndex => "variableIndex"u8;
     private static ReadOnlySpan<byte> RequestIndex => "requestIndex"u8;
 
     private readonly GraphQLHttpClient _client;
-    private readonly SourceSchemaHttpClientConfiguration _configuration;
+    private readonly HttpSourceSchemaClientConfiguration _configuration;
+    private readonly ErrorHandlingMode? _onError;
     private readonly bool _supportsVariableBatching;
     private bool _disposed;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="SourceSchemaHttpClient"/>.
+    /// Initializes a new instance of <see cref="HttpSourceSchemaClient"/>.
     /// </summary>
     /// <param name="client">The underlying HTTP client used to send requests.</param>
     /// <param name="configuration">The transport configuration for this source schema.</param>
-    public SourceSchemaHttpClient(
+    public HttpSourceSchemaClient(
         GraphQLHttpClient client,
-        SourceSchemaHttpClientConfiguration configuration)
+        HttpSourceSchemaClientConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(client);
         ArgumentNullException.ThrowIfNull(configuration);
 
         _client = client;
         _configuration = configuration;
+        _onError = configuration.OnError;
 
         var capabilities = configuration.Capabilities;
 
@@ -103,7 +105,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         if (ContainsSubscriptionRequest(requests))
         {
             throw new InvalidOperationException(
-                FusionExecutionResources.SourceSchemaHttpClient_SubscriptionBatchNotSupported);
+                FusionExecutionResources.HttpSourceSchemaClient_SubscriptionBatchNotSupported);
         }
 
         var requiresFileUpload = requests[0].RequiresFileUpload;
@@ -244,7 +246,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                         result.Dispose();
                         throw new InvalidOperationException(
                             string.Format(
-                                FusionExecutionResources.SourceSchemaHttpClient_InvalidVariableIndex,
+                                FusionExecutionResources.HttpSourceSchemaClient_InvalidVariableIndex,
                                 variableIndex,
                                 request.Node.Id));
                     }
@@ -297,7 +299,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
         switch (originalRequest.Variables.Length)
         {
             case 0:
-                httpRequest = new GraphQLHttpRequest(CreateSingleRequest(context, originalRequest, ref buffer))
+                httpRequest = new GraphQLHttpRequest(CreateSingleRequest(context, originalRequest, _onError, ref buffer))
                 {
                     Uri = _configuration.BaseAddress,
                     AcceptHeaderValue = defaultAcceptHeader
@@ -305,7 +307,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 break;
 
             case 1:
-                httpRequest = new GraphQLHttpRequest(CreateSingleRequest(context, originalRequest, ref buffer))
+                httpRequest = new GraphQLHttpRequest(CreateSingleRequest(context, originalRequest, _onError, ref buffer))
                 {
                     Uri = _configuration.BaseAddress,
                     AcceptHeaderValue = defaultAcceptHeader,
@@ -317,7 +319,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 if (!originalRequest.RequiresFileUpload && _supportsVariableBatching)
                 {
                     httpRequest =
-                        new GraphQLHttpRequest(CreateVariableBatchRequest(operationSourceText, originalRequest))
+                        new GraphQLHttpRequest(CreateVariableBatchRequest(operationSourceText, originalRequest, _onError))
                         {
                             Uri = _configuration.BaseAddress,
                             AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue
@@ -326,7 +328,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 else
                 {
                     httpRequest =
-                        new GraphQLHttpRequest(CreateOperationBatchRequest(context, originalRequest, ref buffer))
+                        new GraphQLHttpRequest(CreateOperationBatchRequest(context, originalRequest, _onError, ref buffer))
                         {
                             Uri = _configuration.BaseAddress,
                             AcceptHeaderValue = _configuration.BatchingAcceptHeaderValue,
@@ -374,6 +376,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                             CreateBatchUploadRequest(
                                 sourceRequest,
                                 VariableValues.Empty,
+                                _onError,
                                 buffer,
                                 fileLookup,
                                 fileEntries));
@@ -385,6 +388,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                             CreateBatchUploadRequest(
                                 sourceRequest,
                                 sourceRequest.Variables[0],
+                                _onError,
                                 buffer,
                                 fileLookup,
                                 fileEntries,
@@ -399,6 +403,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                                 CreateBatchUploadRequest(
                                     sourceRequest,
                                     sourceRequest.Variables[j],
+                                    _onError,
                                     buffer,
                                     fileLookup,
                                     fileEntries,
@@ -441,14 +446,14 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 switch (sourceRequest.Variables.Length)
                 {
                     case 0 or 1:
-                        batchRequests.Add(CreateSingleRequest(context, sourceRequest, ref buffer));
+                        batchRequests.Add(CreateSingleRequest(context, sourceRequest, _onError, ref buffer));
                         break;
 
                     default:
                         if (_supportsVariableBatching)
                         {
                             batchRequests.Add(CreateVariableBatchRequest(
-                                sourceRequest.OperationSourceText, sourceRequest));
+                                sourceRequest.OperationSourceText, sourceRequest, _onError));
                         }
                         else
                         {
@@ -458,7 +463,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                                     sourceRequest.OperationSourceText,
                                     id: null,
                                     operationName: null,
-                                    onError: null,
+                                    onError: _onError,
                                     variables: sourceRequest.Variables[j],
                                     extensions: JsonSegment.Empty));
                             }
@@ -480,6 +485,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
     private static OperationRequest CreateSingleRequest(
         OperationPlanContext context,
         SourceSchemaClientRequest originalRequest,
+        ErrorHandlingMode? onError,
         ref ChunkedArrayWriter? writer)
     {
         var variables = originalRequest.Variables.IsDefaultOrEmpty
@@ -496,7 +502,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 originalRequest.OperationSourceText,
                 id: null,
                 operationName: null,
-                onError: null,
+                onError: onError,
                 variables: variables with { Values = cleanedJson },
                 extensions: JsonSegment.Empty,
                 fileMap: fileMap);
@@ -506,7 +512,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             originalRequest.OperationSourceText,
             id: null,
             operationName: null,
-            onError: null,
+            onError: onError,
             variables: variables,
             extensions: JsonSegment.Empty);
     }
@@ -514,6 +520,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
     private static OperationRequest CreateBatchUploadRequest(
         SourceSchemaClientRequest originalRequest,
         VariableValues variables,
+        ErrorHandlingMode? onError,
         ChunkedArrayWriter writer,
         IFileLookup fileLookup,
         ImmutableArray<FileEntry>.Builder fileEntries,
@@ -525,7 +532,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
             originalRequest.OperationSourceText,
             id: null,
             operationName: null,
-            onError: null,
+            onError: onError,
             variables: variables with { Values = cleanedJson },
             extensions: JsonSegment.Empty);
     }
@@ -533,6 +540,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
     private static OperationBatchRequest CreateOperationBatchRequest(
         OperationPlanContext context,
         SourceSchemaClientRequest originalRequest,
+        ErrorHandlingMode? onError,
         ref ChunkedArrayWriter? writer)
     {
         if (originalRequest.RequiresFileUpload
@@ -547,6 +555,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                 requests[i] = CreateBatchUploadRequest(
                     originalRequest,
                     originalRequest.Variables[i],
+                    onError,
                     writer,
                     fileLookup,
                     fileEntries,
@@ -567,7 +576,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
                     originalRequest.OperationSourceText,
                     id: null,
                     operationName: null,
-                    onError: null,
+                    onError: onError,
                     variables: originalRequest.Variables[i],
                     extensions: JsonSegment.Empty);
             }
@@ -578,13 +587,14 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
 
     private static VariableBatchRequest CreateVariableBatchRequest(
         string operationSourceText,
-        SourceSchemaClientRequest originalRequest)
+        SourceSchemaClientRequest originalRequest,
+        ErrorHandlingMode? onError)
     {
         return new VariableBatchRequest(
             operationSourceText,
             id: null,
             operationName: null,
-            onError: null,
+            onError: onError,
             variables: originalRequest.Variables,
             extensions: JsonSegment.Empty);
     }
@@ -706,8 +716,8 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
     }
 
     /// <summary>
-    /// Attaches <see cref="SourceSchemaHttpClientConfiguration.OnBeforeSend"/> and
-    /// <see cref="SourceSchemaHttpClientConfiguration.OnAfterReceive"/> callbacks to
+    /// Attaches <see cref="HttpSourceSchemaClientConfiguration.OnBeforeSend"/> and
+    /// <see cref="HttpSourceSchemaClientConfiguration.OnAfterReceive"/> callbacks to
     /// the HTTP request.
     /// </summary>
     private void ConfigureCallbacks(
@@ -755,7 +765,7 @@ public sealed class SourceSchemaHttpClient : ISourceSchemaClient
     /// </summary>
     private sealed class Response(
         OperationPlanContext context,
-        SourceSchemaHttpClientConfiguration configuration,
+        HttpSourceSchemaClientConfiguration configuration,
         bool supportsVariableBatching,
         ExecutionNode node,
         OperationType operation,
