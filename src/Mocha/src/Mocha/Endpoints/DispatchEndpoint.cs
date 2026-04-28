@@ -214,6 +214,13 @@ public abstract class DispatchEndpoint : IDispatchEndpoint
         IMessagingConfigurationContext context,
         DispatchEndpointConfiguration configuration);
 
+    /// <summary>
+    /// Creates a read-only description of this endpoint for diagnostic or introspection purposes.
+    /// </summary>
+    /// <returns>
+    /// A <see cref="DispatchEndpointDescription"/> containing the endpoint name, kind, address,
+    /// and destination address.
+    /// </returns>
     public DispatchEndpointDescription Describe()
     {
         return new DispatchEndpointDescription(Name, Kind, Address?.ToString(), Destination?.Address?.ToString());

@@ -129,6 +129,10 @@ public sealed class OutboundRoute
         IsInitialized = true;
     }
 
+    /// <summary>
+    /// Creates a description of this outbound route for visualization and diagnostic purposes.
+    /// </summary>
+    /// <returns>An <see cref="OutboundRouteDescription"/> representing this route.</returns>
     public OutboundRouteDescription Describe()
     {
         return new OutboundRouteDescription(

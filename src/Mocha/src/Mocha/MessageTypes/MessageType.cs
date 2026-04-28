@@ -162,6 +162,10 @@ public sealed class MessageType
         IsCompleted = true;
     }
 
+    /// <summary>
+    /// Creates a description of this message type for visualization and diagnostic purposes.
+    /// </summary>
+    /// <returns>A <see cref="MessageTypeDescription"/> representing this message type.</returns>
     public MessageTypeDescription Describe()
     {
         return new MessageTypeDescription(

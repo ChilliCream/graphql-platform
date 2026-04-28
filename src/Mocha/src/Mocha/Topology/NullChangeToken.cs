@@ -2,6 +2,12 @@ using Microsoft.Extensions.Primitives;
 
 namespace Mocha;
 
+/// <summary>
+/// An <see cref="IChangeToken"/> that never fires.
+/// </summary>
+/// <remarks>
+/// Used by sources whose contents never change. Mirrors ASP.NET Core's internal <c>NullChangeToken</c>.
+/// </remarks>
 internal sealed class NullChangeToken : IChangeToken
 {
     public static NullChangeToken Singleton { get; } = new();

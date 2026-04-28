@@ -136,6 +136,10 @@ public sealed class InboundRoute
         IsInitialized = true;
     }
 
+    /// <summary>
+    /// Creates a description of this inbound route for visualization and diagnostic purposes.
+    /// </summary>
+    /// <returns>An <see cref="InboundRouteDescription"/> representing this route.</returns>
     public InboundRouteDescription Describe()
     {
         return new InboundRouteDescription(
