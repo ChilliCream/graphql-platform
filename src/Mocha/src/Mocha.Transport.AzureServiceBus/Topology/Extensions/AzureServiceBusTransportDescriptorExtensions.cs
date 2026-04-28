@@ -14,13 +14,16 @@ public static class AzureServiceBusTransportDescriptorExtensions
         descriptor.AddConvention(new AzureServiceBusReceiveEndpointTopologyConvention());
         descriptor.AddConvention(new AzureServiceBusDispatchEndpointTopologyConvention());
 
-        descriptor
-            .UseReceive(AzureServiceBusReceiveMiddlewares.Acknowledgement, after: ReceiveMiddlewares.ConcurrencyLimiter.Key);
-        descriptor
-            .UseReceive(AzureServiceBusReceiveMiddlewares.Parsing, after: AzureServiceBusReceiveMiddlewares.Acknowledgement.Key);
+        descriptor.UseReceive(
+            AzureServiceBusReceiveMiddlewares.Acknowledgement,
+            after: ReceiveMiddlewares.ConcurrencyLimiter.Key);
+        descriptor.UseReceive(
+            AzureServiceBusReceiveMiddlewares.Parsing,
+            after: AzureServiceBusReceiveMiddlewares.Acknowledgement.Key);
 
-        descriptor
-            .UseDispatch(AzureServiceBusDispatchMiddlewares.MessageProperties, before: DispatchMiddlewares.Serialization.Key);
+        descriptor.UseDispatch(
+            AzureServiceBusDispatchMiddlewares.MessageProperties,
+            before: DispatchMiddlewares.Serialization.Key);
 
         return descriptor;
     }

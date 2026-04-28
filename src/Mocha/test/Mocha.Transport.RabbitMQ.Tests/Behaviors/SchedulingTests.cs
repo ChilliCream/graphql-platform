@@ -4,14 +4,14 @@ using Mocha.Transport.RabbitMQ.Tests.Helpers;
 namespace Mocha.Transport.RabbitMQ.Tests.Behaviors;
 
 /// <summary>
-/// RabbitMQ does NOT have native scheduling. Without an external scheduler configured,
-/// messages with ScheduledTime are delivered immediately. These tests verify that
-/// ScheduledTime does not break the pipeline and messages are still delivered.
+/// RabbitMQ does NOT have native scheduling and ships no fallback scheduling store.
+/// Scheduled dispatch through this transport now fails fast with NotSupportedException
+/// instead of being silently delivered immediately. To enable scheduling for RabbitMQ
+/// register a fallback scheduling store (e.g. UsePostgresScheduling()).
 /// </summary>
 [Collection("RabbitMQ")]
 public class SchedulingTests
 {
-    private static readonly TimeSpan s_timeout = TimeSpan.FromSeconds(30);
     private readonly RabbitMQFixture _fixture;
 
     public SchedulingTests(RabbitMQFixture fixture)
@@ -20,14 +20,11 @@ public class SchedulingTests
     }
 
     [Fact]
-    public async Task PublishAsync_Should_DeliverMessage_When_ScheduledTimeIsInFuture()
+    public async Task PublishAsync_Should_Throw_When_ScheduledTimeSetAndNoStore()
     {
-        // arrange
-        var recorder = new MessageRecorder();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
             .AddSingleton(vhost.ConnectionFactory)
-            .AddSingleton(recorder)
             .AddMessageBus()
             .AddEventHandler<OrderCreatedHandler>()
             .AddRabbitMQ()
@@ -36,33 +33,19 @@ public class SchedulingTests
         using var scope = bus.Provider.CreateScope();
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        var scheduledTime = DateTimeOffset.UtcNow.AddSeconds(30);
-
-        // act - RabbitMQ delivers immediately regardless of ScheduledTime
-        await messageBus.PublishAsync(
-            new OrderCreated { OrderId = "ORD-SCHED-1" },
-            new PublishOptions { ScheduledTime = scheduledTime },
-            CancellationToken.None);
-
-        // assert - message should be delivered (not lost)
-        Assert.True(
-            await recorder.WaitAsync(s_timeout),
-            "Message with ScheduledTime should still be delivered via RabbitMQ");
-
-        var message = Assert.Single(recorder.Messages);
-        var order = Assert.IsType<OrderCreated>(message);
-        Assert.Equal("ORD-SCHED-1", order.OrderId);
+        await Assert.ThrowsAsync<NotSupportedException>(
+            () => messageBus.PublishAsync(
+                new OrderCreated { OrderId = "ORD-SCHED-1" },
+                new PublishOptions { ScheduledTime = DateTimeOffset.UtcNow.AddSeconds(30) },
+                CancellationToken.None).AsTask());
     }
 
     [Fact]
-    public async Task SendAsync_Should_DeliverMessage_When_ScheduledTimeIsInFuture()
+    public async Task SendAsync_Should_Throw_When_ScheduledTimeSetAndNoStore()
     {
-        // arrange
-        var recorder = new MessageRecorder();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
             .AddSingleton(vhost.ConnectionFactory)
-            .AddSingleton(recorder)
             .AddMessageBus()
             .AddRequestHandler<ProcessPaymentHandler>()
             .AddRabbitMQ()
@@ -71,34 +54,19 @@ public class SchedulingTests
         using var scope = bus.Provider.CreateScope();
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        var scheduledTime = DateTimeOffset.UtcNow.AddSeconds(30);
-
-        // act - RabbitMQ delivers immediately regardless of ScheduledTime
-        await messageBus.SendAsync(
-            new ProcessPayment { OrderId = "ORD-SCHED-2", Amount = 99.99m },
-            new SendOptions { ScheduledTime = scheduledTime },
-            CancellationToken.None);
-
-        // assert - message should be delivered (not lost)
-        Assert.True(
-            await recorder.WaitAsync(s_timeout),
-            "Message with ScheduledTime should still be delivered via RabbitMQ");
-
-        var message = Assert.Single(recorder.Messages);
-        var payment = Assert.IsType<ProcessPayment>(message);
-        Assert.Equal("ORD-SCHED-2", payment.OrderId);
-        Assert.Equal(99.99m, payment.Amount);
+        await Assert.ThrowsAsync<NotSupportedException>(
+            () => messageBus.SendAsync(
+                new ProcessPayment { OrderId = "ORD-SCHED-2", Amount = 99.99m },
+                new SendOptions { ScheduledTime = DateTimeOffset.UtcNow.AddSeconds(30) },
+                CancellationToken.None).AsTask());
     }
 
     [Fact]
-    public async Task PublishAsync_Should_DeliverMessage_When_ScheduledTimeIsInPast()
+    public async Task PublishAsync_Should_Throw_When_ScheduledTimeInPastAndNoStore()
     {
-        // arrange
-        var recorder = new MessageRecorder();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
             .AddSingleton(vhost.ConnectionFactory)
-            .AddSingleton(recorder)
             .AddMessageBus()
             .AddEventHandler<OrderCreatedHandler>()
             .AddRabbitMQ()
@@ -107,33 +75,19 @@ public class SchedulingTests
         using var scope = bus.Provider.CreateScope();
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        var pastTime = DateTimeOffset.UtcNow.AddMinutes(-1);
-
-        // act
-        await messageBus.PublishAsync(
-            new OrderCreated { OrderId = "ORD-PAST-1" },
-            new PublishOptions { ScheduledTime = pastTime },
-            CancellationToken.None);
-
-        // assert
-        Assert.True(
-            await recorder.WaitAsync(s_timeout),
-            "Message should be delivered when ScheduledTime is in the past");
-
-        var message = Assert.Single(recorder.Messages);
-        var order = Assert.IsType<OrderCreated>(message);
-        Assert.Equal("ORD-PAST-1", order.OrderId);
+        await Assert.ThrowsAsync<NotSupportedException>(
+            () => messageBus.PublishAsync(
+                new OrderCreated { OrderId = "ORD-PAST-1" },
+                new PublishOptions { ScheduledTime = DateTimeOffset.UtcNow.AddMinutes(-1) },
+                CancellationToken.None).AsTask());
     }
 
     [Fact]
-    public async Task SendAsync_Should_DeliverMessage_When_ScheduledTimeIsInPast()
+    public async Task SendAsync_Should_Throw_When_ScheduledTimeInPastAndNoStore()
     {
-        // arrange
-        var recorder = new MessageRecorder();
         await using var vhost = await _fixture.CreateVhostAsync();
         await using var bus = await new ServiceCollection()
             .AddSingleton(vhost.ConnectionFactory)
-            .AddSingleton(recorder)
             .AddMessageBus()
             .AddRequestHandler<ProcessPaymentHandler>()
             .AddRabbitMQ()
@@ -142,23 +96,11 @@ public class SchedulingTests
         using var scope = bus.Provider.CreateScope();
         var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
 
-        var pastTime = DateTimeOffset.UtcNow.AddMinutes(-1);
-
-        // act
-        await messageBus.SendAsync(
-            new ProcessPayment { OrderId = "ORD-PAST-2", Amount = 25.00m },
-            new SendOptions { ScheduledTime = pastTime },
-            CancellationToken.None);
-
-        // assert
-        Assert.True(
-            await recorder.WaitAsync(s_timeout),
-            "Message should be delivered when ScheduledTime is in the past");
-
-        var message = Assert.Single(recorder.Messages);
-        var payment = Assert.IsType<ProcessPayment>(message);
-        Assert.Equal("ORD-PAST-2", payment.OrderId);
-        Assert.Equal(25.00m, payment.Amount);
+        await Assert.ThrowsAsync<NotSupportedException>(
+            () => messageBus.SendAsync(
+                new ProcessPayment { OrderId = "ORD-PAST-2", Amount = 25.00m },
+                new SendOptions { ScheduledTime = DateTimeOffset.UtcNow.AddMinutes(-1) },
+                CancellationToken.None).AsTask());
     }
 
     public sealed class ProcessPaymentHandler(MessageRecorder recorder) : IEventRequestHandler<ProcessPayment>

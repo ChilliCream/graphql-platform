@@ -418,8 +418,13 @@ public sealed class DefaultMessageBus(
             return false;
         }
 
-        var store = services.GetService<IScheduledMessageStore>();
-        if (store is null)
+        var resolver = services.GetService<IScheduledMessageStoreResolver>();
+        if (resolver is null)
+        {
+            return false;
+        }
+
+        if (!resolver.TryGetForCancellation(token, out var store))
         {
             return false;
         }

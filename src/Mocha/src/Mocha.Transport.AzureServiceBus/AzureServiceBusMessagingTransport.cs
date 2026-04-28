@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using Mocha.Features;
-using Mocha.Scheduling;
 using static System.StringSplitOptions;
 
 namespace Mocha.Transport.AzureServiceBus;
@@ -71,8 +70,6 @@ public sealed class AzureServiceBusMessagingTransport : MessagingTransport
         {
             _topology.AddSubscription(subscription);
         }
-
-        Features.Configure<SchedulingTransportFeature>(f => f.SupportsSchedulingNatively = true);
     }
 
     /// <summary>

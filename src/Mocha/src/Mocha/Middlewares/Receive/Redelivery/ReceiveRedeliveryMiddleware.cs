@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using Mocha.Features;
 using Mocha.Middlewares;
+using Mocha.Scheduling;
 
 namespace Mocha;
 
@@ -95,7 +96,16 @@ internal sealed class ReceiveRedeliveryMiddleware(
                 context.CancellationToken);
 
             dispatchContext.Envelope = envelope;
-            dispatchContext.ScheduledTime = scheduledTime;
+
+            if (context.Services.GetService<IScheduledMessageStoreResolver>()?.TryGetForDispatch(dispatchContext, out _) is true)
+            {
+                dispatchContext.ScheduledTime = scheduledTime;
+            }
+            else
+            {
+                // No scheduling store available for this transport — fall back to immediate redelivery.
+                dispatchContext.Features.Configure<SchedulingMiddlewareFeature>(f => f.SkipScheduler = true);
+            }
 
             await dispatchEndpoint.ExecuteAsync(dispatchContext);
         }

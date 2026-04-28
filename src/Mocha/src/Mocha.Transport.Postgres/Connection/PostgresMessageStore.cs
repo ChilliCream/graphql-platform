@@ -67,6 +67,131 @@ public sealed class PostgresMessageStore
     }
 
     /// <summary>
+    /// Publishes a scheduled message and returns the inserted transport_message_id values.
+    /// </summary>
+    public async Task<IReadOnlyList<Guid>> PublishScheduledAsync(
+        ReadOnlyMemory<byte> body,
+        ReadOnlyMemory<byte> headers,
+        string topicName,
+        DateTimeOffset scheduledTime,
+        CancellationToken cancellationToken)
+    {
+        await using var connection = await _connectionManager.OpenConnectionAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+
+        command.CommandText = $"""
+            WITH inserted_messages AS (
+                INSERT INTO {_schemaOptions.MessageTable} (body, headers, scheduled_time, queue_id)
+                SELECT @body, @headers, @scheduled_time, qs.destination_id
+                FROM {_schemaOptions.QueueSubscriptionTable} qs
+                INNER JOIN {_schemaOptions.TopicTable} t ON qs.source_id = t.id
+                WHERE t.name = @topic_name
+                RETURNING transport_message_id, queue_id
+            )
+            SELECT
+                im.transport_message_id,
+                pg_notify(
+                    '{_schemaOptions.NotificationChannel}',
+                    q.name::text
+                )
+            FROM inserted_messages im
+            JOIN {_schemaOptions.QueueTable} q ON im.queue_id = q.id;
+            """;
+
+        command.Parameters.Add(new NpgsqlParameter("body", NpgsqlDbType.Bytea) { Value = body });
+        command.Parameters.Add(
+            new NpgsqlParameter("headers", NpgsqlDbType.Jsonb) { Value = !headers.IsEmpty ? headers : DBNull.Value });
+        command.Parameters.Add(new NpgsqlParameter("topic_name", NpgsqlDbType.Text) { Value = topicName });
+        command.Parameters.Add(
+            new NpgsqlParameter("scheduled_time", NpgsqlDbType.TimestampTz) { Value = scheduledTime.UtcDateTime });
+
+        var ids = new List<Guid>();
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            ids.Add(reader.GetGuid(0));
+        }
+
+        return ids;
+    }
+
+    /// <summary>
+    /// Sends a scheduled message to a specific queue and returns the inserted transport_message_id.
+    /// </summary>
+    public async Task<Guid?> SendScheduledAsync(
+        ReadOnlyMemory<byte> body,
+        ReadOnlyMemory<byte> headers,
+        string queueName,
+        DateTimeOffset scheduledTime,
+        CancellationToken cancellationToken)
+    {
+        await using var connection = await _connectionManager.OpenConnectionAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+
+        command.CommandText = $"""
+            WITH queue_info AS (
+                SELECT id FROM {_schemaOptions.QueueTable} WHERE name = @queue_name LIMIT 1
+            ),
+            inserted_message AS (
+                INSERT INTO {_schemaOptions.MessageTable} (body, headers, scheduled_time, queue_id)
+                SELECT @body, @headers, @scheduled_time, queue_info.id
+                FROM queue_info
+                RETURNING transport_message_id, queue_id
+            )
+            SELECT
+                im.transport_message_id,
+                pg_notify(
+                    '{_schemaOptions.NotificationChannel}',
+                    q.name::text
+                )
+            FROM inserted_message im
+            JOIN {_schemaOptions.QueueTable} q ON im.queue_id = q.id;
+            """;
+
+        command.Parameters.Add(new NpgsqlParameter("body", NpgsqlDbType.Bytea) { Value = body });
+        command.Parameters.Add(
+            new NpgsqlParameter("headers", NpgsqlDbType.Jsonb) { Value = !headers.IsEmpty ? headers : DBNull.Value });
+        command.Parameters.Add(new NpgsqlParameter("queue_name", NpgsqlDbType.Text) { Value = queueName });
+        command.Parameters.Add(
+            new NpgsqlParameter("scheduled_time", NpgsqlDbType.TimestampTz) { Value = scheduledTime.UtcDateTime });
+
+        var result = await command.ExecuteScalarAsync(cancellationToken);
+        return result is Guid id ? id : null;
+    }
+
+    /// <summary>
+    /// Cancels not-yet-delivered scheduled messages by deleting rows whose scheduled_time is set
+    /// and which have not yet been claimed by a consumer. Returns the number of rows deleted.
+    /// </summary>
+    public async Task<int> CancelScheduledAsync(
+        IReadOnlyList<Guid> transportMessageIds,
+        CancellationToken cancellationToken)
+    {
+        if (transportMessageIds.Count == 0)
+        {
+            return 0;
+        }
+
+        await using var connection = await _connectionManager.OpenConnectionAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+
+        command.CommandText = $"""
+            DELETE FROM {_schemaOptions.MessageTable}
+            WHERE transport_message_id = ANY(@ids)
+              AND scheduled_time IS NOT NULL
+              AND consumer_id IS NULL;
+            """;
+
+        command.Parameters.Add(
+            new NpgsqlParameter("ids", NpgsqlDbType.Array | NpgsqlDbType.Uuid)
+            {
+                Value = transportMessageIds.ToArray()
+            });
+
+        return await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    /// <summary>
     /// Sends a message directly to a specific queue.
     /// </summary>
     public async Task SendAsync(

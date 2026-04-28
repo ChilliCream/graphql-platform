@@ -1,5 +1,6 @@
 using Mocha.Events;
 using Mocha.Features;
+using Mocha.Scheduling;
 
 namespace Mocha;
 
@@ -46,6 +47,7 @@ public static class MessageBusBuilderExtensions
 
         builder.UseDispatch(DispatchMiddlewares.Instrumentation);
         builder.UseDispatch(DispatchMiddlewares.Serialization);
+        builder.UseDispatch(DispatchSchedulingMiddleware.Create(), after: "Serialization");
 
         builder.AddConcurrencyLimiter(o => o.MaxConcurrency = Environment.ProcessorCount * 2);
 
