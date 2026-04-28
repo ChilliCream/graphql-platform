@@ -149,6 +149,85 @@ public class SchemaFormatterTests
     }
 
     [Fact]
+    public void Format_Object_Type_With_Extension_Of_Same_Name()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Query {
+              product: Product
+            }
+
+            type Product {
+              id: ID!
+              name: String!
+            }
+
+            extend type Product {
+              price: Float!
+            }
+            """;
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // act
+        var formattedSdl = SchemaFormatter.FormatAsString(schema);
+
+        // assert
+        formattedSdl.MatchInlineSnapshot(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              product: Product
+            }
+
+            type Product {
+              id: ID!
+              name: String!
+              price: Float!
+            }
+            """);
+    }
+
+    [Fact]
+    public void Format_Standalone_Object_Type_Extension_Without_Base_Type()
+    {
+        // arrange
+        const string sdl =
+            """
+            type Query {
+              product: Product
+            }
+
+            extend type Product {
+              price: Float!
+            }
+            """;
+        var schema = SchemaParser.Parse(Encoding.UTF8.GetBytes(sdl));
+
+        // act
+        var formattedSdl = SchemaFormatter.FormatAsString(schema);
+
+        // assert
+        formattedSdl.MatchInlineSnapshot(
+            """
+            schema {
+              query: Query
+            }
+
+            type Query {
+              product: Product
+            }
+
+            extend type Product {
+              price: Float!
+            }
+            """);
+    }
+
+    [Fact]
     public void Format_Single_Interface_Type()
     {
         // arrange
@@ -333,7 +412,7 @@ public class SchemaFormatterTests
         const string sdl =
             """
             type Query {
-              foo: String
+              foo: String @internalDir
             }
 
             directive @internalDir on FIELD_DEFINITION
@@ -354,7 +433,7 @@ public class SchemaFormatterTests
             }
 
             type Query {
-              foo: String
+              foo: String @internalDir
             }
 
             directive @internalDir on FIELD_DEFINITION
@@ -368,7 +447,7 @@ public class SchemaFormatterTests
         const string sdl =
             """
             type Query {
-              foo: String
+              foo: String @internalDir
             }
 
             directive @internalDir on FIELD_DEFINITION
