@@ -30,8 +30,9 @@ public sealed class MessageBusTopologyTests
     public async Task Description_Should_IncludeDispatchEndpoint_When_OutboundRouteUsesConfiguredDestination()
     {
         // arrange
-        await using var provider = CreateProvider(
-            b => b.AddMessage<TestCommand>(m => m.Send(r => r.ToQueue("configured-command"))));
+        await using var provider = CreateProvider(b =>
+            b.AddMessage<TestCommand>(m => m.Send(r => r.ToQueue("configured-command")))
+        );
         var topology = provider.GetRequiredService<IMessageBusTopology>();
 
         // act
@@ -41,7 +42,8 @@ public sealed class MessageBusTopologyTests
         var transport = Assert.Single(description.Transports);
         Assert.Contains(
             transport.DispatchEndpoints,
-            e => e is { Name: "q/configured-command", Kind: DispatchEndpointKind.Default }
+            e =>
+                e is { Name: "q/configured-command", Kind: DispatchEndpointKind.Default }
                 && e.DestinationAddress?.EndsWith("/q/configured-command", StringComparison.Ordinal) == true);
     }
 
@@ -54,10 +56,9 @@ public sealed class MessageBusTopologyTests
         var topology = provider.GetRequiredService<IMessageBusTopology>();
         var transport = runtime.Transports.Single();
         var beforeCount = transport.DispatchEndpoints.Count;
-        var beforeReplyCount = topology.Description.Transports
-            .Single()
-            .DispatchEndpoints
-            .Count(e => e.Kind == DispatchEndpointKind.Reply);
+        var beforeReplyCount = topology
+            .Description.Transports.Single()
+            .DispatchEndpoints.Count(e => e.Kind == DispatchEndpointKind.Reply);
 
         // act
         var endpoint = runtime.GetDispatchEndpoint(new Uri("memory:replies"));
@@ -67,7 +68,9 @@ public sealed class MessageBusTopologyTests
         Assert.Equal(beforeCount, transport.DispatchEndpoints.Count);
         Assert.Equal(
             beforeReplyCount,
-            topology.Description.Transports.Single().DispatchEndpoints.Count(e => e.Kind == DispatchEndpointKind.Reply));
+            topology
+                .Description.Transports.Single()
+                .DispatchEndpoints.Count(e => e.Kind == DispatchEndpointKind.Reply));
     }
 
     [Fact]
@@ -101,17 +104,18 @@ public sealed class MessageBusTopologyTests
 
         // act
         var endpoints = await Task.WhenAll(
-            Enumerable.Range(0, 20).Select(i => Task.Run(() =>
-                i % 2 == 0
-                    ? runtime.GetSendEndpoint(messageType)
-                    : runtime.GetDispatchEndpoint(address))));
+            Enumerable
+                .Range(0, 20)
+                .Select(i =>
+                    Task.Run(() =>
+                        i % 2 == 0 ? runtime.GetSendEndpoint(messageType) : runtime.GetDispatchEndpoint(address)
+                    )
+                ));
 
         // assert
         var endpoint = Assert.Single(endpoints.Distinct());
         Assert.True(endpoint.IsCompleted);
-        Assert.Equal(
-            1,
-            runtime.Transports.Single().DispatchEndpoints.Count(e => e.Name == endpoint.Name));
+        Assert.Equal(1, runtime.Transports.Single().DispatchEndpoints.Count(e => e.Name == endpoint.Name));
     }
 
     [Fact]
@@ -231,6 +235,107 @@ public sealed class MessageBusTopologyTests
         Assert.False(nextToken!.HasChanged);
     }
 
+    [Fact]
+    public void Constructor_Should_ThrowArgumentNullException_When_RuntimeIsNull()
+    {
+        // act
+        var exception = Assert.Throws<ArgumentNullException>(() => new MessageBusTopology(null!));
+
+        // assert
+        Assert.Equal("runtime", exception.ParamName);
+    }
+
+    [Fact]
+    public async Task Description_Should_ReturnSameInstance_When_CalledMultipleTimes()
+    {
+        // arrange
+        await using var provider = CreateProvider(b => b.AddEventHandler<TestEventHandler>());
+        var topology = provider.GetRequiredService<IMessageBusTopology>();
+
+        // act
+        var first = topology.Description;
+        var second = topology.Description;
+
+        // assert
+        Assert.Same(first, second);
+    }
+
+    [Fact]
+    public void Description_Should_ThrowObjectDisposedException_When_Disposed()
+    {
+        // arrange
+        var transport = new MutableTokenTransport();
+        var runtime = new FakeRuntime(new EndpointRouter(), [transport]);
+        var topology = new MessageBusTopology(runtime);
+        topology.Dispose();
+
+        // act & assert
+        Assert.Throws<ObjectDisposedException>(() => topology.Description);
+    }
+
+    [Fact]
+    public void GetChangeToken_Should_ThrowObjectDisposedException_When_Disposed()
+    {
+        // arrange
+        var transport = new MutableTokenTransport();
+        var runtime = new FakeRuntime(new EndpointRouter(), [transport]);
+        var topology = new MessageBusTopology(runtime);
+        topology.Dispose();
+
+        // act & assert
+        Assert.Throws<ObjectDisposedException>(() => topology.GetChangeToken());
+    }
+
+    [Fact]
+    public void GetChangeToken_Should_ReturnUnchangedToken_When_NothingHasChanged()
+    {
+        // arrange
+        var transport = new MutableTokenTransport();
+        var runtime = new FakeRuntime(new EndpointRouter(), [transport]);
+        using var topology = new MessageBusTopology(runtime);
+
+        // act
+        var token = topology.GetChangeToken();
+
+        // assert
+        Assert.False(token.HasChanged);
+        Assert.True(token.ActiveChangeCallbacks);
+    }
+
+    [Fact]
+    public void Dispose_Should_NotThrow_When_CalledMultipleTimes()
+    {
+        // arrange
+        var transport = new MutableTokenTransport();
+        var runtime = new FakeRuntime(new EndpointRouter(), [transport]);
+        var topology = new MessageBusTopology(runtime);
+
+        // act
+        topology.Dispose();
+        var exception = Record.Exception(() => topology.Dispose());
+
+        // assert
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public async Task Invalidate_Should_ClearCachedDescription_When_TransportTokenFires()
+    {
+        // arrange
+        await using var provider = CreateProvider(b => b.AddEventHandler<TestEventHandler>());
+        var runtime = provider.GetRequiredService<IMessagingRuntime>();
+        var topology = provider.GetRequiredService<IMessageBusTopology>();
+        var first = topology.Description;
+
+        // act
+        // Signal change via the endpoint router (creating a lazy endpoint invalidates the topology)
+        runtime.GetDispatchEndpoint(new Uri("queue:invalidate-test-endpoint"));
+        var second = topology.Description;
+
+        // assert
+        Assert.NotSame(first, second);
+    }
+
     private static ServiceProvider CreateProvider(
         Action<IMessageBusHostBuilder> configure,
         Action<IInMemoryMessagingTransportDescriptor>? configureInMemory = null)
@@ -321,11 +426,9 @@ public sealed class MessageBusTopologyTests
         protected override MessagingTransportConfiguration CreateConfiguration(IMessagingSetupContext context)
             => throw new NotSupportedException();
 
-        protected override ReceiveEndpoint CreateReceiveEndpoint()
-            => throw new NotSupportedException();
+        protected override ReceiveEndpoint CreateReceiveEndpoint() => throw new NotSupportedException();
 
-        protected override DispatchEndpoint CreateDispatchEndpoint()
-            => throw new NotSupportedException();
+        protected override DispatchEndpoint CreateDispatchEndpoint() => throw new NotSupportedException();
     }
 
     private sealed class FakeRuntime(IEndpointRouter endpoints, ImmutableArray<MessagingTransport> transports)

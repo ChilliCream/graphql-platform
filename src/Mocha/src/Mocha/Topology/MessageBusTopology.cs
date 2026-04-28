@@ -86,8 +86,8 @@ public sealed class MessageBusTopology : IMessageBusTopology, IDisposable
                 return;
             }
 
-            _description = null;
             changeTokenSource = CreateChangeTokenUnsynchronized();
+            _description = null;
         }
 
         CancelChangeToken(changeTokenSource);
