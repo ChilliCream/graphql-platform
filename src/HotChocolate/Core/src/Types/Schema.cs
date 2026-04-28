@@ -219,28 +219,13 @@ public partial class Schema
         return null;
     }
 
-    /// <summary>
-    /// Creates a schema document from the current schema.
-    /// </summary>
-    public DocumentNode ToSyntaxNode(bool includeSpecScalars = false)
-    {
-        _formatter ??= new AggregateSchemaDocumentFormatter(
-            Services.GetService<IEnumerable<ISchemaDocumentFormatter>>());
-        var document = SchemaFormatter.FormatAsDocument(
+    public override string ToString() => ToSyntaxNode().Print();
+
+    public DocumentNode ToSyntaxNode()
+        => SchemaFormatter.FormatAsDocument(
             this,
-            new SchemaFormatterOptions
-            {
-                PrintSpecScalars = includeSpecScalars,
-                OrderFieldsByName = false
-            });
-        return _formatter.Format(document);
-    }
+            new SchemaFormatterOptions { OrderFieldsByName = false });
 
     ISyntaxNode ISyntaxNodeProvider.ToSyntaxNode()
         => ToSyntaxNode();
-
-    /// <summary>
-    /// Returns the schema SDL representation.
-    /// </summary>
-    public override string ToString() => ToSyntaxNode().Print();
 }

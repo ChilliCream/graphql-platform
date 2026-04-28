@@ -45,7 +45,14 @@ public static class SchemaFormatter
             IncludeInternalDirectives = options.IncludeInternalDirectives
         };
         s_visitor.VisitSchema(schema, context);
-        return (DocumentNode)context.Result!;
+        var document = (DocumentNode)context.Result!;
+
+        if (schema.Features.Get<ISchemaDocumentFormatter>() is { } postProcessor)
+        {
+            document = postProcessor.Format(document);
+        }
+
+        return document;
     }
 
     private sealed class SchemaFormatterVisitor : SchemaDefinitionVisitor<VisitorContext>

@@ -4,7 +4,7 @@ namespace HotChocolate;
 
 /// <summary>
 /// A schema document formatter can be used to format/rewrite the
-/// schema document that is produced by a <see cref="Schema"/>
+/// schema document that is produced by an <see cref="ISchemaDefinition"/>
 /// instance.
 /// </summary>
 public interface ISchemaDocumentFormatter

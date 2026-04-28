@@ -874,7 +874,11 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
             _schema = Encoding.UTF8.GetBytes(
                 SchemaFormatter.FormatAsString(
                     schema,
-                    new SchemaFormatterOptions { IncludeInternalDirectives = false }));
+                    new SchemaFormatterOptions
+                    {
+                        OrderFieldsByName = false,
+                        IncludeInternalDirectives = false
+                    }));
             FileName = GetSchemaFileName(schema);
             ETag = CreateETag(_schema, version);
             LastModified = lastModifiedTime.ToString("R");
@@ -913,7 +917,11 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
         {
             var document = SchemaFormatter.FormatAsDocument(
                 schema,
-                new SchemaFormatterOptions { IncludeInternalDirectives = false });
+                new SchemaFormatterOptions
+                {
+                    OrderFieldsByName = false,
+                    IncludeInternalDirectives = false
+                });
             var rewritten = SemanticNonNullSchemaRewriter.Rewrite(document);
             _schema = Encoding.UTF8.GetBytes(rewritten.ToString(indented: true));
             FileName = GetSchemaFileName(schema);
