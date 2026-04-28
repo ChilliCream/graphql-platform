@@ -1,5 +1,4 @@
 using System.Buffers;
-using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using HotChocolate.Internal;
 using HotChocolate.Utilities;

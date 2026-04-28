@@ -42,7 +42,7 @@ public sealed partial class SyntaxSerializer
                 VisitField((FieldNode)node, writer);
                 break;
             case SyntaxKind.Argument:
-                writer.WriteArgument((ArgumentNode)node);
+                WriteArgument((ArgumentNode)node, writer);
                 break;
             case SyntaxKind.FragmentSpread:
                 VisitFragmentSpread((FragmentSpreadNode)node, writer);
@@ -54,7 +54,7 @@ public sealed partial class SyntaxSerializer
                 VisitFragmentDefinition((FragmentDefinitionNode)node, writer);
                 break;
             case SyntaxKind.Directive:
-                writer.WriteDirective((DirectiveNode)node);
+                WriteDirective((DirectiveNode)node, writer);
                 break;
             case SyntaxKind.NamedType:
             case SyntaxKind.ListType:
@@ -69,10 +69,10 @@ public sealed partial class SyntaxSerializer
             case SyntaxKind.IntValue:
             case SyntaxKind.NullValue:
             case SyntaxKind.StringValue:
-                writer.WriteValue((IValueNode)node, _indented);
+                WriteValue((IValueNode)node, writer);
                 break;
             case SyntaxKind.ObjectField:
-                writer.WriteObjectField((ObjectFieldNode)node, _indented);
+                WriteObjectField((ObjectFieldNode)node, writer);
                 break;
             case SyntaxKind.SchemaDefinition:
                 VisitSchemaDefinition((SchemaDefinitionNode)node, writer);

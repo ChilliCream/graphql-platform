@@ -5,8 +5,9 @@ namespace HotChocolate.Fusion.Suites.Fed2ExternalExtension.A;
 
 /// <summary>
 /// Root <c>Query</c> type for the <c>a</c> subgraph. Exposes
-/// <c>randomUser: User</c> and <c>providedRandomUser: User @provides(fields:
-/// "name")</c>. The <c>providedRandomUser</c> path returns a user with the
+/// <c>randomUser: User</c> and
+/// <c>providedRandomUser: User @provides(fields: "name")</c>.
+/// The <c>providedRandomUser</c> path returns a user with the
 /// otherwise external <c>name</c> field already populated so the gateway
 /// can read <c>name</c> without dispatching a separate entity call to
 /// subgraph <c>b</c>.

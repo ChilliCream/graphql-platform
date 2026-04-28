@@ -43,6 +43,19 @@ public class ValueParserTests
         Assert.Throws<SyntaxException>(Action);
     }
 
+    [Fact]
+    public void ParseSingleLineBlockString_Should_Preserve_Block_Flag()
+    {
+        // arrange
+        // act
+        var valueNode = ParseValue("\"\"\"foo\"\"\"");
+
+        // assert
+        var stringValue = Assert.IsType<StringValueNode>(valueNode);
+        Assert.Equal("foo", stringValue.Value);
+        Assert.True(stringValue.Block);
+    }
+
     private static IValueNode ParseValue(string value)
         => Utf8GraphQLParser.Syntax.ParseValueLiteral(value, true);
 

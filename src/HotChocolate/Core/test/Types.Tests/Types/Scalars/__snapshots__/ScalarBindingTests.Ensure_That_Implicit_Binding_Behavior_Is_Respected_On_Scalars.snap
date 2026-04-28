@@ -2,16 +2,16 @@ schema {
   query: QueryB
 }
 
+type QueryB {
+  bar(id: FOO): Bar
+}
+
 type Bar {
   baz: Baz
 }
 
 type Baz {
   text: FOO!
-}
-
-type QueryB {
-  bar(id: FOO): Bar
 }
 
 scalar FOO

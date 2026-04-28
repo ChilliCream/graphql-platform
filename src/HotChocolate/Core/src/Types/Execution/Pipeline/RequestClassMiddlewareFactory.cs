@@ -26,8 +26,7 @@ internal static class RequestClassMiddlewareFactory
             .GetMethod(nameof(IServiceProvider.GetService))!;
 
     internal static RequestMiddleware Create<
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)]
-        TMiddleware>()
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.PublicMethods)] TMiddleware>()
         where TMiddleware : class
     {
         return (context, next) =>

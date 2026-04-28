@@ -2,13 +2,98 @@ schema {
   query: Query
 }
 
-"The node interface is implemented by entities that have a global unique identifier."
-interface Node {
-  id: ID!
-}
-
-interface StatementTransaction {
-  id: Int!
+type Query {
+  "Fetches an object given its ID."
+  node("ID of the object." id: ID!): Node @shareable @cost(weight: "10")
+  "Lookup nodes by a list of IDs."
+  nodes("The list of node IDs." ids: [ID!]!): [Node]!
+    @shareable
+    @cost(weight: "10")
+  hiddenNameProductTypes(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+    where: ProductTypeFilterInput @cost(weight: "10")
+    order: [ProductTypeSortInput!] @cost(weight: "10")
+  ): ProductTypeConnection!
+    @listSize(
+      assumedSize: 50
+      slicingArguments: ["first", "last"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["edges", "nodes"]
+      requireOneSlicingArgument: false
+    )
+    @cost(weight: "10")
+  scopeState: String!
+  brands(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+    where: BrandFilterInput @cost(weight: "10")
+  ): BrandConnection!
+    @listSize(
+      assumedSize: 50
+      slicingArguments: ["first", "last"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["edges", "nodes"]
+      requireOneSlicingArgument: false
+    )
+    @cost(weight: "10")
+  brandById(id: ID!): Brand @lookup @cost(weight: "10")
+  brandByIdWithDL(id: ID!): Brand @lookup @cost(weight: "10")
+  products(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+    where: ProductFilterInput @cost(weight: "10")
+    order: [ProductSortInput!] @cost(weight: "10")
+  ): ProductConnection!
+    @listSize(
+      assumedSize: 50
+      slicingArguments: ["first", "last"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["edges", "nodes"]
+      requireOneSlicingArgument: false
+    )
+    @cost(weight: "10")
+  productById(id: ID!): Product @lookup @internal @cost(weight: "10")
+  productsNonRelative(
+    "Returns the first _n_ elements from the list."
+    first: Int
+    "Returns the elements in the list that come after the specified cursor."
+    after: String
+    "Returns the last _n_ elements from the list."
+    last: Int
+    "Returns the elements in the list that come before the specified cursor."
+    before: String
+    where: ProductFilterInput @cost(weight: "10")
+    order: [ProductSortInput!] @cost(weight: "10")
+  ): ProductConnection!
+    @listSize(
+      assumedSize: 50
+      slicingArguments: ["first", "last"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["edges", "nodes"]
+      requireOneSlicingArgument: false
+    )
+    @cost(weight: "10")
+  singleProperties: [SingleProperty!]! @cost(weight: "10")
+  statementTransaction: StatementTransaction!
 }
 
 type BillingStatementTransaction implements StatementTransaction {
@@ -29,7 +114,13 @@ type Brand implements Node {
     where: ProductFilterInput @cost(weight: "10")
     order: [ProductSortInput!] @cost(weight: "10")
   ): BrandProductsConnection!
-    @listSize(assumedSize: 50, slicingArguments: ["first", "last"], slicingArgumentDefaultValue: 10, sizedFields: ["edges", "nodes"], requireOneSlicingArgument: false)
+    @listSize(
+      assumedSize: 50
+      slicingArguments: ["first", "last"]
+      slicingArgumentDefaultValue: 10
+      sizedFields: ["edges", "nodes"]
+      requireOneSlicingArgument: false
+    )
     @cost(weight: "10")
   productCount: Int! @cost(weight: "10")
   supplier: Supplier @cost(weight: "10")
@@ -176,76 +267,6 @@ type ProductTypeEdge @shareable {
   cursor: String!
 }
 
-type Query {
-  "Fetches an object given its ID."
-  node("ID of the object." id: ID!): Node @shareable @cost(weight: "10")
-  "Lookup nodes by a list of IDs."
-  nodes("The list of node IDs." ids: [ID!]!): [Node]!
-    @shareable
-    @cost(weight: "10")
-  hiddenNameProductTypes(
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the last _n_ elements from the list."
-    last: Int
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    where: ProductTypeFilterInput @cost(weight: "10")
-    order: [ProductTypeSortInput!] @cost(weight: "10")
-  ): ProductTypeConnection!
-    @listSize(assumedSize: 50, slicingArguments: ["first", "last"], slicingArgumentDefaultValue: 10, sizedFields: ["edges", "nodes"], requireOneSlicingArgument: false)
-    @cost(weight: "10")
-  scopeState: String!
-  brands(
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the last _n_ elements from the list."
-    last: Int
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    where: BrandFilterInput @cost(weight: "10")
-  ): BrandConnection!
-    @listSize(assumedSize: 50, slicingArguments: ["first", "last"], slicingArgumentDefaultValue: 10, sizedFields: ["edges", "nodes"], requireOneSlicingArgument: false)
-    @cost(weight: "10")
-  brandById(id: ID!): Brand @lookup @cost(weight: "10")
-  brandByIdWithDL(id: ID!): Brand @lookup @cost(weight: "10")
-  products(
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the last _n_ elements from the list."
-    last: Int
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    where: ProductFilterInput @cost(weight: "10")
-    order: [ProductSortInput!] @cost(weight: "10")
-  ): ProductConnection!
-    @listSize(assumedSize: 50, slicingArguments: ["first", "last"], slicingArgumentDefaultValue: 10, sizedFields: ["edges", "nodes"], requireOneSlicingArgument: false)
-    @cost(weight: "10")
-  productById(id: ID!): Product @lookup @internal @cost(weight: "10")
-  productsNonRelative(
-    "Returns the first _n_ elements from the list."
-    first: Int
-    "Returns the elements in the list that come after the specified cursor."
-    after: String
-    "Returns the last _n_ elements from the list."
-    last: Int
-    "Returns the elements in the list that come before the specified cursor."
-    before: String
-    where: ProductFilterInput @cost(weight: "10")
-    order: [ProductSortInput!] @cost(weight: "10")
-  ): ProductConnection!
-    @listSize(assumedSize: 50, slicingArguments: ["first", "last"], slicingArgumentDefaultValue: 10, sizedFields: ["edges", "nodes"], requireOneSlicingArgument: false)
-    @cost(weight: "10")
-  singleProperties: [SingleProperty!]! @cost(weight: "10")
-  statementTransaction: StatementTransaction!
-}
-
 type SingleProperty {
   id: String!
 }
@@ -256,6 +277,15 @@ type Supplier {
   website: String
   contactEmail: String
   brands: [Brand!]!
+}
+
+"The node interface is implemented by entities that have a global unique identifier."
+interface Node {
+  id: ID!
+}
+
+interface StatementTransaction {
+  id: Int!
 }
 
 input BooleanOperationFilterInput {
@@ -404,11 +434,29 @@ enum SortEnumType {
   DESC
 }
 
+"The `Decimal` scalar type represents a decimal floating-point number with high precision."
+scalar Decimal
+  @serializeAs(type: FLOAT)
+  @specifiedBy(url: "https://scalars.graphql.org/chillicream/decimal.html")
+
+"The `UnsignedByte` scalar type represents an unsigned 8-bit integer."
+scalar UnsignedByte
+  @serializeAs(type: INT)
+  @specifiedBy(
+    url: "https://scalars.graphql.org/chillicream/unsigned-byte.html"
+  )
+
 "The purpose of the `cost` directive is to define a `weight` for GraphQL types, fields, and arguments. Static analysis can use these weights when calculating the overall cost of a query or response."
 directive @cost(
   "The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc."
   weight: String!
-) on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
+) on
+  | SCALAR
+  | OBJECT
+  | FIELD_DEFINITION
+  | ARGUMENT_DEFINITION
+  | ENUM
+  | INPUT_FIELD_DEFINITION
 
 """
 The @internal directive is used in combination with lookup fields and allows you
@@ -476,19 +524,3 @@ more than one source schema is intentional and coordinated.
 directive @shareable repeatable on OBJECT | FIELD_DEFINITION
 """
 directive @shareable repeatable on OBJECT | FIELD_DEFINITION
-
-"The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
-directive @specifiedBy(
-  "The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types."
-  url: String!
-) on SCALAR
-
-"The `Decimal` scalar type represents a decimal floating-point number with high precision."
-scalar Decimal
-  @serializeAs(type: FLOAT)
-  @specifiedBy(url: "https://scalars.graphql.org/chillicream/decimal.html")
-
-"The `UnsignedByte` scalar type represents an unsigned 8-bit integer."
-scalar UnsignedByte
-  @serializeAs(type: INT)
-  @specifiedBy(url: "https://scalars.graphql.org/chillicream/unsigned-byte.html")

@@ -47,8 +47,6 @@ import ZioskLogoSvg from "@/images/companies/ziosk.svg";
 export const CompaniesSection: FC = () => (
   <ContentSectionElement>
     <VisibleArea>
-      <FadeOut />
-      <FadeIn />
       <Ticker>
         {[
           {
@@ -278,6 +276,19 @@ const VisibleArea = styled.div`
   width: 100%;
   height: 100%;
   max-width: ${MAX_CONTENT_WIDTH}px;
+  mask-image: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0) 0%,
+    rgb(0, 0, 0) 15%,
+    rgb(0, 0, 0) 85%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  mask-clip: border-box;
+  mask-composite: add;
+  mask-mode: match-source;
+  mask-origin: border-box;
+  mask-repeat: repeat;
+  mask-size: auto;
 `;
 
 interface TickerLogo {
@@ -353,34 +364,4 @@ const GenericLogo = styled.div<{ width?: number }>`
       fill: ${THEME_COLORS.heading};
     }
   }
-`;
-
-const FadeOut = styled.div`
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 1;
-  width: 120px;
-  background: linear-gradient(
-    270deg,
-    #ffffff00 0%,
-    ${THEME_COLORS.background} 100%
-  );
-  pointer-events: none;
-`;
-
-const FadeIn = styled.div`
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  right: 0;
-  z-index: 1;
-  width: 120px;
-  background: linear-gradient(
-    90deg,
-    #ffffff00 0%,
-    ${THEME_COLORS.background} 100%
-  );
-  pointer-events: none;
 `;
