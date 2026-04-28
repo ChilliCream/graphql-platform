@@ -1,7 +1,6 @@
-using HotChocolate.AspNetCore.Formatters;
 using HotChocolate.Language;
 
-namespace HotChocolate.AspNetCore;
+namespace HotChocolate.Serialization;
 
 public class SemanticNonNullSchemaRewriterTests
 {

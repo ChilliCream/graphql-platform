@@ -1,7 +1,7 @@
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.AspNetCore.Formatters;
+namespace HotChocolate.Serialization;
 
 /// <summary>
 /// Rewrites a GraphQL schema document by stripping non-null wrappers from

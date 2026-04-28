@@ -62,6 +62,11 @@ public static class SchemaFormatter
             document = postProcessor.Format(schema, document);
         }
 
+        if (options.RewriteToSemanticNonNull)
+        {
+            document = SemanticNonNullSchemaRewriter.Rewrite(document);
+        }
+
         return document;
     }
 

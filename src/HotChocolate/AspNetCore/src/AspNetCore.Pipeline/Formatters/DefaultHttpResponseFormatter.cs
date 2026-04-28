@@ -914,14 +914,14 @@ public class DefaultHttpResponseFormatter : IHttpResponseFormatter
 
         public CachedSemanticNonNullSchemaOutput(ISchemaDefinition schema, ulong version, DateTimeOffset lastModifiedTime)
         {
-            var document = SchemaFormatter.FormatAsDocument(
-                schema,
-                new SchemaFormatterOptions
-                {
-                    IncludeInternalDirectives = false
-                });
-            var rewritten = SemanticNonNullSchemaRewriter.Rewrite(document);
-            _schema = Encoding.UTF8.GetBytes(rewritten.ToString(indented: true));
+            _schema = Encoding.UTF8.GetBytes(
+                SchemaFormatter.FormatAsString(
+                    schema,
+                    new SchemaFormatterOptions
+                    {
+                        IncludeInternalDirectives = false,
+                        RewriteToSemanticNonNull = true
+                    }));
             FileName = GetSchemaFileName(schema);
             ETag = CreateETag(_schema, version);
             LastModified = lastModifiedTime.ToString("R");

@@ -1012,6 +1012,72 @@ There is no 1:1 mapping for all old methods. In most cases:
 
 Also note that `SubscriptionTransportError(...)` is no longer exposed separately in the fusion diagnostics API; use `SourceSchemaTransportError(...)`. -->
 
+## Experimental @semanticNonNull support removed
+
+Hot Chocolate v15 included experimental support for the `@semanticNonNull` directive, which let you mark fields as semantically non-null while still returning `null` (rather than propagating to the parent) when a resolver errored. We've removed this feature in v16 in favor of the [`onError` proposal](https://github.com/graphql/graphql-spec/pull/1163).
+
+If you previously opted in to this feature, remove the option:
+
+```diff
+builder.AddGraphQL()
+    .ModifyOptions(o =>
+    {
+-       o.EnableSemanticNonNull = true;
+    });
+```
+
+If you still need to keep the behavior of not propagating nulls for errors on non-null fields, set the `DefaultErrorHandlingMode` to `ErrorHandlingMode.Null`:
+
+```csharp
+builder
+    .AddGraphQL()
+    .ModifyOptions(o => o.DefaultErrorHandlingMode = ErrorHandlingMode.Null);
+```
+
+### Clients that still need a schema with @semanticNonNull annotations
+
+If you have a client that still relies on the schema being annotated with `@semanticNonNull`, you have a few options to obtain such a schema.
+
+**Schema snapshot tests**
+
+If you're producing a schema string for snapshot tests like this:
+
+```csharp
+ISchemaDefinition schema = await new ServiceCollection()
+    .AddGraphQL()
+    // ...
+    .BuildSchemaAsync();
+
+string schemaStr = schema.ToString();
+
+// assert schemaStr ...
+```
+
+Switch to `SchemaFormatter` with `RewriteToSemanticNonNull` enabled:
+
+```csharp
+string schemaStr = SchemaFormatter.FormatAsString(
+    schema,
+    new SchemaFormatterOptions { RewriteToSemanticNonNull = true });
+```
+
+**Downloading the schema from the server**
+
+If you're using `MapGraphQLSchema()` to expose the schema at `/graphql/schema`, you can additionally call `MapGraphQLSemanticNonNullSchema()` to expose a variant annotated with `@semanticNonNull` at `/graphql/semantic-non-null-schema.graphql`:
+
+```csharp
+app.MapGraphQLSchema();
+app.MapGraphQLSemanticNonNullSchema();
+```
+
+**Exporting the schema via the CLI**
+
+If you're using the schema export command, add the `--semantic-non-null` flag to emit the schema with `@semanticNonNull` annotations:
+
+```bash
+dotnet run -- schema export --output schema.graphql --semantic-non-null
+```
+
 # Deprecations
 
 Things that will continue to function this release, but we encourage you to move away from.

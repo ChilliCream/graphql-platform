@@ -45,4 +45,12 @@ public sealed class SchemaFormatterOptions
     /// Default: <c>true</c>.
     /// </summary>
     public bool IncludeInternalDirectives { get; set; } = true;
+
+    /// <summary>
+    /// Controls whether the formatted document is post-processed to strip
+    /// non-null wrappers from output fields and apply the @semanticNonNull
+    /// directive instead.
+    /// Default: <c>false</c>.
+    /// </summary>
+    public bool RewriteToSemanticNonNull { get; set; }
 }

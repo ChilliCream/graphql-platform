@@ -1,17 +1,29 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using HotChocolate.Serialization;
 
 namespace HotChocolate.Execution.Internal;
 
 internal static class SchemaFileExporter
 {
-    public static async Task<SchemaFileInfo> Export(
+    public static Task<SchemaFileInfo> Export(
         string schemaFileName,
         IRequestExecutor executor,
         CancellationToken cancellationToken)
+        => Export(schemaFileName, executor, rewriteToSemanticNonNull: false, cancellationToken);
+
+    public static async Task<SchemaFileInfo> Export(
+        string schemaFileName,
+        IRequestExecutor executor,
+        bool rewriteToSemanticNonNull,
+        CancellationToken cancellationToken)
     {
-        var sdl = executor.Schema.ToString();
+        var sdl = rewriteToSemanticNonNull
+            ? SchemaFormatter.FormatAsString(
+                executor.Schema,
+                new SchemaFormatterOptions { RewriteToSemanticNonNull = true })
+            : executor.Schema.ToString();
 
         if (Directory.Exists(schemaFileName))
         {
