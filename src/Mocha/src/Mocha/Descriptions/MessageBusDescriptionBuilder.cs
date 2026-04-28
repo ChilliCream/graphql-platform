@@ -35,11 +35,11 @@ internal sealed class MessageBusDescriptionVisitor : MessagingVisitor<MessageBus
         internal MessageBusDescription ToDescription()
             => new(
                 Host ?? throw ThrowHelper.HostDescriptionMissing(),
-                MessageTypes,
-                Consumers,
-                new RoutesDescription(InboundRoutes, OutboundRoutes),
-                Transports,
-                Sagas is { Count: > 0 } ? Sagas : null);
+                [.. MessageTypes],
+                [.. Consumers],
+                new RoutesDescription([.. InboundRoutes], [.. OutboundRoutes]),
+                [.. Transports],
+                Sagas is { Count: > 0 } ? [.. Sagas] : null);
     }
 
     protected override VisitorAction Enter(IMessagingRuntime runtime, Context context)

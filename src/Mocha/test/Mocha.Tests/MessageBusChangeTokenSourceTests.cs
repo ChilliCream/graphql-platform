@@ -5,9 +5,9 @@ using Microsoft.Extensions.Primitives;
 using Mocha.Middlewares;
 using Mocha.Transport.InMemory;
 
-namespace Mocha.Tests.Topology;
+namespace Mocha.Tests;
 
-public sealed class MessageBusTopologyTests
+public sealed class MessageBusChangeTokenSourceTests
 {
     [Fact]
     public async Task Description_Should_ReturnRegisteredTopology_When_MessageBusConfigured()
@@ -15,10 +15,9 @@ public sealed class MessageBusTopologyTests
         // arrange
         await using var provider = CreateProvider(b => b.AddEventHandler<TestEventHandler>());
         var runtime = provider.GetRequiredService<IMessagingRuntime>();
-        var topology = runtime.Topology;
 
         // act
-        var description = topology.Description;
+        var description = runtime.Description;
 
         // assert
         var transport = Assert.Single(description.Transports);
@@ -35,10 +34,9 @@ public sealed class MessageBusTopologyTests
             b.AddMessage<TestCommand>(m => m.Send(r => r.ToQueue("configured-command")))
         );
         var runtime = provider.GetRequiredService<IMessagingRuntime>();
-        var topology = runtime.Topology;
 
         // act
-        var description = topology.Description;
+        var description = runtime.Description;
 
         // assert
         var transport = Assert.Single(description.Transports);
@@ -55,10 +53,9 @@ public sealed class MessageBusTopologyTests
         // arrange
         await using var provider = CreateProvider(b => b.AddEventHandler<TestEventHandler>());
         var runtime = provider.GetRequiredService<IMessagingRuntime>();
-        var topology = runtime.Topology;
         var transport = runtime.Transports.Single();
         var beforeCount = transport.DispatchEndpoints.Count;
-        var beforeReplyCount = topology
+        var beforeReplyCount = runtime
             .Description.Transports.Single()
             .DispatchEndpoints.Count(e => e.Kind == DispatchEndpointKind.Reply);
 
@@ -70,7 +67,7 @@ public sealed class MessageBusTopologyTests
         Assert.Equal(beforeCount, transport.DispatchEndpoints.Count);
         Assert.Equal(
             beforeReplyCount,
-            topology
+            runtime
                 .Description.Transports.Single()
                 .DispatchEndpoints.Count(e => e.Kind == DispatchEndpointKind.Reply));
     }
@@ -193,20 +190,19 @@ public sealed class MessageBusTopologyTests
         // arrange
         await using var provider = CreateProvider(b => b.AddEventHandler<TestEventHandler>());
         var runtime = provider.GetRequiredService<IMessagingRuntime>();
-        var topology = runtime.Topology;
-        var before = topology.Description;
+        var before = runtime.Description;
         var beforeCount = before.Transports.Sum(t => t.DispatchEndpoints.Count);
-        var token = topology.GetChangeToken();
+        var token = runtime.GetChangeToken();
         var fired = false;
         token.RegisterChangeCallback(_ => fired = true, null);
 
         // act
         runtime.GetDispatchEndpoint(new Uri("queue:topology-lazy-dispatch-endpoint"));
-        var after = topology.Description;
+        var after = runtime.Description;
 
         // assert
         Assert.True(fired);
-        Assert.NotSame(token, topology.GetChangeToken());
+        Assert.NotSame(token, runtime.GetChangeToken());
         Assert.NotSame(before, after);
         Assert.True(after.Transports.Sum(t => t.DispatchEndpoints.Count) > beforeCount);
     }
@@ -217,7 +213,7 @@ public sealed class MessageBusTopologyTests
         // arrange
         var transport = new MutableTokenTransport();
         var runtime = new FakeRuntime(new EndpointRouter(), [transport]);
-        using var topology = new MessageBusTopology(runtime);
+        using var topology = new MessageBusChangeTokenSource(runtime);
         var token = topology.GetChangeToken();
         IChangeToken? nextToken = null;
         token.RegisterChangeCallback(_ => nextToken = topology.GetChangeToken(), null);
@@ -235,7 +231,7 @@ public sealed class MessageBusTopologyTests
     public void Constructor_Should_ThrowArgumentNullException_When_RuntimeIsNull()
     {
         // act
-        var exception = Assert.Throws<ArgumentNullException>(() => new MessageBusTopology(null!));
+        var exception = Assert.Throws<ArgumentNullException>(() => new MessageBusChangeTokenSource(null!));
 
         // assert
         Assert.Equal("runtime", exception.ParamName);
@@ -247,11 +243,10 @@ public sealed class MessageBusTopologyTests
         // arrange
         await using var provider = CreateProvider(b => b.AddEventHandler<TestEventHandler>());
         var runtime = provider.GetRequiredService<IMessagingRuntime>();
-        var topology = runtime.Topology;
 
         // act
-        var first = topology.Description;
-        var second = topology.Description;
+        var first = runtime.Description;
+        var second = runtime.Description;
 
         // assert
         Assert.Same(first, second);
@@ -263,7 +258,7 @@ public sealed class MessageBusTopologyTests
         // arrange
         var transport = new MutableTokenTransport();
         var runtime = new FakeRuntime(new EndpointRouter(), [transport]);
-        var topology = new MessageBusTopology(runtime);
+        var topology = new MessageBusChangeTokenSource(runtime);
         topology.Dispose();
 
         // act & assert
@@ -276,7 +271,7 @@ public sealed class MessageBusTopologyTests
         // arrange
         var transport = new MutableTokenTransport();
         var runtime = new FakeRuntime(new EndpointRouter(), [transport]);
-        var topology = new MessageBusTopology(runtime);
+        var topology = new MessageBusChangeTokenSource(runtime);
         topology.Dispose();
 
         // act & assert
@@ -289,7 +284,7 @@ public sealed class MessageBusTopologyTests
         // arrange
         var transport = new MutableTokenTransport();
         var runtime = new FakeRuntime(new EndpointRouter(), [transport]);
-        using var topology = new MessageBusTopology(runtime);
+        using var topology = new MessageBusChangeTokenSource(runtime);
 
         // act
         var token = topology.GetChangeToken();
@@ -305,7 +300,7 @@ public sealed class MessageBusTopologyTests
         // arrange
         var transport = new MutableTokenTransport();
         var runtime = new FakeRuntime(new EndpointRouter(), [transport]);
-        var topology = new MessageBusTopology(runtime);
+        var topology = new MessageBusChangeTokenSource(runtime);
 
         // act
         topology.Dispose();
@@ -321,13 +316,12 @@ public sealed class MessageBusTopologyTests
         // arrange
         await using var provider = CreateProvider(b => b.AddEventHandler<TestEventHandler>());
         var runtime = provider.GetRequiredService<IMessagingRuntime>();
-        var topology = runtime.Topology;
-        var first = topology.Description;
+        var first = runtime.Description;
 
         // act
         // Signal change via the endpoint router (creating a lazy endpoint invalidates the topology)
         runtime.GetDispatchEndpoint(new Uri("queue:invalidate-test-endpoint"));
-        var second = topology.Description;
+        var second = runtime.Description;
 
         // assert
         Assert.NotSame(first, second);
@@ -453,7 +447,9 @@ public sealed class MessageBusTopologyTests
 
         public IReadOnlyMessagingOptions Options => throw new NotSupportedException();
 
-        public IMessageBusTopology Topology => throw new NotSupportedException();
+        public MessageBusDescription Description => throw new NotSupportedException();
+
+        public IChangeToken GetChangeToken() => throw new NotSupportedException();
 
         public DispatchEndpoint GetSendEndpoint(MessageType messageType) => throw new NotSupportedException();
 

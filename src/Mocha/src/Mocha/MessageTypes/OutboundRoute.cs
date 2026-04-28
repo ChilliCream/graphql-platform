@@ -76,6 +76,11 @@ public sealed class OutboundRoute
         AssertInitialized();
         AssertNotCompleted();
 
+        if (ReferenceEquals(Endpoint, endpoint))
+        {
+            return;
+        }
+
         Endpoint = endpoint;
         Destination ??= Endpoint.Address;
         context.Router.AddOrUpdate(this);

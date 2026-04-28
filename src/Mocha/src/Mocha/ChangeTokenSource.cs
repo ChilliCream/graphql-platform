@@ -2,7 +2,7 @@ using Microsoft.Extensions.Primitives;
 
 namespace Mocha;
 
-internal sealed class ChangeTokenSource
+internal sealed class ChangeTokenSource : IDisposable
 {
     private TokenState _state = new(new CancellationTokenSource());
 
@@ -21,6 +21,8 @@ internal sealed class ChangeTokenSource
             previous.Source.Dispose();
         }
     }
+
+    public void Dispose() => _state.Source.Dispose();
 
     private sealed class TokenState(CancellationTokenSource source)
     {

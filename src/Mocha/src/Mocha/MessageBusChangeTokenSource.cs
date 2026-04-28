@@ -3,9 +3,10 @@ using Microsoft.Extensions.Primitives;
 namespace Mocha;
 
 /// <summary>
-/// Caches the message bus topology snapshot and invalidates it when runtime topology sources change.
+/// Aggregates change-token signals from the runtime's endpoints and transports into a single
+/// bus-scoped change token, and caches the latest <see cref="MessageBusDescription"/> snapshot.
 /// </summary>
-internal sealed class MessageBusTopology : IMessageBusTopology, IDisposable
+internal sealed class MessageBusChangeTokenSource : IDisposable
 {
     private readonly object _lock = new();
     private readonly IMessagingRuntime _runtime;
@@ -14,7 +15,7 @@ internal sealed class MessageBusTopology : IMessageBusTopology, IDisposable
     private MessageBusDescription? _description;
     private bool _disposed;
 
-    public MessageBusTopology(IMessagingRuntime runtime)
+    public MessageBusChangeTokenSource(IMessagingRuntime runtime)
     {
         ArgumentNullException.ThrowIfNull(runtime);
 
@@ -28,7 +29,9 @@ internal sealed class MessageBusTopology : IMessageBusTopology, IDisposable
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Gets the current message bus topology snapshot.
+    /// </summary>
     public MessageBusDescription Description
     {
         get
@@ -41,7 +44,9 @@ internal sealed class MessageBusTopology : IMessageBusTopology, IDisposable
         }
     }
 
-    /// <inheritdoc />
+    /// <summary>
+    /// Gets a change token that fires when the topology snapshot may have changed.
+    /// </summary>
     public IChangeToken GetChangeToken()
     {
         lock (_lock)
@@ -51,7 +56,6 @@ internal sealed class MessageBusTopology : IMessageBusTopology, IDisposable
         }
     }
 
-    /// <inheritdoc />
     public void Dispose()
     {
         List<IDisposable> registrations;
@@ -69,9 +73,16 @@ internal sealed class MessageBusTopology : IMessageBusTopology, IDisposable
             _description = null;
         }
 
-        foreach (var registration in registrations)
+        try
         {
-            registration.Dispose();
+            foreach (var registration in registrations)
+            {
+                registration.Dispose();
+            }
+        }
+        finally
+        {
+            _changeTokens.Dispose();
         }
     }
 
@@ -85,9 +96,8 @@ internal sealed class MessageBusTopology : IMessageBusTopology, IDisposable
             }
 
             _description = null;
+            _changeTokens.Rotate();
         }
-
-        _changeTokens.Rotate();
     }
 
     private void ThrowIfDisposed()

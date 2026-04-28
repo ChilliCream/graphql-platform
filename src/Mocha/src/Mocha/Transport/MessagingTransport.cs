@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Primitives;
 
@@ -24,8 +25,8 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     /// </summary>
     public IReadOnlyTransportOptions Options { get; private set; } = null!;
 
-    private readonly HashSet<ReceiveEndpoint> _receiveEndpoints = [];
-    private readonly HashSet<DispatchEndpoint> _dispatchEndpoints = [];
+    private ImmutableHashSet<ReceiveEndpoint> _receiveEndpoints = [];
+    private ImmutableHashSet<DispatchEndpoint> _dispatchEndpoints = [];
 
     /// <summary>
     /// The set of receive endpoints registered on this transport, each consuming messages from a source.
@@ -302,7 +303,7 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
 
         endpoint.Initialize(context, configuration);
 
-        _dispatchEndpoints.Add(endpoint);
+        ImmutableInterlocked.Update(ref _dispatchEndpoints, static (set, e) => set.Add(e), endpoint);
 
         return endpoint;
     }
@@ -321,7 +322,7 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
 
         endpoint.Initialize(context, configuration);
 
-        _receiveEndpoints.Add(endpoint);
+        ImmutableInterlocked.Update(ref _receiveEndpoints, static (set, e) => set.Add(e), endpoint);
 
         return endpoint;
     }

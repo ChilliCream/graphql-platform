@@ -5,6 +5,7 @@ using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.ObjectPool;
+using Microsoft.Extensions.Primitives;
 using Mocha.Features;
 using Mocha.Middlewares;
 using Mocha.Transport.InMemory;
@@ -569,7 +570,9 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
         public ImmutableHashSet<Consumer> Consumers => [];
         public ImmutableArray<MessagingTransport> Transports => [];
         public IFeatureCollection Features => null!;
-        public IMessageBusTopology Topology => null!;
+        public MessageBusDescription Description => null!;
+
+        public IChangeToken GetChangeToken() => NullChangeToken.Singleton;
 
         public DispatchEndpoint GetSendEndpoint(MessageType messageType) => null!;
 
