@@ -157,26 +157,13 @@ public static class SyntaxWriterExtensions
                 lines[0] = lines[0].Trim();
             }
 
-            var allEmpty = true;
-            for (var i = 0; i < lines.Length; i++)
-            {
-                if (lines[i].Length > 0)
-                {
-                    allEmpty = false;
-                    break;
-                }
-            }
-
             writer.Write("\"\"\"");
 
-            if (!allEmpty)
+            foreach (var line in lines)
             {
-                foreach (var line in lines)
-                {
-                    writer.WriteLine();
-                    writer.WriteIndent();
-                    writer.Write(line);
-                }
+                writer.WriteLine();
+                writer.WriteIndent();
+                writer.Write(line);
             }
 
             writer.WriteLine();

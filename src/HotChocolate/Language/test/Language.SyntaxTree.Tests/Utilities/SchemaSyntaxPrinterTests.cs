@@ -898,7 +898,7 @@ public class SchemaSyntaxPrinterTests
     }
 
     [Fact]
-    public void Serialize_EmptyBlockString_CollapsesToTwoLines()
+    public void Serialize_EmptyBlockString_ExpandsToThreeLines()
     {
         // arrange
         const string sdl = "\"\"\"\"\"\" type Foo { bar: String }";
@@ -909,7 +909,7 @@ public class SchemaSyntaxPrinterTests
 
         // assert
         actual.MatchInlineSnapshot(
-            "\"\"\"\n\"\"\"\ntype Foo {\n  bar: String\n}");
+            "\"\"\"\n\n\"\"\"\ntype Foo {\n  bar: String\n}");
     }
 
     [Fact]
@@ -960,6 +960,70 @@ public class SchemaSyntaxPrinterTests
               | MemberSix
               | MemberSeven
               | MemberEight
+            """);
+    }
+
+    [Fact]
+    public void Serialize_BlankLineOnlyBlockString_ExpandsToThreeLines()
+    {
+        // arrange
+        const string sdl = "\"\"\"\n\n\"\"\" type Foo { bar: String }";
+        var document = Utf8GraphQLParser.Parse(sdl);
+
+        // act
+        var actual = document.ToString(indented: true);
+
+        // assert
+        actual.MatchInlineSnapshot(
+            "\"\"\"\n\n\"\"\"\ntype Foo {\n  bar: String\n}");
+    }
+
+    [Fact]
+    public void Format_Should_Break_Standalone_Directive_When_Too_Long()
+    {
+        // arrange
+        var directive = new DirectiveNode(
+            "veryLongDirectiveName",
+            new ArgumentNode("firstArgumentName", "firstValue"),
+            new ArgumentNode("secondArgumentName", "secondValue"),
+            new ArgumentNode("thirdArgumentName", "thirdValue"));
+
+        // act
+        var actual = directive.ToString(indented: true);
+
+        // assert
+        actual.MatchInlineSnapshot(
+            """
+            @veryLongDirectiveName(
+              firstArgumentName: "firstValue"
+              secondArgumentName: "secondValue"
+              thirdArgumentName: "thirdValue"
+            )
+            """);
+    }
+
+    [Fact]
+    public void Format_Should_Break_Standalone_Argument_List_Value_When_Too_Long()
+    {
+        // arrange
+        var argument = new ArgumentNode(
+            new NameNode("items"),
+            new ListValueNode(
+                new StringValueNode("firstReallyLongStringValue"),
+                new StringValueNode("secondReallyLongStringValue"),
+                new StringValueNode("thirdReallyLongStringValue")));
+
+        // act
+        var actual = argument.ToString(indented: true);
+
+        // assert
+        actual.MatchInlineSnapshot(
+            """
+            items: [
+              "firstReallyLongStringValue"
+              "secondReallyLongStringValue"
+              "thirdReallyLongStringValue"
+            ]
             """);
     }
 
