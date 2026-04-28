@@ -2,13 +2,8 @@ namespace HotChocolate.Language.Utilities;
 
 public sealed partial class SyntaxSerializer
 {
-    private void WriteValue(IValueNode? node, ISyntaxWriter writer)
+    private void WriteValue(IValueNode node, ISyntaxWriter writer)
     {
-        if (node is null)
-        {
-            return;
-        }
-
         switch (node.Kind)
         {
             case SyntaxKind.ListValue:
