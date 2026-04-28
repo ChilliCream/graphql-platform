@@ -192,6 +192,26 @@ public class EndpointRouterTests
     }
 
     [Fact]
+    public void TryGetDispatchEndpoint_Should_IgnoreIncompleteEndpoints_When_SearchingByDestination()
+    {
+        // arrange
+        var runtime = CreateRuntime();
+        var transport = Assert.IsType<InMemoryMessagingTransport>(runtime.Transports.Single());
+        var endpoint = transport.AddEndpoint(
+            runtime,
+            new InMemoryDispatchEndpointConfiguration { Name = "q/incomplete", QueueName = "incomplete" });
+        var address = new Uri(transport.Topology.Address, "q/incomplete");
+
+        // act
+        var found = transport.TryGetDispatchEndpoint(address, out var resolved);
+
+        // assert
+        Assert.False(endpoint.IsCompleted);
+        Assert.False(found);
+        Assert.Null(resolved);
+    }
+
+    [Fact]
     public async Task ConcurrentReadWrite_Should_NotCorruptState()
     {
         // arrange

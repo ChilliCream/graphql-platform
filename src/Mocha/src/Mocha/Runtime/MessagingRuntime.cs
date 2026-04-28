@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using Microsoft.Extensions.Primitives;
 using Mocha.Middlewares;
 
 namespace Mocha;
@@ -67,6 +68,14 @@ public sealed class MessagingRuntime(
 
     /// <inheritdoc />
     public IReadOnlyMessagingOptions Options => options;
+    private MessageBusChangeTokenSource? _changeTokenSource;
+    private MessageBusChangeTokenSource ChangeTokenSource => _changeTokenSource ??= new MessageBusChangeTokenSource(this);
+
+    /// <inheritdoc />
+    public MessageBusDescription Description => ChangeTokenSource.Description;
+
+    /// <inheritdoc />
+    public IChangeToken GetChangeToken() => ChangeTokenSource.GetChangeToken();
 
     /// <inheritdoc />
     public DispatchEndpoint GetSendEndpoint(MessageType messageType)
@@ -135,5 +144,7 @@ public sealed class MessagingRuntime(
         {
             await consumer.DisposeAsync();
         }
+
+        _changeTokenSource?.Dispose();
     }
 }

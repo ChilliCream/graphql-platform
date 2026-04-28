@@ -70,7 +70,7 @@ public abstract partial class Saga : IFeatureProvider
     public abstract Task<bool> HandleEvent(IConsumeContext context);
 
     /// <summary>
-    /// Builds a structural description of this saga, including all states, transitions, published and sent events.
+    /// Returns a description of the saga's state machine, including its states, transitions, and events.
     /// </summary>
     /// <remarks>
     /// This is used for visualization, diagnostics, and tooling support to introspect the saga topology at runtime.
