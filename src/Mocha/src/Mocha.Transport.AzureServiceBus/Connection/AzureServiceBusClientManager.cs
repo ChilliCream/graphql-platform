@@ -6,13 +6,12 @@ namespace Mocha.Transport.AzureServiceBus;
 
 /// <summary>
 /// Manages the single <see cref="ServiceBusClient"/> (one AMQP connection) and caches
-/// <see cref="ServiceBusSender"/> instances per entity path. Also provides access to the
-/// <see cref="ServiceBusAdministrationClient"/> for topology provisioning.
+/// <see cref="ServiceBusSender"/> instances per entity path. Also exposes administration
+/// operations for topology provisioning.
 /// </summary>
 public sealed class AzureServiceBusClientManager : IAsyncDisposable
 {
-    private readonly ServiceBusClient _client;
-    private readonly ServiceBusAdministrationClient? _adminClient;
+    private readonly ServiceBusConnection _connection;
     private readonly ConcurrentDictionary<string, ServiceBusSender> _senders = new();
     private volatile bool _isDisposed;
 
@@ -28,36 +27,18 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
         var clientOptions = new ServiceBusClientOptions
         {
             TransportType = configuration.TransportType,
-            RetryOptions = configuration.RetryOptions ?? new ServiceBusRetryOptions
-            {
-                MaxRetries = 3,
-                Mode = ServiceBusRetryMode.Exponential,
-                Delay = TimeSpan.FromSeconds(0.8),
-                MaxDelay = TimeSpan.FromMinutes(1)
-            }
+            RetryOptions =
+                configuration.RetryOptions
+                ?? new ServiceBusRetryOptions
+                {
+                    MaxRetries = 3,
+                    Mode = ServiceBusRetryMode.Exponential,
+                    Delay = TimeSpan.FromSeconds(0.8),
+                    MaxDelay = TimeSpan.FromMinutes(1)
+                }
         };
 
-        if (configuration.ConnectionString is not null)
-        {
-            _client = new ServiceBusClient(configuration.ConnectionString, clientOptions);
-            _adminClient = new ServiceBusAdministrationClient(configuration.ConnectionString);
-        }
-        else if (configuration.FullyQualifiedNamespace is not null
-                 && configuration.Credential is not null)
-        {
-            _client = new ServiceBusClient(
-                configuration.FullyQualifiedNamespace,
-                configuration.Credential,
-                clientOptions);
-            _adminClient = new ServiceBusAdministrationClient(
-                configuration.FullyQualifiedNamespace,
-                configuration.Credential);
-        }
-        else
-        {
-            throw new InvalidOperationException(
-                "Either ConnectionString or FullyQualifiedNamespace + Credential must be provided");
-        }
+        _connection = ServiceBusConnection.Create(configuration, clientOptions);
     }
 
     /// <summary>
@@ -75,7 +56,7 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
             return sender;
         }
 
-        return _senders.GetOrAdd(entityPath, path => _client.CreateSender(path));
+        return _senders.GetOrAdd(entityPath, path => _connection.CreateSender(path));
     }
 
     /// <summary>
@@ -101,12 +82,10 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
     /// <param name="queueName">The queue to consume from.</param>
     /// <param name="options">The processor options controlling concurrency and prefetch.</param>
     /// <returns>A new processor instance.</returns>
-    public ServiceBusProcessor CreateProcessor(
-        string queueName,
-        ServiceBusProcessorOptions options)
+    public ServiceBusProcessor CreateProcessor(string queueName, ServiceBusProcessorOptions options)
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
-        return _client.CreateProcessor(queueName, options);
+        return _connection.CreateProcessor(queueName, options);
     }
 
     /// <summary>
@@ -122,7 +101,7 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
         ServiceBusProcessorOptions options)
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
-        return _client.CreateProcessor(topicName, subscriptionName, options);
+        return _connection.CreateProcessor(topicName, subscriptionName, options);
     }
 
     /// <summary>
@@ -135,7 +114,7 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
     public ServiceBusReceiver CreateReceiver(string queueName)
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
-        return _client.CreateReceiver(queueName);
+        return _connection.CreateReceiver(queueName);
     }
 
     /// <summary>
@@ -151,13 +130,37 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
         ServiceBusSessionProcessorOptions options)
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
-        return _client.CreateSessionProcessor(queueName, options);
+        return _connection.CreateSessionProcessor(queueName, options);
     }
 
     /// <summary>
-    /// Gets the administration client used for topology provisioning, or <c>null</c> if unavailable.
+    /// Provisions a queue using the administration client.
     /// </summary>
-    public ServiceBusAdministrationClient? AdminClient => _adminClient;
+    public Task CreateQueueAsync(CreateQueueOptions options, CancellationToken cancellationToken)
+    {
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
+        return _connection.CreateQueueAsync(options, cancellationToken);
+    }
+
+    /// <summary>
+    /// Provisions a topic using the administration client.
+    /// </summary>
+    public Task CreateTopicAsync(CreateTopicOptions options, CancellationToken cancellationToken)
+    {
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
+        return _connection.CreateTopicAsync(options, cancellationToken);
+    }
+
+    /// <summary>
+    /// Provisions a subscription using the administration client.
+    /// </summary>
+    public Task CreateSubscriptionAsync(
+        CreateSubscriptionOptions options,
+        CancellationToken cancellationToken)
+    {
+        ObjectDisposedException.ThrowIf(_isDisposed, this);
+        return _connection.CreateSubscriptionAsync(options, cancellationToken);
+    }
 
     /// <inheritdoc />
     public async ValueTask DisposeAsync()
@@ -176,6 +179,6 @@ public sealed class AzureServiceBusClientManager : IAsyncDisposable
 
         _senders.Clear();
 
-        await _client.DisposeAsync();
+        await _connection.DisposeAsync();
     }
 }

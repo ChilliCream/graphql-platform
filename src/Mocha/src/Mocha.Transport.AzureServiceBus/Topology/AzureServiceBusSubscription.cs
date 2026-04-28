@@ -111,12 +111,6 @@ public sealed class AzureServiceBusSubscription
             return;
         }
 
-        var adminClient = clientManager.AdminClient;
-        if (adminClient is null)
-        {
-            return;
-        }
-
         try
         {
             // Azure SB SDK rejects ForwardTo == subscription name ("cannot forward to itself"),
@@ -169,7 +163,7 @@ public sealed class AzureServiceBusSubscription
                 options.AutoDeleteOnIdle = AutoDeleteOnIdle.Value;
             }
 
-            await adminClient.CreateSubscriptionAsync(options, cancellationToken);
+            await clientManager.CreateSubscriptionAsync(options, cancellationToken);
         }
         catch (ServiceBusException ex) when (ex.Reason == ServiceBusFailureReason.MessagingEntityAlreadyExists)
         {

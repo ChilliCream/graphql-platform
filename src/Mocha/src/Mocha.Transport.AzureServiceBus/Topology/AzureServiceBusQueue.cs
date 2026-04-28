@@ -130,12 +130,6 @@ public sealed class AzureServiceBusQueue
             return;
         }
 
-        var adminClient = clientManager.AdminClient;
-        if (adminClient is null)
-        {
-            return;
-        }
-
         var options = new CreateQueueOptions(Name);
 
         // Only assign properties the user explicitly set so SDK defaults remain in effect otherwise.
@@ -191,7 +185,7 @@ public sealed class AzureServiceBusQueue
 
         try
         {
-            await adminClient.CreateQueueAsync(options, cancellationToken);
+            await clientManager.CreateQueueAsync(options, cancellationToken);
         }
         catch (ServiceBusException ex) when (ex.Reason == ServiceBusFailureReason.MessagingEntityAlreadyExists)
         {

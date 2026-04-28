@@ -101,12 +101,6 @@ public sealed class AzureServiceBusTopic
             return;
         }
 
-        var adminClient = clientManager.AdminClient;
-        if (adminClient is null)
-        {
-            return;
-        }
-
         var options = new CreateTopicOptions(Name);
 
         // Only assign properties the user explicitly set so SDK defaults remain in effect otherwise.
@@ -147,7 +141,7 @@ public sealed class AzureServiceBusTopic
 
         try
         {
-            await adminClient.CreateTopicAsync(options, cancellationToken);
+            await clientManager.CreateTopicAsync(options, cancellationToken);
         }
         catch (ServiceBusException ex) when (ex.Reason == ServiceBusFailureReason.MessagingEntityAlreadyExists)
         {
