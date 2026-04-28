@@ -5,7 +5,7 @@ namespace Mocha;
 /// <summary>
 /// Caches the message bus topology snapshot and invalidates it when runtime topology sources change.
 /// </summary>
-public sealed class MessageBusTopology : IMessageBusTopology, IDisposable
+internal sealed class MessageBusTopology : IMessageBusTopology, IDisposable
 {
     private readonly object _lock = new();
 

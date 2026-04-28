@@ -11,6 +11,11 @@ public interface IMessagingRuntime : IMessagingRuntimeContext
     IReadOnlyMessagingOptions Options { get; }
 
     /// <summary>
+    /// Gets the current message bus topology.
+    /// </summary>
+    IMessageBusTopology Topology { get; }
+
+    /// <summary>
     /// Gets the dispatch endpoint configured for sending (point-to-point) the specified message type.
     /// </summary>
     /// <param name="messageType">The message type to look up.</param>

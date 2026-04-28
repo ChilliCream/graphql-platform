@@ -50,7 +50,6 @@ public static class MessageBusServiceCollectionExtensions
         });
 
         services.AddSingleton<IHostedService, MessagingRuntimeHostedService>();
-        services.AddSingleton<IMessageBusTopology, MessageBusTopology>();
 
         return new MessageBusHostBuilder(services, string.Empty);
     }

@@ -69,6 +69,9 @@ public sealed class MessagingRuntime(
     public IReadOnlyMessagingOptions Options => options;
 
     /// <inheritdoc />
+    public IMessageBusTopology Topology { get; } = new MessageBusTopology(this);
+
+    /// <inheritdoc />
     public DispatchEndpoint GetSendEndpoint(MessageType messageType)
     {
         return router.GetEndpoint(this, messageType, OutboundRouteKind.Send);
@@ -135,5 +138,7 @@ public sealed class MessagingRuntime(
         {
             await consumer.DisposeAsync();
         }
+
+        _topology?.Dispose();
     }
 }

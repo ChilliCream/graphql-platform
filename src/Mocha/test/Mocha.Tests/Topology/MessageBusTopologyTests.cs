@@ -14,7 +14,8 @@ public sealed class MessageBusTopologyTests
     {
         // arrange
         await using var provider = CreateProvider(b => b.AddEventHandler<TestEventHandler>());
-        var topology = provider.GetRequiredService<IMessageBusTopology>();
+        var runtime = provider.GetRequiredService<IMessagingRuntime>();
+        var topology = runtime.Topology;
 
         // act
         var description = topology.Description;
@@ -33,7 +34,8 @@ public sealed class MessageBusTopologyTests
         await using var provider = CreateProvider(b =>
             b.AddMessage<TestCommand>(m => m.Send(r => r.ToQueue("configured-command")))
         );
-        var topology = provider.GetRequiredService<IMessageBusTopology>();
+        var runtime = provider.GetRequiredService<IMessagingRuntime>();
+        var topology = runtime.Topology;
 
         // act
         var description = topology.Description;
@@ -53,7 +55,7 @@ public sealed class MessageBusTopologyTests
         // arrange
         await using var provider = CreateProvider(b => b.AddEventHandler<TestEventHandler>());
         var runtime = provider.GetRequiredService<IMessagingRuntime>();
-        var topology = provider.GetRequiredService<IMessageBusTopology>();
+        var topology = runtime.Topology;
         var transport = runtime.Transports.Single();
         var beforeCount = transport.DispatchEndpoints.Count;
         var beforeReplyCount = topology
@@ -197,7 +199,7 @@ public sealed class MessageBusTopologyTests
         // arrange
         await using var provider = CreateProvider(b => b.AddEventHandler<TestEventHandler>());
         var runtime = provider.GetRequiredService<IMessagingRuntime>();
-        var topology = provider.GetRequiredService<IMessageBusTopology>();
+        var topology = runtime.Topology;
         var before = topology.Description;
         var beforeCount = before.Transports.Sum(t => t.DispatchEndpoints.Count);
         var token = topology.GetChangeToken();
@@ -250,7 +252,8 @@ public sealed class MessageBusTopologyTests
     {
         // arrange
         await using var provider = CreateProvider(b => b.AddEventHandler<TestEventHandler>());
-        var topology = provider.GetRequiredService<IMessageBusTopology>();
+        var runtime = provider.GetRequiredService<IMessagingRuntime>();
+        var topology = runtime.Topology;
 
         // act
         var first = topology.Description;
@@ -324,7 +327,7 @@ public sealed class MessageBusTopologyTests
         // arrange
         await using var provider = CreateProvider(b => b.AddEventHandler<TestEventHandler>());
         var runtime = provider.GetRequiredService<IMessagingRuntime>();
-        var topology = provider.GetRequiredService<IMessageBusTopology>();
+        var topology = runtime.Topology;
         var first = topology.Description;
 
         // act
@@ -455,6 +458,8 @@ public sealed class MessageBusTopologyTests
         public IFeatureCollection Features => throw new NotSupportedException();
 
         public IReadOnlyMessagingOptions Options => throw new NotSupportedException();
+
+        public IMessageBusTopology Topology => throw new NotSupportedException();
 
         public DispatchEndpoint GetSendEndpoint(MessageType messageType) => throw new NotSupportedException();
 

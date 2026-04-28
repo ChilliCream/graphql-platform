@@ -569,6 +569,7 @@ public sealed class ReceiveDeadLetterMiddlewareTests : ReceiveMiddlewareTestBase
         public ImmutableHashSet<Consumer> Consumers => [];
         public ImmutableArray<MessagingTransport> Transports => [];
         public IFeatureCollection Features => null!;
+        public IMessageBusTopology Topology => null!;
 
         public DispatchEndpoint GetSendEndpoint(MessageType messageType) => null!;
 
