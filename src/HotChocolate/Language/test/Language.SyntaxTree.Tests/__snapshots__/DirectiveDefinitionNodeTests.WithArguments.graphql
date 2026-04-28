@@ -1,2 +1,2 @@
 "bar"
-directive @foo(arg: type = null) repeatable on FIELD
+directive @foo(arg: type) repeatable on FIELD

@@ -3,5 +3,5 @@ schema {
 }
 
 type QueryWithIntArg {
-  bar(foo: Int! = null): String!
+  bar(foo: Int!): String!
 }

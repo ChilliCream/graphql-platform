@@ -472,7 +472,7 @@ public sealed partial class SyntaxSerializer
 
         writer.WriteType(node.Type);
 
-        if (node.DefaultValue is { } value)
+        if (node.DefaultValue is { Kind: not SyntaxKind.NullValue } value)
         {
             writer.WriteSpace();
             writer.Write("=");
@@ -622,7 +622,7 @@ public sealed partial class SyntaxSerializer
         writer.Write(": ");
         writer.WriteType(node.Type);
 
-        if (node.DefaultValue is { } value)
+        if (node.DefaultValue is { Kind: not SyntaxKind.NullValue } value)
         {
             writer.Write(" = ");
             writer.WriteValue(value, false);

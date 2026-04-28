@@ -159,26 +159,26 @@ enum __TypeKind {
 }
 
 type Query {
-  hero(episode: Episode! = null): Character
-  character(characterIds: [ID!]! = null): [Character!]!
-  human(id: ID! = null): Human
-  droid(id: ID! = null): Droid
-  search(text: String = null): [SearchResult]
+  hero(episode: Episode!): Character
+  character(characterIds: [ID!]!): [Character!]!
+  human(id: ID!): Human
+  droid(id: ID!): Droid
+  search(text: String): [SearchResult]
 }
 
 type Mutation {
-  createReview(episode: Episode! = null, review: ReviewInput! = null): Review!
+  createReview(episode: Episode!, review: ReviewInput!): Review!
 }
 
 type Subscription {
-  onReview(episode: Episode! = null): Review!
+  onReview(episode: Episode!): Review!
 }
 
 type Human implements Character {
   id: ID!
   appearsIn: [Episode]
   friends: [Character]
-  height(unit: Unit = null): Float
+  height(unit: Unit): Float
   name: String
   homePlanet: String
 }
@@ -187,7 +187,7 @@ type Droid implements Character {
   id: ID!
   appearsIn: [Episode]
   friends: [Character]
-  height(unit: Unit = null): Float
+  height(unit: Unit): Float
   name: String
   primaryFunction: String
 }
@@ -203,7 +203,7 @@ interface Character {
   name: String
   friends: [Character]
   appearsIn: [Episode]
-  height(unit: Unit = null): Float
+  height(unit: Unit): Float
 }
 
 union SearchResult = Starship | Human | Droid
@@ -214,8 +214,8 @@ type Review {
 }
 
 input ReviewInput {
-  stars: Int! = null
-  commentary: String = null
+  stars: Int!
+  commentary: String
 }
 
 enum Unit {
@@ -230,14 +230,14 @@ type Starship {
 }
 
 "Directs the executor to skip this field or fragment when the `if` argument is true."
-directive @skip("Skipped when true." if: Boolean! = null) on
+directive @skip("Skipped when true." if: Boolean!) on
   | FIELD
   | FIELD_DEFINITION
   | INLINE_FRAGMENT
   | FRAGMENT_SPREAD
 
 "Directs the executor to include this field or fragment only when the `if` argument is true."
-directive @include("Included when true." if: Boolean! = null) on
+directive @include("Included when true." if: Boolean!) on
   | FIELD
   | FIELD_DEFINITION
   | INLINE_FRAGMENT
