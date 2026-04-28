@@ -222,6 +222,11 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
     /// <inheritdoc />
     public override bool TryGetDispatchEndpoint(Uri address, [NotNullWhen(true)] out DispatchEndpoint? endpoint)
     {
+        if (TryGetReplyDispatchEndpoint(address, out endpoint))
+        {
+            return true;
+        }
+
         if (address.Scheme == Schema)
         {
             foreach (var candidate in DispatchEndpoints)
@@ -256,7 +261,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
             }
         }
 
-        if (address is { Scheme: "queue", Segments: [var queueName] })
+        if (TryGetResourceName(address, "queue", out var queueName))
         {
             foreach (var candidate in DispatchEndpoints)
             {
@@ -273,7 +278,7 @@ public sealed class RabbitMQMessagingTransport : MessagingTransport
             }
         }
 
-        if (address is { Scheme: "exchange", Segments: [var exchangeName] })
+        if (TryGetResourceName(address, "exchange", out var exchangeName))
         {
             foreach (var candidate in DispatchEndpoints)
             {

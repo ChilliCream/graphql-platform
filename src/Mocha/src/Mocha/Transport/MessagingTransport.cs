@@ -55,8 +55,7 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     /// The feature collection for this transport, providing access to transport-scoped features.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if accessed before the transport is initialized.</exception>
-    public IFeatureCollection Features
-        => _features ?? throw ThrowHelper.FeaturesNotInitialized();
+    public IFeatureCollection Features => _features ?? throw ThrowHelper.FeaturesNotInitialized();
 
     /// <summary>
     /// The messaging topology that describes the transport's addressing structure (exchanges, queues, topics).
@@ -381,6 +380,57 @@ public abstract partial class MessagingTransport : IAsyncDisposable, IFeaturePro
     /// </summary>
     /// <returns>A new, uninitialized <see cref="DispatchEndpoint"/> appropriate for this transport.</returns>
     protected abstract DispatchEndpoint CreateDispatchEndpoint();
+
+    /// <summary>
+    /// Attempts to read a resource name from URI forms such as <c>queue:name</c> and <c>queue://name</c>.
+    /// </summary>
+    /// <param name="address">The address to inspect.</param>
+    /// <param name="scheme">The expected resource scheme.</param>
+    /// <param name="name">The resource name when the address matches the scheme and contains one segment.</param>
+    /// <returns><c>true</c> if the address contains a resource name for the expected scheme.</returns>
+    protected static bool TryGetResourceName(Uri address, string scheme, [NotNullWhen(true)] out string? name)
+    {
+        if (address.Scheme != scheme)
+        {
+            name = null;
+            return false;
+        }
+
+        if (!string.IsNullOrEmpty(address.Host))
+        {
+            name = address.Host;
+            return true;
+        }
+
+        name = address.AbsolutePath;
+        return name.Length > 0 && !name.Contains('/');
+    }
+
+    /// <summary>
+    /// Attempts to resolve the stable reply alias for this transport.
+    /// </summary>
+    /// <remarks>
+    /// The completed reply dispatch endpoint uses an instance-specific destination, so the
+    /// <c>{Schema}:replies</c> alias has to resolve to the existing endpoint instead of
+    /// creating another reply dispatch endpoint.
+    /// </remarks>
+    /// <param name="address">The address to inspect.</param>
+    /// <param name="endpoint">The reply dispatch endpoint when the address is a reply alias.</param>
+    /// <returns><c>true</c> if the address is this transport's reply alias.</returns>
+    protected bool TryGetReplyDispatchEndpoint(Uri address, [NotNullWhen(true)] out DispatchEndpoint? endpoint)
+    {
+        if (address.Scheme == Schema
+            && address.Host.Length == 0
+            && address.AbsolutePath == "replies"
+            && ReplyDispatchEndpoint is { IsCompleted: true } reply)
+        {
+            endpoint = reply;
+            return true;
+        }
+
+        endpoint = null;
+        return false;
+    }
 
     /// <inheritdoc />
     public virtual ValueTask DisposeAsync() => ValueTask.CompletedTask;

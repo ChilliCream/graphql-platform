@@ -77,7 +77,6 @@ public sealed class EndpointRouter : IEndpointRouter
         ArgumentNullException.ThrowIfNull(context);
         ArgumentNullException.ThrowIfNull(address);
 
-        var changed = false;
         DispatchEndpoint? resolved = null;
 
         lock (_lock)
@@ -91,7 +90,7 @@ public sealed class EndpointRouter : IEndpointRouter
             {
                 if (transport.TryGetDispatchEndpoint(address, out var endpoint))
                 {
-                    changed = Upsert(endpoint, address);
+                    Upsert(endpoint, address);
                     resolved = endpoint;
                     break;
                 }
@@ -111,7 +110,10 @@ public sealed class EndpointRouter : IEndpointRouter
                             resolved.Complete(context);
                         }
 
-                        changed = Upsert(resolved, address);
+                        // DiscoverTopology/Complete already register completed endpoints and rotate
+                        // change tokens. This only records the requested alias, rotating again would
+                        // make the freshly exposed token appear changed to callbacks.
+                        Upsert(resolved, address);
                         break;
                     }
                 }
@@ -121,11 +123,6 @@ public sealed class EndpointRouter : IEndpointRouter
             {
                 throw ThrowHelper.NoTransportForAddress(address.ToString());
             }
-        }
-
-        if (changed && resolved.IsCompleted)
-        {
-            _changeTokens.Rotate();
         }
 
         return resolved;

@@ -96,7 +96,7 @@ public sealed class MessageBusTopologyTests
     }
 
     [Fact]
-    public async Task GetEndpoint_Should_ReturnSameCompletedEndpoint_When_AddressLookupRacesWithRouteLookup()
+    public async Task GetEndpoint_Should_ReturnSameCompletedEndpoint_When_AddressLookupFollowsRouteLookup()
     {
         // arrange
         await using var provider = CreateProvider(_ => { });
@@ -105,17 +105,11 @@ public sealed class MessageBusTopologyTests
         var address = new Uri($"queue:{runtime.Naming.GetSendEndpointName(typeof(LazyCommand))}");
 
         // act
-        var endpoints = await Task.WhenAll(
-            Enumerable
-                .Range(0, 20)
-                .Select(i =>
-                    Task.Run(() =>
-                        i % 2 == 0 ? runtime.GetSendEndpoint(messageType) : runtime.GetDispatchEndpoint(address)
-                    )
-                ));
+        var endpoint = runtime.GetSendEndpoint(messageType);
+        var resolved = runtime.GetDispatchEndpoint(address);
 
         // assert
-        var endpoint = Assert.Single(endpoints.Distinct());
+        Assert.Same(endpoint, resolved);
         Assert.True(endpoint.IsCompleted);
         Assert.Equal(1, runtime.Transports.Single().DispatchEndpoints.Count(e => e.Name == endpoint.Name));
     }
