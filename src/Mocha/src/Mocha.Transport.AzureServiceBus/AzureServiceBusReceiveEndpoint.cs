@@ -18,7 +18,7 @@ public sealed class AzureServiceBusReceiveEndpoint(AzureServiceBusMessagingTrans
 {
     private MessageProcessor? _processor;
     private QueueHeartbeat? _heartbeat;
-    private ILogger<AzureServiceBusReceiveEndpoint>? _logger;
+    private ILogger<AzureServiceBusReceiveEndpoint> _logger = null!;
     private int _maxConcurrentCalls = 1;
     private int _prefetchCount;
 
